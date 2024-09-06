@@ -36,7 +36,7 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 	}
 
 	initialHeight := clientModule.LatestHeight(ctx, clientID)
-	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", initialHeight.String())
+	k.Logger.Info("client created at height", "client-id", clientID, "height", initialHeight.String())
 
 	defer telemetry.ReportCreateClient(clientType)
 	emitCreateClientEvent(ctx, k.Environment, clientID, clientType, initialHeight)
@@ -63,7 +63,7 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 	if foundMisbehaviour {
 		clientModule.UpdateStateOnMisbehaviour(ctx, clientID, clientMsg)
 
-		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID)
+		k.Logger.Info("client frozen due to misbehaviour", "client-id", clientID)
 
 		clientType := types.MustParseClientIdentifier(clientID)
 		defer telemetry.ReportUpdateClient(foundMisbehaviour, clientType, clientID)
@@ -74,7 +74,7 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 
 	consensusHeights := clientModule.UpdateState(ctx, clientID, clientMsg)
 
-	k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
+	k.Logger.Info("client state updated", "client-id", clientID, "heights", consensusHeights)
 
 	clientType := types.MustParseClientIdentifier(clientID)
 	defer telemetry.ReportUpdateClient(foundMisbehaviour, clientType, clientID)
@@ -104,7 +104,7 @@ func (k *Keeper) UpgradeClient(
 	}
 
 	latestHeight := clientModule.LatestHeight(ctx, clientID)
-	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", latestHeight.String())
+	k.Logger.Info("client state upgraded", "client-id", clientID, "height", latestHeight.String())
 
 	clientType := types.MustParseClientIdentifier(clientID)
 	defer telemetry.ReportUpgradeClient(clientType, clientID)
@@ -142,7 +142,7 @@ func (k *Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClien
 		return err
 	}
 
-	k.Logger(ctx).Info("client recovered", "client-id", subjectClientID)
+	k.Logger.Info("client recovered", "client-id", subjectClientID)
 
 	clientType := types.MustParseClientIdentifier(subjectClientID)
 	defer telemetry.ReportRecoverClient(clientType, subjectClientID)

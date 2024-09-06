@@ -87,7 +87,7 @@ func (k *Keeper) SendPacket(
 
 	emitSendPacketEvent(sdkCtx, packet, channel, timeoutHeight)
 
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet sent",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", sourcePort,
@@ -180,7 +180,7 @@ func (k *Keeper) RecvPacket(
 	}
 
 	// log that a packet has been received & executed
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet received",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -325,7 +325,7 @@ func (k *Keeper) WriteAcknowledgement(
 	)
 
 	// log that a packet acknowledgement has been written
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"acknowledgement written",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -444,7 +444,7 @@ func (k *Keeper) AcknowledgePacket(
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// log that a packet has been acknowledged
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet acknowledged",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -477,7 +477,7 @@ func (k *Keeper) handleFlushState(ctx context.Context, packet types.Packet, chan
 		if timeout.Elapsed(selfHeight, selfTimestamp) {
 			// packet flushing timeout has expired, abort the upgrade
 			// committing an error receipt to state, deleting upgrade information and restoring the channel.
-			k.Logger(ctx).Info("upgrade aborted", "port_id", packet.GetSourcePort(), "channel_id", packet.GetSourceChannel(), "upgrade_sequence", channel.UpgradeSequence)
+			k.Logger.Info("upgrade aborted", "port_id", packet.GetSourcePort(), "channel_id", packet.GetSourceChannel(), "upgrade_sequence", channel.UpgradeSequence)
 			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp))
 		} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 			// set the channel state to flush complete if all packets have been acknowledged/flushed.
