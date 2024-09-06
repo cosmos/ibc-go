@@ -5,8 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
@@ -38,8 +36,7 @@ func (k Keeper) sendTx(ctx context.Context, connectionID, portID string, icaPack
 		return 0, errorsmod.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel on connection %s for port %s", connectionID, portID)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	if uint64(sdkCtx.BlockTime().UnixNano()) >= timeoutTimestamp {
+	if uint64(k.HeaderService.HeaderInfo(ctx).Time.UnixNano()) >= timeoutTimestamp {
 		return 0, icatypes.ErrInvalidTimeoutTimestamp
 	}
 

@@ -32,7 +32,7 @@ func (m Migrator) MigrateParams(ctx context.Context) error {
 			return err
 		}
 		m.keeper.SetParams(ctx, params)
-		m.keeper.Logger(ctx).Info("successfully migrated ica/host submodule to self-manage params")
+		m.keeper.Logger.Info("successfully migrated ica/host submodule to self-manage params")
 	}
 	return nil
 }

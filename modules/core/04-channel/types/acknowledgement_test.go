@@ -7,6 +7,7 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtstate "github.com/cometbft/cometbft/state"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -106,14 +107,14 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// different ABCI error code used
 	errDifferentABCICode := ibcerrors.ErrNotFound
 
-	deliverTx := sdkerrors.ResponseExecTxResultWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	execTxResults := []*abcitypes.ExecTxResult{deliverTx}
+	deliverTx := sdkerrors.ResponseExecTxResultWithEvents(err, gasUsed, gasWanted, []abci.Event{}, false)
+	execTxResults := []*abci.ExecTxResult{deliverTx}
 
-	deliverTxSameABCICode := sdkerrors.ResponseExecTxResultWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	resultsSameABCICode := []*abcitypes.ExecTxResult{deliverTxSameABCICode}
+	deliverTxSameABCICode := sdkerrors.ResponseExecTxResultWithEvents(errSameABCICode, gasUsed, gasWanted, []abci.Event{}, false)
+	resultsSameABCICode := []*abci.ExecTxResult{deliverTxSameABCICode}
 
-	deliverTxDifferentABCICode := sdkerrors.ResponseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	resultsDifferentABCICode := []*abcitypes.ExecTxResult{deliverTxDifferentABCICode}
+	deliverTxDifferentABCICode := sdkerrors.ResponseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abci.Event{}, false)
+	resultsDifferentABCICode := []*abci.ExecTxResult{deliverTxDifferentABCICode}
 
 	hash := cmtstate.TxResultsHash(execTxResults)
 	hashSameABCICode := cmtstate.TxResultsHash(resultsSameABCICode)

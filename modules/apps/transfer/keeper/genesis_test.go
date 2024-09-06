@@ -57,7 +57,8 @@ func (suite *KeeperTestSuite) TestGenesis() {
 		}
 	}
 
-	genesis := suite.chainA.GetSimApp().TransferKeeper.ExportGenesis(suite.chainA.GetContext())
+	genesis, err := suite.chainA.GetSimApp().TransferKeeper.ExportGenesis(suite.chainA.GetContext())
+	suite.Require().NoError(err)
 
 	suite.Require().Equal(types.PortID, genesis.PortId)
 	suite.Require().Equal(denoms.Sort(), genesis.Denoms)

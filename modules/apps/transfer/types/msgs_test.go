@@ -113,7 +113,7 @@ func TestMsgTransferGetSigners(t *testing.T) {
 	msg := types.NewMsgTransfer(validPort, validChannel, coins, addr.String(), receiver, timeoutHeight, 0, "", nil)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, transfer.AppModule{})
-	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
 	require.NoError(t, err)
 	require.Equal(t, addr.Bytes(), signers[0])
 }
@@ -163,7 +163,7 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			}
 
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, transfer.AppModule{})
-			signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
+			signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
 
 			if tc.errMsg == "" {
 				require.NoError(t, err)

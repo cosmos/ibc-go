@@ -8,6 +8,7 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
+	"cosmossdk.io/core/appmodule"
 	errorsmod "cosmossdk.io/errors"
 
 	crypto "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -44,14 +45,13 @@ type interchainAccountPretty struct {
 
 // GenerateAddress returns an sdk.AccAddress derived using a host module account address, host connection ID, the controller portID,
 // the current block app hash, and the current block data hash. The sdk.AccAddress returned is a sub-address of the host module account.
-func GenerateAddress(ctx context.Context, connectionID, portID string) sdk.AccAddress {
+func GenerateAddress(ctx context.Context, env appmodule.Environment, connectionID, portID string) sdk.AccAddress {
 	hostModuleAcc := sdkaddress.Module(ModuleName, []byte(hostAccountsKey))
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	header := sdkCtx.BlockHeader()
+	hi := env.HeaderService.HeaderInfo(ctx)
 
 	buf := []byte(connectionID + portID)
-	buf = append(buf, header.AppHash...)
-	buf = append(buf, header.DataHash...)
+	buf = append(buf, hi.AppHash...)
+	buf = append(buf, hi.Hash...)
 
 	return sdkaddress.Derive(hostModuleAcc, buf)
 }

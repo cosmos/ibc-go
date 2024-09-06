@@ -98,7 +98,7 @@ func TestRegisterPayeeGetSigners(t *testing.T) {
 	msg := types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, modulefee.AppModule{})
-	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
 	require.NoError(t, err)
 	require.Equal(t, accAddress.Bytes(), signers[0])
 }
@@ -186,7 +186,7 @@ func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 	msg := types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, modulefee.AppModule{})
-	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
 	require.NoError(t, err)
 	require.Equal(t, accAddress.Bytes(), signers[0])
 }
@@ -265,7 +265,7 @@ func TestPayPacketFeeGetSigners(t *testing.T) {
 	msg := types.NewMsgPayPacketFee(fee, ibctesting.MockFeePort, ibctesting.FirstChannelID, refundAddr.String(), nil)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, modulefee.AppModule{})
-	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
 	require.NoError(t, err)
 	require.Equal(t, refundAddr.Bytes(), signers[0])
 }
@@ -404,7 +404,7 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, modulefee.AppModule{})
-	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
 	require.NoError(t, err)
 	require.Equal(t, refundAddr.Bytes(), signers[0])
 }

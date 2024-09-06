@@ -148,7 +148,7 @@ func (k *Keeper) TimeoutExecuted(
 		// all upgrade information is deleted and the channel is set to CLOSED.
 		if channel.State == types.FLUSHING {
 			k.deleteUpgradeInfo(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-			k.Logger(ctx).Info(
+			k.Logger.Info(
 				"upgrade info deleted",
 				"port_id", packet.GetSourcePort(),
 				"channel_id", packet.GetSourceChannel(),
@@ -161,7 +161,7 @@ func (k *Keeper) TimeoutExecuted(
 		emitChannelClosedEvent(ctx, packet, channel)
 	}
 
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet timed-out",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),

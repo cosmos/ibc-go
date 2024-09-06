@@ -67,7 +67,7 @@ func (k *Keeper) WriteUpgradeInitChannel(ctx context.Context, portID, channelID 
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "state", channel.State, "upgrade-sequence", fmt.Sprintf("%d", channel.UpgradeSequence))
+	k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "state", channel.State, "upgrade-sequence", fmt.Sprintf("%d", channel.UpgradeSequence))
 
 	return channel, upgrade
 }
@@ -235,7 +235,7 @@ func (k *Keeper) WriteUpgradeTryChannel(ctx context.Context, portID, channelID s
 	upgrade.Fields.Version = upgradeVersion
 	k.SetUpgrade(ctx, portID, channelID, upgrade)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN, "new-state", channel.State)
+	k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.OPEN, "new-state", channel.State)
 
 	return channel, upgrade
 }
@@ -366,7 +366,7 @@ func (k *Keeper) WriteUpgradeAckChannel(ctx context.Context, portID, channelID s
 		previousState := channel.State
 		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
-		k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
+		k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
 	}
 
 	upgrade, found := k.GetUpgrade(ctx, portID, channelID)
@@ -490,7 +490,7 @@ func (k *Keeper) WriteUpgradeConfirmChannel(ctx context.Context, portID, channel
 		previousState := channel.State
 		channel.State = types.FLUSHCOMPLETE
 		k.SetChannel(ctx, portID, channelID, channel)
-		k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
+		k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", channel.State)
 	}
 
 	k.SetCounterpartyUpgrade(ctx, portID, channelID, counterpartyUpgrade)
@@ -647,7 +647,7 @@ func (k *Keeper) WriteUpgradeOpenChannel(ctx context.Context, portID, channelID 
 	// delete state associated with upgrade which is no longer required.
 	k.deleteUpgradeInfo(ctx, portID, channelID)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN)
+	k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN)
 	return channel
 }
 
@@ -725,7 +725,7 @@ func (k *Keeper) WriteUpgradeCancelChannel(ctx context.Context, portID, channelI
 	channel = k.restoreChannel(ctx, portID, channelID, sequence, channel)
 	k.WriteErrorReceipt(ctx, portID, channelID, types.NewUpgradeError(sequence, types.ErrInvalidUpgrade))
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN)
+	k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", previousState, "new-state", types.OPEN)
 }
 
 // ChanUpgradeTimeout times out an outstanding upgrade.
@@ -845,7 +845,7 @@ func (k *Keeper) WriteUpgradeTimeoutChannel(
 	channel = k.restoreChannel(ctx, portID, channelID, channel.UpgradeSequence, channel)
 	k.WriteErrorReceipt(ctx, portID, channelID, types.NewUpgradeError(channel.UpgradeSequence, types.ErrUpgradeTimeout))
 
-	k.Logger(ctx).Info("channel state restored", "port-id", portID, "channel-id", channelID)
+	k.Logger.Info("channel state restored", "port-id", portID, "channel-id", channelID)
 
 	return channel, upgrade
 }

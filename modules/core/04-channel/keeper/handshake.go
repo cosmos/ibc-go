@@ -76,7 +76,7 @@ func (k *Keeper) WriteOpenInitChannel(
 	k.SetNextSequenceRecv(ctx, portID, channelID, 1)
 	k.SetNextSequenceAck(ctx, portID, channelID, 1)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED, "new-state", types.INIT)
+	k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED, "new-state", types.INIT)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-init")
 
@@ -169,7 +169,7 @@ func (k *Keeper) WriteOpenTryChannel(
 
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED, "new-state", types.TRYOPEN)
+	k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.UNINITIALIZED, "new-state", types.TRYOPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-try")
 
@@ -239,7 +239,7 @@ func (k *Keeper) WriteOpenAckChannel(
 	channel.Counterparty.ChannelId = counterpartyChannelID
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.INIT, "new-state", types.OPEN)
+	k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.INIT, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
 
@@ -306,7 +306,7 @@ func (k *Keeper) WriteOpenConfirmChannel(
 
 	channel.State = types.OPEN
 	k.SetChannel(ctx, portID, channelID, channel)
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.TRYOPEN, "new-state", types.OPEN)
+	k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.TRYOPEN, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
 
@@ -347,7 +347,7 @@ func (k *Keeper) ChanCloseInit(
 		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State, "new-state", types.CLOSED)
+	k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State, "new-state", types.CLOSED)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "close-init")
 
@@ -410,7 +410,7 @@ func (k *Keeper) ChanCloseConfirm(
 	// If the channel is closing during an upgrade, then we can delete all upgrade information.
 	if k.hasUpgrade(ctx, portID, channelID) {
 		k.deleteUpgradeInfo(ctx, portID, channelID)
-		k.Logger(ctx).Info(
+		k.Logger.Info(
 			"upgrade info deleted",
 			"port_id", portID,
 			"channel_id", channelID,
@@ -418,7 +418,7 @@ func (k *Keeper) ChanCloseConfirm(
 		)
 	}
 
-	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State, "new-state", types.CLOSED)
+	k.Logger.Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State, "new-state", types.CLOSED)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "close-confirm")
 

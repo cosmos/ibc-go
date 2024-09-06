@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/core/registry"
 	"cosmossdk.io/x/authz"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
@@ -11,7 +12,7 @@ import (
 
 // RegisterLegacyAminoCodec registers the necessary x/ibc transfer interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
-func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+func RegisterLegacyAminoCodec(cdc registry.AminoRegistrar) {
 	legacy.RegisterAminoMsg(cdc, &MsgTransfer{}, "cosmos-sdk/MsgTransfer")
 }
 
