@@ -85,6 +85,7 @@ func (k Keeper) executeTx(ctx context.Context, sourcePort, destPort, destChannel
 
 			txMsgData.MsgResponses[i] = protoAny
 		}
+		return nil
 	})
 
 	txResponse, err := proto.Marshal(txMsgData)

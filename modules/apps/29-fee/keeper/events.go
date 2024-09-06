@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/event"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
@@ -12,7 +14,7 @@ import (
 
 // emitIncentivizedPacketEvent emits an event containing information on the total amount of fees incentivizing
 // a specific packet. It should be emitted on every fee escrowed for the given packetID.
-func emitIncentivizedPacketEvent(ctx context.Context, packetID channeltypes.PacketId, packetFees types.PacketFees) {
+func emitIncentivizedPacketEvent(ctx context.Context, env appmodule.Environment, packetID channeltypes.PacketId, packetFees types.PacketFees) {
 	var (
 		totalRecvFees    sdk.Coins
 		totalAckFees     sdk.Coins
@@ -27,70 +29,61 @@ func emitIncentivizedPacketEvent(ctx context.Context, packetID channeltypes.Pack
 			totalTimeoutFees = totalTimeoutFees.Add(fee.Fee.TimeoutFee...)
 		}
 	}
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeIncentivizedPacket,
-			sdk.NewAttribute(channeltypes.AttributeKeyPortID, packetID.PortId),
-			sdk.NewAttribute(channeltypes.AttributeKeyChannelID, packetID.ChannelId),
-			sdk.NewAttribute(channeltypes.AttributeKeySequence, fmt.Sprint(packetID.Sequence)),
-			sdk.NewAttribute(types.AttributeKeyRecvFee, totalRecvFees.String()),
-			sdk.NewAttribute(types.AttributeKeyAckFee, totalAckFees.String()),
-			sdk.NewAttribute(types.AttributeKeyTimeoutFee, totalTimeoutFees.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+
+	env.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeIncentivizedPacket,
+		event.Attribute{Key: channeltypes.AttributeKeyPortID, Value: packetID.PortId},
+		event.Attribute{Key: channeltypes.AttributeKeyChannelID, Value: packetID.ChannelId},
+		event.Attribute{Key: channeltypes.AttributeKeySequence, Value: fmt.Sprint(packetID.Sequence)},
+		event.Attribute{Key: types.AttributeKeyRecvFee, Value: totalRecvFees.String()},
+		event.Attribute{Key: types.AttributeKeyAckFee, Value: totalAckFees.String()},
+		event.Attribute{Key: types.AttributeKeyTimeoutFee, Value: totalTimeoutFees.String()},
+	)
+
+	env.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.Attribute{Key: sdk.AttributeKeyModule, Value: types.ModuleName},
+	)
+
 }
 
 // emitRegisterPayeeEvent emits an event containing information of a registered payee for a relayer on a particular channel
-func emitRegisterPayeeEvent(ctx context.Context, relayer, payee, channelID string) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeRegisterPayee,
-			sdk.NewAttribute(types.AttributeKeyRelayer, relayer),
-			sdk.NewAttribute(types.AttributeKeyPayee, payee),
-			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+func emitRegisterPayeeEvent(ctx context.Context, env appmodule.Environment, relayer, payee, channelID string) {
+	env.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeRegisterPayee,
+		event.Attribute{Key: types.AttributeKeyRelayer, Value: relayer},
+		event.Attribute{Key: types.AttributeKeyPayee, Value: payee},
+		event.Attribute{Key: types.AttributeKeyChannelID, Value: channelID},
+	)
+	env.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.Attribute{Key: sdk.AttributeKeyModule, Value: types.ModuleName},
+	)
 }
 
 // emitRegisterCounterpartyPayeeEvent emits an event containing information of a registered counterparty payee for a relayer on a particular channel
-func emitRegisterCounterpartyPayeeEvent(ctx context.Context, relayer, counterpartyPayee, channelID string) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeRegisterCounterpartyPayee,
-			sdk.NewAttribute(types.AttributeKeyRelayer, relayer),
-			sdk.NewAttribute(types.AttributeKeyCounterpartyPayee, counterpartyPayee),
-			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+func emitRegisterCounterpartyPayeeEvent(ctx context.Context, env appmodule.Environment, relayer, counterpartyPayee, channelID string) {
+	env.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeRegisterCounterpartyPayee,
+		event.Attribute{Key: types.AttributeKeyRelayer, Value: relayer},
+		event.Attribute{Key: types.AttributeKeyCounterpartyPayee, Value: counterpartyPayee},
+		event.Attribute{Key: types.AttributeKeyChannelID, Value: channelID},
+	)
+	env.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.Attribute{Key: sdk.AttributeKeyModule, Value: types.ModuleName},
+	)
 }
 
 // emitDistributeFeeEvent emits an event containing a distribution fee and receiver address
-func emitDistributeFeeEvent(ctx context.Context, receiver string, fee sdk.Coins) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeDistributeFee,
-			sdk.NewAttribute(types.AttributeKeyReceiver, receiver),
-			sdk.NewAttribute(types.AttributeKeyFee, fee.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+func emitDistributeFeeEvent(ctx context.Context, env appmodule.Environment, receiver string, fee sdk.Coins) {
+	env.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeDistributeFee,
+		event.Attribute{Key: types.AttributeKeyReceiver, Value: receiver},
+		event.Attribute{Key: types.AttributeKeyFee, Value: fee.String()},
+	)
+	env.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.Attribute{Key: sdk.AttributeKeyModule, Value: types.ModuleName},
+	)
 }
