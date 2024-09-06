@@ -7,7 +7,6 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	abcitypes "github.com/cometbft/cometbft/abci/types"
 	cmtstate "github.com/cometbft/cometbft/state"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
