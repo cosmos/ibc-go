@@ -62,12 +62,11 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 }
 
 // UpdateParams updates the host submodule's params.
-func (m msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+func (m msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if m.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", m.GetAuthority(), msg.Signer)
 	}
 
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	m.SetParams(ctx, msg.Params)
 
 	return &types.MsgUpdateParamsResponse{}, nil

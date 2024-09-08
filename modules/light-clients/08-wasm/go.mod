@@ -14,6 +14,7 @@ require (
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/store v1.1.1-0.20240815194237-858ec2fcb897
 	cosmossdk.io/tools/confix v0.1.2
+	cosmossdk.io/x/accounts v0.0.0-20240226161501-23359a0b6d91
 	cosmossdk.io/x/authz v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91
 	cosmossdk.io/x/circuit v0.1.1
@@ -56,8 +57,11 @@ require (
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.9 // indirect
 	cloud.google.com/go/storage v1.42.0 // indirect
+	cosmossdk.io/core/testing v0.0.0-20240906090851-36d9b25e8981 // indirect
 	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/schema v0.2.0 // indirect
+	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5 // indirect
+	cosmossdk.io/x/accounts/defaults/multisig v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/epochs v0.0.0-20240522060652-a1ae4c3e0337 // indirect
 	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
