@@ -32,7 +32,8 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, simulation.OpWeightMsgUpdateParams, w0.AppParamsKey())
 	require.Equal(t, simulation.DefaultWeightMsgUpdateParams, w0.DefaultWeight())
 
-	msg := w0.MsgSimulatorFn()(r, ctx, accounts)
+	msg, err := w0.MsgSimulatorFn()(ctx, r, accounts, nil)
+	require.NoError(t, err)
 	msgUpdateParams, ok := msg.(*types.MsgUpdateParams)
 	require.True(t, ok)
 

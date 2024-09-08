@@ -1,8 +1,10 @@
 package simulation
 
 import (
+	"context"
 	"math/rand"
 
+	coreaddress "cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
@@ -25,14 +27,14 @@ const (
 func ProposalMsgs(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) []simtypes.WeightedProposalMsg {
 	msgs := make([]simtypes.WeightedProposalMsg, 0, 2)
 	if hostKeeper != nil {
-		msgs = append(msgs, simulation.NewWeightedProposalMsg(
+		msgs = append(msgs, simulation.NewWeightedProposalMsgX(
 			OpWeightMsgUpdateParams,
 			DefaultWeightMsgUpdateParams,
 			SimulateHostMsgUpdateParams,
 		))
 	}
 	if controllerKeeper != nil {
-		msgs = append(msgs, simulation.NewWeightedProposalMsg(
+		msgs = append(msgs, simulation.NewWeightedProposalMsgX(
 			OpWeightMsgUpdateParams,
 			DefaultWeightMsgUpdateParams,
 			SimulateControllerMsgUpdateParams,
@@ -42,7 +44,7 @@ func ProposalMsgs(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 }
 
 // SimulateHostMsgUpdateParams returns a MsgUpdateParams for the host module
-func SimulateHostMsgUpdateParams(_ *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
+func SimulateHostMsgUpdateParams(ctx context.Context, _ *rand.Rand, _ []simtypes.Account, _ coreaddress.Codec) (sdk.Msg, error) {
 	var signer sdk.AccAddress = address.Module("gov")
 	params := types.DefaultParams()
 	params.HostEnabled = false
@@ -50,11 +52,11 @@ func SimulateHostMsgUpdateParams(_ *rand.Rand, _ sdk.Context, _ []simtypes.Accou
 	return &types.MsgUpdateParams{
 		Signer: signer.String(),
 		Params: params,
-	}
+	}, nil
 }
 
 // SimulateControllerMsgUpdateParams returns a MsgUpdateParams for the controller module
-func SimulateControllerMsgUpdateParams(_ *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
+func SimulateControllerMsgUpdateParams(ctx context.Context, _ *rand.Rand, _ []simtypes.Account, _ coreaddress.Codec) (sdk.Msg, error) {
 	var signer sdk.AccAddress = address.Module("gov")
 	params := controllertypes.DefaultParams()
 	params.ControllerEnabled = false
@@ -62,5 +64,5 @@ func SimulateControllerMsgUpdateParams(_ *rand.Rand, _ sdk.Context, _ []simtypes
 	return &controllertypes.MsgUpdateParams{
 		Signer: signer.String(),
 		Params: params,
-	}
+	}, nil
 }

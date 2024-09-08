@@ -6,12 +6,12 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 
 	minttypes "cosmossdk.io/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -192,7 +192,6 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 	var (
 		store           storetypes.KVStore
-		cdc             codec.Codec
 		expDenomEscrows sdk.Coins
 	)
 
@@ -208,7 +207,8 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
+				bz, err := math.Int(amount).Marshal()
+				suite.Require().NoError(err)
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			true,
@@ -220,14 +220,16 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
+				bz, err := math.Int(amount).Marshal()
+				suite.Require().NoError(err)
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 
 				denom = "bar/foo"
 				amount = sdkmath.NewInt(50)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz = cdc.MustMarshal(&sdk.IntProto{Int: amount})
+				bz, err = math.Int(amount).Marshal()
+				suite.Require().NoError(err)
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			true,
@@ -239,7 +241,8 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
+				bz, err := math.Int(amount).Marshal()
+				suite.Require().NoError(err)
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			true,
@@ -250,7 +253,8 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				denom := ""
 				amount := sdkmath.ZeroInt()
 
-				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
+				bz, err := math.Int(amount).Marshal()
+				suite.Require().NoError(err)
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			false,
@@ -261,7 +265,8 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				denom := "uatom"
 				amount := sdkmath.ZeroInt()
 
-				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
+				bz, err := math.Int(amount).Marshal()
+				suite.Require().NoError(err)
 				store.Set([]byte(fmt.Sprintf("wrong-prefix/%s", denom)), bz)
 			},
 			false,
@@ -279,7 +284,6 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 
 			storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
 			store = ctx.KVStore(storeKey)
-			cdc = suite.chainA.App.AppCodec()
 
 			tc.malleate()
 

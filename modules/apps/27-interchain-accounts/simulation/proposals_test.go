@@ -84,7 +84,8 @@ func TestProposalMsgs(t *testing.T) {
 				require.Equal(t, simulation.OpWeightMsgUpdateParams, weightedMsg.AppParamsKey())
 				require.Equal(t, simulation.DefaultWeightMsgUpdateParams, weightedMsg.DefaultWeight())
 
-				msg := weightedMsg.MsgSimulatorFn()(r, ctx, accounts)
+				msg, err := weightedMsg.MsgSimulatorFn()(ctx, r, accounts, nil)
+				require.NoError(t, err)
 
 				if msgUpdateHostParams, ok := msg.(*hosttypes.MsgUpdateParams); ok {
 					require.Equal(t, tc.expMsgs[idx], msgUpdateHostParams)

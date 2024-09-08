@@ -4,12 +4,6 @@ go 1.22.2
 
 toolchain go1.22.3
 
-replace github.com/cosmos/ibc-go/v9 => ../../../
-
-replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-
-replace github.com/cosmos/ibc-go/modules/capability => ../../capability
-
 require (
 	cosmossdk.io/api v0.7.5
 	cosmossdk.io/client/v2 v2.0.0-beta.3
@@ -210,4 +204,32 @@ require (
 	nhooyr.io/websocket v1.8.11 // indirect
 	pgregory.net/rapid v1.1.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
+)
+
+replace github.com/cosmos/ibc-go/v9 => ../../../
+
+replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+
+replace github.com/cosmos/ibc-go/modules/capability => ../../capability
+
+//TODO: remove everything below after tags are created
+replace (
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240815194237-858ec2fcb897 // main
+	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240906083041-6033330182c7 // main
+	cosmossdk.io/store => cosmossdk.io/store v1.0.0-rc.0.0.20240815194237-858ec2fcb897 // main
+	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/group => cosmossdk.io/x/group v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.4-0.20240815194237-858ec2fcb897 // main
+	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240905174638-8ce77cbb2450
+	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1
+	// pseudo version lower than the latest tag
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-alpha.1.0.20240905174638-8ce77cbb2450
+	github.com/cosmos/ibc-go/modules/capability => ./modules/capability //TODO: remove after capability is tagged
 )

@@ -34,7 +34,8 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, simulation.OpWeightMsgUpdateParams, w0.AppParamsKey())
 	require.Equal(t, simulation.DefaultWeight, w0.DefaultWeight())
 
-	msg := w0.MsgSimulatorFn()(r, ctx, accounts)
+	msg, err := w0.MsgSimulatorFn()(ctx, r, accounts, nil)
+	require.NoError(t, err)
 	msgUpdateParams, ok := msg.(*clienttypes.MsgUpdateParams)
 	require.True(t, ok)
 
@@ -46,7 +47,8 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, simulation.OpWeightMsgUpdateParams, w1.AppParamsKey())
 	require.Equal(t, simulation.DefaultWeight, w1.DefaultWeight())
 
-	msg1 := w1.MsgSimulatorFn()(r, ctx, accounts)
+	msg1, err := w1.MsgSimulatorFn()(ctx, r, accounts, nil)
+	require.NoError(t, err)
 	msgUpdateConnectionParams, ok := msg1.(*connectiontypes.MsgUpdateParams)
 	require.True(t, ok)
 
@@ -58,7 +60,8 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, simulation.OpWeightMsgRecoverClient, w2.AppParamsKey())
 	require.Equal(t, simulation.DefaultWeight, w2.DefaultWeight())
 
-	msg2 := w2.MsgSimulatorFn()(r, ctx, accounts)
+	msg2, err := w2.MsgSimulatorFn()(ctx, r, accounts, nil)
+	require.NoError(t, err)
 	msgRecoverClient, ok := msg2.(*clienttypes.MsgRecoverClient)
 	require.True(t, ok)
 
@@ -70,7 +73,8 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, simulation.OpWeightMsgIBCSoftwareUpgrade, w3.AppParamsKey())
 	require.Equal(t, simulation.DefaultWeight, w3.DefaultWeight())
 
-	msg3 := w3.MsgSimulatorFn()(r, ctx, accounts)
+	msg3, err := w3.MsgSimulatorFn()(ctx, r, accounts, nil)
+	require.NoError(t, err)
 	msgIBCSoftwareUpgrade, ok := msg3.(*clienttypes.MsgIBCSoftwareUpgrade)
 	require.True(t, ok)
 
