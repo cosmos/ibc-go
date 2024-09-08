@@ -32,7 +32,7 @@ import (
 
 var (
 	_ module.AppModule           = (*AppModule)(nil)
-	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
+	_ module.AppModuleBasic      = (*AppModule)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
 	_ module.HasGenesis          = (*AppModule)(nil)
 	_ module.HasServices         = (*AppModule)(nil)
@@ -42,13 +42,8 @@ var (
 	_ porttypes.IBCModule = (*host.IBCModule)(nil)
 )
 
-// AppModuleBasic is the IBC interchain accounts AppModuleBasic
-type AppModuleBasic struct {
-	cdc codec.Codec
-}
-
 // Name implements AppModuleBasic interface
-func (AppModuleBasic) Name() string {
+func (AppModule) Name() string {
 	return types.ModuleName
 }
 
@@ -58,11 +53,11 @@ func (AppModule) IsOnePerModuleType() {}
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
 
-// RegisterLegacyAminoCodec implements AppModuleBasic.
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc registry.AminoRegistrar) {}
+// RegisterLegacyAminoCodec implements AppModule.
+func (AppModule) RegisterLegacyAminoCodec(cdc registry.AminoRegistrar) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any
-func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+func (AppModule) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	controllertypes.RegisterInterfaces(registry)
 	hosttypes.RegisterInterfaces(registry)
 	types.RegisterInterfaces(registry)
@@ -70,12 +65,12 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 
 // DefaultGenesis returns default genesis state as raw bytes for the IBC
 // interchain accounts module
-func (am AppModuleBasic) DefaultGenesis() json.RawMessage {
+func (am AppModule) DefaultGenesis() json.RawMessage {
 	return am.cdc.MustMarshalJSON(genesistypes.DefaultGenesis())
 }
 
 // ValidateGenesis performs genesis state validation for the IBC interchain accounts module
-func (am AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
+func (am AppModule) ValidateGenesis(bz json.RawMessage) error {
 	var gs genesistypes.GenesisState
 	if err := am.cdc.UnmarshalJSON(bz, &gs); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
@@ -85,7 +80,7 @@ func (am AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the interchain accounts module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+func (AppModule) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	err := controllertypes.RegisterQueryHandlerClient(context.Background(), mux, controllertypes.NewQueryClient(clientCtx))
 	if err != nil {
 		panic(err)
@@ -97,29 +92,27 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 	}
 }
 
-// GetTxCmd implements AppModuleBasic interface
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
+// GetTxCmd implements AppModule interface
+func (AppModule) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
 }
 
-// GetQueryCmd implements AppModuleBasic interface
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+// GetQueryCmd implements AppModule interface
+func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
 // AppModule is the application module for the IBC interchain accounts module
 type AppModule struct {
-	AppModuleBasic
+	cdc              codec.Codec
 	controllerKeeper *controllerkeeper.Keeper
 	hostKeeper       *hostkeeper.Keeper
 }
 
 // NewAppModule creates a new IBC interchain accounts module
-func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) AppModule {
+func NewAppModule(cdc codec.Codec, controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{
-			cdc: nil,
-		},
+		cdc:              cdc,
 		controllerKeeper: controllerKeeper,
 		hostKeeper:       hostKeeper,
 	}

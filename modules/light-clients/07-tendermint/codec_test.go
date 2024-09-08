@@ -49,7 +49,7 @@ func TestCodecTypeRegistration(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, tendermint.AppModuleBasic{})
+			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, tendermint.AppModule{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
 			if tc.expPass {

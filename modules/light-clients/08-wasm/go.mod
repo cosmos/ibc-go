@@ -231,5 +231,4 @@ replace (
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1
 	// pseudo version lower than the latest tag
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-alpha.1.0.20240905174638-8ce77cbb2450
-	github.com/cosmos/ibc-go/modules/capability => ./modules/capability //TODO: remove after capability is tagged
 )
