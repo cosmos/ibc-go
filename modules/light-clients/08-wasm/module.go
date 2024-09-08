@@ -9,12 +9,12 @@ import (
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/registry"
 
 	"cosmossdk.io/x/gov/simulation"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -24,14 +24,13 @@ import (
 )
 
 var (
-	_ module.AppModule           = (*AppModule)(nil)
-	_ module.AppModuleBasic      = (*AppModule)(nil)
-	_ module.HasProposalMsgs     = (*AppModule)(nil)
-	_ module.HasGenesis          = (*AppModule)(nil)
-	_ module.HasName             = (*AppModule)(nil)
-	_ module.HasConsensusVersion = (*AppModule)(nil)
-	_ module.HasServices         = (*AppModule)(nil)
-	_ appmodule.AppModule        = (*AppModule)(nil)
+	_ module.AppModule              = (*AppModule)(nil)
+	_ module.AppModuleBasic         = (*AppModule)(nil)
+	_ module.HasProposalMsgs        = (*AppModule)(nil)
+	_ module.HasGenesis             = (*AppModule)(nil)
+	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
+	_ module.HasServices            = (*AppModule)(nil)
+	_ appmodule.AppModule           = (*AppModule)(nil)
 )
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
@@ -55,7 +54,7 @@ func (AppModule) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 }
 
 // DefaultGenesis returns an empty state, i.e. no contracts
-func (am AppModule) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+func (am AppModule) DefaultGenesis() json.RawMessage {
 	return am.cdc.MustMarshalJSON(&types.GenesisState{
 		Contracts: []types.Contract{},
 	})
@@ -122,19 +121,20 @@ func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.Weight
 	return simulation.ProposalMsgs()
 }
 
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.RawMessage) {
+func (am AppModule) InitGenesis(ctx context.Context, bz json.RawMessage) error {
 	var gs types.GenesisState
-	err := cdc.UnmarshalJSON(bz, &gs)
+	err := am.cdc.UnmarshalJSON(bz, &gs)
 	if err != nil {
 		panic(fmt.Errorf("failed to unmarshal %s genesis state: %s", am.Name(), err))
 	}
 	err = am.keeper.InitGenesis(ctx, gs)
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
-func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx context.Context) (json.RawMessage, error) {
 	gs := am.keeper.ExportGenesis(ctx)
-	return cdc.MustMarshalJSON(&gs)
+	return am.cdc.MarshalJSON(&gs)
 }

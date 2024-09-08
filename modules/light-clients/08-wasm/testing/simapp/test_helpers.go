@@ -14,6 +14,8 @@ import (
 	snapshottypes "cosmossdk.io/store/snapshots/types"
 
 	banktypes "cosmossdk.io/x/bank/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	cmttypes "github.com/cometbft/cometbft/types"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -21,9 +23,6 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	cmttypes "github.com/cometbft/cometbft/types"
 
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -76,7 +75,7 @@ func SetupWithGenesisValSetSnapshotter(t *testing.T, mockVM wasmtypes.WasmEngine
 	require.NoError(t, err)
 
 	// init chain will set the validator set and initialize the genesis accounts
-	_, err = app.InitChain(&abci.RequestInitChain{
+	_, err = app.InitChain(&abci.InitChainRequest{
 		Validators:      []abci.ValidatorUpdate{},
 		ConsensusParams: simtestutil.DefaultConsensusParams,
 		AppStateBytes:   stateBytes,

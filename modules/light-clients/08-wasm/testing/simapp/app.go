@@ -100,7 +100,6 @@ import (
 
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
-	cmtos "github.com/cometbft/cometbft/libs/os"
 
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
@@ -822,7 +821,8 @@ func NewSimApp(
 
 		// Initialize pinned codes in wasmvm as they are not persisted there
 		if err := app.WasmClientKeeper.InitializePinnedCodes(ctx); err != nil {
-			cmtos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
+			fmt.Println(fmt.Sprintf("failed initialize pinned codes %s", err))
+			os.Exit(1)
 		}
 	}
 
