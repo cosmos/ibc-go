@@ -12,6 +12,7 @@ replace (
 require (
 	cosmossdk.io/api v0.8.0
 	cosmossdk.io/client/v2 v2.0.0-beta.4
+	cosmossdk.io/collections v0.4.1-0.20240802064046-23fac2f1b8ab
 	cosmossdk.io/core v1.0.0
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/store v1.1.1-0.20240815194237-858ec2fcb897
@@ -55,7 +56,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.9 // indirect
 	cloud.google.com/go/storage v1.42.0 // indirect
-	cosmossdk.io/collections v0.4.1-0.20240802064046-23fac2f1b8ab // indirect
 	cosmossdk.io/core/testing v0.0.0-20240906090851-36d9b25e8981 // indirect
 	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/errors v1.0.1 // indirect
@@ -267,4 +267,5 @@ replace (
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1
 	// pseudo version lower than the latest tag
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-alpha.1.0.20240905174638-8ce77cbb2450
+	github.com/decred/dcrd/dcrec/secp256k1/v4 => github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1
 )
