@@ -141,8 +141,8 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					addr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 					suite.Require().True(found)
 
-					acc := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), sdk.MustAccAddressFromBech32(addr))
-					suite.chainB.GetSimApp().AccountKeeper.RemoveAccount(suite.chainB.GetContext(), acc)
+					acc := suite.chainB.GetSimApp().AuthKeeper.GetAccount(suite.chainB.GetContext(), sdk.MustAccAddressFromBech32(addr))
+					suite.chainB.GetSimApp().AuthKeeper.RemoveAccount(suite.chainB.GetContext(), acc)
 				},
 				icatypes.ErrInvalidAccountReopening,
 			},
@@ -159,13 +159,13 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					suite.Require().True(found)
 
 					accAddress := sdk.MustAccAddressFromBech32(addr)
-					acc := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), accAddress)
+					acc := suite.chainB.GetSimApp().AuthKeeper.GetAccount(suite.chainB.GetContext(), accAddress)
 
 					icaAcc, ok := acc.(*icatypes.InterchainAccount)
 					suite.Require().True(ok)
 
 					// overwrite existing account with only base account type, not intercahin account type
-					suite.chainB.GetSimApp().AccountKeeper.SetAccount(suite.chainB.GetContext(), icaAcc.BaseAccount)
+					suite.chainB.GetSimApp().AuthKeeper.SetAccount(suite.chainB.GetContext(), icaAcc.BaseAccount)
 				},
 				icatypes.ErrInvalidAccountReopening,
 			},
@@ -175,7 +175,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 					err := suite.chainB.GetSimApp().BankKeeper.SendCoins(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), interchainAccAddr, sdk.Coins{sdk.NewCoin("stake", sdkmath.NewInt(1))})
 					suite.Require().NoError(err)
-					suite.Require().True(suite.chainB.GetSimApp().AccountKeeper.HasAccount(suite.chainB.GetContext(), interchainAccAddr))
+					suite.Require().True(suite.chainB.GetSimApp().AuthKeeper.HasAccount(suite.chainB.GetContext(), interchainAccAddr))
 				},
 				icatypes.ErrAccountAlreadyExist,
 			},
@@ -321,7 +321,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 					suite.Require().NoError(err)
 
 					// Check if account is created
-					interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), interchainAccAddr)
+					interchainAccount := suite.chainB.GetSimApp().AuthKeeper.GetAccount(suite.chainB.GetContext(), interchainAccAddr)
 					suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
 
 					expectedMetadata.Address = storedAddr

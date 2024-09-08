@@ -12,6 +12,7 @@ require (
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/store v1.1.1-0.20240815194237-858ec2fcb897
+	cosmossdk.io/x/accounts v0.0.0-20240226161501-23359a0b6d91
 	cosmossdk.io/x/authz v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
@@ -20,6 +21,7 @@ require (
 	cosmossdk.io/x/group v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/mint v0.0.0-20240906090851-36d9b25e8981
 	cosmossdk.io/x/params v0.0.0-00010101000000-000000000000
+	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/tx v0.13.4
@@ -54,10 +56,12 @@ require (
 	cloud.google.com/go/iam v1.1.9 // indirect
 	cloud.google.com/go/storage v1.42.0 // indirect
 	cosmossdk.io/collections v0.4.1-0.20240802064046-23fac2f1b8ab // indirect
+	cosmossdk.io/core/testing v0.0.0-20240906090851-36d9b25e8981 // indirect
 	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/schema v0.2.0 // indirect
+	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5 // indirect
+	cosmossdk.io/x/accounts/defaults/multisig v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/epochs v0.0.0-20240522060652-a1ae4c3e0337 // indirect
-	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
@@ -217,18 +221,28 @@ require (
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
+replace github.com/cosmos/ibc-go/modules/capability => ./modules/capability //TODO: remove after capability is tagged
+
 //TODO: remove everything below after tags are created
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240815194237-858ec2fcb897 // main
 	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240906083041-6033330182c7 // main
 	cosmossdk.io/store => cosmossdk.io/store v1.0.0-rc.0.0.20240815194237-858ec2fcb897 // main
+	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/accounts/defaults/lockup => cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/accounts/defaults/multisig => cosmossdk.io/x/accounts/defaults/multisig v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/circuit => cosmossdk.io/x/circuit v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/feegrant => cosmossdk.io/x/feegrant v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/group => cosmossdk.io/x/group v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.4-0.20240815194237-858ec2fcb897 // main
@@ -236,5 +250,5 @@ replace (
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1
 	// pseudo version lower than the latest tag
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-alpha.1.0.20240905174638-8ce77cbb2450
-	github.com/cosmos/ibc-go/modules/capability => ./modules/capability //TODO: remove after capability is tagged
+	github.com/decred/dcrd/dcrec/secp256k1/v4 => github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1
 )

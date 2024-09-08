@@ -63,7 +63,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
-				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().AuthKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
@@ -91,7 +91,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
-				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().AuthKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
 				"", // authority
@@ -400,7 +400,7 @@ func (suite *KeeperTestSuite) TestIsBlockedAddr() {
 	}{
 		{
 			"transfer module account address",
-			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName),
+			suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(types.ModuleName),
 			false,
 		},
 		{
@@ -410,7 +410,7 @@ func (suite *KeeperTestSuite) TestIsBlockedAddr() {
 		},
 		{
 			"blocked address",
-			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName),
+			suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(minttypes.ModuleName),
 			true,
 		},
 	}

@@ -525,7 +525,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					suite.Require().NoError(err)
 
 					// Check if account is created
-					interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), icaAddr)
+					interchainAccount := suite.chainB.GetSimApp().AuthKeeper.GetAccount(suite.chainB.GetContext(), icaAddr)
 					suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
 
 					suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000000))))

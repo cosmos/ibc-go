@@ -10,14 +10,12 @@ import (
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-
-	abci "github.com/cometbft/cometbft/abci/types"
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
@@ -59,8 +57,7 @@ var (
 )
 
 var (
-	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
-	_ appmodule.AppModule   = (*AppModule)(nil)
+	_ appmodule.AppModule = (*AppModule)(nil)
 
 	_ porttypes.IBCModule = (*IBCModule)(nil)
 )
@@ -93,18 +90,18 @@ func (AppModule) IsOnePerModuleType() {}
 func (AppModule) IsAppModule() {}
 
 // RegisterLegacyAminoCodec implements AppModuleBasic interface.
-func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
+func (AppModuleBasic) RegisterLegacyAminoCodec(registry.AminoRegistrar) {}
 
 // RegisterInterfaces implements AppModuleBasic interface.
 func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {}
 
 // DefaultGenesis implements AppModuleBasic interface.
-func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+func (AppModuleBasic) DefaultGenesis() json.RawMessage {
 	return nil
 }
 
 // ValidateGenesis implements the AppModuleBasic interface.
-func (AppModuleBasic) ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(json.RawMessage) error {
 	return nil
 }
 
@@ -142,7 +139,7 @@ func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 func (AppModule) RegisterServices(module.Configurator) {}
 
 // InitGenesis implements the AppModule interface.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx context.Context, data json.RawMessage) error {
 	for _, ibcApp := range am.ibcApps {
 		if ibcApp.PortID != "" && !am.portKeeper.IsBound(ctx, ibcApp.PortID) {
 			// bind mock portID
@@ -154,12 +151,12 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 		}
 	}
 
-	return []abci.ValidatorUpdate{}
+	return nil
 }
 
 // ExportGenesis implements the AppModule interface.
-func (AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	return nil
+func (AppModule) ExportGenesis(ctx context.Context) (json.RawMessage, error) {
+	return nil, nil
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

@@ -300,7 +300,7 @@ func (chain *TestChain) NextBlock() {
 	chain.commitBlock(res)
 }
 
-func (chain *TestChain) commitBlock(res *abci.FinalizeBlockRequest) {
+func (chain *TestChain) commitBlock(res *abci.FinalizeBlockResponse) {
 	_, err := chain.App.Commit()
 	require.NoError(chain.TB, err)
 
