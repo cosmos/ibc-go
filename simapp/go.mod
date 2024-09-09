@@ -4,10 +4,7 @@ toolchain go1.22.3
 
 module github.com/cosmos/ibc-go/simapp
 
-replace (
-	github.com/cosmos/ibc-go/modules/capability => ../modules/capability
-	github.com/cosmos/ibc-go/v9 => ../
-)
+replace github.com/cosmos/ibc-go/v9 => ../
 
 require (
 	cosmossdk.io/api v0.7.5
@@ -25,7 +22,6 @@ require (
 	github.com/cosmos/cosmos-db v1.0.2
 	github.com/cosmos/cosmos-sdk v0.50.10-0.20240808075341-156231be8aef
 	github.com/cosmos/gogoproto v1.7.0
-	github.com/cosmos/ibc-go/modules/capability v1.0.1
 	github.com/cosmos/ibc-go/v9 v9.0.0
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/cobra v1.8.1

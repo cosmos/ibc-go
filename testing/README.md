@@ -53,7 +53,6 @@ type TestingApp interface {
   GetBaseApp() *baseapp.BaseApp
   GetStakingKeeper() ibctestingtypes.StakingKeeper
   GetIBCKeeper() *keeper.Keeper
-  GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
   GetTxConfig() client.TxConfig
 
   // Implemented by SimApp
@@ -84,11 +83,6 @@ func (app *SimApp) GetStakingKeeper() ibctestingtypes.Keeper {
 // GetIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
   return app.IBCKeeper
-}
-
-// GetScopedIBCKeeper implements the TestingApp interface.
-func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
-  return app.ScopedIBCKeeper
 }
 
 // GetTxConfig implements the TestingApp interface.

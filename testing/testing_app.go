@@ -27,7 +27,6 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v9/testing/simapp"
 	ibctestingtypes "github.com/cosmos/ibc-go/v9/testing/types"
@@ -42,7 +41,6 @@ type TestingApp interface {
 	GetBaseApp() *baseapp.BaseApp
 	GetStakingKeeper() ibctestingtypes.StakingKeeper
 	GetIBCKeeper() *keeper.Keeper
-	GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
 	GetTxConfig() client.TxConfig
 
 	// Implemented by SimApp
