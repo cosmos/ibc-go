@@ -24,7 +24,7 @@ require (
 	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/gov v0.0.0-20231113122742-912390d5fc4a
 	cosmossdk.io/x/group v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/mint v0.0.0-20240906090851-36d9b25e8981
+	cosmossdk.io/x/mint v0.0.0-20240909082436-01c0e9ba3581
 	cosmossdk.io/x/params v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000

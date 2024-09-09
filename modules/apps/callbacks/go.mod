@@ -14,6 +14,7 @@ require (
 	cosmossdk.io/api v0.8.0
 	cosmossdk.io/client/v2 v2.0.0-beta.3
 	cosmossdk.io/collections v0.4.1-0.20240802064046-23fac2f1b8ab
+	cosmossdk.io/core v1.0.0
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.4.1
 	cosmossdk.io/math v1.3.0
@@ -29,7 +30,7 @@ require (
 	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/gov v0.0.0-20231113122742-912390d5fc4a
 	cosmossdk.io/x/group v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/mint v0.0.0-20240906090851-36d9b25e8981
+	cosmossdk.io/x/mint v0.0.0-20240909082436-01c0e9ba3581
 	cosmossdk.io/x/params v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
@@ -58,7 +59,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.9 // indirect
 	cloud.google.com/go/storage v1.42.0 // indirect
-	cosmossdk.io/core v1.0.0 // indirect
 	cosmossdk.io/core/testing v0.0.0-20240906090851-36d9b25e8981 // indirect
 	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/schema v0.2.0 // indirect

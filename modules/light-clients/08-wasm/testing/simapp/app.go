@@ -9,13 +9,13 @@ import (
 	"path/filepath"
 	"strconv"
 
-	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cast"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/client/v2/autocli"
+	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/accounts"
@@ -241,7 +241,7 @@ func init() {
 // NewSimApp returns a reference to an initialized SimApp.
 func NewSimApp(
 	logger log.Logger,
-	db dbm.DB,
+	db corestore.KVStoreWithBatch,
 	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
