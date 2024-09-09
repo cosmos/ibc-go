@@ -3,11 +3,12 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	"github.com/stretchr/testify/require"
 )
 
 func TestValidateCounterparty(t *testing.T) {
