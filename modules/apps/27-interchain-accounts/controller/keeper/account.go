@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/internal/logging"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
@@ -65,16 +64,7 @@ func (k Keeper) registerInterchainAccount(ctx context.Context, connectionID, por
 		return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s on connection %s", activeChannelID, portID, connectionID)
 	}
 
-	switch {
-	case k.portKeeper.IsBound(ctx, portID) && !k.hasCapability(ctx, portID):
-		return "", errorsmod.Wrapf(icatypes.ErrPortAlreadyBound, "another module has claimed capability for and bound port with portID: %s", portID)
-	case !k.portKeeper.IsBound(ctx, portID):
-		k.setPort(ctx, portID)
-		capability := k.portKeeper.BindPort(ctx, portID)
-		if err := k.ClaimCapability(ctx, capability, host.PortPath(portID)); err != nil {
-			return "", errorsmod.Wrapf(err, "unable to bind to newly generated portID: %s", portID)
-		}
-	}
+	k.setPort(ctx, portID)
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	msg := channeltypes.NewMsgChannelOpenInit(portID, version, ordering, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())

@@ -1,7 +1,6 @@
 package mock
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,11 +18,9 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -64,13 +61,6 @@ var (
 
 	_ porttypes.IBCModule = (*IBCModule)(nil)
 )
-
-// Expected Interface
-// PortKeeper defines the expected IBC port keeper
-type PortKeeper interface {
-	BindPort(ctx context.Context, portID string) *capabilitytypes.Capability
-	IsBound(ctx context.Context, portID string) bool
-}
 
 // AppModuleBasic is the mock AppModuleBasic.
 type AppModuleBasic struct{}
@@ -124,15 +114,12 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for the mock module.
 type AppModule struct {
 	AppModuleBasic
-	ibcApps    []*IBCApp
-	portKeeper PortKeeper
+	ibcApps []*IBCApp
 }
 
 // NewAppModule returns a mock AppModule instance.
-func NewAppModule(pk PortKeeper) AppModule {
-	return AppModule{
-		portKeeper: pk,
-	}
+func NewAppModule() AppModule {
+	return AppModule{}
 }
 
 // RegisterInvariants implements the AppModule interface.
@@ -143,16 +130,16 @@ func (AppModule) RegisterServices(module.Configurator) {}
 
 // InitGenesis implements the AppModule interface.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	for _, ibcApp := range am.ibcApps {
-		if ibcApp.PortID != "" && !am.portKeeper.IsBound(ctx, ibcApp.PortID) {
-			// bind mock portID
-			capability := am.portKeeper.BindPort(ctx, ibcApp.PortID)
-			err := ibcApp.ScopedKeeper.ClaimCapability(ctx, capability, host.PortPath(ibcApp.PortID))
-			if err != nil {
-				panic(err)
-			}
-		}
-	}
+	// for _, ibcApp := range am.ibcApps {
+	// 	if ibcApp.PortID != "" && !am.portKeeper.IsBound(ctx, ibcApp.PortID) {
+	// 		// bind mock portID
+	// 		capability := am.portKeeper.BindPort(ctx, ibcApp.PortID)
+	// 		err := ibcApp.ScopedKeeper.ClaimCapability(ctx, capability, host.PortPath(ibcApp.PortID))
+	// 		if err != nil {
+	// 			panic(err)
+	// 		}
+	// 	}
+	// }
 
 	return []abci.ValidatorUpdate{}
 }

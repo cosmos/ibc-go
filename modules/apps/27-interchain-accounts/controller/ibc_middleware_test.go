@@ -1035,8 +1035,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 				}
 
 				if tc.expPanic != nil {
-					mockModule := ibcmock.NewAppModule(suite.chainA.App.GetIBCKeeper().PortKeeper)
-					mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID, suite.chainA.App.GetScopedIBCKeeper())
+					mockModule := ibcmock.NewAppModule()
+					mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID)
 					cbs = controller.NewIBCMiddlewareWithAuth(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
 
 					suite.Require().PanicsWithError(tc.expPanic.Error(), func() { upgradeOpenCb(cbs) })

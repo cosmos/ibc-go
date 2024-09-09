@@ -14,3 +14,7 @@ import (
 func (k Keeper) GetAppMetadata(ctx context.Context, portID, channelID string) (icatypes.Metadata, error) {
 	return k.getAppMetadata(ctx, portID, channelID)
 }
+
+func (k Keeper) SetPort(ctx context.Context, portID string) {
+	k.setPort(ctx, portID)
+}

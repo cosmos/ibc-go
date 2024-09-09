@@ -199,15 +199,6 @@ type SimApp struct {
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	CircuitKeeper         circuitkeeper.Keeper
 
-	// make scoped keepers public for test purposes
-	ScopedIBCKeeper           capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper      capabilitykeeper.ScopedKeeper
-	ScopedFeeMockKeeper       capabilitykeeper.ScopedKeeper
-	ScopedICAControllerKeeper capabilitykeeper.ScopedKeeper
-	ScopedICAHostKeeper       capabilitykeeper.ScopedKeeper
-	ScopedIBCMockKeeper       capabilitykeeper.ScopedKeeper
-	ScopedICAMockKeeper       capabilitykeeper.ScopedKeeper
-
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
 	IBCMockModule mock.IBCModule
@@ -329,18 +320,6 @@ func NewSimApp(
 	// add capability keeper and ScopeToModule for ibc module
 	app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[capabilitytypes.StoreKey]), runtime.NewMemStoreService(memKeys[capabilitytypes.MemStoreKey]))
 
-	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
-	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
-	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
-
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// not replicate if you do not need to test core IBC or light clients.
-	scopedIBCMockKeeper := app.CapabilityKeeper.ScopeToModule(mock.ModuleName)
-	scopedIBCMockBlockUpgradeKeeper := app.CapabilityKeeper.ScopeToModule(mock.MockBlockUpgrade)
-	scopedFeeMockKeeper := app.CapabilityKeeper.ScopeToModule(MockFeePort)
-	scopedICAMockKeeper := app.CapabilityKeeper.ScopeToModule(mock.ModuleName + icacontrollertypes.SubModuleName)
-
 	// seal capability keeper after scoping modules
 	// Applications that wish to enforce statically created ScopedKeepers should call `Seal` after creating
 	// their scoped modules in `NewApp` with `ScopeToModule`
@@ -404,7 +383,7 @@ func NewSimApp(
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, runtime.NewKVStoreService(keys[upgradetypes.StoreKey]), appCodec, homePath, app.BaseApp, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[ibcexported.StoreKey]), app.GetSubspace(ibcexported.ModuleName), app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		appCodec, runtime.NewKVStoreService(keys[ibcexported.StoreKey]), app.GetSubspace(ibcexported.ModuleName), app.UpgradeKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	govConfig := govtypes.DefaultConfig()
@@ -428,15 +407,15 @@ func NewSimApp(
 		appCodec, runtime.NewKVStoreService(keys[ibcfeetypes.StoreKey]),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
 		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.PortKeeper, app.AccountKeeper, app.BankKeeper,
+		app.AccountKeeper, app.BankKeeper,
 	)
 
 	// ICA Controller keeper
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[icacontrollertypes.StoreKey]), app.GetSubspace(icacontrollertypes.SubModuleName),
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
-		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
-		scopedICAControllerKeeper, app.MsgServiceRouter(),
+		app.IBCKeeper.ChannelKeeper,
+		app.MsgServiceRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -444,8 +423,8 @@ func NewSimApp(
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[icahosttypes.StoreKey]), app.GetSubspace(icahosttypes.SubModuleName),
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
-		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper, app.AccountKeeper,
-		scopedICAHostKeeper, app.MsgServiceRouter(), app.GRPCQueryRouter(),
+		app.IBCKeeper.ChannelKeeper, app.AccountKeeper,
+		app.MsgServiceRouter(), app.GRPCQueryRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -459,8 +438,8 @@ func NewSimApp(
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
-		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.AccountKeeper, app.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -469,17 +448,17 @@ func NewSimApp(
 	// Mock Module setup for testing IBC and also acts as the interchain accounts authentication module
 	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
 	// not replicate if you do not need to test core IBC or light clients.
-	mockModule := mock.NewAppModule(app.IBCKeeper.PortKeeper)
+	mockModule := mock.NewAppModule()
 
 	// The mock module is used for testing IBC
-	mockIBCModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(mock.ModuleName, scopedIBCMockKeeper))
+	mockIBCModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(mock.ModuleName))
 	app.IBCMockModule = mockIBCModule
 	ibcRouter.AddRoute(mock.ModuleName, mockIBCModule)
 
 	// Mock IBC app wrapped with a middleware which does not implement the UpgradeableModule interface.
 	// NOTE: this is used to test integration with apps which do not yet fulfill the UpgradeableModule interface and error when
 	// an upgrade is tried on the channel.
-	mockBlockUpgradeIBCModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(mock.MockBlockUpgrade, scopedIBCMockBlockUpgradeKeeper))
+	mockBlockUpgradeIBCModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(mock.MockBlockUpgrade))
 	mockBlockUpgradeMw := mock.NewBlockUpgradeMiddleware(&mockModule, mockBlockUpgradeIBCModule.IBCApp)
 	ibcRouter.AddRoute(mock.MockBlockUpgrade, mockBlockUpgradeMw)
 
@@ -508,7 +487,7 @@ func NewSimApp(
 
 	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
-	icaControllerStack = mock.NewIBCModule(&mockModule, mock.NewIBCApp("", scopedICAMockKeeper))
+	icaControllerStack = mock.NewIBCModule(&mockModule, mock.NewIBCApp(""))
 	var ok bool
 	app.ICAAuthModule, ok = icaControllerStack.(mock.IBCModule)
 	if !ok {
@@ -543,7 +522,7 @@ func NewSimApp(
 	// mockModule.OnAcknowledgementPacket -> fee.OnAcknowledgementPacket -> channel.OnAcknowledgementPacket
 
 	// create fee wrapped mock module
-	feeMockModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(MockFeePort, scopedFeeMockKeeper))
+	feeMockModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(MockFeePort))
 	app.FeeMockModule = feeMockModule
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
@@ -775,17 +754,6 @@ func NewSimApp(
 			panic(fmt.Errorf("error loading last version: %w", err))
 		}
 	}
-
-	app.ScopedIBCKeeper = scopedIBCKeeper
-	app.ScopedTransferKeeper = scopedTransferKeeper
-	app.ScopedICAControllerKeeper = scopedICAControllerKeeper
-	app.ScopedICAHostKeeper = scopedICAHostKeeper
-
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// note replicate if you do not need to test core IBC or light clients.
-	app.ScopedIBCMockKeeper = scopedIBCMockKeeper
-	app.ScopedICAMockKeeper = scopedICAMockKeeper
-	app.ScopedFeeMockKeeper = scopedFeeMockKeeper
 
 	return app
 }
