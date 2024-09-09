@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	govcli "cosmossdk.io/x/gov/client/cli"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"

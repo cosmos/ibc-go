@@ -5,6 +5,7 @@ import (
 	"time"
 
 	govtypes "cosmossdk.io/x/gov/types"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"

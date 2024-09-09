@@ -5,9 +5,9 @@ import (
 	"math/rand"
 	"time"
 
+	coreaddress "cosmossdk.io/core/address"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	coreaddress "cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"

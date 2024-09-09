@@ -10,8 +10,8 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/registry"
-
 	"cosmossdk.io/x/gov/simulation"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -49,8 +49,8 @@ func (AppModule) RegisterLegacyAminoCodec(registry.AminoRegistrar) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any. This allows core IBC
 // to unmarshal Wasm light client types.
-func (AppModule) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	types.RegisterInterfaces(registry)
+func (AppModule) RegisterInterfaces(reg codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(reg)
 }
 
 // DefaultGenesis returns an empty state, i.e. no contracts

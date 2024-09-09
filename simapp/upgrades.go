@@ -3,10 +3,9 @@ package simapp
 import (
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/x/accounts"
+	consensusparamtypes "cosmossdk.io/x/consensus/types"
 	pooltypes "cosmossdk.io/x/protocolpool/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-
-	consensusparamtypes "cosmossdk.io/x/consensus/types"
 
 	"github.com/cosmos/ibc-go/simapp/upgrades"
 )

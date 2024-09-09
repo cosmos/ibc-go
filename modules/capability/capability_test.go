@@ -3,9 +3,9 @@ package capability_test
 import (
 	"testing"
 
+	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	coretesting "cosmossdk.io/core/testing"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/metrics"
@@ -54,7 +54,7 @@ func (suite *CapabilityTestSuite) SetupTest() {
 }
 
 func (suite *CapabilityTestSuite) NewTestContext() sdk.Context {
-	db := coretesting.NewMemKV() //TODO: blocked on https://github.com/cosmos/cosmos-sdk/pull/21525
+	db := dbm.NewMemDB()
 	cms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	cms.MountStoreWithDB(suite.storeKey, storetypes.StoreTypeIAVL, db)
 	cms.MountStoreWithDB(suite.memStoreKey, storetypes.StoreTypeMemory, db)

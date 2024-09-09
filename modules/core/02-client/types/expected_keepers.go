@@ -3,9 +3,9 @@ package types
 import (
 	"context"
 
+	paramtypes "cosmossdk.io/x/params/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	paramtypes "cosmossdk.io/x/params/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

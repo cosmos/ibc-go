@@ -179,7 +179,6 @@ func (am AppModule) InitGenesis(ctx context.Context, bz json.RawMessage) error {
 		panic(fmt.Errorf("failed to unmarshal %s genesis state: %s", exported.ModuleName, err))
 	}
 	return InitGenesis(ctx, *am.keeper, &gs)
-
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the ibc

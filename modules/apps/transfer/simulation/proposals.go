@@ -5,6 +5,7 @@ import (
 	"math/rand"
 
 	coreaddress "cosmossdk.io/core/address"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
@@ -33,7 +34,7 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 
 // SimulateMsgUpdateParams returns a MsgUpdateParams
 func SimulateMsgUpdateParams(_ context.Context, _ *rand.Rand, _ []simtypes.Account, accCdc coreaddress.Codec) (sdk.Msg, error) {
-	var gov = address.Module("gov")
+	gov := address.Module("gov")
 	govString, err := accCdc.BytesToString(gov)
 	if err != nil {
 		return nil, err

@@ -8,6 +8,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
+	codectestutil "github.com/cosmos/cosmos-sdk/codec/testutil"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -39,7 +40,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 		map[string]*storetypes.MemoryStoreKey{memKey.Name(): memKey},
 	)
 	suite.ctx = testCtx
-	encCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModule{})
+	encCfg := moduletestutil.MakeTestEncodingConfig(codectestutil.CodecOptions{}, capability.AppModule{})
 	suite.keeper = keeper.NewKeeper(encCfg.Codec, runtime.NewKVStoreService(key), runtime.NewMemStoreService(memKey))
 }
 

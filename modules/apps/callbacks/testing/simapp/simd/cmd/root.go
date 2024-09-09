@@ -217,9 +217,6 @@ func initRootCmd(rootCmd *cobra.Command, moduleManager *module.Manager) {
 	)
 }
 
-func addModuleInitFlags(startCmd *cobra.Command) {
-}
-
 func queryCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "query",

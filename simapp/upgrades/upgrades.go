@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"cosmossdk.io/core/appmodule"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-
 	consensusparamskeeper "cosmossdk.io/x/consensus/keeper"
 	paramskeeper "cosmossdk.io/x/params/keeper"
 	paramstypes "cosmossdk.io/x/params/types"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"

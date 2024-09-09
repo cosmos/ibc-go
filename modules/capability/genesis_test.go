@@ -10,7 +10,8 @@ import (
 
 func (suite *CapabilityTestSuite) TestGenesis() {
 	// InitGenesis must be called in order to set the initial index to 1.
-	capability.InitGenesis(suite.ctx, *suite.keeper, *types.DefaultGenesis())
+	err := capability.InitGenesis(suite.ctx, *suite.keeper, *types.DefaultGenesis())
+	suite.Require().NoError(err)
 
 	sk1 := suite.keeper.ScopeToModule(bankModuleName)
 	sk2 := suite.keeper.ScopeToModule(stakingModuleName)
@@ -34,7 +35,8 @@ func (suite *CapabilityTestSuite) TestGenesis() {
 	newSk2 := newKeeper.ScopeToModule(stakingModuleName)
 	deliverCtx := suite.NewTestContext()
 
-	capability.InitGenesis(deliverCtx, *newKeeper, *genState)
+	err = capability.InitGenesis(deliverCtx, *newKeeper, *genState)
+	suite.Require().NoError(err)
 
 	// check that all previous capabilities exist in new app after InitGenesis
 	sk1Cap1, ok := newSk1.GetCapability(deliverCtx, "transfer")

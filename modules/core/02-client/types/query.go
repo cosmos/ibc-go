@@ -1,8 +1,9 @@
 package types
 
 import (
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	gogoprotoany "github.com/cosmos/gogoproto/types/any"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )

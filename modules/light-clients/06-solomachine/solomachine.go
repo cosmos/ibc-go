@@ -1,8 +1,9 @@
 package solomachine
 
 import (
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	gogoprotoany "github.com/cosmos/gogoproto/types/any"
+
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 )
 
 // Interface implementation checks.

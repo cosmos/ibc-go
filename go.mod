@@ -234,6 +234,7 @@ replace (
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/circuit => cosmossdk.io/x/circuit v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240905174638-8ce77cbb2450
+	cosmossdk.io/x/epochs => cosmossdk.io/x/epochs v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/feegrant => cosmossdk.io/x/feegrant v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240905174638-8ce77cbb2450

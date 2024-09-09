@@ -228,8 +228,8 @@ cosmossdk.io/x/consensus v0.0.0-20240905174638-8ce77cbb2450 h1:J//VFkxEHUAcUi+gX
 cosmossdk.io/x/consensus v0.0.0-20240905174638-8ce77cbb2450/go.mod h1:l6pOuqO+/JfstuPFgRV+srKRtC0xxz65FrRGdzoQMt4=
 cosmossdk.io/x/distribution v0.0.0-20240906090851-36d9b25e8981 h1:7nEV9siFRy8pcTo+8i3GQku27buS+yOSxTvMeL/uPK4=
 cosmossdk.io/x/distribution v0.0.0-20240906090851-36d9b25e8981/go.mod h1:gyG0xDJw0O8Kmyy/n91248GaIpcC4OWhobjFw8MxRuI=
-cosmossdk.io/x/epochs v0.0.0-20240522060652-a1ae4c3e0337 h1:GuBrfHsK3RD5vlD4DuBz3DXslR6VlnzrYmHOC3L679Q=
-cosmossdk.io/x/epochs v0.0.0-20240522060652-a1ae4c3e0337/go.mod h1:PhLn1pMBilyRC4GfRkoYhm+XVAYhF4adVrzut8AdpJI=
+cosmossdk.io/x/epochs v0.0.0-20240905174638-8ce77cbb2450 h1:RVcQ2XCuh39Qg0BYTuzasorzMhtwlua8mBpA3SCPRtY=
+cosmossdk.io/x/epochs v0.0.0-20240905174638-8ce77cbb2450/go.mod h1:ab0WK4m5EEvS060gKE8wINBD8bLxFk+OaSalVqwFpoM=
 cosmossdk.io/x/gov v0.0.0-20240905174638-8ce77cbb2450 h1:4qpruZEf5JgMPmdQr2neXsc8at1TWnH59ZcEz9SR1uw=
 cosmossdk.io/x/gov v0.0.0-20240905174638-8ce77cbb2450/go.mod h1:vxdu3r1+keQ0zugjZYwoaa0IcRscfqM/XQ8mw/MwFGc=
 cosmossdk.io/x/group v0.0.0-20240905174638-8ce77cbb2450 h1:6UP+BMaQIf12+Zdm50nHJzBd47Ue9pq+CvTRIhOM4q0=

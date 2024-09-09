@@ -3,6 +3,7 @@ package types
 import (
 	"cosmossdk.io/core/registry"
 	"cosmossdk.io/x/authz"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

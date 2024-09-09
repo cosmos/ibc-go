@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
-
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/store/types"
 	slashingtypes "cosmossdk.io/x/slashing/types"
@@ -14,6 +12,8 @@ import (
 
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 )
 
 // ExportAppStateAndValidators exports the state of the application for a genesis

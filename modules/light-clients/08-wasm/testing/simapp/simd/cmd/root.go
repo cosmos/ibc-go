@@ -228,13 +228,6 @@ func initRootCmd(rootCmd *cobra.Command, moduleManager *module.Manager) {
 	)
 }
 
-func addModuleInitFlags(startCmd *cobra.Command) {
-	preCheck := func(cmd *cobra.Command, _ []string) error {
-		return CheckLibwasmVersion(getExpectedLibwasmVersion())
-	}
-	startCmd.PreRunE = chainPreRuns(preCheck, startCmd.PreRunE)
-}
-
 func queryCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        "query",

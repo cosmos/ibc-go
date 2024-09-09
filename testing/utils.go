@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	govtypesv1 "cosmossdk.io/x/gov/types/v1"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 

@@ -6,11 +6,10 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
-
 	minttypes "cosmossdk.io/x/mint/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -207,7 +206,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err := math.Int(amount).Marshal()
+				bz, err := amount.Marshal()
 				suite.Require().NoError(err)
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
@@ -220,7 +219,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err := math.Int(amount).Marshal()
+				bz, err := amount.Marshal()
 				suite.Require().NoError(err)
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 
@@ -228,7 +227,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount = sdkmath.NewInt(50)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err = math.Int(amount).Marshal()
+				bz, err = amount.Marshal()
 				suite.Require().NoError(err)
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
@@ -241,7 +240,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err := math.Int(amount).Marshal()
+				bz, err := amount.Marshal()
 				suite.Require().NoError(err)
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
@@ -253,7 +252,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				denom := ""
 				amount := sdkmath.ZeroInt()
 
-				bz, err := math.Int(amount).Marshal()
+				bz, err := amount.Marshal()
 				suite.Require().NoError(err)
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
@@ -265,7 +264,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				denom := "uatom"
 				amount := sdkmath.ZeroInt()
 
-				bz, err := math.Int(amount).Marshal()
+				bz, err := amount.Marshal()
 				suite.Require().NoError(err)
 				store.Set([]byte(fmt.Sprintf("wrong-prefix/%s", denom)), bz)
 			},

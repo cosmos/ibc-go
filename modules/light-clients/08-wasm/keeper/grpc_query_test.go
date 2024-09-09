@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 
 	govtypes "cosmossdk.io/x/gov/types"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"

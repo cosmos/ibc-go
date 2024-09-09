@@ -9,10 +9,9 @@ import (
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
+
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
-
 	banktypes "cosmossdk.io/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -237,7 +236,7 @@ func (k Keeper) GetTotalEscrowForDenom(ctx context.Context, denom string) sdk.Co
 		panic(err)
 	}
 	if len(bz) == 0 {
-		return sdk.NewCoin(denom, sdkmath.ZeroInt())
+		return sdk.NewCoin(denom, math.ZeroInt())
 	}
 
 	amount := math.Int{}
@@ -266,7 +265,7 @@ func (k Keeper) SetTotalEscrowForDenom(ctx context.Context, coin sdk.Coin) {
 		return
 	}
 
-	bz, err := math.Int(coin.Amount).Marshal()
+	bz, err := coin.Amount.Marshal()
 	if err != nil {
 		panic(err)
 	}

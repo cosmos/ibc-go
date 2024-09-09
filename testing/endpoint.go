@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	govtypesv1 "cosmossdk.io/x/gov/types/v1"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

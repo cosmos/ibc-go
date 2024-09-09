@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
 	gogoprotoany "github.com/cosmos/gogoproto/types/any"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

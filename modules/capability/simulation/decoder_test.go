@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	codectestuitl "github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -16,7 +17,7 @@ import (
 )
 
 func TestDecodeStore(t *testing.T) {
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(capability.AppModule{})
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(codectestuitl.CodecOptions{}, capability.AppModule{})
 	dec := simulation.NewDecodeStore(encodingCfg.Codec)
 
 	capOwners := types.CapabilityOwners{
