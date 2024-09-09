@@ -129,18 +129,7 @@ func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 func (AppModule) RegisterServices(module.Configurator) {}
 
 // InitGenesis implements the AppModule interface.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	// for _, ibcApp := range am.ibcApps {
-	// 	if ibcApp.PortID != "" && !am.portKeeper.IsBound(ctx, ibcApp.PortID) {
-	// 		// bind mock portID
-	// 		capability := am.portKeeper.BindPort(ctx, ibcApp.PortID)
-	// 		err := ibcApp.ScopedKeeper.ClaimCapability(ctx, capability, host.PortPath(ibcApp.PortID))
-	// 		if err != nil {
-	// 			panic(err)
-	// 		}
-	// 	}
-	// }
-
+func (AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 

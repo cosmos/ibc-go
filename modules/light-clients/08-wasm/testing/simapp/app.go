@@ -1081,7 +1081,7 @@ func (app *SimApp) GetWasmKeeper() wasmkeeper.Keeper {
 }
 
 // GetScopedIBCKeeper implements the TestingApp interface.
-func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
+func (*SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 	return capabilitykeeper.ScopedKeeper{}
 }
 

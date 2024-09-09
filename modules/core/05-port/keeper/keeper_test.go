@@ -11,11 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/testing/simapp"
 )
 
-var (
-	validPort   = "validportid"
-	invalidPort = "(invalidPortID)"
-)
-
 type KeeperTestSuite struct {
 	testifysuite.Suite
 
