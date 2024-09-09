@@ -8,6 +8,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -23,20 +24,40 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		malleate func()
 		expError error
 	}{
-		{"success", func() {}, nil},
-		{"counterparty not found", func() {
-			packet.SourceChannel = ibctesting.FirstChannelID
-		}, channeltypes.ErrChannelNotFound},
-		{"packet failed basic validation", func() {
-			// invalid data
-			packet.Data = nil
-		}, channeltypes.ErrInvalidPacket},
-		{"client status invalid", func() {
-			path.EndpointA.FreezeClient()
-		}, clienttypes.ErrClientNotActive},
-		{"timeout elapsed", func() {
-			packet.TimeoutTimestamp = 1
-		}, channeltypes.ErrTimeoutElapsed},
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"counterparty not found",
+			func() {
+				packet.SourceChannel = ibctesting.FirstChannelID
+			},
+			types.ErrCounterpartyNotFound,
+		},
+		{
+			"packet failed basic validation",
+			func() {
+				// invalid data
+				packet.Data = nil
+			},
+			channeltypes.ErrInvalidPacket,
+		},
+		{
+			"client status invalid",
+			func() {
+				path.EndpointA.FreezeClient()
+			},
+			clienttypes.ErrClientNotActive,
+		},
+		{
+			"timeout elapsed",
+			func() {
+				packet.TimeoutTimestamp = 1
+			},
+			channeltypes.ErrTimeoutElapsed,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -104,7 +125,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {
 				packet.DestinationChannel = ibctesting.FirstChannelID
 			},
-			channeltypes.ErrChannelNotFound,
+			types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: client is not active",
@@ -156,10 +177,10 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			path.SetupV2()
 
 			// send packet
-			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, "", ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
 
 			tc.malleate()
 
@@ -211,7 +232,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			func() {
 				packet.DestinationChannel = ibctesting.FirstChannelID
 			},
-			channeltypes.ErrChannelNotFound,
+			types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
@@ -312,7 +333,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			func() {
 				packet.SourceChannel = ibctesting.FirstChannelID
 			},
-			channeltypes.ErrChannelNotFound,
+			types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
@@ -362,10 +383,10 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			freezeClient = false
 
 			// send packet
-			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, "", ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, "")
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
 
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
@@ -454,7 +475,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 				packet.SourceChannel = ibctesting.FirstChannelID
 			},
-			channeltypes.ErrChannelNotFound,
+			types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
@@ -536,7 +557,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			// create default packet with a timed out height
 			// test cases may mutate timeout values
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, disabledTimeoutTimestamp, "")
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, disabledTimeoutTimestamp, mock.Version)
 
 			tc.malleate()
 

@@ -11,8 +11,10 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -25,51 +27,51 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 
 	testCases := []struct {
 		name     string
-		expPass  bool
 		malleate func()
+		expErr   error
 	}{
 		{
 			"success",
-			true,
 			func() {},
+			nil,
 		},
 		{
 			"success: ordering falls back to UNORDERED if not specified",
-			true,
 			func() {
 				msg.Ordering = channeltypes.NONE
 				expectedOrderding = channeltypes.UNORDERED
 			},
+			nil,
 		},
 		{
-			"invalid connection id",
-			false,
-			func() {
-				msg.ConnectionId = "connection-100"
-			},
-		},
-		{
-			"non-empty owner address is valid",
-			true,
+			"success: non-empty owner address is valid",
 			func() {
 				msg.Owner = "<invalid-owner>"
 			},
+			nil,
+		},
+		{
+			"invalid connection id",
+			func() {
+				msg.ConnectionId = "connection-100"
+			},
+			connectiontypes.ErrConnectionNotFound,
 		},
 		{
 			"empty address invalid",
-			false,
 			func() {
 				msg.Owner = ""
 			},
+			icatypes.ErrInvalidAccountAddress,
 		},
 		{
 			"port is already bound for owner but capability is claimed by another module",
-			false,
 			func() {
 				capability := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
 				err := suite.chainA.GetSimApp().TransferKeeper.ClaimCapability(suite.chainA.GetContext(), capability, host.PortPath(TestPortID))
 				suite.Require().NoError(err)
 			},
+			icatypes.ErrPortAlreadyBound,
 		},
 	}
 
@@ -93,7 +95,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 				msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
 				res, err := msgServer.RegisterInterchainAccount(ctx, msg)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 					suite.Require().NotNil(res)
 					suite.Require().Equal(expectedChannelID, res.ChannelId)
@@ -108,7 +110,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 					channel := path.EndpointA.GetChannel()
 					suite.Require().Equal(expectedOrderding, channel.Ordering)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 					suite.Require().Nil(res)
 				}
 			})
@@ -125,31 +127,31 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success", func() {
 			},
-			true,
+			nil,
 		},
 		{
 			"failure - owner address is empty", func() {
 				msg.Owner = ""
 			},
-			false,
+			icatypes.ErrInvalidAccountAddress,
 		},
 		{
 			"failure - active channel does not exist for connection ID", func() {
 				msg.Owner = TestOwnerAddress
 				msg.ConnectionId = "connection-100"
 			},
-			false,
+			icatypes.ErrActiveChannelNotFound,
 		},
 		{
 			"failure - active channel does not exist for port ID", func() {
 				msg.Owner = "invalid-owner"
 			},
-			false,
+			icatypes.ErrActiveChannelNotFound,
 		},
 		{
 			"failure - controller module does not own capability for this channel", func() {
@@ -160,7 +162,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 				// set the active channel with the incorrect portID in order to reach the capability check
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ConnectionID, portID, path.EndpointA.ChannelID)
 			},
-			false,
+			icatypes.ErrActiveChannelNotFound,
 		},
 	}
 
@@ -212,11 +214,11 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 				msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
 				res, err := msgServer.SendTx(ctx, msg)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 					suite.Require().NotNil(res)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 					suite.Require().Nil(res)
 				}
 			})
@@ -228,34 +230,34 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 func (suite *KeeperTestSuite) TestUpdateParams() {
 	signer := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
+		name   string
+		msg    *types.MsgUpdateParams
+		expErr error
 	}{
 		{
 			"success: valid signer and default params",
 			types.NewMsgUpdateParams(signer, types.NewParams(!types.DefaultControllerEnabled)),
-			true,
+			nil,
 		},
 		{
 			"failure: malformed signer address",
 			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: empty signer address",
 			types.NewMsgUpdateParams("", types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: whitespace signer address",
 			types.NewMsgUpdateParams("    ", types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: unauthorized signer address",
 			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 	}
 
@@ -265,12 +267,12 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			_, err := suite.chainA.GetSimApp().ICAControllerKeeper.UpdateParams(suite.chainA.GetContext(), tc.msg)
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				p := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
 				suite.Require().Equal(tc.msg.Params, p)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

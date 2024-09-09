@@ -14,6 +14,8 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
+// Keeper defines the packet keeper. It wraps the client and channel keepers.
+// It does not manage its own store.
 type Keeper struct {
 	cdc           codec.BinaryCodec
 	storeKey      storetypes.StoreKey
@@ -21,6 +23,7 @@ type Keeper struct {
 	ClientKeeper  types.ClientKeeper
 }
 
+// NewKeeper creates a new packet keeper
 func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, channelKeeper types.ChannelKeeper, clientKeeper types.ClientKeeper) *Keeper {
 	return &Keeper{
 		cdc:           cdc,
@@ -32,8 +35,7 @@ func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, channelKeepe
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx sdk.Context) log.Logger {
-	// TODO: prefix some submodule identifier?
-	return ctx.Logger().With("module", "x/"+exported.ModuleName)
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 func (k Keeper) ChannelStore(ctx sdk.Context, channelID string) storetypes.KVStore {

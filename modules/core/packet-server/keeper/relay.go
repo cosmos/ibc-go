@@ -17,7 +17,10 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
-// TODO: add godoc
+// SendPacket implements the packet sending logic required by a packet handler.
+// It will generate a packet and store the commitment hash if all arguments provided are valid.
+// The destination channel will be filled in using the counterparty information.
+// The next sequence send will be initialized if this is the first packet sent for the given client.
 func (k Keeper) SendPacket(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,
@@ -32,7 +35,7 @@ func (k Keeper) SendPacket(
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
 	counterparty, ok := k.GetCounterparty(ctx, sourceChannel)
 	if !ok {
-		return 0, channeltypes.ErrChannelNotFound
+		return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceChannel)
 	}
 	destChannel := counterparty.CounterpartyChannel
 	clientId := counterparty.ClientId
@@ -83,13 +86,19 @@ func (k Keeper) SendPacket(
 	// log that a packet has been sent
 	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
-	channelkeeper.EmitSendPacketEvent(ctx, packet, sentinelChannel(sourceChannel), timeoutHeight)
+	channelkeeper.EmitSendPacketEvent(ctx, packet, nil, timeoutHeight)
 
 	// return the sequence
 	return sequence, nil
 }
 
-// TODO: add godoc
+// RecvPacket implements the packet receiving logic required by a packet handler.
+// The packet is checked for correctness including asserting that the packet was
+// sent and received on clients which are counterparties for one another.
+// If the packet has already been received a no-op error is returned.
+// The packet handler will verify that the packet has not timed out and that the
+// counterparty stored a packet commitment. If successful, a packet receipt is stored
+// to indicate to the counterparty successful delivery.
 func (k Keeper) RecvPacket(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,
@@ -106,7 +115,7 @@ func (k Keeper) RecvPacket(
 	// Note: This can be implemented by the current keeper
 	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
-		return "", channeltypes.ErrChannelNotFound
+		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
 	}
 	if counterparty.CounterpartyChannel != packet.SourceChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
@@ -125,7 +134,7 @@ func (k Keeper) RecvPacket(
 	// by the increase of the recvStartSequence.
 	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 	if found {
-		channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
+		channelkeeper.EmitRecvPacketEvent(ctx, packet, nil)
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
 		// from failing and consuming unnecessary fees.
@@ -135,7 +144,7 @@ func (k Keeper) RecvPacket(
 	// create key/value pair for proof verification by appending the ICS24 path to the last element of the counterparty merklepath
 	// TODO: allow for custom prefix
 	path := host.PacketCommitmentKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(&counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	commitment := channeltypes.CommitPacket(packet)
 
@@ -158,12 +167,16 @@ func (k Keeper) RecvPacket(
 	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	// emit the same events as receive packet without channel fields
-	channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
+	channelkeeper.EmitRecvPacketEvent(ctx, packet, nil)
 
 	return packet.AppVersion, nil
 }
 
-// TODO: add godoc
+// WriteAcknowledgement implements the async acknowledgement writing logic required by a packet handler.
+// The packet is checked for correctness including asserting that the packet was
+// sent and received on clients which are counterparties for one another.
+// If no acknowledgement exists for the given packet, then a commitment of the acknowledgement
+// is written into state.
 func (k Keeper) WriteAcknowledgement(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,
@@ -182,7 +195,7 @@ func (k Keeper) WriteAcknowledgement(
 	// sent by our counterparty.
 	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
-		return channeltypes.ErrChannelNotFound
+		return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
 	}
 	if counterparty.CounterpartyChannel != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
@@ -214,12 +227,17 @@ func (k Keeper) WriteAcknowledgement(
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	// emit the same events as write acknowledgement without channel fields
-	channelkeeper.EmitWriteAcknowledgementEvent(ctx, packet, sentinelChannel(packet.DestinationChannel), bz)
+	channelkeeper.EmitWriteAcknowledgementEvent(ctx, packet, nil, bz)
 
 	return nil
 }
 
-// TODO: add godoc
+// AcknowledgePacket implements the acknowledgement processing logic required by a packet handler.
+// The packet is checked for correctness including asserting that the packet was
+// sent and received on clients which are counterparties for one another.
+// If no packet commitment exists, a no-op error is returned, otherwise
+// the acknowledgement provided is verified to have been stored by the counterparty.
+// If successful, the packet commitment is deleted and the packet has completed its lifecycle.
 func (k Keeper) AcknowledgePacket(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,
@@ -236,7 +254,7 @@ func (k Keeper) AcknowledgePacket(
 	// sent by our counterparty.
 	counterparty, ok := k.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
-		return "", channeltypes.ErrChannelNotFound
+		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceChannel)
 	}
 
 	if counterparty.CounterpartyChannel != packet.DestinationChannel {
@@ -246,7 +264,7 @@ func (k Keeper) AcknowledgePacket(
 
 	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
-		channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+		channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, nil)
 
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
@@ -263,7 +281,7 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	path := host.PacketAcknowledgementKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(&counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
@@ -283,12 +301,18 @@ func (k Keeper) AcknowledgePacket(
 	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "src_port", packet.GetSourcePort(), "src_channel", packet.GetSourceChannel(), "dst_port", packet.GetDestPort(), "dst_channel", packet.GetDestChannel())
 
 	// emit the same events as acknowledge packet without channel fields
-	channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+	channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, nil)
 
 	return packet.AppVersion, nil
 }
 
-// TODO: add godoc
+// TimeoutPacket implements the timeout logic required by a packet handler.
+// The packet is checked for correctness including asserting that the packet was
+// sent and received on clients which are counterparties for one another.
+// If no packet commitment exists, a no-op error is returned, otherwise
+// an absence proof of the packet receipt is performed to ensure that the packet
+// was never delivered to the counterparty. If successful, the packet commitment
+// is deleted and the packet has completed its lifecycle.
 func (k Keeper) TimeoutPacket(
 	ctx sdk.Context,
 	_ *capabilitytypes.Capability,
@@ -304,7 +328,7 @@ func (k Keeper) TimeoutPacket(
 	// is the expected counterparty
 	counterparty, ok := k.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
-		return "", channeltypes.ErrChannelNotFound
+		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceChannel)
 	}
 	clientId := counterparty.ClientId
 
@@ -327,7 +351,7 @@ func (k Keeper) TimeoutPacket(
 	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		channelkeeper.EmitTimeoutPacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+		channelkeeper.EmitTimeoutPacketEvent(ctx, packet, nil)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -343,7 +367,7 @@ func (k Keeper) TimeoutPacket(
 
 	// verify packet receipt absence
 	path := host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(&counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
@@ -363,12 +387,7 @@ func (k Keeper) TimeoutPacket(
 	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	// emit timeout events
-	channelkeeper.EmitTimeoutPacketEvent(ctx, packet, sentinelChannel(packet.SourceChannel))
+	channelkeeper.EmitTimeoutPacketEvent(ctx, packet, nil)
 
 	return packet.AppVersion, nil
-}
-
-// sentinelChannel creates a sentinel channel for use in events for Eureka protocol handlers.
-func sentinelChannel(clientID string) channeltypes.Channel {
-	return channeltypes.Channel{Ordering: channeltypes.UNORDERED, ConnectionHops: []string{clientID}}
 }
