@@ -104,14 +104,6 @@ func (im BlockUpgradeMiddleware) OnRecvPacket(ctx context.Context, channelVersio
 		return im.IBCApp.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
-	// set state by claiming capability to check if revert happens return
-	capName := GetMockRecvCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
-		// application callback called twice on same packet sequence
-		// must never occur
-		panic(err)
-	}
-
 	if bytes.Equal(MockPacketData, packet.GetData()) {
 		return MockAcknowledgement
 	} else if bytes.Equal(MockAsyncPacketData, packet.GetData()) {
@@ -127,13 +119,6 @@ func (im BlockUpgradeMiddleware) OnAcknowledgementPacket(ctx context.Context, ch
 		return im.IBCApp.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
-	capName := GetMockAckCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
-		// application callback called twice on same packet sequence
-		// must never occur
-		panic(err)
-	}
-
 	return nil
 }
 
@@ -141,13 +126,6 @@ func (im BlockUpgradeMiddleware) OnAcknowledgementPacket(ctx context.Context, ch
 func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnTimeoutPacket != nil {
 		return im.IBCApp.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
-	}
-
-	capName := GetMockTimeoutCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
-		// application callback called twice on same packet sequence
-		// must never occur
-		panic(err)
 	}
 
 	return nil
