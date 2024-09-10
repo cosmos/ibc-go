@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"runtime/debug"
 	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
@@ -366,36 +365,4 @@ func CheckLibwasmVersion(wasmExpectedVersion string) error {
 		return fmt.Errorf("libwasmversion mismatch. got: %s; expected: %s", wasmVersion, wasmExpectedVersion)
 	}
 	return nil
-}
-
-type preRunFn func(cmd *cobra.Command, args []string) error
-
-func chainPreRuns(pfns ...preRunFn) preRunFn {
-	return func(cmd *cobra.Command, args []string) error {
-		for _, pfn := range pfns {
-			if pfn != nil {
-				if err := pfn(cmd, args); err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-	}
-}
-
-func getExpectedLibwasmVersion() string {
-	buildInfo, ok := debug.ReadBuildInfo()
-	if !ok {
-		panic("can't read build info")
-	}
-	for _, d := range buildInfo.Deps {
-		if d.Path != "github.com/CosmWasm/wasmvm/v2" {
-			continue
-		}
-		if d.Replace != nil {
-			return d.Replace.Version
-		}
-		return d.Version
-	}
-	return ""
 }
