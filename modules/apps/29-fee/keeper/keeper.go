@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
@@ -20,10 +19,7 @@ import (
 
 // Middleware must implement types.ChannelKeeper and types.PortKeeper expected interfaces
 // so that it can wrap IBC channel and port logic for underlying application.
-var (
-	_ types.ChannelKeeper = (*Keeper)(nil)
-	_ types.PortKeeper    = (*Keeper)(nil)
-)
+var _ types.ChannelKeeper = (*Keeper)(nil)
 
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
@@ -33,7 +29,6 @@ type Keeper struct {
 	authKeeper    types.AccountKeeper
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
-	portKeeper    types.PortKeeper
 	bankKeeper    types.BankKeeper
 }
 
@@ -41,14 +36,13 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec, storeService corestore.KVStoreService,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper,
-	portKeeper types.PortKeeper, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
+	authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 	return Keeper{
 		cdc:           cdc,
 		storeService:  storeService,
 		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
-		portKeeper:    portKeeper,
 		authKeeper:    authKeeper,
 		bankKeeper:    bankKeeper,
 	}
@@ -70,12 +64,6 @@ func (k Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
 func (Keeper) Logger(ctx context.Context) log.Logger {
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return sdkCtx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+types.ModuleName)
-}
-
-// BindPort defines a wrapper function for the port Keeper's function in
-// order to expose it to module's InitGenesis function
-func (k Keeper) BindPort(ctx context.Context, portID string) *capabilitytypes.Capability {
-	return k.portKeeper.BindPort(ctx, portID)
 }
 
 // GetChannel wraps IBC ChannelKeeper's GetChannel function

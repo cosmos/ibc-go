@@ -16,13 +16,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -34,9 +32,6 @@ type Keeper struct {
 	legacySubspace icatypes.ParamSubspace
 	ics4Wrapper    porttypes.ICS4Wrapper
 	channelKeeper  icatypes.ChannelKeeper
-	portKeeper     icatypes.PortKeeper
-
-	scopedKeeper exported.ScopedKeeper
 
 	msgRouter icatypes.MessageRouter
 
@@ -48,8 +43,8 @@ type Keeper struct {
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
 	cdc codec.Codec, storeService corestore.KVStoreService, legacySubspace icatypes.ParamSubspace,
-	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
-	scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter, authority string,
+	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper,
+	msgRouter icatypes.MessageRouter, authority string,
 ) Keeper {
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
@@ -61,8 +56,6 @@ func NewKeeper(
 		legacySubspace: legacySubspace,
 		ics4Wrapper:    ics4Wrapper,
 		channelKeeper:  channelKeeper,
-		portKeeper:     portKeeper,
-		scopedKeeper:   scopedKeeper,
 		msgRouter:      msgRouter,
 		authority:      authority,
 	}
@@ -117,22 +110,6 @@ func (k Keeper) setPort(ctx context.Context, portID string) {
 	if err := store.Set(icatypes.KeyPort(portID), []byte{0x01}); err != nil {
 		panic(err)
 	}
-}
-
-// hasCapability checks if the interchain account controller module owns the port capability for the desired port
-func (k Keeper) hasCapability(ctx context.Context, portID string) bool {
-	_, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
-	return ok
-}
-
-// AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
-func (k Keeper) AuthenticateCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) bool {
-	return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
-}
-
-// ClaimCapability wraps the scopedKeeper's ClaimCapability function
-func (k Keeper) ClaimCapability(ctx context.Context, cap *capabilitytypes.Capability, name string) error {
-	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
 // GetAppVersion calls the ICS4Wrapper GetAppVersion function.

@@ -39,10 +39,7 @@ type Keeper struct {
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
-	portKeeper    icatypes.PortKeeper
 	accountKeeper icatypes.AccountKeeper
-
-	scopedKeeper exported.ScopedKeeper
 
 	msgRouter   icatypes.MessageRouter
 	queryRouter icatypes.QueryRouter
@@ -58,9 +55,8 @@ type Keeper struct {
 // NewKeeper creates a new interchain accounts host Keeper instance
 func NewKeeper(
 	cdc codec.Codec, storeService corestore.KVStoreService, legacySubspace icatypes.ParamSubspace,
-	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, portKeeper icatypes.PortKeeper,
-	accountKeeper icatypes.AccountKeeper, scopedKeeper exported.ScopedKeeper, msgRouter icatypes.MessageRouter,
-	queryRouter icatypes.QueryRouter, authority string,
+	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper,
+	accountKeeper icatypes.AccountKeeper, msgRouter icatypes.MessageRouter, queryRouter icatypes.QueryRouter, authority string,
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
@@ -77,9 +73,7 @@ func NewKeeper(
 		legacySubspace: legacySubspace,
 		ics4Wrapper:    ics4Wrapper,
 		channelKeeper:  channelKeeper,
-		portKeeper:     portKeeper,
 		accountKeeper:  accountKeeper,
-		scopedKeeper:   scopedKeeper,
 		msgRouter:      msgRouter,
 		queryRouter:    queryRouter,
 		mqsAllowList:   newModuleQuerySafeAllowList(),

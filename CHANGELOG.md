@@ -45,6 +45,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7213) Remove capabilities from `SendPacket`.
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
 * (core, apps) [\#7232](https://github.com/cosmos/ibc-go/pull/7232) Remove capabilities from channel handshake methods. TODO list all changes 
+* (core, apps) [\#7270](https://github.com/cosmos/ibc-go/pull/7270) Remove remaining dependencies on capability module.
 * (core/04-channel) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `LookupModuleByChannel`
 * (core/05-port) [\#7252](https://github.com/cosmos/ibc-go/pull/7252) Removed function `LookupModuleByPort`
 * (core/24-host) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `ChannelCapabilityPath`

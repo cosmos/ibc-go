@@ -5,15 +5,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // IBCApp contains IBC application module callbacks as defined in 05-port.
 type IBCApp struct {
-	PortID       string
-	ScopedKeeper capabilitykeeper.ScopedKeeper
+	PortID string
 
 	OnChanOpenInit func(
 		ctx context.Context,
@@ -122,9 +120,8 @@ type IBCApp struct {
 }
 
 // NewIBCApp returns a IBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.
-func NewIBCApp(portID string, scopedKeeper capabilitykeeper.ScopedKeeper) *IBCApp {
+func NewIBCApp(portID string) *IBCApp {
 	return &IBCApp{
-		PortID:       portID,
-		ScopedKeeper: scopedKeeper,
+		PortID: portID,
 	}
 }
