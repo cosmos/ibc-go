@@ -19,6 +19,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
@@ -179,7 +180,7 @@ func (endpoint *Endpoint) FreezeClient() {
 func (endpoint *Endpoint) ProvideCounterparty() (err error) {
 	merklePath := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
 
-	msg := clienttypes.NewMsgProvideCounterparty(endpoint.Chain.SenderAccount.GetAddress().String(), endpoint.ClientID, endpoint.Counterparty.ClientID, merklePath)
+	msg := packetservertypes.NewMsgProvideCounterparty(endpoint.Chain.SenderAccount.GetAddress().String(), endpoint.ClientID, endpoint.Counterparty.ClientID, merklePath)
 
 	// setup counterparty
 	_, err = endpoint.Chain.SendMsgs(msg)

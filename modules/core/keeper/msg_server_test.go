@@ -22,6 +22,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
@@ -307,7 +308,7 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				// any non-nil value of packet is valid
 				suite.Require().NotNil(packet)
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			packetservertypes.ErrCounterpartyNotFound,
 			false,
 			false,
 			false,
@@ -670,7 +671,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 			func() {
 				packet.SourceChannel = "invalid-client"
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			packetservertypes.ErrCounterpartyNotFound,
 			false,
 		},
 		{
@@ -996,7 +997,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 
 				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			packetservertypes.ErrCounterpartyNotFound,
 			false,
 		},
 	}
@@ -1218,7 +1219,7 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 func (suite *KeeperTestSuite) TestProvideCounterparty() {
 	var (
 		path *ibctesting.Path
-		msg  *clienttypes.MsgProvideCounterparty
+		msg  *packetservertypes.MsgProvideCounterparty
 	)
 	cases := []struct {
 		name     string
@@ -1248,9 +1249,9 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			"failure: counterparty already exists",
 			func() {
 				// set it before handler
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ClientId, msg.Counterparty)
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ClientId, msg.Counterparty)
 			},
-			clienttypes.ErrInvalidCounterparty,
+			packetservertypes.ErrInvalidCounterparty,
 		},
 	}
 
@@ -1261,7 +1262,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 
 		signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
 		merklePrefix := commitmenttypesv2.NewMerklePath([]byte("mock-key"))
-		msg = clienttypes.NewMsgProvideCounterparty(signer, path.EndpointA.ClientID, path.EndpointB.ClientID, merklePrefix)
+		msg = packetservertypes.NewMsgProvideCounterparty(signer, path.EndpointA.ClientID, path.EndpointB.ClientID, merklePrefix)
 
 		tc.malleate()
 
@@ -1274,7 +1275,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			suite.Require().Nil(err)
 
 			// Assert counterparty set and creator deleted
-			counterparty, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			counterparty, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().True(found)
 			suite.Require().Equal(counterparty, msg.Counterparty)
 

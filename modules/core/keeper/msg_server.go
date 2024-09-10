@@ -14,10 +14,10 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
+	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
@@ -26,7 +26,7 @@ var (
 	_ connectiontypes.MsgServer    = (*Keeper)(nil)
 	_ channeltypes.MsgServer       = (*Keeper)(nil)
 	_ channeltypes.PacketMsgServer = (*Keeper)(nil)
-    _ packetservertypes.MsgServer  = (*Keeper)(nil)
+	_ packetservertypes.MsgServer  = (*Keeper)(nil)
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.

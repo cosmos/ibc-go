@@ -11,6 +11,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
@@ -69,7 +70,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			func() {
 				packet.SourceChannel = ibctesting.FirstChannelID
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			types.ErrCounterpartyNotFound,
 		},
 		{
 			"packet failed basic validation",
@@ -174,7 +175,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {
 				packet.DestinationChannel = ibctesting.FirstChannelID
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: client is not active",
@@ -281,7 +282,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			func() {
 				packet.DestinationChannel = ibctesting.FirstChannelID
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
@@ -382,7 +383,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			func() {
 				packet.SourceChannel = ibctesting.FirstChannelID
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
@@ -524,7 +525,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 				packet.SourceChannel = ibctesting.FirstChannelID
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",

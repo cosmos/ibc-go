@@ -26,7 +26,6 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryConsensusStateHeights(),
 		GetCmdQueryConsensusState(),
 		GetCmdQueryHeader(),
-		GetCmdQueryClient(),
 		GetCmdSelfConsensusState(),
 		GetCmdClientParams(),
 	)
@@ -51,7 +50,6 @@ func NewTxCmd() *cobra.Command {
 		newUpgradeClientCmd(),
 		newSubmitRecoverClientProposalCmd(),
 		newScheduleIBCUpgradeProposalCmd(),
-		newProvideCounterpartyCmd(),
 	)
 
 	return txCmd
