@@ -35,15 +35,12 @@ const (
 )
 
 var (
-	MockAcknowledgement             = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
-	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement(errors.New("mock failed acknowledgement"))
-	MockPacketData                  = []byte("mock packet data")
-	MockFailPacketData              = []byte("mock failed packet data")
-	MockAsyncPacketData             = []byte("mock async packet data")
-	MockRecvCanaryCapabilityName    = "mock receive canary capability name"
-	MockAckCanaryCapabilityName     = "mock acknowledgement canary capability name"
-	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"
-	UpgradeVersion                  = fmt.Sprintf("%s-v2", Version)
+	MockAcknowledgement     = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
+	MockFailAcknowledgement = channeltypes.NewErrorAcknowledgement(errors.New("mock failed acknowledgement"))
+	MockPacketData          = []byte("mock packet data")
+	MockFailPacketData      = []byte("mock failed packet data")
+	MockAsyncPacketData     = []byte("mock async packet data")
+	UpgradeVersion          = fmt.Sprintf("%s-v2", Version)
 	// MockApplicationCallbackError should be returned when an application callback should fail. It is possible to
 	// test that this error was returned using ErrorIs.
 	MockApplicationCallbackError error = &applicationCallbackError{}

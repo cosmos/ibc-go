@@ -143,17 +143,6 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 			},
 			icatypes.ErrActiveChannelNotFound,
 		},
-		{
-			"failure - controller module does not own capability for this channel", func() {
-				msg.Owner = "invalid-owner"
-				portID, err := icatypes.NewControllerPortID(msg.Owner)
-				suite.Require().NoError(err)
-
-				// set the active channel with the incorrect portID in order to reach the capability check
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ConnectionID, portID, path.EndpointA.ChannelID)
-			},
-			icatypes.ErrActiveChannelNotFound,
-		},
 	}
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {

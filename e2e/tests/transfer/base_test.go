@@ -78,13 +78,6 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	chainBAddress := chainBWallet.FormattedAddress()
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-	// TODO: https://github.com/cosmos/ibc-go/issues/6743
-	// t.Run("ensure capability module BeginBlock is executed", func(t *testing.T) {
-	//	// by restarting the chain we ensure that the capability module's BeginBlocker is executed.
-	//	s.Require().NoError(chainA.(*cosmos.CosmosChain).StopAllNodes(ctx))
-	//	s.Require().NoError(chainA.(*cosmos.CosmosChain).StartAllNodes(ctx))
-	//	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
-	// })
 
 	t.Run("native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", nil)
