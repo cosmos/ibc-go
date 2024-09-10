@@ -7,9 +7,7 @@ import (
 )
 
 func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
-	var (
-		path *ibctesting.Path
-	)
+	var path *ibctesting.Path
 
 	testCases := []struct {
 		name       string
@@ -60,8 +58,9 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 
 			timeoutHeight := suite.chainA.GetTimeoutHeight()
 
-			sequence, err := path.EndpointA.SendPacketV2POC(timeoutHeight, 0, data)
+			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, data)
 			suite.Require().NoError(err)
+			suite.Require().NotZero(sequence)
 
 			packet := channeltypes.NewPacketV2(data, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0)
 
@@ -82,7 +81,6 @@ func (suite *TransferTestSuite) TestIBCModuleV2HappyPath() {
 
 			err = path.EndpointA.AcknowledgePacketV2(packet, expectedMultiAck)
 			suite.Require().NoError(err)
-
 		})
 	}
 }
