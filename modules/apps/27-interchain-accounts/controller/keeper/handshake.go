@@ -15,9 +15,7 @@ import (
 // OnChanOpenInit performs basic validation of channel initialization.
 // The counterparty port identifier must be the host chain representation as defined in the types package,
 // the channel version must be equal to the version in the types package,
-// there must not be an active channel for the specified port identifier,
-// and the interchain accounts module must be able to claim the channel
-// capability.
+// there must not be an active channel for the specified port identifier.
 func (k Keeper) OnChanOpenInit(
 	ctx context.Context,
 	order channeltypes.Order,

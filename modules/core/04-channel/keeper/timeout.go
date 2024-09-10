@@ -34,9 +34,6 @@ func (k *Keeper) TimeoutPacket(
 		)
 	}
 
-	// NOTE: TimeoutPacket is called by the AnteHandler which acts upon the packet.Route(),
-	// so the capability authentication can be omitted here
-
 	if packet.GetDestPort() != channel.Counterparty.PortId {
 		return "", errorsmod.Wrapf(
 			types.ErrInvalidPacket,

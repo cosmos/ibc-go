@@ -3,13 +3,12 @@ package host
 import "fmt"
 
 const (
-	KeyChannelEndPrefix        = "channelEnds"
-	KeyChannelPrefix           = "channels"
-	KeyChannelUpgradePrefix    = "channelUpgrades"
-	KeyUpgradePrefix           = "upgrades"
-	KeyUpgradeErrorPrefix      = "upgradeError"
-	KeyCounterpartyUpgrade     = "counterpartyUpgrade"
-	KeyChannelCapabilityPrefix = "capabilities"
+	KeyChannelEndPrefix     = "channelEnds"
+	KeyChannelPrefix        = "channels"
+	KeyChannelUpgradePrefix = "channelUpgrades"
+	KeyUpgradePrefix        = "upgrades"
+	KeyUpgradeErrorPrefix   = "upgradeError"
+	KeyCounterpartyUpgrade  = "counterpartyUpgrade"
 )
 
 // ICS04
