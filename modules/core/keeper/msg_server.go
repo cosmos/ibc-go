@@ -465,6 +465,27 @@ func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Ms
 	return &channeltypes.MsgChannelCloseConfirmResponse{}, nil
 }
 
+// SendPacket defines a rpc handler method for MsgSendPacket.
+func (k *Keeper) SendPacket(goCtx context.Context, msg *channeltypes.MsgSendPacket) (*channeltypes.MsgSendPacketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	sequence, err := k.PacketServerKeeper.SendPacketV2(ctx, msg.ChannelId, msg.PortId, msg.DestPort, msg.TimeoutHeight, msg.TimeoutTimestamp, msg.PacketData)
+	if err != nil {
+		ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet failed"))
+		return nil, errorsmod.Wrapf(err, "send packet failed for module: %s", msg.PortId)
+	}
+
+	for _, pd := range msg.PacketData {
+		cbs := k.PortKeeper.AppRouter.Route(pd.AppName)
+		err := cbs.OnSendPacketV2(ctx, msg.PortId, msg.ChannelId, sequence, msg.TimeoutHeight, msg.TimeoutTimestamp, pd.Payload, sdk.AccAddress(msg.Signer))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &channeltypes.MsgSendPacketResponse{Sequence: sequence}, nil
+}
+
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	// TODO: better indicator that the packet is v2.
@@ -622,6 +643,8 @@ func (k *Keeper) recvPacketV2(goCtx context.Context, msg *channeltypes.MsgRecvPa
 	// TODO; move to PacketServerKeeper this will blow up with no channels
 	k.ChannelKeeper.SetMultiAcknowledgement(ctx, msg.PacketV2.GetDestinationPort(), msg.PacketV2.GetDestinationChannel(), msg.PacketV2.GetSequence(), multiAck)
 
+	// defer telemetry.ReportRecvPacket(msg.Packet)
+
 	// ctx.Logger().Info("receive packet callback succeeded", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "result", channeltypes.SUCCESS.String())
 
 	return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
@@ -629,6 +652,52 @@ func (k *Keeper) recvPacketV2(goCtx context.Context, msg *channeltypes.MsgRecvPa
 
 // Timeout defines a rpc handler method for MsgTimeout.
 func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
+	if len(msg.PacketV2.Data) > 0 {
+		return k.timeoutv2(goCtx, msg)
+	}
+	return k.timeoutV1(goCtx, msg)
+}
+
+func (k *Keeper) timeoutv2(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		ctx.Logger().Error("timeout failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+	}
+
+	// Perform TAO verification
+	//
+	// If the timeout was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
+	cacheCtx, writeFn := ctx.CacheContext()
+	err = k.PacketServerKeeper.TimeoutPacketV2(cacheCtx, nil, msg.PacketV2, msg.ProofUnreceived, msg.ProofHeight, 0)
+
+	switch err {
+	case nil:
+		writeFn()
+	case channeltypes.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
+		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
+		return &channeltypes.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil
+	default:
+		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet verification failed"))
+		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
+	}
+
+	for _, pd := range msg.PacketV2.Data {
+		cb := k.PortKeeper.AppRouter.Route(pd.AppName)
+		err := cb.OnTimeoutPacketV2(ctx, msg.PacketV2, pd.Payload, relayer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &channeltypes.MsgTimeoutResponse{Result: channeltypes.SUCCESS}, nil
+}
+
+func (k *Keeper) timeoutV1(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	var (
 		packetHandler PacketHandler
 		module        string

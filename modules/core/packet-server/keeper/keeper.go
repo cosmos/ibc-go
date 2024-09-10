@@ -56,7 +56,7 @@ func (k Keeper) SendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	version string,
-	data []byte,
+	data []channeltypes.PacketData,
 ) (uint64, error) {
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, sourceChannel)
@@ -73,12 +73,13 @@ func (k Keeper) SendPacket(
 	}
 
 	// construct packet from given fields and channel state
-	packet := channeltypes.NewPacketWithVersion(data, sequence, sourcePort, sourceChannel,
-		destPort, destChannel, timeoutHeight, timeoutTimestamp, version)
+	packet := channeltypes.NewPacketV2(data, sequence, sourcePort, sourceChannel,
+		destPort, destChannel, timeoutHeight, timeoutTimestamp)
 
-	if err := packet.ValidateBasic(); err != nil {
-		return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
-	}
+	// TODO: implement Validate for PacketV2 (https://github.com/cosmos/ibc-go/issues/7255)
+	// if err := packet.ValidateBasic(); err != nil {
+	// 	return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
+	// }
 
 	// check that the client of counterparty chain is still active
 	if status := k.ClientKeeper.GetClientStatus(ctx, sourceChannel); status != exported.Active {
@@ -97,12 +98,12 @@ func (k Keeper) SendPacket(
 	}
 
 	// check if packet is timed out on the receiving chain
-	timeout := channeltypes.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
+	timeout := channeltypes.NewTimeout(packet.GetTimeoutHeight(), packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(latestHeight, latestTimestamp) {
 		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
-	commitment := channeltypes.CommitPacket(packet)
+	commitment := channeltypes.CommitPacketV2(packet)
 
 	// bump the sequence and set the packet commitment so it is provable by the counterparty
 	k.ChannelKeeper.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
@@ -110,14 +111,13 @@ func (k Keeper) SendPacket(
 
 	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
-	channelkeeper.EmitSendPacketEvent(ctx, packet, sentinelChannel(sourceChannel), timeoutHeight)
+	channelkeeper.EmitSendPacketEventV2(ctx, packet, sentinelChannel(sourceChannel), timeoutHeight)
 
 	return sequence, nil
 }
 
 func (k Keeper) SendPacketV2(
 	ctx sdk.Context,
-	_ *capabilitytypes.Capability,
 	sourceChannel string,
 	sourcePort string,
 	destPort string,
@@ -385,7 +385,6 @@ func (k Keeper) WriteAcknowledgementV2(
 	multiAck channeltypes.MultiAcknowledgement,
 ) error {
 	// TODO: this should probably error out if any of the acks are async.
-
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.DestinationChannel)
@@ -688,4 +687,77 @@ func (k Keeper) TimeoutPacket(
 // sentinelChannel creates a sentinel channel for use in events for Eureka protocol handlers.
 func sentinelChannel(clientID string) channeltypes.Channel {
 	return channeltypes.Channel{Ordering: channeltypes.UNORDERED, ConnectionHops: []string{clientID}}
+}
+
+func (k Keeper) TimeoutPacketV2(
+	ctx sdk.Context,
+	_ *capabilitytypes.Capability,
+	packet channeltypes.PacketV2,
+	proof []byte,
+	proofHeight exported.Height,
+	_ uint64,
+) error {
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.ClientKeeper.GetCounterparty(ctx, packet.SourceChannel)
+	if !ok {
+		return errorsmod.Wrap(clienttypes.ErrCounterpartyNotFound, packet.SourceChannel)
+	}
+
+	if counterparty.ClientId != packet.DestinationChannel {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	// check that timeout height or timeout timestamp has passed on the other end
+	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceChannel, proofHeight)
+	if err != nil {
+		return err
+	}
+
+	timeout := channeltypes.NewTimeout(packet.TimeoutHeight, packet.GetTimeoutTimestamp())
+	if !timeout.Elapsed(proofHeight.(clienttypes.Height), proofTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
+	}
+
+	// check that the commitment has not been cleared and that it matches the packet sent by relayer
+	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+
+	if len(commitment) == 0 {
+		channelkeeper.EmitTimeoutPacketEventV2(ctx, packet, sentinelChannel(packet.SourceChannel))
+		// This error indicates that the timeout has already been relayed
+		// or there is a misconfigured relayer attempting to prove a timeout
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
+
+	packetCommitment := channeltypes.CommitPacketV2(packet)
+	// verify we sent the packet and haven't cleared it out yet
+	if !bytes.Equal(commitment, packetCommitment) {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
+	}
+
+	// verify packet receipt absence
+	path := host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+
+	if err := k.ClientKeeper.VerifyNonMembership(
+		ctx,
+		packet.SourceChannel,
+		proofHeight,
+		0, 0,
+		proof,
+		merklePath,
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceChannel)
+	}
+
+	// delete packet commitment to prevent replay
+	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+
+	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+
+	channelkeeper.EmitTimeoutPacketEventV2(ctx, packet, sentinelChannel(packet.SourceChannel))
+
+	return nil
 }

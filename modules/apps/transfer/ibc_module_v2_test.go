@@ -1,8 +1,6 @@
 package transfer_test
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -20,15 +18,15 @@ const (
 var (
 	asyncRecvPacketResult = channeltypes.RecvPacketResult{
 		Status:          channeltypes.PacketStatus_Async,
-		Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("async")).Acknowledgement(),
+		Acknowledgement: mock.MockAcknowledgement.Acknowledgement(),
 	}
 	successRecvPacketResult = channeltypes.RecvPacketResult{
 		Status:          channeltypes.PacketStatus_Success,
-		Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
+		Acknowledgement: mock.MockAcknowledgement.Acknowledgement(),
 	}
 	failedRecvPacketResult = channeltypes.RecvPacketResult{
 		Status:          channeltypes.PacketStatus_Failure,
-		Acknowledgement: channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed ack")).Acknowledgement(),
+		Acknowledgement: mock.MockFailAcknowledgement.Acknowledgement(),
 	}
 )
 
@@ -84,7 +82,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2SyncHappyPath() {
 
 			timeoutHeight := suite.chainA.GetTimeoutHeight()
 
-			sequence, err := path.EndpointA.SendPacketV2POC(timeoutHeight, 0, data)
+			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, data)
 			suite.Require().NoError(err)
 
 			packet := channeltypes.NewPacketV2(data, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0)
@@ -368,14 +366,14 @@ func (suite *TransferTestSuite) TestIBCModuleV2Async() {
 						AppName: mockModuleV2A,
 						RecvPacketResult: channeltypes.RecvPacketResult{
 							Status:          channeltypes.PacketStatus_Success,
-							Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
+							Acknowledgement: mock.MockAcknowledgement.Acknowledgement(),
 						},
 					},
 					{
 						AppName: mockModuleV2B,
 						RecvPacketResult: channeltypes.RecvPacketResult{
 							Status:          channeltypes.PacketStatus_Success,
-							Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
+							Acknowledgement: mock.MockAcknowledgement.Acknowledgement(),
 						},
 					},
 				},
@@ -385,7 +383,7 @@ func (suite *TransferTestSuite) TestIBCModuleV2Async() {
 
 			timeoutHeight := suite.chainA.GetTimeoutHeight()
 
-			sequence, err := path.EndpointA.SendPacketV2POC(timeoutHeight, 0, data)
+			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, data)
 			suite.Require().NoError(err)
 
 			packet := channeltypes.NewPacketV2(data, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0)

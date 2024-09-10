@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"bytes"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -28,9 +30,22 @@ func (im IBCModuleV2) OnRecvPacketV2(ctx sdk.Context, packet channeltypes.Packet
 		return im.IBCApp.OnRecvPacketV2(ctx, packet, payload, relayer)
 	}
 
+	ctx.EventManager().EmitEvent(NewMockRecvPacketEvent())
+
+	status := channeltypes.PacketStatus_Success
+	ack := MockAcknowledgement.Acknowledgement()
+
+	if bytes.Equal(payload.Value, MockFailPacketData) {
+		status = channeltypes.PacketStatus_Failure
+		ack = MockFailAcknowledgement.Acknowledgement()
+	} else if bytes.Equal(payload.Value, MockAsyncPacketData) {
+		status = channeltypes.PacketStatus_Async
+		ack = nil
+	}
+
 	return channeltypes.RecvPacketResult{
-		Status:          channeltypes.PacketStatus_Success,
-		Acknowledgement: channeltypes.NewResultAcknowledgement([]byte("success")).Acknowledgement(),
+		Status:          status,
+		Acknowledgement: ack,
 	}
 }
 
@@ -39,6 +54,7 @@ func (im IBCModuleV2) OnAcknowledgementPacketV2(ctx sdk.Context, packet channelt
 		return im.IBCApp.OnAcknowledgementPacketV2(ctx, packet, payload, recvPacketResult, relayer)
 	}
 
+	ctx.EventManager().EmitEvent(NewMockAckPacketEvent())
 	return nil
 }
 
@@ -46,6 +62,8 @@ func (im IBCModuleV2) OnTimeoutPacketV2(ctx sdk.Context, packet channeltypes.Pac
 	if im.IBCApp.OnTimeoutPacketV2 != nil {
 		return im.IBCApp.OnTimeoutPacketV2(ctx, packet, payload, relayer)
 	}
+
+	ctx.EventManager().EmitEvent(NewMockTimeoutPacketEvent())
 
 	return nil
 }

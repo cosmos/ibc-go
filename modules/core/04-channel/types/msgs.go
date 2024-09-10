@@ -329,6 +329,20 @@ func NewMsgTimeout(
 	}
 }
 
+// NewMsgTimeoutV2 constructs new MsgTimeout from a V2 packet
+func NewMsgTimeoutV2(
+	packet PacketV2, nextSequenceRecv uint64, unreceivedProof []byte,
+	proofHeight clienttypes.Height, signer string,
+) *MsgTimeout {
+	return &MsgTimeout{
+		PacketV2:         packet,
+		NextSequenceRecv: nextSequenceRecv,
+		ProofUnreceived:  unreceivedProof,
+		ProofHeight:      proofHeight,
+		Signer:           signer,
+	}
+}
+
 // ValidateBasic implements sdk.Msg
 func (msg MsgTimeout) ValidateBasic() error {
 	if len(msg.ProofUnreceived) == 0 {
@@ -813,4 +827,17 @@ func (msg *MsgPruneAcknowledgements) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+// NewMsgSendPacket creates a new instance of MsgSendPacket.
+func NewMsgSendPacket(portID, channelID string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData []PacketData, signer string, destPort string) *MsgSendPacket {
+	return &MsgSendPacket{
+		PortId:           portID,
+		ChannelId:        channelID,
+		TimeoutHeight:    timeoutHeight,
+		TimeoutTimestamp: timeoutTimestamp,
+		PacketData:       packetData,
+		Signer:           signer,
+		DestPort:         destPort,
+	}
 }

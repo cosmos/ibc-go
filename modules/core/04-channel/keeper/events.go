@@ -349,6 +349,27 @@ func EmitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel types.
 	})
 }
 
+func EmitTimeoutPacketEventV2(ctx sdk.Context, packet types.PacketV2, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeTimeoutPacket,
+			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
+			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.GetSequence())),
+			sdk.NewAttribute(types.AttributeKeySrcPort, packet.GetSourcePort()),
+			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
+			sdk.NewAttribute(types.AttributeKeyDstPort, packet.DestinationPort),
+			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
+			sdk.NewAttribute(types.AttributeKeyConnectionID, channel.ConnectionHops[0]),
+			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
+
 // emitChannelClosedEvent emits a channel closed event.
 func emitChannelClosedEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{

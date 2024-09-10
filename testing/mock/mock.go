@@ -20,6 +20,7 @@ import (
 
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -27,8 +28,10 @@ import (
 )
 
 const (
-	ModuleName   = "mock"
-	ModuleNameV2 = "mockv2"
+	ModuleName    = "mock"
+	ModuleNameV2  = "mockv2"
+	ModuleNameV2A = ModuleNameV2 + "A"
+	ModuleNameV2B = ModuleNameV2 + "B"
 
 	MemStoreKey = "memory:mock"
 
@@ -38,11 +41,25 @@ const (
 )
 
 var (
-	MockAcknowledgement             = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
-	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement(errors.New("mock failed acknowledgement"))
+	MockAcknowledgement      = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
+	MockFailAcknowledgement  = channeltypes.NewErrorAcknowledgement(errors.New("mock failed acknowledgement"))
+	MockMultiAcknowledgement = channeltypes.MultiAcknowledgement{
+		AcknowledgementResults: []channeltypes.AcknowledgementResult{
+			{
+				AppName: ModuleNameV2A,
+				RecvPacketResult: channeltypes.RecvPacketResult{
+					Status:          channeltypes.PacketStatus_Success,
+					Acknowledgement: MockAcknowledgement.Acknowledgement(),
+				},
+			},
+		},
+	}
 	MockPacketData                  = []byte("mock packet data")
+	MockChannelPacketData           = []channeltypes.PacketData{{AppName: ModuleNameV2A, Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockPacketData}}}
 	MockFailPacketData              = []byte("mock failed packet data")
+	MockFailChannelPacketData       = []channeltypes.PacketData{{AppName: ModuleNameV2A, Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockFailPacketData}}}
 	MockAsyncPacketData             = []byte("mock async packet data")
+	MockAsyncChannelPacketData      = []channeltypes.PacketData{{AppName: ModuleNameV2A, Payload: channeltypes.Payload{Version: types.V2, Encoding: "foo", Value: MockAsyncPacketData}}}
 	MockRecvCanaryCapabilityName    = "mock receive canary capability name"
 	MockAckCanaryCapabilityName     = "mock acknowledgement canary capability name"
 	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"

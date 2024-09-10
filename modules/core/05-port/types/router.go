@@ -64,3 +64,13 @@ func (rtr *Router) GetRoute(module string) (IBCModule, bool) {
 	}
 	return rtr.routes[module], true
 }
+
+// Keys returns the keys of the routes map.
+func (rtr *Router) Keys() []string {
+	keys := make([]string, 0, len(rtr.routes))
+	for k := range rtr.routes {
+		keys = append(keys, k)
+	}
+
+	return keys
+}
