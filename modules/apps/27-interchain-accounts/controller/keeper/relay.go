@@ -14,8 +14,7 @@ import (
 )
 
 // SendTx takes pre-built packet data containing messages to be executed on the host chain from an authentication module and attempts to send the packet.
-// The packet sequence for the outgoing packet is returned as a result.
-// If the base application has the capability to send on the provided portID. An appropriate
+// The packet sequence for the outgoing packet is returned as a result. An appropriate
 // absolute timeoutTimestamp must be provided. If the packet is timed out, the channel will be closed.
 // In the case of channel closure, a new channel may be reopened to reconnect to the host chain.
 //
