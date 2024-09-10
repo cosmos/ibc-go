@@ -102,7 +102,7 @@ func (k Keeper) acknowledgeForwardedPacketV2(ctx sdk.Context, forwardedPacket, p
 		recvResult.Status = channeltypes.PacketStatus_Failure
 	}
 
-	if err := k.channelKeeper.WriteAcknowledgementAsyncV2(ctx, forwardedPacket, types.ModuleName, recvResult); err != nil {
+	if err := k.packetServerKeeper.WriteAcknowledgementAsyncV2(ctx, forwardedPacket, types.ModuleName, recvResult); err != nil {
 		return err
 	}
 

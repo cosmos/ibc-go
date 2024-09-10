@@ -64,6 +64,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
+				suite.chainA.GetSimApp().PacketServer,
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
@@ -78,6 +79,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
 				authkeeper.AccountKeeper{}, // empty account keeper
 				suite.chainA.GetSimApp().BankKeeper,
+				suite.chainA.GetSimApp().PacketServer,
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
@@ -92,6 +94,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
+				suite.chainA.GetSimApp().PacketServer,
 				suite.chainA.GetSimApp().ScopedTransferKeeper,
 				"", // authority
 			)

@@ -373,6 +373,7 @@ func NewSimApp(
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+	app.PacketServer = packetserverkeeper.NewKeeper(appCodec, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	// Setup packet server to call on Eureka tests
 	app.PacketServer = packetserverkeeper.NewKeeper(appCodec, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
@@ -431,6 +432,7 @@ func NewSimApp(
 	mockModuleV2B := ibcmock.NewIBCModuleV2(ibcmock.NewIBCV2App())
 	ibcAppRouter.AddV2Route(ibcmock.ModuleNameV2B, mockModuleV2B)
 	app.MockV2ModuleB = mockModuleV2B
+
 	// Middleware Stacks
 
 	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
@@ -439,7 +441,7 @@ func NewSimApp(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
 		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
-		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
+		app.AccountKeeper, app.BankKeeper, app.PacketServer, scopedTransferKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 

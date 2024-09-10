@@ -22,6 +22,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	packetserver "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 )
 
 // Keeper defines the IBC fungible transfer keeper
@@ -30,12 +31,13 @@ type Keeper struct {
 	cdc            codec.BinaryCodec
 	legacySubspace types.ParamSubspace
 
-	ics4Wrapper   porttypes.ICS4Wrapper
-	channelKeeper types.ChannelKeeper
-	portKeeper    types.PortKeeper
-	authKeeper    types.AccountKeeper
-	bankKeeper    types.BankKeeper
-	scopedKeeper  exported.ScopedKeeper
+	ics4Wrapper        porttypes.ICS4Wrapper
+	channelKeeper      types.ChannelKeeper
+	packetServerKeeper *packetserver.Keeper
+	portKeeper         types.PortKeeper
+	authKeeper         types.AccountKeeper
+	bankKeeper         types.BankKeeper
+	scopedKeeper       exported.ScopedKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -52,6 +54,7 @@ func NewKeeper(
 	portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
+	packetServerKeeper *packetserver.Keeper,
 	scopedKeeper exported.ScopedKeeper,
 	authority string,
 ) Keeper {
@@ -65,16 +68,17 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:            cdc,
-		storeKey:       key,
-		legacySubspace: legacySubspace,
-		ics4Wrapper:    ics4Wrapper,
-		channelKeeper:  channelKeeper,
-		portKeeper:     portKeeper,
-		authKeeper:     authKeeper,
-		bankKeeper:     bankKeeper,
-		scopedKeeper:   scopedKeeper,
-		authority:      authority,
+		cdc:                cdc,
+		storeKey:           key,
+		legacySubspace:     legacySubspace,
+		ics4Wrapper:        ics4Wrapper,
+		channelKeeper:      channelKeeper,
+		portKeeper:         portKeeper,
+		authKeeper:         authKeeper,
+		bankKeeper:         bankKeeper,
+		scopedKeeper:       scopedKeeper,
+		packetServerKeeper: packetServerKeeper,
+		authority:          authority,
 	}
 }
 

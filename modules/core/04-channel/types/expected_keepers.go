@@ -16,6 +16,7 @@ type ClientKeeper interface {
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 	GetClientLatestHeight(ctx sdk.Context, clientID string) clienttypes.Height
 	GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error)
+	GetCounterparty(ctx sdk.Context, clientID string) (clienttypes.Counterparty, bool)
 }
 
 // ConnectionKeeper expected account IBC connection keeper

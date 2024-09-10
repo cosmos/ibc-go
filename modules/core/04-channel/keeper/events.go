@@ -326,7 +326,7 @@ func EmitAcknowledgePacketEventV2(ctx sdk.Context, packet types.PacketV2, channe
 	})
 }
 
-// emitTimeoutPacketEvent emits a timeout packet event. It will be emitted both the first time a packet
+// EmitTimeoutPacketEvent emits a timeout packet event. It will be emitted both the first time a packet
 // is timed out for a certain sequence and for all duplicate timeouts.
 func EmitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
 	ctx.EventManager().EmitEvents(sdk.Events{

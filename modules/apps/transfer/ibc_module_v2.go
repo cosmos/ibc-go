@@ -31,7 +31,7 @@ func NewIBCModuleV2(k keeper.Keeper) IBCModuleV2 {
 }
 
 // OnSendPacketV2 implements the IBCModuleV2 interface.
-func (im IBCModuleV2) OnSendPacketV2(
+func (IBCModuleV2) OnSendPacketV2(
 	ctx sdk.Context,
 	portID string,
 	channelID string,

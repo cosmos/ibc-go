@@ -637,10 +637,11 @@ func (k *Keeper) recvPacketV2(goCtx context.Context, msg *channeltypes.MsgRecvPa
 		if err := k.PacketServerKeeper.WriteAcknowledgementV2(ctx, msg.PacketV2, multiAck); err != nil {
 			return nil, err
 		}
-	} else {
-		// TODO; move to PacketServerKeeper this will blow up with no channels
-		k.ChannelKeeper.SetMultiAcknowledgement(ctx, msg.PacketV2.GetDestinationPort(), msg.PacketV2.GetDestinationChannel(), msg.PacketV2.GetSequence(), multiAck)
+		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.SUCCESS}, nil
 	}
+
+	// TODO; move to PacketServerKeeper this will blow up with no channels
+	k.ChannelKeeper.SetMultiAcknowledgement(ctx, msg.PacketV2.GetDestinationPort(), msg.PacketV2.GetDestinationChannel(), msg.PacketV2.GetSequence(), multiAck)
 
 	// defer telemetry.ReportRecvPacket(msg.Packet)
 
