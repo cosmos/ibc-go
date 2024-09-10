@@ -51,6 +51,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/24-host) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `ChannelCapabilityPath`
 * (apps/27-interchain-accounts) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) The following functions have been removed: `AuthenticateCapability`, `ClaimCapability`
 * (apps/transfer) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) The following functions have been removed: `BindPort`, `AuthenticateCapability`, `ClaimCapability`
+* (capability) [\#7279](https://github.com/cosmos/ibc-go/pull/7279) The module `capability` has been removed 
 
 ### State Machine Breaking
 
