@@ -373,7 +373,7 @@ func NewSimApp(
 	)
 
 	// Setup packet server to call on Eureka tests
-	app.PacketServer = packetserverkeeper.NewKeeper(appCodec, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
+	app.PacketServer = packetserverkeeper.NewKeeper(appCodec, keys[ibcexported.StoreKey], app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	govConfig := govtypes.DefaultConfig()
 	/*
