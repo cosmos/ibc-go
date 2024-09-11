@@ -27,6 +27,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/client/cli"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/simulation"
 	"github.com/cosmos/ibc-go/v9/modules/core/types"
 )
@@ -132,6 +133,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	connectiontypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	channeltypes.RegisterPacketMsgServer(cfg.MsgServer(), am.keeper)
+	packetservertypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 
 	clienttypes.RegisterQueryServer(cfg.QueryServer(), clientkeeper.NewQueryServer(am.keeper.ClientKeeper))
 	connectiontypes.RegisterQueryServer(cfg.QueryServer(), connectionkeeper.NewQueryServer(am.keeper.ConnectionKeeper))

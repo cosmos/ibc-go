@@ -7,7 +7,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -21,7 +20,6 @@ var (
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
 	_ sdk.Msg = (*MsgIBCSoftwareUpgrade)(nil)
 	_ sdk.Msg = (*MsgRecoverClient)(nil)
-	_ sdk.Msg = (*MsgProvideCounterparty)(nil)
 
 	_ sdk.HasValidateBasic = (*MsgCreateClient)(nil)
 	_ sdk.HasValidateBasic = (*MsgUpdateClient)(nil)
@@ -30,7 +28,6 @@ var (
 	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
 	_ sdk.HasValidateBasic = (*MsgIBCSoftwareUpgrade)(nil)
 	_ sdk.HasValidateBasic = (*MsgRecoverClient)(nil)
-	_ sdk.HasValidateBasic = (*MsgProvideCounterparty)(nil)
 
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
@@ -263,34 +260,6 @@ func (msg *MsgRecoverClient) ValidateBasic() error {
 
 	if msg.SubjectClientId == msg.SubstituteClientId {
 		return errorsmod.Wrapf(ErrInvalidSubstitute, "subject and substitute clients must be different")
-	}
-
-	return nil
-}
-
-// NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
-func NewMsgProvideCounterparty(signer, clientID, counterpartyID string, merklePathPrefix commitmenttypes.MerklePath) *MsgProvideCounterparty {
-	counterparty := NewCounterparty(counterpartyID, merklePathPrefix)
-
-	return &MsgProvideCounterparty{
-		Signer:       signer,
-		ClientId:     clientID,
-		Counterparty: counterparty,
-	}
-}
-
-// ValidateBasic performs basic checks on a MsgProvideCounterparty.
-func (msg *MsgProvideCounterparty) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
-		return err
-	}
-
-	if err := msg.Counterparty.Validate(); err != nil {
-		return err
 	}
 
 	return nil

@@ -45,7 +45,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgRecoverClient{},
 		&MsgIBCSoftwareUpgrade{},
 		&MsgUpdateParams{},
-		&MsgProvideCounterparty{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

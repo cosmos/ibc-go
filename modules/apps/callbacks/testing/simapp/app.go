@@ -409,7 +409,7 @@ func NewSimApp(
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibcexported.StoreKey], app.GetSubspace(ibcexported.ModuleName), app.UpgradeKeeper, scopedIBCKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	app.PacketServer = packetserverkeeper.NewKeeper(appCodec, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
+	app.PacketServer = packetserverkeeper.NewKeeper(appCodec, keys[ibcexported.StoreKey], app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	// NOTE: The mock ContractKeeper is only created for testing.
 	// Real applications should not use the mock ContractKeeper

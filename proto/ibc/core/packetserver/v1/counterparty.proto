@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package ibc.core.packetserver.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types";
+
+import "gogoproto/gogo.proto";
+import "ibc/core/commitment/v2/commitment.proto";
+
+// Counterparty defines the counterparty for a light client to implement IBC eureka protocol
+message Counterparty {
+  // the client identifier of the counterparty chain
+  string client_id = 1;
+  // the merkle path that all ICS24 paths will be stored under
+  ibc.core.commitment.v2.MerklePath merkle_path_prefix = 2 [(gogoproto.nullable) = false];
+}
