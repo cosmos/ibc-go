@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	_ "cosmossdk.io/api/cosmos/staking/v1beta1" // workaround to successfully retrieve staking module safe queries
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
 	genesistypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/genesis/types"
