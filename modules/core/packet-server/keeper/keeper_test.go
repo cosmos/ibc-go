@@ -3,6 +3,7 @@ package keeper_test
 import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 const testClientID = "tendermint-0"
@@ -19,7 +20,8 @@ func (suite *KeeperTestSuite) TestSetCounterparty() {
 	suite.Require().True(found, "GetCounterparty does not return counterparty")
 	suite.Require().Equal(counterparty, retrievedCounterparty, "Counterparty retrieved not equal")
 
-	retrievedCounterparty, found = suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCounterparty(suite.chainA.GetContext(), "client-0")
+	// Counterparty not yet stored for another client.
+	retrievedCounterparty, found = suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCounterparty(suite.chainA.GetContext(), ibctesting.SecondClientID)
 	suite.Require().False(found, "GetCounterparty unexpectedly returned a counterparty")
 	suite.Require().Equal(types.Counterparty{}, retrievedCounterparty, "Counterparty retrieved not empty")
 }
