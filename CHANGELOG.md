@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (apps/27-interchain-accounts) [\#7277](https://github.com/cosmos/ibc-go/pull/7277) Use `GogoResolver` when populating module query safe allow list to avoid panics from unresolvable protobuf dependencies.
+
 ## [v8.5.0](https://github.com/cosmos/ibc-go/releases/tag/v8.5.0) - 2024-08-30
 
 ### Dependencies
