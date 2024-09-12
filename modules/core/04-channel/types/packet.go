@@ -271,7 +271,7 @@ func ConvertPacketV1toV2(packet Packet) (PacketV2, error) {
 		return PacketV2{}, errorsmod.Wrapf(ErrInvalidPacket, "expected protocol version %s, got %s instead", IBC_VERSION_2, packet.ProtocolVersion)
 	}
 
-	encoding := packet.Encoding
+	encoding := strings.TrimSpace(packet.Encoding)
 	if encoding == "" {
 		encoding = "json"
 	}
