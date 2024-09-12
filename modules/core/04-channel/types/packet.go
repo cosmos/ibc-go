@@ -107,8 +107,7 @@ func commitV2Packet(packet Packet) []byte {
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
 func CommitPacketV2(packet PacketV2) []byte {
-	timeoutHash := sha256.Sum256([]byte(packet.Timeout))
-	buf := timeoutHash[:]
+	buf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
 
 	destIDHash := sha256.Sum256([]byte(packet.DestinationId))
 	buf = append(buf, destIDHash[:]...)

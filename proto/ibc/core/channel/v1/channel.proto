@@ -184,8 +184,8 @@ message PacketV2 {
   string source_id = 2;
   // identifies the receiving chain.
   string destination_id = 3;
-  // timeout after which the packet times out
-  string timeout = 4;
+  // timeout timestamp after which the packet times out.
+  uint64 timeout_timestamp = 4;
   // a list of packet data, each one for a specific application.
   repeated PacketData data = 5 [(gogoproto.nullable) = false];
 }
@@ -197,7 +197,7 @@ message PacketData {
   // specifies the destination port of the packet.
   string destination_port = 2;
   // the payload to be sent to the application.
-  Payload payload = 3;
+  Payload payload = 3 [(gogoproto.nullable) = false];
 }
 
 // Payload holds the version, encoding and raw bytes to be passed to an application
