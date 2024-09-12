@@ -6,6 +6,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -39,11 +41,19 @@ func (q *queryServer) Client(ctx context.Context, req *types.QueryClientRequest)
 	res := types.QueryClientResponse{}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	creator, _ := q.ClientKeeper.GetCreator(sdkCtx, req.ClientId)
-	res.Creator = creator
 
-	counterparty, _ := q.GetCounterparty(sdkCtx, req.ClientId)
+	creator, foundCreator := q.ClientKeeper.GetCreator(sdkCtx, req.ClientId)
+	counterparty, foundCounterparty := q.GetCounterparty(sdkCtx, req.ClientId)
+
+	if !foundCreator && !foundCounterparty {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrCounterpartyNotFound, "client-id: %s", req.ClientId).Error(),
+		)
+	}
+
 	res.Counterparty = counterparty
+	res.Creator = creator
 
 	return &res, nil
 }

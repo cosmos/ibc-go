@@ -71,6 +71,15 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
+			"no creator and no counterparty",
+			func() {
+				req = &types.QueryClientRequest{
+					ClientId: ibctesting.FirstClientID,
+				}
+			},
+			status.Error(codes.NotFound, fmt.Sprintf("client-id: %s: counterparty not found", ibctesting.FirstClientID)),
+		},
+		{
 			"invalid clientID",
 			func() {
 				req = &types.QueryClientRequest{}
