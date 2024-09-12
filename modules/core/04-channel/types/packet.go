@@ -289,7 +289,10 @@ func NewPacketID(portID, channelID string, seq uint64) PacketId {
 }
 
 // ConvertPacketV1toV2 constructs a PacketV2 from a Packet.
-func ConvertPacketV1toV2(packet Packet) PacketV2 {
+func ConvertPacketV1toV2(packet Packet) (PacketV2, error) {
+	if packet.ProtocolVersion != IBC_VERSION_2 {
+		return PacketV2{}, errorsmod.Wrapf(ErrInvalidPacket, "expected protocol version %s, got %s instead", IBC_VERSION_2, packet.ProtocolVersion)
+	}
 	return PacketV2{
 		Sequence:         packet.Sequence,
 		SourceId:         packet.SourceChannel,
@@ -306,5 +309,5 @@ func ConvertPacketV1toV2(packet Packet) PacketV2 {
 				},
 			},
 		},
-	}
+	}, nil
 }
