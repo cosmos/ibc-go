@@ -165,29 +165,6 @@ func NewPacket(
 	}
 }
 
-// TODO change NewPacket creates a new Packet instance. It panics if the provided
-// packet data interface is not registered.
-func NewPacketWithEncoding(
-	data []byte,
-	sequence uint64, sourcePort, sourceChannel,
-	destinationPort, destinationChannel string,
-	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
-	encoding string,
-) Packet {
-	return Packet{
-		Data:               data,
-		Sequence:           sequence,
-		SourcePort:         sourcePort,
-		SourceChannel:      sourceChannel,
-		DestinationPort:    destinationPort,
-		DestinationChannel: destinationChannel,
-		TimeoutHeight:      timeoutHeight,
-		TimeoutTimestamp:   timeoutTimestamp,
-		ProtocolVersion:    IBC_VERSION_1,
-		Encoding:           encoding,
-	}
-}
-
 func NewPacketWithVersion(
 	data []byte,
 	sequence uint64, sourcePort, sourceChannel,
