@@ -161,6 +161,30 @@ func NewPacket(
 		TimeoutHeight:      timeoutHeight,
 		TimeoutTimestamp:   timeoutTimestamp,
 		ProtocolVersion:    IBC_VERSION_1,
+		Encoding:           "json",
+	}
+}
+
+// TODO change NewPacket creates a new Packet instance. It panics if the provided
+// packet data interface is not registered.
+func NewPacketWithEncoding(
+	data []byte,
+	sequence uint64, sourcePort, sourceChannel,
+	destinationPort, destinationChannel string,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+	encoding string,
+) Packet {
+	return Packet{
+		Data:               data,
+		Sequence:           sequence,
+		SourcePort:         sourcePort,
+		SourceChannel:      sourceChannel,
+		DestinationPort:    destinationPort,
+		DestinationChannel: destinationChannel,
+		TimeoutHeight:      timeoutHeight,
+		TimeoutTimestamp:   timeoutTimestamp,
+		ProtocolVersion:    IBC_VERSION_1,
+		Encoding:           encoding,
 	}
 }
 
@@ -262,4 +286,25 @@ func (p PacketId) Validate() error {
 // NewPacketID returns a new instance of PacketId
 func NewPacketID(portID, channelID string, seq uint64) PacketId {
 	return PacketId{PortId: portID, ChannelId: channelID, Sequence: seq}
+}
+
+// ConvertPacketV1toV2 constructs a PacketV2 from a Packet.
+func ConvertPacketV1toV2(packet Packet) PacketV2 {
+	return PacketV2{
+		Sequence:         packet.Sequence,
+		SourceId:         packet.SourceChannel,
+		DestinationId:    packet.DestinationChannel,
+		TimeoutTimestamp: packet.TimeoutTimestamp,
+		Data: []PacketData{
+			{
+				SourcePort:      packet.SourcePort,
+				DestinationPort: packet.DestinationPort,
+				Payload: Payload{
+					Version:  packet.AppVersion,
+					Encoding: packet.Encoding,
+					Value:    packet.Data,
+				},
+			},
+		},
+	}
 }

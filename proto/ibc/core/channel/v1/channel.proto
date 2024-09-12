@@ -141,6 +141,8 @@ message Packet {
   IBCVersion protocol_version = 9;
   // version which application should use to process the packet data
   string app_version = 10;
+  // encoding to be used TODO clearer message
+  string encoding = 11;
 }
 
 // PacketState defines the generic type necessary to retrieve and store
