@@ -270,6 +270,12 @@ func ConvertPacketV1toV2(packet Packet) (PacketV2, error) {
 	if packet.ProtocolVersion != IBC_VERSION_2 {
 		return PacketV2{}, errorsmod.Wrapf(ErrInvalidPacket, "expected protocol version %s, got %s instead", IBC_VERSION_2, packet.ProtocolVersion)
 	}
+
+	encoding := packet.Encoding
+	if encoding == "" {
+		encoding = "json"
+	}
+
 	return PacketV2{
 		Sequence:         packet.Sequence,
 		SourceId:         packet.SourceChannel,
@@ -281,7 +287,7 @@ func ConvertPacketV1toV2(packet Packet) (PacketV2, error) {
 				DestinationPort: packet.DestinationPort,
 				Payload: Payload{
 					Version:  packet.AppVersion,
-					Encoding: packet.Encoding,
+					Encoding: encoding,
 					Value:    packet.Data,
 				},
 			},
