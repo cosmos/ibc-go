@@ -107,8 +107,6 @@ func (k Keeper) RecvPacket(
 		return "", channeltypes.ErrInvalidPacket
 	}
 
-	// packetv2 := convert(packet)
-
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationChannel)
