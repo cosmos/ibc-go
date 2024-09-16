@@ -119,7 +119,7 @@ func emitChannelCloseConfirmEvent(ctx sdk.Context, portID string, channelID stri
 	})
 }
 
-// emitSendPacketEvent emits an event with packet data along with other packet information for relayer
+// EmitSendPacketEvent emits an event with packet data along with other packet information for relayer
 // to pick up and relay to other chain
 func EmitSendPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel, timeoutHeight exported.Height) {
 	eventAttributes := []sdk.Attribute{

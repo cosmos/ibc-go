@@ -26,7 +26,6 @@ func CommitPacket(packet Packet) []byte {
 	case IBC_VERSION_UNSPECIFIED, IBC_VERSION_1:
 		return commitV1Packet(packet)
 	case IBC_VERSION_2:
-		// TODO: convert to PacketV2 and commit.
 		return commitV2Packet(packet)
 	default:
 		panic("unsupported version")
