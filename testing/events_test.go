@@ -61,6 +61,18 @@ func TestParsePacketsFromEvents(t *testing.T) {
 							Key:   channeltypes.AttributeKeyTimeoutTimestamp,
 							Value: "1000",
 						},
+						{
+							Key:   channeltypes.AttributeKeyEncoding,
+							Value: "json",
+						},
+						{
+							Key:   channeltypes.AttributeKeyProtocolVersion,
+							Value: "IBC_VERSION_2",
+						},
+						{
+							Key:   channeltypes.AttributeKeyAppVersion,
+							Value: "ics20-1",
+						},
 					},
 				},
 				{
@@ -117,6 +129,9 @@ func TestParsePacketsFromEvents(t *testing.T) {
 						RevisionHeight: 2,
 					},
 					TimeoutTimestamp: 1000,
+					Encoding:         "json",
+					ProtocolVersion:  channeltypes.IBC_VERSION_2,
+					AppVersion:       "ics20-1",
 				},
 				{
 					Sequence:           43,
@@ -195,6 +210,21 @@ func TestParsePacketsFromEvents(t *testing.T) {
 				},
 			},
 			expectedError: "strconv.ParseUint: parsing \"x\": invalid syntax",
+		},
+		{
+			name: "fail: event packet with invalid AttributeKeyProtocolVersion",
+			events: []abci.Event{
+				{
+					Type: channeltypes.EventTypeSendPacket,
+					Attributes: []abci.EventAttribute{
+						{
+							Key:   channeltypes.AttributeKeyProtocolVersion,
+							Value: "x",
+						},
+					},
+				},
+			},
+			expectedError: "invalid protocol version attribute",
 		},
 	}
 	for _, tc := range testCases {

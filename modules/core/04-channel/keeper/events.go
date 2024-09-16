@@ -131,6 +131,9 @@ func EmitSendPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Ch
 		sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 		sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 		sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
+		sdk.NewAttribute(types.AttributeKeyEncoding, packet.Encoding),
+		sdk.NewAttribute(types.AttributeKeyProtocolVersion, packet.ProtocolVersion.String()),
+		sdk.NewAttribute(types.AttributeKeyAppVersion, packet.AppVersion),
 	}
 
 	if channel != nil {
@@ -167,6 +170,9 @@ func EmitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Ch
 		sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 		sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 		sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
+		sdk.NewAttribute(types.AttributeKeyEncoding, packet.Encoding),
+		sdk.NewAttribute(types.AttributeKeyProtocolVersion, packet.ProtocolVersion.String()),
+		sdk.NewAttribute(types.AttributeKeyAppVersion, packet.AppVersion),
 	}
 
 	if channel != nil {
