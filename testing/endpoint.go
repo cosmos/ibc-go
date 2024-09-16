@@ -619,7 +619,7 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 		endpoint.ChannelID,
 		"upgrade-init",
 		fmt.Sprintf("gov proposal for initialising channel upgrade: %s", endpoint.ChannelID),
-		false,
+		govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD,
 	)
 	require.NoError(endpoint.Chain.TB, err)
 

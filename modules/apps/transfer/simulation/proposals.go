@@ -3,9 +3,10 @@ package simulation
 import (
 	"math/rand"
 
+	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -30,13 +31,13 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 }
 
 // SimulateMsgUpdateParams returns a MsgUpdateParams
-func SimulateMsgUpdateParams(_ *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
-	var gov sdk.AccAddress = address.Module("gov")
+func SimulateMsgUpdateParams(_ *rand.Rand, _ []simtypes.Account, _ address.Codec) (sdk.Msg, error) {
+	var gov sdk.AccAddress = authtypes.NewModuleAddress("gov")
 	params := types.DefaultParams()
 	params.SendEnabled = false
 
 	return &types.MsgUpdateParams{
 		Signer: gov.String(),
 		Params: params,
-	}
+	}, nil
 }

@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 
 	banktypes "cosmossdk.io/x/bank/types"
-	"cosmossdk.io/x/staking/testutil"
 	stakingtypes "cosmossdk.io/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -27,6 +27,7 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 	cmtversion "github.com/cometbft/cometbft/version"
 
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -226,7 +227,7 @@ func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, cl
 func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height int64) ([]byte, clienttypes.Height) {
 	res, err := chain.App.Query(
 		chain.GetContext().Context(),
-		&abci.RequestQuery{
+		&abci.QueryRequest{
 			Path:   fmt.Sprintf("store/%s/key", storeKey),
 			Height: height - 1,
 			Data:   key,
@@ -253,7 +254,7 @@ func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height i
 func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, clienttypes.Height) {
 	res, err := chain.App.Query(
 		chain.GetContext().Context(),
-		&abci.RequestQuery{
+		&abci.QueryRequest{
 			Path:   "store/upgrade/key",
 			Height: int64(height - 1),
 			Data:   key,
@@ -293,7 +294,7 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // returned on block `n` to the validators of block `n+2`.
 // It calls BeginBlock with the new block created before returning.
 func (chain *TestChain) NextBlock() {
-	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{
+	res, err := chain.App.FinalizeBlock(&abci.FinalizeBlockRequest{
 		Height:             chain.ProposedHeader.Height,
 		Time:               chain.ProposedHeader.GetTime(),
 		NextValidatorsHash: chain.NextVals.Hash(),
@@ -302,7 +303,7 @@ func (chain *TestChain) NextBlock() {
 	chain.commitBlock(res)
 }
 
-func (chain *TestChain) commitBlock(res *abci.ResponseFinalizeBlock) {
+func (chain *TestChain) commitBlock(res *abci.FinalizeBlockResponse) {
 	_, err := chain.App.Commit()
 	require.NoError(chain.TB, err)
 
@@ -426,11 +427,35 @@ func (chain *TestChain) GetTrustedValidators(trustedHeight int64) (*cmttypes.Val
 		Validators: histInfo.Valset,
 	}
 
-	tmValidators, err := testutil.ToCmtValidators(valSet, sdk.DefaultPowerReduction)
+	tmValidators, err := ToCmtValidators(valSet, sdk.DefaultPowerReduction)
 	if err != nil {
 		return nil, err
 	}
 	return cmttypes.NewValidatorSet(tmValidators), nil
+}
+
+// ToCmtValidators casts all validators to the corresponding CometBFT type.
+func ToCmtValidators(v stakingtypes.Validators, r math.Int) ([]*cmttypes.Validator, error) {
+	validators := make([]*cmttypes.Validator, len(v.Validators))
+	for i, val := range v.Validators {
+		pk, err := val.ConsPubKey()
+		if err != nil {
+			return nil, err
+		}
+
+		tmPk, err := cryptocodec.ToCmtPubKeyInterface(pk)
+		if err != nil {
+			return nil, err
+		}
+		cmtVal := cmttypes.NewValidator(tmPk, val.ConsensusPower(r))
+
+		validators[i] = cmtVal
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return validators, nil
 }
 
 // GetAcknowledgement retrieves an acknowledgement for the provided packet. If the

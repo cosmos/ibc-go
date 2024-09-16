@@ -6,6 +6,7 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/math"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
@@ -58,7 +59,10 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"success", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				appmodule.Environment{
+					Logger:         suite.chainA.GetSimApp().Logger(),
+					KVStoreService: runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				},
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
@@ -72,7 +76,10 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"failure: transfer module account does not exist", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				appmodule.Environment{
+					Logger:         suite.chainA.GetSimApp().Logger(),
+					KVStoreService: runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				},
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
@@ -86,7 +93,10 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"failure: empty authority", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				appmodule.Environment{
+					Logger:         suite.chainA.GetSimApp().Logger(),
+					KVStoreService: runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				},
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
@@ -284,7 +294,6 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 
 			storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
 			store = ctx.KVStore(storeKey)
-			cdc = suite.chainA.App.AppCodec()
 
 			tc.malleate()
 

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/core/appmodule"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 	genesistypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/genesis/types"
@@ -12,6 +13,10 @@ import (
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
 	ports := []string{"port1", "port2", "port3"}
+
+	env := appmodule.Environment{
+		Logger: suite.chainA.GetSimApp().Logger(),
+	}
 
 	testCases := []struct {
 		name     string
@@ -30,7 +35,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		},
 	}
 
-	interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+	interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), env, ibctesting.FirstConnectionID, TestPortID)
 	genesisState := genesistypes.ControllerGenesisState{
 		ActiveChannels: []genesistypes.ActiveChannel{
 			{

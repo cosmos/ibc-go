@@ -1,16 +1,18 @@
 package simulation
 
 import (
+	"context"
 	"math/rand"
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -29,22 +31,22 @@ const (
 // ProposalMsgs defines the module weighted proposals' contents
 func ProposalMsgs() []simtypes.WeightedProposalMsg {
 	return []simtypes.WeightedProposalMsg{
-		simulation.NewWeightedProposalMsg(
+		simulation.NewWeightedProposalMsgX(
 			OpWeightMsgUpdateParams,
 			DefaultWeight,
 			SimulateClientMsgUpdateParams,
 		),
-		simulation.NewWeightedProposalMsg(
+		simulation.NewWeightedProposalMsgX(
 			OpWeightMsgUpdateParams,
 			DefaultWeight,
 			SimulateConnectionMsgUpdateParams,
 		),
-		simulation.NewWeightedProposalMsg(
+		simulation.NewWeightedProposalMsgX(
 			OpWeightMsgRecoverClient,
 			DefaultWeight,
 			SimulateClientMsgRecoverClient,
 		),
-		simulation.NewWeightedProposalMsg(
+		simulation.NewWeightedProposalMsgX(
 			OpWeightMsgIBCSoftwareUpgrade,
 			DefaultWeight,
 			SimulateClientMsgScheduleIBCSoftwareUpgrade,
@@ -52,32 +54,34 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 	}
 }
 
+// func(ctx context.Context, r *rand.Rand, accs []Account, cdc address.Codec) (sdk.Msg, error)
+
 // SimulateClientMsgUpdateParams returns a MsgUpdateParams for 02-client
-func SimulateClientMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
-	var signer sdk.AccAddress = address.Module("gov")
+func SimulateClientMsgUpdateParams(_ context.Context, r *rand.Rand, _ []simtypes.Account, _ address.Codec) (sdk.Msg, error) {
+	var signer sdk.AccAddress = authtypes.NewModuleAddress("gov")
 	params := types.DefaultParams()
 	params.AllowedClients = []string{"06-solomachine", "07-tendermint"}
 
 	return &types.MsgUpdateParams{
 		Signer: signer.String(),
 		Params: params,
-	}
+	}, nil
 }
 
 // SimulateClientMsgRecoverClient returns a MsgRecoverClient for 02-client
-func SimulateClientMsgRecoverClient(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
-	var signer sdk.AccAddress = address.Module("gov")
+func SimulateClientMsgRecoverClient(_ context.Context, r *rand.Rand, _ []simtypes.Account, _ address.Codec) (sdk.Msg, error) {
+	var signer sdk.AccAddress = authtypes.NewModuleAddress("gov")
 
 	return &types.MsgRecoverClient{
 		Signer:             signer.String(),
 		SubjectClientId:    "07-tendermint-0",
 		SubstituteClientId: "07-tendermint-1",
-	}
+	}, nil
 }
 
 // SimulateClientMsgScheduleIBCSoftwareUpgrade returns a MsgScheduleIBCSoftwareUpgrade for 02-client
-func SimulateClientMsgScheduleIBCSoftwareUpgrade(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
-	var signer sdk.AccAddress = address.Module("gov")
+func SimulateClientMsgScheduleIBCSoftwareUpgrade(_ context.Context, r *rand.Rand, _ []simtypes.Account, _ address.Codec) (sdk.Msg, error) {
+	var signer sdk.AccAddress = authtypes.NewModuleAddress("gov")
 
 	chainID := "chain-a-0"
 	ubdPeriod := time.Hour * 24 * 7 * 2
@@ -101,17 +105,17 @@ func SimulateClientMsgScheduleIBCSoftwareUpgrade(r *rand.Rand, _ sdk.Context, _ 
 			Height: 100,
 		},
 		UpgradedClientState: anyClient,
-	}
+	}, nil
 }
 
 // SimulateConnectionMsgUpdateParams returns a MsgUpdateParams 03-connection
-func SimulateConnectionMsgUpdateParams(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
-	var signer sdk.AccAddress = address.Module("gov")
+func SimulateConnectionMsgUpdateParams(_ context.Context, r *rand.Rand, _ []simtypes.Account, _ address.Codec) (sdk.Msg, error) {
+	var signer sdk.AccAddress = authtypes.NewModuleAddress("gov")
 	params := connectiontypes.DefaultParams()
 	params.MaxExpectedTimePerBlock = uint64(100)
 
 	return &connectiontypes.MsgUpdateParams{
 		Signer: signer.String(),
 		Params: params,
-	}
+	}, nil
 }

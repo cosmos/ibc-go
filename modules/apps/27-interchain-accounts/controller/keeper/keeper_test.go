@@ -5,6 +5,7 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/core/appmodule"
 	govtypes "cosmossdk.io/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -110,6 +111,11 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestNewKeeper() {
+	env := appmodule.Environment{
+		Logger:         suite.chainA.GetSimApp().Logger(),
+		KVStoreService: runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+	}
+
 	testCases := []struct {
 		name          string
 		instantiateFn func()
@@ -118,7 +124,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"success", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				env,
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
@@ -131,7 +137,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"failure: empty authority", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				env,
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
