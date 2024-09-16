@@ -465,6 +465,7 @@ func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Ms
 	return &channeltypes.MsgChannelCloseConfirmResponse{}, nil
 }
 
+// RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	var (
 		packetHandler PacketHandler
