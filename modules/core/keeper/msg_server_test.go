@@ -3346,3 +3346,121 @@ func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestV2PacketFlow() {
+	suite.SetupTest()
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetupV2()
+
+	timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+	sequence, err := path.EndpointA.SendPacketV2(clienttypes.ZeroHeight(), timeoutTimestamp, ibcmock.Version, ibctesting.MockPacketData)
+	suite.Require().NoError(err)
+
+	packet := channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.ZeroHeight(), timeoutTimestamp, ibcmock.Version)
+
+	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	proof, proofHeight := path.EndpointA.QueryProof(packetKey)
+	suite.Require().NotNil(proof)
+	suite.Require().False(proofHeight.IsZero())
+
+	// RecvPacket
+	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
+	recvPacketResponse, err := path.EndpointB.Chain.SendMsgs(recvMsg)
+	suite.Require().NoError(path.EndpointA.UpdateClient())
+
+	suite.Require().NotNil(recvPacketResponse)
+	suite.Require().NoError(err)
+
+	// replay should not fail since it will be treated as a no-op
+	// _, err = suite.chainB.App.GetIBCKeeper().RecvPacket(suite.chainB.GetContext(), msg)
+	//suite.Require().NoError(err)
+
+	// events := ctx.EventManager().Events()
+
+	// ensure that the ack that was written, is a multi ack with a single item that hat as a success status.
+	ack, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	suite.Require().True(found)
+	suite.Require().NotNil(ack)
+
+	expectedAck := channeltypes.MultiAcknowledgement{
+		AcknowledgementResults: []channeltypes.AcknowledgementResult{
+			{
+				AppName: path.EndpointB.ChannelConfig.PortID,
+				RecvPacketResult: channeltypes.RecvPacketResult{
+					Status:          channeltypes.PacketStatus_Success,
+					Acknowledgement: ibctesting.MockAcknowledgement,
+				},
+			},
+		},
+	}
+
+	expectedBz := suite.chainB.Codec.MustMarshal(&expectedAck)
+	expectedCommittedBz := channeltypes.CommitAcknowledgement(expectedBz)
+	suite.Require().Equal(expectedCommittedBz, ack)
+
+	packetKey = host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	proof, proofHeight = path.EndpointB.QueryProof(packetKey)
+
+	legacyMultiAck := keeper.NewLegacyMultiAck(suite.chainA.Codec, ibcmock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
+
+	msgAck := channeltypes.NewMsgAcknowledgement(packet, legacyMultiAck.Acknowledgement(), proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+
+	ackPacketResponse, err := path.EndpointA.Chain.SendMsgs(msgAck)
+	suite.Require().NoError(path.EndpointB.UpdateClient())
+
+	suite.Require().NoError(err)
+	suite.Require().NotNil(ackPacketResponse)
+}
+
+// func (suite *KeeperTestSuite) TestV1PacketFlow() {
+//	suite.SetupTest()
+//
+//	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+//	path.SetupV2()
+//
+//	timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+//	sequence, err := path.EndpointA.SendPacketV2(clienttypes.ZeroHeight(), timeoutTimestamp, ibcmock.Version, ibctesting.MockPacketData)
+//	suite.Require().NoError(err)
+//
+//	packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.ZeroHeight(), timeoutTimestamp)
+//
+//	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+//	proof, proofHeight := path.EndpointA.QueryProof(packetKey)
+//	suite.Require().NotNil(proof)
+//	suite.Require().False(proofHeight.IsZero())
+//
+//	// RecvPacket
+//	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
+//	recvPacketResponse, err := path.EndpointB.Chain.SendMsgs(recvMsg)
+//	suite.Require().NoError(path.EndpointA.UpdateClient())
+//
+//	suite.Require().NotNil(recvPacketResponse)
+//	suite.Require().NoError(err)
+
+// replay should not fail since it will be treated as a no-op
+// _, err = suite.chainB.App.GetIBCKeeper().RecvPacket(suite.chainB.GetContext(), msg)
+//suite.Require().NoError(err)
+
+// events := ctx.EventManager().Events()
+
+// ensure that the ack that was written, is a multi ack with a single item that hat as a success status.
+//	ack, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+//	suite.Require().True(found)
+//	suite.Require().NotNil(ack)
+//
+//	expectedCommittedBz := channeltypes.CommitAcknowledgement(ibcmock.MockAcknowledgement.Acknowledgement())
+//	suite.Require().Equal(expectedCommittedBz, ack)
+//
+//	packetKey = host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+//	proof, proofHeight = path.EndpointB.QueryProof(packetKey)
+//
+//	msgAck := channeltypes.NewMsgAcknowledgement(packet, ibcmock.MockAcknowledgement.Acknowledgement(), proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+//
+//	ackPacketResponse, err := path.EndpointA.Chain.SendMsgs(msgAck)
+//	suite.Require().NoError(path.EndpointB.UpdateClient())
+//
+//	suite.Require().NoError(err)
+//	suite.Require().NotNil(ackPacketResponse)
+//
+//}

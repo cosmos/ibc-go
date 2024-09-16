@@ -24,21 +24,21 @@ func NewLegacyMultiAck(cdc codec.BinaryCodec, ack exported.Acknowledgement, appN
 		RecvPacketResult: recvPacketResult,
 	})
 
-	return &legacyMultiAck{
+	return &LegacyMultiAck{
 		cdc:      cdc,
 		multiAck: multiAck,
 	}
 }
 
-type legacyMultiAck struct {
+type LegacyMultiAck struct {
 	cdc      codec.BinaryCodec
 	multiAck channeltypes.MultiAcknowledgement
 }
 
-func (l *legacyMultiAck) Acknowledgement() []byte {
+func (l *LegacyMultiAck) Acknowledgement() []byte {
 	return l.cdc.MustMarshal(&l.multiAck)
 }
 
-func (l *legacyMultiAck) Success() bool {
+func (l *LegacyMultiAck) Success() bool {
 	return l.multiAck.AcknowledgementResults[0].RecvPacketResult.Status == channeltypes.PacketStatus_Success
 }
