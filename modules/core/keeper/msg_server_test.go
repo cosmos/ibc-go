@@ -3374,7 +3374,7 @@ func (suite *KeeperTestSuite) TestV2PacketFlow() {
 
 	// replay should not fail since it will be treated as a no-op
 	// _, err = suite.chainB.App.GetIBCKeeper().RecvPacket(suite.chainB.GetContext(), msg)
-	//suite.Require().NoError(err)
+	// suite.Require().NoError(err)
 
 	// events := ctx.EventManager().Events()
 
@@ -3440,7 +3440,7 @@ func (suite *KeeperTestSuite) TestV2PacketFlow() {
 
 // replay should not fail since it will be treated as a no-op
 // _, err = suite.chainB.App.GetIBCKeeper().RecvPacket(suite.chainB.GetContext(), msg)
-//suite.Require().NoError(err)
+// suite.Require().NoError(err)
 
 // events := ctx.EventManager().Events()
 
@@ -3463,4 +3463,4 @@ func (suite *KeeperTestSuite) TestV2PacketFlow() {
 //	suite.Require().NoError(err)
 //	suite.Require().NotNil(ackPacketResponse)
 //
-//}
+// }
