@@ -102,7 +102,7 @@ func commitV2Packet(packet Packet) []byte {
 }
 
 // CommitPacketV2 returns the V2 packet commitment bytes. The commitment consists of:
-// sha256_hash(timeout) + sha256_hash(destinationID) + sha256_hash(packetData) from a given packet.
+// sha256_hash(timeout) + sha256_hash(destinationID) + sha256_hash(packetData) for a given packet.
 // This results in a fixed length preimage.
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
