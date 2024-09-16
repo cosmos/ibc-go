@@ -682,7 +682,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 		{
 			"successful no-op: - packet already acknowledged (replay)",
 			func() {
-				err := path.EndpointA.AcknowledgePacket(packet, ibctesting.MockAcknowledgement)
+				legacyMultiAck := keeper.NewLegacyMultiAck(suite.chainA.Codec, ibcmock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
+				err := path.EndpointA.AcknowledgePacket(packet, legacyMultiAck.Acknowledgement())
 				suite.Require().NoError(err)
 			},
 			nil,
@@ -727,7 +728,9 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 
-			msg := channeltypes.NewMsgAcknowledgement(packet, ibcmock.MockAcknowledgement.Acknowledgement(), proof, proofHeight, signer)
+			legacyMultiAck := keeper.NewLegacyMultiAck(suite.chainA.Codec, ibcmock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
+
+			msg := channeltypes.NewMsgAcknowledgement(packet, legacyMultiAck.Acknowledgement(), proof, proofHeight, signer)
 
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.App.GetIBCKeeper().Acknowledgement(ctx, msg)

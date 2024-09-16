@@ -529,6 +529,11 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 	// acknowledgement is nil.
 	if ack != nil {
+		// the ack structure for V2 uses multi ack, so we need to convert the old structure to the new.
+		if msg.Packet.ProtocolVersion == channeltypes.IBC_VERSION_2 {
+			ack = NewLegacyMultiAck(k.cdc, ack, msg.Packet.DestinationPort)
+		}
+
 		if err := packetHandler.WriteAcknowledgement(ctx, capability, msg.Packet, ack); err != nil {
 			return nil, err
 		}
