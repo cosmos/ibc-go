@@ -5,8 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtstate "github.com/cometbft/cometbft/state"
 
@@ -107,13 +105,13 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// different ABCI error code used
 	errDifferentABCICode := ibcerrors.ErrNotFound
 
-	deliverTx := sdkerrors.ResponseExecTxResultWithEvents(err, gasUsed, gasWanted, []abci.Event{}, false)
+	deliverTx := responseExecTxResultWithEvents(err, gasUsed, gasWanted, []abci.Event{}, false)
 	execTxResults := []*abci.ExecTxResult{deliverTx}
 
-	deliverTxSameABCICode := sdkerrors.ResponseExecTxResultWithEvents(errSameABCICode, gasUsed, gasWanted, []abci.Event{}, false)
+	deliverTxSameABCICode := responseExecTxResultWithEvents(errSameABCICode, gasUsed, gasWanted, []abci.Event{}, false)
 	resultsSameABCICode := []*abci.ExecTxResult{deliverTxSameABCICode}
 
-	deliverTxDifferentABCICode := sdkerrors.ResponseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abci.Event{}, false)
+	deliverTxDifferentABCICode := responseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abci.Event{}, false)
 	resultsDifferentABCICode := []*abci.ExecTxResult{deliverTxDifferentABCICode}
 
 	hash := cmtstate.TxResultsHash(execTxResults)
@@ -122,6 +120,21 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 
 	suite.Require().Equal(hash, hashSameABCICode)
 	suite.Require().NotEqual(hash, hashDifferentABCICode)
+}
+
+// cosmos-sdk/baseapp/errors.go @ 01c0e9ba35818be56428483222b79f6d9cfaa105
+// responseExecTxResultWithEvents returns an ABCI ExecTxResult object with fields
+// filled in from the given error, gas values and events.
+func responseExecTxResultWithEvents(err error, gw, gu uint64, events []abci.Event, debug bool) *abci.ExecTxResult {
+	space, code, log := errorsmod.ABCIInfo(err, debug)
+	return &abci.ExecTxResult{
+		Codespace: space,
+		Code:      code,
+		Log:       log,
+		GasWanted: int64(gw),
+		GasUsed:   int64(gu),
+		Events:    events,
+	}
 }
 
 // TestAcknowledgementError will verify that only a constant string and

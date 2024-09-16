@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"cosmossdk.io/core/appmodule"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/cosmos-sdk/runtime"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
 	genesistypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/genesis/types"
@@ -135,11 +133,6 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestNewKeeper() {
-	env := appmodule.Environment{
-		Logger:         suite.chainA.GetSimApp().Logger(),
-		KVStoreService: runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
-	}
-
 	testCases := []struct {
 		name          string
 		instantiateFn func()
@@ -148,7 +141,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"success", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				env,
+				suite.chainA.GetSimApp().ICAHostKeeper.Environment,
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
@@ -163,7 +156,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"failure: interchain accounts module account does not exist", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				env,
+				suite.chainA.GetSimApp().ICAHostKeeper.Environment,
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
@@ -178,7 +171,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"failure: empty mock staking keeper", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				env,
+				suite.chainA.GetSimApp().ICAHostKeeper.Environment,
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,

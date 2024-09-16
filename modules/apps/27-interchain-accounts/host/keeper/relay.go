@@ -133,10 +133,10 @@ func (k Keeper) authenticateTx(ctx context.Context, msgs []sdk.Msg, connectionID
 // Attempts to get the message handler from the router and if found will then execute the message.
 // If the message execution is successful, the proto marshaled message response will be returned.
 func (k Keeper) executeMsg(ctx context.Context, env appmodule.Environment, msg sdk.Msg) (*codectypes.Any, error) { // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	handler := env.MsgRouterService.CanInvoke(ctx, msg)
-	if handler == nil {
-		return nil, icatypes.ErrInvalidRoute
-	}
+	// handler := env.MsgRouterService.CanInvoke(ctx, msg)
+	// if handler == nil {
+	// 	return nil, icatypes.ErrInvalidRoute
+	// }
 
 	res, err := env.MsgRouterService.Invoke(ctx, msg)
 	if err != nil {

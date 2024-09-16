@@ -22,8 +22,8 @@ func BeginBlocker(ctx context.Context, k *keeper.Keeper) {
 		hi := k.HeaderService.HeaderInfo(ctx)
 		if err == nil && hi.Height == plan.Height-1 {
 			upgradedConsState := &ibctm.ConsensusState{
-				Timestamp:          hi.Time,
-				NextValidatorsHash: hi.NextValidatorsHash, //TODO: need to pass the consensus modules blocked on https://github.com/cosmos/cosmos-sdk/pull/21480
+				Timestamp: hi.Time,
+				// NextValidatorsHash: hi.NextValidatorsHash, //TODO: need to pass the consensus modules blocked on https://github.com/cosmos/cosmos-sdk/pull/21480
 			}
 			bz := types.MustMarshalConsensusState(k.Codec(), upgradedConsState)
 
