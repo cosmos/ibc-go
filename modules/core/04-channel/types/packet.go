@@ -26,7 +26,6 @@ func CommitPacket(packet Packet) []byte {
 	case IBC_VERSION_UNSPECIFIED, IBC_VERSION_1:
 		return commitV1Packet(packet)
 	case IBC_VERSION_2:
-		// TODO: convert to PacketV2 and commit.
 		return commitV2Packet(packet)
 	default:
 		panic("unsupported version")
@@ -243,6 +242,56 @@ func (p Packet) ValidateBasic() error {
 	return nil
 }
 
+func (p PacketV2) ValidateBasic() error {
+	// TODO: temporarily assume a single packet data
+	if len(p.Data) != 1 {
+		return errorsmod.Wrap(ErrInvalidPacket, "packet data length must be 1")
+	}
+
+	for _, pd := range p.Data {
+		if err := host.PortIdentifierValidator(pd.SourcePort); err != nil {
+			return errorsmod.Wrap(err, "invalid source port ID")
+		}
+		if err := host.PortIdentifierValidator(pd.DestinationPort); err != nil {
+			return errorsmod.Wrap(err, "invalid destination port ID")
+		}
+
+		if err := pd.Payload.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if err := host.ChannelIdentifierValidator(p.SourceId); err != nil {
+		return errorsmod.Wrap(err, "invalid source channel ID")
+	}
+	if err := host.ChannelIdentifierValidator(p.DestinationId); err != nil {
+		return errorsmod.Wrap(err, "invalid destination channel ID")
+	}
+
+	if p.Sequence == 0 {
+		return errorsmod.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
+	}
+	if p.TimeoutTimestamp == 0 {
+		return errorsmod.Wrap(ErrInvalidPacket, "packet timeout timestamp cannot be 0")
+	}
+
+	return nil
+}
+
+// Validate validates a PacketV2 Payload.
+func (p Payload) Validate() error {
+	if strings.TrimSpace(p.Version) == "" {
+		return errorsmod.Wrap(ErrInvalidPayload, "payload version cannot be empty")
+	}
+	if strings.TrimSpace(p.Encoding) == "" {
+		return errorsmod.Wrap(ErrInvalidPayload, "payload encoding cannot be empty")
+	}
+	if len(p.Value) == 0 {
+		return errorsmod.Wrap(ErrInvalidPayload, "payload value cannot be empty")
+	}
+	return nil
+}
+
 // Validates a PacketId
 func (p PacketId) Validate() error {
 	if err := host.PortIdentifierValidator(p.PortId); err != nil {
@@ -269,6 +318,10 @@ func NewPacketID(portID, channelID string, seq uint64) PacketId {
 func ConvertPacketV1toV2(packet Packet) (PacketV2, error) {
 	if packet.ProtocolVersion != IBC_VERSION_2 {
 		return PacketV2{}, errorsmod.Wrapf(ErrInvalidPacket, "expected protocol version %s, got %s instead", IBC_VERSION_2, packet.ProtocolVersion)
+	}
+
+	if !packet.TimeoutHeight.IsZero() {
+		return PacketV2{}, errorsmod.Wrap(ErrInvalidPacket, "timeout height must be zero")
 	}
 
 	encoding := strings.TrimSpace(packet.Encoding)
