@@ -57,10 +57,9 @@ func (k Keeper) SendPacket(
 		return 0, err
 	}
 
-	// TODO: create ValidateBasic for PacketV2
-	// if err := packetV2.ValidateBasic(); err != nil {
-	//	return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
-	//}
+	if err := packetV2.ValidateBasic(); err != nil {
+		return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
+	}
 
 	// check that the client of counterparty chain is still active
 	if status := k.ClientKeeper.GetClientStatus(ctx, sourceChannel); status != exported.Active {
