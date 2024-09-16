@@ -161,6 +161,7 @@ func NewPacket(
 		TimeoutHeight:      timeoutHeight,
 		TimeoutTimestamp:   timeoutTimestamp,
 		ProtocolVersion:    IBC_VERSION_1,
+		Encoding:           "json",
 	}
 }
 
@@ -262,4 +263,34 @@ func (p PacketId) Validate() error {
 // NewPacketID returns a new instance of PacketId
 func NewPacketID(portID, channelID string, seq uint64) PacketId {
 	return PacketId{PortId: portID, ChannelId: channelID, Sequence: seq}
+}
+
+// ConvertPacketV1toV2 constructs a PacketV2 from a Packet.
+func ConvertPacketV1toV2(packet Packet) (PacketV2, error) {
+	if packet.ProtocolVersion != IBC_VERSION_2 {
+		return PacketV2{}, errorsmod.Wrapf(ErrInvalidPacket, "expected protocol version %s, got %s instead", IBC_VERSION_2, packet.ProtocolVersion)
+	}
+
+	encoding := strings.TrimSpace(packet.Encoding)
+	if encoding == "" {
+		encoding = "json"
+	}
+
+	return PacketV2{
+		Sequence:         packet.Sequence,
+		SourceId:         packet.SourceChannel,
+		DestinationId:    packet.DestinationChannel,
+		TimeoutTimestamp: packet.TimeoutTimestamp,
+		Data: []PacketData{
+			{
+				SourcePort:      packet.SourcePort,
+				DestinationPort: packet.DestinationPort,
+				Payload: Payload{
+					Version:  packet.AppVersion,
+					Encoding: encoding,
+					Value:    packet.Data,
+				},
+			},
+		},
+	}, nil
 }
