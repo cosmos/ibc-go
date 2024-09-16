@@ -144,6 +144,9 @@ func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltyp
 
 					packet.ProtocolVersion = channeltypes.IBCVersion(version)
 
+				case channeltypes.AttributeKeyAppVersion:
+					packet.AppVersion = attr.Value
+
 				default:
 					continue
 				}
