@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+
 	testifysuite "github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -11,6 +12,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -361,9 +363,10 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	var (
+		ack          exported.Acknowledgement
 		packet       channeltypes.Packet
-		ack          = mock.MockAcknowledgement
 		freezeClient bool
+		path         *ibctesting.Path
 	)
 
 	testCases := []struct {
@@ -373,7 +376,9 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	}{
 		{
 			"success",
-			func() {},
+			func() {
+				ack = keeper.NewLegacyMultiAck(suite.chainA.Codec, mock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
+			},
 			nil,
 		},
 		{
@@ -432,7 +437,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
 			freezeClient = false

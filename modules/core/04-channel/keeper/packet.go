@@ -296,6 +296,8 @@ func (k *Keeper) WriteAcknowledgement(
 	packet exported.PacketI,
 	acknowledgement exported.Acknowledgement,
 ) error {
+	// TODO: if packet is a V2, wrap ack into LegacyAck?
+
 	channel, found := k.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if !found {
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())

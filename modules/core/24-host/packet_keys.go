@@ -12,6 +12,7 @@ const (
 	KeyPacketReceiptPrefix    = "receipts"
 	KeyPruningSequenceStart   = "pruningSequenceStart"
 	KeyRecvStartSequence      = "recvStartSequence"
+	KeyMultiAck               = "multiAck"
 )
 
 // ICS04
