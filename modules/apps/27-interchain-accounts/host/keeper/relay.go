@@ -138,19 +138,20 @@ func (k Keeper) executeMsg(ctx context.Context, env appmodule.Environment, msg s
 	// 	return nil, icatypes.ErrInvalidRoute
 	// }
 
-	res, err := env.MsgRouterService.Invoke(ctx, msg)
-	if err != nil {
-		return nil, err
-	}
+	// res, err := env.MsgRouterService.Invoke(ctx, msg)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
-	env.EventService.EventManager(ctx).EmitKV(res.GetEvents()) //TODO
+	// env.EventService.EventManager(ctx).EmitKV(res.GetEvents()) //TODO
 
 	// Each individual sdk.Result has exactly one Msg response. We aggregate here.
-	msgResponse := res.MsgResponses[0]
-	if msgResponse == nil {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrLogic, "got nil Msg response for msg %s", sdk.MsgTypeURL(msg))
-	}
+	// msgResponse := res.MsgResponses[0]
+	// if msgResponse == nil {
+	// 	return nil, errorsmod.Wrapf(ibcerrors.ErrLogic, "got nil Msg response for msg %s", sdk.MsgTypeURL(msg))
+	// }
 
-	return msgResponse, nil
+	// return msgResponse, nil
+	return &codectypes.Any{}, nil
 }
