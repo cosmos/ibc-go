@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	"errors"
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -1036,7 +1037,21 @@ func (k *Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Ms
 }
 
 func (k *Keeper) SendPacketV2(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error) {
-	return nil, nil
+	sequence, err := k.PacketServerKeeper.SendPacketV2(ctx, msg.SourceId, msg.TimeoutTimestamp, msg.PacketData)
+	if err != nil {
+		// ctx.Logger().Error("send packet failed", "port-id", msg.PortId, "channel-id", msg.ChannelId, "error", errorsmod.Wrap(err, "send packet failed"))
+		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceId)
+	}
+
+	// for _, pd := range msg.PacketData {
+	// 	cbs := k.PortKeeper.AppRouter.Route(pd.AppName)
+	// 	err := cbs.OnSendPacketV2(ctx, msg.PortId, msg.ChannelId, sequence, msg.TimeoutHeight, msg.TimeoutTimestamp, pd.Payload, sdk.AccAddress(msg.Signer))
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
+
+	return &channeltypesv2.MsgSendPacketResponse{Sequence: sequence}, nil
 }
 
 func (k *Keeper) RecvPacketV2(ctx context.Context, msg *channeltypesv2.MsgRecvPacket) (*channeltypesv2.MsgRecvPacketResponse, error) {

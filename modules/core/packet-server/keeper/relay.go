@@ -12,10 +12,69 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
+
+const packetV2SourcePort = "v2port"
+
+func (k Keeper) SendPacketV2(
+	ctx context.Context,
+	sourceID string,
+	timeoutTimestamp uint64,
+	data []channeltypes.PacketData,
+) (uint64, error) {
+	// Lookup counterparty associated with our source channel to retrieve the destination channel
+	counterparty, ok := k.GetCounterparty(ctx, sourceID)
+	if !ok {
+		return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceID)
+	}
+	destChannel := counterparty.ClientId
+	// retrieve the sequence send for this channel
+	// if no packets have been sent yet, initialize the sequence to 1.
+	sequence, found := k.ChannelKeeper.GetNextSequenceSend(ctx, packetV2SourcePort, sourceID)
+	if !found {
+		sequence = 1
+	}
+
+	// construct packet from given fields and channel state
+	packet := channeltypesv2.NewPacketV2(sequence, sourceID, destChannel, timeoutTimestamp, data...)
+
+	if err := packet.ValidateBasic(); err != nil {
+		return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
+	}
+
+	// check that the client of counterparty chain is still active
+	if status := k.ClientKeeper.GetClientStatus(ctx, sourceID); status != exported.Active {
+		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", sourceID, status)
+	}
+
+	// retrieve latest height and timestamp of the client of counterparty chain
+	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, sourceID)
+	if latestHeight.IsZero() {
+		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", sourceID)
+	}
+	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceID, latestHeight)
+	if err != nil {
+		return 0, err
+	}
+	// check if packet is timed out on the receiving chain
+	timeout := channeltypes.NewTimeoutWithTimestamp(timeoutTimestamp)
+	if timeout.Elapsed(clienttypes.ZeroHeight(), latestTimestamp) {
+		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
+	}
+	commitment := channeltypes.CommitPacketV2(packet)
+
+	// bump the sequence and set the packet commitment so it is provable by the counterparty
+	k.ChannelKeeper.SetNextSequenceSend(ctx, packetV2SourcePort, sourceID, sequence+1)
+	k.ChannelKeeper.SetPacketCommitment(ctx, packetV2SourcePort, sourceID, packet.GetSequence(), commitment)
+	//	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packetV2SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+
+	//	channelkeeper.EmitSendPacketEventV2(ctx, packet, sentinelChannel(sourceID), timeoutHeight)
+	return sequence, nil
+}
 
 // SendPacket implements the packet sending logic required by a packet handler.
 // It will generate a packet and store the commitment hash if all arguments provided are valid.
