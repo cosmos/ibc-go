@@ -15,16 +15,16 @@ service PacketMsg {
   option (cosmos.msg.v1.service) = true;
 
   // SendPacket defines a rpc handler method for MsgSendPacket.
-  rpc SendPacket(MsgSendPacket) returns (MsgSendPacketResponse);
+  rpc SendPacketV2(MsgSendPacket) returns (MsgSendPacketResponse);
 
   // RecvPacket defines a rpc handler method for MsgRecvPacket.
-  rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
+  rpc RecvPacketV2(MsgRecvPacket) returns (MsgRecvPacketResponse);
 
   // Timeout defines a rpc handler method for MsgTimeout.
-  rpc Timeout(MsgTimeout) returns (MsgTimeoutResponse);
+  rpc TimeoutV2(MsgTimeout) returns (MsgTimeoutResponse);
 
   // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
-  rpc Acknowledgement(MsgAcknowledgement) returns (MsgAcknowledgementResponse);
+  rpc AcknowledgementV2(MsgAcknowledgement) returns (MsgAcknowledgementResponse);
 }
 
 // MsgRecvPacket receives incoming IBC packet
