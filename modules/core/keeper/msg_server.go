@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"context"
+	errorsmod "cosmossdk.io/errors"
 	"errors"
 	"fmt"
-	errorsmod "cosmossdk.io/errors"
+	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -1032,6 +1033,22 @@ func (k *Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Ms
 	k.ChannelKeeper.SetParams(ctx, msg.Params)
 
 	return &channeltypes.MsgUpdateParamsResponse{}, nil
+}
+
+func (k *Keeper) SendPacketV2(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error) {
+	return nil, nil
+}
+
+func (k *Keeper) RecvPacketV2(ctx context.Context, msg *channeltypesv2.MsgRecvPacket) (*channeltypesv2.MsgRecvPacketResponse, error) {
+	return nil, nil
+}
+
+func (k *Keeper) TimeoutV2(ctx context.Context, msg *channeltypesv2.MsgTimeout) (*channeltypesv2.MsgTimeoutResponse, error) {
+	return nil, nil
+}
+
+func (k *Keeper) AcknowledgementV2(ctx context.Context, msg *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {
+	return nil, nil
 }
 
 // convertToErrorEvents converts all events to error events by appending the

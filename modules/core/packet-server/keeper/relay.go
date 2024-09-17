@@ -12,27 +12,10 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
-
-func (k *Keeper) SendPacketV2(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error) {
-	return nil, nil
-}
-
-func (k *Keeper) RecvPacketV2(ctx context.Context, msg *channeltypesv2.MsgRecvPacket) (*channeltypesv2.MsgRecvPacketResponse, error) {
-	return nil, nil
-}
-
-func (k *Keeper) TimeoutV2(ctx context.Context, msg *channeltypesv2.MsgTimeout) (*channeltypesv2.MsgTimeoutResponse, error) {
-	return nil, nil
-}
-
-// func (k *Keeper) AcknowledgementV2(ctx context.Context, msg *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {
-// 	return nil, nil
-// }
 
 // SendPacket implements the packet sending logic required by a packet handler.
 // It will generate a packet and store the commitment hash if all arguments provided are valid.
