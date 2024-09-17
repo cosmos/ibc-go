@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"failure: sender is a blocked address",
 			func() {
-				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
+				msg.Sender = suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
 		},

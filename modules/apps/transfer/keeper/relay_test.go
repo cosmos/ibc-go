@@ -134,7 +134,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"failure: sender account is blocked",
 			func() {
-				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName)
+				sender = suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(minttypes.ModuleName)
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -352,7 +352,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 		{
 			"failure: receiver is module account",
 			func() {
-				packetData.Receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
+				packetData.Receiver = suite.chainB.GetSimApp().AuthKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -501,7 +501,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 		{
 			"failure: receiver is module account",
 			func() {
-				packetData.Receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
+				packetData.Receiver = suite.chainB.GetSimApp().AuthKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
 		},
