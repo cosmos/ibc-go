@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,6 +15,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
+	"github.com/cosmos/ibc-go/v9/modules/core/legacy"
 	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
@@ -481,7 +481,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	if ack != nil {
 		// the ack structure for V2 uses multi ack, so we need to convert the old structure to the new.
 		if msg.Packet.ProtocolVersion == channeltypes.IBC_VERSION_2 {
-			ack = NewLegacyMultiAck(k.cdc, ack, msg.Packet.DestinationPort)
+			ack = legacy.NewLMultiAck(k.cdc, ack, msg.Packet.DestinationPort)
 		}
 
 		if err := packetHandler.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {

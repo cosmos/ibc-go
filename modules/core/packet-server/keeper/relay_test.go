@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"fmt"
 	"testing"
-
-
 	testifysuite "github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -12,7 +10,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/core/legacy"
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -350,7 +348,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		{
 			"success",
 			func() {
-				ack = keeper.NewLegacyMultiAck(suite.chainA.Codec, mock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
+				ack = legacy.NewLMultiAck(suite.chainA.Codec, mock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
 			},
 			nil,
 		},

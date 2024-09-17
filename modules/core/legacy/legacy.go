@@ -1,4 +1,4 @@
-package keeper
+package legacy
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -7,9 +7,9 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
-// NewLegacyMultiAck returns an implementation of the exported.Acknowledgement interface which will be forwards
+// NewLMultiAck returns an implementation of the exported.Acknowledgement interface which will be forwards
 // compatible with the new MultiAck structure for PacketV2.
-func NewLegacyMultiAck(cdc codec.BinaryCodec, ack exported.Acknowledgement, appName string) exported.Acknowledgement {
+func NewLMultiAck(cdc codec.BinaryCodec, ack exported.Acknowledgement, appName string) exported.Acknowledgement {
 	var multiAck channeltypes.MultiAcknowledgement
 	recvPacketResult := channeltypes.RecvPacketResult{
 		Acknowledgement: ack.Acknowledgement(),
@@ -24,21 +24,21 @@ func NewLegacyMultiAck(cdc codec.BinaryCodec, ack exported.Acknowledgement, appN
 		RecvPacketResult: recvPacketResult,
 	})
 
-	return &legacyMultiAck{
+	return &MultiAck{
 		cdc:      cdc,
 		multiAck: multiAck,
 	}
 }
 
-type legacyMultiAck struct {
+type MultiAck struct {
 	cdc      codec.BinaryCodec
 	multiAck channeltypes.MultiAcknowledgement
 }
 
-func (l *legacyMultiAck) Acknowledgement() []byte {
+func (l *MultiAck) Acknowledgement() []byte {
 	return l.cdc.MustMarshal(&l.multiAck)
 }
 
-func (l *legacyMultiAck) Success() bool {
+func (l *MultiAck) Success() bool {
 	return l.multiAck.AcknowledgementResults[0].RecvPacketResult.Status == channeltypes.PacketStatus_Success
 }

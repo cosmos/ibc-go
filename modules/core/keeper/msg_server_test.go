@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,6 +21,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/core/legacy"
 	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -658,7 +658,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 		{
 			"successful no-op: - packet already acknowledged (replay)",
 			func() {
-				legacyMultiAck := keeper.NewLegacyMultiAck(suite.chainA.Codec, ibcmock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
+				legacyMultiAck := legacy.NewLMultiAck(suite.chainA.Codec, ibcmock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
 				err := path.EndpointA.AcknowledgePacket(packet, legacyMultiAck.Acknowledgement())
 				suite.Require().NoError(err)
 			},
@@ -700,7 +700,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 
-			legacyMultiAck := keeper.NewLegacyMultiAck(suite.chainA.Codec, ibcmock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
+			legacyMultiAck := legacy.NewLMultiAck(suite.chainA.Codec, ibcmock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
 
 			msg := channeltypes.NewMsgAcknowledgement(packet, legacyMultiAck.Acknowledgement(), proof, proofHeight, signer)
 
@@ -3300,7 +3300,7 @@ func (suite *KeeperTestSuite) TestV2PacketFlow() {
 	packetKey = host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 
-	legacyMultiAck := keeper.NewLegacyMultiAck(suite.chainA.Codec, ibcmock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
+	legacyMultiAck := legacy.NewLMultiAck(suite.chainA.Codec, ibcmock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
 
 	msgAck := channeltypes.NewMsgAcknowledgement(packet, legacyMultiAck.Acknowledgement(), proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
@@ -3338,7 +3338,7 @@ func (suite *KeeperTestSuite) TestV1PacketFlow() {
 	suite.Require().NotNil(recvPacketResponse)
 	suite.Require().NoError(err)
 
-	//ensure that the ack that was written, is a multi ack with a single item that hat as a success status.
+	// ensure that the ack that was written, is a multi ack with a single item that hat as a success status.
 	ack, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	suite.Require().True(found)
 	suite.Require().NotNil(ack)
