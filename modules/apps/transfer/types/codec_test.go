@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 // TestMustMarshalProtoJSON tests that the memo field is only emitted (marshalled) if it is populated
@@ -30,27 +32,27 @@ func (suite *TypesTestSuite) TestCodecTypeRegistration() {
 	testCases := []struct {
 		name    string
 		typeURL string
-		expPass bool
+		expErr  error
 	}{
 		{
 			"success: MsgTransfer",
 			sdk.MsgTypeURL(&types.MsgTransfer{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgUpdateParams",
 			sdk.MsgTypeURL(&types.MsgUpdateParams{}),
-			true,
+			nil,
 		},
 		{
 			"success: TransferAuthorization",
 			sdk.MsgTypeURL(&types.TransferAuthorization{}),
-			true,
+			nil,
 		},
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			false,
+			errors.New("unable to resolve type URL"),
 		},
 	}
 
@@ -61,12 +63,12 @@ func (suite *TypesTestSuite) TestCodecTypeRegistration() {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NotNil(msg)
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Nil(msg)
-				suite.Require().Error(err)
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr)
 			}
 		})
 	}

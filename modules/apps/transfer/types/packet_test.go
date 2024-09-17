@@ -10,6 +10,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
@@ -26,29 +27,29 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	testCases := []struct {
 		name       string
 		packetData types.FungibleTokenPacketData
-		expPass    bool
+		expErr     error
 	}{
-		{"valid packet", types.NewFungibleTokenPacketData(denom, amount, sender, receiver, ""), true},
-		{"valid packet with memo", types.NewFungibleTokenPacketData(denom, amount, sender, receiver, "memo"), true},
-		{"valid packet with large amount", types.NewFungibleTokenPacketData(denom, largeAmount, sender, receiver, ""), true},
-		{"invalid denom", types.NewFungibleTokenPacketData("", amount, sender, receiver, ""), false},
-		{"invalid denom, invalid portID", types.NewFungibleTokenPacketData("(tranfer)/channel-1/uatom", amount, sender, receiver, ""), false},
-		{"invalid empty amount", types.NewFungibleTokenPacketData(denom, "", sender, receiver, ""), false},
-		{"invalid zero amount", types.NewFungibleTokenPacketData(denom, "0", sender, receiver, ""), false},
-		{"invalid negative amount", types.NewFungibleTokenPacketData(denom, "-1", sender, receiver, ""), false},
-		{"invalid large amount", types.NewFungibleTokenPacketData(denom, invalidLargeAmount, sender, receiver, ""), false},
-		{"missing sender address", types.NewFungibleTokenPacketData(denom, amount, emptyAddr, receiver, ""), false},
-		{"missing recipient address", types.NewFungibleTokenPacketData(denom, amount, sender, emptyAddr, ""), false},
+		{"valid packet", types.NewFungibleTokenPacketData(denom, amount, sender, receiver, ""), nil},
+		{"valid packet with memo", types.NewFungibleTokenPacketData(denom, amount, sender, receiver, "memo"), nil},
+		{"valid packet with large amount", types.NewFungibleTokenPacketData(denom, largeAmount, sender, receiver, ""), nil},
+		{"invalid denom", types.NewFungibleTokenPacketData("", amount, sender, receiver, ""), types.ErrInvalidDenomForTransfer},
+		{"invalid denom, invalid portID", types.NewFungibleTokenPacketData("(tranfer)/channel-1/uatom", amount, sender, receiver, ""), host.ErrInvalidID},
+		{"invalid empty amount", types.NewFungibleTokenPacketData(denom, "", sender, receiver, ""), types.ErrInvalidAmount},
+		{"invalid zero amount", types.NewFungibleTokenPacketData(denom, "0", sender, receiver, ""), types.ErrInvalidAmount},
+		{"invalid negative amount", types.NewFungibleTokenPacketData(denom, "-1", sender, receiver, ""), types.ErrInvalidAmount},
+		{"invalid large amount", types.NewFungibleTokenPacketData(denom, invalidLargeAmount, sender, receiver, ""), types.ErrInvalidAmount},
+		{"missing sender address", types.NewFungibleTokenPacketData(denom, amount, emptyAddr, receiver, ""), ibcerrors.ErrInvalidAddress},
+		{"missing recipient address", types.NewFungibleTokenPacketData(denom, amount, sender, emptyAddr, ""), ibcerrors.ErrInvalidAddress},
 	}
 
 	for i, tc := range testCases {
 		tc := tc
 
 		err := tc.packetData.ValidateBasic()
-		if tc.expPass {
+		if tc.expErr == nil {
 			require.NoError(t, err, "valid test case %d failed: %v", i, err)
 		} else {
-			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+			require.ErrorIs(t, err, tc.expErr, "invalid test case %d passed: %s", i, tc.name)
 		}
 	}
 }

@@ -1,7 +1,9 @@
 package fee_test
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -9,14 +11,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibcfee "github.com/cosmos/ibc-go/v9/modules/apps/29-fee"
 	feekeeper "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
@@ -33,44 +34,44 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 	testCases := []struct {
 		name         string
 		version      string
-		expPass      bool
 		isFeeEnabled bool
+		expErr       error
 	}{
 		{
 			"success - valid fee middleware and mock version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
 			true,
-			true,
+			nil,
 		},
 		{
 			"success - fee version not included, only perform mock logic",
 			ibcmock.Version,
-			true,
 			false,
-		},
-		{
-			"invalid fee middleware version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
-			false,
-			false,
-		},
-		{
-			"invalid mock version",
-			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
-			false,
-			false,
-		},
-		{
-			"mock version not wrapped",
-			types.Version,
-			false,
-			false,
+			nil,
 		},
 		{
 			"passing an empty string returns default version",
 			"",
 			true,
-			true,
+			nil,
+		},
+		{
+			"invalid fee middleware version",
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
+			false,
+			types.ErrInvalidVersion,
+		},
+		{
+			"invalid mock version",
+			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
+			false,
+			errors.New("incorrect mock version"),
+		},
+		{
+			"mock version not wrapped",
+			types.Version,
+			false,
+			errors.New("incorrect mock version"),
 		},
 	}
 
@@ -84,8 +85,8 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 				suite.path.SetupConnections()
 
 				// setup mock callback
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx context.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
 					if version != ibcmock.Version {
@@ -105,19 +106,13 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 					Version:        tc.version,
 				}
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-				suite.Require().NoError(err)
-
-				chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 				suite.Require().True(ok)
 
 				version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, channel.Version)
+					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, counterparty, channel.Version)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					// check if the channel is fee enabled. If so version string should include metaData
 					if tc.isFeeEnabled {
 						versionMetadata := types.Metadata{
@@ -135,7 +130,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 
 					suite.Require().NoError(err, "unexpected error from version: %s", tc.version)
 				} else {
-					suite.Require().Error(err, "error not returned for version: %s", tc.version)
+					ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, "error not returned for version: %s or error %s is not %s", tc.version, err, tc.expErr)
 					suite.Require().Equal("", version)
 				}
 			})
@@ -148,27 +143,27 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 	testCases := []struct {
 		name      string
 		cpVersion string
-		expPass   bool
+		expErr    error
 	}{
 		{
 			"success - valid fee middleware version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
-			true,
+			nil,
 		},
 		{
 			"success - valid mock version",
 			ibcmock.Version,
-			true,
+			nil,
 		},
 		{
 			"invalid fee middleware version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
-			false,
+			types.ErrInvalidVersion,
 		},
 		{
 			"invalid mock version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
-			false,
+			errors.New("incorrect mock version"),
 		},
 	}
 
@@ -184,8 +179,8 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 				suite.Require().NoError(err)
 
 				// setup mock callback
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx context.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, counterpartyVersion string,
 				) (string, error) {
 					if counterpartyVersion != ibcmock.Version {
@@ -194,13 +189,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 					return ibcmock.Version, nil
 				}
 
-				var (
-					chanCap *capabilitytypes.Capability
-					ok      bool
-				)
-
-				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
+				var ok bool
 
 				suite.path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
@@ -213,19 +202,16 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 					Version:        tc.cpVersion,
 				}
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 				suite.Require().True(ok)
 
 				_, err = cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, chanCap, counterparty, tc.cpVersion)
+					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, counterparty, tc.cpVersion)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 				}
 			})
 		}
@@ -238,31 +224,31 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 		name      string
 		cpVersion string
 		malleate  func(suite *FeeTestSuite)
-		expPass   bool
+		expErr    error
 	}{
 		{
 			"success",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: ibcmock.Version})),
 			func(suite *FeeTestSuite) {},
-			true,
+			nil,
 		},
 		{
 			"invalid fee version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: "invalid-ics29-1", AppVersion: ibcmock.Version})),
 			func(suite *FeeTestSuite) {},
-			false,
+			types.ErrInvalidVersion,
 		},
 		{
 			"invalid mock version",
 			string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: "invalid-mock-version"})),
 			func(suite *FeeTestSuite) {},
-			false,
+			errors.New("incorrect mock version"),
 		},
 		{
 			"invalid version fails to unmarshal metadata",
 			ibctesting.InvalidID,
 			func(suite *FeeTestSuite) {},
-			false,
+			errors.New("incorrect mock version"),
 		},
 		{
 			"previous INIT set without fee, however counterparty set fee version", // note this can only happen with incompetent or malicious counterparty chain
@@ -272,7 +258,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 				suite.path.EndpointA.ChannelConfig.Version = ibcmock.Version
 				suite.path.EndpointB.ChannelConfig.Version = ibcmock.Version
 			},
-			false,
+			errors.New("incorrect mock version"),
 		},
 	}
 
@@ -284,7 +270,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 
 			// setup mock callback
 			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenAck = func(
-				ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
+				ctx context.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
 			) error {
 				if counterpartyVersion != ibcmock.Version {
 					return fmt.Errorf("incorrect mock version")
@@ -300,17 +286,14 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 			err = suite.path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			err = cbs.OnChanOpenAck(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, suite.path.EndpointA.Counterparty.ChannelID, tc.cpVersion)
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, "unexpected error for case: %s", tc.name)
 			} else {
-				suite.Require().Error(err, "%s expected error but returned none", tc.name)
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 			}
 		})
 	}
@@ -325,19 +308,16 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
-			"application callback fails", func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseInit = func(
-					ctx sdk.Context, portID, channelID string,
-				) error {
-					return fmt.Errorf("application callback fails")
-				}
-			}, false,
+			"fee module is not enabled", func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+			nil,
 		},
 		{
 			"RefundFeesOnChannelClosure continues - invalid refund address", func() {
@@ -349,19 +329,22 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
+		},
+		{
+			"application callback fails", func() {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseInit = func(
+					ctx context.Context, portID, channelID string,
+				) error {
+					return fmt.Errorf("application callback fails")
+				}
+			}, errors.New("application callback fails"),
 		},
 		{
 			"fee module locked", func() {
 				lockFeeModule(suite.chainA)
 			},
-			false,
-		},
-		{
-			"fee module is not enabled", func() {
-				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-			},
-			true,
+			types.ErrFeeModuleLocked,
 		},
 	}
 
@@ -387,18 +370,15 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 
 			tc.malleate()
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			err = cbs.OnChanCloseInit(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 			}
 		})
 	}
@@ -414,19 +394,16 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
-			"application callback fails", func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseConfirm = func(
-					ctx sdk.Context, portID, channelID string,
-				) error {
-					return fmt.Errorf("application callback fails")
-				}
-			}, false,
+			"fee module is not enabled", func() {
+				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
+			},
+			nil,
 		},
 		{
 			"RefundChannelFeesOnClosure continues - refund address is invalid", func() {
@@ -438,19 +415,22 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 				err := suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), refundAcc, types.ModuleName, fee.Total())
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
+		},
+		{
+			"application callback fails", func() {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseConfirm = func(
+					ctx context.Context, portID, channelID string,
+				) error {
+					return fmt.Errorf("application callback fails")
+				}
+			}, errors.New("application callback fails"),
 		},
 		{
 			"fee module locked", func() {
 				lockFeeModule(suite.chainA)
 			},
-			false,
-		},
-		{
-			"fee module is not enabled", func() {
-				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
-			},
-			true,
+			types.ErrFeeModuleLocked,
 		},
 	}
 
@@ -477,18 +457,15 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 
 			tc.malleate()
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			err = cbs.OnChanCloseConfirm(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 			}
 		})
 	}
@@ -513,7 +490,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			func() {
 				// setup mock callback
 				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnRecvPacket = func(
-					ctx sdk.Context,
+					ctx context.Context,
 					channelVersion string,
 					packet channeltypes.Packet,
 					relayer sdk.AccAddress,
@@ -556,10 +533,8 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			packet := suite.CreateMockPacket()
 
 			// set up module and callbacks
-			module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
 
-			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			suite.chainB.GetSimApp().IBCFeeKeeper.SetCounterpartyPayeeAddress(suite.chainB.GetContext(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), suite.path.EndpointB.ChannelID)
@@ -619,7 +594,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 	testCases := []struct {
 		name      string
 		malleate  func()
-		expPass   bool
+		expErr    error
 		expResult func()
 	}{
 		{
@@ -629,7 +604,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				relayerAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, sdk.DefaultBondDenom))
 				expPayeeAccBalance = relayerAccBalance.Add(packetFee.Fee.RecvFee...).Add(packetFee.Fee.AckFee...)
 			},
-			true,
+			nil,
 			func() {
 				// assert that the packet fees have been distributed
 				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
@@ -654,7 +629,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				relayerAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, sdk.DefaultBondDenom))
 				expPayeeAccBalance = relayerAccBalance.Add(packetFee.Fee.RecvFee...).Add(packetFee.Fee.AckFee...)
 			},
-			true,
+			nil,
 			func() {
 				// assert that the packet fees have been distributed
 				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
@@ -688,7 +663,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				payeeAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), payeeAddr, sdk.DefaultBondDenom))
 				expPayeeAccBalance = payeeAccBalance.Add(packetFee.Fee.RecvFee...).Add(packetFee.Fee.AckFee...)
 			},
-			true,
+			nil,
 			func() {
 				// assert that the packet fees have been distributed
 				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
@@ -713,7 +688,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 					ForwardRelayerAddress: "",
 				}.Acknowledgement()
 			},
-			true,
+			nil,
 			func() {
 				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
 				suite.Require().False(found)
@@ -725,7 +700,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 				ack = ibcmock.MockAcknowledgement.Acknowledgement()
 			},
-			true,
+			nil,
 			func() {},
 		},
 		{
@@ -733,7 +708,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			func() {
 				lockFeeModule(suite.chainA)
 			},
-			true,
+			nil,
 			func() {
 				suite.Require().Equal(true, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			},
@@ -750,7 +725,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 				relayerAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, sdk.DefaultBondDenom))
 				expPayeeAccBalance = relayerAccBalance.Add(packetFee.Fee.AckFee...)
 			},
-			true,
+			nil,
 			func() {
 				// assert that the packet fees have been distributed
 				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
@@ -770,7 +745,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			func() {
 				escrowAmount = sdk.NewCoins()
 			},
-			true,
+			nil,
 			func() {
 				suite.Require().Equal(true, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			},
@@ -780,7 +755,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			func() {
 				ack = []byte("unsupported acknowledgement format")
 			},
-			false,
+			ibcerrors.ErrInvalidType,
 			func() {},
 		},
 		{
@@ -794,17 +769,17 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 					suite.path.EndpointA.ChannelID,
 				)
 			},
-			false,
+			errors.New("failed to create sdk.Address from payee"),
 			func() {},
 		},
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ context.Context, _ string, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
-			false,
+			errors.New("mock fee app callback fails"),
 			func() {},
 		},
 	}
@@ -835,18 +810,15 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 			initialRefundAccBal = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom))
 
 			// retrieve module callbacks
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, ack, relayerAddr)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 			}
 
 			tc.expResult()
@@ -869,7 +841,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 	testCases := []struct {
 		name      string
 		malleate  func()
-		expPass   bool
+		expErr    error
 		expResult func()
 	}{
 		{
@@ -879,7 +851,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				refundAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom))
 				expRefundAccBalance = refundAccBalance
 			},
-			true,
+			nil,
 			func() {
 				// assert that the packet fees have been distributed
 				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
@@ -906,7 +878,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				refundAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom))
 				expRefundAccBalance = refundAccBalance.Add(refundCoins...)
 			},
-			true,
+			nil,
 			func() {
 				// assert that the packet fees have been distributed
 				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
@@ -939,7 +911,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 				refundAccBalance := sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), refundAddr, sdk.DefaultBondDenom))
 				expRefundAccBalance = refundAccBalance
 			},
-			true,
+			nil,
 			func() {
 				// assert that the packet fees have been distributed
 				found := suite.chainA.GetSimApp().IBCFeeKeeper.HasFeesInEscrow(suite.chainA.GetContext(), packetID)
@@ -958,7 +930,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeeEnabled(suite.chainA.GetContext(), suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID)
 			},
-			true,
+			nil,
 			func() {},
 		},
 		{
@@ -966,7 +938,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {
 				lockFeeModule(suite.chainA)
 			},
-			true,
+			nil,
 			func() {
 				suite.Require().Equal(true, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			},
@@ -976,7 +948,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.DeleteFeesInEscrow(suite.chainA.GetContext(), packetID)
 			},
-			true,
+			nil,
 			func() {},
 		},
 		{
@@ -984,7 +956,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {
 				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 			},
-			true,
+			nil,
 			func() {},
 		},
 		{
@@ -992,7 +964,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			func() {
 				escrowAmount = sdk.NewCoins()
 			},
-			true,
+			nil,
 			func() {
 				suite.Require().Equal(true, suite.chainA.GetSimApp().IBCFeeKeeper.IsLocked(suite.chainA.GetContext()))
 			},
@@ -1008,17 +980,17 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 					suite.path.EndpointA.ChannelID,
 				)
 			},
-			false,
+			errors.New("failed to create sdk.Address from payee"),
 			func() {},
 		},
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ sdk.AccAddress) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ context.Context, _ string, _ channeltypes.Packet, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
-			false,
+			errors.New("mock fee app callback fails"),
 			func() {},
 		},
 	}
@@ -1046,18 +1018,15 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 			initialRelayerAccBal = sdk.NewCoins(suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), relayerAddr, sdk.DefaultBondDenom))
 
 			// retrieve module callbacks
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), suite.path.EndpointA.GetChannel().Version, packet, relayerAddr)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr, err.Error())
 			}
 
 			tc.expResult()
@@ -1098,7 +1067,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
 
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ context.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 					// intentionally force the error here so we can assert that a passthrough occurs when fees should not be enabled for this channel
 					return "", ibcmock.MockApplicationCallbackError
 				}
@@ -1117,7 +1086,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 		{
 			"underlying app callback returns error",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ context.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 					return "", ibcmock.MockApplicationCallbackError
 				}
 			},
@@ -1205,7 +1174,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 				suite.coordinator.CommitBlock(suite.chainA)
 
 				// intentionally force the error here so we can assert that a passthrough occurs when fees should not be enabled for this channel
-				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeTry = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeTry = func(_ context.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 					return "", ibcmock.MockApplicationCallbackError
 				}
 			},
@@ -1227,7 +1196,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 		{
 			"underlying app callback returns error",
 			func() {
-				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeTry = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeTry = func(_ context.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 					return "", ibcmock.MockApplicationCallbackError
 				}
 			},
@@ -1302,7 +1271,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 
 				suite.coordinator.CommitBlock(suite.chainB)
 
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeAck = func(_ sdk.Context, _, _, _ string) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeAck = func(_ context.Context, _, _, _ string) error {
 					return types.ErrInvalidVersion
 				}
 			},
@@ -1324,7 +1293,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 		{
 			"underlying app callback returns error",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeAck = func(_ sdk.Context, _, _, _ string) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeAck = func(_ context.Context, _, _, _ string) error {
 					return ibcmock.MockApplicationCallbackError
 				}
 			},
@@ -1361,10 +1330,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 
 			counterpartyUpgrade := path.EndpointB.GetChannelUpgrade()
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)
@@ -1395,7 +1361,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 			"success: enable fees",
 			func() {
 				// Assert in callback that correct upgrade information is passed
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
 					suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, portID)
 					suite.Require().Equal(path.EndpointA.ChannelID, channelID)
 					suite.Require().Equal(channeltypes.UNORDERED, order)
@@ -1425,7 +1391,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 				path.Setup()
 
 				// Assert in callback that correct version is passed
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
 					suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, portID)
 					suite.Require().Equal(path.EndpointA.ChannelID, channelID)
 					suite.Require().Equal(channeltypes.UNORDERED, order)
@@ -1471,10 +1437,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 			err = path.EndpointB.ChanUpgradeConfirm()
 			suite.Require().NoError(err)
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			cbs, ok := app.(porttypes.UpgradableModule)
@@ -1547,10 +1510,7 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 			// malleate test case
 			tc.malleate()
 
-			module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-			suite.Require().NoError(err)
-
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			suite.Require().True(ok)
 
 			feeModule, ok := cbs.(porttypes.ICS4Wrapper)
@@ -1570,10 +1530,7 @@ func (suite *FeeTestSuite) TestGetAppVersion() {
 }
 
 func (suite *FeeTestSuite) TestPacketDataUnmarshalerInterface() {
-	module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), ibctesting.MockFeePort)
-	suite.Require().NoError(err)
-
-	cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+	cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 	suite.Require().True(ok)
 
 	feeModule, ok := cbs.(porttypes.PacketDataUnmarshaler)

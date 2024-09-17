@@ -7,7 +7,6 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
@@ -37,6 +36,6 @@ func (k *Keeper) SetRecvStartSequence(ctx sdk.Context, portID, channelID string,
 }
 
 // TimeoutExecuted is a wrapper around timeoutExecuted to allow the function to be directly called in tests.
-func (k *Keeper) TimeoutExecuted(ctx sdk.Context, channel types.Channel, capability *capabilitytypes.Capability, packet types.Packet) error {
-	return k.timeoutExecuted(ctx, channel, capability, packet)
+func (k *Keeper) TimeoutExecuted(ctx sdk.Context, channel types.Channel, packet types.Packet) error {
+	return k.timeoutExecuted(ctx, channel, packet)
 }

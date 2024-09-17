@@ -5,13 +5,12 @@ import "fmt"
 var KeyChannelStorePrefix = []byte("channels")
 
 const (
-	KeyChannelEndPrefix        = "channelEnds"
-	KeyChannelPrefix           = "channels"
-	KeyChannelUpgradePrefix    = "channelUpgrades"
-	KeyUpgradePrefix           = "upgrades"
-	KeyUpgradeErrorPrefix      = "upgradeError"
-	KeyCounterpartyUpgrade     = "counterpartyUpgrade"
-	KeyChannelCapabilityPrefix = "capabilities"
+	KeyChannelEndPrefix     = "channelEnds"
+	KeyChannelPrefix        = "channels"
+	KeyChannelUpgradePrefix = "channelUpgrades"
+	KeyUpgradePrefix        = "upgrades"
+	KeyUpgradeErrorPrefix   = "upgradeError"
+	KeyCounterpartyUpgrade  = "counterpartyUpgrade"
 )
 
 // ICS04
@@ -20,12 +19,6 @@ const (
 // ChannelKey returns the store key for a particular channel
 func ChannelKey(portID, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", KeyChannelEndPrefix, channelPath(portID, channelID)))
-}
-
-// ChannelCapabilityPath defines the path under which capability keys associated
-// with a channel are stored
-func ChannelCapabilityPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s", KeyChannelCapabilityPrefix, channelPath(portID, channelID))
 }
 
 // ChannelUpgradeErrorKey returns the store key for a particular channelEnd used to stor the ErrorReceipt in the case that a chain does not accept the proposed upgrade

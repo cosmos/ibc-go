@@ -7,6 +7,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -61,7 +62,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	suite.createSolomachineClients(solomachines)
 	suite.createLocalhostClients()
 
-	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	err := v7.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 
 	suite.assertSolomachineClients(solomachines)
@@ -77,7 +78,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStoreNoTendermintClients() {
 	suite.createSolomachineClients(solomachines)
 	suite.createLocalhostClients()
 
-	err := v7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	err := v7.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 
 	suite.assertSolomachineClients(solomachines)

@@ -7,7 +7,8 @@ import (
 
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
+	"github.com/cosmos/cosmos-sdk/runtime"
+
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
@@ -44,7 +45,6 @@ func TestKeeperTestSuite(t *testing.T) {
 func (suite *KeeperTestSuite) TestNewKeeper() {
 	var (
 		upgradeKeeper  clienttypes.UpgradeKeeper
-		scopedKeeper   capabilitykeeper.ScopedKeeper
 		newIBCKeeperFn func()
 	)
 
@@ -63,19 +63,13 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 
 			upgradeKeeper = emptyUpgradeKeeperPointer
 		}, false},
-		{"failure: empty scoped keeper", func() {
-			emptyScopedKeeper := capabilitykeeper.ScopedKeeper{}
-
-			scopedKeeper = emptyScopedKeeper
-		}, false},
 		{"failure: empty authority", func() {
 			newIBCKeeperFn = func() {
 				ibckeeper.NewKeeper(
 					suite.chainA.GetSimApp().AppCodec(),
-					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
 					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					upgradeKeeper,
-					scopedKeeper,
 					"", // authority
 				)
 			}
@@ -91,16 +85,14 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			newIBCKeeperFn = func() {
 				ibckeeper.NewKeeper(
 					suite.chainA.GetSimApp().AppCodec(),
-					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
 					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					upgradeKeeper,
-					scopedKeeper,
 					suite.chainA.App.GetIBCKeeper().GetAuthority(),
 				)
 			}
 
 			upgradeKeeper = suite.chainA.GetSimApp().UpgradeKeeper
-			scopedKeeper = suite.chainA.GetSimApp().ScopedIBCKeeper
 
 			tc.malleate()
 

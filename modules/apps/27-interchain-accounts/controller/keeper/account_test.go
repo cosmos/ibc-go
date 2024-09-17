@@ -3,7 +3,6 @@ package keeper_test
 import (
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -24,15 +23,6 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 				"success", func() {}, nil,
 			},
 			{
-				"port is already bound for owner but capability is claimed by another module",
-				func() {
-					capability := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
-					err := suite.chainA.GetSimApp().TransferKeeper.ClaimCapability(suite.chainA.GetContext(), capability, host.PortPath(TestPortID))
-					suite.Require().NoError(err)
-				},
-				icatypes.ErrPortAlreadyBound,
-			},
-			{
 				"fails to generate port-id",
 				func() {
 					owner = ""
@@ -44,6 +34,9 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 				func() {
 					portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
 					suite.Require().NoError(err)
+
+					channelID := channeltypes.FormatChannelIdentifier(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext()))
+					path.EndpointA.ChannelID = channelID
 
 					suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, portID, path.EndpointA.ChannelID)
 

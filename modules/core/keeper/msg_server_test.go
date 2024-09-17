@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -11,7 +12,6 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -185,17 +185,11 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 				_, err := suite.chainB.App.GetIBCKeeper().RecvPacket(suite.chainB.GetContext(), msg)
 				suite.Require().NoError(err)
 
-				// check that callback state was handled correctly
-				_, exists := suite.chainB.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainB.GetContext(), ibcmock.GetMockRecvCanaryCapabilityName(packet))
 				if tc.expRevert {
-					suite.Require().False(exists, "capability exists in store even after callback reverted")
-
 					// context events should contain error events
 					suite.Require().Contains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
 				} else {
-					suite.Require().True(exists, "callback state not persisted when revert is false")
-
 					if tc.replay {
 						// context should not contain application events
 						suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
@@ -358,17 +352,11 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				_, err := suite.chainB.App.GetIBCKeeper().RecvPacket(suite.chainB.GetContext(), msg)
 				suite.Require().NoError(err)
 
-				// check that callback state was handled correctly
-				_, exists := suite.chainB.GetSimApp().ScopedIBCMockKeeper.GetCapability(suite.chainB.GetContext(), ibcmock.GetMockRecvCanaryCapabilityName(packet))
 				if tc.expRevert {
-					suite.Require().False(exists, "capability exists in store even after callback reverted")
-
 					// context events should contain error events
 					suite.Require().Contains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
 				} else {
-					suite.Require().True(exists, "callback state not persisted when revert is false")
-
 					if tc.replay {
 						// context should not contain application events
 						suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
@@ -686,7 +674,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 		{
 			"application callback returns error",
 			func() {
-				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnAcknowledgementPacket = func(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnAcknowledgementPacket = func(ctx context.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
 					return fmt.Errorf("mock app callback failed")
 				}
 			},
@@ -1516,12 +1504,13 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 					path.EndpointA.Chain.GetSimApp().IBCKeeper.GetAuthority(),
 				)
 
-				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeInit = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeInit = func(ctx context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
-					store := ctx.KVStore(storeKey)
+					sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+					store := sdkCtx.KVStore(storeKey)
 					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
+					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return ibcmock.UpgradeVersion, nil
 				}
 			},
@@ -1607,20 +1596,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			},
 		},
 		{
-			"module capability not found",
-			func() {
-				msg.PortId = "invalid-port"
-				msg.ChannelId = "invalid-channel"
-			},
-			func(res *channeltypes.MsgChannelUpgradeTryResponse, events []abci.Event, err error) {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-
-				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
-				suite.Require().Empty(events)
-			},
-		},
-		{
 			"unsynchronized upgrade sequence writes upgrade error receipt",
 			func() {
 				path.EndpointB.UpdateChannel(func(channel *channeltypes.Channel) { channel.UpgradeSequence = 99 })
@@ -1677,12 +1652,13 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 		{
 			"ibc application does not commit state changes in callback",
 			func() {
-				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(ctx context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
-					store := ctx.KVStore(storeKey)
+					sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+					store := sdkCtx.KVStore(storeKey)
 					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
+					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return ibcmock.UpgradeVersion, nil
 				}
 			},
@@ -1822,20 +1798,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			},
 		},
 		{
-			"module capability not found",
-			func() {
-				msg.PortId = ibctesting.InvalidID
-				msg.ChannelId = ibctesting.InvalidID
-			},
-			func(res *channeltypes.MsgChannelUpgradeAckResponse, events []abci.Event, err error) {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-
-				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
-				suite.Require().Empty(events)
-			},
-		},
-		{
 			"core handler returns error and no upgrade error receipt is written",
 			func() {
 				// force an error by overriding the channel state to an invalid value
@@ -1896,10 +1858,11 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			"application callback returns error and error receipt is written",
 			func() {
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(
-					ctx sdk.Context, portID, channelID, counterpartyVersion string,
+					ctx context.Context, portID, channelID, counterpartyVersion string,
 				) error {
 					// set arbitrary value in store to mock application state changes
-					store := ctx.KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
+					sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+					store := sdkCtx.KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
 					store.Set([]byte("foo"), []byte("bar"))
 					return fmt.Errorf("mock app callback failed")
 				}
@@ -1959,7 +1922,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		{
 			"application callback returns an upgrade error",
 			func() {
-				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx context.Context, portID, channelID, counterpartyVersion string) error {
 					return channeltypes.NewUpgradeError(10000000, ibcmock.MockApplicationCallbackError)
 				}
 			},
@@ -1971,12 +1934,13 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		{
 			"ibc application does not commit state changes in callback",
 			func() {
-				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx context.Context, portID, channelID, counterpartyVersion string) error {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
-					store := ctx.KVStore(storeKey)
+					sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+					store := sdkCtx.KVStore(storeKey)
 					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
+					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return nil
 				}
 			},
@@ -2188,20 +2152,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeConfirm() {
 					),
 				}.ToABCIEvents()
 				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
-			},
-		},
-		{
-			"module capability not found",
-			func() {
-				msg.PortId = ibctesting.InvalidID
-				msg.ChannelId = ibctesting.InvalidID
-			},
-			func(res *channeltypes.MsgChannelUpgradeConfirmResponse, events []abci.Event, err error) {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-
-				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
-				suite.Require().Empty(events)
 			},
 		},
 		{
@@ -2428,20 +2378,6 @@ func (suite *KeeperTestSuite) TestChannelUpgradeOpen() {
 					),
 				}.ToABCIEvents()
 				ibctesting.AssertEvents(&suite.Suite, expEvents, events)
-			},
-		},
-		{
-			"module capability not found",
-			func() {
-				msg.PortId = ibctesting.InvalidID
-				msg.ChannelId = ibctesting.InvalidID
-			},
-			func(res *channeltypes.MsgChannelUpgradeOpenResponse, events []abci.Event, err error) {
-				suite.Require().Error(err)
-				suite.Require().Nil(res)
-
-				suite.Require().ErrorIs(err, capabilitytypes.ErrCapabilityNotFound)
-				suite.Require().Empty(events)
 			},
 		},
 		{

@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
@@ -113,26 +115,26 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 }
 
 // setDenomTrace sets a new {trace hash -> denom trace} pair to the store.
-func (k Keeper) setDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+func (k Keeper) setDenomTrace(ctx context.Context, denomTrace internaltypes.DenomTrace) {
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomTraceKey)
 	bz := k.cdc.MustMarshal(&denomTrace)
 
 	store.Set(denomTrace.Hash(), bz)
 }
 
 // deleteDenomTrace deletes the denom trace
-func (k Keeper) deleteDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+func (k Keeper) deleteDenomTrace(ctx context.Context, denomTrace internaltypes.DenomTrace) {
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomTraceKey)
 	store.Delete(denomTrace.Hash())
 }
 
 // iterateDenomTraces iterates over the denomination traces in the store
 // and performs a callback function.
-func (k Keeper) iterateDenomTraces(ctx sdk.Context, cb func(denomTrace internaltypes.DenomTrace) bool) {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) iterateDenomTraces(ctx context.Context, cb func(denomTrace internaltypes.DenomTrace) bool) {
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, types.DenomTraceKey)
 
-	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var denomTrace internaltypes.DenomTrace
 		k.cdc.MustUnmarshal(iterator.Value(), &denomTrace)

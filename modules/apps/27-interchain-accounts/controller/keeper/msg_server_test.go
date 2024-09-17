@@ -13,7 +13,6 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
@@ -63,15 +62,6 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 				msg.Owner = ""
 			},
 			icatypes.ErrInvalidAccountAddress,
-		},
-		{
-			"port is already bound for owner but capability is claimed by another module",
-			func() {
-				capability := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
-				err := suite.chainA.GetSimApp().TransferKeeper.ClaimCapability(suite.chainA.GetContext(), capability, host.PortPath(TestPortID))
-				suite.Require().NoError(err)
-			},
-			icatypes.ErrPortAlreadyBound,
 		},
 	}
 
@@ -150,17 +140,6 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 		{
 			"failure - active channel does not exist for port ID", func() {
 				msg.Owner = "invalid-owner"
-			},
-			icatypes.ErrActiveChannelNotFound,
-		},
-		{
-			"failure - controller module does not own capability for this channel", func() {
-				msg.Owner = "invalid-owner"
-				portID, err := icatypes.NewControllerPortID(msg.Owner)
-				suite.Require().NoError(err)
-
-				// set the active channel with the incorrect portID in order to reach the capability check
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), path.EndpointA.ConnectionID, portID, path.EndpointA.ChannelID)
 			},
 			icatypes.ErrActiveChannelNotFound,
 		},

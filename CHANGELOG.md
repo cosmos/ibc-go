@@ -38,7 +38,20 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#7247](https://github.com/cosmos/ibc-go/pull/7247) Bump CometBFT to v0.38.12.
+
 ### API Breaking
+
+* (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7213) Remove capabilities from `SendPacket`.
+* (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
+* (core, apps) [\#7232](https://github.com/cosmos/ibc-go/pull/7232) Remove capabilities from channel handshake methods. TODO list all changes 
+* (core, apps) [\#7270](https://github.com/cosmos/ibc-go/pull/7270) Remove remaining dependencies on capability module.
+* (core/04-channel) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `LookupModuleByChannel`
+* (core/05-port) [\#7252](https://github.com/cosmos/ibc-go/pull/7252) Removed function `LookupModuleByPort`
+* (core/24-host) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `ChannelCapabilityPath`
+* (apps/27-interchain-accounts) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) The following functions have been removed: `AuthenticateCapability`, `ClaimCapability`
+* (apps/transfer) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) The following functions have been removed: `BindPort`, `AuthenticateCapability`, `ClaimCapability`
+* (capability) [\#7279](https://github.com/cosmos/ibc-go/pull/7279) The module `capability` has been removed 
 
 ### State Machine Breaking
 
@@ -48,14 +61,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (apps/27-interchain-accounts) [\#7277](https://github.com/cosmos/ibc-go/pull/7277) Use `GogoResolver` when populating module query safe allow list to avoid panics from unresolvable protobuf dependencies.
+
 ## v9.0.0 (unreleased)
 
 ### Dependencies
 
-* [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump Cosmos SDK to v0.50.9.
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
 * [\#7126](https://github.com/cosmos/ibc-go/pull/7126) Bump CometBFT to v0.38.11.
 * [\#6380](https://github.com/cosmos/ibc-go/pull/6380) Bump go to v1.22.
+* [\#7223](https://github.com/cosmos/ibc-go/pull/7223) Update ics23 to v0.11.0.
 
 ### API Breaking
 
@@ -112,6 +127,17 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (apps/27-interchain-accounts) [\#6377](https://github.com/cosmos/ibc-go/pull/6377) Generate ICA simtest proposals only for provided keepers.
+
+## [v8.5.0](https://github.com/cosmos/ibc-go/releases/tag/v8.5.0) - 2024-08-30
+
+### Dependencies
+
+* [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump Cosmos SDK to v0.50.9.
+* [\#7222](https://github.com/cosmos/ibc-go/pull/7221) Update ics23 to v0.11.0.
+
+### State Machine Breaking
+
+* (core/03-connection) [\#7129](https://github.com/cosmos/ibc-go/pull/7129) Remove verification of self client and consensus state from connection handshake. 
 
 ## [v8.4.0](https://github.com/cosmos/ibc-go/releases/tag/v8.4.0) - 2024-07-29
 
@@ -313,6 +339,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core) [\#3893](https://github.com/cosmos/ibc-go/pull/3893) Add deprecated option to `MsgSubmitMisbehaviour`.
 * (apps/transfer, apps/29-fee) [\#4570](https://github.com/cosmos/ibc-go/pull/4570) Remove `GetSignBytes` from 29-fee and transfer msgs.
 * [\#3630](https://github.com/cosmos/ibc-go/pull/3630) Add annotation to Msg service.
+
+## [v7.8.0](https://github.com/cosmos/ibc-go/releases/tag/v7.8.0) - 2024-08-30
+
+### State Machine Breaking
+
+* (core/03-connection) [\#7128](https://github.com/cosmos/ibc-go/pull/7128) Remove verification of self client and consensus state from connection handshake. 
 
 ## [v7.7.0](https://github.com/cosmos/ibc-go/releases/tag/v7.7.0) - 2024-07-29
 

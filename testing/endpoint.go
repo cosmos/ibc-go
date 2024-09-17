@@ -465,7 +465,7 @@ func (endpoint *Endpoint) SendPacketV2(
 	data []byte,
 ) (uint64, error) {
 	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetPacketServer().SendPacket(endpoint.Chain.GetContext(), nil, endpoint.ClientID, endpoint.ChannelConfig.PortID, endpoint.Counterparty.ChannelConfig.PortID, timeoutHeight, timeoutTimestamp, version, data)
+	sequence, err := endpoint.Chain.App.GetPacketServer().SendPacket(endpoint.Chain.GetContext(), endpoint.ClientID, endpoint.ChannelConfig.PortID, endpoint.Counterparty.ChannelConfig.PortID, timeoutHeight, timeoutTimestamp, version, data)
 	if err != nil {
 		return 0, err
 	}
@@ -490,10 +490,8 @@ func (endpoint *Endpoint) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (uint64, error) {
-	channelCap := endpoint.Chain.GetChannelCapability(endpoint.ChannelConfig.PortID, endpoint.ChannelID)
-
 	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), channelCap, endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeoutHeight, timeoutTimestamp, data)
+	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeoutHeight, timeoutTimestamp, data)
 	if err != nil {
 		return 0, err
 	}
@@ -545,10 +543,8 @@ func (endpoint *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*abc
 // WriteAcknowledgement writes an acknowledgement on the channel associated with the endpoint.
 // The counterparty client is updated.
 func (endpoint *Endpoint) WriteAcknowledgement(ack exported.Acknowledgement, packet exported.PacketI) error {
-	channelCap := endpoint.Chain.GetChannelCapability(packet.GetDestPort(), packet.GetDestChannel())
-
 	// no need to send message, acting as a handler
-	err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), channelCap, packet, ack)
+	err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), packet, ack)
 	if err != nil {
 		return err
 	}
@@ -830,7 +826,7 @@ func (endpoint *Endpoint) ChanUpgradeCancel() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
-// Deprecated: usage of this function should be replaced by `UpdateChannelState`
+// Deprecated: usage of this function should be replaced by `UpdateChannel`
 // SetChannelState sets a channel state
 func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()

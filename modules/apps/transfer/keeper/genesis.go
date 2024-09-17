@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -15,17 +13,6 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, denom := range state.Denoms {
 		k.SetDenom(ctx, denom)
 		k.setDenomMetadata(ctx, denom)
-	}
-
-	// Only try to bind to port if it is not already bound, since we may already own
-	// port capability from capability InitGenesis
-	if !k.hasCapability(ctx, state.PortId) {
-		// transfer module binds to the transfer port on InitChain
-		// and claims the returned capability
-		err := k.BindPort(ctx, state.PortId)
-		if err != nil {
-			panic(fmt.Errorf("could not claim port capability: %v", err))
-		}
 	}
 
 	k.SetParams(ctx, state.Params)

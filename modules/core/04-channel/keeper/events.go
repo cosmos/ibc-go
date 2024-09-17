@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 
@@ -11,8 +12,9 @@ import (
 )
 
 // emitChannelOpenInitEvent emits a channel open init event
-func emitChannelOpenInitEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenInitEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenInit,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -29,8 +31,9 @@ func emitChannelOpenInitEvent(ctx sdk.Context, portID string, channelID string, 
 }
 
 // emitChannelOpenTryEvent emits a channel open try event
-func emitChannelOpenTryEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenTryEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenTry,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -48,8 +51,9 @@ func emitChannelOpenTryEvent(ctx sdk.Context, portID string, channelID string, c
 }
 
 // emitChannelOpenAckEvent emits a channel open acknowledge event
-func emitChannelOpenAckEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenAckEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenAck,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -66,8 +70,9 @@ func emitChannelOpenAckEvent(ctx sdk.Context, portID string, channelID string, c
 }
 
 // emitChannelOpenConfirmEvent emits a channel open confirm event
-func emitChannelOpenConfirmEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenConfirmEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenConfirm,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -84,8 +89,9 @@ func emitChannelOpenConfirmEvent(ctx sdk.Context, portID string, channelID strin
 }
 
 // emitChannelCloseInitEvent emits a channel close init event
-func emitChannelCloseInitEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelCloseInitEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelCloseInit,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -102,8 +108,9 @@ func emitChannelCloseInitEvent(ctx sdk.Context, portID string, channelID string,
 }
 
 // emitChannelCloseConfirmEvent emits a channel close confirm event
-func emitChannelCloseConfirmEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelCloseConfirmEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelCloseConfirm,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -121,7 +128,8 @@ func emitChannelCloseConfirmEvent(ctx sdk.Context, portID string, channelID stri
 
 // emitSendPacketEvent emits an event with packet data along with other packet information for relayer
 // to pick up and relay to other chain
-func EmitSendPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel, timeoutHeight exported.Height) {
+func EmitSendPacketEvent(ctx context.Context, packet types.Packet, channel *types.Channel, timeoutHeight exported.Height) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
 		sdk.NewAttribute(types.AttributeKeyTimeoutHeight, timeoutHeight.String()),
@@ -143,7 +151,7 @@ func EmitSendPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Ch
 		)
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendPacket,
 			eventAttributes...,
@@ -157,7 +165,8 @@ func EmitSendPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Ch
 
 // EmitRecvPacketEvent emits a receive packet event. It will be emitted both the first time a packet
 // is received for a certain sequence and for all duplicate receives.
-func EmitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel) {
+func EmitRecvPacketEvent(ctx context.Context, packet types.Packet, channel *types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
 		sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
@@ -179,7 +188,7 @@ func EmitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Ch
 		)
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRecvPacket,
 			eventAttributes...,
@@ -192,7 +201,8 @@ func EmitRecvPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Ch
 }
 
 // EmitWriteAcknowledgementEvent emits an event that the relayer can query for
-func EmitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel, acknowledgement []byte) {
+func EmitWriteAcknowledgementEvent(ctx context.Context, packet types.Packet, channel *types.Channel, acknowledgement []byte) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeyDataHex, hex.EncodeToString(packet.GetData())),
 		sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
@@ -215,7 +225,7 @@ func EmitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel
 		)
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWriteAck,
 			eventAttributes...,
@@ -229,7 +239,8 @@ func EmitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel
 
 // EmitAcknowledgePacketEvent emits an acknowledge packet event. It will be emitted both the first time
 // a packet is acknowledged for a certain sequence and for all duplicate acknowledgements.
-func EmitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel) {
+func EmitAcknowledgePacketEvent(ctx context.Context, packet types.Packet, channel *types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
 		sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
@@ -250,7 +261,7 @@ func EmitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel *t
 		)
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAcknowledgePacket,
 			eventAttributes...,
@@ -264,7 +275,8 @@ func EmitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel *t
 
 // emitTimeoutPacketEvent emits a timeout packet event. It will be emitted both the first time a packet
 // is timed out for a certain sequence and for all duplicate timeouts.
-func EmitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel *types.Channel) {
+func EmitTimeoutPacketEvent(ctx context.Context, packet types.Packet, channel *types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
 		sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.GetTimeoutTimestamp())),
@@ -281,7 +293,7 @@ func EmitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel *types
 			sdk.NewAttribute(types.AttributeKeyChannelOrdering, channel.Ordering.String()),
 		)
 	}
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeoutPacket,
 			eventAttributes...,
@@ -294,8 +306,9 @@ func EmitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel *types
 }
 
 // emitChannelClosedEvent emits a channel closed event.
-func emitChannelClosedEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelClosedEvent(ctx context.Context, packet types.Packet, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelClosed,
 			sdk.NewAttribute(types.AttributeKeyPortID, packet.GetSourcePort()),
@@ -313,8 +326,9 @@ func emitChannelClosedEvent(ctx sdk.Context, packet types.Packet, channel types.
 }
 
 // EmitChannelUpgradeInitEvent emits a channel upgrade init event
-func EmitChannelUpgradeInitEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func EmitChannelUpgradeInitEvent(ctx context.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeInit,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -331,8 +345,9 @@ func EmitChannelUpgradeInitEvent(ctx sdk.Context, portID string, channelID strin
 }
 
 // EmitChannelUpgradeTryEvent emits a channel upgrade try event
-func EmitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func EmitChannelUpgradeTryEvent(ctx context.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeTry,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -349,8 +364,9 @@ func EmitChannelUpgradeTryEvent(ctx sdk.Context, portID string, channelID string
 }
 
 // EmitChannelUpgradeAckEvent emits a channel upgrade ack event
-func EmitChannelUpgradeAckEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func EmitChannelUpgradeAckEvent(ctx context.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeAck,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -367,8 +383,9 @@ func EmitChannelUpgradeAckEvent(ctx sdk.Context, portID string, channelID string
 }
 
 // EmitChannelUpgradeConfirmEvent emits a channel upgrade confirm event
-func EmitChannelUpgradeConfirmEvent(ctx sdk.Context, portID, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func EmitChannelUpgradeConfirmEvent(ctx context.Context, portID, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeConfirm,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -386,8 +403,9 @@ func EmitChannelUpgradeConfirmEvent(ctx sdk.Context, portID, channelID string, c
 }
 
 // EmitChannelUpgradeOpenEvent emits a channel upgrade open event
-func EmitChannelUpgradeOpenEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func EmitChannelUpgradeOpenEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeOpen,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -405,8 +423,9 @@ func EmitChannelUpgradeOpenEvent(ctx sdk.Context, portID string, channelID strin
 }
 
 // EmitChannelUpgradeTimeoutEvent emits an upgrade timeout event.
-func EmitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func EmitChannelUpgradeTimeoutEvent(ctx context.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeTimeout,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -425,8 +444,9 @@ func EmitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID st
 }
 
 // EmitErrorReceiptEvent emits an error receipt event
-func EmitErrorReceiptEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, err error) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func EmitErrorReceiptEvent(ctx context.Context, portID string, channelID string, channel types.Channel, err error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeError,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -444,8 +464,9 @@ func EmitErrorReceiptEvent(ctx sdk.Context, portID string, channelID string, cha
 }
 
 // EmitChannelUpgradeCancelEvent emits an upgraded cancelled event.
-func EmitChannelUpgradeCancelEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func EmitChannelUpgradeCancelEvent(ctx context.Context, portID string, channelID string, channel types.Channel, upgrade types.Upgrade) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeCancel,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -462,8 +483,9 @@ func EmitChannelUpgradeCancelEvent(ctx sdk.Context, portID string, channelID str
 }
 
 // emitChannelFlushCompleteEvent emits an flushing event.
-func emitChannelFlushCompleteEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
-	ctx.EventManager().EmitEvents(sdk.Events{
+func emitChannelFlushCompleteEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelFlushComplete,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),

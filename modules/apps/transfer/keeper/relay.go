@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
@@ -90,10 +90,6 @@ func (k Keeper) sendTransfer(
 
 	// begin createOutgoingPacket logic
 	// See spec for this logic: https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#packet-relay
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(sourcePort, sourceChannel))
-	if !ok {
-		return 0, errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
 
 	tokens := make([]types.Token, 0, len(coins))
 
@@ -146,7 +142,7 @@ func (k Keeper) sendTransfer(
 		return 0, err
 	}
 
-	sequence, err := k.ics4Wrapper.SendPacket(ctx, channelCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
 	if err != nil {
 		return 0, err
 	}
@@ -167,7 +163,7 @@ func (k Keeper) sendTransfer(
 //
 // In the case of packet forwarding, the packet is sent on the next hop as specified
 // in the packet's ForwardingPacketData.
-func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
+func (k Keeper) OnRecvPacket(ctx context.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
 		return errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data")
@@ -277,7 +273,7 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 // If forwarding is used and the acknowledgement was a success, a successful acknowledgement is written
 // for the forwarded packet. Otherwise, if the acknowledgement failed, after refunding the sender, the
 // tokens of the forwarded packet that were received are in turn either refunded or burned.
-func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
+func (k Keeper) OnAcknowledgementPacket(ctx context.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
 	forwardedPacket, isForwarded := k.getForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 
 	switch ack.Response.(type) {
@@ -321,7 +317,7 @@ func (k Keeper) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Pac
 // If forwarding is used and the chain acted as a middle hop on a multihop transfer, after refunding
 // the tokens to the sender, the tokens of the forwarded packet that were received are in turn
 // either refunded or burned.
-func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
+func (k Keeper) OnTimeoutPacket(ctx context.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	if err := k.refundPacketTokens(ctx, packet, data); err != nil {
 		return err
 	}
@@ -343,7 +339,7 @@ func (k Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, dat
 // if the sending chain was the source chain. Otherwise, the sent tokens
 // were burnt in the original send so new tokens are minted and sent to
 // the sending address.
-func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
+func (k Keeper) refundPacketTokens(ctx context.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// NOTE: packet data type already checked in handler.go
 
 	sender, err := sdk.AccAddressFromBech32(data.Sender)
@@ -389,7 +385,7 @@ func (k Keeper) refundPacketTokens(ctx sdk.Context, packet channeltypes.Packet, 
 
 // escrowCoin will send the given coin from the provided sender to the escrow address. It will also
 // update the total escrowed amount by adding the escrowed coin's amount to the current total escrow.
-func (k Keeper) escrowCoin(ctx sdk.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
+func (k Keeper) escrowCoin(ctx context.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
 	if err := k.bankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(coin)); err != nil {
 		// failure is expected for insufficient balances
 		return err
@@ -405,7 +401,7 @@ func (k Keeper) escrowCoin(ctx sdk.Context, sender, escrowAddress sdk.AccAddress
 
 // unescrowCoin will send the given coin from the escrow address to the provided receiver. It will also
 // update the total escrow by deducting the unescrowed coin's amount from the current total escrow.
-func (k Keeper) unescrowCoin(ctx sdk.Context, escrowAddress, receiver sdk.AccAddress, coin sdk.Coin) error {
+func (k Keeper) unescrowCoin(ctx context.Context, escrowAddress, receiver sdk.AccAddress, coin sdk.Coin) error {
 	if err := k.bankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(coin)); err != nil {
 		// NOTE: this error is only expected to occur given an unexpected bug or a malicious
 		// counterparty module. The bug may occur in bank or any part of the code that allows

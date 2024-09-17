@@ -6,42 +6,43 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
 func TestValidateGenesis(t *testing.T) {
 	testCases := []struct {
 		name     string
 		genState *types.GenesisState
-		expPass  bool
+		expErr   error
 	}{
 		{
 			name:     "default",
 			genState: types.DefaultGenesisState(),
-			expPass:  true,
+			expErr:   nil,
 		},
 		{
 			"valid genesis",
 			&types.GenesisState{
 				PortId: "portidone",
 			},
-			true,
+			nil,
 		},
 		{
 			"invalid client",
 			&types.GenesisState{
 				PortId: "(INVALIDPORT)",
 			},
-			false,
+			host.ErrInvalidID,
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		err := tc.genState.Validate()
-		if tc.expPass {
+		if tc.expErr == nil {
 			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, err, tc.name)
+			require.ErrorIs(t, err, tc.expErr, tc.name)
 		}
 	}
 }
