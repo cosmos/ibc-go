@@ -197,8 +197,10 @@ func (s *TransferForwardingTestSuite) TestForwardingWithUnwindSucceeds() {
 			if err != nil {
 				return false, err
 			}
+			t.Logf("expected balance of %d, got %d", testvalues.IBCTransferAmount, balance.Int64())
 			return balance.Int64() == testvalues.IBCTransferAmount, nil
 		})
+
 		s.Require().NoError(err)
 		// packet from B to C is relayed
 		s.AssertPacketRelayed(ctx, chainB, channelBtoC.PortID, channelBtoC.ChannelID, 1)

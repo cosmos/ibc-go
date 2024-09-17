@@ -359,7 +359,8 @@ func fromFile() (TestConfig, bool) {
 func populateDefaults(tc TestConfig) TestConfig {
 	for i := range tc.ChainConfigs {
 		if tc.ChainConfigs[i].ChainID == "" {
-			tc.ChainConfigs[i].ChainID = fmt.Sprintf("chain-%d", i+1)
+			// explicitly ensure that all chainIDs have the same revision number.
+			tc.ChainConfigs[i].ChainID = fmt.Sprintf("chain%d-1", i)
 		}
 		if tc.ChainConfigs[i].Binary == "" {
 			tc.ChainConfigs[i].Binary = defaultBinary
