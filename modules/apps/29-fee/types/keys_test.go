@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -8,6 +9,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -20,19 +22,19 @@ func TestKeyPayee(t *testing.T) {
 
 func TestParseKeyPayee(t *testing.T) {
 	testCases := []struct {
-		name    string
-		key     string
-		expPass bool
+		name   string
+		key    string
+		expErr error
 	}{
 		{
 			"success",
 			string(types.KeyPayee("relayer-address", ibctesting.FirstChannelID)),
-			true,
+			nil,
 		},
 		{
 			"incorrect key - key split has incorrect length",
 			"payeeAddress/relayer_address/transfer/channel-0",
-			false,
+			ibcerrors.ErrLogic,
 		},
 	}
 
@@ -41,12 +43,12 @@ func TestParseKeyPayee(t *testing.T) {
 
 		address, channelID, err := types.ParseKeyPayeeAddress(tc.key)
 
-		if tc.expPass {
+		if tc.expErr == nil {
 			require.NoError(t, err)
 			require.Equal(t, "relayer-address", address)
 			require.Equal(t, ibctesting.FirstChannelID, channelID)
 		} else {
-			require.Error(t, err)
+			require.ErrorIs(t, err, tc.expErr)
 		}
 	}
 }
@@ -68,64 +70,66 @@ func TestKeyFeesInEscrow(t *testing.T) {
 
 func TestParseKeyFeeEnabled(t *testing.T) {
 	testCases := []struct {
-		name    string
-		key     string
-		expPass bool
+		name   string
+		key    string
+		expErr error
 	}{
 		{
 			"success",
 			string(types.KeyFeeEnabled(ibctesting.MockPort, ibctesting.FirstChannelID)),
-			true,
+			nil,
 		},
 		{
 			"incorrect key - key split has incorrect length",
 			string(types.KeyFeesInEscrow(validPacketID)),
-			false,
+			ibcerrors.ErrLogic,
 		},
 		{
 			"incorrect key - key split has incorrect length",
 			fmt.Sprintf("%s/%s/%s", "fee", ibctesting.MockPort, ibctesting.FirstChannelID),
-			false,
+			ibcerrors.ErrLogic,
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		portID, channelID, err := types.ParseKeyFeeEnabled(tc.key)
+		t.Run(tc.name, func(t *testing.T) {
+			portID, channelID, err := types.ParseKeyFeeEnabled(tc.key)
 
-		if tc.expPass {
-			require.NoError(t, err)
-			require.Equal(t, ibctesting.MockPort, portID)
-			require.Equal(t, ibctesting.FirstChannelID, channelID)
-		} else {
-			require.Error(t, err)
-			require.Empty(t, portID)
-			require.Empty(t, channelID)
-		}
+			if tc.expErr == nil {
+				require.NoError(t, err)
+				require.Equal(t, ibctesting.MockPort, portID)
+				require.Equal(t, ibctesting.FirstChannelID, channelID)
+			} else {
+				require.ErrorIs(t, err, tc.expErr)
+				require.Empty(t, portID)
+				require.Empty(t, channelID)
+			}
+		})
 	}
 }
 
 func TestParseKeyFeesInEscrow(t *testing.T) {
 	testCases := []struct {
-		name    string
-		key     string
-		expPass bool
+		name   string
+		key    string
+		expErr error
 	}{
 		{
 			"success",
 			string(types.KeyFeesInEscrow(validPacketID)),
-			true,
+			nil,
 		},
 		{
 			"incorrect key - key split has incorrect length",
 			string(types.KeyFeeEnabled(validPacketID.PortId, validPacketID.ChannelId)),
-			false,
+			ibcerrors.ErrLogic,
 		},
 		{
 			"incorrect key - sequence cannot be parsed",
 			fmt.Sprintf("%s/%s", types.KeyFeesInEscrowChannelPrefix(validPacketID.PortId, validPacketID.ChannelId), "sequence"),
-			false,
+			errors.New("invalid syntax"),
 		},
 	}
 
@@ -134,35 +138,35 @@ func TestParseKeyFeesInEscrow(t *testing.T) {
 
 		packetID, err := types.ParseKeyFeesInEscrow(tc.key)
 
-		if tc.expPass {
+		if tc.expErr == nil {
 			require.NoError(t, err)
 			require.Equal(t, validPacketID, packetID)
 		} else {
-			require.Error(t, err)
+			ibctesting.RequireErrorIsOrContains(t, err, tc.expErr, err.Error())
 		}
 	}
 }
 
 func TestParseKeyForwardRelayerAddress(t *testing.T) {
 	testCases := []struct {
-		name    string
-		key     string
-		expPass bool
+		name   string
+		key    string
+		expErr error
 	}{
 		{
 			"success",
 			string(types.KeyRelayerAddressForAsyncAck(validPacketID)),
-			true,
+			nil,
 		},
 		{
 			"incorrect key - key split has incorrect length",
 			"forwardRelayer/transfer/channel-0",
-			false,
+			ibcerrors.ErrLogic,
 		},
 		{
 			"incorrect key - sequence is not correct",
 			"forwardRelayer/transfer/channel-0/sequence",
-			false,
+			errors.New("invalid syntax"),
 		},
 	}
 
@@ -171,11 +175,11 @@ func TestParseKeyForwardRelayerAddress(t *testing.T) {
 
 		packetID, err := types.ParseKeyRelayerAddressForAsyncAck(tc.key)
 
-		if tc.expPass {
+		if tc.expErr == nil {
 			require.NoError(t, err)
 			require.Equal(t, validPacketID, packetID)
 		} else {
-			require.Error(t, err)
+			ibctesting.RequireErrorIsOrContains(t, err, tc.expErr, err.Error())
 		}
 	}
 }
@@ -184,19 +188,19 @@ func TestParseKeyCounterpartyPayee(t *testing.T) {
 	relayerAddress := "relayer_address"
 
 	testCases := []struct {
-		name    string
-		key     string
-		expPass bool
+		name   string
+		key    string
+		expErr error
 	}{
 		{
 			"success",
 			string(types.KeyCounterpartyPayee(relayerAddress, ibctesting.FirstChannelID)),
-			true,
+			nil,
 		},
 		{
 			"incorrect key - key split has incorrect length",
 			"relayerAddress/relayer_address/transfer/channel-0",
-			false,
+			ibcerrors.ErrLogic,
 		},
 	}
 
@@ -205,12 +209,12 @@ func TestParseKeyCounterpartyPayee(t *testing.T) {
 
 		address, channelID, err := types.ParseKeyCounterpartyPayee(tc.key)
 
-		if tc.expPass {
+		if tc.expErr == nil {
 			require.NoError(t, err)
 			require.Equal(t, relayerAddress, address)
 			require.Equal(t, ibctesting.FirstChannelID, channelID)
 		} else {
-			require.Error(t, err)
+			require.ErrorIs(t, err, tc.expErr)
 		}
 	}
 }

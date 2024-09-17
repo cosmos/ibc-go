@@ -2,17 +2,14 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -23,8 +20,7 @@ import (
 // perform appropriate state transitions. Its intended usage is within the
 // ante handler.
 func (k *Keeper) TimeoutPacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
+	ctx context.Context,
 	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
@@ -37,9 +33,6 @@ func (k *Keeper) TimeoutPacket(
 			"port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel(),
 		)
 	}
-
-	// NOTE: TimeoutPacket is called by the AnteHandler which acts upon the packet.Route(),
-	// so the capability authentication can be omitted here
 
 	if packet.GetDestPort() != channel.Counterparty.PortId {
 		return "", errorsmod.Wrapf(
@@ -120,7 +113,7 @@ func (k *Keeper) TimeoutPacket(
 		return "", err
 	}
 
-	if err = k.timeoutExecuted(ctx, channel, chanCap, packet); err != nil {
+	if err = k.timeoutExecuted(ctx, channel, packet); err != nil {
 		return "", err
 	}
 
@@ -135,19 +128,10 @@ func (k *Keeper) TimeoutPacket(
 //
 // CONTRACT: this function must be called in the IBC handler
 func (k *Keeper) timeoutExecuted(
-	ctx sdk.Context,
+	ctx context.Context,
 	channel types.Channel,
-	chanCap *capabilitytypes.Capability,
 	packet types.Packet,
 ) error {
-	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrChannelCapabilityNotFound,
-			"caller does not own capability for channel with capability name %s", capName,
-		)
-	}
-
 	k.DeletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
@@ -192,8 +176,7 @@ func (k *Keeper) timeoutExecuted(
 // which an unreceived packet was addressed has been closed, so the packet will
 // never be received (even if the timeoutHeight has not yet been reached).
 func (k *Keeper) TimeoutOnClose(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
+	ctx context.Context,
 	packet types.Packet,
 	proof,
 	closedProof []byte,
@@ -204,14 +187,6 @@ func (k *Keeper) TimeoutOnClose(
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
 		return "", errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
-	}
-
-	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return "", errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication with capability name %s", capName,
-		)
 	}
 
 	if packet.GetDestPort() != channel.Counterparty.PortId {
@@ -298,7 +273,7 @@ func (k *Keeper) TimeoutOnClose(
 		return "", err
 	}
 
-	if err = k.timeoutExecuted(ctx, channel, chanCap, packet); err != nil {
+	if err = k.timeoutExecuted(ctx, channel, packet); err != nil {
 		return "", err
 	}
 

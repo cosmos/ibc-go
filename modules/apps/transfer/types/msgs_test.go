@@ -148,10 +148,10 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
-		expPass bool
+		errMsg  string
 	}{
-		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
-		{"failure: nil address", nil, false},
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), ""},
+		{"failure: nil address", nil, "empty address string is not allowed"},
 	}
 
 	for _, tc := range testCases {
@@ -164,11 +164,11 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
 			signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				require.NoError(t, err)
 				require.Equal(t, tc.address.Bytes(), signers[0])
 			} else {
-				require.Error(t, err)
+				require.ErrorContains(t, err, tc.errMsg)
 			}
 		})
 	}

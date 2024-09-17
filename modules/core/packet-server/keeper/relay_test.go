@@ -127,7 +127,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			tc.malleate()
 
 			// send packet
-			seq, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort,
+			seq, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort,
 				packet.DestinationPort, packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 
 			expPass := tc.expError == nil
@@ -238,7 +238,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
 
-			_, err = suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), nil, packet, proof, proofHeight)
+			_, err = suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), packet, proof, proofHeight)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -337,7 +337,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 			tc.malleate()
 
-			err := suite.chainB.App.GetPacketServer().WriteAcknowledgement(suite.chainB.GetContext(), nil, packet, ack)
+			err := suite.chainB.App.GetPacketServer().WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -450,7 +450,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				path.EndpointA.FreezeClient()
 			}
 
-			_, err = suite.chainA.App.GetPacketServer().AcknowledgePacket(suite.chainA.GetContext(), nil, packet, ack.Acknowledgement(), proof, proofHeight)
+			_, err = suite.chainA.App.GetPacketServer().AcknowledgePacket(suite.chainA.GetContext(), packet, ack.Acknowledgement(), proof, proofHeight)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -482,7 +482,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"success with timeout height",
 			func() {
 				// send packet
-				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
 			},
@@ -496,7 +496,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				packet.TimeoutTimestamp = uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
 				// send packet
-				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
 			},
@@ -506,7 +506,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"failure: invalid protocol version",
 			func() {
 				// send packet
-				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
 
@@ -519,7 +519,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"failure: counterparty not found",
 			func() {
 				// send packet
-				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
 
@@ -531,7 +531,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"failure: counterparty client identifier different than source channel",
 			func() {
 				// send packet
-				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
 
@@ -545,7 +545,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				packet.TimeoutHeight = defaultTimeoutHeight
 
 				// send packet
-				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
 			},
@@ -560,7 +560,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"failure: packet does not match commitment",
 			func() {
 				// send a different packet
-				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, []byte("different data"))
 				suite.Require().NoError(err, "send packet failed")
 			},
@@ -570,7 +570,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"failure: client status invalid",
 			func() {
 				// send packet
-				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
 
@@ -582,7 +582,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"failure: verify non-membership failed",
 			func() {
 				// send packet
-				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), nil, packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
+				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
 
@@ -625,7 +625,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				path.EndpointA.FreezeClient()
 			}
 
-			_, err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), nil, packet, proof, proofHeight, 0)
+			_, err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, 0)
 
 			expPass := tc.expError == nil
 			if expPass {

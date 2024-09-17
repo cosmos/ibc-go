@@ -5,11 +5,10 @@ import (
 	"reflect"
 	"strings"
 
-	storetypes "cosmossdk.io/store/types"
+	corestore "cosmossdk.io/core/store"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	clientkeeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
@@ -35,28 +34,23 @@ type Keeper struct {
 
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace,
-	upgradeKeeper clienttypes.UpgradeKeeper,
-	scopedKeeper capabilitykeeper.ScopedKeeper, authority string,
+	cdc codec.BinaryCodec, storeService corestore.KVStoreService, paramSpace types.ParamSubspace,
+	upgradeKeeper clienttypes.UpgradeKeeper, authority string,
 ) *Keeper {
 	// panic if any of the keepers passed in is empty
 	if isEmpty(upgradeKeeper) {
 		panic(errors.New("cannot initialize IBC keeper: empty upgrade keeper"))
 	}
 
-	if reflect.DeepEqual(capabilitykeeper.ScopedKeeper{}, scopedKeeper) {
-		panic(errors.New("cannot initialize IBC keeper: empty scoped keeper"))
-	}
-
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, upgradeKeeper)
-	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
-	portKeeper := portkeeper.NewKeeper(scopedKeeper)
-	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
-	packetKeeper := packetserver.NewKeeper(cdc, key, channelKeeper, clientKeeper)
+	clientKeeper := clientkeeper.NewKeeper(cdc, storeService, paramSpace, upgradeKeeper)
+	connectionKeeper := connectionkeeper.NewKeeper(cdc, storeService, paramSpace, clientKeeper)
+	portKeeper := portkeeper.NewKeeper()
+	channelKeeper := channelkeeper.NewKeeper(cdc, storeService, clientKeeper, connectionKeeper)
+	packetKeeper := packetserver.NewKeeper(cdc, storeService, channelKeeper, clientKeeper)
 
 	return &Keeper{
 		cdc:                cdc,

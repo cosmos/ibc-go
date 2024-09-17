@@ -1105,11 +1105,7 @@ func (suite *ForwardingTestSuite) TestOnTimeoutPacketForwarding() {
 		packet.TimeoutHeight,
 		packet.TimeoutTimestamp)
 
-	// retrieve module callbacks
-	module, _, err := suite.chainB.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainB.GetContext(), pathBtoC.EndpointA.ChannelConfig.PortID)
-	suite.Require().NoError(err)
-
-	cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(module)
+	cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(pathBtoC.EndpointA.ChannelConfig.PortID)
 	suite.Require().True(ok)
 
 	// Trigger OnTimeoutPacket for chainB

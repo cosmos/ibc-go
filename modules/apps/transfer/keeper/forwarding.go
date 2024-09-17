@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"context"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,12 +10,11 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 // forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
-func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
+func (k Keeper) forwardPacket(ctx context.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
 	var nextForwardingPath *types.Forwarding
 	if len(data.Forwarding.Hops) > 1 {
 		// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver
@@ -45,13 +46,8 @@ func (k Keeper) forwardPacket(ctx sdk.Context, data types.FungibleTokenPacketDat
 }
 
 // acknowledgeForwardedPacket writes the async acknowledgement for forwardedPacket
-func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, forwardedPacket, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
-	capability, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel))
-	if !ok {
-		return errorsmod.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
-	}
-
-	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, capability, forwardedPacket, ack); err != nil {
+func (k Keeper) acknowledgeForwardedPacket(ctx context.Context, forwardedPacket, packet channeltypes.Packet, ack channeltypes.Acknowledgement) error {
+	if err := k.ics4Wrapper.WriteAcknowledgement(ctx, forwardedPacket, ack); err != nil {
 		return err
 	}
 
@@ -62,7 +58,7 @@ func (k Keeper) acknowledgeForwardedPacket(ctx sdk.Context, forwardedPacket, pac
 // revertForwardedPacket reverts the logic of receive packet that occurs in the middle chains during a packet forwarding.
 // If the packet fails to be forwarded all the way to the final destination, the state changes on this chain must be reverted
 // before sending back the error acknowledgement to ensure atomic packet forwarding.
-func (k Keeper) revertForwardedPacket(ctx sdk.Context, forwardedPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
+func (k Keeper) revertForwardedPacket(ctx context.Context, forwardedPacket channeltypes.Packet, failedPacketData types.FungibleTokenPacketDataV2) error {
 	/*
 		Recall that RecvPacket handles an incoming packet depending on the denom of the received funds:
 			1. If the funds are native, then the amount is sent to the receiver from the escrow.

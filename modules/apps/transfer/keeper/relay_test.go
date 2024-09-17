@@ -162,16 +162,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			sdkerrors.ErrInsufficientFunds,
 		},
 		{
-			"failure: channel capability not found",
-			func() {
-				capability := suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-
-				// Release channel capability
-				suite.chainA.GetSimApp().ScopedTransferKeeper.ReleaseCapability(suite.chainA.GetContext(), capability) //nolint:errcheck // ignore error for testing
-			},
-			channeltypes.ErrChannelCapabilityNotFound,
-		},
-		{
 			"failure: forwarding hops is not empty with ics20-1",
 			func() {
 				// Set version to isc20-1.

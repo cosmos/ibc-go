@@ -2,13 +2,13 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -22,8 +22,7 @@ import (
 // The destination channel will be filled in using the counterparty information.
 // The next sequence send will be initialized if this is the first packet sent for the given client.
 func (k Keeper) SendPacket(
-	ctx sdk.Context,
-	_ *capabilitytypes.Capability,
+	ctx context.Context,
 	sourceChannel string,
 	sourcePort string,
 	destPort string,
@@ -97,8 +96,7 @@ func (k Keeper) SendPacket(
 // counterparty stored a packet commitment. If successful, a packet receipt is stored
 // to indicate to the counterparty successful delivery.
 func (k Keeper) RecvPacket(
-	ctx sdk.Context,
-	_ *capabilitytypes.Capability,
+	ctx context.Context,
 	packet channeltypes.Packet,
 	proof []byte,
 	proofHeight exported.Height,
@@ -120,7 +118,8 @@ func (k Keeper) RecvPacket(
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano())
 	timeout := channeltypes.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		return "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
@@ -171,8 +170,7 @@ func (k Keeper) RecvPacket(
 // If no acknowledgement exists for the given packet, then a commitment of the acknowledgement
 // is written into state.
 func (k Keeper) WriteAcknowledgement(
-	ctx sdk.Context,
-	_ *capabilitytypes.Capability,
+	ctx context.Context,
 	packetI exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {
@@ -230,8 +228,7 @@ func (k Keeper) WriteAcknowledgement(
 // the acknowledgement provided is verified to have been stored by the counterparty.
 // If successful, the packet commitment is deleted and the packet has completed its lifecycle.
 func (k Keeper) AcknowledgePacket(
-	ctx sdk.Context,
-	_ *capabilitytypes.Capability,
+	ctx context.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
 	proofAcked []byte,
@@ -302,8 +299,7 @@ func (k Keeper) AcknowledgePacket(
 // was never delivered to the counterparty. If successful, the packet commitment
 // is deleted and the packet has completed its lifecycle.
 func (k Keeper) TimeoutPacket(
-	ctx sdk.Context,
-	_ *capabilitytypes.Capability,
+	ctx context.Context,
 	packet channeltypes.Packet,
 	proof []byte,
 	proofHeight exported.Height,

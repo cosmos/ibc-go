@@ -1,43 +1,40 @@
 package mock
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // IBCApp contains IBC application module callbacks as defined in 05-port.
 type IBCApp struct {
-	PortID       string
-	ScopedKeeper capabilitykeeper.ScopedKeeper
+	PortID string
 
 	OnChanOpenInit func(
-		ctx sdk.Context,
+		ctx context.Context,
 		order channeltypes.Order,
 		connectionHops []string,
 		portID string,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		version string,
 	) (string, error)
 
 	OnChanOpenTry func(
-		ctx sdk.Context,
+		ctx context.Context,
 		order channeltypes.Order,
 		connectionHops []string,
 		portID,
 		channelID string,
-		channelCap *capabilitytypes.Capability,
 		counterparty channeltypes.Counterparty,
 		counterpartyVersion string,
 	) (version string, err error)
 
 	OnChanOpenAck func(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 		counterpartyChannelID string,
@@ -45,19 +42,19 @@ type IBCApp struct {
 	) error
 
 	OnChanOpenConfirm func(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 	) error
 
 	OnChanCloseInit func(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 	) error
 
 	OnChanCloseConfirm func(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 	) error
@@ -68,14 +65,14 @@ type IBCApp struct {
 	// otherwise the application state changes are discarded. In either case the packet is received
 	// and the acknowledgement is written (in synchronous cases).
 	OnRecvPacket func(
-		ctx sdk.Context,
+		ctx context.Context,
 		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) exported.Acknowledgement
 
 	OnAcknowledgementPacket func(
-		ctx sdk.Context,
+		ctx context.Context,
 		channelVersion string,
 		packet channeltypes.Packet,
 		acknowledgement []byte,
@@ -83,14 +80,14 @@ type IBCApp struct {
 	) error
 
 	OnTimeoutPacket func(
-		ctx sdk.Context,
+		ctx context.Context,
 		channelVersion string,
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) error
 
 	OnChanUpgradeInit func(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID, channelID string,
 		order channeltypes.Order,
 		connectionHops []string,
@@ -98,7 +95,7 @@ type IBCApp struct {
 	) (string, error)
 
 	OnChanUpgradeTry func(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID, channelID string,
 		order channeltypes.Order,
 		connectionHops []string,
@@ -106,14 +103,14 @@ type IBCApp struct {
 	) (string, error)
 
 	OnChanUpgradeAck func(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID,
 		counterpartyVersion string,
 	) error
 
 	OnChanUpgradeOpen func(
-		ctx sdk.Context,
+		ctx context.Context,
 		portID,
 		channelID string,
 		order channeltypes.Order,
@@ -123,9 +120,8 @@ type IBCApp struct {
 }
 
 // NewIBCApp returns a IBCApp. An empty PortID indicates the mock app doesn't bind/claim ports.
-func NewIBCApp(portID string, scopedKeeper capabilitykeeper.ScopedKeeper) *IBCApp {
+func NewIBCApp(portID string) *IBCApp {
 	return &IBCApp{
-		PortID:       portID,
-		ScopedKeeper: scopedKeeper,
+		PortID: portID,
 	}
 }

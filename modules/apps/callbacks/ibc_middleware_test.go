@@ -190,8 +190,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				ibctesting.EmptyForwardingPacketData,
 			)
 
-			chanCap := s.path.EndpointA.Chain.GetChannelCapability(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
-
 			tc.malleate()
 
 			ctx := s.chainA.GetContext()
@@ -202,7 +200,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				err error
 			)
 			sendPacket := func() {
-				seq, err = transferICS4Wrapper.SendPacket(ctx, chanCap, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
+				seq, err = transferICS4Wrapper.SendPacket(ctx, s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, s.chainB.GetTimeoutHeight(), 0, packetData.GetBytes())
 			}
 
 			expPass := tc.expValue == nil
@@ -812,14 +810,12 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			ctx = s.chainB.GetContext()
 			gasLimit := ctx.GasMeter().Limit()
 
-			chanCap := s.chainB.GetChannelCapability(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID)
-
 			tc.malleate()
 
 			// callbacks module is routed as top level middleware
 			transferICS4Wrapper := GetSimApp(s.chainB).TransferKeeper.GetICS4Wrapper()
 
-			err := transferICS4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+			err := transferICS4Wrapper.WriteAcknowledgement(ctx, packet, ack)
 
 			expPass := tc.expError == nil
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
@@ -956,10 +952,9 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			}
 
 			tc.malleate()
+			var err error
 
-			module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), ibctesting.MockFeePort)
-			s.Require().NoError(err)
-			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 			s.Require().True(ok)
 			mockCallbackStack, ok := cbs.(ibccallbacks.IBCMiddleware)
 			s.Require().True(ok)
@@ -1116,9 +1111,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 	s.SetupMockFeeTest()
 
-	module, _, err := s.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(s.chainA.GetContext(), ibctesting.MockFeePort)
-	s.Require().NoError(err)
-	cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+	cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
 	s.Require().True(ok)
 	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
 	s.Require().True(ok)
