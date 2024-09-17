@@ -46,7 +46,10 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-require cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190
+require (
+	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5
+	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190
+)
 
 require (
 	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.34.2-20240701160653-fedbb9acfd2f.2 // indirect
@@ -61,7 +64,6 @@ require (
 	cosmossdk.io/core/testing v0.0.0-20240913164418-aaf72f20c10b // indirect
 	cosmossdk.io/depinject v1.0.0 // indirect
 	cosmossdk.io/schema v0.2.0 // indirect
-	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5 // indirect
 	cosmossdk.io/x/epochs v0.0.0-20240522060652-a1ae4c3e0337 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
