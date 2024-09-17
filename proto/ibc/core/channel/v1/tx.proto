@@ -26,6 +26,9 @@ service Msg {
   // ChannelOpenConfirm defines a rpc handler method for MsgChannelOpenConfirm.
   rpc ChannelOpenConfirm(MsgChannelOpenConfirm) returns (MsgChannelOpenConfirmResponse);
 
+  // SendPacket defines a rpc handler method for MsgSendPacket.
+  rpc SendPacket(MsgSendPacket) returns (MsgSendPacketResponse);
+
   // ChannelCloseInit defines a rpc handler method for MsgChannelCloseInit.
   rpc ChannelCloseInit(MsgChannelCloseInit) returns (MsgChannelCloseInitResponse);
 
@@ -471,4 +474,23 @@ message MsgPruneAcknowledgementsResponse {
   uint64 total_pruned_sequences = 1;
   // Number of sequences left after pruning.
   uint64 total_remaining_sequences = 2;
+}
+
+// MsgSendPacket sends an outgoing IBC packet.
+message MsgSendPacket {
+  option (cosmos.msg.v1.signer)         = "signer";
+  option (gogoproto.goproto_getters)    = false;
+  string              source_id         = 1;
+  string              destination_id    = 2;
+  uint64              timeout_timestamp = 3;
+  repeated PacketData packet_data       = 4 [(gogoproto.nullable) = false];
+  string              signer            = 5;
+  // string                    dest_port         = 6;
+}
+
+// MsgSendPacketResponse defines the Msg/SendPacket response type.
+message MsgSendPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 sequence = 1;
 }
