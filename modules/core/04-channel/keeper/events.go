@@ -126,7 +126,7 @@ func emitChannelCloseConfirmEvent(ctx context.Context, portID string, channelID 
 	})
 }
 
-// emitSendPacketEvent emits an event with packet data along with other packet information for relayer
+// EmitSendPacketEvent emits an event with packet data along with other packet information for relayer
 // to pick up and relay to other chain
 func EmitSendPacketEvent(ctx context.Context, packet types.Packet, channel *types.Channel, timeoutHeight exported.Height) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
@@ -139,6 +139,9 @@ func EmitSendPacketEvent(ctx context.Context, packet types.Packet, channel *type
 		sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 		sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 		sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
+		sdk.NewAttribute(types.AttributeKeyEncoding, packet.Encoding),
+		sdk.NewAttribute(types.AttributeKeyProtocolVersion, packet.ProtocolVersion.String()),
+		sdk.NewAttribute(types.AttributeKeyAppVersion, packet.AppVersion),
 	}
 
 	if channel != nil {
@@ -176,6 +179,9 @@ func EmitRecvPacketEvent(ctx context.Context, packet types.Packet, channel *type
 		sdk.NewAttribute(types.AttributeKeySrcChannel, packet.GetSourceChannel()),
 		sdk.NewAttribute(types.AttributeKeyDstPort, packet.GetDestPort()),
 		sdk.NewAttribute(types.AttributeKeyDstChannel, packet.GetDestChannel()),
+		sdk.NewAttribute(types.AttributeKeyEncoding, packet.Encoding),
+		sdk.NewAttribute(types.AttributeKeyProtocolVersion, packet.ProtocolVersion.String()),
+		sdk.NewAttribute(types.AttributeKeyAppVersion, packet.AppVersion),
 	}
 
 	if channel != nil {

@@ -14,6 +14,11 @@ func NewTimeout(height clienttypes.Height, timestamp uint64) Timeout {
 	}
 }
 
+// NewTimeoutWithTimestamp returns a new Timeout instance with a timestamp.
+func NewTimeoutWithTimestamp(timestamp uint64) Timeout {
+	return NewTimeout(clienttypes.ZeroHeight(), timestamp)
+}
+
 // IsValid returns true if either the height or timestamp is non-zero.
 func (t Timeout) IsValid() bool {
 	return !t.Height.IsZero() || t.Timestamp != 0

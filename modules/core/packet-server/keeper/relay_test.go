@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+
 	testifysuite "github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -11,6 +12,7 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -25,9 +27,7 @@ var (
 // KeeperTestSuite is a testing suite to test keeper functions.
 type KeeperTestSuite struct {
 	testifysuite.Suite
-
 	coordinator *ibctesting.Coordinator
-
 	// testing chains used for convenience and readability
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
@@ -43,7 +43,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
@@ -54,7 +53,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		path   *ibctesting.Path
 		packet channeltypes.Packet
 	)
-
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -92,11 +90,9 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				clientState := path.EndpointA.GetClientState()
 				cs, ok := clientState.(*ibctm.ClientState)
 				suite.Require().True(ok)
-
 				// force a consensus state into the store at height zero to allow client status check to pass.
 				consensusState := path.EndpointA.GetConsensusState(cs.LatestHeight)
 				path.EndpointA.SetConsensusState(consensusState, clienttypes.ZeroHeight())
-
 				cs.LatestHeight = clienttypes.ZeroHeight()
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, cs)
 			},
@@ -109,39 +105,38 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			channeltypes.ErrTimeoutElapsed,
 		},
 	}
-
 	for i, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.name, i, len(testCases)), func() {
 			suite.SetupTest() // reset
-
 			// create clients and set counterparties on both chains
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
 			// create standard packet that can be malleated
 			packet = channeltypes.NewPacketWithVersion(mock.MockPacketData, 1, mock.PortID,
-				path.EndpointA.ClientID, mock.PortID, path.EndpointB.ClientID, clienttypes.NewHeight(1, 100), 0, mock.Version)
+				path.EndpointA.ClientID, mock.PortID, path.EndpointB.ClientID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp(), mock.Version)
+
+			// TODO: constructor function for packetV2 instead of conversion
+			packetV2, err := channeltypes.ConvertPacketV1toV2(packet)
+			suite.Require().NoError(err)
 
 			// malleate the test case
 			tc.malleate()
-
 			// send packet
 			seq, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort,
 				packet.DestinationPort, packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
-
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(uint64(1), seq)
-				expCommitment := channeltypes.CommitPacket(packet)
+				expCommitment := channeltypes.CommitPacketV2(packetV2)
 				suite.Require().Equal(expCommitment, suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, seq))
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Equal(uint64(0), seq)
 				suite.Require().Nil(suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, seq))
-
 			}
 		})
 	}
@@ -152,7 +147,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		path   *ibctesting.Path
 		packet channeltypes.Packet
 	)
-
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -216,34 +210,29 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			commitmenttypes.ErrInvalidProof,
 		},
 	}
-
 	for _, tc := range testCases {
 		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
 			// send packet
-			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version, ibctesting.MockPacketData)
+			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+			sequence, err := path.EndpointA.SendPacketV2(clienttypes.ZeroHeight(), timeoutTimestamp, mock.Version, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.ZeroHeight(), timeoutTimestamp, mock.Version)
 
 			tc.malleate()
 
 			// get proof of packet commitment from chainA
 			packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
-
 			_, err = suite.chainB.App.GetPacketServer().RecvPacket(suite.chainB.GetContext(), packet, proof, proofHeight)
-
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-
 				_, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 				suite.Require().True(found)
 			} else {
@@ -259,7 +248,6 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		packet channeltypes.Packet
 		ack    exported.Acknowledgement
 	)
-
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -321,28 +309,20 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			channeltypes.ErrInvalidPacket,
 		},
 	}
-
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
-
 			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
 			ack = mock.MockAcknowledgement
-
 			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-
 			tc.malleate()
-
 			err := suite.chainB.App.GetPacketServer().WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
-
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-
 				ackCommitment, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 				suite.Require().True(found)
 				suite.Require().Equal(channeltypes.CommitAcknowledgement(ack.Acknowledgement()), ackCommitment)
@@ -356,9 +336,10 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	var (
+		ack          exported.Acknowledgement
 		packet       channeltypes.Packet
-		ack          = mock.MockAcknowledgement
 		freezeClient bool
+		path         *ibctesting.Path
 	)
 
 	testCases := []struct {
@@ -368,7 +349,9 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	}{
 		{
 			"success",
-			func() {},
+			func() {
+				ack = keeper.NewLegacyMultiAck(suite.chainA.Codec, mock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
+			},
 			nil,
 		},
 		{
@@ -421,41 +404,36 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			commitmenttypes.ErrInvalidProof,
 		},
 	}
-
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
 			freezeClient = false
 
+			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+
 			// send packet
-			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version, ibctesting.MockPacketData)
+			sequence, err := path.EndpointA.SendPacketV2(clienttypes.ZeroHeight(), timeoutTimestamp, mock.Version, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.ZeroHeight(), timeoutTimestamp, mock.Version)
 
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
-
 			tc.malleate()
-
 			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointB.QueryProof(packetKey)
-
 			if freezeClient {
 				path.EndpointA.FreezeClient()
 			}
-
 			_, err = suite.chainA.App.GetPacketServer().AcknowledgePacket(suite.chainA.GetContext(), packet, ack.Acknowledgement(), proof, proofHeight)
-
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-
 				commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, packet.Sequence)
 				suite.Require().Empty(commitment)
 			} else {
@@ -472,29 +450,14 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		packet       channeltypes.Packet
 		freezeClient bool
 	)
-
 	testCases := []struct {
 		name     string
 		malleate func()
 		expError error
 	}{
 		{
-			"success with timeout height",
-			func() {
-				// send packet
-				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
-					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
-				suite.Require().NoError(err, "send packet failed")
-			},
-			nil,
-		},
-		{
 			"success with timeout timestamp",
 			func() {
-				// disable timeout height and set timeout timestamp to a past timestamp
-				packet.TimeoutHeight = clienttypes.Height{}
-				packet.TimeoutTimestamp = uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-
 				// send packet
 				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
@@ -509,7 +472,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
-
 				packet.ProtocolVersion = channeltypes.IBC_VERSION_1
 				packet.AppVersion = ""
 			},
@@ -522,7 +484,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
-
 				packet.SourceChannel = ibctesting.FirstChannelID
 			},
 			types.ErrCounterpartyNotFound,
@@ -534,7 +495,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
-
 				packet.DestinationChannel = ibctesting.FirstChannelID
 			},
 			channeltypes.ErrInvalidChannelIdentifier,
@@ -542,7 +502,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		{
 			"failure: packet has not timed out yet",
 			func() {
-				packet.TimeoutHeight = defaultTimeoutHeight
+				packet.TimeoutTimestamp = suite.chainA.GetTimeoutTimestamp()
 
 				// send packet
 				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
@@ -573,7 +533,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
-
 				freezeClient = true
 			},
 			clienttypes.ErrClientNotActive,
@@ -585,29 +544,25 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
-
 				// set packet receipt to mock a valid past receive
 				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
 	}
-
 	for _, tc := range testCases {
 		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			// initialize freezeClient to false
 			freezeClient = false
-
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			// create default packet with a timed out height
+			// create default packet with a timed out timestamp
 			// test cases may mutate timeout values
-			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, disabledTimeoutTimestamp, mock.Version)
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.ZeroHeight(), timeoutTimestamp, mock.Version)
 
 			tc.malleate()
 
@@ -616,21 +571,16 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			suite.coordinator.CommitBlock(path.EndpointA.Chain)
 			suite.Require().NoError(path.EndpointB.UpdateClient())
 			suite.Require().NoError(path.EndpointA.UpdateClient())
-
 			// get proof of packet receipt absence from chainB
 			receiptKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointB.QueryProof(receiptKey)
-
 			if freezeClient {
 				path.EndpointA.FreezeClient()
 			}
-
 			_, err := suite.chainA.App.GetPacketServer().TimeoutPacket(suite.chainA.GetContext(), packet, proof, proofHeight, 0)
-
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-
 				commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 				suite.Require().Nil(commitment, "packet commitment not deleted")
 			} else {

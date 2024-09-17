@@ -132,7 +132,19 @@ func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltyp
 					}
 
 					packet.TimeoutTimestamp = timestamp
+				case channeltypes.AttributeKeyEncoding:
+					packet.Encoding = attr.Value
 
+				case channeltypes.AttributeKeyProtocolVersion:
+					version, ok := channeltypes.IBCVersion_value[attr.Value]
+					if !ok {
+						return ferr(fmt.Errorf("invalid protocol version attribute %s", attr.Value))
+					}
+
+					packet.ProtocolVersion = channeltypes.IBCVersion(version)
+
+				case channeltypes.AttributeKeyAppVersion:
+					packet.AppVersion = attr.Value
 				default:
 					continue
 				}
