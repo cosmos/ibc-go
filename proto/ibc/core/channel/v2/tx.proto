@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package ibc.core.channel.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
+import "ibc/core/client/v1/client.proto";
+import "ibc/core/channel/v1/channel.proto";
+import "ibc/core/channel/v1/tx.proto";
+
+// PacketMsg defines the ibc/channel PacketMsg service.
+service PacketMsg {
+  option (cosmos.msg.v1.service) = true;
+
+  // SendPacket defines a rpc handler method for MsgSendPacket.
+  rpc SendPacket(MsgSendPacket) returns (MsgSendPacketResponse);
+
+  // RecvPacket defines a rpc handler method for MsgRecvPacket.
+  rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
+
+  // Timeout defines a rpc handler method for MsgTimeout.
+  rpc Timeout(MsgTimeout) returns (MsgTimeoutResponse);
+
+  // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+  rpc Acknowledgement(MsgAcknowledgement) returns (MsgAcknowledgementResponse);
+}
+
+// MsgRecvPacket receives incoming IBC packet
+message MsgRecvPacket {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  ibc.core.channel.v1.PacketV2 packet           = 1 [(gogoproto.nullable) = false];
+  bytes                        proof_commitment = 2;
+  ibc.core.client.v1.Height    proof_height     = 3 [(gogoproto.nullable) = false];
+  string                       signer           = 4;
+}
+
+// MsgRecvPacketResponse defines the Msg/RecvPacket response type.
+message MsgRecvPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ibc.core.channel.v1.ResponseResultType result = 1;
+}
+
+// MsgTimeout receives timed-out packet
+message MsgTimeout {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  ibc.core.channel.v1.PacketV2 packet             = 1 [(gogoproto.nullable) = false];
+  bytes                        proof_unreceived   = 2;
+  ibc.core.client.v1.Height    proof_height       = 3 [(gogoproto.nullable) = false];
+  uint64                       next_sequence_recv = 4;
+  string                       signer             = 5;
+}
+
+// MsgTimeoutResponse defines the Msg/Timeout response type.
+message MsgTimeoutResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ibc.core.channel.v1.ResponseResultType result = 1;
+}
+
+// MsgAcknowledgement receives incoming IBC acknowledgement
+message MsgAcknowledgement {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  ibc.core.channel.v1.PacketV2 packet          = 1 [(gogoproto.nullable) = false];
+  bytes                        acknowledgement = 2;
+  bytes                        proof_acked     = 3;
+  ibc.core.client.v1.Height    proof_height    = 4 [(gogoproto.nullable) = false];
+  string                       signer          = 5;
+}
+
+// MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
+message MsgAcknowledgementResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ibc.core.channel.v1.ResponseResultType result = 1;
+}
+
+// MsgSendPacket sends an outgoing IBC packet.
+message MsgSendPacket {
+  option (cosmos.msg.v1.signer)                       = "signer";
+  option (gogoproto.goproto_getters)                  = false;
+  string   source_id                                  = 1;
+  string   destination_id                             = 2;
+  uint64   timeout_timestamp                          = 3;
+  repeated ibc.core.channel.v1.PacketData packet_data = 4 [(gogoproto.nullable) = false];
+  string                                  signer      = 5;
+  // string                    dest_port         = 6;
+}
+
+// MsgSendPacketResponse defines the Msg/SendPacket response type.
+message MsgSendPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 sequence = 1;
+}
