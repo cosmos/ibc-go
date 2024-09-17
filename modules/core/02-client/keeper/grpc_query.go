@@ -388,7 +388,7 @@ func (q *queryServer) VerifyMembership(c context.Context, req *types.QueryVerify
 	)
 
 	if err := clientModule.VerifyMembership(cachedCtx, req.ClientId, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
-		q.Logger.Debug("proof verification failed", "key", req.MerklePath, "error", err)
+		q.SDKLogger.Debug("proof verification failed", "key", req.MerklePath, "error", err)
 		return &types.QueryVerifyMembershipResponse{
 			Success: false,
 		}, nil
