@@ -2,13 +2,14 @@ package types_test
 
 import (
 	"errors"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
@@ -158,18 +159,33 @@ func (suite *TypesTestSuite) TestGetErrorReceipt() {
 	suite.Require().Equal(upgradeError2.GetErrorReceipt().Message, upgradeError.GetErrorReceipt().Message)
 }
 
-// TestUpgradeErrorUnwrap tests that the underlying error is not modified when Unwrap is called.
+// TestUpgradeErrorUnwrap tests that the underlying error is returned by Unwrap.
 func (suite *TypesTestSuite) TestUpgradeErrorUnwrap() {
-	baseUnderlyingError := errorsmod.Wrap(types.ErrInvalidChannel, "base error")
-	wrappedErr := errorsmod.Wrap(baseUnderlyingError, "wrapped error")
-	upgradeError := types.NewUpgradeError(1, wrappedErr)
+	testCases := []struct {
+		msg          string
+		upgradeError *types.UpgradeError
+		expError     error
+	}{
+		{
+			msg:          "no underlying error",
+			upgradeError: types.NewUpgradeError(1, nil),
+			expError:     nil,
+		},
+		{
+			msg:          "underlying error",
+			upgradeError: types.NewUpgradeError(1, types.ErrInvalidUpgrade),
+			expError:     types.ErrInvalidUpgrade,
+		},
+	}
 
-	originalUpgradeError := upgradeError.Error()
-	unWrapped := errors.Unwrap(upgradeError)
-	postUnwrapUpgradeError := upgradeError.Error()
-
-	suite.Require().Equal(types.ErrInvalidChannel, unWrapped, "unwrapped error was not equal to base underlying error")
-	suite.Require().Equal(originalUpgradeError, postUnwrapUpgradeError, "original error was modified when unwrapped")
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.msg, func() {
+			upgradeError := tc.upgradeError
+			err := upgradeError.Unwrap()
+			suite.Require().Equal(tc.expError, err)
+		})
+	}
 }
 
 func (suite *TypesTestSuite) TestIsUpgradeError() {
@@ -186,9 +202,39 @@ func (suite *TypesTestSuite) TestIsUpgradeError() {
 			true,
 		},
 		{
+			"true with wrapped upgrade err",
+			func() {
+				upgradeError := types.NewUpgradeError(1, types.ErrInvalidChannel)
+				err = errorsmod.Wrap(upgradeError, "wrapped upgrade error")
+			},
+			true,
+		},
+		{
+			"true with Errorf wrapped upgrade error",
+			func() {
+				err = fmt.Errorf("%w", types.NewUpgradeError(1, types.ErrInvalidChannel))
+			},
+			true,
+		},
+		{
+			"true with nested Errorf wrapped upgrade error",
+			func() {
+				err = fmt.Errorf("%w", fmt.Errorf("%w", fmt.Errorf("%w", types.NewUpgradeError(1, types.ErrInvalidChannel))))
+			},
+			true,
+		},
+		{
 			"false with non upgrade error",
 			func() {
 				err = errors.New("error")
+			},
+			false,
+		},
+		{
+			"false with wrapped non upgrade error",
+			func() {
+				randomErr := errors.New("error")
+				err = errorsmod.Wrap(randomErr, "wrapped random error")
 			},
 			false,
 		},

@@ -19,11 +19,11 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 type TlaBalance struct {
@@ -65,7 +65,7 @@ type FungibleTokenPacket struct {
 	SourcePort    string
 	DestChannel   string
 	DestPort      string
-	Data          types.FungibleTokenPacketData
+	Data          types.FungibleTokenPacketDataV2
 }
 
 type OnRecvPacketTestCase = struct {
@@ -108,7 +108,7 @@ func AddressFromTla(addr []string) string {
 		s = addr[2]
 	} else if len(addr[2]) == 0 {
 		// escrow address: ics20-1\x00port/channel
-		s = fmt.Sprintf("%s\x00%s/%s", types.Version, addr[0], addr[1])
+		s = fmt.Sprintf("%s\x00%s/%s", types.V1, addr[0], addr[1])
 	} else {
 		panic(errors.New("failed to convert from TLA+ address: neither simple nor escrow address"))
 	}
@@ -143,17 +143,24 @@ func BalancesFromTla(tla []TlaBalance) []Balance {
 }
 
 func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPacket {
+	denom := types.ExtractDenomFromPath(DenomFromTla(packet.Data.Denom))
 	return FungibleTokenPacket{
 		SourceChannel: packet.SourceChannel,
 		SourcePort:    packet.SourcePort,
 		DestChannel:   packet.DestChannel,
 		DestPort:      packet.DestPort,
-		Data: types.NewFungibleTokenPacketData(
-			DenomFromTla(packet.Data.Denom),
-			packet.Data.Amount,
+		Data: types.NewFungibleTokenPacketDataV2(
+			[]types.Token{
+				{
+					Denom:  denom,
+					Amount: packet.Data.Amount,
+				},
+			},
 			AddressFromString(packet.Data.Sender),
 			AddressFromString(packet.Data.Receiver),
-			""),
+			"",
+			ibctesting.EmptyForwardingPacketData,
+		),
 	}
 }
 
@@ -259,11 +266,11 @@ func (bank *Bank) NonZeroString() string {
 func BankOfChain(chain *ibctesting.TestChain) Bank {
 	bank := MakeBank()
 	chain.GetSimApp().BankKeeper.IterateAllBalances(chain.GetContext(), func(address sdk.AccAddress, coin sdk.Coin) (stop bool) {
-		fullDenom := coin.Denom
-		if strings.HasPrefix(coin.Denom, "ibc/") {
-			fullDenom, _ = chain.GetSimApp().TransferKeeper.DenomPathFromHash(chain.GetContext(), coin.Denom)
+		token, err := chain.GetSimApp().TransferKeeper.TokenFromCoin(chain.GetContext(), coin)
+		if err != nil {
+			panic(fmt.Errorf("Failed to construct token from coin: %w", err))
 		}
-		bank.SetBalance(address.String(), fullDenom, coin.Amount)
+		bank.SetBalance(address.String(), token.Denom.Path(), coin.Amount)
 		return false
 	})
 	return bank
@@ -302,18 +309,16 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		}
 
 		suite.SetupTest()
-		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
-		suite.coordinator.Setup(pathAtoB)
-		suite.coordinator.Setup(pathBtoC)
+		pathAtoB := ibctesting.NewTransferPath(suite.chainA, suite.chainB).DisableUniqueChannelIDs()
+		pathBtoC := ibctesting.NewTransferPath(suite.chainB, suite.chainC).DisableUniqueChannelIDs()
+		pathAtoB.Setup()
+		pathBtoC.Setup()
 
 		for i, tlaTc := range tlaTestCases {
 			tc := OnRecvPacketTestCaseFromTla(tlaTc)
 			registerDenomFn := func() {
-				denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
-				traceHash := denomTrace.Hash()
-				if !suite.chainB.GetSimApp().TransferKeeper.HasDenomTrace(suite.chainB.GetContext(), traceHash) {
-					suite.chainB.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainB.GetContext(), denomTrace)
+				if !suite.chainB.GetSimApp().TransferKeeper.HasDenom(suite.chainB.GetContext(), tc.packet.Data.Tokens[0].Denom.Hash()) {
+					suite.chainB.GetSimApp().TransferKeeper.SetDenom(suite.chainB.GetContext(), tc.packet.Data.Tokens[0].Denom)
 				}
 			}
 
@@ -337,22 +342,23 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						panic(errors.New("MBT failed to convert sender address"))
 					}
 					registerDenomFn()
-					denomTrace := types.ParseDenomTrace(tc.packet.Data.Denom)
-					denom := denomTrace.IBCDenom()
+					denom := tc.packet.Data.Tokens[0].Denom.IBCDenom()
 					err = sdk.ValidateDenom(denom)
 					if err == nil {
-						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Amount)
+						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Tokens[0].Amount)
 						if !ok {
 							panic(errors.New("MBT failed to parse amount from string"))
 						}
+
 						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,
 							tc.packet.SourceChannel,
-							sdk.NewCoin(denom, amount),
+							sdk.NewCoins(sdk.NewCoin(denom, amount)),
 							sender.String(),
 							tc.packet.Data.Receiver,
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
 							"",
+							nil,
 						)
 
 						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)
@@ -360,9 +366,11 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					}
 				case "OnRecvPacket":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+
 				case "OnTimeoutPacket":
 					registerDenomFn()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+
 				case "OnRecvAcknowledgementResult":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
 						suite.chainB.GetContext(), packet, tc.packet.Data,

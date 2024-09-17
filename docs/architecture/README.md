@@ -25,7 +25,7 @@ If recorded decisions turned out to be lacking, convene a discussion, record the
 
 Note the context/background should be written in the present tense.
 
-To suggest an ADR, please make use of the [ADR template](./adr.template.md) provided.
+To suggest an ADR, please make use of the [ADR template](https://github.com/cosmos/ibc-go/blob/main/docs/architecture/adr.template.md) provided.
 
 ## Table of Contents
 
@@ -37,8 +37,8 @@ To suggest an ADR, please make use of the [ADR template](./adr.template.md) prov
 | [004](./adr-004-ics29-lock-fee-module.md) | ICS29 module locking upon escrow out of balance | Accepted |
 | [005](./adr-005-consensus-height-events.md) | `UpdateClient` events - `ClientState` consensus heights | Accepted |
 | [006](./adr-006-02-client-refactor.md) | ICS02 client refactor | Accepted |
-| [007](./adr-007-solomachine-signbytes.md) | ICS06 Solo machine sign bytes |
-| [008](./adr-008-app-caller-cbs.md) | Callback to IBC ACtors | Accepted |
+| [007](./adr-007-solomachine-signbytes.md) | ICS06 Solo machine sign bytes | Accepted |
+| [008](./adr-008-app-caller-cbs.md) | Callback to IBC Actors | Accepted |
 | [009](./adr-009-v6-ics27-msgserver.md) | ICS27 message server addition | Accepted |
 | [010](./adr-010-light-clients-as-sdk-modules.md) | IBC light clients as SDK modules | Accepted |
 | [011](./adr-011-transfer-total-escrow-state-entry.md) | ICS20 state entry for total amount of tokens in escrow | Accepted |

@@ -3,13 +3,10 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
-
-var _ exported.ConnectionI = (*ConnectionEnd)(nil)
 
 // NewConnectionEnd creates a new ConnectionEnd instance.
 func NewConnectionEnd(state State, clientID string, counterparty Counterparty, versions []*Version, delayPeriod uint64) ConnectionEnd {
@@ -20,31 +17,6 @@ func NewConnectionEnd(state State, clientID string, counterparty Counterparty, v
 		Counterparty: counterparty,
 		DelayPeriod:  delayPeriod,
 	}
-}
-
-// GetState implements the Connection interface
-func (c ConnectionEnd) GetState() int32 {
-	return int32(c.State)
-}
-
-// GetClientID implements the Connection interface
-func (c ConnectionEnd) GetClientID() string {
-	return c.ClientId
-}
-
-// GetCounterparty implements the Connection interface
-func (c ConnectionEnd) GetCounterparty() exported.CounterpartyConnectionI {
-	return c.Counterparty
-}
-
-// GetVersions implements the Connection interface
-func (c ConnectionEnd) GetVersions() []*Version {
-	return c.Versions
-}
-
-// GetDelayPeriod implements the Connection interface
-func (c ConnectionEnd) GetDelayPeriod() uint64 {
-	return c.DelayPeriod
 }
 
 // ValidateBasic implements the Connection interface.
@@ -65,8 +37,6 @@ func (c ConnectionEnd) ValidateBasic() error {
 	return c.Counterparty.ValidateBasic()
 }
 
-var _ exported.CounterpartyConnectionI = (*Counterparty)(nil)
-
 // NewCounterparty creates a new Counterparty instance.
 func NewCounterparty(clientID, connectionID string, prefix commitmenttypes.MerklePrefix) Counterparty {
 	return Counterparty{
@@ -74,21 +44,6 @@ func NewCounterparty(clientID, connectionID string, prefix commitmenttypes.Merkl
 		ConnectionId: connectionID,
 		Prefix:       prefix,
 	}
-}
-
-// GetClientID implements the CounterpartyConnectionI interface
-func (c Counterparty) GetClientID() string {
-	return c.ClientId
-}
-
-// GetConnectionID implements the CounterpartyConnectionI interface
-func (c Counterparty) GetConnectionID() string {
-	return c.ConnectionId
-}
-
-// GetPrefix implements the CounterpartyConnectionI interface
-func (c Counterparty) GetPrefix() exported.Prefix {
-	return &c.Prefix
 }
 
 // ValidateBasic performs a basic validation check of the identifiers and prefix

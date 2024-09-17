@@ -7,16 +7,17 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
-	clientv7 "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	v7 "github.com/cosmos/ibc-go/v8/modules/core/migrations/v7"
-	"github.com/cosmos/ibc-go/v8/modules/core/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	ibcclient "github.com/cosmos/ibc-go/v9/modules/core/02-client"
+	clientv7 "github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/migrations/v7"
+	"github.com/cosmos/ibc-go/v9/modules/core/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 type MigrationsV7TestSuite struct {
@@ -47,7 +48,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	for i := 0; i < 3; i++ {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 
 		err := path.EndpointA.UpdateClient()
 		suite.Require().NoError(err)
@@ -94,7 +95,8 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 
 		// set in store for ease of determining expected genesis
 		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
-		cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		cdc, ok := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+		suite.Require().True(ok)
 		clientv7.RegisterInterfaces(cdc.InterfaceRegistry())
 
 		bz, err := cdc.MarshalInterface(legacyClientState)
@@ -133,11 +135,12 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// migrate store get expected genesis
 	// store migration and genesis migration should produce identical results
 	// NOTE: tendermint clients are not pruned in genesis so the test should not have expired tendermint clients
-	err := clientv7.MigrateStore(suite.chainA.GetContext(), suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	err := clientv7.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 	expectedClientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 
-	cdc := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+	cdc, ok := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
+	suite.Require().True(ok)
 
 	// NOTE: these lines are added in comparison to 02-client/migrations/v7/genesis_test.go
 	// generate appState with old ibc genesis state

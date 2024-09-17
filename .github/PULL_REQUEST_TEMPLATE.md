@@ -12,17 +12,10 @@ are the most critical to review.
 
 closes: #XXXX
 
+<!-- Please refer to the [guidelines](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) for commit messages in ibc-go.
 
-### Commit Message / Changelog Entry
+This repository uses [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
-```text
-type: commit message
-```
-
-see the [guidelines](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) for commit messages. (view raw markdown for examples)
-
-
-<!--
 Example commit messages:
 
 fix: skip emission of unpopulated memo field in ics20
@@ -42,11 +35,12 @@ checked off. If any of the checklist items are not applicable, please leave them
 write a little note why.
 
 - [ ] Targeted PR against the correct branch (see [CONTRIBUTING.md](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#pull-request-targeting)).
-- [ ] Linked to Github issue with discussion and accepted design OR link to spec that describes this work.
+- [ ] Linked to GitHub issue with discussion and accepted design, OR link to spec that describes this work.
 - [ ] Code follows the [module structure standards](https://github.com/cosmos/cosmos-sdk/blob/main/docs/build/building-modules/11-structure.md) and [Go style guide](../docs/dev/go-style-guide.md).
 - [ ] Wrote unit and integration [tests](https://github.com/cosmos/ibc-go/blob/main/testing/README.md#ibc-testing-package).
-- [ ] Updated relevant documentation (`docs/`) or specification (`x/<module>/spec/`).
+- [ ] Updated relevant documentation (`docs/`).
 - [ ] Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code).
-- [ ] Provide a [commit message](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) to be used for the changelog entry in the PR description for review.
-- [ ] Re-reviewed `Files changed` in the Github PR explorer.
-- [ ] Review `Codecov Report` in the comment section below once CI passes.
+- [ ] Provide a [conventional commit message](https://github.com/cosmos/ibc-go/blob/main/docs/dev/pull-requests.md#commit-messages) to follow the repository standards.
+- [ ] Include a descriptive changelog entry when appropriate. This may be left to the discretion of the PR reviewers. (e.g. chores should be omitted from changelog)
+- [ ] Re-reviewed `Files changed` in the GitHub PR explorer.
+- [ ] Review `SonarCloud Report` in the comment section below once CI passes.

@@ -11,16 +11,22 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v9/internal/validate"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
-var _ types.QueryServer = (*Keeper)(nil)
+var (
+	_ types.QueryServer   = (*Keeper)(nil)
+	_ types.QueryV2Server = (*Keeper)(nil)
+)
 
-// DenomTrace implements the Query/DenomTrace gRPC method
-func (k Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest) (*types.QueryDenomTraceResponse, error) {
+// Denom implements the Query/Denom gRPC method
+func (k Keeper) Denom(ctx context.Context, req *types.QueryDenomRequest) (*types.QueryDenomResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -30,53 +36,49 @@ func (k Keeper) DenomTrace(c context.Context, req *types.QueryDenomTraceRequest)
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom trace hash: %s, error: %s", hash.String(), err))
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-	denomTrace, found := k.GetDenomTrace(ctx, hash)
+	denom, found := k.GetDenom(ctx, hash)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrap(types.ErrTraceNotFound, req.Hash).Error(),
+			errorsmod.Wrap(types.ErrDenomNotFound, req.Hash).Error(),
 		)
 	}
 
-	return &types.QueryDenomTraceResponse{
-		DenomTrace: &denomTrace,
+	return &types.QueryDenomResponse{
+		Denom: &denom,
 	}, nil
 }
 
-// DenomTraces implements the Query/DenomTraces gRPC method
-func (k Keeper) DenomTraces(c context.Context, req *types.QueryDenomTracesRequest) (*types.QueryDenomTracesResponse, error) {
+// Denoms implements the Query/Denoms gRPC method
+func (k Keeper) Denoms(ctx context.Context, req *types.QueryDenomsRequest) (*types.QueryDenomsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-
-	var traces types.Traces
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomTraceKey)
+	var denoms types.Denoms
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomKey)
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
-		result, err := k.UnmarshalDenomTrace(value)
-		if err != nil {
+		var denom types.Denom
+		if err := k.cdc.Unmarshal(value, &denom); err != nil {
 			return err
 		}
 
-		traces = append(traces, result)
+		denoms = append(denoms, denom)
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &types.QueryDenomTracesResponse{
-		DenomTraces: traces.Sort(),
-		Pagination:  pageRes,
+	return &types.QueryDenomsResponse{
+		Denoms:     denoms.Sort(),
+		Pagination: pageRes,
 	}, nil
 }
 
 // Params implements the Query/Params gRPC method
-func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
+func (k Keeper) Params(ctx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	params := k.GetParams(ctx)
 
 	return &types.QueryParamsResponse{
@@ -85,24 +87,23 @@ func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.Q
 }
 
 // DenomHash implements the Query/DenomHash gRPC method
-func (k Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (*types.QueryDenomHashResponse, error) {
+func (k Keeper) DenomHash(ctx context.Context, req *types.QueryDenomHashRequest) (*types.QueryDenomHashResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	// Convert given request trace path to DenomTrace struct to confirm the path in a valid denom trace format
-	denomTrace := types.ParseDenomTrace(req.Trace)
-	if err := denomTrace.Validate(); err != nil {
+	// Convert given request trace path to Denom struct to confirm the path in a valid denom trace format
+	denom := types.ExtractDenomFromPath(req.Trace)
+	if err := denom.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-	denomHash := denomTrace.Hash()
-	found := k.HasDenomTrace(ctx, denomHash)
+	denomHash := denom.Hash()
+	found := k.HasDenom(ctx, denomHash)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrap(types.ErrTraceNotFound, req.Trace).Error(),
+			errorsmod.Wrap(types.ErrDenomNotFound, req.Trace).Error(),
 		)
 	}
 
@@ -112,12 +113,23 @@ func (k Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 }
 
 // EscrowAddress implements the EscrowAddress gRPC method
-func (Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
+func (k Keeper) EscrowAddress(ctx context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	addr := types.GetEscrowAddress(req.PortId, req.ChannelId)
+
+	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
+		return nil, err
+	}
+
+	if !k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId) {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
+		)
+	}
 
 	return &types.QueryEscrowAddressResponse{
 		EscrowAddress: addr.String(),
@@ -125,12 +137,10 @@ func (Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRequ
 }
 
 // TotalEscrowForDenom implements the TotalEscrowForDenom gRPC method.
-func (k Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscrowForDenomRequest) (*types.QueryTotalEscrowForDenomResponse, error) {
+func (k Keeper) TotalEscrowForDenom(ctx context.Context, req *types.QueryTotalEscrowForDenomRequest) (*types.QueryTotalEscrowForDenomResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-
-	ctx := sdk.UnwrapSDKContext(c)
 
 	if err := sdk.ValidateDenom(req.Denom); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())

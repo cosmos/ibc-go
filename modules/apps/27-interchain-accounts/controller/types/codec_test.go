@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -8,35 +9,35 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	ica "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
+	ica "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 )
 
 func TestCodecTypeRegistration(t *testing.T) {
 	testCases := []struct {
 		name    string
 		typeURL string
-		expPass bool
+		expErr  error
 	}{
 		{
 			"success: MsgRegisterInterchainAccount",
 			sdk.MsgTypeURL(&types.MsgRegisterInterchainAccount{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgSendTx",
 			sdk.MsgTypeURL(&types.MsgSendTx{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgUpdateParams",
 			sdk.MsgTypeURL(&types.MsgUpdateParams{}),
-			true,
+			nil,
 		},
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			false,
+			fmt.Errorf("unable to resolve type URL"),
 		},
 	}
 
@@ -47,12 +48,14 @@ func TestCodecTypeRegistration(t *testing.T) {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
-			if tc.expPass {
+			fmt.Printf("%+v\n", err)
+
+			if tc.expErr == nil {
 				require.NotNil(t, msg)
 				require.NoError(t, err)
 			} else {
 				require.Nil(t, msg)
-				require.Error(t, err)
+				require.ErrorContains(t, err, tc.expErr.Error())
 			}
 		})
 	}

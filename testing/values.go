@@ -11,12 +11,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
-	"github.com/cosmos/ibc-go/v8/testing/simapp"
+	"github.com/cometbft/cometbft/crypto/tmhash"
+
+	ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
+	"github.com/cosmos/ibc-go/v9/testing/simapp"
 )
 
 const (
@@ -53,18 +55,26 @@ var (
 	// DefaultTrustLevel sets params variables used to create a TM client
 	DefaultTrustLevel = ibctm.DefaultTrustLevel
 
-	TestAccAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
-	TestCoin       = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100))
-	TestCoins      = sdk.NewCoins(TestCoin)
+	DefaultTimeoutTimestampDelta = uint64(time.Hour.Nanoseconds())
+	DefaultCoinAmount            = sdkmath.NewInt(100)
+
+	TestAccAddress    = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+	TestCoin          = sdk.NewCoin(sdk.DefaultBondDenom, DefaultCoinAmount)
+	SecondaryDenom    = "ufoo"
+	SecondaryTestCoin = sdk.NewCoin(SecondaryDenom, DefaultCoinAmount)
+	TestCoins         = sdk.NewCoins(TestCoin, SecondaryTestCoin)
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
 
 	ConnectionVersion = connectiontypes.GetCompatibleVersions()[0]
 
-	MockAcknowledgement          = mock.MockAcknowledgement.Acknowledgement()
-	MockPacketData               = mock.MockPacketData
-	MockFailPacketData           = mock.MockFailPacketData
-	MockRecvCanaryCapabilityName = mock.MockRecvCanaryCapabilityName
+	MockAcknowledgement = mock.MockAcknowledgement.Acknowledgement()
+	MockPacketData      = mock.MockPacketData
+	MockFailPacketData  = mock.MockFailPacketData
+
+	EmptyForwardingPacketData = ibctransfertypes.ForwardingPacketData{}
 
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
+	// unusedHash is a placeholder hash used for testing.
+	unusedHash = tmhash.Sum([]byte{0x00})
 )

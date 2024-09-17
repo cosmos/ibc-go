@@ -4,7 +4,7 @@
 
 ## Problem
 
-We believe that the lack of controller chains so far have been because:
+We believe that the lack of controller chains so far has been because:
 
 - We did not develop a standardized authentication module, which created a bottleneck for chains looking to integrate the controller submodule.
 - We did not have a clear understanding of all the use cases ICA would facilitate.
@@ -66,7 +66,7 @@ See section [Definitions](https://github.com/cosmos/ibc/blob/main/spec/app/ics-0
 
 | ID  | Description | Verification | Status | Release |
 | --- | ----------- | ------------ | ------ | ------- |
-| 2.01 | An application shall have the ability to use an RPC endpoint to submit transactions to be executed on the host chain on the behalf of the interchain account. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/controller/keeper/msg_server_test.go#L31) | `Verified` | v6.0.0 |
+| 2.01 | An application shall have the ability to use an RPC endpoint to submit transactions to be executed on the host chain on behalf of the interchain account. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v6.0.0/modules/apps/27-interchain-accounts/controller/keeper/msg_server_test.go#L31) | `Verified` | v6.0.0 |
 
 # Non-functional requirements
 

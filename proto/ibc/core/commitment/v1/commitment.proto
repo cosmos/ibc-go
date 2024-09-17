@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.commitment.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types";
 
 import "gogoproto/gogo.proto";
 import "cosmos/ics23/v1/proofs.proto";
@@ -20,13 +20,6 @@ message MerkleRoot {
 // append(Path.KeyPrefix, key...))
 message MerklePrefix {
   bytes key_prefix = 1;
-}
-
-// MerklePath is the path used to verify commitment proofs, which can be an
-// arbitrary structured object (defined by a commitment type).
-// MerklePath is represented from root-to-leaf
-message MerklePath {
-  repeated string key_path = 1;
 }
 
 // MerkleProof is a wrapper type over a chain of CommitmentProofs.

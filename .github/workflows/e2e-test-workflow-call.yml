@@ -6,6 +6,11 @@ on:
         required: false
         type: string
         default: '' # empty string means run all tests
+      temp-run-full-suite:
+        description: 'This flag exists to run a hard coded set of tests and will be phased out'
+        required: false
+        type: boolean
+        default: false
       test:
         description: 'test name to run as standalone'
         required: false
@@ -112,7 +117,7 @@ jobs:
         if: ${{ inputs.build-and-push-docker-image }}
       - name: Log in to the Container registry
         if: ${{ inputs.build-and-push-docker-image }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -121,13 +126,13 @@ jobs:
       - name: Extract metadata (tags, labels) for Docker
         if: ${{ inputs.build-and-push-docker-image }}
         id: meta
-        uses: docker/metadata-action@dbef88086f6cef02e264edb7dbf63250c17cef6c
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81
         with:
           images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
         if: ${{ inputs.build-and-push-docker-image }}
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
+        uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85
         with:
           context: .
           push: true
@@ -159,7 +164,7 @@ jobs:
 
       - name: Log in to the Container registry
         if: ${{ inputs.build-and-push-docker-image-wasm }}
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -168,13 +173,13 @@ jobs:
       - name: Extract metadata (tags, labels) for Docker
         if: ${{ inputs.build-and-push-docker-image-wasm }}
         id: meta
-        uses: docker/metadata-action@dbef88086f6cef02e264edb7dbf63250c17cef6c
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81
         with:
           images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME_WASM }}
 
       - name: Build and push Docker image
         if: ${{ inputs.build-and-push-docker-image-wasm }}
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
+        uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85
         with:
           context: .
           push: true
@@ -200,7 +205,7 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
       - id: set-matrix
         run: |
           output=$(go run cmd/build_test_matrix/main.go)
@@ -238,12 +243,69 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.22'
+          cache-dependency-path: 'e2e/go.sum'
       - name: Run e2e Test
         id: e2e_test
         run: |
           cd e2e
           make e2e-test test=${{ matrix.test }}
+      - name: Upload Diagnostics
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() && inputs.upload-logs }}
+        continue-on-error: true
+        with:
+          name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
+          path: e2e/diagnostics
+          retention-days: 5
+
+  e2e-test-suites:
+    # temporary flag. eventually this field will not exist and this will be the default.
+    if: ${{ inputs.temp-run-full-suite }}
+    runs-on: ubuntu-latest
+    needs:
+      - build-test-matrix
+      - docker-build
+      - docker-build-wasm
+    env:
+      CHAIN_IMAGE: '${{ inputs.chain-image }}'
+      CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
+      CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
+      RELAYER_IMAGE: '${{ inputs.relayer-image }}'
+      RELAYER_TAG: '${{ inputs.relayer-tag }}'
+      RELAYER_ID: '${{ inputs.relayer-type }}'
+      CHAIN_BINARY: '${{ inputs.chain-binary }}'
+      CHAIN_UPGRADE_TAG: '${{ inputs.chain-upgrade-tag }}'
+      CHAIN_UPGRADE_PLAN: '${{ inputs.upgrade-plan-name }}'
+      # explicitly set to true so that if a test fails, it doesn't delete the chain and cause other tests to fail.
+      KEEP_CONTAINERS: "true"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+            # for now we explicitly specify this test suite.
+          - entrypoint: TestTransferTestSuite
+          - entrypoint: TestAuthzTransferTestSuite
+          - entrypoint: TestTransferTestSuiteSendReceive
+          - entrypoint: TestTransferTestSuiteSendEnabled
+          - entrypoint: TestTransferLocalhostTestSuite
+          - entrypoint: TestConnectionTestSuite
+          - entrypoint: TestInterchainAccountsGovTestSuite
+          - entrypoint: TestIncentivizedTransferTestSuite
+          - entrypoint: TestTransferForwardingTestSuite
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: cosmos/ibc-go
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: 'e2e/go.sum'
+      - name: Run e2e Test
+        id: e2e_test
+        run: |
+          cd e2e
+          make e2e-suite entrypoint=${{ matrix.entrypoint }}
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v4
         if: ${{ failure() && inputs.upload-logs }}

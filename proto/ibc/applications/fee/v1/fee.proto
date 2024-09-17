@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.fee.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types";
 
 import "amino/amino.proto";
 import "cosmos/base/v1beta1/coin.proto";

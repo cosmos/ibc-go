@@ -1,20 +1,21 @@
 package keeper
 
 import (
+	"context"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/cosmos/ibc-go/v8/internal/logging"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/internal/logging"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 // RegisterInterchainAccount is the entry point to registering an interchain account:
-// - It generates a new port identifier using the provided owner string, binds to the port identifier and claims the associated capability.
+// - It generates a new port identifier using the provided owner string.
 // - Callers are expected to provide the appropriate application version string.
 // - For example, this could be an ICS27 encoded metadata type or an ICS29 encoded metadata type with a nested application version.
 // - A new MsgChannelOpenInit is routed through the MsgServiceRouter, executing the OnOpenChanInit callback stack as configured.
@@ -29,7 +30,7 @@ import (
 // Prior to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string) error {
+func (k Keeper) RegisterInterchainAccount(ctx context.Context, connectionID, owner, version string, ordering channeltypes.Order) error {
 	portID, err := icatypes.NewControllerPortID(owner)
 	if err != nil {
 		return err
@@ -41,7 +42,12 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 
 	k.SetMiddlewareEnabled(ctx, portID, connectionID)
 
-	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version, channeltypes.ORDERED)
+	// use ORDER_UNORDERED as default in case ordering is NONE
+	if ordering == channeltypes.NONE {
+		ordering = channeltypes.UNORDERED
+	}
+
+	_, err = k.registerInterchainAccount(ctx, connectionID, portID, version, ordering)
 	if err != nil {
 		return err
 	}
@@ -51,27 +57,19 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 
 // registerInterchainAccount registers an interchain account, returning the channel id of the MsgChannelOpenInitResponse
 // and an error if one occurred.
-func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID, version string, order channeltypes.Order) (string, error) {
+func (k Keeper) registerInterchainAccount(ctx context.Context, connectionID, portID, version string, ordering channeltypes.Order) (string, error) {
 	// if there is an active channel for this portID / connectionID return an error
 	activeChannelID, found := k.GetOpenActiveChannel(ctx, connectionID, portID)
 	if found {
 		return "", errorsmod.Wrapf(icatypes.ErrActiveChannelAlreadySet, "existing active channel %s for portID %s on connection %s", activeChannelID, portID, connectionID)
 	}
 
-	switch {
-	case k.portKeeper.IsBound(ctx, portID) && !k.hasCapability(ctx, portID):
-		return "", errorsmod.Wrapf(icatypes.ErrPortAlreadyBound, "another module has claimed capability for and bound port with portID: %s", portID)
-	case !k.portKeeper.IsBound(ctx, portID):
-		k.setPort(ctx, portID)
-		capability := k.portKeeper.BindPort(ctx, portID)
-		if err := k.ClaimCapability(ctx, capability, host.PortPath(portID)); err != nil {
-			return "", errorsmod.Wrapf(err, "unable to bind to newly generated portID: %s", portID)
-		}
-	}
+	k.setPort(ctx, portID)
 
-	msg := channeltypes.NewMsgChannelOpenInit(portID, version, order, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	msg := channeltypes.NewMsgChannelOpenInit(portID, version, ordering, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
 	handler := k.msgRouter.Handler(msg)
-	res, err := handler(ctx, msg)
+	res, err := handler(sdkCtx, msg)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +78,7 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID,
 	k.Logger(ctx).Debug("emitting interchain account registration events", logging.SdkEventsToLogArguments(events))
 
 	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
-	ctx.EventManager().EmitEvents(events)
+	sdkCtx.EventManager().EmitEvents(events)
 
 	firstMsgResponse := res.MsgResponses[0]
 	channelOpenInitResponse, ok := firstMsgResponse.GetCachedValue().(*channeltypes.MsgChannelOpenInitResponse)

@@ -48,7 +48,7 @@ func defaultIdentifierValidator(id string, min, max int) error {
 	if len(id) < min || len(id) > max {
 		return errorsmod.Wrapf(ErrInvalidID, "identifier %s has invalid length: %d, must be between %d-%d characters", id, len(id), min, max)
 	}
-	// valid id must contain only lower alphabetic characters
+	// valid id must contain only alphanumeric characters and some allowed symbols.
 	if !IsValidID(id) {
 		return errorsmod.Wrapf(
 			ErrInvalidID,

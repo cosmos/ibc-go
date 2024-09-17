@@ -7,10 +7,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	testing "github.com/cosmos/ibc-go/v8/testing"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 var (
@@ -37,19 +37,19 @@ func CreateMockTendermintClientState(height clienttypes.Height) *ibctm.ClientSta
 	return ibctm.NewClientState(
 		"chain-id",
 		ibctm.DefaultTrustLevel,
-		testing.TrustingPeriod,
-		testing.UnbondingPeriod,
-		testing.MaxClockDrift,
+		ibctesting.TrustingPeriod,
+		ibctesting.UnbondingPeriod,
+		ibctesting.MaxClockDrift,
 		height,
 		commitmenttypes.GetSDKSpecs(),
-		testing.UpgradePath,
+		ibctesting.UpgradePath,
 	)
 }
 
 // CreateMockClientStateBz returns valid client state bytes for use in tests.
 func CreateMockClientStateBz(cdc codec.BinaryCodec, checksum types.Checksum) []byte {
 	wrappedClientStateBz := clienttypes.MustMarshalClientState(cdc, MockTendermitClientState)
-	mockClientSate := types.NewClientState(wrappedClientStateBz, checksum, MockTendermitClientState.GetLatestHeight().(clienttypes.Height))
+	mockClientSate := types.NewClientState(wrappedClientStateBz, checksum, MockTendermitClientState.LatestHeight)
 	return clienttypes.MustMarshalClientState(cdc, mockClientSate)
 }
 

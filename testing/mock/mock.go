@@ -2,6 +2,7 @@ package mock
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -17,11 +18,10 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 const (
@@ -35,18 +35,21 @@ const (
 )
 
 var (
-	MockAcknowledgement             = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
-	MockFailAcknowledgement         = channeltypes.NewErrorAcknowledgement(fmt.Errorf("mock failed acknowledgement"))
-	MockPacketData                  = []byte("mock packet data")
-	MockFailPacketData              = []byte("mock failed packet data")
-	MockAsyncPacketData             = []byte("mock async packet data")
-	MockRecvCanaryCapabilityName    = "mock receive canary capability name"
-	MockAckCanaryCapabilityName     = "mock acknowledgement canary capability name"
-	MockTimeoutCanaryCapabilityName = "mock timeout canary capability name"
-	UpgradeVersion                  = fmt.Sprintf("%s-v2", Version)
+	MockAcknowledgement     = channeltypes.NewResultAcknowledgement([]byte("mock acknowledgement"))
+	MockFailAcknowledgement = channeltypes.NewErrorAcknowledgement(errors.New("mock failed acknowledgement"))
+	MockPacketData          = []byte("mock packet data")
+	MockFailPacketData      = []byte("mock failed packet data")
+	MockAsyncPacketData     = []byte("mock async packet data")
+	UpgradeVersion          = fmt.Sprintf("%s-v2", Version)
 	// MockApplicationCallbackError should be returned when an application callback should fail. It is possible to
 	// test that this error was returned using ErrorIs.
 	MockApplicationCallbackError error = &applicationCallbackError{}
+	MockFeeVersion                     = string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: Version}))
+)
+
+var (
+	TestKey   = []byte("test-key")
+	TestValue = []byte("test-value")
 )
 
 var (
@@ -55,13 +58,6 @@ var (
 
 	_ porttypes.IBCModule = (*IBCModule)(nil)
 )
-
-// Expected Interface
-// PortKeeper defines the expected IBC port keeper
-type PortKeeper interface {
-	BindPort(ctx sdk.Context, portID string) *capabilitytypes.Capability
-	IsBound(ctx sdk.Context, portID string) bool
-}
 
 // AppModuleBasic is the mock AppModuleBasic.
 type AppModuleBasic struct{}
@@ -115,15 +111,12 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for the mock module.
 type AppModule struct {
 	AppModuleBasic
-	ibcApps    []*IBCApp
-	portKeeper PortKeeper
+	ibcApps []*IBCApp
 }
 
 // NewAppModule returns a mock AppModule instance.
-func NewAppModule(pk PortKeeper) AppModule {
-	return AppModule{
-		portKeeper: pk,
-	}
+func NewAppModule() AppModule {
+	return AppModule{}
 }
 
 // RegisterInvariants implements the AppModule interface.
@@ -133,18 +126,7 @@ func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 func (AppModule) RegisterServices(module.Configurator) {}
 
 // InitGenesis implements the AppModule interface.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
-	for _, ibcApp := range am.ibcApps {
-		if ibcApp.PortID != "" && !am.portKeeper.IsBound(ctx, ibcApp.PortID) {
-			// bind mock portID
-			capability := am.portKeeper.BindPort(ctx, ibcApp.PortID)
-			err := ibcApp.ScopedKeeper.ClaimCapability(ctx, capability, host.PortPath(ibcApp.PortID))
-			if err != nil {
-				panic(err)
-			}
-		}
-	}
-
+func (AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
 

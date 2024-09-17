@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 	_ sdk.HasValidateBasic = (*MsgRemoveChecksum)(nil)
 )
 
-// MsgStoreCode creates a new MsgStoreCode instance
+// NewMsgStoreCode creates a new MsgStoreCode instance
 func NewMsgStoreCode(signer string, code []byte) *MsgStoreCode {
 	return &MsgStoreCode{
 		Signer:       signer,

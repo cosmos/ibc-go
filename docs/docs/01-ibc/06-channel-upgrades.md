@@ -42,7 +42,7 @@ type Channel struct {
 }
 ```
 
-The version, connection hops, and channel ordering are fields in this channel struct which can be changed. For example, the fee middleware can be added to an application module by updating the version string [shown here](https://github.com/cosmos/ibc-go/blob/995b647381b909e9d6065d6c21004f18fab37f55/modules/apps/29-fee/types/metadata.pb.go#L28). However, although connection hops can change in a channel upgrade, both sides must still be each other's counterparty. This is enforced by the upgrade protocol and upgrade attempts which try to alter an expected counterparty will fail.
+The version, connection hops, and channel ordering are fields in this channel struct which can be changed. For example, the fee middleware can be added to an application module by updating the version string [shown here](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/apps/29-fee/types/metadata.pb.go#L29). However, although connection hops can change in a channel upgrade, both sides must still be each other's counterparty. This is enforced by the upgrade protocol and upgrade attempts which try to alter an expected counterparty will fail.
 
 On a high level, successful handshake process for channel upgrades works as follows:
 
@@ -69,6 +69,10 @@ type MsgChannelUpgradeInit struct {
 As part of the handling of the `MsgChannelUpgradeInit` message, the application's `OnChanUpgradeInit` callback will be triggered as well.
 
 After this message is handled successfully, the channel's upgrade sequence will be incremented. This upgrade sequence will serve as a nonce for the upgrade process to provide replay protection.
+
+:::warning
+Initiating an upgrade in the same block as opening a channel may potentially prevent the counterparty channel from also opening. 
+:::
 
 ### Governance gating on `ChanUpgradeInit`
 
@@ -128,9 +132,24 @@ type Channel struct {
 
 This will also set the upgrade timeout for the counterparty (i.e. the timeout before which the counterparty chain must move from `FLUSHING` to `FLUSHCOMPLETE`; if it doesn't then the chain will cancel the upgrade and write an error receipt). The timeout is a relative time duration in nanoseconds that can be changed with `MsgUpdateParams` and by default is 10 minutes.
 
-The state will change to `FLUSHCOMPLETE` once there are no in-flight packets left and the channel end is ready to move to `OPEN`. This flush state will also have an impact on how a channel ugrade can be cancelled, as detailed below.
+The state will change to `FLUSHCOMPLETE` once there are no in-flight packets left and the channel end is ready to move to `OPEN`. This flush state will also have an impact on how a channel upgrade can be cancelled, as detailed below.
 
 All other parameters will remain the same during the upgrade handshake until the upgrade handshake completes. When the channel is reset to `OPEN` on a successful upgrade handshake, the relevant fields on the channel end will be switched over to the `UpgradeFields` specified in the upgrade.
+
+:::note
+
+When transitioning a channel from UNORDERED to ORDERED, new packet sends from the channel end which upgrades first will be incapable of being timed out until the counterparty has finished upgrading. 
+
+:::
+
+:::warning
+
+Due to the addition of new channel states, packets can still be received and processed in both `FLUSHING` and `FLUSHCOMPLETE` states.
+Packets can also be acknowledged in the `FLUSHING` state. Acknowledging will **not** be possible when the channel is in the `FLUSHCOMPLETE` state, since all packets sent from that channel end have been flushed.
+Application developers should consider these new states when implementing application logic that relies on the channel state.
+It is still only possible to send packets when the channel is in the `OPEN` state, but sending is disallowed when the channel enters `FLUSHING` and `FLUSHCOMPLETE`. When the channel reopens, sending will be possible again.
+
+:::
 
 ## Cancelling a Channel Upgrade
 
@@ -152,9 +171,16 @@ It is possible for a relayer to cancel an in-progress channel upgrade if the fol
 Upon cancelling a channel upgrade, an `ErrorReceipt` will be written with the channel's current upgrade sequence, and
 the channel will move back to `OPEN` state keeping its original parameters.
 
-The application's `OnChanUpgradeRestore` callback method will be invoked.
-
 It will then be possible to re-initiate an upgrade by sending a `MsgChannelOpenInit` message.
+
+:::warning
+
+Performing sequentially an upgrade cancellation, upgrade initialization, and another upgrade cancellation in a single block while the counterparty is in `FLUSHCOMPLETE` will lead to corrupted state.
+The counterparty will be unable to cancel its upgrade attempt and will require a manual migration. 
+When the counterparty is in `FLUSHCOMPLETE`, it requires a proof that the counterparty cancelled its current upgrade attempt. 
+When this cancellation is succeeded by an initialization and cancellation in the same block, it results in the proof of cancellation existing only for the next upgrade attempt, not the current. 
+
+:::
 
 ## Timing Out a Channel Upgrade
 
@@ -204,8 +230,6 @@ type MsgChannelUpgradeTimeout struct {
 
 An `ErrorReceipt` will be written with the channel's current upgrade sequence, and the channel will move back to `OPEN` state keeping its original parameters.
 
-The application's `OnChanUpgradeRestore` callback method will also be invoked.
-
 Note that timing out a channel upgrade will end the upgrade process, and a new `MsgChannelUpgradeInit` will have to be submitted via governance in order to restart the upgrade process.
 
 ## Pruning Acknowledgements
@@ -241,7 +265,8 @@ simd tx ibc channel prune-acknowledgements [port] [channel] [limit]
 
 ## IBC App Recommendations
 
-IBC application callbacks should be primarily used to validate data fields and do compatibility checks.
+IBC application callbacks should be primarily used to validate data fields and do compatibility checks. Application developers
+should be aware that callbacks will be invoked before any core ibc state changes are written.
 
 `OnChanUpgradeInit` should validate the proposed version, order, and connection hops, and should return the application version to upgrade to.
 
@@ -250,8 +275,6 @@ IBC application callbacks should be primarily used to validate data fields and d
 `OnChanUpgradeAck` should validate the version proposed by the counterparty.
 
 `OnChanUpgradeOpen` should perform any logic associated with changing of the channel fields.
-
-`OnChanUpgradeRestore`  should perform any logic that needs to be executed when an upgrade attempt fails as is reverted.
 
 > IBC applications should not attempt to process any packet data under the new conditions until after `OnChanUpgradeOpen`
 > has been executed, as up until this point it is still possible for the upgrade handshake to fail and for the channel
@@ -267,10 +290,10 @@ In app.go, the existing transfer stack must be wrapped with the fee middleware.
 
 import (
   // ... 
-  ibcfee "github.com/cosmos/ibc-go/v8/modules/apps/29-fee"
-  ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-  transfer "github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-  porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+  ibcfee "github.com/cosmos/ibc-go/v9/modules/apps/29-fee"
+  ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
+  transfer "github.com/cosmos/ibc-go/v9/modules/apps/transfer"
+  porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
   // ...
 )
 

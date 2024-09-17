@@ -1,6 +1,7 @@
 package ibctesting
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -12,13 +13,13 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 // Endpoint is a which represents a channel endpoint and its associated
@@ -35,6 +36,11 @@ type Endpoint struct {
 	ClientConfig     ClientConfig
 	ConnectionConfig *ConnectionConfig
 	ChannelConfig    *ChannelConfig
+
+	// disableUniqueChannelIDs is used to enforce, in a test,
+	// the old way to generate channel IDs (all channels are called channel-0)
+	// It is used only by one test suite and should not be used for new tests.
+	disableUniqueChannelIDs bool
 }
 
 // NewEndpoint constructs a new endpoint without the counterparty.
@@ -65,11 +71,10 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 // QueryProof queries proof associated with this endpoint using the latest client state
 // height on the counterparty chain.
 func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
-	// obtain the counterparty client representing the chain associated with the endpoint
-	clientState := endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
-
+	// obtain the counterparty client height.
+	latestCounterpartyHeight := endpoint.Counterparty.GetClientLatestHeight()
 	// query proof on the counterparty using the latest height of the IBC client
-	return endpoint.QueryProofAtHeight(key, clientState.GetLatestHeight().GetRevisionHeight())
+	return endpoint.QueryProofAtHeight(key, latestCounterpartyHeight.GetRevisionHeight())
 }
 
 // QueryProofAtHeight queries proof associated with this endpoint using the proof height
@@ -96,11 +101,12 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
 		require.True(endpoint.Chain.TB, ok)
 
-		height := endpoint.Counterparty.Chain.LastHeader.GetHeight().(clienttypes.Height)
+		height, ok := endpoint.Counterparty.Chain.LatestCommittedHeader.GetHeight().(clienttypes.Height)
+		require.True(endpoint.Chain.TB, ok)
 		clientState = ibctm.NewClientState(
 			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
 			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
-		consensusState = endpoint.Counterparty.Chain.LastHeader.ConsensusState()
+		consensusState = endpoint.Counterparty.Chain.LatestCommittedHeader.ConsensusState()
 	case exported.Solomachine:
 		// TODO
 		//		solo := NewSolomachine(endpoint.Chain.TB, endpoint.Chain.Codec, clientID, "", 1)
@@ -139,7 +145,9 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		header, err = endpoint.Chain.ConstructUpdateTMClientHeader(endpoint.Counterparty.Chain, endpoint.ClientID)
+		trustedHeight, ok := endpoint.GetClientLatestHeight().(clienttypes.Height)
+		require.True(endpoint.Chain.TB, ok)
+		header, err = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -164,11 +172,12 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 // see reference https://github.com/cosmos/ibc-go/pull/1169
 func (endpoint *Endpoint) UpgradeChain() error {
 	if strings.TrimSpace(endpoint.Counterparty.ClientID) == "" {
-		return fmt.Errorf("cannot upgrade chain if there is no counterparty client")
+		return errors.New("cannot upgrade chain if there is no counterparty client")
 	}
 
 	clientState := endpoint.Counterparty.GetClientState()
-	tmClientState := clientState.(*ibctm.ClientState)
+	tmClientState, ok := clientState.(*ibctm.ClientState)
+	require.True(endpoint.Chain.TB, ok)
 
 	// increment revision number in chainID
 	oldChainID := tmClientState.ChainId
@@ -185,7 +194,7 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	// update chain
 	baseapp.SetChainID(newChainID)(endpoint.Chain.App.GetBaseApp())
 	endpoint.Chain.ChainID = newChainID
-	endpoint.Chain.CurrentHeader.ChainID = newChainID
+	endpoint.Chain.ProposedHeader.ChainID = newChainID
 	endpoint.Chain.NextBlock() // commit changes
 
 	// update counterparty client manually
@@ -195,11 +204,14 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	endpoint.Counterparty.SetClientState(clientState)
 
 	tmConsensusState := &ibctm.ConsensusState{
-		Timestamp:          endpoint.Chain.LastHeader.GetTime(),
-		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LastHeader.Header.GetAppHash()),
-		NextValidatorsHash: endpoint.Chain.LastHeader.Header.NextValidatorsHash,
+		Timestamp:          endpoint.Chain.LatestCommittedHeader.GetTime(),
+		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LatestCommittedHeader.Header.GetAppHash()),
+		NextValidatorsHash: endpoint.Chain.LatestCommittedHeader.Header.NextValidatorsHash,
 	}
-	endpoint.Counterparty.SetConsensusState(tmConsensusState, clientState.GetLatestHeight())
+
+	latestHeight := endpoint.Counterparty.GetClientLatestHeight()
+
+	endpoint.Counterparty.SetConsensusState(tmConsensusState, latestHeight)
 
 	// ensure the next update isn't identical to the one set in state
 	endpoint.Chain.Coordinator.IncrementTime()
@@ -232,13 +244,12 @@ func (endpoint *Endpoint) ConnOpenTry() error {
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
-	counterpartyClient, clientProof, consensusProof, consensusHeight, initProof, proofHeight := endpoint.QueryConnectionHandshakeProof()
+	initProof, proofHeight := endpoint.QueryConnectionHandshakeProof()
 
 	msg := connectiontypes.NewMsgConnectionOpenTry(
 		endpoint.ClientID, endpoint.Counterparty.ConnectionID, endpoint.Counterparty.ClientID,
-		counterpartyClient, endpoint.Counterparty.Chain.GetPrefix(), []*connectiontypes.Version{ConnectionVersion}, endpoint.ConnectionConfig.DelayPeriod,
-		initProof, clientProof, consensusProof,
-		proofHeight, consensusHeight,
+		endpoint.Counterparty.Chain.GetPrefix(), []*connectiontypes.Version{ConnectionVersion},
+		endpoint.ConnectionConfig.DelayPeriod, initProof, proofHeight,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	res, err := endpoint.Chain.SendMsgs(msg)
@@ -259,13 +270,11 @@ func (endpoint *Endpoint) ConnOpenAck() error {
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
-	counterpartyClient, clientProof, consensusProof, consensusHeight, tryProof, proofHeight := endpoint.QueryConnectionHandshakeProof()
+	tryProof, proofHeight := endpoint.QueryConnectionHandshakeProof()
 
 	msg := connectiontypes.NewMsgConnectionOpenAck(
-		endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, counterpartyClient, // testing doesn't use flexible selection
-		tryProof, clientProof, consensusProof,
-		proofHeight, consensusHeight,
-		ConnectionVersion,
+		endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, // testing doesn't use flexible selection
+		tryProof, proofHeight, ConnectionVersion,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 	return endpoint.Chain.sendMsgs(msg)
@@ -288,36 +297,33 @@ func (endpoint *Endpoint) ConnOpenConfirm() error {
 }
 
 // QueryConnectionHandshakeProof returns all the proofs necessary to execute OpenTry or Open Ack of
-// the connection handshakes. It returns the counterparty client state, proof of the counterparty
-// client state, proof of the counterparty consensus state, the consensus state height, proof of
-// the counterparty connection, and the proof height for all the proofs returned.
+// the connection handshakes. It returns the proof of the counterparty connection and the proof height.
 func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
-	clientState exported.ClientState, clientProof,
-	consensusProof []byte, consensusHeight clienttypes.Height,
-	connectioProof []byte, proofHeight clienttypes.Height,
+	connectionProof []byte, proofHeight clienttypes.Height,
 ) {
-	// obtain the client state on the counterparty chain
-	clientState = endpoint.Counterparty.Chain.GetClientState(endpoint.Counterparty.ClientID)
-
-	// query proof for the client state on the counterparty
-	clientKey := host.FullClientStateKey(endpoint.Counterparty.ClientID)
-	clientProof, proofHeight = endpoint.Counterparty.QueryProof(clientKey)
-
-	consensusHeight = clientState.GetLatestHeight().(clienttypes.Height)
-
-	// query proof for the consensus state on the counterparty
-	consensusKey := host.FullConsensusStateKey(endpoint.Counterparty.ClientID, consensusHeight)
-	consensusProof, _ = endpoint.Counterparty.QueryProofAtHeight(consensusKey, proofHeight.GetRevisionHeight())
-
 	// query proof for the connection on the counterparty
 	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
-	connectioProof, _ = endpoint.Counterparty.QueryProofAtHeight(connectionKey, proofHeight.GetRevisionHeight())
+	connectionProof, proofHeight = endpoint.Counterparty.QueryProof(connectionKey)
 
-	return clientState, clientProof, consensusProof, consensusHeight, connectioProof, proofHeight
+	return connectionProof, proofHeight
+}
+
+var sequenceNumber int
+
+// IncrementNextChannelSequence incrementes the value "nextChannelSequence" in the store,
+// which is used to determine the next channel ID.
+// This guarantees that we'll have always different IDs while running tests.
+func (endpoint *Endpoint) IncrementNextChannelSequence() {
+	if endpoint.disableUniqueChannelIDs {
+		return
+	}
+	sequenceNumber++
+	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetNextChannelSequence(endpoint.Chain.GetContext(), uint64(sequenceNumber))
 }
 
 // ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenInit() error {
+	endpoint.IncrementNextChannelSequence()
 	msg := channeltypes.NewMsgChannelOpenInit(
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
@@ -335,12 +341,14 @@ func (endpoint *Endpoint) ChanOpenInit() error {
 	// update version to selected app version
 	// NOTE: this update must be performed after SendMsgs()
 	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+	endpoint.Counterparty.ChannelConfig.Version = endpoint.GetChannel().Version
 
 	return nil
 }
 
 // ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated endpoint.
 func (endpoint *Endpoint) ChanOpenTry() error {
+	endpoint.IncrementNextChannelSequence()
 	err := endpoint.UpdateClient()
 	require.NoError(endpoint.Chain.TB, err)
 
@@ -367,6 +375,7 @@ func (endpoint *Endpoint) ChanOpenTry() error {
 	// update version to selected app version
 	// NOTE: this update must be performed after the endpoint channelID is set
 	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+	endpoint.Counterparty.ChannelConfig.Version = endpoint.GetChannel().Version
 
 	return nil
 }
@@ -431,10 +440,8 @@ func (endpoint *Endpoint) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (uint64, error) {
-	channelCap := endpoint.Chain.GetChannelCapability(endpoint.ChannelConfig.PortID, endpoint.ChannelID)
-
 	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), channelCap, endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeoutHeight, timeoutTimestamp, data)
+	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeoutHeight, timeoutTimestamp, data)
 	if err != nil {
 		return 0, err
 	}
@@ -486,10 +493,8 @@ func (endpoint *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*abc
 // WriteAcknowledgement writes an acknowledgement on the channel associated with the endpoint.
 // The counterparty client is updated.
 func (endpoint *Endpoint) WriteAcknowledgement(ack exported.Acknowledgement, packet exported.PacketI) error {
-	channelCap := endpoint.Chain.GetChannelCapability(packet.GetDestPort(), packet.GetDestChannel())
-
 	// no need to send message, acting as a handler
-	err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), channelCap, packet, ack)
+	err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), packet, ack)
 	if err != nil {
 		return err
 	}
@@ -509,6 +514,17 @@ func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []by
 	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	return endpoint.Chain.sendMsgs(ackMsg)
+}
+
+// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint and returns the result.
+func (endpoint *Endpoint) AcknowledgePacketWithResult(packet channeltypes.Packet, ack []byte) (*abci.ExecTxResult, error) {
+	// get proof of acknowledgement on counterparty
+	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	return endpoint.Chain.SendMsgs(ackMsg)
 }
 
 // TimeoutPacket sends a MsgTimeout to the channel associated with the endpoint.
@@ -557,7 +573,7 @@ func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	channelKey := host.ChannelKey(packet.GetDestPort(), packet.GetDestChannel())
 	closedProof, _ := endpoint.Counterparty.QueryProof(channelKey)
 
-	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpoint.Counterparty.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
+	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
 	require.True(endpoint.Chain.TB, found)
 
 	timeoutOnCloseMsg := channeltypes.NewMsgTimeoutOnClose(
@@ -708,6 +724,7 @@ func (endpoint *Endpoint) ChanUpgradeOpen() error {
 		endpoint.ChannelConfig.PortID,
 		endpoint.ChannelID,
 		endpoint.Counterparty.GetChannel().State,
+		endpoint.Counterparty.GetChannel().UpgradeSequence,
 		channelProof,
 		height,
 		endpoint.Chain.SenderAccount.GetAddress().String(),
@@ -759,6 +776,7 @@ func (endpoint *Endpoint) ChanUpgradeCancel() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
+// Deprecated: usage of this function should be replaced by `UpdateChannel`
 // SetChannelState sets a channel state
 func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()
@@ -771,7 +789,26 @@ func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	return endpoint.Counterparty.UpdateClient()
 }
 
-// GetClientState retrieves the Client State for this endpoint. The
+// UpdateChannel updates the channel associated with the given endpoint. It accepts a
+// closure which takes a channel allowing the caller to modify its fields.
+func (endpoint *Endpoint) UpdateChannel(updater func(channel *channeltypes.Channel)) {
+	channel := endpoint.GetChannel()
+	updater(&channel)
+	endpoint.SetChannel(channel)
+
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+
+	err := endpoint.Counterparty.UpdateClient()
+	require.NoError(endpoint.Chain.TB, err)
+}
+
+// GetClientLatestHeight returns the latest height for the client state for this endpoint.
+// The client state is expected to exist otherwise testing will fail.
+func (endpoint *Endpoint) GetClientLatestHeight() exported.Height {
+	return endpoint.Chain.GetClientLatestHeight(endpoint.ClientID)
+}
+
+// GetClientState retrieves the client state for this endpoint. The
 // client state is expected to exist otherwise testing will fail.
 func (endpoint *Endpoint) GetClientState() exported.ClientState {
 	return endpoint.Chain.GetClientState(endpoint.ClientID)
@@ -890,4 +927,13 @@ func (endpoint *Endpoint) GetProposedUpgrade() channeltypes.Upgrade {
 	}
 
 	return upgrade
+}
+
+// UpdateConnection updates the connection associated with the given endpoint. It accepts a
+// closure which takes a connection allowing the caller to modify the connection fields.
+func (endpoint *Endpoint) UpdateConnection(updater func(connection *connectiontypes.ConnectionEnd)) {
+	connection := endpoint.GetConnection()
+	updater(&connection)
+
+	endpoint.SetConnection(connection)
 }

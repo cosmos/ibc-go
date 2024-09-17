@@ -19,7 +19,7 @@ When bumping the dependencies of [Cosmos SDK](https://github.com/cosmos/cosmos-s
 
 To summarize: **All our ibc-go releases allow chains to communicate successfully with any chain running any version of our code**. That is to say, we are still using IBC protocol specification v1.0.
 
-We ensure all major releases are supported by relayers ([hermes](https://github.com/informalsystems/ibc-rs), [rly](https://github.com/strangelove-ventures/relayer) and [ts-relayer](https://github.com/confio/ts-relayer) at the moment) which can relay between the new major release and older releases. We have no plans of upgrading to an IBC protocol specification v2.0, as this would be very disruptive to the ecosystem.
+We ensure all major releases are supported by relayers ([hermes](https://github.com/informalsystems/ibc-rs), [rly](https://github.com/cosmos/relayer) and [ts-relayer](https://github.com/confio/ts-relayer) at the moment) which can relay between the new major release and older releases. We have no plans of upgrading to an IBC protocol specification v2.0, as this would be very disruptive to the ecosystem.
 
 ## Release cycle
 
@@ -71,9 +71,13 @@ We reserve the right to drop support for releases if they are deemed unused (for
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v7.2.x`|September 17, 2024|
-|`v7.3.x`|September 17, 2024|
-|`v8.0.x`|May 10, 2025|
+|`v7.4.x`|March 17, 2025|
+|`v7.5.x`|March 17, 2025|
+|`v7.6.x`|March 17, 2025|
+|`v7.7.x`|March 17, 2025|
+|`v7.8.x`|March 17, 2025|
+|`v8.4.x`|May 10, 2025|
+|`v8.5.x`|May 10, 2025|
 
 ### Callbacks middleware
 
@@ -86,8 +90,8 @@ We reserve the right to drop support for releases if they are deemed unused (for
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v0.1.0+ibc-go-v7.3.x-wasmvm-v1.5.x`|September 17, 2024|
-|`v0.2.x+ibc-go-v8.0.x-wasmvm-v1.5.x`|May 10, 2025|
+|`v0.3.x+ibc-go-v7.4.x-wasmvm-v1.5.x`|September 17, 2024|
+|`v0.4.x+ibc-go-v8.4.x-wasmvm-v2.0.x`|May 10, 2025|
 
 ### What pull requests will be included in stable patch-releases?
 
@@ -110,6 +114,10 @@ As rule of thumb, the following changes will **NOT** be automatically accepted i
 - **API-breaking changes**, i.e. changes that prevent client applications to *build without modifications* to the client application's source code.
 - **CLI-breaking changes**, i.e. changes that require usage changes for CLI users.
 
+## Deprecation notice
+
+Code that is marked as deprecated in a release will be removed 2 major releases afterwards. For example: deprecation notice is added in v8.3.0, then code will be deleted in v10.0.0.
+
 ## Version matrix
 
 ### ibc-go
@@ -118,12 +126,13 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 
 | Go | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|--------|------------|---------------------|
-| 1.19 | v7.2.0 | v0.47.3  | v0.37.2  |
-| 1.19 | v7.2.1 | v0.47.3  | v0.37.2  |
-| 1.19 | v7.2.2 | v0.47.5  | v0.37.2  |
-| 1.19 | v7.3.0 | v0.47.4  | v0.37.2  |
-| 1.19 | v7.3.1 | v0.47.5  | v0.37.2  |
-| 1.21 | v8.0.0 | v0.50.1  | v0.38.0  |
+| 1.19 | v7.4.0 | v0.47.8  | v0.37.4  |
+| 1.19 | v7.5.0 | v0.47.11 | v0.37.5  |
+| 1.19 | v7.6.0 | v0.47.12 | v0.37.5  |
+| 1.19 | v7.7.0 | v0.47.13 | v0.37.5  |
+| 1.19 | v7.8.0 | v0.47.13 | v0.37.5  |
+| 1.21 | v8.4.0 | v0.50.7  | v0.38.7  |
+| 1.21 | v8.5.0 | v0.50.9  | v0.38.11 |
 
 ### Callbacks middleware
 
@@ -140,8 +149,8 @@ Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by `08-wasm` module in 
 
 | Go | callbacks | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|-----------|--------|------------|---------------------|
-| 1.19 | v0.1.0+ibc-go-v7.3-wasmvm-v1.5 | v7.3.0 | v0.47.6 | v0.37.2 |
-| 1.21 | v0.1.0+ibc-go-v8.0-wasmvm-v1.5 | v8.0.0 | v0.50.1 | v0.38.0 |
+| 1.19 | v0.3.1+ibc-go-v7.4-wasmvm-v1.5 | v7.4.0 | v0.47.8 | v0.37.4 |
+| 1.21 | v0.4.1+ibc-go-v8.4-wasmvm-v2.0 | v8.4.0 | v0.50.7 | v0.38.9 |
 
 ## Graphics
 

@@ -1,22 +1,18 @@
 package keeper_test
 
 import (
-	"context"
 	"testing"
-	"time"
 
 	testifysuite "github.com/stretchr/testify/suite"
 
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 type KeeperTestSuite struct {
@@ -44,26 +40,11 @@ func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
-// MockStakingKeeper implements clienttypes.StakingKeeper used in ibckeeper.NewKeeper
-type MockStakingKeeper struct {
-	mockField string
-}
-
-func (MockStakingKeeper) GetHistoricalInfo(_ context.Context, _ int64) (stakingtypes.HistoricalInfo, error) {
-	return stakingtypes.HistoricalInfo{}, nil
-}
-
-func (MockStakingKeeper) UnbondingTime(_ context.Context) (time.Duration, error) {
-	return 0, nil
-}
-
 // Test ibckeeper.NewKeeper used to initialize IBCKeeper when creating an app instance.
 // It verifies if ibckeeper.NewKeeper panic when any of the keepers passed in is empty.
 func (suite *KeeperTestSuite) TestNewKeeper() {
 	var (
-		stakingKeeper  clienttypes.StakingKeeper
 		upgradeKeeper  clienttypes.UpgradeKeeper
-		scopedKeeper   capabilitykeeper.ScopedKeeper
 		newIBCKeeperFn func()
 	)
 
@@ -72,22 +53,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		malleate func()
 		expPass  bool
 	}{
-		{"failure: empty staking keeper value", func() {
-			emptyStakingKeeperValue := stakingkeeper.Keeper{}
-
-			stakingKeeper = emptyStakingKeeperValue
-		}, false},
-		{"failure: empty staking keeper pointer", func() {
-			emptyStakingKeeperPointer := &stakingkeeper.Keeper{}
-
-			stakingKeeper = emptyStakingKeeperPointer
-		}, false},
-		{"failure: empty mock staking keeper", func() {
-			// use a different implementation of clienttypes.StakingKeeper
-			emptyMockStakingKeeper := MockStakingKeeper{}
-
-			stakingKeeper = emptyMockStakingKeeper
-		}, false},
 		{"failure: empty upgrade keeper value", func() {
 			emptyUpgradeKeeperValue := upgradekeeper.Keeper{}
 
@@ -98,30 +63,17 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 
 			upgradeKeeper = emptyUpgradeKeeperPointer
 		}, false},
-		{"failure: empty scoped keeper", func() {
-			emptyScopedKeeper := capabilitykeeper.ScopedKeeper{}
-
-			scopedKeeper = emptyScopedKeeper
-		}, false},
 		{"failure: empty authority", func() {
 			newIBCKeeperFn = func() {
 				ibckeeper.NewKeeper(
 					suite.chainA.GetSimApp().AppCodec(),
-					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
 					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
-					stakingKeeper,
 					upgradeKeeper,
-					scopedKeeper,
 					"", // authority
 				)
 			}
 		}, false},
-		{"success: replace stakingKeeper with non-empty MockStakingKeeper", func() {
-			// use a different implementation of clienttypes.StakingKeeper
-			mockStakingKeeper := MockStakingKeeper{"not empty"}
-
-			stakingKeeper = mockStakingKeeper
-		}, true},
 	}
 
 	for _, tc := range testCases {
@@ -133,18 +85,14 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			newIBCKeeperFn = func() {
 				ibckeeper.NewKeeper(
 					suite.chainA.GetSimApp().AppCodec(),
-					suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey),
+					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
 					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
-					stakingKeeper,
 					upgradeKeeper,
-					scopedKeeper,
 					suite.chainA.App.GetIBCKeeper().GetAuthority(),
 				)
 			}
 
-			stakingKeeper = suite.chainA.GetSimApp().StakingKeeper
 			upgradeKeeper = suite.chainA.GetSimApp().UpgradeKeeper
-			scopedKeeper = suite.chainA.GetSimApp().ScopedIBCKeeper
 
 			tc.malleate()
 

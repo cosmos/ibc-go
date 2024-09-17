@@ -7,7 +7,7 @@ for migration purposes and will be removed in a future release.
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )

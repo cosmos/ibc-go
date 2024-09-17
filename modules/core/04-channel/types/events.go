@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // IBC channel events
@@ -30,11 +30,6 @@ const (
 	EventTypeWriteAck          = "write_acknowledgement"
 	EventTypeAcknowledgePacket = "acknowledge_packet"
 	EventTypeTimeoutPacket     = "timeout_packet"
-
-	// Deprecated: in favor of AttributeKeyDataHex
-	AttributeKeyData = "packet_data"
-	// Deprecated: in favor of AttributeKeyAckHex
-	AttributeKeyAck = "packet_ack"
 
 	AttributeKeyDataHex          = "packet_data_hex"
 	AttributeKeyAckHex           = "packet_ack_hex"

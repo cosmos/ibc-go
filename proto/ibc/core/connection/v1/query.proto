@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.connection.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types";
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
@@ -53,6 +53,10 @@ service Query {
 message QueryConnectionRequest {
   // connection unique identifier
   string connection_id = 1;
+  // the height at which to query
+  ibc.core.client.v1.Height height = 2;
+  // latest_height overrides the height field and queries the latest height
+  bool latest_height = 3;
 }
 
 // QueryConnectionResponse is the response type for the Query/Connection RPC

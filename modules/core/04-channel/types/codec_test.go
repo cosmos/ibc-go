@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibc "github.com/cosmos/ibc-go/v9/modules/core"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 func TestCodecTypeRegistration(t *testing.T) {
@@ -18,16 +18,6 @@ func TestCodecTypeRegistration(t *testing.T) {
 		typeURL string
 		expPass bool
 	}{
-		{
-			"success: Channel",
-			sdk.MsgTypeURL(&types.Channel{}),
-			true,
-		},
-		{
-			"success: Counterparty",
-			sdk.MsgTypeURL(&types.Counterparty{}),
-			true,
-		},
 		{
 			"success: Packet",
 			sdk.MsgTypeURL(&types.Packet{}),

@@ -9,13 +9,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	clientutils "github.com/cosmos/ibc-go/v8/modules/core/02-client/client/utils"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/client"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clientutils "github.com/cosmos/ibc-go/v9/modules/core/02-client/client/utils"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcclient "github.com/cosmos/ibc-go/v9/modules/core/client"
 )
 
 // QueryChannel returns a channel end.
@@ -123,39 +121,6 @@ func QueryChannelConsensusState(
 	}
 
 	return res, nil
-}
-
-// QueryLatestConsensusState uses the channel Querier to return the
-// latest ConsensusState given the source port ID and source channel ID.
-func QueryLatestConsensusState(
-	clientCtx client.Context, portID, channelID string,
-) (exported.ConsensusState, clienttypes.Height, clienttypes.Height, error) {
-	clientRes, err := QueryChannelClientState(clientCtx, portID, channelID, false)
-	if err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	var clientState exported.ClientState
-	if err := clientCtx.InterfaceRegistry.UnpackAny(clientRes.IdentifiedClientState.ClientState, &clientState); err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	clientHeight, ok := clientState.GetLatestHeight().(clienttypes.Height)
-	if !ok {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "invalid height type. expected type: %T, got: %T",
-			clienttypes.Height{}, clientHeight)
-	}
-	res, err := QueryChannelConsensusState(clientCtx, portID, channelID, clientHeight, false)
-	if err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	var consensusState exported.ConsensusState
-	if err := clientCtx.InterfaceRegistry.UnpackAny(res.ConsensusState, &consensusState); err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	return consensusState, clientHeight, res.ProofHeight, nil
 }
 
 // QueryNextSequenceReceive returns the next sequence receive.

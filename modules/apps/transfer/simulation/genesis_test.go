@@ -15,8 +15,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/simulation"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 )
 
 // TestRandomizedGenState tests the normal scenario of applying RandomizedGenState.
@@ -47,7 +47,7 @@ func TestRandomizedGenState(t *testing.T) {
 	require.Equal(t, "euzxpfgkqegqiqwixnku", ibcTransferGenesis.PortId)
 	require.True(t, ibcTransferGenesis.Params.SendEnabled)
 	require.True(t, ibcTransferGenesis.Params.ReceiveEnabled)
-	require.Len(t, ibcTransferGenesis.DenomTraces, 0)
+	require.Len(t, ibcTransferGenesis.Denoms, 0)
 }
 
 // TestRandomizedGenState tests abnormal scenarios of applying RandomizedGenState.

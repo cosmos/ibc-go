@@ -10,8 +10,8 @@ import (
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func TestValidateWasmCode(t *testing.T) {
@@ -39,7 +39,7 @@ func TestValidateWasmCode(t *testing.T) {
 		{
 			"failure: byte slice too large",
 			func() {
-				expLength := types.MaxWasmByteSize() + 1
+				expLength := types.MaxWasmSize + 1
 				code = make([]byte, expLength)
 				length, err := rand.Read(code)
 				require.NoError(t, err, t.Name())

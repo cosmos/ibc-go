@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.channel.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types";
 
 import "ibc/core/client/v1/client.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
@@ -130,6 +130,10 @@ message QueryChannelRequest {
   string port_id = 1;
   // channel unique identifier
   string channel_id = 2;
+  // the height at which to query
+  ibc.core.client.v1.Height height = 3;
+  // latest_height overrides the height field and queries the latest height
+  bool latest_height = 4;
 }
 
 // QueryChannelResponse is the response type for the Query/Channel RPC method.
@@ -235,6 +239,10 @@ message QueryPacketCommitmentRequest {
   string channel_id = 2;
   // packet sequence
   uint64 sequence = 3;
+  // the height at which to query
+  ibc.core.client.v1.Height height = 4;
+  // latest_height overrides the height field and queries the latest height
+  bool latest_height = 5;
 }
 
 // QueryPacketCommitmentResponse defines the client query response for a packet
@@ -394,6 +402,10 @@ message QueryNextSequenceReceiveRequest {
   string port_id = 1;
   // channel unique identifier
   string channel_id = 2;
+  // the height at which to query
+  ibc.core.client.v1.Height height = 3;
+  // latest_height overrides the height field and queries the latest height
+  bool latest_height = 4;
 }
 
 // QuerySequenceResponse is the response type for the

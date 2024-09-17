@@ -6,22 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // RegisterInterfaces register the ibc channel submodule interfaces to protobuf
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterInterface(
-		"ibc.core.channel.v1.ChannelI",
-		(*exported.ChannelI)(nil),
-		&Channel{},
-	)
-	registry.RegisterInterface(
-		"ibc.core.channel.v1.CounterpartyChannelI",
-		(*exported.CounterpartyChannelI)(nil),
-		&Counterparty{},
-	)
 	registry.RegisterInterface(
 		"ibc.core.channel.v1.PacketI",
 		(*exported.PacketI)(nil),

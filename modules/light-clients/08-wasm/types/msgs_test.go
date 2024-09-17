@@ -11,9 +11,9 @@ import (
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func TestMsgStoreCodeValidateBasic(t *testing.T) {
@@ -71,7 +71,7 @@ func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
+			suite.SetupTest()
 
 			address := tc.address
 			msg := types.NewMsgStoreCode(address.String(), wasmtesting.Code)
@@ -174,7 +174,7 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
+			suite.SetupTest()
 
 			address := tc.address
 			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, checksum, []byte("{}"))
@@ -251,7 +251,7 @@ func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
+			suite.SetupTest()
 
 			address := tc.address
 			msg := types.NewMsgRemoveChecksum(address.String(), checksum)

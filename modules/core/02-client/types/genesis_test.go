@@ -5,14 +5,13 @@ import (
 
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	client "github.com/cosmos/ibc-go/v8/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibctestingmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	client "github.com/cosmos/ibc-go/v9/modules/core/02-client"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 const (
@@ -29,7 +28,7 @@ var clientHeight = types.NewHeight(1, 10)
 func (suite *TypesTestSuite) TestMarshalGenesisState() {
 	cdc := suite.chainA.App.AppCodec()
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.Setup(path)
+	path.Setup()
 	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
@@ -45,7 +44,7 @@ func (suite *TypesTestSuite) TestMarshalGenesisState() {
 }
 
 func (suite *TypesTestSuite) TestValidateGenesis() {
-	privVal := ibctestingmock.NewPV()
+	privVal := cmttypes.NewMockPV()
 	pubKey, err := privVal.GetPubKey()
 	suite.Require().NoError(err)
 

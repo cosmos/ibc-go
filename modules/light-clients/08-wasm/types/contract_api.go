@@ -1,8 +1,8 @@
 package types
 
 import (
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 )
 
 // InstantiateMessage is the message that is sent to the contract's instantiate entry point.
@@ -18,7 +18,6 @@ type InstantiateMessage struct {
 // Only one field should be set at a time.
 type QueryMsg struct {
 	Status               *StatusMsg               `json:"status,omitempty"`
-	ExportMetadata       *ExportMetadataMsg       `json:"export_metadata,omitempty"`
 	TimestampAtHeight    *TimestampAtHeightMsg    `json:"timestamp_at_height,omitempty"`
 	VerifyClientMessage  *VerifyClientMessageMsg  `json:"verify_client_message,omitempty"`
 	CheckForMisbehaviour *CheckForMisbehaviourMsg `json:"check_for_misbehaviour,omitempty"`
@@ -26,9 +25,6 @@ type QueryMsg struct {
 
 // StatusMsg is a queryMsg sent to the contract to query the status of the wasm client.
 type StatusMsg struct{}
-
-// ExportMetadataMsg is a queryMsg sent to the contract to query the exported metadata of the wasm client.
-type ExportMetadataMsg struct{}
 
 // TimestampAtHeightMsg is a queryMsg sent to the contract to query the timestamp at a given height.
 type TimestampAtHeightMsg struct {
@@ -70,21 +66,21 @@ type UpdateStateOnMisbehaviourMsg struct {
 
 // VerifyMembershipMsg is a sudoMsg sent to the contract to verify a membership proof.
 type VerifyMembershipMsg struct {
-	Height           clienttypes.Height         `json:"height"`
-	DelayTimePeriod  uint64                     `json:"delay_time_period"`
-	DelayBlockPeriod uint64                     `json:"delay_block_period"`
-	Proof            []byte                     `json:"proof"`
-	Path             commitmenttypes.MerklePath `json:"path"`
-	Value            []byte                     `json:"value"`
+	Height           clienttypes.Height           `json:"height"`
+	DelayTimePeriod  uint64                       `json:"delay_time_period"`
+	DelayBlockPeriod uint64                       `json:"delay_block_period"`
+	Proof            []byte                       `json:"proof"`
+	Path             commitmenttypesv2.MerklePath `json:"merkle_path"`
+	Value            []byte                       `json:"value"`
 }
 
 // VerifyNonMembershipMsg is a sudoMsg sent to the contract to verify a non-membership proof.
 type VerifyNonMembershipMsg struct {
-	Height           clienttypes.Height         `json:"height"`
-	DelayTimePeriod  uint64                     `json:"delay_time_period"`
-	DelayBlockPeriod uint64                     `json:"delay_block_period"`
-	Proof            []byte                     `json:"proof"`
-	Path             commitmenttypes.MerklePath `json:"path"`
+	Height           clienttypes.Height           `json:"height"`
+	DelayTimePeriod  uint64                       `json:"delay_time_period"`
+	DelayBlockPeriod uint64                       `json:"delay_block_period"`
+	Proof            []byte                       `json:"proof"`
+	Path             commitmenttypesv2.MerklePath `json:"merkle_path"`
 }
 
 // VerifyUpgradeAndUpdateStateMsg is a sudoMsg sent to the contract to verify an upgrade and update its state.
@@ -95,12 +91,12 @@ type VerifyUpgradeAndUpdateStateMsg struct {
 	ProofUpgradeConsensusState []byte `json:"proof_upgrade_consensus_state"`
 }
 
-// MigrateClientStore is a sudoMsg sent to the contract to verify a given substitute client and update to its state.
+// MigrateClientStoreMsg is a sudoMsg sent to the contract to verify a given substitute client and update to its state.
 type MigrateClientStoreMsg struct{}
 
 // ContractResult is a type constraint that defines the expected results that can be returned by a contract call/query.
 type ContractResult interface {
-	EmptyResult | StatusResult | ExportMetadataResult | TimestampAtHeightResult | CheckForMisbehaviourResult | UpdateStateResult
+	EmptyResult | StatusResult | TimestampAtHeightResult | CheckForMisbehaviourResult | UpdateStateResult
 }
 
 // EmptyResult is the default return type of any contract call that does not require a custom return type.
@@ -109,11 +105,6 @@ type EmptyResult struct{}
 // StatusResult is the expected return type of the statusMsg query. It returns the status of the wasm client.
 type StatusResult struct {
 	Status string `json:"status"`
-}
-
-// ExportMetadataResult is the expected return type of the exportMetadataMsg query. It returns the exported metadata of the wasm client.
-type ExportMetadataResult struct {
-	GenesisMetadata []clienttypes.GenesisMetadata `json:"genesis_metadata"`
 }
 
 // TimestampAtHeightResult is the expected return type of the timestampAtHeightMsg query. It returns the timestamp for a light client

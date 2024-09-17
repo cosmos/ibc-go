@@ -1,6 +1,7 @@
 package tendermint
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -15,10 +16,11 @@ import (
 	"github.com/cometbft/cometbft/light"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -53,14 +55,8 @@ func (ClientState) ClientType() string {
 	return exported.Tendermint
 }
 
-// GetLatestHeight returns latest block height.
-func (cs ClientState) GetLatestHeight() exported.Height {
-	return cs.LatestHeight
-}
-
-// GetTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
-func (ClientState) GetTimestampAtHeight(
-	ctx sdk.Context,
+// getTimestampAtHeight returns the timestamp in nanoseconds of the consensus state at the given height.
+func (ClientState) getTimestampAtHeight(
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
@@ -73,7 +69,7 @@ func (ClientState) GetTimestampAtHeight(
 	return consState.GetTimestamp(), nil
 }
 
-// Status returns the status of the tendermint client.
+// status returns the status of the tendermint client.
 // The client may be:
 // - Active: FrozenHeight is zero and client is not expired
 // - Frozen: Frozen Height is not zero
@@ -81,8 +77,8 @@ func (ClientState) GetTimestampAtHeight(
 //
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
-func (cs ClientState) Status(
-	ctx sdk.Context,
+func (cs ClientState) status(
+	ctx context.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 ) exported.Status {
@@ -91,14 +87,15 @@ func (cs ClientState) Status(
 	}
 
 	// get latest consensus state from clientStore to check for expiry
-	consState, found := GetConsensusState(clientStore, cdc, cs.GetLatestHeight())
+	consState, found := GetConsensusState(clientStore, cdc, cs.LatestHeight)
 	if !found {
 		// if the client state does not have an associated consensus state for its latest height
 		// then it must be expired
 		return exported.Expired
 	}
 
-	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	if cs.IsExpired(consState.Timestamp, sdkCtx.BlockTime()) {
 		return exported.Expired
 	}
 
@@ -128,7 +125,7 @@ func (cs ClientState) Validate() error {
 	}
 
 	if err := light.ValidateTrustLevel(cs.TrustLevel.ToTendermint()); err != nil {
-		return err
+		return errorsmod.Wrapf(ErrInvalidTrustLevel, err.Error())
 	}
 	if cs.TrustingPeriod <= 0 {
 		return errorsmod.Wrap(ErrInvalidTrustingPeriod, "trusting period must be greater than zero")
@@ -174,8 +171,10 @@ func (cs ClientState) Validate() error {
 }
 
 // ZeroCustomFields returns a ClientState that is a copy of the current ClientState
-// with all client customizable fields zeroed out
-func (cs ClientState) ZeroCustomFields() exported.ClientState {
+// with all client customizable fields zeroed out. All chain specific fields must
+// remain unchanged. This client state will be used to verify chain upgrades when a
+// chain breaks a light client verification parameter such as chainID.
+func (cs ClientState) ZeroCustomFields() *ClientState {
 	// copy over all chain-specified fields
 	// and leave custom fields empty
 	return &ClientState{
@@ -187,9 +186,9 @@ func (cs ClientState) ZeroCustomFields() exported.ClientState {
 	}
 }
 
-// Initialize checks that the initial consensus state is an 07-tendermint consensus state and
+// initialize checks that the initial consensus state is an 07-tendermint consensus state and
 // sets the client state, consensus state and associated metadata in the provided client store.
-func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) initialize(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
 	consensusState, ok := consState.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
@@ -197,17 +196,17 @@ func (cs ClientState) Initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientS
 	}
 
 	setClientState(clientStore, cdc, &cs)
-	setConsensusState(clientStore, cdc, consensusState, cs.GetLatestHeight())
-	setConsensusMetadata(ctx, clientStore, cs.GetLatestHeight())
+	setConsensusState(clientStore, cdc, consensusState, cs.LatestHeight)
+	setConsensusMetadata(ctx, clientStore, cs.LatestHeight)
 
 	return nil
 }
 
-// VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
+// verifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
-func (cs ClientState) VerifyMembership(
-	ctx sdk.Context,
+func (cs ClientState) verifyMembership(
+	ctx context.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
@@ -217,10 +216,10 @@ func (cs ClientState) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	if cs.GetLatestHeight().LT(height) {
+	if cs.LatestHeight.LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.LatestHeight, height,
 		)
 	}
 
@@ -233,9 +232,9 @@ func (cs ClientState) VerifyMembership(
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into ICS 23 commitment merkle proof")
 	}
 
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	consensusState, found := GetConsensusState(clientStore, cdc, height)
@@ -246,11 +245,11 @@ func (cs ClientState) VerifyMembership(
 	return merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath, value)
 }
 
-// VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
+// verifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
-func (cs ClientState) VerifyNonMembership(
-	ctx sdk.Context,
+func (cs ClientState) verifyNonMembership(
+	ctx context.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
@@ -259,10 +258,10 @@ func (cs ClientState) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	if cs.GetLatestHeight().LT(height) {
+	if cs.LatestHeight.LT(height) {
 		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
-			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.GetLatestHeight(), height,
+			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.LatestHeight, height,
 		)
 	}
 
@@ -275,9 +274,9 @@ func (cs ClientState) VerifyNonMembership(
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into ICS 23 commitment merkle proof")
 	}
 
-	merklePath, ok := path.(commitmenttypes.MerklePath)
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	consensusState, found := GetConsensusState(clientStore, cdc, height)
@@ -290,7 +289,7 @@ func (cs ClientState) VerifyNonMembership(
 
 // verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
 // since consensus state was submitted before allowing verification to continue.
-func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
+func verifyDelayPeriodPassed(ctx context.Context, store storetypes.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
 	if delayTimePeriod != 0 {
 		// check that executing chain's timestamp has passed consensusState's processed time + delay time period
 		processedTime, ok := GetProcessedTime(store, proofHeight)
@@ -298,7 +297,8 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHei
 			return errorsmod.Wrapf(ErrProcessedTimeNotFound, "processed time not found for height: %s", proofHeight)
 		}
 
-		currentTimestamp := uint64(ctx.BlockTime().UnixNano())
+		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+		currentTimestamp := uint64(sdkCtx.BlockTime().UnixNano())
 		validTime := processedTime + delayTimePeriod
 
 		// NOTE: delay time period is inclusive, so if currentTimestamp is validTime, then we return no error
@@ -306,7 +306,6 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHei
 			return errorsmod.Wrapf(ErrDelayPeriodNotPassed, "cannot verify packet until time: %d, current time: %d",
 				validTime, currentTimestamp)
 		}
-
 	}
 
 	if delayBlockPeriod != 0 {

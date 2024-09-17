@@ -11,6 +11,7 @@ import (
 
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,16 +19,16 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	simapp "github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 const maxCallbackGas = uint64(1000000)
@@ -79,40 +80,36 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 
 	s.path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
 	s.path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-	s.path.EndpointA.ChannelConfig.Version = transfertypes.Version
-	s.path.EndpointB.ChannelConfig.Version = transfertypes.Version
+	s.path.EndpointA.ChannelConfig.Version = transfertypes.V2
+	s.path.EndpointB.ChannelConfig.Version = transfertypes.V2
 
-	s.coordinator.Setup(s.path)
+	s.path.Setup()
 }
 
 // SetupFeeTransferTest sets up a fee middleware enabled transfer channel between chainA and chainB
 func (s *CallbacksTestSuite) SetupFeeTransferTest() {
 	s.setupChains()
 
-	feeTransferVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: transfertypes.Version}))
+	feeTransferVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: transfertypes.V2}))
 	s.path.EndpointA.ChannelConfig.Version = feeTransferVersion
 	s.path.EndpointB.ChannelConfig.Version = feeTransferVersion
 	s.path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 	s.path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
 
-	s.coordinator.Setup(s.path)
+	s.path.Setup()
 }
 
 func (s *CallbacksTestSuite) SetupMockFeeTest() {
 	s.setupChains()
 
-	mockFeeVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: ibcmock.Version}))
-	s.path.EndpointA.ChannelConfig.Version = mockFeeVersion
-	s.path.EndpointB.ChannelConfig.Version = mockFeeVersion
-	s.path.EndpointA.ChannelConfig.PortID = ibctesting.MockFeePort
-	s.path.EndpointB.ChannelConfig.PortID = ibctesting.MockFeePort
+	ibctesting.EnableFeeOnPath(s.path)
 }
 
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).
 // It funds and returns the interchain account address owned by chainA's SenderAccount.
 func (s *CallbacksTestSuite) SetupICATest() string {
 	s.setupChains()
-	s.coordinator.SetupConnections(s.path)
+	s.path.SetupConnections()
 
 	icaOwner := s.chainA.SenderAccount.GetAddress().String()
 	// ICAVersion defines a interchain accounts version string
@@ -260,9 +257,11 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 	// We only check if the fee is paid if the callback is successful.
 	if !isTimeout && isSuccessful {
 		// check forward relay balance
+		payeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+		s.Require().NoError(err)
 		s.Require().Equal(
 			fee.RecvFee,
-			sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom)),
+			sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), payeeAddr, ibctesting.TestCoin.Denom)),
 		)
 
 		refundCoins := fee.Total().Sub(fee.RecvFee...).Sub(fee.AckFee...)
@@ -296,17 +295,24 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 
 // GetExpectedEvent returns the expected event for a callback.
 func GetExpectedEvent(
-	packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte, srcPortID,
+	ctx sdk.Context, packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte, srcPortID,
 	eventPortID, eventChannelID string, seq uint64, callbackType types.CallbackType, expError error,
 ) (abci.Event, bool) {
 	var (
 		callbackData types.CallbackData
 		err          error
 	)
+
+	// Set up gas meter with remainingGas.
+	gasMeter := storetypes.NewGasMeter(remainingGas)
+	ctx = ctx.WithGasMeter(gasMeter)
+
 	if callbackType == types.CallbackTypeReceivePacket {
-		callbackData, err = types.GetDestCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxCallbackGas)
+		packet := channeltypes.NewPacket(data, seq, "", "", eventPortID, eventChannelID, clienttypes.ZeroHeight(), 0)
+		callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	} else {
-		callbackData, err = types.GetSourceCallbackData(packetDataUnmarshaler, data, srcPortID, remainingGas, maxCallbackGas)
+		packet := channeltypes.NewPacket(data, seq, eventPortID, eventChannelID, "", "", clienttypes.ZeroHeight(), 0)
+		callbackData, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	}
 	if err != nil {
 		return abci.Event{}, false

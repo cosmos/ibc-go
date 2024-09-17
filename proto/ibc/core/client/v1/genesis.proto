@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.client.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/core/02-client/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/02-client/types";
 
 import "ibc/core/client/v1/client.proto";
 import "gogoproto/gogo.proto";
@@ -25,8 +25,8 @@ message GenesisState {
   uint64 next_client_sequence = 6;
 }
 
-// GenesisMetadata defines the genesis type for metadata that clients may return
-// with ExportMetadata
+// GenesisMetadata defines the genesis type for metadata that will be used
+// to export all client store keys that are not client or consensus states.
 message GenesisMetadata {
   option (gogoproto.goproto_getters) = false;
 

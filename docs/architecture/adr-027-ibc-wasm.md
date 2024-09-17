@@ -4,10 +4,11 @@
 
 - 26/11/2020: Initial Draft
 - 26/05/2023: Update after 02-client refactor and re-implementation by Strangelove
+- 13/12/2023: Update after upstreaming of module to ibc-go
 
 ## Status
 
-*Draft, needs updates*
+*Accepted and applied in v0.1.0 of 08-wasm*
 
 ## Abstract
 
@@ -22,13 +23,13 @@ corresponding hard-fork event.
 
 Currently in ibc-go light clients are defined as part of the codebase and are implemented as modules under
 `modules/light-clients`. Adding support for new light clients or updating an existing light client in the event
-of a security issue or consensus update is a multi-step process which is both time consuming and error prone. 
-In order to enable new IBC light client implementations it is necessary to modify the codebase of ibc-go, 
-re-build chains' binaries, pass a governance proposal and validators upgrade their nodes.
+of a security issue or consensus update is a multi-step process which is both time-consuming and error-prone. 
+In order to enable new IBC light client implementations it is necessary to modify the codebase of ibc-go (if the light
+client is part of its codebase), re-build chains' binaries, pass a governance proposal and validators upgrade their nodes.
 
 Another problem stemming from the above process is that if a chain wants to upgrade its own consensus, it will 
 need to convince every chain or hub connected to it to upgrade its light client in order to stay connected. Due 
-to the time consuming process required to upgrade a light client, a chain with lots of connections needs to be 
+to the time-consuming process required to upgrade a light client, a chain with lots of connections needs to be 
 disconnected for quite some time after upgrading its consensus, which can be very expensive in terms of time and effort.
 
 We are proposing simplifying this workflow by integrating a Wasm light client module that makes adding support for
@@ -54,13 +55,15 @@ clientKeeper.SetParams(ctx, params)
 
 Adding a new light client contract is governance-gated. To upload a new light client users need to submit 
 a [governance v1 proposal](https://docs.cosmos.network/main/modules/gov#proposals) that contains the `sdk.Msg` for storing 
-the Wasm contract's bytecode. The required message is `MsgStoreCode` and the bytecode is provided in the field `code`:
+the Wasm contract's bytecode. The required message is `MsgStoreCode` and the bytecode is provided in the field `wasm_byte_code`:
 
 ```proto
 // MsgStoreCode defines the request type for the StoreCode rpc.
 message MsgStoreCode {
+  // signer address
   string signer = 1;
-  bytes  code   = 2;
+  // wasm byte code of light client contract. It can be raw or gzip compressed
+  bytes wasm_byte_code = 2;
 }
 ```
 
@@ -70,36 +73,27 @@ submit this message (which is normally the address of the governance module).
 ```go
 // StoreCode defines a rpc handler method for MsgStoreCode
 func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*types.MsgStoreCodeResponse, error) {
+  if k.GetAuthority() != msg.Signer {
+    return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
+  }
+
   ctx := sdk.UnwrapSDKContext(goCtx)
-
-  if k.authority != msg.Signer {
-    return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority: expected %s, got %s", k.authority, msg.Signer)
-  }
-
-  codeHash, err := k.storeWasmCode(ctx, msg.Code)
+  checksum, err := k.storeWasmCode(ctx, msg.WasmByteCode, ibcwasm.GetVM().StoreCode)
   if err != nil {
-    return nil, sdkerrors.Wrap(err, "storing wasm code failed")
+    return nil, errorsmod.Wrap(err, "failed to store wasm bytecode")
   }
 
-  ctx.EventManager().EmitEvents(sdk.Events{
-    sdk.NewEvent(
-      clienttypes.EventTypeStoreWasmCode,
-      sdk.NewAttribute(clienttypes.AttributeKeyWasmCodeHash, hex.EncodeToString(codeHash)),
-    ),
-    sdk.NewEvent(
-      sdk.EventTypeMessage,
-      sdk.NewAttribute(sdk.AttributeKeyModule, clienttypes.AttributeValueCategory),
-    ),
-  })
+  emitStoreWasmCodeEvent(ctx, checksum)
 
   return &types.MsgStoreCodeResponse{
-    CodeHash: codeHash,
+    Checksum: checksum,
   }, nil
 }
 ```
 
-The contract's bytecode is stored in state in an entry indexed by the code hash: `codeHash/{code hash}`. The code hash is simply 
-the hash of the bytecode of the contract.
+The contract's bytecode is not stored in state (it is actually unnecessary and wasteful to store it, since
+the Wasm VM already stores it and can be queried back, if needed). The checksum is simply the hash of the bytecode
+of the contract and it is stored in state in an entry with key `checksums` that contains the checksums for the bytecodes that have been stored.
 
 ### How light client proxy works?
 
@@ -108,50 +102,44 @@ in JSON format with appropriate environment information. Data returned by the sm
 returned to the caller.
 
 Consider the example of the `VerifyClientMessage` function of `ClientState` interface. Incoming arguments are
-packaged inside a payload object that is then JSON serialized and passed to `callContract`, which execute `WasmVm.Execute` 
+packaged inside a payload object that is then JSON serialized and passed to `queryContract`, which executes `WasmVm.Query` 
 and returns the slice of bytes returned by the smart contract. This data is deserialized and passed as return argument.
 
 ```go
-type (
-  verifyClientMessageInnerPayload struct {
-    ClientMessage clientMessage `json:"client_message"`
-  }
-  clientMessage struct {
-    Header       *Header       `json:"header,omitempty"`
-    Misbehaviour *Misbehaviour `json:"misbehaviour,omitempty"`
-  }
-  verifyClientMessagePayload struct {
-    VerifyClientMessage verifyClientMessageInnerPayload `json:"verify_client_message"`
-  }
-)
+type QueryMsg struct {
+  Status               *StatusMsg               `json:"status,omitempty"`
+  ExportMetadata       *ExportMetadataMsg       `json:"export_metadata,omitempty"`
+  TimestampAtHeight    *TimestampAtHeightMsg    `json:"timestamp_at_height,omitempty"`
+  VerifyClientMessage  *VerifyClientMessageMsg  `json:"verify_client_message,omitempty"`
+  CheckForMisbehaviour *CheckForMisbehaviourMsg `json:"check_for_misbehaviour,omitempty"`
+}
 
-// VerifyClientMessage must verify a ClientMessage. A ClientMessage could be a Header, Misbehaviour, or batch update.
-// It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
-// will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
+type verifyClientMessageMsg struct {
+  ClientMessage *ClientMessage `json:"client_message"`
+}
+
+// VerifyClientMessage must verify a ClientMessage. 
+// A ClientMessage could be a Header, Misbehaviour, or batch update.
+// It must handle each type of ClientMessage appropriately. 
+// Calls to CheckForMisbehaviour, UpdateStaåte, and UpdateStateOnMisbehaviour
+// will assume that the content of the ClientMessage has been verified
+// and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
 func (cs ClientState) VerifyClientMessage(
-  ctx sdk.Context, 
-  _ codec.BinaryCodec, 
-  clientStore sdk.KVStore, 
+  ctx sdk.Context,
+  _ codec.BinaryCodec,
+  clientStore storetypes.KVStore,
   clientMsg exported.ClientMessage
 ) error {
-  clientMsgConcrete := clientMessage{
-    Header:       nil,
-    Misbehaviour: nil,
+  clientMessage, ok := clientMsg.(*ClientMessage)
+  if !ok {
+    return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected type: %T, got: %T", &ClientMessage{}, clientMsg)
   }
-  switch clientMsg := clientMsg.(type) {
-  case *Header:
-    clientMsgConcrete.Header = clientMsg
-  case *Misbehaviour:
-    clientMsgConcrete.Misbehaviour = clientMsg
+
+  payload := QueryMsg{
+    VerifyClientMessage: &VerifyClientMessageMsg{ClientMessage: clientMessage.Data},
   }
-  inner := verifyClientMessageInnerPayload{
-    ClientMessage: clientMsgConcrete,
-  }
-  payload := verifyClientMessagePayload{
-    VerifyClientMessage: inner,
-  }
-  _, err := call[contractResult](ctx, clientStore, &cs, payload)
+  _, err := wasmQuery[EmptyResult](ctx, clientStore, &cs, payload)
   return err
 }
 ```

@@ -129,50 +129,50 @@ Sample exception flows:
 
 | ID | Description | Verification | Status |
 | -- | ----------- | ------------ | ------ |
-| 1.01 | An on-chain parameter keeps a list of all connection IDs (e.g. [`connection-0`, `connection-1`]) for which channels are allowed to be upgraded for an upgrade proposed on a counterparty chain | TBD | `Drafted` |
-| 1.02 | The on-chain parameter of connection IDs can only be updated by an authorized actor (e.g. governance) | TBD | `Drafted` |
+| 1.01 | An on-chain parameter keeps a list of all connection IDs (e.g. [`connection-0`, `connection-1`]) for which channels are allowed to be upgraded for an upgrade proposed on a counterparty chain | TBD | `Deferred` |
+| 1.02 | The on-chain parameter of connection IDs can only be updated by an authorized actor (e.g. governance) | TBD | `Deferred` |
 
 ### 2 - Initiation
 
 | ID | Description | Verification | Status |
 | -- | ----------- | ------------ | ------ |
-| 2.01 | An upgrade initiated by an authorized actor (e.g. governance) is always allowed | TBD | `Drafted` |
-| 2.02 | A chain can configure a channel upgrade to be initiated automatically after a successful governance proposal | TBD | `Drafted` |
-| 2.03 | After permission is granted for channels in a given connection to be upgraded, any relayer can continue the upgrade proposed on a counterparty chain | TBD |`Drafted` |
-| 2.04 | A channel upgrade will be initiated when both `ChannelEnd`s are in the `OPEN` state | TBD | `Drafted` |
-| 2.05 | In the case of a crossing hello, a channel upgrade can be initiated when the counterparty has also executed the `ChanUpgradeInit` datagram with compatible parameters in the case of a crossing hello | TBD | `Drafted` |
+| 2.01 | An upgrade initiated by an authorized actor (e.g. governance) is always allowed | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/keeper/msg_server_test.go#L952-L969) | `Verified` |
+| 2.02 | A chain can configure a channel upgrade to be initiated automatically after a successful governance proposal | Provided by Cosmos SDK `x/gov` | `Verified` |
+| 2.03 | After permission is granted for channels in a given connection to be upgraded, any relayer can continue the upgrade proposed on a counterparty chain | Only `MsgChannelUpgradeInit` is permissioned |`Verified` |
+| 2.04 | A channel upgrade will be initiated when both `ChannelEnd`s are in the `OPEN` state | Acceptance tests in [`ChanUpgradeInit`](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade_test.go#L63-L69) and [`ChanUpgradeTry`](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade_test.go#L167-L173)| `Verified` |
+| 2.05 | In the case of a crossing hello, a channel upgrade can be initiated when the counterparty has also executed the `ChanUpgradeInit` datagram with compatible parameters in the case of a crossing hello | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade_test.go#L141-L148) | `Verified` |
 
 ### 3 - Upgrade Handshake
 
 | ID | Description | Verification | Status |
 | -- | ----------- | ------------ | ------ |
-| 3.01 | The upgrade proposing chain's channel state will remain `OPEN` after successful or unsuccessful execution of the `ChanUpgradeInit` datagram | TBD | `Drafted` |
-| 3.02 | If the counterparty chain accepts the upgrade its channel state will go from `OPEN` to `FLUSHING` after successful execution of the `ChanUpgradeTry` datagram, initiated by a relayer | TBD | `Drafted` |
-| 3.03 | A relayer must initiate the `ChanUpgradeAck` datagram on the upgrade proposing chain, on successful execution the channel state will go from `OPEN` to `FLUSHING`| TBD | `Drafted` |
-| 3.04 | The `ChanUpgradeAck` datagram informs the chain of the timeout period specified by the counterparty for the upgrade process to complete | TBD | `Drafted` |
-| 3.05 | When channel is in `FLUSHING` state, no new packets are allowed to be sent | TBD | `Drafted` |
-| 3.06 | When channel is in `FLUSHING` state, it is only allowed to receive packets with sequence number smaller or equal than the sequence number of the last packet sent on the counterparty when the channel moved to `FLUSHING` state | TBD | `Drafted` |
-| 3.07 | When channel is in `FLUSHING` state and packets are acknowledged or timed out, if the counterparty-specified timeoud is reached, then the channel will be restored to its initial state, an error receipt will be written and the upgrade will be aborted | TBD | `Drafted` |
-| 3.08 | Once in-flight packets have been flushed, the channel state shall change from `FLUSHING` to `FLUSHCOMPLETE` | TBD | `Drafted` |
-| 3.09 | A relayer must initiate the `ChanUpgradeConfirm` datagram on the counterparty to inform of the timeout period specified by the counterparty for the upgrade process to complete | TBD | `Drafted` |
-| 3.10 | Successful execution of the `ChanUpgradeConfirm` datagram when the channel state is `FLUSHCOMPLETE` changes the channel state to `OPEN` | TBD | `Drafted` |
-| 3.11 | If the channel state is `FLUSHING` when the `ChanUpgradeConfirm` datagram is called, `ChanUpgradeOpen` is later called to change the state to `OPEN` | TBD | `Drafted` |
-| 3.12 | When both channel ends are in the `FLUSHCOMPLETE` state, a relayer can submit the `ChanUpgradeOpen` datagram to move the channel state to `OPEN` | TBD | `Drafted` |
-| 3.13 | The counterparty chain may reject a proposed channel upgrade and the original channel on the proposing chain will be restored | TBD | `Drafted` |
-| 3.14 | If an upgrade handshake is unsuccessful, the original channel will be restored | TBD | `Drafted` |
-| 3.15 | A relayer can submit the `ChanUpgradeCancel` to cancel an upgrade which will successfully execute if the counterparty wrote an `ErrorReciept`| TBD | `Drafted` |
-| 3.16 | If the `ChanUpgradeCancel` datagram is submitted by an authorized actor (e.g. governance) then the upgrade will be canceled without requiring the counterparty to write an `ErrorReciept`| TBD | `Drafted` |
-| 3.17 | An upgrade should be timed out if the chain has not completed flushing all pending packets within the timeout specified by the counterparty | TBD | `Drafted` |
+| 3.01 | The upgrade proposing chain's channel state will remain `OPEN` after successful or unsuccessful execution of the `ChanUpgradeInit` datagram | [Channel state does not change in `WriteUpgradeInitChannel`](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade.go#L66) | `Verified` |
+| 3.02 | If the counterparty chain accepts the upgrade its channel state will go from `OPEN` to `FLUSHING` after successful execution of the `ChanUpgradeTry` datagram, initiated by a relayer | [Move to `FLUSHING` in `startFlushing`](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade.go#L219) | `Verified` |
+| 3.03 | A relayer must initiate the `ChanUpgradeAck` datagram on the upgrade proposing chain, on successful execution the channel state will go from `OPEN` to `FLUSHING`| [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade_test.go#L826) | `Verified` |
+| 3.04 | The `ChanUpgradeAck` datagram informs the chain of the timeout period specified by the counterparty for the upgrade process to complete | [Stored in `WriteUpgradeAckChannel`](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade.go#L380) | `Verified` |
+| 3.05 | When channel is in `FLUSHING` state, no new packets are allowed to be sent | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/packet_test.go#L232-L247) | `Verified` |
+| 3.06 | When channel is in `FLUSHING` state, it is only allowed to receive packets with sequence number smaller or equal than the sequence number of the last packet sent on the counterparty when the channel moved to `FLUSHING` state | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/packet_test.go#L406-L427) | `Verified` |
+| 3.07 | When channel is in `FLUSHING` state and packets are acknowledged or timed out, if the counterparty-specified timeout is reached, then the channel will be restored to its initial state, an error receipt will be written and the upgrade will be aborted | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/packet_test.go#L978-L1028) | `Verified` |
+| 3.08 | Once in-flight packets have been flushed, the channel state shall change from `FLUSHING` to `FLUSHCOMPLETE` | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/packet_test.go#L924-L977) | `Verified` |
+| 3.09 | A relayer must initiate the `ChanUpgradeConfirm` datagram on the counterparty to inform of the timeout period specified by the counterparty for the upgrade process to complete | [Stored in `WriteUpgradeConfirmChannel`](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade.go#L480) | `Verified` |
+| 3.10 | Successful execution of the `ChanUpgradeConfirm` datagram when the channel state is `FLUSHCOMPLETE` changes the channel state to `OPEN` | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/keeper/msg_server_test.go#L1557-L1596) | `Verified` |
+| 3.11 | If the channel state is `FLUSHING` when the `ChanUpgradeConfirm` datagram is called, `ChanUpgradeOpen` is later called to change the state to `OPEN` | [Move to `OPEN` in `WriteUpgradeOpenChannel`](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade.go#L627) | `Verified` |
+| 3.12 | When both channel ends are in the `FLUSHCOMPLETE` state, a relayer can submit the `ChanUpgradeOpen` datagram to move the channel state to `OPEN` | [Move to `OPEN` in `WriteUpgradeOpenChannel`](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade.go#L627) | `Verified` |
+| 3.13 | The counterparty chain may reject a proposed channel upgrade and the original channel on the proposing chain will be restored | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade_test.go#L215-L229) | `Verified` |
+| 3.14 | If an upgrade handshake is unsuccessful, the original channel will be restored | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade_test.go#L2512-L2516) | `Verified` |
+| 3.15 | A relayer can submit the `ChanUpgradeCancel` to cancel an upgrade which will successfully execute if the counterparty wrote an `ErrorReceipt`| [There must be an error receipt proof](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/upgrade.go#L652-L655) | `Verified` |
+| 3.16 | If the `ChanUpgradeCancel` datagram is submitted by an authorized actor (e.g. governance) then the upgrade will be canceled without requiring the counterparty to write an `ErrorReceipt`| [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/keeper/msg_server_test.go#L2192-L2241) | `Verified` |
+| 3.17 | An upgrade should be timed out if the chain has not completed flushing all pending packets within the timeout specified by the counterparty | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/packet_test.go#L978-L1028) | `Verified` |
 
 # External interface requirements
 
 | ID | Description | Verification | Status |
 | -- | ----------- | ------------ | ------ |
-| 4.01 | There should be a gRPC query to retrieve the upgrade fields and timeout stored for a given port ID and channel ID | TBD | `Drafted` |
-| 4.02 | There should be a gRPC query to retrieve the upgrade error receipt stored for a given port ID and channel ID | TBD | `Drafted` |
+| 4.01 | There should be a gRPC query to retrieve the upgrade fields and timeout stored for a given port ID and channel ID | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/grpc_query_test.go#L1849-L1854) | `Verified` |
+| 4.02 | There should be a gRPC query to retrieve the upgrade error receipt stored for a given port ID and channel ID | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v8.1.0/modules/core/04-channel/keeper/grpc_query_test.go#L1755-L1769) | `Verified` |
 
 # Non-functional requirements
 
 | ID | Description | Verification | Status |
 | -- | ----------- | ------------ | ------ |
-| 5.01 | A malicious actor should not be able to compromise the liveness of a channel | TBD | `Drafted` |
+| 5.01 | A malicious actor should not be able to compromise the liveness of a channel | Verified during security audit | `Verified` |

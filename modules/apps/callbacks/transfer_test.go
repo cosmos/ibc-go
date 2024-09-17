@@ -9,9 +9,9 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (s *CallbacksTestSuite) TestTransferCallbacks() {
@@ -182,17 +182,18 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 	// record the balance of the escrow address before the transfer
 	escrowBalance := GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
 	// record the balance of the receiving address before the transfer
-	voucherDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, sdk.DefaultBondDenom))
-	receiverBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
+	denom := transfertypes.NewDenom(sdk.DefaultBondDenom, transfertypes.NewHop(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID))
+	receiverBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
 
 	amount := ibctesting.TestCoin
 	msg := transfertypes.NewMsgTransfer(
 		s.path.EndpointA.ChannelConfig.PortID,
 		s.path.EndpointA.ChannelID,
-		amount,
+		sdk.NewCoins(amount),
 		s.chainA.SenderAccount.GetAddress().String(),
 		s.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, memo,
+		nil,
 	)
 
 	res, err := s.chainA.SendMsgs(msg)
@@ -210,7 +211,7 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 	// check that the escrow address balance increased by 100
 	s.Require().Equal(escrowBalance.Add(amount), GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom))
 	// check that the receiving address balance increased by 100
-	s.Require().Equal(receiverBalance.AddAmount(sdkmath.NewInt(100)), GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom()))
+	s.Require().Equal(receiverBalance.AddAmount(sdkmath.NewInt(100)), GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom()))
 }
 
 // ExecuteTransferTimeout executes a transfer message on chainA for 100 denom.
@@ -223,10 +224,11 @@ func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string) {
 	msg := transfertypes.NewMsgTransfer(
 		s.path.EndpointA.ChannelConfig.PortID,
 		s.path.EndpointA.ChannelID,
-		amount,
+		sdk.NewCoins(amount),
 		s.chainA.SenderAccount.GetAddress().String(),
 		s.chainB.SenderAccount.GetAddress().String(),
 		timeoutHeight, timeoutTimestamp, memo,
+		nil,
 	)
 
 	res, err := s.chainA.SendMsgs(msg)

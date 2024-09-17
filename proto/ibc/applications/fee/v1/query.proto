@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.fee.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types";
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -95,7 +95,7 @@ message QueryIncentivizedPacketRequest {
   uint64 query_height = 2;
 }
 
-// QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPacket rpc
+// QueryIncentivizedPacketResponse defines the response type for the IncentivizedPacket rpc
 message QueryIncentivizedPacketResponse {
   // the identified fees for the incentivized packet
   ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packet = 1 [(gogoproto.nullable) = false];
@@ -112,7 +112,8 @@ message QueryIncentivizedPacketsForChannelRequest {
   uint64 query_height = 4;
 }
 
-// QueryIncentivizedPacketsResponse defines the response type for the incentivized packets RPC
+// QueryIncentivizedPacketsForChannelResponse defines the response type for querying for all incentivized packets
+// for a specific channel
 message QueryIncentivizedPacketsForChannelResponse {
   // Map of all incentivized_packets
   repeated ibc.applications.fee.v1.IdentifiedPacketFees incentivized_packets = 1;

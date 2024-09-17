@@ -8,7 +8,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 )
 
 // NewUpgrade creates a new Upgrade instance.
@@ -83,13 +83,21 @@ func (u *UpgradeError) Error() string {
 	return u.err.Error()
 }
 
-// Is returns true if the underlying error is of the given err type.
-func (u *UpgradeError) Is(err error) bool {
-	return errors.Is(u.err, err)
+// Is returns true if the of the provided error is an upgrade error.
+func (*UpgradeError) Is(err error) bool {
+	_, ok := err.(*UpgradeError)
+	return ok
 }
 
-// Unwrap returns the base error that caused the upgrade to fail.
+// Unwrap returns the next error in the error chain.
+// If there is no next error, Unwrap returns nil.
 func (u *UpgradeError) Unwrap() error {
+	return u.err
+}
+
+// Cause implements the sdk error interface which uses this function to unwrap the error in various functions such as `wrappedError.Is()`.
+// Cause returns the underlying error which caused the upgrade to fail.
+func (u *UpgradeError) Cause() error {
 	baseError := u.err
 	for {
 		if err := errors.Unwrap(baseError); err != nil {
@@ -98,12 +106,6 @@ func (u *UpgradeError) Unwrap() error {
 			return baseError
 		}
 	}
-}
-
-// Cause implements the sdk error interface which uses this function to unwrap the error in various functions such as `wrappedError.Is()`.
-// Cause returns the underlying error which caused the upgrade to fail.
-func (u *UpgradeError) Cause() error {
-	return u.err
 }
 
 // GetErrorReceipt returns an error receipt with the code from the underlying error type stripped.
@@ -119,8 +121,8 @@ func (u *UpgradeError) GetErrorReceipt() ErrorReceipt {
 	}
 }
 
-// IsUpgradeError returns true if err is of type UpgradeError, otherwise false.
+// IsUpgradeError returns true if err is of type UpgradeError or contained
+// in the error chain of err and false otherwise.
 func IsUpgradeError(err error) bool {
-	_, ok := err.(*UpgradeError)
-	return ok
+	return errors.Is(err, &UpgradeError{})
 }

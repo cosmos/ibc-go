@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	wasmvm "github.com/CosmWasm/wasmvm"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -19,15 +19,15 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 const (
@@ -84,31 +84,32 @@ func (suite *KeeperTestSuite) SetupWasmWithMockVM() {
 func (suite *KeeperTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	suite.mockVM = wasmtesting.NewMockWasmEngine()
 
-	suite.mockVM.InstantiateFn = func(checksum wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.Response, uint64, error) {
+	suite.mockVM.InstantiateFn = func(checksum wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 		var payload types.InstantiateMessage
 		err := json.Unmarshal(initMsg, &payload)
 		suite.Require().NoError(err)
 
-		wrappedClientState := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState)
+		wrappedClientState, ok := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
+		suite.Require().True(ok)
 
-		clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.GetLatestHeight().(clienttypes.Height))
+		clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.LatestHeight)
 		clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 		store.Set(host.ClientStateKey(), clientStateBz)
 
 		consensusState := types.NewConsensusState(payload.ConsensusState)
 		consensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), consensusState)
-		store.Set(host.ConsensusStateKey(clientState.GetLatestHeight()), consensusStateBz)
+		store.Set(host.ConsensusStateKey(clientState.LatestHeight), consensusStateBz)
 
 		resp, err := json.Marshal(types.EmptyResult{})
 		suite.Require().NoError(err)
 
-		return &wasmvmtypes.Response{Data: resp}, 0, nil
+		return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: resp}}, 0, nil
 	}
 
-	suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) ([]byte, uint64, error) {
+	suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 		resp, err := json.Marshal(types.StatusResult{Status: exported.Active.String()})
 		suite.Require().NoError(err)
-		return resp, wasmtesting.DefaultGasUsed, nil
+		return &wasmvmtypes.QueryResult{Ok: resp}, wasmtesting.DefaultGasUsed, nil
 	})
 
 	db := dbm.NewMemDB()
@@ -120,7 +121,7 @@ func (suite *KeeperTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[
 }
 
 // storeWasmCode stores the wasm code on chain and returns the checksum.
-func storeWasmCode(suite *KeeperTestSuite, wasmCode []byte) []byte {
+func (suite *KeeperTestSuite) storeWasmCode(wasmCode []byte) []byte {
 	ctx := suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmCode)
@@ -155,7 +156,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
@@ -170,7 +171,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
@@ -185,12 +186,12 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					nil, // client keeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
 			false,
-			errors.New("client keeper must be not nil"),
+			errors.New("client keeper must not be nil"),
 		},
 		{
 			"failure: nil wasm VM",
@@ -205,7 +206,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				)
 			},
 			false,
-			errors.New("wasm VM must be not nil"),
+			errors.New("wasm VM must not be nil"),
 		},
 		{
 			"failure: nil store service",
@@ -215,12 +216,12 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					nil,
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
 			false,
-			errors.New("store service must be not nil"),
+			errors.New("store service must not be nil"),
 		},
 		{
 			"failure: nil query router",
@@ -230,12 +231,12 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					ibcwasm.GetVM(),
+					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
 					nil,
 				)
 			},
 			false,
-			errors.New("query router must be not nil"),
+			errors.New("query router must not be nil"),
 		},
 	}
 
@@ -312,7 +313,7 @@ func (suite *KeeperTestSuite) TestInitializedPinnedCodes() {
 			// malleate after storing contracts
 			tc.malleate()
 
-			err := keeper.InitializePinnedCodes(ctx)
+			err := wasmClientKeeper.InitializePinnedCodes(ctx)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -321,6 +322,245 @@ func (suite *KeeperTestSuite) TestInitializedPinnedCodes() {
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMigrateContract() {
+	var (
+		oldHash        []byte
+		newHash        []byte
+		payload        []byte
+		expClientState *types.ClientState
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success: update client state",
+			func() {
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+					expClientState = types.NewClientState([]byte{1}, newHash, clienttypes.NewHeight(2000, 2))
+					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), expClientState))
+
+					data, err := json.Marshal(types.EmptyResult{})
+					suite.Require().NoError(err)
+
+					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: data}}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			nil,
+		},
+		{
+			"failure: new and old checksum are the same",
+			func() {
+				newHash = oldHash
+				// this should not be called
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+					panic("unreachable")
+				}
+			},
+			types.ErrWasmCodeExists,
+		},
+		{
+			"failure: checksum not found",
+			func() {
+				err := GetSimApp(suite.chainA).WasmClientKeeper.GetChecksums().Remove(suite.chainA.GetContext(), newHash)
+				suite.Require().NoError(err)
+			},
+			types.ErrWasmChecksumNotFound,
+		},
+		{
+			"failure: vm returns error",
+			func() {
+				err := GetSimApp(suite.chainA).WasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), newHash)
+				suite.Require().NoError(err)
+
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+					return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockVM
+				}
+			},
+			types.ErrVMError,
+		},
+		{
+			"failure: contract returns error",
+			func() {
+				err := GetSimApp(suite.chainA).WasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), newHash)
+				suite.Require().NoError(err)
+
+				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+					return &wasmvmtypes.ContractResult{Err: wasmtesting.ErrMockContract.Error()}, wasmtesting.DefaultGasUsed, nil
+				}
+			},
+			types.ErrWasmContractCallFailed,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+			suite.storeWasmCode(wasmtesting.Code)
+
+			var err error
+			oldHash, err = types.CreateChecksum(wasmtesting.Code)
+			suite.Require().NoError(err)
+			newHash, err = types.CreateChecksum(wasmtesting.CreateMockContract([]byte{1, 2, 3}))
+			suite.Require().NoError(err)
+
+			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+			err = wasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), newHash)
+			suite.Require().NoError(err)
+
+			endpointA := wasmtesting.NewWasmEndpoint(suite.chainA)
+			err = endpointA.CreateClient()
+			suite.Require().NoError(err)
+
+			clientState, ok := endpointA.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
+
+			expClientState = clientState
+
+			tc.malleate()
+
+			err = wasmClientKeeper.MigrateContractCode(suite.chainA.GetContext(), endpointA.ClientID, newHash, payload)
+
+			// updated client state
+			clientState, ok = endpointA.GetClientState().(*types.ClientState)
+			suite.Require().True(ok)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(expClientState, clientState)
+			} else {
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestGetChecksums() {
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expResult func(checksums []types.Checksum)
+	}{
+		{
+			"success: no contract stored.",
+			func() {},
+			func(checksums []types.Checksum) {
+				suite.Require().Len(checksums, 0)
+			},
+		},
+		{
+			"success: default mock vm contract stored.",
+			func() {
+				suite.SetupWasmWithMockVM()
+				suite.storeWasmCode(wasmtesting.Code)
+			},
+			func(checksums []types.Checksum) {
+				suite.Require().Len(checksums, 1)
+				expectedChecksum, err := types.CreateChecksum(wasmtesting.Code)
+				suite.Require().NoError(err)
+				suite.Require().Equal(expectedChecksum, checksums[0])
+			},
+		},
+		{
+			"success: non-empty checksums",
+			func() {
+				suite.SetupWasmWithMockVM()
+				suite.storeWasmCode(wasmtesting.Code)
+
+				err := GetSimApp(suite.chainA).WasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), types.Checksum("checksum"))
+				suite.Require().NoError(err)
+			},
+			func(checksums []types.Checksum) {
+				suite.Require().Len(checksums, 2)
+				suite.Require().Contains(checksums, types.Checksum("checksum"))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			tc.malleate()
+
+			checksums, err := GetSimApp(suite.chainA).WasmClientKeeper.GetAllChecksums(suite.chainA.GetContext())
+			suite.Require().NoError(err)
+			tc.expResult(checksums)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestAddChecksum() {
+	suite.SetupWasmWithMockVM()
+	suite.storeWasmCode(wasmtesting.Code)
+
+	wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
+
+	checksums, err := wasmClientKeeper.GetAllChecksums(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+	// default mock vm contract is stored
+	suite.Require().Len(checksums, 1)
+
+	checksum1 := types.Checksum("checksum1")
+	checksum2 := types.Checksum("checksum2")
+	err = wasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), checksum1)
+	suite.Require().NoError(err)
+	err = wasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), checksum2)
+	suite.Require().NoError(err)
+
+	// Test adding the same checksum twice
+	err = wasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), checksum1)
+	suite.Require().NoError(err)
+
+	checksums, err = wasmClientKeeper.GetAllChecksums(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+	suite.Require().Len(checksums, 3)
+	suite.Require().Contains(checksums, checksum1)
+	suite.Require().Contains(checksums, checksum2)
+}
+
+func (suite *KeeperTestSuite) TestHasChecksum() {
+	var checksum types.Checksum
+
+	testCases := []struct {
+		name       string
+		malleate   func()
+		exprResult bool
+	}{
+		{
+			"success: checksum exists",
+			func() {
+				checksum = types.Checksum("checksum")
+				err := GetSimApp(suite.chainA).WasmClientKeeper.GetChecksums().Set(suite.chainA.GetContext(), checksum)
+				suite.Require().NoError(err)
+			},
+			true,
+		},
+		{
+			"success: checksum does not exist",
+			func() {
+				checksum = types.Checksum("non-existent-checksum")
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupWasmWithMockVM()
+
+			tc.malleate()
+
+			result := GetSimApp(suite.chainA).WasmClientKeeper.HasChecksum(suite.chainA.GetContext(), checksum)
+			suite.Require().Equal(tc.exprResult, result)
 		})
 	}
 }

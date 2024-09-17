@@ -2,8 +2,9 @@ package tendermint
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
-	"strings"
+	"fmt"
 
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
@@ -11,9 +12,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 /*
@@ -51,6 +52,23 @@ func setClientState(clientStore storetypes.KVStore, cdc codec.BinaryCodec, clien
 	clientStore.Set(key, val)
 }
 
+// getClientState retrieves the client state from the store using the provided KVStore and codec.
+// It returns the unmarshaled ClientState and a boolean indicating if the state was found.
+func getClientState(store storetypes.KVStore, cdc codec.BinaryCodec) (*ClientState, bool) {
+	bz := store.Get(host.ClientStateKey())
+	if len(bz) == 0 {
+		return nil, false
+	}
+
+	clientStateI := clienttypes.MustUnmarshalClientState(cdc, bz)
+	var clientState *ClientState
+	clientState, ok := clientStateI.(*ClientState)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T into %T", clientStateI, clientState))
+	}
+	return clientState, true
+}
+
 // setConsensusState stores the consensus state at the given height.
 func setConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryCodec, consensusState *ConsensusState, height exported.Height) {
 	key := host.ConsensusStateKey(height)
@@ -67,49 +85,19 @@ func GetConsensusState(store storetypes.KVStore, cdc codec.BinaryCodec, height e
 	}
 
 	consensusStateI := clienttypes.MustUnmarshalConsensusState(cdc, bz)
-	return consensusStateI.(*ConsensusState), true
+	var consensusState *ConsensusState
+	consensusState, ok := consensusStateI.(*ConsensusState)
+	if !ok {
+		panic(fmt.Errorf("cannot convert %T into %T", consensusStateI, consensusState))
+	}
+
+	return consensusState, true
 }
 
 // deleteConsensusState deletes the consensus state at the given height
 func deleteConsensusState(clientStore storetypes.KVStore, height exported.Height) {
 	key := host.ConsensusStateKey(height)
 	clientStore.Delete(key)
-}
-
-// IterateConsensusMetadata iterates through the prefix store and applies the callback.
-// If the cb returns true, then iterator will close and stop.
-func IterateConsensusMetadata(store storetypes.KVStore, cb func(key, val []byte) bool) {
-	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyConsensusStatePrefix))
-
-	// iterate over processed time and processed height
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		keySplit := strings.Split(string(iterator.Key()), "/")
-		// processed time key in prefix store has format: "consensusState/<height>/processedTime"
-		if len(keySplit) != 3 {
-			// ignore all consensus state keys
-			continue
-		}
-
-		if keySplit[2] != "processedTime" && keySplit[2] != "processedHeight" {
-			// only perform callback on consensus metadata
-			continue
-		}
-
-		if cb(iterator.Key(), iterator.Value()) {
-			break
-		}
-	}
-
-	// iterate over iteration keys
-	iter := storetypes.KVStorePrefixIterator(store, []byte(KeyIterateConsensusStatePrefix))
-
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		if cb(iter.Key(), iter.Value()) {
-			break
-		}
-	}
 }
 
 // ProcessedTimeKey returns the key under which the processed time will be stored in the client store.
@@ -277,7 +265,7 @@ func GetPreviousConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryC
 // client store. If a consensus state is expired, it is deleted and its metadata
 // is deleted. The number of consensus states pruned is returned.
 func PruneAllExpiredConsensusStates(
-	ctx sdk.Context, clientStore storetypes.KVStore,
+	ctx context.Context, clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec, clientState *ClientState,
 ) int {
 	var heights []exported.Height
@@ -287,8 +275,8 @@ func PruneAllExpiredConsensusStates(
 		if !found { // consensus state should always be found
 			return true
 		}
-
-		if clientState.IsExpired(consState.Timestamp, ctx.BlockTime()) {
+		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+		if clientState.IsExpired(consState.Timestamp, sdkCtx.BlockTime()) {
 			heights = append(heights, height)
 		}
 
@@ -335,8 +323,9 @@ func bigEndianHeightBytes(height exported.Height) []byte {
 // as this is internal tendermint light client logic.
 // client state and consensus state will be set by client keeper
 // set iteration key to provide ability for efficient ordered iteration of consensus states.
-func setConsensusMetadata(ctx sdk.Context, clientStore storetypes.KVStore, height exported.Height) {
-	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano()))
+func setConsensusMetadata(ctx context.Context, clientStore storetypes.KVStore, height exported.Height) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano()))
 }
 
 // setConsensusMetadataWithValues sets the consensus metadata with the provided values

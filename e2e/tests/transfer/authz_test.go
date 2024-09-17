@@ -6,6 +6,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -17,9 +18,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 func TestAuthzTransferTestSuite(t *testing.T) {
@@ -30,13 +32,31 @@ type AuthzTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+func (suite *AuthzTransferTestSuite) CreateAuthzTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
+	return suite.CreatePaths(ibc.DefaultClientOpts(), suite.TransferChannelOptions(), testName), suite.GetChainAChannelForTest(testName)
+}
+
+// QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
+func (*AuthzTransferTestSuite) QueryGranterGrants(ctx context.Context, chain ibc.Chain, granterAddress string) ([]*authz.GrantAuthorization, error) {
+	res, err := query.GRPCQuery[authz.QueryGranterGrantsResponse](ctx, chain, &authz.QueryGranterGrantsRequest{
+		Granter: granterAddress,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Grants, nil
+}
+
 func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
-	chainA, chainB := suite.GetChains()
+	testName := t.Name()
+	t.Parallel()
+	relayer, channelA := suite.CreateAuthzTestPath(testName)
 
+	chainA, chainB := suite.GetChains()
 	chainADenom := chainA.Config().Denom
 
 	granterWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -49,7 +69,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
-		suite.StartRelayer(relayer)
+		suite.StartRelayer(relayer, testName)
 	})
 
 	// createMsgGrantFn initializes a TransferAuthorization and broadcasts a MsgGrant message.
@@ -104,16 +124,20 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	t.Run("broadcast MsgGrant", createMsgGrantFn)
 
 	t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
-		transferMsg := transfertypes.MsgTransfer{
-			SourcePort:    channelA.PortID,
-			SourceChannel: channelA.ChannelID,
-			Token:         testvalues.DefaultTransferAmount(chainADenom),
-			Sender:        granterAddress,
-			Receiver:      receiverWalletAddress,
-			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
-		}
+		transferMsg := testsuite.GetMsgTransfer(
+			channelA.PortID,
+			channelA.ChannelID,
+			channelA.Version,
+			testvalues.DefaultTransferCoins(chainADenom),
+			granterAddress,
+			receiverWalletAddress,
+			suite.GetTimeoutHeight(ctx, chainB),
+			0,
+			"",
+			nil,
+		)
 
-		protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
+		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
 		suite.Require().NoError(err)
 
 		msgExec := &authz.MsgExec{
@@ -137,7 +161,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	t.Run("verify receiver wallet amount", func(t *testing.T) {
 		chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
-		actualBalance, err := suite.QueryBalance(ctx, chainB, receiverWalletAddress, chainBIBCToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainB, receiverWalletAddress, chainBIBCToken.IBCDenom())
 
 		suite.Require().NoError(err)
 		suite.Require().Equal(testvalues.IBCTransferAmount, actualBalance.Int64())
@@ -161,16 +185,20 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	})
 
 	t.Run("exec unauthorized MsgTransfer", func(t *testing.T) {
-		transferMsg := transfertypes.MsgTransfer{
-			SourcePort:    channelA.PortID,
-			SourceChannel: channelA.ChannelID,
-			Token:         testvalues.DefaultTransferAmount(chainADenom),
-			Sender:        granterAddress,
-			Receiver:      receiverWalletAddress,
-			TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
-		}
+		transferMsg := testsuite.GetMsgTransfer(
+			channelA.PortID,
+			channelA.ChannelID,
+			channelA.Version,
+			testvalues.DefaultTransferCoins(chainADenom),
+			granterAddress,
+			receiverWalletAddress,
+			suite.GetTimeoutHeight(ctx, chainB),
+			0,
+			"",
+			nil,
+		)
 
-		protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
+		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
 		suite.Require().NoError(err)
 
 		msgExec := &authz.MsgExec{
@@ -187,11 +215,13 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	t := suite.T()
 	ctx := context.TODO()
 
-	relayer, channelA := suite.SetupChainsRelayerAndChannel(ctx, suite.TransferChannelOptions())
-	chainA, chainB := suite.GetChains()
+	testName := t.Name()
+	t.Parallel()
+	relayer, channelA := suite.CreateAuthzTestPath(testName)
 
-	chainAVersion := chainA.Config().Images[0].Version
+	chainA, chainB := suite.GetChains()
 	chainADenom := chainA.Config().Denom
+	chainAVersion := chainA.Config().Images[0].Version
 
 	granterWallet := suite.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granterAddress := granterWallet.FormattedAddress()
@@ -203,7 +233,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
 	t.Run("start relayer", func(t *testing.T) {
-		suite.StartRelayer(relayer)
+		suite.StartRelayer(relayer, testName)
 	})
 
 	const spendLimit = 1000
@@ -241,16 +271,20 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 		const invalidSpendAmount = spendLimit + 1
 
 		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
-			transferMsg := transfertypes.MsgTransfer{
-				SourcePort:    channelA.PortID,
-				SourceChannel: channelA.ChannelID,
-				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(invalidSpendAmount)},
-				Sender:        granterAddress,
-				Receiver:      receiverWalletAddress,
-				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
-			}
+			transferMsg := testsuite.GetMsgTransfer(
+				channelA.PortID,
+				channelA.ChannelID,
+				channelA.Version,
+				sdk.NewCoins(sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(invalidSpendAmount)}),
+				granterAddress,
+				receiverWalletAddress,
+				suite.GetTimeoutHeight(ctx, chainB),
+				0,
+				"",
+				nil,
+			)
 
-			protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
+			protoAny, err := codectypes.NewAnyWithValue(transferMsg)
 			suite.Require().NoError(err)
 
 			msgExec := &authz.MsgExec{
@@ -274,7 +308,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 		t.Run("verify receiver wallet amount", func(t *testing.T) {
 			chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
-			actualBalance, err := suite.QueryBalance(ctx, chainB, receiverWalletAddress, chainBIBCToken.IBCDenom())
+			actualBalance, err := query.Balance(ctx, chainB, receiverWalletAddress, chainBIBCToken.IBCDenom())
 
 			suite.Require().NoError(err)
 			suite.Require().Equal(int64(0), actualBalance.Int64())
@@ -298,16 +332,20 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 		invalidWalletAddress := invalidWallet.FormattedAddress()
 
 		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
-			transferMsg := transfertypes.MsgTransfer{
-				SourcePort:    channelA.PortID,
-				SourceChannel: channelA.ChannelID,
-				Token:         sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(spendLimit)},
-				Sender:        granterAddress,
-				Receiver:      invalidWalletAddress,
-				TimeoutHeight: suite.GetTimeoutHeight(ctx, chainB),
-			}
+			transferMsg := testsuite.GetMsgTransfer(
+				channelA.PortID,
+				channelA.ChannelID,
+				channelA.Version,
+				sdk.NewCoins(sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(spendLimit)}),
+				granterAddress,
+				invalidWalletAddress,
+				suite.GetTimeoutHeight(ctx, chainB),
+				0,
+				"",
+				nil,
+			)
 
-			protoAny, err := codectypes.NewAnyWithValue(&transferMsg)
+			protoAny, err := codectypes.NewAnyWithValue(transferMsg)
 			suite.Require().NoError(err)
 
 			msgExec := &authz.MsgExec{
@@ -328,7 +366,7 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 // extractTransferAuthorizationFromGrantAuthorization extracts a TransferAuthorization from the given
 // GrantAuthorization.
 func (suite *AuthzTransferTestSuite) extractTransferAuthorizationFromGrantAuthorization(grantAuth *authz.GrantAuthorization) *transfertypes.TransferAuthorization {
-	cfg := testsuite.EncodingConfig()
+	cfg := testsuite.SDKEncodingConfig()
 	var authorization authz.Authorization
 	err := cfg.InterfaceRegistry.UnpackAny(grantAuth.Authorization, &authorization)
 	suite.Require().NoError(err)

@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// Maximum length of the allowed clients list
+const MaxAllowedClientsLength = 200
+
 // DefaultAllowedClients are the default clients for the AllowedClients parameter.
 // By default it allows all client types.
 var DefaultAllowedClients = []string{AllowAllClients}
@@ -46,6 +49,10 @@ func (p Params) IsAllowedClient(clientType string) bool {
 // validateClients checks that the given clients are not blank and there are no duplicates.
 // If AllowAllClients wildcard (*) is used, then there should no other client types in the allow list
 func validateClients(clients []string) error {
+	if len(clients) > MaxAllowedClientsLength {
+		return fmt.Errorf("allowed clients length must not exceed %d items", MaxAllowedClientsLength)
+	}
+
 	if slices.Contains(clients, AllowAllClients) && len(clients) > 1 {
 		return fmt.Errorf("allow list must have only one element because the allow all clients wildcard (%s) is present", AllowAllClients)
 	}

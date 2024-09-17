@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.transfer.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types";
 
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
@@ -35,8 +35,8 @@ message MsgTransfer {
   string source_port = 1;
   // the channel by which the packet will be sent
   string source_channel = 2;
-  // the tokens to be transferred
-  cosmos.base.v1beta1.Coin token = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+  // the token to be transferred. this field has been replaced by the tokens field.
+  cosmos.base.v1beta1.Coin token = 3 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true, deprecated = true];
   // the sender address
   string sender = 4;
   // the recipient address on the destination chain
@@ -49,6 +49,10 @@ message MsgTransfer {
   uint64 timeout_timestamp = 7;
   // optional memo
   string memo = 8;
+  // tokens to be transferred
+  repeated cosmos.base.v1beta1.Coin tokens = 9 [(gogoproto.nullable) = false];
+  // optional forwarding information
+  Forwarding forwarding = 10;
 }
 
 // MsgTransferResponse defines the Msg/Transfer response type.

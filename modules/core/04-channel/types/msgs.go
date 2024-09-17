@@ -8,10 +8,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 var (
@@ -593,17 +593,19 @@ func NewMsgChannelUpgradeOpen(
 	portID,
 	channelID string,
 	counterpartyChannelState State,
+	counterpartyUpgradeSequence uint64,
 	channelProof []byte,
 	proofHeight clienttypes.Height,
 	signer string,
 ) *MsgChannelUpgradeOpen {
 	return &MsgChannelUpgradeOpen{
-		PortId:                   portID,
-		ChannelId:                channelID,
-		CounterpartyChannelState: counterpartyChannelState,
-		ProofChannel:             channelProof,
-		ProofHeight:              proofHeight,
-		Signer:                   signer,
+		PortId:                      portID,
+		ChannelId:                   channelID,
+		CounterpartyChannelState:    counterpartyChannelState,
+		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
+		ProofChannel:                channelProof,
+		ProofHeight:                 proofHeight,
+		Signer:                      signer,
 	}
 }
 
@@ -623,6 +625,10 @@ func (msg MsgChannelUpgradeOpen) ValidateBasic() error {
 
 	if !slices.Contains([]State{FLUSHCOMPLETE, OPEN}, msg.CounterpartyChannelState) {
 		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", FLUSHCOMPLETE, OPEN, msg.CounterpartyChannelState)
+	}
+
+	if msg.CounterpartyUpgradeSequence == 0 {
+		return errorsmod.Wrap(ErrInvalidUpgradeSequence, "counterparty upgrade sequence must be non-zero")
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
