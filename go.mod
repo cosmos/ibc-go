@@ -3,7 +3,7 @@ go 1.23.1
 module github.com/cosmos/ibc-go/v9
 
 // TODO
-require cosmossdk.io/x/accounts v0.0.0-20240226161501-23359a0b6d91
+require cosmossdk.io/x/accounts v0.0.0-20240913065641-0064ccbce64e
 
 require (
 	cosmossdk.io/api v0.8.0
@@ -47,6 +47,7 @@ require (
 )
 
 require (
+	cosmossdk.io/x/accounts/defaults/base v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5
 	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190
 )
@@ -63,7 +64,7 @@ require (
 	cosmossdk.io/collections v0.4.1-0.20240802064046-23fac2f1b8ab // indirect
 	cosmossdk.io/core/testing v0.0.0-20240913164418-aaf72f20c10b // indirect
 	cosmossdk.io/depinject v1.0.0 // indirect
-	cosmossdk.io/schema v0.2.0 // indirect
+	cosmossdk.io/schema v0.3.0 // indirect
 	cosmossdk.io/x/epochs v0.0.0-20240522060652-a1ae4c3e0337 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -169,7 +170,7 @@ require (
 	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_golang v1.20.3 // indirect
+	github.com/prometheus/client_golang v1.20.4 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.59.1 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
@@ -241,7 +242,7 @@ replace (
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240905174638-8ce77cbb2450
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1
 	// pseudo version lower than the latest tag
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-alpha.1.0.20240905174638-8ce77cbb2450
+	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
 	github.com/cosmos/ibc-go/modules/capability => ./modules/capability //TODO: remove after capability is tagged
 )
 
@@ -249,10 +250,12 @@ replace (
 replace (
 	cosmossdk.io/tools/confix => ../cosmos-sdk/tools/confix
 	cosmossdk.io/x/accounts => ../cosmos-sdk/x/accounts
+	cosmossdk.io/x/accounts/defaults => ../cosmos-sdk/x/accounts/defaults
+	cosmossdk.io/x/accounts/defaults/base => ../cosmos-sdk/x/accounts/defaults/base
 	cosmossdk.io/x/accounts/defaults/lockup => ../cosmos-sdk/x/accounts/defaults/lockup
 	cosmossdk.io/x/accounts/defaults/multisig => ../cosmos-sdk/x/accounts/defaults/multisig
 	cosmossdk.io/x/circuit => ../cosmos-sdk/x/circuit
-	cosmossdk.io/x/mint => ../cosmos-sdk/x/mint
+	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20240918153713-01212de2d9dc // main
 	cosmossdk.io/x/nft => ../cosmos-sdk/x/nft
 	cosmossdk.io/x/protocolpool => ../cosmos-sdk/x/protocolpool
 )
