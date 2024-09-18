@@ -40,7 +40,7 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	}
 
 	m.keeper.SetParams(ctx, params)
-	m.keeper.SDKLogger.Info("successfully migrated client to self-manage params")
+	m.keeper.Logger(ctx).Info("successfully migrated client to self-manage params")
 	return nil
 }
 

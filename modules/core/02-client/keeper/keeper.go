@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/core/log"
 
 	"cosmossdk.io/core/appmodule"
 	errorsmod "cosmossdk.io/errors"
@@ -34,8 +34,6 @@ type Keeper struct {
 	router         *types.Router
 	legacySubspace types.ParamSubspace
 	upgradeKeeper  types.UpgradeKeeper
-
-	SDKLogger log.Logger
 }
 
 // NewKeeper creates a new NewKeeper instance
@@ -51,7 +49,6 @@ func NewKeeper(cdc codec.BinaryCodec, env appmodule.Environment, legacySubspace 
 		legacySubspace: legacySubspace,
 		upgradeKeeper:  uk,
 	}
-	k.SDKLogger = k.Logger(context.Background())
 	return k
 }
 
@@ -61,9 +58,8 @@ func (k *Keeper) Codec() codec.BinaryCodec {
 }
 
 // Logger returns a module-specific logger.
-func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
+func (k Keeper) Logger(ctx context.Context) log.Logger {
+	return k.Environment.Logger
 }
 
 // AddRoute adds a new route to the underlying router.

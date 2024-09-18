@@ -3,7 +3,7 @@ package migrations
 import (
 	"context"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/core/log"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
