@@ -54,15 +54,15 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 
 func (suite *KeeperTestSuite) TestGenesisParams() {
 	testCases := []struct {
-		name    string
-		input   types.Params
-		expPass bool
+		name        string
+		input       types.Params
+		expPanicMsg string
 	}{
-		{"success: set default params", types.DefaultParams(), true},
-		{"success: non-default params", types.NewParams(!types.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), true},
-		{"success: set empty byte for allow messages", types.NewParams(true, nil), true},
-		{"failure: set empty string for allow messages", types.NewParams(true, []string{""}), false},
-		{"failure: set space string for allow messages", types.NewParams(true, []string{" "}), false},
+		{"success: set default params", types.DefaultParams(), ""},
+		{"success: non-default params", types.NewParams(!types.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), ""},
+		{"success: set empty byte for allow messages", types.NewParams(true, nil), ""},
+		{"failure: set empty string for allow messages", types.NewParams(true, []string{""}), "could not set ica host params at genesis: parameter must not contain empty strings: []"},
+		{"failure: set space string for allow messages", types.NewParams(true, []string{" "}), "could not set ica host params at genesis: parameter must not contain empty strings: [ ]"},
 	}
 
 	for _, tc := range testCases {
@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestGenesisParams() {
 				Port:   icatypes.HostPortID,
 				Params: tc.input,
 			}
-			if tc.expPass {
+			if tc.expPanicMsg == "" {
 				keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
 
 				channelID, found := suite.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
@@ -104,7 +104,7 @@ func (suite *KeeperTestSuite) TestGenesisParams() {
 				params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
 				suite.Require().Equal(expParams, params)
 			} else {
-				suite.Require().Panics(func() {
+				suite.PanicsWithError(tc.expPanicMsg, func() {
 					keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
 				})
 			}
