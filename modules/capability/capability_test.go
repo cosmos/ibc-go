@@ -54,7 +54,7 @@ func (suite *CapabilityTestSuite) SetupTest() {
 }
 
 func (suite *CapabilityTestSuite) NewTestContext() sdk.Context {
-	db := coretesting.NewMemKV() //TODO: blocked on https://github.com/cosmos/cosmos-sdk/pull/21525
+	db := coretesting.NewMemDB() //TODO: blocked on https://github.com/cosmos/cosmos-sdk/pull/21525
 	cms := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	cms.MountStoreWithDB(suite.storeKey, storetypes.StoreTypeIAVL, db)
 	cms.MountStoreWithDB(suite.memStoreKey, storetypes.StoreTypeMemory, db)
