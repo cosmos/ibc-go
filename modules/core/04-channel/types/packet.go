@@ -138,11 +138,6 @@ func hashPacketData(data PacketData) []byte {
 }
 
 func (p PacketV2) ValidateBasic() error {
-	// TODO: temporarily assume a single packet data
-	if len(p.Data) != 1 {
-		return errorsmod.Wrap(ErrInvalidPacket, "packet data length must be 1")
-	}
-
 	for _, pd := range p.Data {
 		if err := host.PortIdentifierValidator(pd.SourcePort); err != nil {
 			return errorsmod.Wrap(err, "invalid source port ID")

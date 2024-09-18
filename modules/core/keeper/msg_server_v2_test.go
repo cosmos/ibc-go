@@ -31,6 +31,15 @@ func (suite *KeeperTestSuite) TestMsgServerV2PacketFlow() {
 					Value:    ibctesting.MockPacketData,
 				},
 			},
+			{
+				SourcePort:      mock.ModuleNameV2B,
+				DestinationPort: mock.ModuleNameV2B,
+				Payload: channeltypes.Payload{
+					Version:  mock.Version,
+					Encoding: "json",
+					Value:    ibctesting.MockPacketData,
+				},
+			},
 		},
 		Signer: suite.chainA.SenderAccount.GetAddress().String(),
 	}
@@ -39,52 +48,75 @@ func (suite *KeeperTestSuite) TestMsgServerV2PacketFlow() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res)
 
-	packet := channeltypesv2.NewPacketV2(1, msg.SourceId, msg.DestinationId, msg.TimeoutTimestamp, msg.PacketData...)
+	suite.Require().NoError(path.EndpointB.UpdateClient())
 
-	packetKey := host.PacketCommitmentKey("foo", packet.SourceId, packet.GetSequence())
+	packet := channeltypesv2.NewPacketV2(1, msg.SourceId, path.EndpointB.ClientID, msg.TimeoutTimestamp, msg.PacketData...)
+
+	packetCommitment := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), host.SentinelV2PortID, packet.SourceId, packet.GetSequence())
+	suite.Require().NotNil(packetCommitment)
+
+	packetKey := host.PacketCommitmentKey(host.SentinelV2PortID, packet.SourceId, packet.GetSequence())
 	proof, proofHeight := path.EndpointA.QueryProof(packetKey)
 	suite.Require().NotNil(proof)
 	suite.Require().False(proofHeight.IsZero())
 
-	// // RecvPacket
-	// recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
-	// recvPacketResponse, err := path.EndpointB.Chain.SendMsgs(recvMsg)
-	// suite.Require().NoError(path.EndpointA.UpdateClient())
+	// RecvPacket
+	recvMsg := &channeltypesv2.MsgRecvPacket{
+		Packet:          packet,
+		ProofCommitment: proof,
+		ProofHeight:     proofHeight,
+		Signer:          suite.chainB.SenderAccount.GetAddress().String(),
+	}
 
-	// suite.Require().NotNil(recvPacketResponse)
-	// suite.Require().NoError(err)
+	recvPacketResponse, err := path.EndpointB.Chain.SendMsgs(recvMsg)
 
-	// // ensure that the ack that was written, is a multi ack with a single item that hat as a success status.
-	// ack, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	// suite.Require().True(found)
-	// suite.Require().NotNil(ack)
+	suite.Require().NotNil(recvPacketResponse)
+	suite.Require().NoError(err)
+	suite.Require().NoError(path.EndpointA.UpdateClient())
 
-	// expectedAck := channeltypes.MultiAcknowledgement{
-	// 	AcknowledgementResults: []channeltypes.AcknowledgementResult{
-	// 		{
-	// 			AppName: path.EndpointB.ChannelConfig.PortID,
-	// 			RecvPacketResult: channeltypes.RecvPacketResult{
-	// 				Status:          channeltypes.PacketStatus_Success,
-	// 				Acknowledgement: ibctesting.MockAcknowledgement,
-	// 			},
-	// 		},
-	// 	},
-	// }
+	// ensure that the ack that was written, is a multi ack with a single item that hat as a success status.
+	ack, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), host.SentinelV2PortID, packet.DestinationId, packet.GetSequence())
+	suite.Require().True(found)
+	suite.Require().NotNil(ack)
 
-	// expectedBz := suite.chainB.Codec.MustMarshal(&expectedAck)
-	// expectedCommittedBz := channeltypes.CommitAcknowledgement(expectedBz)
-	// suite.Require().Equal(expectedCommittedBz, ack)
+	// the expected multi ack should be a successful ack for the underlying mock applications.
+	expectedAck := channeltypes.MultiAcknowledgement{
+		AcknowledgementResults: []channeltypes.AcknowledgementResult{
+			{
+				AppName: mock.ModuleNameV2A,
+				RecvPacketResult: channeltypes.RecvPacketResult{
+					Status:          channeltypes.PacketStatus_Success,
+					Acknowledgement: ibctesting.MockAcknowledgement,
+				},
+			},
+			{
+				AppName: mock.ModuleNameV2B,
+				RecvPacketResult: channeltypes.RecvPacketResult{
+					Status:          channeltypes.PacketStatus_Success,
+					Acknowledgement: ibctesting.MockAcknowledgement,
+				},
+			},
+		},
+	}
 
-	// packetKey = host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	// proof, proofHeight = path.EndpointB.QueryProof(packetKey)
+	expectedBz := suite.chainB.Codec.MustMarshal(&expectedAck)
+	expectedCommittedBz := channeltypes.CommitAcknowledgement(expectedBz)
+	suite.Require().Equal(expectedCommittedBz, ack)
 
-	// legacyMultiAck := legacy.NewLMultiAck(suite.chainA.Codec, ibcmock.MockAcknowledgement, path.EndpointB.ChannelConfig.PortID)
+	packetKey = host.PacketAcknowledgementKey(host.SentinelV2PortID, packet.DestinationId, packet.GetSequence())
+	proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 
-	// msgAck := channeltypes.NewMsgAcknowledgement(packet, legacyMultiAck.Acknowledgement(), proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+	msgAck := &channeltypesv2.MsgAcknowledgement{
+		Packet:               packet,
+		MultiAcknowledgement: expectedAck,
+		ProofAcked:           proof,
+		ProofHeight:          proofHeight,
+		Signer:               suite.chainA.SenderAccount.GetAddress().String(),
+	}
 
-	// ackPacketResponse, err := path.EndpointA.Chain.SendMsgs(msgAck)
-	// suite.Require().NoError(path.EndpointB.UpdateClient())
+	ackPacketResponse, err := path.EndpointA.Chain.SendMsgs(msgAck)
+	suite.Require().NoError(path.EndpointB.UpdateClient())
 
-	// suite.Require().NoError(err)
-	// suite.Require().NotNil(ackPacketResponse)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(ackPacketResponse)
 }
