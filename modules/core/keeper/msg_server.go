@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+
+
 	"golang.org/x/exp/slices"
 
 	errorsmod "cosmossdk.io/errors"
-	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -16,7 +16,9 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
 	"github.com/cosmos/ibc-go/v9/modules/core/legacy"
@@ -1177,7 +1179,55 @@ func (k *Keeper) TimeoutV2(ctx context.Context, msg *channeltypesv2.MsgTimeout) 
 }
 
 func (k *Keeper) AcknowledgementV2(ctx context.Context, msg *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {
-	return nil, nil
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		sdkCtx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+	}
+
+	// Perform TAO verification
+	//
+	// If the acknowledgement was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
+	cacheCtx, writeFn := sdkCtx.CacheContext()
+	err = k.PacketServerKeeper.AcknowledgePacketV2(cacheCtx, msg.Packet, msg.MultiAcknowledgement, msg.ProofAcked, msg.ProofHeight)
+
+	switch err {
+	case nil:
+		writeFn()
+	case channeltypes.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
+		sdkCtx.Logger().Debug("no-op on redundant relay", "source-id", msg.Packet.SourceId)
+		return &channeltypesv2.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
+	default:
+		sdkCtx.Logger().Error("acknowledgement failed", "source-id", msg.Packet.SourceId, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
+		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
+	}
+
+	// construct mapping of app name to recvPacketResult
+	// TODO: helper fn to do this.
+	recvResults := make(map[string]channeltypes.RecvPacketResult)
+	for _, r := range msg.MultiAcknowledgement.AcknowledgementResults {
+		recvResults[r.AppName] = r.RecvPacketResult
+	}
+
+	// Perform application logic callback
+	for _, pd := range msg.Packet.Data {
+		cb := k.PortKeeper.AppRouter.Route(pd.SourcePort)
+		err = cb.OnAcknowledgementPacketV2(ctx, msg.Packet, pd.Payload, recvResults[pd.DestinationPort], relayer)
+		if err != nil {
+			sdkCtx.Logger().Error("acknowledgement failed", "src_id", msg.Packet.SourceId, "src_port", pd.SourcePort, "dst_port", pd.DestinationPort, "error", errorsmod.Wrap(err, "acknowledge packet callback failed"))
+			return nil, errorsmod.Wrap(err, "acknowledge packet callback failed")
+		}
+	}
+
+	// defer telemetry.ReportAcknowledgePacket(msg.PacketV2)
+
+	sdkCtx.Logger().Info("acknowledgement succeeded", "src_id", msg.Packet.SourceId, "result", channeltypes.SUCCESS.String())
+
+	return &channeltypesv2.MsgAcknowledgementResponse{Result: channeltypes.SUCCESS}, nil
 }
 
 // convertToErrorEvents converts all events to error events by appending the

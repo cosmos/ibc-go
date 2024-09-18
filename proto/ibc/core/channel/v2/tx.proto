@@ -72,11 +72,11 @@ message MsgAcknowledgement {
 
   option (gogoproto.goproto_getters) = false;
 
-  ibc.core.channel.v1.PacketV2 packet          = 1 [(gogoproto.nullable) = false];
-  bytes                        acknowledgement = 2;
-  bytes                        proof_acked     = 3;
-  ibc.core.client.v1.Height    proof_height    = 4 [(gogoproto.nullable) = false];
-  string                       signer          = 5;
+  ibc.core.channel.v1.PacketV2             packet                = 1 [(gogoproto.nullable) = false];
+  ibc.core.channel.v1.MultiAcknowledgement multi_acknowledgement = 2 [(gogoproto.nullable) = false];
+  bytes                                    proof_acked           = 3;
+  ibc.core.client.v1.Height                proof_height          = 4 [(gogoproto.nullable) = false];
+  string                                   signer                = 5;
 }
 
 // MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.

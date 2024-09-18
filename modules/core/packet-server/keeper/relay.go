@@ -5,6 +5,9 @@ import (
 	"context"
 	"strconv"
 
+
+	"golang.org/x/exp/slices"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -259,7 +262,7 @@ func (k Keeper) RecvPacketV2(
 	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, host.SentinelV2PortID, packet.DestinationId, packet.Sequence)
 	if found {
 		// TODO: figure out events
-		//channelkeeper.EmitRecvPacketEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel))
+		// channelkeeper.EmitRecvPacketEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel))
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
 		// from failing and consuming unnecessary fees.
@@ -289,7 +292,7 @@ func (k Keeper) RecvPacketV2(
 	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "source-id", packet.SourceId, "dst-id", packet.DestinationId)
 
 	// TODO: figure out events
-	//channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
+	// channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
 
 	return nil
 }
@@ -468,6 +471,117 @@ func (k Keeper) AcknowledgePacket(
 	channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, nil)
 
 	return packetV2.Data[0].Payload.Version, nil
+}
+
+func (k Keeper) AcknowledgePacketV2(
+	ctx context.Context,
+	packet channeltypes.PacketV2,
+	multiAck channeltypes.MultiAcknowledgement,
+	proofAcked []byte,
+	proofHeight exported.Height,
+) error {
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.GetCounterparty(ctx, packet.SourceId)
+	if !ok {
+		return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceId)
+	}
+
+	if counterparty.ClientId != packet.DestinationId {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, host.SentinelV2PortID, packet.SourceId, packet.Sequence)
+	if len(commitment) == 0 {
+		// TODO: figure out events
+		// channelkeeper.EmitAcknowledgePacketEventV2(ctx, packet, sentinelChannel(packet.SourceChannel))
+
+		// This error indicates that the acknowledgement has already been relayed
+		// or there is a misconfigured relayer attempting to prove an acknowledgement
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
+
+	packetCommitment := channeltypes.CommitPacketV2(packet)
+
+	// verify we sent the packet and haven't cleared it out yet
+	if !bytes.Equal(commitment, packetCommitment) {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
+	}
+
+	path := host.PacketAcknowledgementKey(host.SentinelV2PortID, packet.DestinationId, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+
+	bz := k.cdc.MustMarshal(&multiAck)
+	if err := k.ClientKeeper.VerifyMembership(
+		ctx,
+		packet.SourceId,
+		proofHeight,
+		0, 0,
+		proofAcked,
+		merklePath,
+		channeltypes.CommitAcknowledgement(bz),
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", packet.SourceId)
+	}
+
+	k.ChannelKeeper.DeletePacketCommitment(ctx, host.SentinelV2PortID, packet.SourceId, packet.Sequence)
+
+	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "src_id", packet.SourceId, "dst_id", packet.DestinationId)
+
+	// TODO: figure out events
+	// channelkeeper.EmitAcknowledgePacketEventV2(ctx, packet, sentinelChannel(packet.SourceChannel))
+
+	return nil
+}
+
+// WriteAcknowledgementAsyncV2 updates the recv packet result for the given app name in the multi acknowledgement.
+// If all acknowledgements are now either success or failed acks, it writes the final multi ack.
+func (k *Keeper) WriteAcknowledgementAsyncV2(
+	ctx context.Context,
+	packet channeltypes.PacketV2,
+	appName string,
+	recvResult channeltypes.RecvPacketResult,
+) error {
+	// we should have stored the multi ack structure in OnRecvPacket
+	ackResults, found := k.ChannelKeeper.GetMultiAcknowledgement(ctx, host.SentinelV2PortID, packet.DestinationId, packet.GetSequence())
+	if !found {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidAcknowledgement, "multi-acknowledgement not found for %s", appName)
+	}
+
+	// find the index that corresponds to the app.
+	index := slices.IndexFunc(ackResults.AcknowledgementResults, func(result channeltypes.AcknowledgementResult) bool {
+		return result.AppName == appName
+	})
+
+	if index == -1 {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidAcknowledgement, "acknowledgement not found for %s", appName)
+	}
+
+	existingResult := ackResults.AcknowledgementResults[index]
+
+	// ensure that the existing status is async.
+	if existingResult.RecvPacketResult.Status != channeltypes.PacketStatus_Async {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidAcknowledgement, "acknowledgement for %s is not async", appName)
+	}
+
+	// modify the result and set it back.
+	ackResults.AcknowledgementResults[index].RecvPacketResult = recvResult
+	k.ChannelKeeper.SetMultiAcknowledgement(ctx, host.SentinelV2PortID, packet.DestinationId, packet.GetSequence(), ackResults)
+
+	// check if all acknowledgements are now sync.
+	isAsync := slices.ContainsFunc(ackResults.AcknowledgementResults, func(ackResult channeltypes.AcknowledgementResult) bool {
+		return ackResult.RecvPacketResult.Status == channeltypes.PacketStatus_Async
+	})
+
+	if !isAsync {
+		// if there are no more async acks, we can write the final multi ack.
+		return k.WriteAcknowledgementV2(ctx, packet, ackResults)
+	}
+
+	// we have updated one app's result, but there are still async results pending acknowledgement.
+	return nil
 }
 
 // TimeoutPacket implements the timeout logic required by a packet handler.
