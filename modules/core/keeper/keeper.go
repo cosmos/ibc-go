@@ -79,6 +79,16 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 	k.PortKeeper.Router.Seal()
 }
 
+// SetRouterV2 sets the Router in IBC Keeper. The method panics if
+// there is an existing router that's already sealed.
+func (k *Keeper) SetRouterV2(rtr *porttypes.AppRouterV2) {
+	if k.PortKeeper.AppRouter != nil {
+		panic(errors.New("cannot reset an already set router"))
+	}
+
+	k.PortKeeper.AppRouter = rtr
+}
+
 // GetAuthority returns the ibc module's authority.
 func (k *Keeper) GetAuthority() string {
 	return k.authority

@@ -181,6 +181,9 @@ type SimApp struct {
 	ICAAuthModule ibcmock.IBCModule
 	FeeMockModule ibcmock.IBCModule
 
+	IBCMockModuleV2A ibcmock.IBCModuleV2
+	IBCMockModuleV2B ibcmock.IBCModuleV2
+
 	// the module manager
 	ModuleManager      *module.Manager
 	BasicModuleManager module.BasicManager
@@ -385,7 +388,16 @@ func NewSimApp(
 
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
+	ibcRouterV2 := porttypes.NewAppRouter()
 
+	// add multiple a mock IBCModuleV2 modules whose functionality can be overridden in tests.
+	mockModuleV2A := ibcmock.NewIBCModuleV2(ibcmock.NewIBCV2App())
+	ibcRouterV2.AddRoute(ibcmock.ModuleNameV2A, mockModuleV2A)
+	app.IBCMockModuleV2A = mockModuleV2A
+
+	mockModuleV2B := ibcmock.NewIBCModuleV2(ibcmock.NewIBCV2App())
+	ibcRouterV2.AddRoute(ibcmock.ModuleNameV2B, mockModuleV2B)
+	app.IBCMockModuleV2B = mockModuleV2B
 	// Middleware Stacks
 
 	// Create Transfer Keeper and pass IBCFeeKeeper as expected Channel and PortKeeper
@@ -481,6 +493,7 @@ func NewSimApp(
 
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
+	app.IBCKeeper.SetRouterV2(ibcRouterV2)
 
 	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
