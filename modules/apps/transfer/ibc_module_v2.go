@@ -24,8 +24,8 @@ type IBCModuleV2 struct {
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModuleV2(k keeper.Keeper) IBCModuleV2 {
-	return IBCModuleV2{
+func NewIBCModuleV2(k keeper.Keeper) *IBCModuleV2 {
+	return &IBCModuleV2{
 		keeper: k,
 	}
 }
@@ -56,7 +56,7 @@ func (im *IBCModuleV2) OnSendPacketV2(
 	// fail the unmarshaling above, where if ics20version == types.V1 we first unmarshal
 	// into a V1 packet and then convert.
 
-	if data.Sender != signer.String() {
+	if data.Sender != string(signer) {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "invalid signer address: expected %s, got %s", data.Sender, signer)
 	}
 
