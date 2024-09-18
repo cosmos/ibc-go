@@ -26,36 +26,35 @@ func (k Keeper) SendPacketV2(
 	data []channeltypes.PacketData,
 ) (uint64, error) {
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
-	counterparty, ok := k.GetCounterparty(ctx, sourceID)
+	counterparty, ok := k.GetCounterpartyV2(ctx, "transfer", "channel-2", sourceID)
 	if !ok {
 		return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceID)
 	}
-	destChannel := counterparty.ClientId
 	// retrieve the sequence send for this channel
 	// if no packets have been sent yet, initialize the sequence to 1.
-	sequence, found := k.ChannelKeeper.GetNextSequenceSend(ctx, host.SentinelV2PortID, sourceID)
+	sequence, found := k.ChannelKeeper.GetNextSequenceSend(ctx, host.SentinelV2PortID, counterparty.ClientId)
 	if !found {
 		sequence = 1
 	}
 
 	// construct packet from given fields and channel state
-	packet := channeltypesv2.NewPacketV2(sequence, sourceID, destChannel, timeoutTimestamp, data...)
+	packet := channeltypesv2.NewPacketV2(sequence, sourceID, counterparty.ClientId, timeoutTimestamp, data...)
 
 	if err := packet.ValidateBasic(); err != nil {
 		return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
 	}
 
 	// check that the client of counterparty chain is still active
-	if status := k.ClientKeeper.GetClientStatus(ctx, sourceID); status != exported.Active {
-		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", sourceID, status)
+	if status := k.ClientKeeper.GetClientStatus(ctx, counterparty.ClientId); status != exported.Active {
+		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", counterparty.ClientId, status)
 	}
 
 	// retrieve latest height and timestamp of the client of counterparty chain
-	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, sourceID)
+	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, counterparty.ClientId)
 	if latestHeight.IsZero() {
-		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", sourceID)
+		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", counterparty.ClientId)
 	}
-	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceID, latestHeight)
+	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, counterparty.ClientId, latestHeight)
 	if err != nil {
 		return 0, err
 	}
@@ -67,8 +66,8 @@ func (k Keeper) SendPacketV2(
 	commitment := channeltypes.CommitPacketV2(packet)
 
 	// bump the sequence and set the packet commitment so it is provable by the counterparty
-	k.ChannelKeeper.SetNextSequenceSend(ctx, host.SentinelV2PortID, sourceID, sequence+1)
-	k.ChannelKeeper.SetPacketCommitment(ctx, host.SentinelV2PortID, sourceID, packet.GetSequence(), commitment)
+	k.ChannelKeeper.SetNextSequenceSend(ctx, host.SentinelV2PortID, counterparty.ClientId, sequence+1)
+	k.ChannelKeeper.SetPacketCommitment(ctx, host.SentinelV2PortID, counterparty.ClientId, packet.GetSequence(), commitment)
 	//	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packetV2SentinelPort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	//	channelkeeper.EmitSendPacketEventV2(ctx, packet, sentinelChannel(sourceID), timeoutHeight)

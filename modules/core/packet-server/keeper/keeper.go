@@ -66,3 +66,16 @@ func (k *Keeper) GetCounterparty(ctx context.Context, clientID string) (types.Co
 	k.cdc.MustUnmarshal(bz, &counterparty)
 	return counterparty, true
 }
+
+// GetCounterparty gets the Counterparty for a given client identifier.
+func (k *Keeper) GetCounterpartyV2(ctx context.Context, portID, channelID, clientID string) (types.Counterparty, bool) {
+	store := k.ChannelStore(ctx, clientID)
+	bz := store.Get([]byte(types.CounterpartyKey))
+	if len(bz) == 0 {
+		return k.ChannelKeeper.GetV2Counterparty(ctx, portID, channelID)
+	}
+
+	var counterparty types.Counterparty
+	k.cdc.MustUnmarshal(bz, &counterparty)
+	return counterparty, true
+}

@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
 func (k Keeper) OnRecvPacketV2(ctx context.Context, packet channeltypes.PacketV2, payload channeltypes.Payload, data types.FungibleTokenPacketDataV2) error {
@@ -177,10 +176,10 @@ func (k Keeper) OnSendPacket(
 	packetData types.FungibleTokenPacketDataV2,
 	sender sdk.AccAddress,
 ) error {
-	_, ok := k.packetServerKeeper.GetCounterparty(ctx, sourceID)
-	if !ok {
-		return errorsmod.Wrap(packetservertypes.ErrCounterpartyNotFound, sourceID)
-	}
+	//_, ok := k.packetServerKeeper.GetCounterparty(ctx, sourceID)
+	//if !ok {
+	//	return errorsmod.Wrap(packetservertypes.ErrCounterpartyNotFound, sourceID)
+	//}
 
 	var coins sdk.Coins
 	for _, token := range packetData.Tokens {

@@ -92,7 +92,9 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 		coinsSentFromAToB = coinsSentFromAToB.Add(coinSentFromAToB)
 	}
 
-	sender := suite.chainB.SenderAccount.GetAddress().String()
+	suite.Require().NoError(pathAToB.EndpointA.UpdateClient())
+	suite.Require().NoError(pathAToB.EndpointB.UpdateClient())
+
 	ftpd := types.FungibleTokenPacketDataV2{
 		Tokens: []types.Token{
 			{
@@ -101,7 +103,7 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 				Amount: "100",
 			},
 		},
-		Sender:     sender,
+		Sender:     suite.chainB.SenderAccount.GetAddress().String(),
 		Receiver:   suite.chainA.SenderAccount.GetAddress().String(),
 		Memo:       "",
 		Forwarding: types.ForwardingPacketData{},
@@ -125,7 +127,7 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 				},
 			},
 		},
-		Signer: sender,
+		Signer: suite.chainB.SenderAccount.GetAddress().String(),
 	}
 
 	res, err = suite.chainB.SendMsgs(msgSendPacket)
