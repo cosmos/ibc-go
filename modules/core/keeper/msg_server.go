@@ -1043,13 +1043,13 @@ func (k *Keeper) SendPacketV2(ctx context.Context, msg *channeltypesv2.MsgSendPa
 		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceId)
 	}
 
-	// for _, pd := range msg.PacketData {
-	// 	cbs := k.PortKeeper.AppRouter.Route(pd.AppName)
-	// 	err := cbs.OnSendPacketV2(ctx, msg.PortId, msg.ChannelId, sequence, msg.TimeoutHeight, msg.TimeoutTimestamp, pd.Payload, sdk.AccAddress(msg.Signer))
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
+	for _, pd := range msg.PacketData {
+		cbs := k.PortKeeper.AppRouter.Route(pd.SourcePort)
+		err := cbs.OnSendPacketV2(ctx, msg.SourceId, sequence, msg.TimeoutTimestamp, pd.Payload, sdk.AccAddress(msg.Signer))
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return &channeltypesv2.MsgSendPacketResponse{Sequence: sequence}, nil
 }
@@ -1059,7 +1059,42 @@ func (k *Keeper) RecvPacketV2(ctx context.Context, msg *channeltypesv2.MsgRecvPa
 }
 
 func (k *Keeper) TimeoutV2(ctx context.Context, msg *channeltypesv2.MsgTimeout) (*channeltypesv2.MsgTimeoutResponse, error) {
-	return nil, nil
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		sdkCtx.Logger().Error("timeout failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+	}
+
+	// Perform TAO verification
+	//
+	// If the timeout was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
+	cacheCtx, writeFn := sdkCtx.CacheContext()
+	err = k.PacketServerKeeper.TimeoutPacketV2(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight)
+
+	switch err {
+	case nil:
+		writeFn()
+	case channeltypes.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
+		sdkCtx.Logger().Debug("no-op on redundant relay", "source-id", msg.Packet.SourceId)
+		return &channeltypesv2.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil
+	default:
+		sdkCtx.Logger().Error("timeout failed", "source-id", msg.Packet.SourceId, "error", errorsmod.Wrap(err, "timeout packet verification failed"))
+		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
+	}
+
+	for _, pd := range msg.Packet.Data {
+		cb := k.PortKeeper.AppRouter.Route(pd.SourcePort)
+		err := cb.OnTimeoutPacketV2(ctx, msg.Packet, pd.Payload, relayer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &channeltypesv2.MsgTimeoutResponse{Result: channeltypes.SUCCESS}, nil
 }
 
 func (k *Keeper) AcknowledgementV2(ctx context.Context, msg *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {

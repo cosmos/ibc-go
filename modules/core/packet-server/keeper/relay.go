@@ -446,3 +446,83 @@ func (k Keeper) TimeoutPacket(
 
 	return packet.AppVersion, nil
 }
+
+// TimeoutPacketV2 implements the timeout logic required by a packet handler.
+// The packet is checked for correctness including asserting that the packet was
+// sent and received on clients which are counterparties for one another.
+// If no packet commitment exists, a no-op error is returned, otherwise
+// an absence proof of the packet receipt is performed to ensure that the packet
+// was never delivered to the counterparty. If successful, the packet commitment
+// is deleted and the packet has completed its lifecycle.
+func (k Keeper) TimeoutPacketV2(
+	ctx context.Context,
+	packet channeltypes.PacketV2,
+	proof []byte,
+	proofHeight exported.Height,
+) error {
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.GetCounterparty(ctx, packet.SourceId)
+	if !ok {
+		return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceId)
+	}
+
+	if counterparty.ClientId != packet.DestinationId {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	// check that timeout height or timeout timestamp has passed on the other end
+	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceId, proofHeight)
+	if err != nil {
+		return err
+	}
+
+	timeout := channeltypes.NewTimeoutWithTimestamp(packet.GetTimeoutTimestamp())
+	if !timeout.Elapsed(clienttypes.ZeroHeight(), proofTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
+	}
+
+	// check that the commitment has not been cleared and that it matches the packet sent by relayer
+	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packetV2SourcePort, packet.SourceId, packet.Sequence)
+
+	if len(commitment) == 0 {
+		// TODO: pending decision on event structure for V2.
+		// channelkeeper.EmitTimeoutPacketEvent(ctx, packet, nil)
+		// This error indicates that the timeout has already been relayed
+		// or there is a misconfigured relayer attempting to prove a timeout
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
+
+	packetCommitment := channeltypes.CommitPacketV2(packet)
+	// verify we sent the packet and haven't cleared it out yet
+	if !bytes.Equal(commitment, packetCommitment) {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
+	}
+
+	// verify packet receipt absence
+	path := host.PacketReceiptKey(packetV2SourcePort, packet.DestinationId, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+
+	if err := k.ClientKeeper.VerifyNonMembership(
+		ctx,
+		packet.SourceId,
+		proofHeight,
+		0, 0,
+		proof,
+		merklePath,
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceId)
+	}
+
+	// delete packet commitment to prevent replay
+	k.ChannelKeeper.DeletePacketCommitment(ctx, packetV2SourcePort, packet.SourceId, packet.Sequence)
+
+	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.Data[0].SourcePort, "src_channel", packet.SourceId, "dst_port", packet.Data[0].DestinationPort, "dst_channel", packet.DestinationId)
+
+	// TODO: pending decision on event structure for V2.
+	// channelkeeper.EmitTimeoutPacketEvent(ctx, packet, nil)
+
+	return nil
+}
