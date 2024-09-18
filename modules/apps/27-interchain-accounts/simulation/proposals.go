@@ -1,11 +1,13 @@
 package simulation
 
 import (
+	"context"
 	"math/rand"
 
+	"cosmossdk.io/core/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	controllerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
@@ -25,14 +27,14 @@ const (
 func ProposalMsgs(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) []simtypes.WeightedProposalMsg {
 	msgs := make([]simtypes.WeightedProposalMsg, 0, 2)
 	if hostKeeper != nil {
-		msgs = append(msgs, simulation.NewWeightedProposalMsg(
+		msgs = append(msgs, simulation.NewWeightedProposalMsgX(
 			OpWeightMsgUpdateParams,
 			DefaultWeightMsgUpdateParams,
 			SimulateHostMsgUpdateParams,
 		))
 	}
 	if controllerKeeper != nil {
-		msgs = append(msgs, simulation.NewWeightedProposalMsg(
+		msgs = append(msgs, simulation.NewWeightedProposalMsgX(
 			OpWeightMsgUpdateParams,
 			DefaultWeightMsgUpdateParams,
 			SimulateControllerMsgUpdateParams,
@@ -42,25 +44,25 @@ func ProposalMsgs(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 }
 
 // SimulateHostMsgUpdateParams returns a MsgUpdateParams for the host module
-func SimulateHostMsgUpdateParams(_ *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
-	var signer sdk.AccAddress = address.Module("gov")
+func SimulateHostMsgUpdateParams(_ context.Context, r *rand.Rand, _ []simtypes.Account, _ address.Codec) (sdk.Msg, error) {
+	var signer sdk.AccAddress = authtypes.NewModuleAddress("gov")
 	params := types.DefaultParams()
 	params.HostEnabled = false
 
 	return &types.MsgUpdateParams{
 		Signer: signer.String(),
 		Params: params,
-	}
+	}, nil
 }
 
 // SimulateControllerMsgUpdateParams returns a MsgUpdateParams for the controller module
-func SimulateControllerMsgUpdateParams(_ *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
-	var signer sdk.AccAddress = address.Module("gov")
+func SimulateControllerMsgUpdateParams(_ context.Context, r *rand.Rand, _ []simtypes.Account, _ address.Codec) (sdk.Msg, error) {
+	var signer sdk.AccAddress = authtypes.NewModuleAddress("gov")
 	params := controllertypes.DefaultParams()
 	params.ControllerEnabled = false
 
 	return &controllertypes.MsgUpdateParams{
 		Signer: signer.String(),
 		Params: params,
-	}
+	}, nil
 }

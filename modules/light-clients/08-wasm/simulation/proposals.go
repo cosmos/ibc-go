@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // Simulation operation weights constants
@@ -21,7 +22,7 @@ const (
 // ProposalMsgs defines the module weighted proposals' contents
 func ProposalMsgs() []simtypes.WeightedProposalMsg {
 	return []simtypes.WeightedProposalMsg{
-		simulation.NewWeightedProposalMsg(
+		simulation.NewWeightedProposalMsgX(
 			OpWeightMsgStoreCode,
 			DefaultWeightMsgStoreCode,
 			SimulateMsgStoreCode,
@@ -31,7 +32,7 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 
 // SimulateMsgStoreCode returns a random MsgStoreCode for the 08-wasm module
 func SimulateMsgStoreCode(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
-	var signer sdk.AccAddress = address.Module("gov")
+	var signer sdk.AccAddress = authtypes.NewModuleAddress("gov")
 
 	return &types.MsgStoreCode{
 		Signer:       signer.String(),

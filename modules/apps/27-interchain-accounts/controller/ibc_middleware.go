@@ -182,7 +182,7 @@ func (im IBCMiddleware) OnRecvPacket(
 ) ibcexported.Acknowledgement {
 	err := errorsmod.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
 	ack := channeltypes.NewErrorAcknowledgement(err)
-	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err, im.keeper)
+	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err, im.keeper.Environment)
 	return ack
 }
 

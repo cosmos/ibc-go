@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"cosmossdk.io/core/registry"
 	banktypes "cosmossdk.io/x/bank/types"
 	stakingtypes "cosmossdk.io/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -46,7 +47,7 @@ func TestGeneratePacketData(t *testing.T) {
 		memo                string
 		expectedPass        bool
 		message             string
-		registerInterfaceFn func(registry codectypes.InterfaceRegistry)
+		registerInterfaceFn func(registry registry.InterfaceRegistrar)
 		assertionFn         func(t *testing.T, msgs []sdk.Msg)
 	}{
 		{
@@ -54,7 +55,7 @@ func TestGeneratePacketData(t *testing.T) {
 			memo:         "",
 			expectedPass: true,
 			message:      multiMsg,
-			registerInterfaceFn: func(registry codectypes.InterfaceRegistry) {
+			registerInterfaceFn: func(registry registry.InterfaceRegistrar) {
 				stakingtypes.RegisterInterfaces(registry)
 				banktypes.RegisterInterfaces(registry)
 			},

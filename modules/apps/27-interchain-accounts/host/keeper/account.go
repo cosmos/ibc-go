@@ -15,7 +15,7 @@ import (
 // and block dependent information. An error is returned if an account already exists for the generated account.
 // An interchain account type is set in the account keeper and the interchain account address mapping is updated.
 func (k Keeper) createInterchainAccount(ctx context.Context, connectionID, controllerPortID string) (sdk.AccAddress, error) {
-	accAddress := icatypes.GenerateAddress(ctx, connectionID, controllerPortID)
+	accAddress := icatypes.GenerateAddress(ctx, k.Environment, connectionID, controllerPortID)
 
 	if acc := k.accountKeeper.GetAccount(ctx, accAddress); acc != nil {
 		return nil, errorsmod.Wrapf(icatypes.ErrAccountAlreadyExist, "existing account for newly generated interchain account address %s", accAddress)

@@ -6,7 +6,6 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/cosmos-sdk/runtime"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
 	genesistypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/genesis/types"
@@ -142,12 +141,12 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"success", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				suite.chainA.GetSimApp().ICAHostKeeper.Environment,
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
-				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().AuthKeeper,
 				suite.chainA.GetSimApp().ScopedICAHostKeeper,
 				suite.chainA.GetSimApp().MsgServiceRouter(),
 				suite.chainA.GetSimApp().GRPCQueryRouter(),
@@ -157,7 +156,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"failure: interchain accounts module account does not exist", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				suite.chainA.GetSimApp().ICAHostKeeper.Environment,
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
@@ -172,12 +171,12 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"failure: empty mock staking keeper", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				suite.chainA.GetSimApp().ICAHostKeeper.Environment,
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
-				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().AuthKeeper,
 				suite.chainA.GetSimApp().ScopedICAHostKeeper,
 				suite.chainA.GetSimApp().MsgServiceRouter(),
 				suite.chainA.GetSimApp().GRPCQueryRouter(),

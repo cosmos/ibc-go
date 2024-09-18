@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestMigrate1to2() {
 
 		refundAcc = suite.chainA.SenderAccount.GetAddress()
 		packetFee = types.NewPacketFee(fee, refundAcc.String(), []string(nil))
-		moduleAcc = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
+		moduleAcc = suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(types.ModuleName)
 		packetID = channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, 1)
 		packetFees = nil
 
