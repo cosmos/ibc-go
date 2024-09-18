@@ -71,7 +71,7 @@ type TestChain struct {
 	// the new PrivValidator entry.
 	Signers map[string]cmttypes.PrivValidator
 
-	//TrustedValidators is a mapping used to obtain the validator set from which we can prove a header update.
+	// TrustedValidators is a mapping used to obtain the validator set from which we can prove a header update.
 	// It maps from a header height to the next validator set associated with that header.
 	TrustedValidators map[uint64]*cmttypes.ValidatorSet
 
