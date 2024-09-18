@@ -24,6 +24,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	packetserverkeeper "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 )
 
 // Keeper defines the IBC fungible transfer keeper
@@ -32,14 +33,49 @@ type Keeper struct {
 	cdc            codec.BinaryCodec
 	legacySubspace types.ParamSubspace
 
-	ics4Wrapper   porttypes.ICS4Wrapper
-	channelKeeper types.ChannelKeeper
-	authKeeper    types.AccountKeeper
-	bankKeeper    types.BankKeeper
+	ics4Wrapper        porttypes.ICS4Wrapper
+	channelKeeper      types.ChannelKeeper
+	authKeeper         types.AccountKeeper
+	bankKeeper         types.BankKeeper
+	packetServerKeeper packetserverkeeper.Keeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
+}
+
+// NewKeeperWithPacketServer creates a new IBC transfer Keeper instance
+func NewKeeperWithPacketServer(
+	cdc codec.BinaryCodec,
+	storeService corestore.KVStoreService,
+	legacySubspace types.ParamSubspace,
+	ics4Wrapper porttypes.ICS4Wrapper,
+	channelKeeper types.ChannelKeeper,
+	authKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper,
+	packetserverKeeper packetserverkeeper.Keeper,
+	authority string,
+) Keeper {
+	// ensure ibc transfer module account is set
+	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
+		panic(errors.New("the IBC transfer module account has not been set"))
+	}
+
+	if strings.TrimSpace(authority) == "" {
+		panic(errors.New("authority must be non-empty"))
+	}
+
+	return Keeper{
+		cdc:                cdc,
+		storeService:       storeService,
+		legacySubspace:     legacySubspace,
+		ics4Wrapper:        ics4Wrapper,
+		channelKeeper:      channelKeeper,
+		authKeeper:         authKeeper,
+		bankKeeper:         bankKeeper,
+		authority:          authority,
+		packetServerKeeper: packetserverKeeper,
+	}
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
@@ -385,7 +421,7 @@ func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet type
 
 // IsBlockedAddr checks if the given address is allowed to send or receive tokens.
 // The module account is always allowed to send and receive tokens.
-func (k Keeper) isBlockedAddr(addr sdk.AccAddress) bool {
+func (k Keeper) IsBlockedAddr(addr sdk.AccAddress) bool {
 	moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
 	if addr.Equals(moduleAddr) {
 		return false
