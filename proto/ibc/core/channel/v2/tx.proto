@@ -91,11 +91,9 @@ message MsgSendPacket {
   option (cosmos.msg.v1.signer)                       = "signer";
   option (gogoproto.goproto_getters)                  = false;
   string   source_id                                  = 1;
-  string   destination_id                             = 2;
-  uint64   timeout_timestamp                          = 3;
-  repeated ibc.core.channel.v1.PacketData packet_data = 4 [(gogoproto.nullable) = false];
-  string                                  signer      = 5;
-  // string                    dest_port         = 6;
+  uint64   timeout_timestamp                          = 2;
+  repeated ibc.core.channel.v1.PacketData packet_data = 3 [(gogoproto.nullable) = false];
+  string                                  signer      = 4;
 }
 
 // MsgSendPacketResponse defines the Msg/SendPacket response type.
