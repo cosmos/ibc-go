@@ -18,8 +18,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
-const packetV2SourcePort = "v2port"
-
 func (k Keeper) SendPacketV2(
 	ctx context.Context,
 	sourceID string,
@@ -34,7 +32,7 @@ func (k Keeper) SendPacketV2(
 	destChannel := counterparty.ClientId
 	// retrieve the sequence send for this channel
 	// if no packets have been sent yet, initialize the sequence to 1.
-	sequence, found := k.ChannelKeeper.GetNextSequenceSend(ctx, packetV2SourcePort, sourceID)
+	sequence, found := k.ChannelKeeper.GetNextSequenceSend(ctx, host.SentinelV2PortID, sourceID)
 	if !found {
 		sequence = 1
 	}
@@ -68,9 +66,9 @@ func (k Keeper) SendPacketV2(
 	commitment := channeltypes.CommitPacketV2(packet)
 
 	// bump the sequence and set the packet commitment so it is provable by the counterparty
-	k.ChannelKeeper.SetNextSequenceSend(ctx, packetV2SourcePort, sourceID, sequence+1)
-	k.ChannelKeeper.SetPacketCommitment(ctx, packetV2SourcePort, sourceID, packet.GetSequence(), commitment)
-	//	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packetV2SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+	k.ChannelKeeper.SetNextSequenceSend(ctx, host.SentinelV2PortID, sourceID, sequence+1)
+	k.ChannelKeeper.SetPacketCommitment(ctx, host.SentinelV2PortID, sourceID, packet.GetSequence(), commitment)
+	//	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packetV2SentinelPort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	//	channelkeeper.EmitSendPacketEventV2(ctx, packet, sentinelChannel(sourceID), timeoutHeight)
 	return sequence, nil
@@ -231,6 +229,71 @@ func (k Keeper) RecvPacket(
 	return packetV2.Data[0].Payload.Version, nil
 }
 
+func (k Keeper) RecvPacketV2(
+	ctx context.Context,
+	packet channeltypes.PacketV2,
+	proof []byte,
+	proofHeight exported.Height,
+) error {
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationId)
+	if !ok {
+		return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationId)
+	}
+	if counterparty.ClientId != packet.SourceId {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	// check if packet timed out by comparing it with the latest height of the chain
+	selfTimestamp := uint64(sdkCtx.BlockTime().UnixNano())
+	timeout := channeltypes.NewTimeoutWithTimestamp(packet.GetTimeoutTimestamp())
+	if timeout.Elapsed(clienttypes.ZeroHeight(), selfTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(clienttypes.ZeroHeight(), selfTimestamp), "packet timeout elapsed")
+	}
+
+	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
+	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
+	// by the increase of the recvStartSequence.
+	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, host.SentinelV2PortID, packet.DestinationId, packet.Sequence)
+	if found {
+		// TODO: figure out events
+		//channelkeeper.EmitRecvPacketEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel))
+		// This error indicates that the packet has already been relayed. Core IBC will
+		// treat this error as a no-op in order to prevent an entire relay transaction
+		// from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
+
+	path := host.PacketCommitmentKey(host.SentinelV2PortID, packet.SourceId, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+
+	commitment := channeltypes.CommitPacketV2(packet)
+
+	if err := k.ClientKeeper.VerifyMembership(
+		ctx,
+		packet.DestinationId,
+		proofHeight,
+		0, 0,
+		proof,
+		merklePath,
+		commitment,
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationId)
+	}
+
+	// Set Packet Receipt to prevent timeout from occurring on counterparty
+	k.ChannelKeeper.SetPacketReceipt(ctx, host.SentinelV2PortID, packet.DestinationId, packet.Sequence)
+
+	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "source-id", packet.SourceId, "dst-id", packet.DestinationId)
+
+	// TODO: figure out events
+	//channelkeeper.EmitRecvPacketEvent(ctx, packet, sentinelChannel(packet.DestinationChannel))
+
+	return nil
+}
+
 // WriteAcknowledgement implements the async acknowledgement writing logic required by a packet handler.
 // The packet is checked for correctness including asserting that the packet was
 // sent and received on clients which are counterparties for one another.
@@ -284,6 +347,52 @@ func (k Keeper) WriteAcknowledgement(
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	channelkeeper.EmitWriteAcknowledgementEvent(ctx, packet, nil, bz)
+
+	return nil
+}
+
+// WriteAcknowledgementV2 writes the multi acknowledgement to the store. In the synchronous case, this is done
+// in the core IBC handler. Async applications should call WriteAcknowledgementAsyncV2 to update
+// the RecvPacketResult of the relevant application's recvResult.
+func (k Keeper) WriteAcknowledgementV2(
+	ctx context.Context,
+	packet channeltypes.PacketV2,
+	multiAck channeltypes.MultiAcknowledgement,
+) error {
+	// TODO: this should probably error out if any of the acks are async.
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationId)
+	if !ok {
+		return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationId)
+	}
+
+	if counterparty.ClientId != packet.SourceId {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	// NOTE: IBC app modules might have written the acknowledgement synchronously on
+	// the OnRecvPacket callback so we need to check if the acknowledgement is already
+	// set on the store and return an error if so.
+	if k.ChannelKeeper.HasPacketAcknowledgement(ctx, host.SentinelV2PortID, packet.DestinationId, packet.Sequence) {
+		return channeltypes.ErrAcknowledgementExists
+	}
+
+	if _, found := k.ChannelKeeper.GetPacketReceipt(ctx, host.SentinelV2PortID, packet.DestinationId, packet.Sequence); !found {
+		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
+	}
+
+	multiAckBz := k.cdc.MustMarshal(&multiAck)
+	// set the acknowledgement so that it can be verified on the other side
+	k.ChannelKeeper.SetPacketAcknowledgement(
+		ctx, host.SentinelV2PortID, packet.DestinationId, packet.GetSequence(),
+		channeltypes.CommitAcknowledgement(multiAckBz),
+	)
+
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_id", packet.DestinationId)
+
+	// TODO: figure out events, we MUST emit the MultiAck structure here
+	// channelkeeper.EmitWriteAcknowledgementEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel), multiAck)
 
 	return nil
 }
@@ -483,7 +592,7 @@ func (k Keeper) TimeoutPacketV2(
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
-	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packetV2SourcePort, packet.SourceId, packet.Sequence)
+	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, host.SentinelV2PortID, packet.SourceId, packet.Sequence)
 
 	if len(commitment) == 0 {
 		// TODO: pending decision on event structure for V2.
@@ -502,7 +611,7 @@ func (k Keeper) TimeoutPacketV2(
 	}
 
 	// verify packet receipt absence
-	path := host.PacketReceiptKey(packetV2SourcePort, packet.DestinationId, packet.Sequence)
+	path := host.PacketReceiptKey(host.SentinelV2PortID, packet.DestinationId, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
@@ -517,7 +626,7 @@ func (k Keeper) TimeoutPacketV2(
 	}
 
 	// delete packet commitment to prevent replay
-	k.ChannelKeeper.DeletePacketCommitment(ctx, packetV2SourcePort, packet.SourceId, packet.Sequence)
+	k.ChannelKeeper.DeletePacketCommitment(ctx, host.SentinelV2PortID, packet.SourceId, packet.Sequence)
 
 	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.Data[0].SourcePort, "src_channel", packet.SourceId, "dst_port", packet.Data[0].DestinationPort, "dst_channel", packet.DestinationId)
 

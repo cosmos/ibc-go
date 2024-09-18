@@ -15,6 +15,8 @@ const (
 	KeyMultiAck               = "multiAck"
 )
 
+const SentinelV2PortID = "v2port"
+
 // ICS04
 // The following paths are the keys to the store as defined in https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#store-paths
 
@@ -72,6 +74,10 @@ func PruningSequenceStartKey(portID, channelID string) []byte {
 // RecvStartSequenceKey returns the store key for the recv start sequence of a particular channel
 func RecvStartSequenceKey(portID, channelID string) []byte {
 	return []byte(fmt.Sprintf("%s/%s", KeyRecvStartSequence, channelPath(portID, channelID)))
+}
+
+func MultiAckKey(portID, channelID string, sequence uint64) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", KeyMultiAck, channelPath(portID, channelID), sequencePath(sequence)))
 }
 
 func sequencePath(sequence uint64) string {
