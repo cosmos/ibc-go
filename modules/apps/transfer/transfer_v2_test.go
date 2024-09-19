@@ -7,6 +7,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -64,6 +65,7 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 	msg := types.NewMsgTransfer(pathAToB.EndpointA.ChannelConfig.PortID, pathAToB.EndpointA.ChannelID, originalCoins, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), timeoutHeight, 0, "", nil)
 	res, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
+	suite.Require().NoError(pathAToB.EndpointB.UpdateClient())
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.Events)
 	suite.Require().NoError(err)
@@ -92,8 +94,8 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 		coinsSentFromAToB = coinsSentFromAToB.Add(coinSentFromAToB)
 	}
 
-	suite.Require().NoError(pathAToB.EndpointA.UpdateClient())
 	suite.Require().NoError(pathAToB.EndpointB.UpdateClient())
+	suite.Require().NoError(pathAToB.EndpointA.UpdateClient())
 
 	ftpd := types.FungibleTokenPacketDataV2{
 		Tokens: []types.Token{
@@ -109,7 +111,7 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 		Forwarding: types.ForwardingPacketData{},
 	}
 
-	bz, err := ftpd.Marshal()
+	bz, err := suite.chainB.Codec.Marshal(&ftpd)
 	suite.Require().NoError(err)
 
 	timeoutTimestamp := suite.chainB.GetTimeoutTimestamp()
@@ -133,6 +135,36 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 	res, err = suite.chainB.SendMsgs(msgSendPacket)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res)
+	suite.Require().NoError(pathAToB.EndpointA.UpdateClient())
+	suite.Require().NoError(pathAToB.EndpointB.UpdateClient())
+
+	packetKey := host.PacketCommitmentKey(host.SentinelV2PortID, pathAToB.EndpointB.ClientID, 1)
+	proof, proofHeight := pathAToB.EndpointB.QueryProof(packetKey)
+	suite.Require().NotNil(proof)
+	suite.Require().False(proofHeight.IsZero())
+
+	packetV2 := channeltypesv2.NewPacketV2(1, pathAToB.EndpointB.ChannelID, pathAToB.EndpointA.ChannelID, timeoutTimestamp, channeltypes.PacketData{
+		SourcePort:      "transfer",
+		DestinationPort: "transfer",
+		Payload: channeltypes.Payload{
+			Version:  types.V2,
+			Encoding: "json",
+			Value:    bz,
+		},
+	})
+
+	msgRecvPacket := &channeltypesv2.MsgRecvPacket{
+		Packet:          packetV2,
+		ProofCommitment: proof,
+		ProofHeight:     proofHeight,
+		Signer:          suite.chainA.SenderAccount.GetAddress().String(),
+	}
+
+	res, err = suite.chainA.SendMsgs(msgRecvPacket)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(res)
+	suite.Require().NoError(pathAToB.EndpointB.UpdateClient())
+
 }
 
 func TestTransferV2TestSuite(t *testing.T) {

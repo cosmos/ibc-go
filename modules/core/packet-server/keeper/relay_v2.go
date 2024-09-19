@@ -38,7 +38,7 @@ func (k Keeper) SendPacketV2(
 	}
 
 	// construct packet from given fields and channel state
-	packet := channeltypesv2.NewPacketV2(sequence, sourceID, counterparty.ClientId, timeoutTimestamp, data...)
+	packet := channeltypesv2.NewPacketV2(sequence, sourceID, "channel-1", timeoutTimestamp, data...)
 
 	if err := packet.ValidateBasic(); err != nil {
 		return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
@@ -82,13 +82,13 @@ func (k Keeper) RecvPacketV2(
 ) error {
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationId)
+	counterparty, ok := k.GetCounterpartyV2(ctx, packet.Data[0].DestinationPort, "channel-1", packet.DestinationId)
 	if !ok {
 		return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationId)
 	}
-	if counterparty.ClientId != packet.SourceId {
-		return channeltypes.ErrInvalidChannelIdentifier
-	}
+	//if counterparty.ClientId != packet.SourceId {
+	//	return channeltypes.ErrInvalidChannelIdentifier
+	//}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	// check if packet timed out by comparing it with the latest height of the chain
@@ -101,7 +101,8 @@ func (k Keeper) RecvPacketV2(
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
 	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
 	// by the increase of the recvStartSequence.
-	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, host.SentinelV2PortID, packet.DestinationId, packet.Sequence)
+	//_, found := k.ChannelKeeper.GetPacketReceipt(ctx, host.SentinelV2PortID, packet.DestinationId, packet.Sequence)
+	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.Data[0].DestinationPort, packet.DestinationId, packet.Sequence)
 	if found {
 		// TODO: figure out events
 		// channelkeeper.EmitRecvPacketEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel))
@@ -111,21 +112,22 @@ func (k Keeper) RecvPacketV2(
 		return channeltypes.ErrNoOpMsg
 	}
 
-	path := host.PacketCommitmentKey(host.SentinelV2PortID, packet.SourceId, packet.Sequence)
+	path := host.PacketCommitmentKey(host.SentinelV2PortID, counterparty.ClientId, packet.Sequence)
+	//path := host.PacketCommitmentKey(packet.Data[0].SourcePort, packet.SourceId, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	commitment := channeltypes.CommitPacketV2(packet)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		packet.DestinationId,
+		counterparty.ClientId,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 		commitment,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationId)
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", counterparty.ClientId)
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
@@ -150,14 +152,16 @@ func (k Keeper) WriteAcknowledgementV2(
 	// TODO: this should probably error out if any of the acks are async.
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationId)
-	if !ok {
-		return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationId)
-	}
+	//counterparty, ok := k.GetCounterparty(ctx, packet.DestinationId)
+	//if !ok {
+	//	return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationId)
+	//}
 
-	if counterparty.ClientId != packet.SourceId {
-		return channeltypes.ErrInvalidChannelIdentifier
-	}
+	// TODO: how can we make this work if packet.SourceID is a channelID and counterparty has been stored
+	// under the key of a channelID?
+	//if counterparty.ClientId != packet.SourceId {
+	//	return channeltypes.ErrInvalidChannelIdentifier
+	//}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
