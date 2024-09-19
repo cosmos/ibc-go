@@ -98,19 +98,15 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 	suite.Require().NoError(pathAToB.EndpointB.UpdateClient())
 	suite.Require().NoError(pathAToB.EndpointA.UpdateClient())
 
-	ftpd := types.FungibleTokenPacketDataV2{
-		Tokens: []types.Token{
+	ftpd := types.NewFungibleTokenPacketDataV2(
+		[]types.Token{
 			{
 				// "transfer/channel-0/stake"
 				Denom:  types.NewDenom(sdk.DefaultBondDenom, traceAToB),
 				Amount: "100",
 			},
-		},
-		Sender:     suite.chainB.SenderAccount.GetAddress().String(),
-		Receiver:   suite.chainA.SenderAccount.GetAddress().String(),
-		Memo:       "",
-		Forwarding: types.ForwardingPacketData{},
-	}
+		}, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), "", types.ForwardingPacketData{},
+	)
 
 	bz, err := suite.chainB.Codec.Marshal(&ftpd)
 	suite.Require().NoError(err)
