@@ -2,6 +2,8 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	v1types "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
@@ -14,5 +16,15 @@ func NewMsgSendPacket(sourceID string, timeoutTimestamp uint64, signer string, p
 		TimeoutTimestamp: timeoutTimestamp,
 		PacketData:       packetData,
 		Signer:           signer,
+	}
+}
+
+// NewMsgRecvPacket constructs and returns a new MsgRecvPacket
+func NewMsgRecvPacket(packet v1types.PacketV2, proofCommitment []byte, proofHeight clienttypes.Height, signer string) *MsgRecvPacket {
+	return &MsgRecvPacket{
+		Packet:          packet,
+		ProofCommitment: proofCommitment,
+		ProofHeight:     proofHeight,
+		Signer:          signer,
 	}
 }

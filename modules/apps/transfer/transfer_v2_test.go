@@ -133,12 +133,7 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 	packetV2 := channeltypesv2.NewPacketV2(1, pathAToB.EndpointB.ChannelID, pathAToB.EndpointA.ChannelID, timeoutTimestamp,
 		*channeltypes.NewPacketData("transfer", "transfer", *channeltypes.NewPayload(types.V2, "json", bz)))
 
-	msgRecvPacket := &channeltypesv2.MsgRecvPacket{
-		Packet:          packetV2,
-		ProofCommitment: proof,
-		ProofHeight:     proofHeight,
-		Signer:          suite.chainA.SenderAccount.GetAddress().String(),
-	}
+	msgRecvPacket := channeltypesv2.NewMsgRecvPacket(packetV2, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
 	res, err = suite.chainA.SendMsgs(msgRecvPacket)
 	suite.Require().NoError(err)
