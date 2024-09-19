@@ -56,11 +56,13 @@ func (im *IBCModuleV2) OnSendPacketV2(
 	// fail the unmarshaling above, where if ics20version == types.V1 we first unmarshal
 	// into a V1 packet and then convert.
 
-	if data.Sender != signer.String() {
+	if data.Sender != string(signer) {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "invalid signer address: expected %s, got %s", data.Sender, signer)
 	}
 
 	return im.keeper.OnSendPacket(ctx, sourceID, data, signer)
+
+	// TODO: port
 }
 
 // OnRecvPacketV2 implements the IBCModuleV2 interface. A successful acknowledgement

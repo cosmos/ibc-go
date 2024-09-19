@@ -72,13 +72,7 @@ func (k *Keeper) GetCounterpartyV2(ctx context.Context, portID, channelID, clien
 	store := k.ChannelStore(ctx, clientID)
 	bz := store.Get([]byte(types.CounterpartyKey))
 	if len(bz) == 0 {
-		cp, ok := k.ChannelKeeper.GetV2Counterparty(ctx, portID, clientID)
-		if !ok {
-			return types.Counterparty{}, false
-		}
-		k.SetCounterparty(ctx, channelID, cp)
-		//k.SetCounterparty(ctx, clientID, cp)
-		return cp, true
+		return k.ChannelKeeper.GetV2Counterparty(ctx, portID, channelID)
 	}
 
 	var counterparty types.Counterparty

@@ -176,6 +176,11 @@ func (k Keeper) OnSendPacket(
 	packetData types.FungibleTokenPacketDataV2,
 	sender sdk.AccAddress,
 ) error {
+	//_, ok := k.packetServerKeeper.GetCounterparty(ctx, sourceID)
+	//if !ok {
+	//	return errorsmod.Wrap(packetservertypes.ErrCounterpartyNotFound, sourceID)
+	//}
+
 	var coins sdk.Coins
 	for _, token := range packetData.Tokens {
 		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)

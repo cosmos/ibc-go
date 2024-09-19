@@ -873,6 +873,5 @@ func (k *Keeper) GetV2Counterparty(ctx context.Context, portID, channelID string
 		ClientId:         connection.ClientId,
 		MerklePathPrefix: merklePathPrefix,
 	}
-
 	return counterparty, true
 }
