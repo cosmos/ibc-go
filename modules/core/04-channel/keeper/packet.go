@@ -14,7 +14,6 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/core/legacy"
 )
 
 // SendPacket is called by a module in order to send an IBC packet on a channel.
@@ -284,20 +283,6 @@ func (k *Keeper) WriteAcknowledgement(
 	packet exported.PacketI,
 	acknowledgement exported.Acknowledgement,
 ) error {
-	v1Packet, ok := packet.(types.Packet)
-	if !ok {
-		return errorsmod.Wrapf(types.ErrInvalidPacket, "expected packet type %T, got %T", types.Packet{}, packet)
-	}
-
-	// if an acknowledgement is being written for a V2 packet, we need to ensure that the acknowledgement
-	// structure uses the multi ack structure.
-	// TODO: this is a bit gross / hacky, can we ensure that async acks will always have the correct structure?
-	if v1Packet.ProtocolVersion == types.IBC_VERSION_2 {
-		if _, ok := acknowledgement.(*legacy.MultiAck); !ok {
-			acknowledgement = legacy.NewLMultiAck(k.cdc, acknowledgement, packet.GetDestPort())
-		}
-	}
-
 	channel, found := k.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if !found {
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())

@@ -46,17 +46,10 @@ func (k Keeper) SendPacket(
 	}
 
 	// construct packet from given fields and channel state
-	// TODO: packet only being used in event emission.
 	packet := channeltypes.NewPacketWithVersion(data, sequence, sourcePort, sourceChannel,
 		destPort, destChannel, timeoutHeight, timeoutTimestamp, version)
 
-	// TODO: replace with a direct creation of a PacketV2
-	packetV2, err := channeltypes.ConvertPacketV1toV2(packet)
-	if err != nil {
-		return 0, err
-	}
-
-	if err := packetV2.ValidateBasic(); err != nil {
+	if err := packet.ValidateBasic(); err != nil {
 		return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
 	}
 	// check that the client of counterparty chain is still active
@@ -76,18 +69,18 @@ func (k Keeper) SendPacket(
 	}
 
 	// check if packet is timed out on the receiving chain
-	timeout := channeltypes.NewTimeoutWithTimestamp(packetV2.GetTimeoutTimestamp())
+	timeout := channeltypes.NewTimeoutWithTimestamp(packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(latestHeight, latestTimestamp) {
 		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
-	commitment := channeltypes.CommitPacketV2(packetV2)
+	commitment := channeltypes.CommitPacket(packet)
 
 	// bump the sequence and set the packet commitment so it is provable by the counterparty
 	k.ChannelKeeper.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
-	k.ChannelKeeper.SetPacketCommitment(ctx, sourcePort, sourceChannel, packetV2.GetSequence(), commitment)
+	k.ChannelKeeper.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packetV2.Sequence, 10), "src_port", packetV2.Data[0].SourcePort, "src_channel", packetV2.SourceId, "dst_port", packetV2.Data[0].DestinationPort, "dst_channel", packetV2.DestinationId)
+	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	channelkeeper.EmitSendPacketEvent(ctx, packet, nil, timeoutHeight)
 
@@ -107,26 +100,21 @@ func (k Keeper) RecvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) (string, error) {
-	packetV2, err := channeltypes.ConvertPacketV1toV2(packet)
-	if err != nil {
-		return "", err
-	}
-
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packetV2.DestinationId)
+	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
-		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packetV2.DestinationId)
+		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
 	}
 
-	if counterparty.ClientId != packetV2.SourceId {
+	if counterparty.ClientId != packet.SourceChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano())
-	timeout := channeltypes.NewTimeoutWithTimestamp(packetV2.GetTimeoutTimestamp())
+	timeout := channeltypes.NewTimeoutWithTimestamp(packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		return "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
 	}
@@ -134,7 +122,7 @@ func (k Keeper) RecvPacket(
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
 	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
 	// by the increase of the recvStartSequence.
-	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, packetV2.Data[0].DestinationPort, packetV2.DestinationId, packetV2.Sequence)
+	_, found := k.ChannelKeeper.GetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 	if found {
 		// TODO: explicitly using packet(V1) here, as the event structure will remain the same until PacketV2 API is being used.
 		channelkeeper.EmitRecvPacketEvent(ctx, packet, nil)
@@ -144,14 +132,14 @@ func (k Keeper) RecvPacket(
 		return "", channeltypes.ErrNoOpMsg
 	}
 
-	path := host.PacketCommitmentKey(packetV2.Data[0].SourcePort, packetV2.SourceId, packetV2.Sequence)
+	path := host.PacketCommitmentKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
-	commitment := channeltypes.CommitPacketV2(packetV2)
+	commitment := channeltypes.CommitPacket(packet)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		packetV2.DestinationId,
+		packet.DestinationChannel,
 		proofHeight,
 		0, 0,
 		proof,
@@ -162,14 +150,14 @@ func (k Keeper) RecvPacket(
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
-	k.ChannelKeeper.SetPacketReceipt(ctx, packetV2.Data[0].DestinationPort, packetV2.DestinationId, packetV2.Sequence)
+	k.ChannelKeeper.SetPacketReceipt(ctx, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 
-	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packetV2.Sequence, 10), "src_port", packetV2.Data[0].SourcePort, "src_channel", packetV2.SourceId, "dst_port", packetV2.Data[0].DestinationPort, "dst_channel", packetV2.DestinationId)
+	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	// TODO: explicitly using packet(V1) here, as the event structure will remain the same until PacketV2 API is being used.
 	channelkeeper.EmitRecvPacketEvent(ctx, packet, nil)
 
-	return packetV2.Data[0].Payload.Version, nil
+	return packet.AppVersion, nil
 }
 
 // WriteAcknowledgement implements the async acknowledgement writing logic required by a packet handler.
@@ -242,23 +230,18 @@ func (k Keeper) AcknowledgePacket(
 	proofAcked []byte,
 	proofHeight exported.Height,
 ) (string, error) {
-	packetV2, err := channeltypes.ConvertPacketV1toV2(packet)
-	if err != nil {
-		return "", err
-	}
-
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packetV2.SourceId)
+	counterparty, ok := k.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
-		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packetV2.SourceId)
+		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceChannel)
 	}
 
-	if counterparty.ClientId != packetV2.DestinationId {
+	if counterparty.ClientId != packet.DestinationChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
 
-	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packetV2.Data[0].SourcePort, packetV2.SourceId, packetV2.Sequence)
+	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
 		// TODO: explicitly using packet(V1) here, as the event structure will remain the same until PacketV2 API is being used.
 		channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, nil)
@@ -270,36 +253,36 @@ func (k Keeper) AcknowledgePacket(
 		return "", channeltypes.ErrNoOpMsg
 	}
 
-	packetCommitment := channeltypes.CommitPacketV2(packetV2)
+	packetCommitment := channeltypes.CommitPacket(packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
 		return "", errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
-	path := host.PacketAcknowledgementKey(packetV2.Data[0].DestinationPort, packetV2.DestinationId, packetV2.Sequence)
+	path := host.PacketAcknowledgementKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		packetV2.SourceId,
+		packet.SourceChannel,
 		proofHeight,
 		0, 0,
 		proofAcked,
 		merklePath,
 		channeltypes.CommitAcknowledgement(acknowledgement),
 	); err != nil {
-		return "", errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", packetV2.SourceId)
+		return "", errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", packet.SourceChannel)
 	}
 
-	k.ChannelKeeper.DeletePacketCommitment(ctx, packetV2.Data[0].SourcePort, packetV2.SourceId, packetV2.Sequence)
+	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 
-	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packetV2.Sequence, 10), "src_port", packetV2.Data[0].SourcePort, "src_channel", packetV2.SourceId, "dst_port", packetV2.Data[0].DestinationPort, "dst_channel", packetV2.DestinationId)
+	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	// TODO: explicitly using packet(V1) here, as the event structure will remain the same until PacketV2 API is being used.
 	channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, nil)
 
-	return packetV2.Data[0].Payload.Version, nil
+	return packet.AppVersion, nil
 }
 
 // TimeoutPacket implements the timeout logic required by a packet handler.
@@ -316,24 +299,19 @@ func (k Keeper) TimeoutPacket(
 	proofHeight exported.Height,
 	_ uint64,
 ) (string, error) {
-	packetV2, err := channeltypes.ConvertPacketV1toV2(packet)
-	if err != nil {
-		return "", err
-	}
-
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packetV2.SourceId)
+	counterparty, ok := k.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
-		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packetV2.SourceId)
+		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceChannel)
 	}
 
-	if counterparty.ClientId != packetV2.DestinationId {
+	if counterparty.ClientId != packet.DestinationChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
 
 	// check that timeout height or timeout timestamp has passed on the other end
-	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packetV2.SourceId, proofHeight)
+	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceChannel, proofHeight)
 	if err != nil {
 		return "", err
 	}
@@ -344,7 +322,7 @@ func (k Keeper) TimeoutPacket(
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
-	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packetV2.Data[0].SourcePort, packetV2.SourceId, packetV2.Sequence)
+	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 
 	if len(commitment) == 0 {
 		// TODO: explicitly using packet(V1) here, as the event structure will remain the same until PacketV2 API is being used.
@@ -356,19 +334,19 @@ func (k Keeper) TimeoutPacket(
 		return "", channeltypes.ErrNoOpMsg
 	}
 
-	packetCommitment := channeltypes.CommitPacketV2(packetV2)
+	packetCommitment := channeltypes.CommitPacket(packet)
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
 		return "", errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
 	// verify packet receipt absence
-	path := host.PacketReceiptKey(packetV2.Data[0].DestinationPort, packetV2.DestinationId, packetV2.Sequence)
+	path := host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
-		packetV2.SourceId,
+		packet.SourceChannel,
 		proofHeight,
 		0, 0,
 		proof,
@@ -378,9 +356,9 @@ func (k Keeper) TimeoutPacket(
 	}
 
 	// delete packet commitment to prevent replay
-	k.ChannelKeeper.DeletePacketCommitment(ctx, packetV2.Data[0].SourcePort, packetV2.SourceId, packetV2.Sequence)
+	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 
-	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packetV2.Sequence, 10), "src_port", packetV2.Data[0].SourcePort, "src_channel", packetV2.SourceId, "dst_port", packetV2.Data[0].DestinationPort, "dst_channel", packetV2.DestinationId)
+	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
 
 	// TODO: explicitly using packet(V1) here, as the event structure will remain the same until PacketV2 API is being used.
 	channelkeeper.EmitTimeoutPacketEvent(ctx, packet, nil)

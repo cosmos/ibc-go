@@ -27,14 +27,7 @@ func (k *Keeper) SendPacketV2(ctx context.Context, msg *channeltypesv2.MsgSendPa
 
 	for _, pd := range msg.PacketData {
 		cbs := k.PortKeeper.AppRouter.Route(pd.SourcePort)
-
-		// TODO: is it safe to assume an sdk.AccAddress?
-		signer, err := sdk.AccAddressFromBech32(msg.Signer)
-		if err != nil {
-			return nil, err
-		}
-
-		err = cbs.OnSendPacketV2(ctx, msg.SourceId, sequence, msg.TimeoutTimestamp, pd.Payload, signer)
+		err := cbs.OnSendPacketV2(ctx, msg.SourceId, sequence, msg.TimeoutTimestamp, pd.Payload, sdk.AccAddress(msg.Signer))
 		if err != nil {
 			return nil, err
 		}
