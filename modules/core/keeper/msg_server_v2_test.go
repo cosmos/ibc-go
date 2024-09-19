@@ -42,12 +42,7 @@ func (suite *KeeperTestSuite) TestMsgServerV2PacketFlow() {
 	suite.Require().False(proofHeight.IsZero())
 
 	// RecvPacket
-	recvMsg := &channeltypesv2.MsgRecvPacket{
-		Packet:          packet,
-		ProofCommitment: proof,
-		ProofHeight:     proofHeight,
-		Signer:          suite.chainB.SenderAccount.GetAddress().String(),
-	}
+	recvMsg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
 
 	recvPacketResponse, err := path.EndpointB.Chain.SendMsgs(recvMsg)
 
