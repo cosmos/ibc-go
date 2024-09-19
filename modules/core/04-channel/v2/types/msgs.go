@@ -28,3 +28,14 @@ func NewMsgRecvPacket(packet v1types.PacketV2, proofCommitment []byte, proofHeig
 		Signer:          signer,
 	}
 }
+
+// NewMsgAcknowledgement constructs and returns a new MsgAcknowledgement
+func NewMsgAcknoweldgement(packet v1types.PacketV2, multiAck v1types.MultiAcknowledgement, proofAcked []byte, proofHeight clienttypes.Height, signer string) *MsgAcknowledgement {
+	return &MsgAcknowledgement{
+		Packet:               packet,
+		MultiAcknowledgement: multiAck,
+		ProofAcked:           proofAcked,
+		ProofHeight:          proofHeight,
+		Signer:               signer,
+	}
+}

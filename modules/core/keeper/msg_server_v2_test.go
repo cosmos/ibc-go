@@ -82,13 +82,7 @@ func (suite *KeeperTestSuite) TestMsgServerV2PacketFlow() {
 	packetKey = host.PacketAcknowledgementKey(host.SentinelV2PortID, packet.DestinationId, packet.GetSequence())
 	proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 
-	msgAck := &channeltypesv2.MsgAcknowledgement{
-		Packet:               packet,
-		MultiAcknowledgement: expectedAck,
-		ProofAcked:           proof,
-		ProofHeight:          proofHeight,
-		Signer:               suite.chainA.SenderAccount.GetAddress().String(),
-	}
+	msgAck := channeltypesv2.NewMsgAcknoweldgement(packet, expectedAck, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
 	ackPacketResponse, err := path.EndpointA.Chain.SendMsgs(msgAck)
 	suite.Require().NoError(path.EndpointB.UpdateClient())
