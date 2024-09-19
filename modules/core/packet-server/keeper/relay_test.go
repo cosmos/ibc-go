@@ -116,10 +116,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			packet = channeltypes.NewPacketWithVersion(mock.MockPacketData, 1, mock.PortID,
 				path.EndpointA.ClientID, mock.PortID, path.EndpointB.ClientID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp(), mock.Version)
 
-			// TODO: constructor function for packetV2 instead of conversion
-			packetV2, err := channeltypes.ConvertPacketV1toV2(packet)
-			suite.Require().NoError(err)
-
 			// malleate the test case
 			tc.malleate()
 			// send packet
@@ -129,7 +125,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(uint64(1), seq)
-				expCommitment := channeltypes.CommitPacketV2(packetV2)
+				expCommitment := channeltypes.CommitPacket(packet)
 				suite.Require().Equal(expCommitment, suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, seq))
 			} else {
 				suite.Require().Error(err)
@@ -155,13 +151,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			"success",
 			func() {},
 			nil,
-		},
-		{
-			"failure: protocol version is not V2",
-			func() {
-				packet.ProtocolVersion = channeltypes.IBC_VERSION_1
-			},
-			channeltypes.ErrInvalidPacket,
 		},
 		{
 			"failure: counterparty not found",
