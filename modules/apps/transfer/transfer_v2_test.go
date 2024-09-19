@@ -130,15 +130,8 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 	suite.Require().NotNil(proof)
 	suite.Require().False(proofHeight.IsZero())
 
-	packetV2 := channeltypesv2.NewPacketV2(1, pathAToB.EndpointB.ChannelID, pathAToB.EndpointA.ChannelID, timeoutTimestamp, channeltypes.PacketData{
-		SourcePort:      "transfer",
-		DestinationPort: "transfer",
-		Payload: channeltypes.Payload{
-			Version:  types.V2,
-			Encoding: "json",
-			Value:    bz,
-		},
-	})
+	packetV2 := channeltypesv2.NewPacketV2(1, pathAToB.EndpointB.ChannelID, pathAToB.EndpointA.ChannelID, timeoutTimestamp,
+		*channeltypes.NewPacketData("transfer", "transfer", *channeltypes.NewPayload(types.V2, "json", bz)))
 
 	msgRecvPacket := &channeltypesv2.MsgRecvPacket{
 		Packet:          packetV2,
