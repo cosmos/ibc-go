@@ -3,8 +3,6 @@ package keeper
 import (
 	"context"
 	"errors"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	"strconv"
 	"strings"
 
@@ -850,28 +848,4 @@ func (k *Keeper) PruneAcknowledgements(ctx context.Context, portID, channelID st
 	totalRemaining := pruningSequenceEnd - start
 
 	return totalPruned, totalRemaining, nil
-}
-
-// GetV2Counterparty returns a version 2 counterparty for the given port and channel ID
-// by converting the channel into a version 2 counterparty
-func (k *Keeper) GetV2Counterparty(ctx context.Context, portID, channelID string) (packetservertypes.Counterparty, bool) {
-	channel, ok := k.GetChannel(ctx, portID, channelID)
-	if !ok {
-		return packetservertypes.Counterparty{}, false
-	}
-	// Do not allow channel to be converted into a version 2 counterparty
-	// if the channel is not OPEN or if it is ORDERED
-	if channel.State != types.OPEN || channel.Ordering == types.ORDERED {
-		return packetservertypes.Counterparty{}, false
-	}
-	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
-	if !ok {
-		return packetservertypes.Counterparty{}, false
-	}
-	merklePathPrefix := commitmenttypes.NewMerklePath(connection.Counterparty.Prefix.KeyPrefix, []byte(""))
-	counterparty := packetservertypes.Counterparty{
-		ClientId:         connection.ClientId,
-		MerklePathPrefix: merklePathPrefix,
-	}
-	return counterparty, true
 }

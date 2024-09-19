@@ -3,9 +3,8 @@ package keeper
 import (
 	"bytes"
 	"context"
-	"strconv"
-
 	"slices"
+	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -26,7 +25,7 @@ func (k Keeper) SendPacketV2(
 	data []channeltypes.PacketData,
 ) (uint64, error) {
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
-	counterparty, ok := k.GetCounterpartyV2(ctx, "transfer", "channel-2", sourceID)
+	counterparty, ok := k.GetCounterparty(ctx, sourceID)
 	if !ok {
 		return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceID)
 	}

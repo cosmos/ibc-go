@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -43,8 +44,6 @@ type ChannelKeeper interface {
 	GetMultiAcknowledgement(ctx context.Context, portID, channelID string, sequence uint64) (types.MultiAcknowledgement, bool)
 	// SetMultiAcknowledgement writes the multi ack under the multi ack path.
 	SetMultiAcknowledgement(ctx context.Context, portID, channelID string, sequence uint64, recvResults types.MultiAcknowledgement)
-
-	GetV2Counterparty(ctx context.Context, portID, channelID string) (Counterparty, bool)
 }
 
 type ClientKeeper interface {
