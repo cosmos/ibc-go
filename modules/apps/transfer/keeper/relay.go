@@ -178,7 +178,7 @@ func (k Keeper) OnRecvPacket(ctx context.Context, packet channeltypes.Packet, da
 		return err
 	}
 
-	if k.IsBlockedAddr(receiver) {
+	if k.isBlockedAddr(receiver) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 	}
 
@@ -346,7 +346,7 @@ func (k Keeper) refundPacketTokens(ctx context.Context, packet channeltypes.Pack
 	if err != nil {
 		return err
 	}
-	if k.IsBlockedAddr(sender) {
+	if k.isBlockedAddr(sender) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
 	}
 
@@ -363,50 +363,6 @@ func (k Keeper) refundPacketTokens(ctx context.Context, packet channeltypes.Pack
 		// if the token we must refund is prefixed by the source port and channel
 		// then the tokens were burnt when the packet was sent and we must mint new tokens
 		if token.Denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
-			// mint vouchers back to sender
-			if err := k.bankKeeper.MintCoins(
-				ctx, types.ModuleName, sdk.NewCoins(coin),
-			); err != nil {
-				return err
-			}
-
-			if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
-				panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
-			}
-		} else {
-			if err := k.unescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (k Keeper) refundPacketTokensV2(ctx context.Context, packet channeltypes.PacketV2, data types.FungibleTokenPacketDataV2) error {
-	// NOTE: packet data type already checked in handler.go
-
-	sender, err := sdk.AccAddressFromBech32(data.Sender)
-	if err != nil {
-		return err
-	}
-	if k.IsBlockedAddr(sender) {
-		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
-	}
-
-	// escrow address for unescrowing tokens back to sender
-	escrowAddress := types.GetEscrowAddress(types.ModuleName, packet.SourceId)
-
-	moduleAccountAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
-	for _, token := range data.Tokens {
-		coin, err := token.ToCoin()
-		if err != nil {
-			return err
-		}
-
-		// if the token we must refund is prefixed by the source port and channel
-		// then the tokens were burnt when the packet was sent and we must mint new tokens
-		if token.Denom.HasPrefix(types.ModuleName, packet.SourceId) {
 			// mint vouchers back to sender
 			if err := k.bankKeeper.MintCoins(
 				ctx, types.ModuleName, sdk.NewCoins(coin),
