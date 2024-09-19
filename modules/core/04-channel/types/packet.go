@@ -343,3 +343,21 @@ func ConvertPacketV1toV2(packet Packet) (PacketV2, error) {
 		},
 	}, nil
 }
+
+// NewPayload constructs and returns a new payload.
+func NewPayload(version, encoding string, value []byte) *Payload {
+	return &Payload{
+		Version:  version,
+		Encoding: encoding,
+		Value:    value,
+	}
+}
+
+// NewPacketData constructs and returns a new PacketData.
+func NewPacketData(sourcePort, destPort string, payload Payload) *PacketData {
+	return &PacketData{
+		SourcePort:      sourcePort,
+		DestinationPort: destPort,
+		Payload:         payload,
+	}
+}

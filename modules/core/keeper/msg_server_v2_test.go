@@ -18,31 +18,12 @@ func (suite *KeeperTestSuite) TestMsgServerV2PacketFlow() {
 
 	timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
 
-	msg := &channeltypesv2.MsgSendPacket{
-		SourceId:         path.EndpointA.ClientID,
-		TimeoutTimestamp: timeoutTimestamp,
-		PacketData: []channeltypes.PacketData{
-			{
-				SourcePort:      mock.ModuleNameV2A,
-				DestinationPort: mock.ModuleNameV2A,
-				Payload: channeltypes.Payload{
-					Version:  mock.Version,
-					Encoding: "json",
-					Value:    ibctesting.MockPacketData,
-				},
-			},
-			{
-				SourcePort:      mock.ModuleNameV2B,
-				DestinationPort: mock.ModuleNameV2B,
-				Payload: channeltypes.Payload{
-					Version:  mock.Version,
-					Encoding: "json",
-					Value:    ibctesting.MockPacketData,
-				},
-			},
-		},
-		Signer: suite.chainA.SenderAccount.GetAddress().String(),
+	payload := channeltypes.NewPayload(mock.Version, "json", ibctesting.MockPacketData)
+	packetData := []channeltypes.PacketData{
+		*channeltypes.NewPacketData(mock.ModuleNameV2A, mock.ModuleNameV2A, *payload),
+		*channeltypes.NewPacketData(mock.ModuleNameV2B, mock.ModuleNameV2B, *payload),
 	}
+	msg := channeltypesv2.NewMsgSendPacket(path.EndpointA.ClientID, timeoutTimestamp, suite.chainA.SenderAccount.GetAddress().String(), packetData...)
 
 	res, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err)

@@ -1,6 +1,8 @@
 package transfer_test
 
 import (
+	"testing"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -8,7 +10,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -115,22 +116,12 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 	suite.Require().NoError(err)
 
 	timeoutTimestamp := suite.chainB.GetTimeoutTimestamp()
-	msgSendPacket := &channeltypesv2.MsgSendPacket{
-		SourceId:         pathAToB.EndpointB.ChannelID,
-		TimeoutTimestamp: timeoutTimestamp,
-		PacketData: []channeltypes.PacketData{
-			{
-				SourcePort:      "transfer",
-				DestinationPort: "transfer",
-				Payload: channeltypes.Payload{
-					Encoding: "json",
-					Version:  types.V2,
-					Value:    bz,
-				},
-			},
-		},
-		Signer: suite.chainB.SenderAccount.GetAddress().String(),
-	}
+	msgSendPacket := channeltypesv2.NewMsgSendPacket(
+		pathAToB.EndpointB.ChannelID,
+		timeoutTimestamp,
+		suite.chainB.SenderAccount.GetAddress().String(),
+		*channeltypes.NewPacketData("transfer", "transfer", *channeltypes.NewPayload(types.V2, "json", bz)),
+	)
 
 	res, err = suite.chainB.SendMsgs(msgSendPacket)
 	suite.Require().NoError(err)
@@ -164,7 +155,6 @@ func (suite *TransferV2TestSuite) TestHandleMsgV2Transfer() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res)
 	suite.Require().NoError(pathAToB.EndpointB.UpdateClient())
-
 }
 
 func TestTransferV2TestSuite(t *testing.T) {
