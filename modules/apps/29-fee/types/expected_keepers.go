@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
@@ -21,11 +20,6 @@ type ChannelKeeper interface {
 	GetPacketCommitment(ctx context.Context, portID, channelID string, sequence uint64) []byte
 	GetNextSequenceSend(ctx context.Context, portID, channelID string) (uint64, bool)
 	HasChannel(ctx context.Context, portID, channelID string) bool
-}
-
-// PortKeeper defines the expected IBC port keeper
-type PortKeeper interface {
-	BindPort(ctx context.Context, portID string) *capabilitytypes.Capability
 }
 
 // BankKeeper defines the expected bank keeper

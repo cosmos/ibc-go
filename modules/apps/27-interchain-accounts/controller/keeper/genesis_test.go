@@ -6,7 +6,6 @@ import (
 	genesistypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -19,14 +18,6 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	}{
 		{
 			"success", func() {},
-		},
-		{
-			"success: capabilities already initialized for first port",
-			func() {
-				capability := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), ports[0])
-				err := suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), capability, host.PortPath(ports[0]))
-				suite.Require().NoError(err)
-			},
 		},
 	}
 
@@ -86,10 +77,6 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 			for _, port := range ports {
 				store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.StoreKey))
 				suite.Require().True(store.Has(icatypes.KeyPort(port)))
-
-				capability, found := suite.chainA.GetSimApp().ScopedICAControllerKeeper.GetCapability(suite.chainA.GetContext(), host.PortPath(port))
-				suite.Require().True(found)
-				suite.Require().NotNil(capability)
 			}
 		})
 	}

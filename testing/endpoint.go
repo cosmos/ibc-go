@@ -777,7 +777,7 @@ func (endpoint *Endpoint) ChanUpgradeCancel() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
-// Deprecated: usage of this function should be replaced by `UpdateChannelState`
+// Deprecated: usage of this function should be replaced by `UpdateChannel`
 // SetChannelState sets a channel state
 func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
 	channel := endpoint.GetChannel()

@@ -36,9 +36,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 					nil, // assign a nil legacy param subspace
 					suite.chainA.GetSimApp().IBCFeeKeeper,
 					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-					suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
 					suite.chainA.GetSimApp().AuthKeeper,
-					suite.chainA.GetSimApp().ScopedICAHostKeeper,
 					suite.chainA.GetSimApp().MsgServiceRouter(),
 					suite.chainA.GetSimApp().GRPCQueryRouter(),
 					authtypes.NewModuleAddress(govtypes.ModuleName).String(),

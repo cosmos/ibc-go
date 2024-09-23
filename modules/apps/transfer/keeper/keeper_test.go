@@ -61,10 +61,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
 				suite.chainA.GetSimApp().AuthKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
-				suite.chainA.GetSimApp().ScopedTransferKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
 		}, ""},
@@ -75,10 +73,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
 				authkeeper.AccountKeeper{}, // empty account keeper
 				suite.chainA.GetSimApp().BankKeeper,
-				suite.chainA.GetSimApp().ScopedTransferKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
 		}, "the IBC transfer module account has not been set"},
@@ -89,10 +85,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
 				suite.chainA.GetSimApp().AuthKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
-				suite.chainA.GetSimApp().ScopedTransferKeeper,
 				"", // authority
 			)
 		}, "authority must be non-empty"},

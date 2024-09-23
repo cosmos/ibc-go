@@ -7,7 +7,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -15,8 +14,7 @@ import (
 )
 
 // SendTx takes pre-built packet data containing messages to be executed on the host chain from an authentication module and attempts to send the packet.
-// The packet sequence for the outgoing packet is returned as a result.
-// If the base application has the capability to send on the provided portID. An appropriate
+// The packet sequence for the outgoing packet is returned as a result. An appropriate
 // absolute timeoutTimestamp must be provided. If the packet is timed out, the channel will be closed.
 // In the case of channel closure, a new channel may be reopened to reconnect to the host chain.
 //
@@ -24,7 +22,7 @@ import (
 // Prior to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
-func (k Keeper) SendTx(ctx context.Context, _ *capabilitytypes.Capability, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
+func (k Keeper) SendTx(ctx context.Context, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
 	return k.sendTx(ctx, connectionID, portID, icaPacketData, timeoutTimestamp)
 }
 

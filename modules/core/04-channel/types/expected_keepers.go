@@ -3,7 +3,6 @@ package types
 import (
 	"context"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -86,9 +85,4 @@ type ConnectionKeeper interface {
 		channelID string,
 		errorReceipt ErrorReceipt,
 	) error
-}
-
-// PortKeeper expected account IBC port keeper
-type PortKeeper interface {
-	Authenticate(ctx context.Context, key *capabilitytypes.Capability, portID string) bool
 }

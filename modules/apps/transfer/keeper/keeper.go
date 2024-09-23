@@ -35,10 +35,8 @@ type Keeper struct {
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
-	portKeeper    types.PortKeeper
 	authKeeper    types.AccountKeeper
 	bankKeeper    types.BankKeeper
-	scopedKeeper  exported.ScopedKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -52,10 +50,8 @@ func NewKeeper(
 	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
-	portKeeper types.PortKeeper,
 	authKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
-	scopedKeeper exported.ScopedKeeper,
 	authority string,
 ) Keeper {
 	// ensure ibc transfer module account is set
@@ -73,10 +69,8 @@ func NewKeeper(
 		legacySubspace: legacySubspace,
 		ics4Wrapper:    ics4Wrapper,
 		channelKeeper:  channelKeeper,
-		portKeeper:     portKeeper,
 		authKeeper:     authKeeper,
 		bankKeeper:     bankKeeper,
-		scopedKeeper:   scopedKeeper,
 		authority:      authority,
 	}
 }

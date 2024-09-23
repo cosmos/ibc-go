@@ -3,9 +3,7 @@ package mock
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -113,14 +111,6 @@ func (im IBCModule) OnRecvPacket(ctx context.Context, channelVersion string, pac
 		return im.IBCApp.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
-	// set state by claiming capability to check if revert happens return
-	capName := GetMockRecvCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
-		// application callback called twice on same packet sequence
-		// must never occur
-		panic(err)
-	}
-
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	sdkCtx.EventManager().EmitEvent(NewMockRecvPacketEvent())
 
@@ -139,13 +129,6 @@ func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, channelVersion 
 		return im.IBCApp.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
-	capName := GetMockAckCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
-		// application callback called twice on same packet sequence
-		// must never occur
-		panic(err)
-	}
-
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	sdkCtx.EventManager().EmitEvent(NewMockAckPacketEvent())
 
@@ -156,13 +139,6 @@ func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, channelVersion 
 func (im IBCModule) OnTimeoutPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnTimeoutPacket != nil {
 		return im.IBCApp.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
-	}
-
-	capName := GetMockTimeoutCanaryCapabilityName(packet)
-	if _, err := im.IBCApp.ScopedKeeper.NewCapability(ctx, capName); err != nil {
-		// application callback called twice on same packet sequence
-		// must never occur
-		panic(err)
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
@@ -212,19 +188,4 @@ func (IBCModule) UnmarshalPacketData(ctx context.Context, portID string, channel
 		return MockPacketData, Version, nil
 	}
 	return nil, "", MockApplicationCallbackError
-}
-
-// GetMockRecvCanaryCapabilityName generates a capability name for testing OnRecvPacket functionality.
-func GetMockRecvCanaryCapabilityName(packet channeltypes.Packet) string {
-	return fmt.Sprintf("%s%s%s%s", MockRecvCanaryCapabilityName, packet.GetDestPort(), packet.GetDestChannel(), strconv.Itoa(int(packet.GetSequence())))
-}
-
-// GetMockAckCanaryCapabilityName generates a capability name for OnAcknowledgementPacket functionality.
-func GetMockAckCanaryCapabilityName(packet channeltypes.Packet) string {
-	return fmt.Sprintf("%s%s%s%s", MockAckCanaryCapabilityName, packet.GetSourcePort(), packet.GetSourceChannel(), strconv.Itoa(int(packet.GetSequence())))
-}
-
-// GetMockTimeoutCanaryCapabilityName generates a capability name for OnTimeoutacket functionality.
-func GetMockTimeoutCanaryCapabilityName(packet channeltypes.Packet) string {
-	return fmt.Sprintf("%s%s%s%s", MockTimeoutCanaryCapabilityName, packet.GetSourcePort(), packet.GetSourceChannel(), strconv.Itoa(int(packet.GetSequence())))
 }

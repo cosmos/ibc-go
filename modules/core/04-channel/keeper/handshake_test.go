@@ -572,8 +572,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 		{"success with upgrade info", func() {
 			path.Setup()
 
-			err := path.EndpointA.SetChannelState(types.CLOSED)
-			suite.Require().NoError(err)
+			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 
 			// add mock upgrade info to simulate that the channel is closing during
 			// an upgrade and verify that the upgrade information is deleted
