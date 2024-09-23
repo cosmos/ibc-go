@@ -83,14 +83,14 @@ We reserve the right to drop support for releases if they are deemed unused (for
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v0.1.x+ibc-go-v7.3.x`|September 17, 2024|
+|`v0.1.x+ibc-go-v7.3.x`|March 17, 2025|
 |`v0.1.x+ibc-go-v8.0.x`|May 10, 2025|
 
 ### `08-wasm` light client proxy module
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v0.3.x+ibc-go-v7.4.x-wasmvm-v1.5.x`|September 17, 2024|
+|`v0.3.x+ibc-go-v7.4.x-wasmvm-v1.5.x`|March 17, 2025|
 |`v0.4.x+ibc-go-v8.4.x-wasmvm-v2.0.x`|May 10, 2025|
 
 ### What pull requests will be included in stable patch-releases?

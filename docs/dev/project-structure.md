@@ -8,10 +8,6 @@ Every Interchain Standard (ICS) has been developed in its own package. The devel
 
 This folder contains implementations for the IBC TAO (`core`), IBC applications (`apps`) and light clients (`light-clients`).
 
-### `capability`
-
-This module is an implementation of [Cosmos SDK's ADR 003](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-003-dynamic-capability-store.md) that allows for provisioning, tracking, and authenticating multi-owner capabilities at runtime.
-
 ### `core`
 
 - `02-client`: This package is an implementation for Cosmos SDK-based chains of [ICS 02](https://github.com/cosmos/ibc/tree/main/spec/core/ics-002-client-semantics). This implementation defines the types and methods needed to operate light clients tracking other chain's consensus state.

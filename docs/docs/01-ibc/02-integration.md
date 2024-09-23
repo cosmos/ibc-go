@@ -36,7 +36,6 @@ We need to register the core `ibc` and `transfer` `Keeper`s as follows:
 import (
   // other imports
   // ...
-  capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
   ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
   ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 )
@@ -48,10 +47,6 @@ type App struct {
   // ...
   IBCKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
   TransferKeeper   ibctransferkeeper.Keeper // for cross-chain fungible token transfers
-
-  // make scoped keepers public for test purposes
-  ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
-  ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
   // ...
   // module and simulation manager definitions
@@ -169,7 +164,6 @@ import (
   "github.com/cosmos/cosmos-sdk/types/module"
 
   ibc "github.com/cosmos/ibc-go/v9/modules/core"
-  "github.com/cosmos/ibc-go/modules/capability"
   "github.com/cosmos/ibc-go/v9/modules/apps/transfer"
 )
 
@@ -180,7 +174,6 @@ func NewApp(...args) *App {
     // other modules
     // ...
     // highlight-start
-+   capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
 +   ibc.NewAppModule(app.IBCKeeper),
 +   transfer.NewAppModule(app.TransferKeeper),
     // highlight-end
@@ -251,7 +244,6 @@ tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
 app.IBCKeeper.ClientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 app.ModuleManager = module.NewManager(
   // ...
-  capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
   ibc.NewAppModule(app.IBCKeeper),
   transfer.NewAppModule(app.TransferKeeper), // i.e ibc-transfer module
 
@@ -273,7 +265,6 @@ import (
   // other imports
   // ...
   stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-  capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
   ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
   ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
   ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -283,11 +274,8 @@ func NewApp(...args) *App {
   // ... continuation from above
 
   // add x/staking, ibc and transfer modules to BeginBlockers
-  // capability module's Beginblocker must come before any
-  // modules using capabilities (e.g. IBC)
   app.ModuleManager.SetOrderBeginBlockers(
     // other modules ...
-    capabilitytypes.ModuleName,
     stakingtypes.ModuleName,
     ibcexported.ModuleName,
     ibctransfertypes.ModuleName,
@@ -297,16 +285,11 @@ func NewApp(...args) *App {
     stakingtypes.ModuleName,
     ibcexported.ModuleName,
     ibctransfertypes.ModuleName,
-    capabilitytypes.ModuleName,
   )
 
   // ...
 
-  // NOTE: Capability module must occur first so that it can initialize any capabilities
-  // so that other modules that want to create or claim capabilities afterwards in InitChain
-  // can do so safely.
   genesisModuleOrder := []string{
-    capabilitytypes.ModuleName,
     // other modules
     // ...
     ibcexported.ModuleName,
@@ -316,10 +299,6 @@ func NewApp(...args) *App {
 
   // ... continues
 ```
-
-:::warning
-**IMPORTANT**: The capability module **must** be declared first in `SetOrderBeginBlockers` and `SetOrderInitGenesis`.
-:::
 
 That's it! You have now wired up the IBC module and the `transfer` module, and are now able to send fungible tokens across
 different chains. If you want to have a broader view of the changes take a look into the SDK's
