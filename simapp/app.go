@@ -147,6 +147,7 @@ var (
 		ibcfeetypes.ModuleName:         nil,
 		icatypes.ModuleName:            nil,
 		mock.ModuleName:                nil,
+		pooltypes.ModuleName:           nil,
 	}
 )
 
