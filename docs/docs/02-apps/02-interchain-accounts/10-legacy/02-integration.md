@@ -24,8 +24,6 @@ Interchain Account authentication modules are the base application of a middlewa
 
 ![ica-pre-v6.png](./images/ica-pre-v6.png)
 
-> Please note that since ibc-go v6 the channel capability is claimed by the controller submodule and therefore it is not required for authentication modules to claim the capability in the `OnChanOpenInit` callback. Therefore the custom authentication module does not need a scoped keeper anymore.
-
 ## Example integration
 
 ```go
@@ -77,9 +75,6 @@ keys := sdk.NewKVStoreKeys(
 
 ... 
 
-// Create the scoped keepers for each submodule keeper and authentication keeper
-scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
-scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
 
 ...
 
@@ -88,13 +83,13 @@ app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
   appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
   app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
   app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-  scopedICAControllerKeeper, app.MsgServiceRouter(),
+  app.MsgServiceRouter(),
 )
 app.ICAHostKeeper = icahostkeeper.NewKeeper(
   appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
   app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
   app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-  app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
+  app.AccountKeeper, app.MsgServiceRouter(),
 )
 
 // Create Interchain Accounts AppModule

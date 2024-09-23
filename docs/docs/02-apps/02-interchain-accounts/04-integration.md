@@ -71,26 +71,20 @@ keys := sdk.NewKVStoreKeys(
 
 ... 
 
-// Create the scoped keepers for each submodule keeper and authentication keeper
-scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
-scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
-scopedICAAuthKeeper := app.CapabilityKeeper.ScopeToModule(icaauthtypes.ModuleName)
-
-...
 
 // Create the Keeper for each submodule
 app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
   appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
   app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
   app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
-  scopedICAControllerKeeper, app.MsgServiceRouter(),
+  app.MsgServiceRouter(),
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 )
 app.ICAHostKeeper = icahostkeeper.NewKeeper(
   appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
   app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
   app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper, app.AccountKeeper,
-  scopedICAHostKeeper, app.MsgServiceRouter(), app.GRPCQueryRouter(),
+  app.MsgServiceRouter(), app.GRPCQueryRouter(),
   authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 )
 
