@@ -11,7 +11,7 @@ Want to spin up a quick testnet with your friends? Follow these steps. Unless st
 Download the Cosmos SDK and unzip it. You can do this manually (via the GitHub UI) or with the git clone command:
 
 ```sh
-git clone github.com/cosmos/cosmos-sdk.git
+git clone github.com/cosmos/ibc-go.git
 ```
 
 Next, run this command to build the `simd` binary in the `build` directory:
