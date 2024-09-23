@@ -771,6 +771,8 @@ func (app *SimApp) setAnteHandler(txConfig client.TxConfig) {
 			ante.HandlerOptions{
 				AccountKeeper:   app.AuthKeeper,
 				BankKeeper:      app.BankKeeper,
+				ConsensusKeeper: app.ConsensusParamsKeeper,
+				Environment:     runtime.NewEnvironment(nil, app.Logger(), runtime.EnvWithMsgRouterService(app.MsgServiceRouter()), runtime.EnvWithQueryRouterService(app.GRPCQueryRouter())), // nil is set as the kvstoreservice to avoid module access,
 				SignModeHandler: txConfig.SignModeHandler(),
 				FeegrantKeeper:  app.FeeGrantKeeper,
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
