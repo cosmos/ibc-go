@@ -6,7 +6,7 @@ The implementation of fungible token path unwinding vastly simplifies token tran
 
 Path unwinding reduces the complexity of token transfer for the end user; a user simply needs to choose the final destination for their tokens and the complexity of determining the optimal route is abstracted away. This is a huge user experience improvement.
 
-In addition to unwinding, when a user recieves their token on a destination chain, they then want to use the token in some way. By enabling token forwarding, a user can recieve a token, perform some action with that token, for example a swap, and then send the token onto another chain. We observe that the complexity of IBC is increasingly being abstracted away from end users and automating workflows such as transfer, swap and forward with a single signed transaction significantly enhances usability. 
+In addition to unwinding, when a user receives their token on a destination chain, they then want to use the token in some way. By enabling token forwarding, a user can receive a token, perform some action with that token, for example a swap, and then send the token onto another chain. We observe that the complexity of IBC is increasingly being abstracted away from end users and automating workflows such as transfer, swap and forward with a single signed transaction significantly enhances usability. 
 
 ## Problem
 

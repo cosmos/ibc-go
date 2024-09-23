@@ -102,4 +102,4 @@ pagination:
   total: "2"
 ```
 
-An amount of `1075samoleans` has been deducted, which is what we expected: `1000samoleans` have been transfered to `VALIDATOR_CHAIN2` and `75stake` have been paid for the receive and acknowledgment fees. The timeout fee has been refunded to `VALIDATOR_CHAIN1` and the relayer address `RLY_CHAIN1` should have gained `75samoleans` for submitting the `MsgRecvPacket` and the `MsgAcknowledgement` messages.
+An amount of `1075samoleans` has been deducted, which is what we expected: `1000samoleans` have been transferred to `VALIDATOR_CHAIN2` and `75stake` have been paid for the receive and acknowledgment fees. The timeout fee has been refunded to `VALIDATOR_CHAIN1` and the relayer address `RLY_CHAIN1` should have gained `75samoleans` for submitting the `MsgRecvPacket` and the `MsgAcknowledgement` messages.
