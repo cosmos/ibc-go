@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/core/registry"
+	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -43,7 +43,7 @@ func (AppModule) IsOnePerModuleType() {}
 func (AppModule) IsAppModule() {}
 
 // RegisterLegacyAminoCodec performs a no-op. The solo machine client does not support amino.
-func (AppModuleBasic) RegisterLegacyAminoCodec(registry.AminoRegistrar) {}
+func (AppModuleBasic) RegisterLegacyAminoCodec(coreregistry.AminoRegistrar) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any. This allows core IBC
 // to unmarshal solo machine types.

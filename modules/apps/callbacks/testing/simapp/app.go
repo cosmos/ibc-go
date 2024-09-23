@@ -442,7 +442,7 @@ func NewSimApp(
 		appCodec, runtime.NewKVStoreService(keys[ibcfeetypes.StoreKey]),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
 		app.IBCKeeper.ChannelKeeper,
-		app.AccountKeeper, app.BankKeeper,
+		app.AuthKeeper, app.BankKeeper,
 	)
 
 	// ICA Controller keeper
@@ -459,7 +459,7 @@ func NewSimApp(
 		appCodec, runtime.NewKVStoreService(keys[icahosttypes.StoreKey]), app.GetSubspace(icahosttypes.SubModuleName),
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper,
-		app.AccountKeeper, app.MsgServiceRouter(),
+		app.AuthKeeper, app.MsgServiceRouter(),
 		app.GRPCQueryRouter(), authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -476,7 +476,7 @@ func NewSimApp(
 		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
 		app.IBCKeeper.ChannelKeeper,
-		app.AccountKeeper, app.BankKeeper,
+		app.AuthKeeper, app.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 

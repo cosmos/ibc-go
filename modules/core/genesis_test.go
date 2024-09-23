@@ -363,7 +363,6 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 
 			err = ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
 			suite.Require().NoError(err)
-
 		})
 	}
 }

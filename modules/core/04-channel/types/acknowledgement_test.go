@@ -9,11 +9,6 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
-const (
-	gasUsed   = uint64(100)
-	gasWanted = uint64(100)
-)
-
 // tests acknowledgement.ValidateBasic and acknowledgement.Acknowledgement
 func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test, we are okay with copying locks
 	testCases := []struct {
