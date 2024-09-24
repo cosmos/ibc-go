@@ -17,14 +17,6 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-<<<<<<< HEAD
-||||||| 1a5c739d3
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/testutil"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-=======
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
->>>>>>> feat/upgrade-sdk-v0.52
 
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
@@ -416,76 +408,6 @@ func (chain *TestChain) GetConsensusState(clientID string, height exported.Heigh
 	return chain.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(chain.GetContext(), clientID, height)
 }
 
-<<<<<<< HEAD
-// GetTrustedValidators will return the trusted validator set of the chain for the given trusted height. Otherwise
-// it will return an error.
-func (chain *TestChain) GetTrustedValidators(trustedHeight int64) (*cmttypes.ValidatorSet, error) {
-	// historical information does not store the validator set which committed the header at
-	// height h. During BeginBlock, it stores the last updated validator set. This is equivalent to
-	// the next validator set at height h. This is because cometbft processes the validator set
-	// as follows:
-	//
-	// valSetChanges := endBlock()
-	// chain.Vals = chain.NextVals
-	// chain.NextVals = applyValSetChanges(chain.NextVals, valSetChanges)
-	//
-	// At height h, the validators in the historical information are the:
-	// validators used to sign height h + 1 (next validator set)
-	//
-	// Since we want to return the trusted validator set, which is the next validator set
-	// for height h, we can simply query using the trusted height.
-	// histInfo, err := chain.App.GetStakingKeeper().GetHistoricalInfo(chain.GetContext(), trustedHeight)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// valSet := stakingtypes.Validators{
-	// 	Validators: histInfo.Valset,
-	// }
-
-	// tmValidators, err := testutil.ToCmtValidators(valSet, sdk.DefaultPowerReduction)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	return nil, nil
-}
-
-||||||| 1a5c739d3
-// GetTrustedValidators will return the trusted validator set of the chain for the given trusted height. Otherwise
-// it will return an error.
-func (chain *TestChain) GetTrustedValidators(trustedHeight int64) (*cmttypes.ValidatorSet, error) {
-	// historical information does not store the validator set which committed the header at
-	// height h. During BeginBlock, it stores the last updated validator set. This is equivalent to
-	// the next validator set at height h. This is because cometbft processes the validator set
-	// as follows:
-	//
-	// valSetChanges := endBlock()
-	// chain.Vals = chain.NextVals
-	// chain.NextVals = applyValSetChanges(chain.NextVals, valSetChanges)
-	//
-	// At height h, the validators in the historical information are the:
-	// validators used to sign height h + 1 (next validator set)
-	//
-	// Since we want to return the trusted validator set, which is the next validator set
-	// for height h, we can simply query using the trusted height.
-	histInfo, err := chain.App.GetStakingKeeper().GetHistoricalInfo(chain.GetContext(), trustedHeight)
-	if err != nil {
-		return nil, err
-	}
-
-	valSet := stakingtypes.Validators{
-		Validators: histInfo.Valset,
-	}
-
-	tmValidators, err := testutil.ToCmtValidators(valSet, sdk.DefaultPowerReduction)
-	if err != nil {
-		return nil, err
-	}
-	return cmttypes.NewValidatorSet(tmValidators), nil
-}
-
-=======
->>>>>>> feat/upgrade-sdk-v0.52
 // GetAcknowledgement retrieves an acknowledgement for the provided packet. If the
 // acknowledgement does not exist then testing will fail.
 func (chain *TestChain) GetAcknowledgement(packet channeltypes.Packet) []byte {
