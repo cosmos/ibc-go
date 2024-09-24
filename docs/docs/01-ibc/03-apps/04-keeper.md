@@ -32,7 +32,6 @@ type Keeper struct {
 
   channelKeeper types.ChannelKeeper
   portKeeper    types.PortKeeper
-  scopedKeeper  capabilitykeeper.ScopedKeeper
 
   // ... additional according to custom logic
 }
@@ -56,19 +55,6 @@ func NewKeeper(
   }
 }
 
-// hasCapability checks if the IBC app module owns the port capability for the desired port
-func (k Keeper) hasCapability(ctx sdk.Context, portID string) bool {
-  _, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
-  return ok
-}
-
-// BindPort defines a wrapper function for the port Keeper's function in
-// order to expose it to module's InitGenesis function
-func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-  cap := k.portKeeper.BindPort(ctx, portID)
-  return k.ClaimCapability(ctx, cap, host.PortPath(portID))
-}
-
 // GetPort returns the portID for the IBC app module. Used in ExportGenesis
 func (k Keeper) GetPort(ctx sdk.Context) string {
   store := ctx.KVStore(k.storeKey)
@@ -79,17 +65,6 @@ func (k Keeper) GetPort(ctx sdk.Context) string {
 func (k Keeper) SetPort(ctx sdk.Context, portID string) {
   store := ctx.KVStore(k.storeKey)
   store.Set(types.PortKey, []byte(portID))
-}
-
-// AuthenticateCapability wraps the scopedKeeper's AuthenticateCapability function
-func (k Keeper) AuthenticateCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) bool {
-  return k.scopedKeeper.AuthenticateCapability(ctx, cap, name)
-}
-
-// ClaimCapability allows the IBC app module to claim a capability that core IBC
-// passes to it
-func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capabilitytypes.Capability, name string) error {
-  return k.scopedKeeper.ClaimCapability(ctx, cap, name)
 }
 
 // ... additional according to custom logic

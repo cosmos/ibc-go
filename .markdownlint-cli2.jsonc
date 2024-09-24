@@ -6,7 +6,6 @@
     ".github",
     "**/CHANGELOG.md",
     "vendor/**",
-    "e2e/vendor/**",
-    "modules/capability/vendor/**"
+    "e2e/vendor/**"
   ]
 }

@@ -138,7 +138,7 @@ a multi-denom collections of tokens is also allowed (i.e. forwarding of tokens o
 ### Unwind tokens
 
 Taking again as an example the topology from the previous section, we assume that native tokens on chain `A`
-have been transfered to chain `C`. The IBC vouchers on chain `C` have the denomination trace
+have been transferred to chain `C`. The IBC vouchers on chain `C` have the denomination trace
 `transfer/channelCtoB/transfer/channelBtoA`, and with forwarding it is possible to submit a transfer message 
 on chain `C` and automatically unwind the vouchers through chain `B` to chain `A`, so that the tokens recovered
 on the origin chain regain their native denomination. In order to execute automatic unwinding, the transfer

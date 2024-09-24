@@ -116,9 +116,7 @@ packetData := icatypes.InterchainAccountPacketData{
 timeoutTimestamp := obtainTimeoutTimestamp()
 
 // Send the interchain accounts packet, returning the packet sequence
-// A nil channel capability can be passed, since the controller submodule (and not the authentication module) 
-// claims the channel capability since ibc-go v6.
-seq, err = keeper.icaControllerKeeper.SendTx(ctx, nil, portID, packetData, timeoutTimestamp)
+seq, err = keeper.icaControllerKeeper.SendTx(ctx, portID, packetData, timeoutTimestamp)
 ```
 
 The data within an `InterchainAccountPacketData` must be serialized using a format supported by the host chain.

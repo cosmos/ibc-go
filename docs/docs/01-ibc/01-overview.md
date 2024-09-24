@@ -160,34 +160,6 @@ Proofs are passed from core IBC to light clients as bytes. It is up to light cli
 [ICS-24 Host State Machine Requirements](https://github.com/cosmos/ics/tree/master/spec/core/ics-024-host-requirements).
 - The proof format that all implementations must be able to produce and verify is defined in [ICS-23 Proofs](https://github.com/cosmos/ics23) implementation.
 
-### [Capabilities](https://github.com/cosmos/cosmos-sdk/blob/main/docs/learn/advanced/10-ocap.md)
-
-IBC is intended to work in execution environments where modules do not necessarily trust each
-other. Thus, IBC must authenticate module actions on ports and channels so that only modules with the
-appropriate permissions can use them.
-
-This module authentication is accomplished using a [dynamic
-capability store](https://github.com/cosmos/cosmos-sdk/blob/master/docs/architecture/adr-003-dynamic-capability-store.md). Upon binding to a port or
-creating a channel for a module, IBC returns a dynamic capability that the module must claim in
-order to use that port or channel. The dynamic capability module prevents other modules from using that port or channel since
-they do not own the appropriate capability.
-
-While this background information is useful, IBC modules do not need to interact at all with
-these lower-level abstractions. The relevant abstraction layer for IBC application developers is
-that of channels and ports. IBC applications must be written as self-contained **modules**.
-
-A module on one blockchain can communicate with other modules on other blockchains by sending,
-receiving, and acknowledging packets through channels that are uniquely identified by the
-`(channelID, portID)` tuple.
-
-A useful analogy is to consider IBC modules as internet applications on
-a computer. A channel can then be conceptualized as an IP connection, with the IBC port ID being
-analogous to an IP port and the IBC channel ID being analogous to an IP address. Thus, a single
-instance of an IBC module can communicate on the same port with any number of other modules and
-IBC correctly routes all packets to the relevant module using the (channel ID, port ID) tuple. An
-IBC module can also communicate with another IBC module over multiple ports, with each
-`(portID<->portID)` packet stream being sent on a different unique channel.
-
 ### [Ports](https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port)
 
 An IBC module can bind to any number of ports. Each port must be identified by a unique `portID`.
@@ -228,11 +200,6 @@ associated with the `ChannelEnd` executes its callback. So
 on `ChanOpenInit`, the module on chain A executes its callback `OnChanOpenInit`.
 
 The channel identifier is auto derived in the format: `channel-{N}` where `N` is the next sequence to be used.
-
-Just as ports came with dynamic capabilities, channel initialization returns a dynamic capability
-that the module **must** claim so that they can pass in a capability to authenticate channel actions
-like sending packets. The channel capability is passed into the callback on the first parts of the
-handshake; either `OnChanOpenInit` on the initializing chain or `OnChanOpenTry` on the other chain.
 
 #### Closing channels
 

@@ -28,7 +28,7 @@ This message is expected to fail if:
 
 This message will construct a new `MsgChannelOpenInit` on chain and route it to the core IBC message server to initiate the opening step of the channel handshake.
 
-The controller submodule will generate a new port identifier and claim the associated port capability. The caller is expected to provide an appropriate application version string. For example, this may be an ICS-27 JSON encoded [`Metadata`](https://github.com/cosmos/ibc-go/blob/v6.0.0/proto/ibc/applications/interchain_accounts/v1/metadata.proto#L11) type or an ICS-29 JSON encoded [`Metadata`](https://github.com/cosmos/ibc-go/blob/v6.0.0/proto/ibc/applications/fee/v1/metadata.proto#L11) type with a nested application version.
+The controller submodule will generate a new port identifier. The caller is expected to provide an appropriate application version string. For example, this may be an ICS-27 JSON encoded [`Metadata`](https://github.com/cosmos/ibc-go/blob/v6.0.0/proto/ibc/applications/interchain_accounts/v1/metadata.proto#L11) type or an ICS-29 JSON encoded [`Metadata`](https://github.com/cosmos/ibc-go/blob/v6.0.0/proto/ibc/applications/fee/v1/metadata.proto#L11) type with a nested application version.
 If the `Version` string is omitted, the controller submodule will construct a default version string in the `OnChanOpenInit` handshake callback.
 
 ```go

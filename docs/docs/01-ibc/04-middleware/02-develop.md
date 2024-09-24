@@ -53,7 +53,7 @@ The middleware must have access to the underlying application, and be called bef
 
 > Middleware **may** choose not to call the underlying application's callback at all. Though these should generally be limited to error cases.
 
-The `IBCModule` interface consists of the channel handshake callbacks and packet callbacks. Most of the custom logic will be performed in the packet callbacks, in the case of the channel handshake callbacks, introducing the middleware requires consideration to the version negotiation and passing of capabilities.
+The `IBCModule` interface consists of the channel handshake callbacks and packet callbacks. Most of the custom logic will be performed in the packet callbacks, in the case of the channel handshake callbacks, introducing the middleware requires consideration to the version negotiation.
 
 ### Channel handshake callbacks
 
@@ -85,7 +85,6 @@ func (im IBCMiddleware) OnChanOpenInit(
   connectionHops []string,
   portID string,
   channelID string,
-  channelCap *capabilitytypes.Capability,
   counterparty channeltypes.Counterparty,
   version string,
 ) (string, error) {
@@ -104,7 +103,6 @@ func (im IBCMiddleware) OnChanOpenInit(
         connectionHops,
         portID,
         channelID,
-        channelCap,
         counterparty,
         version,
       )
@@ -129,7 +127,6 @@ func (im IBCMiddleware) OnChanOpenInit(
     connectionHops,
     portID,
     channelID,
-    channelCap,
     counterparty,
     metadata.AppVersion, // note we only pass app version here
   )
@@ -154,7 +151,6 @@ func (im IBCMiddleware) OnChanOpenTry(
   connectionHops []string,
   portID,
   channelID string,
-  channelCap *capabilitytypes.Capability,
   counterparty channeltypes.Counterparty,
   counterpartyVersion string,
 ) (string, error) {
@@ -169,7 +165,6 @@ func (im IBCMiddleware) OnChanOpenTry(
       connectionHops,
       portID,
       channelID,
-      channelCap,
       counterparty,
       counterpartyVersion,
     )
@@ -185,7 +180,6 @@ func (im IBCMiddleware) OnChanOpenTry(
     connectionHops,
     portID,
     channelID,
-    channelCap,
     counterparty,
     cpMetadata.AppVersion, // note we only pass counterparty app version here
   )
@@ -281,12 +275,6 @@ func OnChanCloseConfirm(
 
 See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/ibc_middleware.go#L191-L213) an example implementation of this callback for the ICS-29 Fee Middleware module.
 
-#### Capabilities
-
-The middleware should simply pass the capability in the callback arguments along to the underlying application so that it may be claimed by the base application. The base application will then pass the capability up the stack in order to authenticate an outgoing packet/acknowledgement, which you can check in the [`ICS4Wrapper` section](#ics-04-wrappers).
-
-In the case where the middleware wishes to send a packet or acknowledgment without the involvement of the underlying application, it should be given access to the same `scopedKeeper` as the base application so that it can retrieve the capabilities by itself.
-
 ### Packet callbacks
 
 The packet callbacks just like the handshake callbacks wrap the application's packet callbacks. The packet callbacks are where the middleware performs most of its custom logic. The middleware may read the packet flow data and perform some additional packet handling, or it may modify the incoming data before it reaches the underlying application. This enables a wide degree of usecases, as a simple base application like token-transfer can be transformed for a variety of usecases by combining it with custom middleware.
@@ -375,7 +363,6 @@ For stateless middleware, the `ics4Wrapper` can be passed on directly without ha
 type ICS4Wrapper interface {
   SendPacket(
     ctx sdk.Context,
-    chanCap *capabilitytypes.Capability,
     sourcePort string,
     sourceChannel string,
     timeoutHeight clienttypes.Height,
@@ -385,7 +372,6 @@ type ICS4Wrapper interface {
 
   WriteAcknowledgement(
     ctx sdk.Context,
-    chanCap *capabilitytypes.Capability,
     packet exported.PacketI,
     ack exported.Acknowledgement,
   ) error
@@ -407,7 +393,6 @@ Check out the references provided for an actual implementation to clarify, where
 ```go
 func SendPacket(
   ctx sdk.Context,
-  chanCap *capabilitytypes.Capability,
   sourcePort string,
   sourceChannel string,
   timeoutHeight clienttypes.Height,
@@ -419,7 +404,6 @@ func SendPacket(
 
   return ics4Wrapper.SendPacket(
     ctx, 
-    chanCap, 
     sourcePort, 
     sourceChannel, 
     timeoutHeight, 
@@ -437,7 +421,6 @@ See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/keep
 // only called for async acks
 func WriteAcknowledgement(
   ctx sdk.Context,
-  chanCap *capabilitytypes.Capability,
   packet exported.PacketI,
   ack exported.Acknowledgement,
 ) error {
