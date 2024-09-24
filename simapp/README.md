@@ -8,7 +8,7 @@ Want to spin up a quick testnet with your friends? Follow these steps. Unless st
 
 ### 1. Download and Setup
 
-Download the Cosmos SDK and unzip it. You can do this manually (via the GitHub UI) or with the git clone command:
+Download IBC-go and unzip it. You can do this manually (via the GitHub UI) or with the git clone command:
 
 ```sh
 git clone github.com/cosmos/ibc-go.git
