@@ -45,7 +45,7 @@ The additional flags that can be used with the command are:
 
 - `--packet-timeout-height` to specify the timeout block height in the format `{revision}-{height}`. The default value is `0-0`, which effectively disables the timeout. Timeout height can only be absolute, therefore this option must be used in combination with `--absolute-timeouts` set to true.
 - `--packet-timeout-timestamp` to specify the timeout timestamp in nanoseconds. The timeout can be either relative (fromthe current UTC time) or absolute. The default value is 10 minutes (and thus relative). The timeout is disabled when set to 0.
-- `--absolute-timeouts` to interpret the timeout timestamp as an aboslute value (when set to true). The default value is false (and thus the timeout timeout is considered relative to current UTC time).
+- `--absolute-timeouts` to interpret the timeout timestamp as an absolute value (when set to true). The default value is false (and thus the timeout timeout is considered relative to current UTC time).
 - `--memo` to specify the memo string to be sent along with the transfer packet. If forwarding is used, then the memo string will be carried through the intermediary chains to the final destination.
 
 #### `total-escrow`

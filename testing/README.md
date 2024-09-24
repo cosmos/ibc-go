@@ -323,8 +323,7 @@ This might look like:
 ```go
 suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(
   ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-  portID, channelID string, chanCap *capabilitytypes.Capability,
-  counterparty channeltypes.Counterparty, version string,
+  portID, channelID string, counterparty channeltypes.Counterparty, version string,
 ) error {
   return fmt.Errorf("mock ica auth fails")
 }
