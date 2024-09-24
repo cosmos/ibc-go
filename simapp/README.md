@@ -52,7 +52,7 @@ Save the output somewhere safe; you'll need the address later.
 Add a genesis account to your testnet blockchain:
 
 ```sh
-$ ./simd genesis add-genesis-account [key_name] [amount]
+./simd genesis add-genesis-account [key_name] [amount]
 ```
 
 Where `key_name` is the same key name as before, and the `amount` is something like `10000000000000000000000000stake`.
@@ -62,7 +62,7 @@ Where `key_name` is the same key name as before, and the `amount` is something l
 This creates the genesis transaction for your testnet chain:
 
 ```sh
-$ ./simd genesis gentx [key_name] [amount] --chain-id [chain-id]
+./simd genesis gentx [key_name] [amount] --chain-id [chain-id]
 ```
 
 The amount should be at least `1000000000stake`. Providing too much or too little may result in errors when you start your node.
@@ -73,7 +73,7 @@ A participant must create the genesis file `genesis.json` with every participant
 You can do this by gathering all the Genesis transactions under `config/gentx` and then executing this command:
 
 ```sh
-$ ./simd genesis collect-gentxs
+./simd genesis collect-gentxs
 ```
 
 The command will create a new `genesis.json` file that includes data from all the validators. We sometimes call this the "super genesis file" to distinguish it from single-validator genesis files.
@@ -90,7 +90,7 @@ persistent_peers = "[validator_address]@[ip_address]:[port],[validator_address]@
 You can find `validator_address` by executing:
 
 ```sh
-$ ./simd comet show-node-id
+./simd comet show-node-id
 ```
 
 The output will be the hex-encoded `validator_address`. The default `port` is 26656.
@@ -100,7 +100,7 @@ The output will be the hex-encoded `validator_address`. The default `port` is 26
 Finally, execute this command to start your nodes:
 
 ```sh
-$ ./simd start
+./simd start
 ```
 
 Now you have a small testnet that you can use to try out changes to the Cosmos SDK or CometBFT!
