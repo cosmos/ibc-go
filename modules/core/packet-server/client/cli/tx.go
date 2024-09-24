@@ -41,7 +41,7 @@ The [counterparty-merkle-path-prefix] is a comma-separated list of hex-encoded s
 
 			counterparty := types.NewCounterparty(counterpartyClientIdentifier, counterpartyMerklePathPrefix)
 			msg := types.MsgProvideCounterparty{
-				ClientId:     clientIdentifier,
+				ChannelId:    clientIdentifier,
 				Counterparty: counterparty,
 				Signer:       clientCtx.GetFromAddress().String(),
 			}

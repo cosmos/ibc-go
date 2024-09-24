@@ -25,8 +25,8 @@ message MsgProvideCounterparty {
 
   option (gogoproto.goproto_getters) = false;
 
-  // client unique identifier
-  string client_id = 1;
+  // unique identifier we will use to write all packet messages sent to counterparty
+  string channel_id = 1;
   // counterparty client
   Counterparty counterparty = 2 [(gogoproto.nullable) = false];
   // signer address
