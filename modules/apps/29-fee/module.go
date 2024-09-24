@@ -13,7 +13,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -24,6 +23,7 @@ import (
 
 var (
 	_ module.AppModule              = (*AppModule)(nil)
+	_ module.HasAminoCodec          = AppModule{}
 	_ module.AppModuleSimulation    = (*AppModule)(nil)
 	_ module.HasGenesis             = (*AppModule)(nil)
 	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
@@ -48,7 +48,7 @@ func (AppModule) RegisterLegacyAminoCodec(cdc coreregistry.AminoRegistrar) {
 }
 
 // RegisterInterfaces registers module concrete types into protobuf Any.
-func (AppModule) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 	types.RegisterInterfaces(registry)
 }
 

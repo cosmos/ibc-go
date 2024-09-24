@@ -13,7 +13,6 @@ import (
 	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
@@ -81,7 +80,7 @@ func (AppModule) IsAppModule() {}
 func (AppModuleBasic) RegisterLegacyAminoCodec(coreregistry.AminoRegistrar) {}
 
 // RegisterInterfaces implements AppModuleBasic interface.
-func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {}
+func (AppModuleBasic) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {}
 
 // DefaultGenesis implements AppModuleBasic interface.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
