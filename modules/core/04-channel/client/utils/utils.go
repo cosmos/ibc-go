@@ -9,13 +9,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	clientutils "github.com/cosmos/ibc-go/v8/modules/core/02-client/client/utils"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/client"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clientutils "github.com/cosmos/ibc-go/v9/modules/core/02-client/client/utils"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcclient "github.com/cosmos/ibc-go/v9/modules/core/client"
 )
 
 // QueryChannel returns a channel end.
@@ -125,39 +123,6 @@ func QueryChannelConsensusState(
 	return res, nil
 }
 
-// QueryLatestConsensusState uses the channel Querier to return the
-// latest ConsensusState given the source port ID and source channel ID.
-func QueryLatestConsensusState(
-	clientCtx client.Context, portID, channelID string,
-) (exported.ConsensusState, clienttypes.Height, clienttypes.Height, error) {
-	clientRes, err := QueryChannelClientState(clientCtx, portID, channelID, false)
-	if err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	var clientState exported.ClientState
-	if err := clientCtx.InterfaceRegistry.UnpackAny(clientRes.IdentifiedClientState.ClientState, &clientState); err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	clientHeight, ok := clientState.GetLatestHeight().(clienttypes.Height)
-	if !ok {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "invalid height type. expected type: %T, got: %T",
-			clienttypes.Height{}, clientHeight)
-	}
-	res, err := QueryChannelConsensusState(clientCtx, portID, channelID, clientHeight, false)
-	if err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	var consensusState exported.ConsensusState
-	if err := clientCtx.InterfaceRegistry.UnpackAny(res.ConsensusState, &consensusState); err != nil {
-		return nil, clienttypes.Height{}, clienttypes.Height{}, err
-	}
-
-	return consensusState, clientHeight, res.ProofHeight, nil
-}
-
 // QueryNextSequenceReceive returns the next sequence receive.
 // If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
 // it uses the gRPC query client.
@@ -229,6 +194,92 @@ func queryNextSequenceSendABCI(clientCtx client.Context, portID, channelID strin
 	sequence := binary.BigEndian.Uint64(value)
 
 	return types.NewQueryNextSequenceSendResponse(sequence, proofBz, proofHeight), nil
+}
+
+// QueryUpgradeError returns the upgrade error.
+// If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
+// it uses the gRPC query client.
+func QueryUpgradeError(
+	clientCtx client.Context, portID, channelID string, prove bool,
+) (*types.QueryUpgradeErrorResponse, error) {
+	if prove {
+		return queryUpgradeErrorABCI(clientCtx, portID, channelID)
+	}
+
+	queryClient := types.NewQueryClient(clientCtx)
+	req := &types.QueryUpgradeErrorRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	}
+
+	return queryClient.UpgradeError(context.Background(), req)
+}
+
+// QueryUpgrade returns the upgrade.
+// If prove is true, it performs an ABCI store query in order to retrieve the merkle proof. Otherwise,
+// it uses the gRPC query client.
+func QueryUpgrade(
+	clientCtx client.Context, portID, channelID string, prove bool,
+) (*types.QueryUpgradeResponse, error) {
+	if prove {
+		return queryUpgradeABCI(clientCtx, portID, channelID)
+	}
+
+	queryClient := types.NewQueryClient(clientCtx)
+	req := &types.QueryUpgradeRequest{
+		PortId:    portID,
+		ChannelId: channelID,
+	}
+
+	return queryClient.Upgrade(context.Background(), req)
+}
+
+// queryUpgradeErrorABCI queries the upgrade error from the store.
+func queryUpgradeErrorABCI(clientCtx client.Context, portID, channelID string) (*types.QueryUpgradeErrorResponse, error) {
+	key := host.ChannelUpgradeErrorKey(portID, channelID)
+
+	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if upgrade error exists
+	if len(value) == 0 {
+		return nil, errorsmod.Wrapf(types.ErrUpgradeErrorNotFound, "portID (%s), channelID (%s)", portID, channelID)
+	}
+
+	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
+
+	var receipt types.ErrorReceipt
+	if err := cdc.Unmarshal(value, &receipt); err != nil {
+		return nil, err
+	}
+
+	return types.NewQueryUpgradeErrorResponse(receipt, proofBz, proofHeight), nil
+}
+
+// queryUpgradeABCI queries the upgrade from the store.
+func queryUpgradeABCI(clientCtx client.Context, portID, channelID string) (*types.QueryUpgradeResponse, error) {
+	key := host.ChannelUpgradeKey(portID, channelID)
+
+	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if upgrade exists
+	if len(value) == 0 {
+		return nil, errorsmod.Wrapf(types.ErrUpgradeErrorNotFound, "portID (%s), channelID (%s)", portID, channelID)
+	}
+
+	cdc := codec.NewProtoCodec(clientCtx.InterfaceRegistry)
+
+	var upgrade types.Upgrade
+	if err := cdc.Unmarshal(value, &upgrade); err != nil {
+		return nil, err
+	}
+
+	return types.NewQueryUpgradeResponse(upgrade, proofBz, proofHeight), nil
 }
 
 // QueryPacketCommitment returns a packet commitment.

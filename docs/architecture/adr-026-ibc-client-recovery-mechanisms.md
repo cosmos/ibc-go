@@ -18,7 +18,7 @@
 
 ### Summary
 
-At launch, IBC will be a novel protocol, without an experienced user-base. At the protocol layer, it is not possible to distinguish between client expiry or misbehaviour due to genuine faults (Byzantine behavior) and client expiry or misbehaviour due to user mistakes (failing to update a client, or accidentally double-signing). In the base IBC protocol and ICS 20 fungible token transfer implementation, if a client can no longer be updated, funds in that channel will be permanently locked and can no longer be transferred. To the degree that it is safe to do so, it would be preferable to provide users with a recovery mechanism which can be utilised in these exceptional cases.
+At launch, IBC will be a novel protocol, without an experienced user-base. At the protocol layer, it is not possible to distinguish between client expiry or misbehaviour due to genuine faults (Byzantine behaviour) and client expiry or misbehaviour due to user mistakes (failing to update a client, or accidentally double-signing). In the base IBC protocol and ICS 20 fungible token transfer implementation, if a client can no longer be updated, funds in that channel will be permanently locked and can no longer be transferred. To the degree that it is safe to do so, it would be preferable to provide users with a recovery mechanism which can be utilised in these exceptional cases.
 
 ### Exceptional cases
 
@@ -48,17 +48,17 @@ We elect not to deal with chains which have actually halted, which is necessaril
 1. Add a new governance proposal with `MsgRecoverClient`.
     1. Create a new Msg with two client identifiers (`string`) and a signer.
     1. The first client identifier is the proposed client to be updated. This client must be either frozen or expired.
-    1. The second client is a substitute client. It carries all the state for the client which may be updated. It must have identitical client and chain parameters to the client which may be updated (except for latest height, frozen height, and chain-id). It should be continually updated during the voting period.
+    1. The second client is a substitute client. It carries all the state for the client which may be updated. It must have identical client and chain parameters to the client which may be updated (except for latest height, frozen height, and chain-id). It should be continually updated during the voting period.
     1. If this governance proposal passes, the client on trial will be updated to the latest state of the substitute.
     1. The signer must be the authority set for the ibc module.
 
     Previously, `AllowUpdateAfterExpiry` and `AllowUpdateAfterMisbehaviour` were used to signal the recovery options for an expired or frozen client, and governance proposals were not allowed to overwrite the client if these parameters were set to false. However, this has now been deprecated because a code migration can overwrite the client and consensus states regardless of the value of these parameters. If governance would vote to overwrite a client or consensus state, it is likely that governance would also be willing to perform a code migration to do the same.
 
-    In addition, `TrustingPeriod` was initally not allowed to be updated by a client upgrade proposal. However, due to the number of situations experienced in production where the `TrustingPeriod` of a client should be allowed to be updated because of ie: initial misconfiguration for a canonical channel, governance should be allowed to update this client parameter.
+    In addition, `TrustingPeriod` was initially not allowed to be updated by a client upgrade proposal. However, due to the number of situations experienced in production where the `TrustingPeriod` of a client should be allowed to be updated because of ie: initial misconfiguration for a canonical channel, governance should be allowed to update this client parameter.
 
     In versions older than ibc-go v8, `MsgRecoverClient` was a governance proposal type `ClientUpdateProposal`. It has been removed and replaced by `MsgRecoverClient` in the migration from governance v1beta1 to governance v1.
 
-    Note that this should NOT be lightly updated, as there may be a gap in time between when misbehaviour has occured and when the evidence of misbehaviour is submitted. For example, if the `UnbondingPeriod` is 2 weeks and the `TrustingPeriod` has also been set to two weeks, a validator could wait until right before `UnbondingPeriod` finishes, submit false information, then unbond and exit without being slashed for misbehaviour. Therefore, we recommend that the trusting period for the 07-tendermint client be set to 2/3 of the `UnbondingPeriod`.
+    Note that this should NOT be lightly updated, as there may be a gap in time between when misbehaviour has occurred and when the evidence of misbehaviour is submitted. For example, if the `UnbondingPeriod` is 2 weeks and the `TrustingPeriod` has also been set to two weeks, a validator could wait until right before `UnbondingPeriod` finishes, submit false information, then unbond and exit without being slashed for misbehaviour. Therefore, we recommend that the trusting period for the 07-tendermint client be set to 2/3 of the `UnbondingPeriod`.
 
 Note that clients frozen due to misbehaviour must wait for the evidence to expire to avoid becoming refrozen.
 

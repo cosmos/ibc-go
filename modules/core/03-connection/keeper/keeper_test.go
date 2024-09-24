@@ -1,15 +1,14 @@
 package keeper_test
 
 import (
-	"fmt"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 type KeeperTestSuite struct {
@@ -34,21 +33,21 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) TestSetAndGetConnection() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 	firstConnection := "connection-0"
 
 	// check first connection does not exist
 	_, existed := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), firstConnection)
 	suite.Require().False(existed)
 
-	suite.coordinator.CreateConnections(path)
+	path.CreateConnections()
 	_, existed = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetConnection(suite.chainA.GetContext(), firstConnection)
 	suite.Require().True(existed)
 }
 
 func (suite *KeeperTestSuite) TestSetAndGetClientConnectionPaths() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupClients(path)
+	path.SetupClients()
 
 	_, existed := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetClientConnectionPaths(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	suite.False(existed)
@@ -61,15 +60,15 @@ func (suite *KeeperTestSuite) TestSetAndGetClientConnectionPaths() {
 }
 
 // create 2 connections: A0 - B0, A1 - B1
-func (suite KeeperTestSuite) TestGetAllConnections() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetAllConnections() {
 	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path1)
+	path1.SetupConnections()
 
 	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path2.EndpointA.ClientID = path1.EndpointA.ClientID
 	path2.EndpointB.ClientID = path1.EndpointB.ClientID
 
-	suite.coordinator.CreateConnections(path2)
+	path2.CreateConnections()
 
 	counterpartyB0 := types.NewCounterparty(path1.EndpointB.ClientID, path1.EndpointB.ConnectionID, suite.chainB.GetPrefix()) // connection B0
 	counterpartyB1 := types.NewCounterparty(path2.EndpointB.ClientID, path2.EndpointB.ConnectionID, suite.chainB.GetPrefix()) // connection B1
@@ -93,16 +92,16 @@ func (suite KeeperTestSuite) TestGetAllConnections() { //nolint:govet // this is
 
 // the test creates 2 clients path.EndpointA.ClientID0 and path.EndpointA.ClientID1. path.EndpointA.ClientID0 has a single
 // connection and path.EndpointA.ClientID1 has 2 connections.
-func (suite KeeperTestSuite) TestGetAllClientConnectionPaths() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *KeeperTestSuite) TestGetAllClientConnectionPaths() {
 	path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
-	suite.coordinator.SetupConnections(path1)
-	suite.coordinator.SetupConnections(path2)
+	path1.SetupConnections()
+	path2.SetupConnections()
 
 	path3 := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path3.EndpointA.ClientID = path2.EndpointA.ClientID
 	path3.EndpointB.ClientID = path2.EndpointB.ClientID
-	suite.coordinator.CreateConnections(path3)
+	path3.CreateConnections()
 
 	expPaths := []types.ConnectionPaths{
 		types.NewConnectionPaths(path1.EndpointA.ClientID, []string{path1.EndpointA.ConnectionID}),
@@ -112,54 +111,6 @@ func (suite KeeperTestSuite) TestGetAllClientConnectionPaths() { //nolint:govet 
 	connPaths := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetAllClientConnectionPaths(suite.chainA.GetContext())
 	suite.Require().Len(connPaths, 2)
 	suite.Require().Equal(expPaths, connPaths)
-}
-
-// TestGetTimestampAtHeight verifies if the clients on each chain return the
-// correct timestamp for the other chain.
-func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
-	var (
-		connection types.ConnectionEnd
-		height     exported.Height
-	)
-
-	cases := []struct {
-		msg      string
-		malleate func()
-		expPass  bool
-	}{
-		{"verification success", func() {
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
-			connection = path.EndpointA.GetConnection()
-			height = suite.chainB.LastHeader.GetHeight()
-		}, true},
-		{"client state not found", func() {}, false},
-		{"consensus state not found", func() {
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupConnections(path)
-			connection = path.EndpointA.GetConnection()
-			height = suite.chainB.LastHeader.GetHeight().Increment()
-		}, false},
-	}
-
-	for _, tc := range cases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-
-			tc.malleate()
-
-			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetTimestampAtHeight(
-				suite.chainA.GetContext(), connection, height,
-			)
-
-			if tc.expPass {
-				suite.Require().NoError(err)
-				suite.Require().EqualValues(uint64(suite.chainB.LastHeader.GetTime().UnixNano()), actualTimestamp)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
-	}
 }
 
 func (suite *KeeperTestSuite) TestLocalhostConnectionEndCreation() {
@@ -185,7 +136,7 @@ func (suite *KeeperTestSuite) TestDefaultSetParams() {
 	suite.Require().Equal(expParams, params)
 }
 
-// TestParams tests that param setting and retrieval works properly
+// TestSetAndGetParams tests that param setting and retrieval works properly
 func (suite *KeeperTestSuite) TestSetAndGetParams() {
 	testCases := []struct {
 		name    string

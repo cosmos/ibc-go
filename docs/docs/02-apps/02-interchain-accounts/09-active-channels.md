@@ -7,13 +7,19 @@ slug: /apps/interchain-accounts/active-channels
 
 # Understanding Active Channels
 
-The Interchain Accounts module uses [ORDERED channels](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#ordering) to maintain the order of transactions when sending packets from a controller to a host chain. A limitation when using ORDERED channels is that when a packet times out the channel will be closed.
+The Interchain Accounts module uses either [ORDERED or UNORDERED](https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#ordering) channels. 
+
+When using `ORDERED` channels, the order of transactions when sending packets from a controller to a host chain is maintained.
+
+When using `UNORDERED` channels, there is no guarantee that the order of transactions when sending packets from the controller to the host chain is maintained. If no ordering is specified in `MsgRegisterInterchainAccount`, then the default ordering for new ICA channels is `UNORDERED`.
+
+> A limitation when using ORDERED channels is that when a packet times out the channel will be closed.
 
 In the case of a channel closing, a controller chain needs to be able to regain access to the interchain account registered on this channel. `Active Channels` enable this functionality.
 
 When an Interchain Account is registered using `MsgRegisterInterchainAccount`, a new channel is created on a particular port. During the `OnChanOpenAck` and `OnChanOpenConfirm` steps (on controller & host chain respectively) the `Active Channel` for this interchain account is stored in state.
 
-It is possible to create a new channel using the same controller chain portID if the previously set `Active Channel` is now in a `CLOSED` state. This channel creation can be initialized programatically by sending a new `MsgChannelOpenInit` message like so:
+It is possible to create a new channel using the same controller chain portID if the previously set `Active Channel` is now in a `CLOSED` state. This channel creation can be initialized programmatically by sending a new `MsgChannelOpenInit` message like so:
 
 ```go
 msg := channeltypes.NewMsgChannelOpenInit(portID, string(versionBytes), channeltypes.ORDERED, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())

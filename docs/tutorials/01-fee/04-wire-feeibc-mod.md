@@ -164,14 +164,6 @@ Next, we need to add the fee middleware to the `SetOrderBeginBlockers`, `SetOrde
 		consensusparamtypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
-	app.mm.SetOrderEndBlockers(
-		// ... other modules
-		vestingtypes.ModuleName,
-		consensusparamtypes.ModuleName,
-		// plus-diff-line 
-+		ibcfeetypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/endBlockers
-	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.

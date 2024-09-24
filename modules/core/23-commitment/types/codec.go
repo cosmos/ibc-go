@@ -3,7 +3,8 @@ package types
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // RegisterInterfaces registers the commitment interfaces to protobuf Any.
@@ -20,10 +21,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		"ibc.core.commitment.v1.Path",
 		(*exported.Path)(nil),
 	)
-	registry.RegisterInterface(
-		"ibc.core.commitment.v1.Proof",
-		(*exported.Proof)(nil),
-	)
 
 	registry.RegisterImplementations(
 		(*exported.Root)(nil),
@@ -35,10 +32,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations(
 		(*exported.Path)(nil),
-		&MerklePath{},
-	)
-	registry.RegisterImplementations(
-		(*exported.Proof)(nil),
-		&MerkleProof{},
+		&v2.MerklePath{},
 	)
 }

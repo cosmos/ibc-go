@@ -1,12 +1,12 @@
 package keeper
 
-/*
-	This file is to allow for unexported functions and fields to be accessible to the testing package.
-*/
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
-import porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+)
 
-// GetICS4Wrapper is a getter for the keeper's ICS4Wrapper.
-func (k *Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
-	return k.ics4Wrapper
+// LegacyTotal is a wrapper for the legacyTotal function for testing.
+func LegacyTotal(f types.Fee) sdk.Coins {
+	return legacyTotal(f)
 }

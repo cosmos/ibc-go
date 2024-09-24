@@ -6,12 +6,12 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctmmigrations "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint/migrations"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctmmigrations "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint/migrations"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 type MigrationsTestSuite struct {
@@ -45,7 +45,7 @@ func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 
 	for i := 0; i < numTMClients; i++ {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)
-		suite.coordinator.SetupClients(path)
+		path.SetupClients()
 
 		paths[i] = path
 	}
@@ -69,14 +69,14 @@ func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 	for _, path := range paths {
 		// collect all heights expected to be pruned
 		var pruneHeights []exported.Height
-		pruneHeights = append(pruneHeights, path.EndpointA.GetClientState().GetLatestHeight())
+		pruneHeights = append(pruneHeights, path.EndpointA.GetClientLatestHeight())
 
 		// these heights will be expired and also pruned
 		for i := 0; i < 3; i++ {
 			err := path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 
-			pruneHeights = append(pruneHeights, path.EndpointA.GetClientState().GetLatestHeight())
+			pruneHeights = append(pruneHeights, path.EndpointA.GetClientLatestHeight())
 		}
 
 		// double chedck all information is currently stored
@@ -110,11 +110,11 @@ func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 		var unexpiredHeights []exported.Height
 		err := path.EndpointA.UpdateClient()
 		suite.Require().NoError(err)
-		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientState().GetLatestHeight())
+		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientLatestHeight())
 
 		err = path.EndpointA.UpdateClient()
 		suite.Require().NoError(err)
-		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientState().GetLatestHeight())
+		unexpiredHeights = append(unexpiredHeights, path.EndpointA.GetClientLatestHeight())
 
 		unexpiredHeightMap[path] = unexpiredHeights
 	}

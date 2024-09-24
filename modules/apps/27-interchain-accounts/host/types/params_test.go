@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 )
 
 func TestValidateParams(t *testing.T) {
@@ -13,4 +13,6 @@ func TestValidateParams(t *testing.T) {
 	require.NoError(t, types.NewParams(false, []string{}).Validate())
 	require.Error(t, types.NewParams(true, []string{""}).Validate())
 	require.Error(t, types.NewParams(true, []string{" "}).Validate())
+	require.Error(t, types.NewParams(true, []string{"*", "/cosmos.bank.v1beta1.MsgSend"}).Validate())
+	require.Error(t, types.NewParams(true, make([]string, types.MaxAllowListLength+1)).Validate())
 }

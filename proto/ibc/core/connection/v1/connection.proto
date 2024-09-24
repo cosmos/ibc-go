@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.connection.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/core/commitment/v1/commitment.proto";
@@ -94,7 +94,7 @@ message ConnectionPaths {
   repeated string paths = 2;
 }
 
-// Version defines the versioning scheme used to negotiate the IBC verison in
+// Version defines the versioning scheme used to negotiate the IBC version in
 // the connection handshake.
 message Version {
   option (gogoproto.goproto_getters) = false;

@@ -12,7 +12,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 // mockSdkMsg defines a mock struct, used for testing codec error scenarios
@@ -34,11 +35,6 @@ func (mockSdkMsg) ProtoMessage() {
 // ValidateBasic implements sdk.Msg
 func (mockSdkMsg) ValidateBasic() error {
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (mockSdkMsg) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{}
 }
 
 // TestSerializeAndDeserializeCosmosTx tests the SerializeCosmosTx and DeserializeCosmosTx functions
@@ -414,7 +410,7 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 			[]proto.Message{
 				&mockSdkMsg{},
 			},
-			types.ErrUnknownDataType,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: multiple unregistered msg types",
@@ -424,13 +420,13 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 				&mockSdkMsg{},
 				&mockSdkMsg{},
 			},
-			types.ErrUnknownDataType,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: empty bytes",
 			[]byte{},
 			nil,
-			types.ErrUnknownDataType,
+			ibcerrors.ErrInvalidType,
 		},
 	}
 

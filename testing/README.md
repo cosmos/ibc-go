@@ -2,7 +2,7 @@
 
 ## Components
 
-The testing package comprises of four parts constructed as a stack.
+The testing package is comprised of four parts constructed as a stack.
 
 - coordinator
 - chain
@@ -53,7 +53,6 @@ type TestingApp interface {
   GetBaseApp() *baseapp.BaseApp
   GetStakingKeeper() ibctestingtypes.StakingKeeper
   GetIBCKeeper() *keeper.Keeper
-  GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
   GetTxConfig() client.TxConfig
 
   // Implemented by SimApp
@@ -86,14 +85,9 @@ func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
   return app.IBCKeeper
 }
 
-// GetScopedIBCKeeper implements the TestingApp interface.
-func (app *SimApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
-  return app.ScopedIBCKeeper
-}
-
 // GetTxConfig implements the TestingApp interface.
 func (app *SimApp) GetTxConfig() client.TxConfig {
-  return MakeTestEncodingConfig().TxConfig
+  return app.txConfig
 }
 
 ```
@@ -118,20 +112,9 @@ The testing package requires that you provide a function to initialize your Test
 
 ```go
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
-  db := dbm.NewMemDB()
-  encCdc := simapp.MakeTestEncodingConfig()
-  app := simapp.NewSimApp(
-    log.NewNopLogger(), 
-    db, 
-    nil, 
-    true,
-    map[int64]bool{},
-    simapp.DefaultNodeHome,
-    5,
-    encCdc, 
-    simapp.EmptyAppOptions{},
-  )
-  return app, simapp.NewDefaultGenesisState(encCdc.Marshaler)
+	db := dbm.NewMemDB()
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	return app, app.DefaultGenesis()
 }
 ```
 
@@ -175,7 +158,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 ```
 
-To create interaction between chainA and chainB, we need to contruct a `Path` these chains will use.
+To create interaction between chainA and chainB, we need to construct a `Path` these chains will use.
 A path contains two endpoints, `EndpointA` and `EndpointB` (corresponding to the order of the chains passed
 into the `NewPath` function). A path is a pointer and its values will be filled in as necessary during the
 setup portion of testing.
@@ -203,7 +186,7 @@ type Endpoint struct {
 The fields empty after `NewPath` is called are `ClientID`, `ConnectionID` and
 `ChannelID` as the clients, connections, and channels for these endpoints have not yet been created. The
 `ClientConfig`, `ConnectionConfig` and `ChannelConfig` contain all the necessary information for clients,
-connections, and channels to be initialized. If you would like to use endpoints which are intitialized to
+connections, and channels to be initialized. If you would like to use endpoints which are initialized to
 use your Port IDs, you might add a helper function similar to the one found in transfer:
 
 ```go
@@ -270,8 +253,8 @@ import (
   "github.com/cometbft/cometbft/libs/log"
   dbm "github.com/cometbft/cometbft-db"
 
-  "github.com/cosmos/ibc-go/v8/modules/apps/transfer/simapp"
-  ibctesting "github.com/cosmos/ibc-go/v8/testing"
+  "github.com/cosmos/ibc-go/v9/modules/apps/transfer/simapp"
+  ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func SetupTransferTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
@@ -340,8 +323,7 @@ This might look like:
 ```go
 suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(
   ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-  portID, channelID string, chanCap *capabilitytypes.Capability,
-  counterparty channeltypes.Counterparty, version string,
+  portID, channelID string, counterparty channeltypes.Counterparty, version string,
 ) error {
   return fmt.Errorf("mock ica auth fails")
 }

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.fee.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types";
 
 import "amino/amino.proto";
 import "gogoproto/gogo.proto";
@@ -94,7 +94,7 @@ message MsgPayPacketFee {
   ibc.applications.fee.v1.Fee fee = 1 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
   // the source port unique identifier
   string source_port_id = 2;
-  // the source channel unique identifer
+  // the source channel unique identifier
   string source_channel_id = 3;
   // account address to refund fee if necessary
   string signer = 4;

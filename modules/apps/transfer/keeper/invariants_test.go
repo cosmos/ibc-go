@@ -5,27 +5,36 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name            string
+		coinsToTransfer sdk.Coins
+		malleate        func()
+		expPass         bool
 	}{
 		{
 			"success",
+			sdk.NewCoins(ibctesting.TestCoin, ibctesting.SecondaryTestCoin),
+			func() {},
+			true,
+		},
+		{
+			"success with single denom",
+			sdk.NewCoins(ibctesting.TestCoin),
 			func() {},
 			true,
 		},
 		{
 			"fails with broken invariant",
+			sdk.NewCoins(ibctesting.TestCoin),
 			func() {
 				// set amount for denom higher than actual value in escrow
-				amount := sdkmath.NewInt(200)
+				amount := ibctesting.TestCoin.Amount.Add(sdkmath.NewInt(100))
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
 			},
 			false,
@@ -38,19 +47,16 @@ func (suite *KeeperTestSuite) TestTotalEscrowPerDenomInvariant() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			suite.coordinator.Setup(path)
+			path.Setup()
 
-			amount := sdkmath.NewInt(100)
-
-			// send coins from chain A to chain B so that we have them in escrow
-			coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 			msg := types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
-				coin,
+				tc.coinsToTransfer,
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
 				suite.chainA.GetTimeoutHeight(), 0, "",
+				nil,
 			)
 
 			res, err := suite.chainA.SendMsgs(msg)

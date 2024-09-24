@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 func TestIsAllowedClient(t *testing.T) {
@@ -19,6 +19,8 @@ func TestIsAllowedClient(t *testing.T) {
 		{"success: valid client with custom params", exported.Tendermint, NewParams(exported.Tendermint), true},
 		{"success: invalid blank client", " ", DefaultParams(), false},
 		{"success: invalid client with custom params", exported.Localhost, NewParams(exported.Tendermint), false},
+		{"success: wildcard allow all clients", "test-client-type", NewParams(AllowAllClients), true},
+		{"success: wildcard allow all clients with blank client", " ", NewParams(AllowAllClients), false},
 	}
 
 	for _, tc := range testCases {
@@ -36,6 +38,9 @@ func TestValidateParams(t *testing.T) {
 		{"default params", DefaultParams(), true},
 		{"custom params", NewParams(exported.Tendermint), true},
 		{"blank client", NewParams(" "), false},
+		{"duplicate clients", NewParams(exported.Tendermint, exported.Tendermint), false},
+		{"allow all clients plus valid client", NewParams(AllowAllClients, exported.Tendermint), false},
+		{"too many allowed clients", NewParams(make([]string, MaxAllowedClientsLength+1)...), false},
 	}
 
 	for _, tc := range testCases {

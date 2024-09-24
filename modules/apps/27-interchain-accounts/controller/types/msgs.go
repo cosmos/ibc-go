@@ -1,16 +1,20 @@
 package types
 
 import (
+	"slices"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
+
+const MaximumOwnerLength = 2048 // maximum length of the owner in bytes (value chosen arbitrarily)
 
 var (
 	_ sdk.Msg = (*MsgRegisterInterchainAccount)(nil)
@@ -23,11 +27,12 @@ var (
 )
 
 // NewMsgRegisterInterchainAccount creates a new instance of MsgRegisterInterchainAccount
-func NewMsgRegisterInterchainAccount(connectionID, owner, version string) *MsgRegisterInterchainAccount {
+func NewMsgRegisterInterchainAccount(connectionID, owner, version string, ordering channeltypes.Order) *MsgRegisterInterchainAccount {
 	return &MsgRegisterInterchainAccount{
 		ConnectionId: connectionID,
 		Owner:        owner,
 		Version:      version,
+		Ordering:     ordering,
 	}
 }
 
@@ -37,21 +42,19 @@ func (msg MsgRegisterInterchainAccount) ValidateBasic() error {
 		return errorsmod.Wrap(err, "invalid connection ID")
 	}
 
+	if !slices.Contains([]channeltypes.Order{channeltypes.ORDERED, channeltypes.UNORDERED}, msg.Ordering) {
+		return errorsmod.Wrap(channeltypes.ErrInvalidChannelOrdering, msg.Ordering.String())
+	}
+
 	if strings.TrimSpace(msg.Owner) == "" {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "owner address cannot be empty")
 	}
 
-	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgRegisterInterchainAccount) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		panic(err)
+	if len(msg.Owner) > MaximumOwnerLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "owner address must not exceed %d bytes", MaximumOwnerLength)
 	}
 
-	return []sdk.AccAddress{accAddr}
+	return nil
 }
 
 // NewMsgSendTx creates a new instance of MsgSendTx
@@ -74,6 +77,10 @@ func (msg MsgSendTx) ValidateBasic() error {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "owner address cannot be empty")
 	}
 
+	if len(msg.Owner) > MaximumOwnerLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "owner address must not exceed %d bytes", MaximumOwnerLength)
+	}
+
 	if err := msg.PacketData.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(err, "invalid interchain account packet data")
 	}
@@ -83,16 +90,6 @@ func (msg MsgSendTx) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgSendTx) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
 }
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
@@ -111,14 +108,4 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetSigners implements sdk.Msg
-func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-
-	return []sdk.AccAddress{accAddr}
 }

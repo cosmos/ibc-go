@@ -2,6 +2,7 @@ package tendermint
 
 import (
 	"bytes"
+	"context"
 	"reflect"
 	"time"
 
@@ -11,15 +12,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // CheckForMisbehaviour detects duplicate height misbehaviour and BFT time violation misbehaviour
 // in a submitted Header message and verifies the correctness of a submitted Misbehaviour ClientMessage
-func (ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, msg exported.ClientMessage) bool {
+func (ClientState) CheckForMisbehaviour(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, msg exported.ClientMessage) bool {
 	switch msg := msg.(type) {
 	case *Header:
 		tmHeader := msg
@@ -57,12 +58,12 @@ func (ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, 
 		// if heights are equal check that this is valid misbehaviour of a fork
 		// otherwise if heights are unequal check that this is valid misbehavior of BFT time violation
 		if msg.Header1.GetHeight().EQ(msg.Header2.GetHeight()) {
-			blockID1, err := tmtypes.BlockIDFromProto(&msg.Header1.SignedHeader.Commit.BlockID)
+			blockID1, err := cmttypes.BlockIDFromProto(&msg.Header1.SignedHeader.Commit.BlockID)
 			if err != nil {
 				return false
 			}
 
-			blockID2, err := tmtypes.BlockIDFromProto(&msg.Header2.SignedHeader.Commit.BlockID)
+			blockID2, err := cmttypes.BlockIDFromProto(&msg.Header2.SignedHeader.Commit.BlockID)
 			if err != nil {
 				return false
 			}
@@ -90,7 +91,7 @@ func (ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, 
 // Similarly, consensusState2 is the trusted consensus state that corresponds
 // to misbehaviour.Header2
 // Misbehaviour sets frozen height to {0, 1} since it is only used as a boolean value (zero or non-zero).
-func (cs *ClientState) verifyMisbehaviour(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, misbehaviour *Misbehaviour) error {
+func (cs *ClientState) verifyMisbehaviour(ctx context.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, misbehaviour *Misbehaviour) error {
 	// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client
 
 	// Retrieve trusted consensus states for each Header in misbehaviour
@@ -109,13 +110,14 @@ func (cs *ClientState) verifyMisbehaviour(ctx sdk.Context, clientStore storetype
 	// NOTE: header height and commitment root assertions are checked in
 	// misbehaviour.ValidateBasic by the client keeper and msg.ValidateBasic
 	// by the base application.
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	if err := checkMisbehaviourHeader(
-		cs, tmConsensusState1, misbehaviour.Header1, ctx.BlockTime(),
+		cs, tmConsensusState1, misbehaviour.Header1, sdkCtx.BlockTime(),
 	); err != nil {
 		return errorsmod.Wrap(err, "verifying Header1 in Misbehaviour failed")
 	}
 	if err := checkMisbehaviourHeader(
-		cs, tmConsensusState2, misbehaviour.Header2, ctx.BlockTime(),
+		cs, tmConsensusState2, misbehaviour.Header2, sdkCtx.BlockTime(),
 	); err != nil {
 		return errorsmod.Wrap(err, "verifying Header2 in Misbehaviour failed")
 	}
@@ -128,12 +130,12 @@ func (cs *ClientState) verifyMisbehaviour(ctx sdk.Context, clientStore storetype
 func checkMisbehaviourHeader(
 	clientState *ClientState, consState *ConsensusState, header *Header, currentTimestamp time.Time,
 ) error {
-	tmTrustedValset, err := tmtypes.ValidatorSetFromProto(header.TrustedValidators)
+	tmTrustedValset, err := cmttypes.ValidatorSetFromProto(header.TrustedValidators)
 	if err != nil {
 		return errorsmod.Wrap(err, "trusted validator set is not tendermint validator set type")
 	}
 
-	tmCommit, err := tmtypes.CommitFromProto(header.Commit)
+	tmCommit, err := cmttypes.CommitFromProto(header.Commit)
 	if err != nil {
 		return errorsmod.Wrap(err, "commit is not tendermint commit type")
 	}

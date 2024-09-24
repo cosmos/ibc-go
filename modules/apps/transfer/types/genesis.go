@@ -3,14 +3,14 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
 // NewGenesisState creates a new ibc-transfer GenesisState instance.
-func NewGenesisState(portID string, denomTraces Traces, params Params, totalEscrowed sdk.Coins) *GenesisState {
+func NewGenesisState(portID string, denoms Denoms, params Params, totalEscrowed sdk.Coins) *GenesisState {
 	return &GenesisState{
 		PortId:        portID,
-		DenomTraces:   denomTraces,
+		Denoms:        denoms,
 		Params:        params,
 		TotalEscrowed: totalEscrowed,
 	}
@@ -20,7 +20,7 @@ func NewGenesisState(portID string, denomTraces Traces, params Params, totalEscr
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		PortId:        PortID,
-		DenomTraces:   Traces{},
+		Denoms:        Denoms{},
 		Params:        DefaultParams(),
 		TotalEscrowed: sdk.Coins{},
 	}
@@ -32,7 +32,7 @@ func (gs GenesisState) Validate() error {
 	if err := host.PortIdentifierValidator(gs.PortId); err != nil {
 		return err
 	}
-	if err := gs.DenomTraces.Validate(); err != nil {
+	if err := gs.Denoms.Validate(); err != nil {
 		return err
 	}
 	return gs.TotalEscrowed.Validate() // will fail if there are duplicates for any denom

@@ -26,8 +26,6 @@ The authentication module must:
 - Track the associated interchain account address for an owner.
 - Send packets on behalf of an owner (after authentication).
 
-> Please note that since ibc-go v6 the channel capability is claimed by the controller submodule and therefore it is not required for authentication modules to claim the capability in the `OnChanOpenInit` callback. When the authentication module sends packets on the channel created for the associated interchain account it can pass a `nil` capability to the legacy function `SendTx` of the controller keeper (see section [`SendTx`](03-keeper-api.md#sendtx) for more information).
-
 ## `IBCModule` implementation
 
 The following `IBCModule` callbacks must be implemented with appropriate custom logic:
@@ -40,12 +38,9 @@ func (im IBCModule) OnChanOpenInit(
   connectionHops []string,
   portID string,
   channelID string,
-  chanCap *capabilitytypes.Capability,
   counterparty channeltypes.Counterparty,
   version string,
 ) (string, error) {
-  // since ibc-go v6 the authentication module *must not* claim the channel capability on OnChanOpenInit
-
   // perform custom logic
 
   return version, nil
@@ -108,7 +103,6 @@ func (im IBCModule) OnChanOpenTry(
   connectionHops []string,
   portID,
   channelID string,
-  chanCap *capabilitytypes.Capability,
   counterparty channeltypes.Counterparty,
   counterpartyVersion string,
 ) (string, error) {
@@ -134,7 +128,7 @@ func (im IBCModule) OnChanCloseInit(
 }
 
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
-// is returned if the packet data is succesfully decoded and the receive application
+// is returned if the packet data is successfully decoded and the receive application
 // logic returns without error.
 func (im IBCModule) OnRecvPacket(
   ctx sdk.Context,
@@ -166,7 +160,7 @@ if err := proto.Unmarshal(ack.GetResult(), txMsgData); err != nil {
 }
 ```
 
-If the `txMsgData.Data` field is non nil, the host chain is using SDK version <= v0.45.
+If the `txMsgData.Data` field is non nil, the host chain is using SDK version \<\= v0.45.
 The auth module should interpret the `txMsgData.Data` as follows:
 
 ```go

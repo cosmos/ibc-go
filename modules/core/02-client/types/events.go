@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // IBC client events
@@ -13,7 +13,6 @@ const (
 	AttributeKeyClientType        = "client_type"
 	AttributeKeyConsensusHeight   = "consensus_height"
 	AttributeKeyConsensusHeights  = "consensus_heights"
-	AttributeKeyHeader            = "header"
 	AttributeKeyUpgradeStore      = "upgrade_store"
 	AttributeKeyUpgradePlanHeight = "upgrade_plan_height"
 	AttributeKeyUpgradePlanTitle  = "title"

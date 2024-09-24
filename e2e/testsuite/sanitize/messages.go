@@ -6,6 +6,8 @@ import (
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
+	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 var (
@@ -16,6 +18,14 @@ var (
 	// govv1ProposalTitleAndSummary represents the releases that support the new title and summary fields.
 	govv1ProposalTitleAndSummary = semverutil.FeatureReleases{
 		MajorVersion: "v7",
+	}
+	// icaUnorderedChannelFeatureReleases represents the releasees that support the new ordering field.
+	icaUnorderedChannelFeatureReleases = semverutil.FeatureReleases{
+		MajorVersion: "v9",
+		MinorVersions: []string{
+			"v7.5",
+			"v8.1",
+		},
 	}
 )
 
@@ -38,13 +48,35 @@ func removeUnknownFields(tag string, msg sdk.Msg) sdk.Msg {
 			msg.Title = ""
 			msg.Summary = ""
 		}
+		// sanitize messages contained in the x/gov proposal
+		msgs, err := msg.GetMsgs()
+		if err != nil {
+			panic(err)
+		}
+		sanitizedMsgs := Messages(tag, msgs...)
+		if err := msg.SetMsgs(sanitizedMsgs); err != nil {
+			panic(err)
+		}
 		return msg
 	case *grouptypes.MsgSubmitProposal:
 		if !groupsv1ProposalTitleAndSummary.IsSupported(tag) {
 			msg.Title = ""
 			msg.Summary = ""
 		}
+		// sanitize messages contained in the x/group proposal
+		msgs, err := msg.GetMsgs()
+		if err != nil {
+			panic(err)
+		}
+		sanitizedMsgs := Messages(tag, msgs...)
+		if err := msg.SetMsgs(sanitizedMsgs); err != nil {
+			panic(err)
+		}
 		return msg
+	case *icacontrollertypes.MsgRegisterInterchainAccount:
+		if !icaUnorderedChannelFeatureReleases.IsSupported(tag) {
+			msg.Ordering = channeltypes.NONE
+		}
 	}
 	return msg
 }

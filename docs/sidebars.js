@@ -33,7 +33,7 @@ const sidebars = {
         },
         {
           type: "link",
-          label: "Tutorials",
+          label: "Developer Portal",
           href: "https://tutorials.cosmos.network",
         },
         {

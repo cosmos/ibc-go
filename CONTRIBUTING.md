@@ -52,10 +52,14 @@ If you would like to contribute, follow this process:
 
 Please make sure to check out our [Pull request guidelines](./docs/dev/pull-requests.md) for more information.
 
+> Note: At this time, we will not be accepting contributions that only fix spelling
+> or grammar errors in documentation, code or elsewhere. The repository has a nightly job that
+> spell checks all files and will automatically open PRs for any spelling errors.
+
 ## Relevant development docs
 
 - [Project structure](./docs/dev/project-structure.md)
-- [Develoment setup](./docs/dev/development-setup.md)
+- [Development setup](./docs/dev/development-setup.md)
 - [Go style guide](./docs/dev/go-style-guide.md)
 - [Documentation guide](./docs/README.md)
 - [Writing tests](./testing/README.md)

@@ -3,10 +3,10 @@ package tendermint_test
 import (
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 var frozenHeight = clienttypes.NewHeight(0, 1)
@@ -27,7 +27,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 		},
 		{
 			"non-matching substitute", func() {
-				suite.coordinator.SetupClients(substitutePath)
+				substitutePath.SetupClients()
 				substituteClientState, ok := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*ibctm.ClientState)
 				suite.Require().True(ok)
 				// change trusting period so that test should fail
@@ -47,8 +47,9 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
 			substitutePath = ibctesting.NewPath(suite.chainA, suite.chainB)
 
-			suite.coordinator.SetupClients(subjectPath)
-			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*ibctm.ClientState)
+			subjectPath.SetupClients()
+			subjectClientState, ok := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*ibctm.ClientState)
+			suite.Require().True(ok)
 
 			// expire subject client
 			suite.coordinator.IncrementTimeBy(subjectClientState.TrustingPeriod)
@@ -91,8 +92,9 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 
 			// construct subject using test case parameters
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(subjectPath)
-			subjectClientState := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*ibctm.ClientState)
+			subjectPath.SetupClients()
+			subjectClientState, ok := suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*ibctm.ClientState)
+			suite.Require().True(ok)
 
 			if tc.FreezeClient {
 				subjectClientState.FrozenHeight = frozenHeight
@@ -101,8 +103,9 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			// construct the substitute to match the subject client
 
 			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(substitutePath)
-			substituteClientState := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*ibctm.ClientState)
+			substitutePath.SetupClients()
+			substituteClientState, ok := suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*ibctm.ClientState)
+			suite.Require().True(ok)
 			// update trusting period of substitute client state
 			substituteClientState.TrustingPeriod = time.Hour * 24 * 7
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID, substituteClientState)
@@ -116,7 +119,8 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			}
 
 			// get updated substitute
-			substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*ibctm.ClientState)
+			substituteClientState, ok = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*ibctm.ClientState)
+			suite.Require().True(ok)
 
 			// test that subject gets updated chain-id
 			newChainID := "new-chain-id"
@@ -125,39 +129,40 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 			substituteClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID)
 
-			expectedConsState := substitutePath.EndpointA.GetConsensusState(substituteClientState.GetLatestHeight())
-			expectedProcessedTime, found := ibctm.GetProcessedTime(substituteClientStore, substituteClientState.GetLatestHeight())
+			expectedConsState := substitutePath.EndpointA.GetConsensusState(substituteClientState.LatestHeight)
+			expectedProcessedTime, found := ibctm.GetProcessedTime(substituteClientStore, substituteClientState.LatestHeight)
 			suite.Require().True(found)
-			expectedProcessedHeight, found := ibctm.GetProcessedTime(substituteClientStore, substituteClientState.GetLatestHeight())
+			expectedProcessedHeight, found := ibctm.GetProcessedTime(substituteClientStore, substituteClientState.LatestHeight)
 			suite.Require().True(found)
-			expectedIterationKey := ibctm.GetIterationKey(substituteClientStore, substituteClientState.GetLatestHeight())
+			expectedIterationKey := ibctm.GetIterationKey(substituteClientStore, substituteClientState.LatestHeight)
 
 			err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
 
 			if tc.expPass {
 				suite.Require().NoError(err)
 
-				updatedClient := subjectPath.EndpointA.GetClientState()
-				suite.Require().Equal(clienttypes.ZeroHeight(), updatedClient.(*ibctm.ClientState).FrozenHeight)
+				updatedClient, ok := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
+				suite.Require().Equal(clienttypes.ZeroHeight(), updatedClient.FrozenHeight)
 
 				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 
 				// check that the correct consensus state was copied over
-				suite.Require().Equal(substituteClientState.GetLatestHeight(), updatedClient.GetLatestHeight())
-				subjectConsState := subjectPath.EndpointA.GetConsensusState(updatedClient.GetLatestHeight())
-				subjectProcessedTime, found := ibctm.GetProcessedTime(subjectClientStore, updatedClient.GetLatestHeight())
+				suite.Require().Equal(substituteClientState.LatestHeight, updatedClient.LatestHeight)
+				subjectConsState := subjectPath.EndpointA.GetConsensusState(updatedClient.LatestHeight)
+				subjectProcessedTime, found := ibctm.GetProcessedTime(subjectClientStore, updatedClient.LatestHeight)
 				suite.Require().True(found)
-				subjectProcessedHeight, found := ibctm.GetProcessedTime(substituteClientStore, updatedClient.GetLatestHeight())
+				subjectProcessedHeight, found := ibctm.GetProcessedTime(substituteClientStore, updatedClient.LatestHeight)
 				suite.Require().True(found)
-				subjectIterationKey := ibctm.GetIterationKey(substituteClientStore, updatedClient.GetLatestHeight())
+				subjectIterationKey := ibctm.GetIterationKey(substituteClientStore, updatedClient.LatestHeight)
 
 				suite.Require().Equal(expectedConsState, subjectConsState)
 				suite.Require().Equal(expectedProcessedTime, subjectProcessedTime)
 				suite.Require().Equal(expectedProcessedHeight, subjectProcessedHeight)
 				suite.Require().Equal(expectedIterationKey, subjectIterationKey)
 
-				suite.Require().Equal(newChainID, updatedClient.(*ibctm.ClientState).ChainId)
-				suite.Require().Equal(time.Hour*24*7, updatedClient.(*ibctm.ClientState).TrustingPeriod)
+				suite.Require().Equal(newChainID, updatedClient.ChainId)
+				suite.Require().Equal(time.Hour*24*7, updatedClient.TrustingPeriod)
 			} else {
 				suite.Require().Error(err)
 			}
@@ -178,8 +183,11 @@ func (suite *TendermintTestSuite) TestIsMatchingClientState() {
 	}{
 		{
 			"matching clients", func() {
-				subjectClientState = suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*ibctm.ClientState)
-				substituteClientState = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*ibctm.ClientState)
+				var ok bool
+				subjectClientState, ok = suite.chainA.GetClientState(subjectPath.EndpointA.ClientID).(*ibctm.ClientState)
+				suite.Require().True(ok)
+				substituteClientState, ok = suite.chainA.GetClientState(substitutePath.EndpointA.ClientID).(*ibctm.ClientState)
+				suite.Require().True(ok)
 			}, true,
 		},
 		{
@@ -222,8 +230,8 @@ func (suite *TendermintTestSuite) TestIsMatchingClientState() {
 
 			subjectPath = ibctesting.NewPath(suite.chainA, suite.chainB)
 			substitutePath = ibctesting.NewPath(suite.chainA, suite.chainB)
-			suite.coordinator.SetupClients(subjectPath)
-			suite.coordinator.SetupClients(substitutePath)
+			subjectPath.SetupClients()
+			substitutePath.SetupClients()
 
 			tc.malleate()
 

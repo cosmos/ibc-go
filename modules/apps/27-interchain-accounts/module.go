@@ -17,16 +17,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/client/cli"
-	controllerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
-	controllertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host"
-	hostkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
-	hosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/simulation"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/client/cli"
+	controllerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
+	controllertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host"
+	hostkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/keeper"
+	hosttypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/simulation"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 )
 
 var (
@@ -73,7 +73,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(genesistypes.DefaultGenesis())
 }
 
-// ValidateGenesis performs genesis state validation for the IBC interchain acounts module
+// ValidateGenesis performs genesis state validation for the IBC interchain accounts module
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var gs genesistypes.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
@@ -121,27 +121,6 @@ func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkee
 	}
 }
 
-// InitModule will initialize the interchain accounts module. It should only be
-// called once and as an alternative to InitGenesis.
-func (am AppModule) InitModule(ctx sdk.Context, controllerParams controllertypes.Params, hostParams hosttypes.Params) {
-	if am.controllerKeeper != nil {
-		controllerkeeper.InitGenesis(ctx, *am.controllerKeeper, genesistypes.ControllerGenesisState{
-			Params: controllerParams,
-		})
-	}
-
-	if am.hostKeeper != nil {
-		if err := hostParams.Validate(); err != nil {
-			panic(fmt.Errorf("could not set ica host params at initialization: %v", err))
-		}
-
-		hostkeeper.InitGenesis(ctx, *am.hostKeeper, genesistypes.HostGenesisState{
-			Params: hostParams,
-			Port:   types.HostPortID,
-		})
-	}
-}
-
 // RegisterServices registers module services
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if am.controllerKeeper != nil {
@@ -155,10 +134,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	}
 
 	controllerMigrator := controllerkeeper.NewMigrator(am.controllerKeeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, controllerMigrator.AssertChannelCapabilityMigrations); err != nil {
-		panic(fmt.Errorf("failed to migrate interchainaccounts app from version 1 to 2 (channel capabilities owned by controller submodule check): %v", err))
-	}
-
 	hostMigrator := hostkeeper.NewMigrator(am.hostKeeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 2, func(ctx sdk.Context) error {
 		if err := hostMigrator.MigrateParams(ctx); err != nil {
@@ -216,8 +191,8 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 }
 
 // ProposalMsgs returns msgs used for governance proposals for simulations.
-func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
-	return simulation.ProposalMsgs()
+func (am AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+	return simulation.ProposalMsgs(am.controllerKeeper, am.hostKeeper)
 }
 
 // WeightedOperations is unimplemented.

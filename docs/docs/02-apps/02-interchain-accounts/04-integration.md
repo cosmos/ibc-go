@@ -71,25 +71,21 @@ keys := sdk.NewKVStoreKeys(
 
 ... 
 
-// Create the scoped keepers for each submodule keeper and authentication keeper
-scopedICAControllerKeeper := app.CapabilityKeeper.ScopeToModule(icacontrollertypes.SubModuleName)
-scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
-scopedICAAuthKeeper := app.CapabilityKeeper.ScopeToModule(icaauthtypes.ModuleName)
-
-...
 
 // Create the Keeper for each submodule
 app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
   appCodec, keys[icacontrollertypes.StoreKey], app.GetSubspace(icacontrollertypes.SubModuleName),
   app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
-  app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-  scopedICAControllerKeeper, app.MsgServiceRouter(),
+  app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper,
+  app.MsgServiceRouter(),
+  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 )
 app.ICAHostKeeper = icahostkeeper.NewKeeper(
   appCodec, keys[icahosttypes.StoreKey], app.GetSubspace(icahosttypes.SubModuleName),
   app.IBCKeeper.ChannelKeeper, // may be replaced with middleware such as ics29 fee
-  app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
-  app.AccountKeeper, scopedICAHostKeeper, app.MsgServiceRouter(),
+  app.IBCKeeper.ChannelKeeper, app.IBCKeeper.PortKeeper, app.AccountKeeper,
+  app.MsgServiceRouter(), app.GRPCQueryRouter(),
+  authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 )
 
 // Create Interchain Accounts AppModule
@@ -102,7 +98,7 @@ app.ICAAuthKeeper = icaauthkeeper.NewKeeper(appCodec, keys[icaauthtypes.StoreKey
 icaAuthModule := icaauth.NewAppModule(appCodec, app.ICAAuthKeeper)
 
 // Create controller IBC application stack and host IBC module as desired
-icaControllerStack := icacontroller.NewIBCMiddleware(nil, app.ICAControllerKeeper)
+icaControllerStack := icacontroller.NewIBCMiddleware(app.ICAControllerKeeper)
 icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
 
 // Register host and authentication routes
@@ -192,7 +188,7 @@ icaModule := ica.NewAppModule(&app.ICAControllerKeeper, nil)
 ...
 
 // Create controller IBC application stack
-icaControllerStack := icacontroller.NewIBCMiddleware(nil, app.ICAControllerKeeper)
+icaControllerStack := icacontroller.NewIBCMiddleware(app.ICAControllerKeeper)
 
 // Register controller route
 ibcRouter.AddRoute(icacontrollertypes.SubModuleName, icaControllerStack)

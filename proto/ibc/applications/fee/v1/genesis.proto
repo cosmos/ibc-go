@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.fee.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/applications/fee/v1/fee.proto";
@@ -55,6 +55,6 @@ message RegisteredCounterpartyPayee {
 message ForwardRelayerAddress {
   // the forward relayer address
   string address = 1;
-  // unique packet identifer comprised of the channel ID, port ID and sequence
+  // unique packet identifier comprised of the channel ID, port ID and sequence
   ibc.core.channel.v1.PacketId packet_id = 2 [(gogoproto.nullable) = false];
 }

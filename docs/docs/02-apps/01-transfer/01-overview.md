@@ -33,9 +33,15 @@ The denomination trace corresponds to the information that allows a token to be 
 origin chain. It contains a sequence of port and channel identifiers ordered from the most recent to
 the oldest in the timeline of transfers.
 
-This information is included on the token denomination field in the form of a hash to prevent an
+This information is included on the token's base denomination field in the form of a hash to prevent an
 unbounded denomination length. For example, the token `transfer/channelToA/uatom` will be displayed
-as `ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2`.
+as `ibc/7F1D3FCF4AE79E1554D670D1AD949A9BA4E4A3C76C63093E17E446A46061A7A2`. The human readable denomination
+is stored using `x/bank` module's [denom metadata](https://docs.cosmos.network/main/build/modules/bank#denom-metadata)
+feature. You may display the human readable denominations by querying balances with the `--resolve-denom` flag, as in:
+
+```shell
+simd query bank balances [address] --resolve-denom
+```
 
 Each send to any chain other than the one it was previously received from is a movement forwards in
 the token's timeline. This causes trace to be added to the token's history and the destination port
@@ -106,6 +112,49 @@ chain #1 -> ... -> chain #(n-1) -> final chain`). These services could provide m
 The only viable alternative for clients (at the time of writing) to tokens with multiple connection hops, is to connect to all chains directly and perform relevant queries to each of them in the sequence.
 :::
 
+## Forwarding
+
+:::info
+Token forwarding and unwinding is supported only on ICS20 v2 transfer channels.
+:::
+
+Forwarding allows tokens to be routed to a final destination through multiple (up to 8) intermediary
+chains. With forwarding, it's also possible to unwind IBC vouchers to their native chain, and forward 
+them afterwards to another destination, all with just a single transfer transaction on the sending chain.
+
+### Forward tokens
+
+Native tokens or IBC vouchers on any chain can be forwarded through intermediary chains to reach their 
+final destination. For example, given the topology below, with 3 chains and a transfer channel between
+chains A and B and between chains B and C:
+
+![Light Mode Forwarding](./images/forwarding-3-chains-light.png#gh-light-mode-only)![Dark Mode Forwarding](./images/forwarding-3-chains-dark.png#gh-dark-mode-only)
+
+Native tokens on chain `A` can be sent to chain `C` through chain `B`. The routing is specified by the 
+source port ID and channel ID of choice on every intermediary chain. In this example, there is only one
+forwarding hop on chain `B` and the port ID, channel ID pair is `transfer`, `channelBToC`. Forwarding of 
+a multi-denom collections of tokens is also allowed (i.e. forwarding of tokens of different denominations).
+
+### Unwind tokens
+
+Taking again as an example the topology from the previous section, we assume that native tokens on chain `A`
+have been transferred to chain `C`. The IBC vouchers on chain `C` have the denomination trace
+`transfer/channelCtoB/transfer/channelBtoA`, and with forwarding it is possible to submit a transfer message 
+on chain `C` and automatically unwind the vouchers through chain `B` to chain `A`, so that the tokens recovered
+on the origin chain regain their native denomination. In order to execute automatic unwinding, the transfer
+module does not require extra user input: the unwind route is encoded in the denomination trace with the 
+pairs of destination port ID, channel ID that are added on every chain where the tokens are received.
+
+Please note that unwinding of vouchers is only allowed when vouchers transferred all share the same denomination
+trace (signifying coins that all originate from the same source). It is not possible to unwind vouchers of two different 
+IBC denominations, since they come from different source chains.
+
+### Unwind tokens and then forward
+
+Unwinding and forwarding can be used in combination, so that vouchers are first unwound to their origin chain
+and then forwarded to a final destination. The same restriction as in the unwinding case applies: only vouchers
+of a single IBC denomination can be used.
+
 ## Locked funds
 
 In some [exceptional cases](/architecture/adr-026-ibc-client-recovery-mechanisms#exceptional-cases), a client state associated with a given channel cannot be updated. This causes that funds from fungible tokens in that channel will be permanently locked and thus can no longer be transferred.
@@ -126,3 +175,7 @@ form.
 
 For safety, no other module must be capable of minting tokens with the `ibc/` prefix. The IBC
 transfer module needs a subset of the denomination space that only it can create tokens in.
+
+## Channel Closure
+
+The IBC transfer module does not support channel closure.

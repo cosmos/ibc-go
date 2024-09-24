@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.lightclients.tendermint.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint;tendermint";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint;tendermint";
 
 import "tendermint/types/validator.proto";
 import "tendermint/types/types.proto";
@@ -20,7 +20,7 @@ message ClientState {
 
   string   chain_id    = 1;
   Fraction trust_level = 2 [(gogoproto.nullable) = false];
-  // duration of the period since the LastestTimestamp during which the
+  // duration of the period since the LatestTimestamp during which the
   // submitted headers are valid for upgrade
   google.protobuf.Duration trusting_period = 3 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
   // duration of the staking unbonding period

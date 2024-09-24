@@ -4,7 +4,7 @@
 
 If the PR is the result of a related GitHub issue, please include `closes: #<issue number>` in the PR’s description in order to auto-close the related issue once the PR is merged. This will also link the issue and the PR together so that if anyone looks at either in the future, they won’t have any problem trying to find the corresponding issue/PR as it will be recorded in the sidebar.
 
-If the PR is not the result of an existing issue and it fixes a bug, please provide a detailed description of the bug. For feature addtions, we recommend opening an issue first and have it discussed and agreed upon, before working on it and opening a PR.
+If the PR is not the result of an existing issue and it fixes a bug, please provide a detailed description of the bug. For feature additions, we recommend opening an issue first and have it discussed and agreed upon, before working on it and opening a PR.
 
 If possible, [tick the "Allow edits from maintainers" box](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork) when opening your PR from your fork of ibc-go. This allows us to directly make minor edits / refactors and speeds up the merging process.
 

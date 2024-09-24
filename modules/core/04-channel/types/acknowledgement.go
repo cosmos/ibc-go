@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -26,6 +24,26 @@ func NewResultAcknowledgement(result []byte) Acknowledgement {
 	}
 }
 
+// NewErrorAcknowledgementWithCodespace returns a new instance of Acknowledgement using an Acknowledgement_Error
+// type in the Response field.
+// NOTE: The error includes the ABCI codespace and code in the error string to provide more information about the module
+// that generated the error. This is useful for debugging but can potentially introduce non-determinism if care is
+// not taken to ensure the codespace doesn't change in non state-machine breaking versions.
+func NewErrorAcknowledgementWithCodespace(err error) Acknowledgement {
+	// The ABCI code is included in the abcitypes.ResponseDeliverTx hash
+	// constructed in Tendermint and is therefore deterministic.
+	// However, a code without codespace is incomplete information (e.g. sdk/5 and wasm/5 are
+	// different errors). We add this codespace here, in order to provide a meaningful error
+	// identifier which means changing the codespace of an error becomes a consensus breaking change.
+	codespace, code, _ := errorsmod.ABCIInfo(err, false)
+
+	return Acknowledgement{
+		Response: &Acknowledgement_Error{
+			Error: fmt.Sprintf("ABCI error: %s/%d: %s", codespace, code, ackErrorString),
+		},
+	}
+}
+
 // NewErrorAcknowledgement returns a new instance of Acknowledgement using an Acknowledgement_Error
 // type in the Response field.
 // NOTE: Acknowledgements are written into state and thus, changes made to error strings included in packet acknowledgements
@@ -33,7 +51,7 @@ func NewResultAcknowledgement(result []byte) Acknowledgement {
 func NewErrorAcknowledgement(err error) Acknowledgement {
 	// the ABCI code is included in the abcitypes.ResponseDeliverTx hash
 	// constructed in Tendermint and is therefore deterministic
-	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-determinstic codespace and log values
+	_, code, _ := errorsmod.ABCIInfo(err, false) // discard non-deterministic codespace and log values
 
 	return Acknowledgement{
 		Response: &Acknowledgement_Error{
@@ -70,5 +88,5 @@ func (ack Acknowledgement) Success() bool {
 // Acknowledgement implements the Acknowledgement interface. It returns the
 // acknowledgement serialised using JSON.
 func (ack Acknowledgement) Acknowledgement() []byte {
-	return sdk.MustSortJSON(SubModuleCdc.MustMarshalJSON(&ack))
+	return SubModuleCdc.MustMarshalJSON(&ack)
 }

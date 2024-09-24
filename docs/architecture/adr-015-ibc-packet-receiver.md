@@ -10,7 +10,7 @@
 
 In ICS 26, the routing module is defined as a layer above each application module
 which verifies and routes messages to the destination modules. It is possible to
-implement it as a separate module, however, we already have functionality to route
+implement it as a separate module, however, we already have the functionality to route
 messages upon the destination identifiers in the baseapp. This ADR suggests
 to utilize existing `baseapp.router` to route packets to application modules.
 
@@ -96,7 +96,7 @@ func (pvr ProofVerificationDecorator) AnteHandle(ctx Context, tx Tx, simulate bo
       err = pvr.clientKeeper.UpdateClient(msg.ClientID, msg.Header)
     case channel.MsgPacket:
       err = pvr.channelKeeper.RecvPacket(msg.Packet, msg.Proofs, msg.ProofHeight)
-    case chanel.MsgAcknowledgement:
+    case channel.MsgAcknowledgement:
       err = pvr.channelKeeper.AcknowledgementPacket(msg.Acknowledgement, msg.Proof, msg.ProofHeight)
     case channel.MsgTimeoutPacket:
       err = pvr.channelKeeper.TimeoutPacket(msg.Packet, msg.Proof, msg.ProofHeight, msg.NextSequenceRecv)
@@ -167,7 +167,7 @@ which will make the channel unable to proceed.
 under the routing module specification. Instead of define each channel handshake callback
 functions, application modules can provide `ChannelChecker` function with the `AppModule`
 which will be injected to `ChannelKeeper.Port()` at the top level application.
-`CheckOpen` will find the correct `ChennelChecker` using the
+`CheckOpen` will find the correct `ChannelChecker` using the
 `PortID` and call it, which will return an error if it is unacceptable by the application.
 
 The `ProofVerificationDecorator` will be inserted to the top level application.
@@ -176,7 +176,7 @@ logic, whereas application can misbehave(in terms of IBC protocol) by
 mistake.
 
 The `ProofVerificationDecorator` should come right after the default sybil attack
-resistent layer from the current `auth.NewAnteHandler`:
+resistant layer from the current `auth.NewAnteHandler`:
 
 ```go
 // add IBC ProofVerificationDecorator to the Chain of

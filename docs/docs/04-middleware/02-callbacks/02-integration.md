@@ -7,7 +7,7 @@ slug: /middleware/callbacks/integration
 
 # Integration
 
-Learn how to integrate the callbacks middleware with IBC applications. The following document is intended for developers building on top of the Cosmos SDK and only applies for Cosmos SDK chains. {synopsis}
+Learn how to integrate the callbacks middleware with IBC applications. The following document is intended for developers building on top of the Cosmos SDK and only applies for Cosmos SDK chains. 
 
 The callbacks middleware is a minimal and stateless implementation of the IBC middleware interface. It does not have a keeper, nor does it store any state. It simply routes IBC middleware messages to the appropriate callback function, which is implemented by the secondary application. Therefore, it doesn't need to be registered as a module, nor does it need to be added to the module manager. It only needs to be added to the IBC application stack.
 
@@ -18,6 +18,21 @@ The callbacks middleware is a minimal and stateless implementation of the IBC mi
 
 The callbacks middleware, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle IBC messages correctly.
 For Cosmos SDK chains this setup is done via the `app/app.go` file, where modules are constructed and configured in order to bootstrap the blockchain application.
+
+## Importing the callbacks middleware
+
+The callbacks middleware has no stable releases yet. To use it, you need to import the git commit that contains the module with the compatible version of `ibc-go`. To do so, run the following command with the desired git commit in your project:
+
+```sh
+go get github.com/cosmos/ibc-go/modules/apps/callbacks@342c00b0f8bd7feeebf0780f208a820b0faf90d1
+```
+
+The following table shows the compatibility matrix between the callbacks middleware, `ibc-go`.
+
+|      **Version**     |         **Git commit to import**         |
+|:--------------------:|:----------------------------------------:|
+| `v0.2.0+ibc-go-v8.0` | 342c00b0f8bd7feeebf0780f208a820b0faf90d1 |
+| `v0.1.0+ibc-go-v7.3` | 17cf1260a9cdc5292512acc9bcf6336ef0d917f4 |
 
 ## Configuring an application stack with the callbacks middleware
 
@@ -36,30 +51,30 @@ The in-line comments describe the execution flow of packets between the applicat
 ```go
 // Create Transfer Stack
 // SendPacket, since it is originating from the application to core IBC:
-// transferKeeper.SendPacket -> callbacks.SendPacket -> fee.SendPacket -> channel.SendPacket
+// transferKeeper.SendPacket -> callbacks.SendPacket -> feeKeeper.SendPacket -> channel.SendPacket
 
 // RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> transfer.OnRecvPacket
+// channel.RecvPacket -> fee.OnRecvPacket -> callbacks.OnRecvPacket -> transfer.OnRecvPacket
 
 // transfer stack contains (from top to bottom):
-// - IBC Callbacks Middleware
 // - IBC Fee Middleware
+// - IBC Callbacks Middleware
 // - Transfer
 
 // create IBC module from bottom to top of stack
 var transferStack porttypes.IBCModule
 transferStack = transfer.NewIBCModule(app.TransferKeeper)
-transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
-// maxCallbackGas is a hard-coded value that is passed to the callbacks middleware
 transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
+transferICS4Wrapper := transferStack.(porttypes.ICS4Wrapper)
+transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 // Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
-app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.ICS4Wrapper))
+app.TransferKeeper.WithICS4Wrapper(transferICS4Wrapper)
 
 // Add transfer stack to IBC Router
 ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 ```
 
-::: warning
+:::warning
 The usage of `WithICS4Wrapper` after `transferStack`'s configuration is critical! It allows the callbacks middleware to do `SendPacket` callbacks and asynchronous `ReceivePacket` callbacks. You must do this regardless of whether you are using the `29-fee` middleware or not.
 :::
 
@@ -70,16 +85,19 @@ The usage of `WithICS4Wrapper` after `transferStack`'s configuration is critical
 // SendPacket, since it is originating from the application to core IBC:
 // icaControllerKeeper.SendTx -> callbacks.SendPacket -> fee.SendPacket -> channel.SendPacket
 
+// initialize ICA module with mock module as the authentication module on the controller side
 var icaControllerStack porttypes.IBCModule
-icaControllerStack = icacontroller.NewIBCMiddleware(nil, app.ICAControllerKeeper)
-icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
-// maxCallbackGas is a hard-coded value that is passed to the callbacks middleware
+icaControllerStack = ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp("", scopedICAMockKeeper))
+app.ICAAuthModule = icaControllerStack.(ibcmock.IBCModule)
+icaControllerStack = icacontroller.NewIBCMiddleware(icaControllerStack, app.ICAControllerKeeper)
 icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
+icaICS4Wrapper := icaControllerStack.(porttypes.ICS4Wrapper)
+icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 // Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
-app.ICAControllerKeeper.WithICS4Wrapper(icaControllerStack.(porttypes.ICS4Wrapper))
+app.ICAControllerKeeper.WithICS4Wrapper(icaICS4Wrapper)
 
 // RecvPacket, message that originates from core IBC and goes down to app, the flow is:
-// channel.RecvPacket -> callbacks.OnRecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
+// channel.RecvPacket -> fee.OnRecvPacket -> icaHost.OnRecvPacket
 
 var icaHostStack porttypes.IBCModule
 icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
@@ -90,6 +108,6 @@ AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 AddRoute(icahosttypes.SubModuleName, icaHostStack).
 ```
 
-::: warning
+:::warning
 The usage of `WithICS4Wrapper` here is also critical!
 :::

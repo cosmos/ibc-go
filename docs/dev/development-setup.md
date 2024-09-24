@@ -18,7 +18,7 @@ Other helpful commands:
 
 We use [Protocol Buffers](https://developers.google.com/protocol-buffers) along with [buf](https://docs.buf.build/introduction) and [gogoproto](https://github.com/gogo/protobuf) to generate code for use in ibc-go.
 
-For determinstic behavior around protobuf tooling, everything is containerized using Docker. Make sure to have Docker installed on your machine, or head to [Docker's website](https://docs.docker.com/get-docker/) to install it.
+For deterministic behavior around protobuf tooling, everything is containerized using Docker. Make sure to have Docker installed on your machine, or head to [Docker's website](https://docs.docker.com/get-docker/) to install it.
 
 For formatting code in `.proto` files, you can run the `make proto-format` command.
 
@@ -52,7 +52,7 @@ When testing a function under a variety of different inputs, we prefer to use [t
 
 All unit tests should use the testing package. Please see the testing package [README](../../testing/README.md) for more information.
 
-Test coverage is continuously deployed at <https://app.codecov.io/github/cosmos/ibc-go>. PRs that improve test coverage are welcome, but in general the test coverage should be used as a guidance for finding API use cases that are not covered by tests. We don't recommend adding tests that only improve coverage but not actually test a meaning use case.
+Test coverage is continuously deployed at [SonarCloud](https://sonarcloud.io/project/overview?id=cosmos_ibc-go). PRs that improve test coverage are welcome, but in general the test coverage should be used as a guidance for finding API use cases that are not covered by tests. We don't recommend adding tests that only improve coverage but not actually test a meaning use case.
 
 ## Documentation
 

@@ -1,6 +1,7 @@
 package tendermint
 
 import (
+	"context"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -8,12 +9,11 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // VerifyUpgradeAndUpdateState checks if the upgraded client has been committed by the current client
@@ -28,20 +28,12 @@ import (
 //   - any Tendermint chain specified parameter in upgraded client such as ChainID, UnbondingPeriod,
 //     and ProofSpecs do not match parameters set by committed client
 func (cs ClientState) VerifyUpgradeAndUpdateState(
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
+	ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
 	upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState,
-	proofUpgradeClient, proofUpgradeConsState []byte,
+	upgradeClientProof, upgradeConsStateProof []byte,
 ) error {
 	if len(cs.UpgradePath) == 0 {
 		return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade client, no upgrade path set")
-	}
-
-	// last height of current counterparty chain must be client's latest height
-	lastHeight := cs.GetLatestHeight()
-
-	if !upgradedClient.GetLatestHeight().GT(lastHeight) {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidHeight, "upgraded client height %s must be at greater than current client height %s",
-			upgradedClient.GetLatestHeight(), lastHeight)
 	}
 
 	// upgraded client state and consensus state must be IBC tendermint client state and consensus state
@@ -52,6 +44,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "upgraded client must be Tendermint client. expected: %T got: %T",
 			&ClientState{}, upgradedClient)
 	}
+
 	tmUpgradeConsState, ok := upgradedConsState.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "upgraded consensus state must be Tendermint consensus state. expected %T, got: %T",
@@ -60,12 +53,15 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 
 	// unmarshal proofs
 	var merkleProofClient, merkleProofConsState commitmenttypes.MerkleProof
-	if err := cdc.Unmarshal(proofUpgradeClient, &merkleProofClient); err != nil {
+	if err := cdc.Unmarshal(upgradeClientProof, &merkleProofClient); err != nil {
 		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "could not unmarshal client merkle proof: %v", err)
 	}
-	if err := cdc.Unmarshal(proofUpgradeConsState, &merkleProofConsState); err != nil {
+	if err := cdc.Unmarshal(upgradeConsStateProof, &merkleProofConsState); err != nil {
 		return errorsmod.Wrapf(commitmenttypes.ErrInvalidProof, "could not unmarshal consensus state merkle proof: %v", err)
 	}
+
+	// last height of current counterparty chain must be client's latest height
+	lastHeight := cs.LatestHeight
 
 	// Must prove against latest consensus state to ensure we are verifying against latest upgrade plan
 	// This verifies that upgrade is intended for the provided revision, since committed client must exist
@@ -76,7 +72,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	}
 
 	// Verify client proof
-	bz, err := cdc.MarshalInterface(upgradedClient.ZeroCustomFields())
+	bz, err := cdc.MarshalInterface(tmUpgradeClient.ZeroCustomFields())
 	if err != nil {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "could not marshal client state: %v", err)
 	}
@@ -129,7 +125,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 }
 
 // construct MerklePath for the committed client from upgradePath
-func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypes.MerklePath {
+func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypesv2.MerklePath {
 	// copy all elements from upgradePath except final element
 	clientPath := make([]string, len(upgradePath)-1)
 	copy(clientPath, upgradePath)
@@ -140,11 +136,17 @@ func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.
 	appendedKey := fmt.Sprintf("%s/%d/%s", lastKey, lastHeight.GetRevisionHeight(), upgradetypes.KeyUpgradedClient)
 
 	clientPath = append(clientPath, appendedKey)
-	return commitmenttypes.NewMerklePath(clientPath...)
+
+	var clientKey [][]byte
+	for _, part := range clientPath {
+		clientKey = append(clientKey, []byte(part))
+	}
+
+	return commitmenttypes.NewMerklePath(clientKey...)
 }
 
 // construct MerklePath for the committed consensus state from upgradePath
-func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypes.MerklePath {
+func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypesv2.MerklePath {
 	// copy all elements from upgradePath except final element
 	consPath := make([]string, len(upgradePath)-1)
 	copy(consPath, upgradePath)
@@ -155,5 +157,11 @@ func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight export
 	appendedKey := fmt.Sprintf("%s/%d/%s", lastKey, lastHeight.GetRevisionHeight(), upgradetypes.KeyUpgradedConsState)
 
 	consPath = append(consPath, appendedKey)
-	return commitmenttypes.NewMerklePath(consPath...)
+
+	var consStateKey [][]byte
+	for _, part := range consPath {
+		consStateKey = append(consStateKey, []byte(part))
+	}
+
+	return commitmenttypes.NewMerklePath(consStateKey...)
 }

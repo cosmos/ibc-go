@@ -7,7 +7,7 @@ slug: /ibc/apps/apps
 
 # IBC Applications
 
-Learn how to configure your application to use IBC and send data packets to other chains. {synopsis}
+Learn how to configure your application to use IBC and send data packets to other chains.
 
 This document serves as a guide for developers who want to write their own Inter-blockchain
 Communication Protocol (IBC) applications for custom use cases.
@@ -51,14 +51,9 @@ func (k Keeper) OnChanOpenInit(ctx sdk.Context,
   connectionHops []string,
   portID string,
   channelID string,
-  channelCap *capabilitytypes.Capability,
   counterparty channeltypes.Counterparty,
   version string,
 ) error {
-  // OpenInit must claim the channelCapability that IBC passes into the callback
-  if err := k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-    return err
- }
 
   // ... do custom initialization logic
 
@@ -76,15 +71,9 @@ OnChanOpenTry(
   connectionHops []string,
   portID,
   channelID string,
-  channelCap *capabilitytypes.Capability,
   counterparty channeltypes.Counterparty,
   counterpartyVersion string,
 ) (string, error) {
-  // OpenTry must claim the channelCapability that IBC passes into the callback
-  if err := k.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-    return err
-  }
-  
   // ... do custom initialization logic
 
   // Use above arguments to determine if we want to abort handshake
@@ -187,34 +176,6 @@ encoded version into each handhshake call as necessary.
 
 ICS20 currently implements basic string matching with a single supported version.
 
-### Bind Ports
-
-Currently, ports must be bound on app initialization. A module may bind to ports in `InitGenesis`
-like so:
-
-```go
-func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, state types.GenesisState) {
-  // ... other initialization logic
-
-  // Only try to bind to port if it is not already bound, since we may already own
-  // port capability from capability InitGenesis
-  if !hasCapability(ctx, state.PortID) {
-    // module binds to desired ports on InitChain
-    // and claims returned capabilities
-    cap1 := keeper.IBCPortKeeper.BindPort(ctx, port1)
-    cap2 := keeper.IBCPortKeeper.BindPort(ctx, port2)
-    cap3 := keeper.IBCPortKeeper.BindPort(ctx, port3)
-
-    // NOTE: The module's scoped capability keeper must be private
-    keeper.scopedKeeper.ClaimCapability(cap1)
-    keeper.scopedKeeper.ClaimCapability(cap2)
-    keeper.scopedKeeper.ClaimCapability(cap3)
-  }
-
-  // ... more initialization logic
-}
-```
-
 ### Custom Packets
 
 Modules connected by a channel must agree on what application data they are sending over the
@@ -245,15 +206,12 @@ DecodePacketData(encoded []byte) (CustomPacketData) {
 Then a module must encode its packet data before sending it through IBC.
 
 ```go
-// retrieve the dynamic capability for this channel
-channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 // Sending custom application packet data
 data := EncodePacketData(customPacketData)
 packet.Data = data
 // Send packet to IBC, authenticating with channelCap
 sequence, err := IBCChannelKeeper.SendPacket(
   ctx, 
-  channelCap, 
   sourcePort, 
   sourceChannel, 
   timeoutHeight, 
@@ -298,14 +256,11 @@ module must trigger execution on the port-bound module through the use of callba
 packet a module simply needs to call `SendPacket` on the `IBCChannelKeeper`.
 
 ```go
-// retrieve the dynamic capability for this channel
-channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 // Sending custom application packet data
 data := EncodePacketData(customPacketData)
 // Send packet to IBC, authenticating with channelCap
 sequence, err := IBCChannelKeeper.SendPacket(
   ctx, 
-  channelCap, 
   sourcePort, 
   sourceChannel, 
   timeoutHeight, 
@@ -313,11 +268,6 @@ sequence, err := IBCChannelKeeper.SendPacket(
   data,
 )
 ```
-
-::: warning
-In order to prevent modules from sending packets on channels they do not own, IBC expects
-modules to pass in the correct channel capability for the packet's source channel.
-:::
 
 ##### Receiving Packets
 
@@ -413,7 +363,7 @@ message Acknowledgement {
 
 After a module writes an acknowledgement, a relayer can relay back the acknowledgement to the sender module. The sender module can
 then process the acknowledgement using the `OnAcknowledgementPacket` callback. The contents of the
-acknowledgement is entirely upto the modules on the channel (just like the packet data); however, it
+acknowledgement is entirely up to the modules on the channel (just like the packet data); however, it
 may often contain information on whether the packet was successfully processed along
 with some additional data that could be useful for remediation if the packet processing failed.
 

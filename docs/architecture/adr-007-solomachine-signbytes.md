@@ -10,7 +10,7 @@ Accepted, applied in v7
 
 ## Context
 
-The `06-solomachine` implemention up until ibc-go v7 constructed sign bytes using a `DataType` which described what type of data was being signed.
+The `06-solomachine` implementation up until ibc-go v7 constructed sign bytes using a `DataType` which described what type of data was being signed.
 This design decision arose from a misunderstanding of the security implications.
 It was noted that the proto definitions do not [provide uniqueness](https://github.com/cosmos/cosmos-sdk/pull/7237#discussion_r484264573) which is a necessity for ensuring two signatures over different data types can never be the same.
 What was missed is that the uniqueness is not provided by the proto definition, but by the usage of the proto definition.

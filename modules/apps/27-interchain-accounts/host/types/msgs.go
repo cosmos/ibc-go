@@ -5,12 +5,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 var (
 	_ sdk.Msg              = (*MsgUpdateParams)(nil)
 	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
+
+	_ sdk.Msg              = (*MsgModuleQuerySafe)(nil)
+	_ sdk.HasValidateBasic = (*MsgModuleQuerySafe)(nil)
 )
 
 // NewMsgUpdateParams creates a new MsgUpdateParams instance
@@ -21,7 +24,7 @@ func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 	}
 }
 
-// ValidateBasic implements sdk.Msg
+// ValidateBasic implements sdk.HasValidateBasic
 func (msg MsgUpdateParams) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -31,12 +34,24 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 	return msg.Params.Validate()
 }
 
-// GetSigners implements sdk.Msg
-func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	accAddr, err := sdk.AccAddressFromBech32(msg.Signer)
+// NewMsgModuleQuerySafe creates a new MsgModuleQuerySafe instance
+func NewMsgModuleQuerySafe(signer string, requests []QueryRequest) *MsgModuleQuerySafe {
+	return &MsgModuleQuerySafe{
+		Signer:   signer,
+		Requests: requests,
+	}
+}
+
+// ValidateBasic implements sdk.HasValidateBasic
+func (msg MsgModuleQuerySafe) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		panic(err)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	return []sdk.AccAddress{accAddr}
+	if len(msg.Requests) == 0 {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no queries provided")
+	}
+
+	return nil
 }

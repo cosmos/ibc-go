@@ -7,8 +7,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 // NewPacketFee creates and returns a new PacketFee struct including the incentivization fees, refund address and relayers
@@ -59,9 +59,12 @@ func NewFee(recvFee, ackFee, timeoutFee sdk.Coins) Fee {
 	}
 }
 
-// Total returns the total amount for a given Fee
+// Total returns the total amount for a given Fee.
+// The total amount is the Max(RecvFee + AckFee, TimeoutFee),
+// This is because either the packet is received and acknowledged or it timeouts
 func (f Fee) Total() sdk.Coins {
-	return f.RecvFee.Add(f.AckFee...).Add(f.TimeoutFee...)
+	// maximum returns the denomwise maximum of two sets of coins
+	return f.RecvFee.Add(f.AckFee...).Max(f.TimeoutFee)
 }
 
 // Validate asserts that each Fee is valid and all three Fees are not empty or zero

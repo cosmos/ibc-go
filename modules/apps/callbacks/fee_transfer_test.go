@@ -9,8 +9,9 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 var (
@@ -20,87 +21,140 @@ var (
 )
 
 func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
+	var transferMemo string
+
 	testCases := []struct {
-		name         string
-		transferMemo string
-		expCallback  types.CallbackType
-		expSuccess   bool
+		name        string
+		malleate    func()
+		expCallback types.CallbackType
+		expSuccess  bool
 	}{
 		{
 			"success: transfer with no memo",
-			"",
+			func() {},
 			"none",
 			true,
 		},
 		{
 			"success: dest callback",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.SuccessContract),
+			func() {
+				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.SuccessContract)
+			},
 			types.CallbackTypeReceivePacket,
 			true,
 		},
 		{
 			"success: dest callback with other json fields",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, "something_else": {}}`, simapp.SuccessContract),
+			func() {
+				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}, "something_else": {}}`, simapp.SuccessContract)
+			},
 			types.CallbackTypeReceivePacket,
 			true,
 		},
 		{
 			"success: dest callback with malformed json",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}, malformed}`, simapp.SuccessContract),
+			func() {
+				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}, malformed}`, simapp.SuccessContract)
+			},
 			"none",
 			true,
 		},
 		{
 			"success: dest callback with missing address",
-			`{"dest_callback": {"address": ""}}`,
+			func() {
+				//nolint:goconst
+				transferMemo = `{"dest_callback": {"address": ""}}`
+			},
 			"none",
 			true,
 		},
 		{
 			"success: source callback",
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract)
+			},
 			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with other json fields",
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, simapp.SuccessContract),
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}, "something_else": {}}`, simapp.SuccessContract)
+			},
 			types.CallbackTypeAcknowledgementPacket,
 			true,
 		},
 		{
 			"success: source callback with malformed json",
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}, malformed}`, simapp.SuccessContract),
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}, malformed}`, simapp.SuccessContract)
+			},
 			"none",
 			true,
 		},
 		{
 			"success: source callback with missing address",
-			`{"src_callback": {"address": ""}}`,
+			func() {
+				//nolint:goconst
+				transferMemo = `{"src_callback": {"address": ""}}`
+			},
 			"none",
 			true,
 		},
 		{
+			"success: acknowledgement",
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract)
+
+				k := GetSimApp(s.chainA).MockContractKeeper
+
+				k.IBCOnAcknowledgementPacketCallbackFn = func(
+					cachedCtx sdk.Context,
+					_ channeltypes.Packet,
+					acknowledgement []byte,
+					_ sdk.AccAddress,
+					contractAddress,
+					_ string,
+					_ string,
+				) error {
+					expAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+					s.Require().Equal(expAck, acknowledgement)
+
+					return k.ProcessMockCallback(cachedCtx, types.CallbackTypeAcknowledgementPacket, contractAddress)
+				}
+			},
+			types.CallbackTypeAcknowledgementPacket,
+			true,
+		},
+		{
 			"failure: dest callback with low gas (panic)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogPanicContract),
+			func() {
+				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogPanicContract)
+			},
 			types.CallbackTypeReceivePacket,
 			false,
 		},
 		{
 			"failure: dest callback with low gas (error)",
-			fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogErrorContract),
+			func() {
+				transferMemo = fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, simapp.OogErrorContract)
+			},
 			types.CallbackTypeReceivePacket,
 			false,
 		},
 		{
 			"failure: source callback with low gas (panic)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogPanicContract),
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogPanicContract)
+			},
 			types.CallbackTypeSendPacket,
 			false,
 		},
 		{
 			"failure: source callback with low gas (error)",
-			fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogErrorContract),
+			func() {
+				transferMemo = fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.OogErrorContract)
+			},
 			types.CallbackTypeSendPacket,
 			false,
 		},
@@ -111,12 +165,15 @@ func (s *CallbacksTestSuite) TestIncentivizedTransferCallbacks() {
 
 		s.Run(tc.name, func() {
 			s.SetupFeeTransferTest()
+			transferMemo = ""
+
+			tc.malleate()
 
 			fee := feetypes.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 
 			s.ExecutePayPacketFeeMsg(fee)
 			preRelaySenderBalance := sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom))
-			s.ExecuteTransfer(tc.transferMemo)
+			s.ExecuteTransfer(transferMemo)
 			// we manually subtract the transfer amount from the preRelaySenderBalance because ExecuteTransfer
 			// also relays the packet, which will trigger the fee payments.
 			preRelaySenderBalance = preRelaySenderBalance.Sub(ibctesting.TestCoin)
@@ -213,13 +270,12 @@ func (s *CallbacksTestSuite) ExecutePayPacketFeeMsg(fee feetypes.Fee) {
 	s.Require().Equal(postEscrowBalance.AddAmount(fee.Total().AmountOf(sdk.DefaultBondDenom)), preEscrowBalance)
 
 	// register counterparty address on chainB
-	// relayerAddress is address of sender account on chainB, but we will use it on chainA
-	// to differentiate from the chainA.SenderAccount for checking successful relay payouts
-	relayerAddress := s.chainB.SenderAccount.GetAddress()
+	payeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+	s.Require().NoError(err)
 
 	msgRegister := feetypes.NewMsgRegisterCounterpartyPayee(
 		s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID,
-		s.chainB.SenderAccount.GetAddress().String(), relayerAddress.String(),
+		s.chainB.SenderAccount.GetAddress().String(), payeeAddr.String(),
 	)
 	_, err = s.chainB.SendMsgs(msgRegister)
 	s.Require().NoError(err) // message committed

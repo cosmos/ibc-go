@@ -22,12 +22,12 @@ v                     without deliberation
 
 ### Backwards compatibility
 
-<!-- List of tests that need be performed with previous
+<!-- List of tests that need to be performed with previous
 versions of ibc-go to guarantee that no regression is introduced -->
 
 - [ ] [Compatibility tests](https://github.com/cosmos/ibc-go/actions/workflows/e2e-compatibility.yaml) pass for the release branch.
 - [ ] [Upgrade tests](https://github.com/cosmos/ibc-go/actions/workflows/e2e-upgrade.yaml) pass.
-- [ ] [Interchain Accounts inter-tx tests](https://github.com/cosmos/interchain-accounts-demo/actions/workflows/e2e-compatibility.yaml) pass.
+- [ ] Manual test with ledger signing.
 
 ### Other testing
 
@@ -58,6 +58,7 @@ versions of ibc-go to guarantee that no regression is introduced -->
   - Remove any tags that might not be recommended anymore.
 - [ ] Update the list of [supported release lines in README.md](https://github.com/cosmos/ibc-go#releases), if necessary.
 - [ ] Update docs site:
+  - [ ] Update permalinks with links of the released tag.
   - [ ] If the release is occurring on the main branch, on the latest version, then run `npm run docusaurus docs:version vX.Y.Z` in the `docs/` directory. (where `X.Y.Z` is the new version number)
   - [ ] If the release is occurring on an older release branch, then make a PR to the main branch called `docs: new release vX.Y.Z` doing the following:
     - [ ] Update the content of the docs found in `docs/versioned_docs/version-vx.y.z` if needed. (where `x.y.z` is the previous version number)
@@ -65,7 +66,6 @@ versions of ibc-go to guarantee that no regression is introduced -->
       - [ ] In `docs/versions.json`.
       - [ ] Rename `docs/versioned_sidebars/version-vx.y.z-sidebars.json`
       - [ ] Rename `docs/versioned_docs/version-vx.y.z`
-- [ ] Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
 - [ ] Update the [compatibility test matrices](https://github.com/cosmos/ibc-go/tree/main/.github/compatibility-test-matrices):
   - Add the new release.
   - Remove any tags that might not be recommended anymore.

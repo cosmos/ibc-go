@@ -1,24 +1,36 @@
 package relayer
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"testing"
 
 	dockerclient "github.com/docker/docker/client"
+	"github.com/pelletier/go-toml"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"github.com/strangelove-ventures/interchaintest/v8/relayer"
+	"github.com/strangelove-ventures/interchaintest/v8/relayer/hermes"
 	"go.uber.org/zap"
 )
 
 const (
-	Rly    = "rly"
-	Hermes = "hermes"
+	Rly        = "rly"
+	Hermes     = "hermes"
+	Hyperspace = "hyperspace"
 
 	HermesRelayerRepository = "ghcr.io/informalsystems/hermes"
-	hermesRelayerUser       = "1000:1000"
+	hermesRelayerUser       = "2000:2000"
 	RlyRelayerRepository    = "ghcr.io/cosmos/relayer"
-	rlyRelayerUser          = "100:1000" // docker run -it --rm --entrypoint echo ghcr.io/cosmos/relayer "$(id -u):$(id -g)"
+	rlyRelayerUser          = "100:1000"
+
+	// TODO: https://github.com/cosmos/ibc-go/issues/4965
+	HyperspaceRelayerRepository = "ghcr.io/misko9/hyperspace"
+	hyperspaceRelayerUser       = "1000:1000"
+
+	// relativeHermesConfigFilePath is the path to the hermes config file relative to the home directory within the container.
+	relativeHermesConfigFilePath = ".hermes/config.toml"
 )
 
 // Config holds configuration values for the relayer used in the tests.
@@ -39,9 +51,92 @@ func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclien
 		return newCosmosRelayer(t, cfg.Tag, logger, dockerClient, network, cfg.Image)
 	case Hermes:
 		return newHermesRelayer(t, cfg.Tag, logger, dockerClient, network, cfg.Image)
+	case Hyperspace:
+		return newHyperspaceRelayer(t, cfg.Tag, logger, dockerClient, network, cfg.Image)
 	default:
 		panic(fmt.Errorf("unknown relayer specified: %s", cfg.ID))
 	}
+}
+
+// ApplyPacketFilter applies a packet filter to the hermes config file, which specifies a complete set of channels
+// to watch for packets.
+func ApplyPacketFilter(ctx context.Context, t *testing.T, r ibc.Relayer, chainID string, channels []ibc.ChannelOutput) error {
+	t.Helper()
+
+	h, ok := r.(*hermes.Relayer)
+	if !ok {
+		t.Logf("relayer %T does not support packet filtering, or it has not been implemented yet.", r)
+		return nil
+	}
+
+	return modifyHermesConfigFile(ctx, h, func(config map[string]interface{}) error {
+		chains, ok := config["chains"].([]map[string]interface{})
+		if !ok {
+			return errors.New("failed to get chains from hermes config")
+		}
+		var chain map[string]interface{}
+		for _, c := range chains {
+			if c["id"] == chainID {
+				chain = c
+				break
+			}
+		}
+
+		if chain == nil {
+			return fmt.Errorf("failed to find chain with id %s", chainID)
+		}
+
+		var channelEndpoints [][]string
+		for _, c := range channels {
+			channelEndpoints = append(channelEndpoints, []string{c.PortID, c.ChannelID})
+		}
+
+		// [chains.packet_filter]
+		//	# policy = 'allow'
+		//	# list = [
+		//	#   ['ica*', '*'],
+		//	#   ['transfer', 'channel-0'],
+		//	# ]
+
+		// TODO(chatton): explicitly enable watching of ICA channels
+		// this will ensure the ICA tests pass, but this will need to be modified to make sure
+		// ICA tests will succeed in parallel.
+		channelEndpoints = append(channelEndpoints, []string{"ica*", "*"})
+
+		// we explicitly override the full list, this allows this function to provide a complete set of channels to watch.
+		chain["packet_filter"] = map[string]interface{}{
+			"policy": "allow",
+			"list":   channelEndpoints,
+		}
+
+		return nil
+	})
+}
+
+// modifyHermesConfigFile reads the hermes config file, applies a modification function and returns an error if any.
+func modifyHermesConfigFile(ctx context.Context, h *hermes.Relayer, modificationFn func(map[string]interface{}) error) error {
+	bz, err := h.ReadFileFromHomeDir(ctx, relativeHermesConfigFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to read hermes config file: %w", err)
+	}
+
+	var config map[string]interface{}
+	if err := toml.Unmarshal(bz, &config); err != nil {
+		return errors.New("failed to unmarshal hermes config bytes")
+	}
+
+	if modificationFn != nil {
+		if err := modificationFn(config); err != nil {
+			return fmt.Errorf("failed to modify hermes config: %w", err)
+		}
+	}
+
+	bz, err = toml.Marshal(config)
+	if err != nil {
+		return errors.New("failed to marshal hermes config bytes")
+	}
+
+	return h.WriteFileToHomeDir(ctx, relativeHermesConfigFilePath, bz)
 }
 
 // newCosmosRelayer returns an instance of the go relayer.
@@ -65,6 +160,18 @@ func newHermesRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient
 
 	customImageOption := relayer.CustomDockerImage(relayerImage, tag, hermesRelayerUser)
 	relayerFactory := interchaintest.NewBuiltinRelayerFactory(ibc.Hermes, logger, customImageOption)
+
+	return relayerFactory.Build(
+		t, dockerClient, network,
+	)
+}
+
+// newHyperspaceRelayer returns an instance of the hyperspace relayer.
+func newHyperspaceRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *dockerclient.Client, network, relayerImage string) ibc.Relayer {
+	t.Helper()
+
+	customImageOption := relayer.CustomDockerImage(relayerImage, tag, hyperspaceRelayerUser)
+	relayerFactory := interchaintest.NewBuiltinRelayerFactory(ibc.Hyperspace, logger, customImageOption)
 
 	return relayerFactory.Build(
 		t, dockerClient, network,

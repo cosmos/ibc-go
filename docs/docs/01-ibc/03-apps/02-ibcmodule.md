@@ -45,7 +45,7 @@ var (
 
 ## Channel handshake callbacks
 
-This section will describe the callbacks that are called during channel handshake execution. Among other things, it will claim channel capabilities passed on from core IBC. For a refresher on capabilities, check [the Overview section](../01-overview.md#capabilities).
+This section will describe the callbacks that are called during channel handshake execution.
 
 Here are the channel handshake callbacks that modules are expected to implement:
 
@@ -58,7 +58,6 @@ func (im IBCModule) OnChanOpenInit(ctx sdk.Context,
   connectionHops []string,
   portID string,
   channelID string,
-  channelCap *capabilitytypes.Capability,
   counterparty channeltypes.Counterparty,
   version string,
 ) (string, error) {
@@ -72,10 +71,6 @@ func (im IBCModule) OnChanOpenInit(ctx sdk.Context,
     return "", err
   }
 
-    // OpenInit must claim the channelCapability that IBC passes into the callback
-  if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-    return "", err
-  }
 
   return version, nil
 }
@@ -87,7 +82,6 @@ func (im IBCModule) OnChanOpenTry(
   connectionHops []string,
   portID,
   channelID string,
-  channelCap *capabilitytypes.Capability,
   counterparty channeltypes.Counterparty,
   counterpartyVersion string,
 ) (string, error) {
@@ -96,11 +90,6 @@ func (im IBCModule) OnChanOpenTry(
   // Use above arguments to determine if we want to abort handshake
   if err := checkArguments(args); err != nil {
     return "", err
-  }
-
-  // OpenTry must claim the channelCapability that IBC passes into the callback
-  if err := im.keeper.scopedKeeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-    return err
   }
 
   // Construct application version
@@ -141,7 +130,11 @@ func (im IBCModule) OnChanOpenConfirm(
 }
 ```
 
+### Channel closing callbacks
+
 The channel closing handshake will also invoke module callbacks that can return errors to abort the closing handshake. Closing a channel is a 2-step handshake, the initiating chain calls `ChanCloseInit` and the finalizing chain calls `ChanCloseConfirm`.
+
+Currently, all IBC modules in this repository return an error for `OnChanCloseInit` to prevent the channels from closing. This is because any user can call `ChanCloseInit` by submitting a `MsgChannelCloseInit` transaction.
 
 ```go
 // Called by IBC Handler on MsgCloseInit
@@ -235,14 +228,11 @@ module must trigger execution on the port-bound module through the use of callba
 > Note that some of the code below is *pseudo code*, indicating what actions need to happen but leaving it up to the developer to implement a custom implementation. E.g. the `EncodePacketData(customPacketData)` function.
 
 ```go
-// retrieve the dynamic capability for this channel
-channelCap := scopedKeeper.GetCapability(ctx, channelCapName)
 // Sending custom application packet data
 data := EncodePacketData(customPacketData)
 // Send packet to IBC, authenticating with channelCap
 sequence, err := IBCChannelKeeper.SendPacket(
   ctx,
-  channelCap,
   sourcePort,
   sourceChannel,
   timeoutHeight,
@@ -250,11 +240,6 @@ sequence, err := IBCChannelKeeper.SendPacket(
   data,
 )
 ```
-
-:::warning
-In order to prevent modules from sending packets on channels they do not own, IBC expects
-modules to pass in the correct channel capability for the packet's source channel.
-:::
 
 ### Receiving packets
 
@@ -367,8 +352,11 @@ The `PacketDataUnmarshaler` interface is defined as follows:
 // PacketDataUnmarshaler defines an optional interface which allows a middleware to
 // request the packet data to be unmarshaled by the base application.
 type PacketDataUnmarshaler interface {
-	// UnmarshalPacketData unmarshals the packet data into a concrete type
-	UnmarshalPacketData([]byte) (interface{}, error)
+  // UnmarshalPacketData unmarshals the packet data into a concrete type
+  // ctx, portID, channelID are provided as arguments, so that (if needed)
+  // the packet data can be unmarshaled based on the channel version.
+  // The version of the underlying app is also returned.
+  UnmarshalPacketData(ctx sdk.Context, portID, channelID string, bz []byte) (interface{}, string, error)
 }
 ```
 

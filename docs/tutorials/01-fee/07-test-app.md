@@ -27,11 +27,11 @@ You can find the React app we created in the previous section [here](https://git
 Ignite supports running multiple chains locally with different configs. The source chain will be called earth and the destination chain will be called mars.
 Add the following config files to the root of the project:
 
-```yaml reference title="earth.yaml"
+```yaml reference title="earth.yml"
 https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/96cb63bf2e60b4613a89841416066551dd666c0d/earth.yml
 ```
 
-```yaml reference title="mars.yaml"
+```yaml reference title="mars.yml"
 https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/96cb63bf2e60b4613a89841416066551dd666c0d/mars.yml
 ```
 
@@ -50,7 +50,7 @@ ignite chain serve -c mars.yml --reset-once
 We first need to create a relayer configuration file. Add the following file to the root of the project:
 
 ```toml reference title="hermes/config.toml"
-https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/960d8b7e148cbe2207c3a743bac7c0985a5b653a/hermes/config.toml
+https://github.com/srdtrk/cosmoverse2023-ibc-fee-demo/blob/0186b9ee979c288efbe3fe5fd071169d9dbcf91e/hermes/config.toml
 ```
 
 We can move this file to the `~/.hermes` directory to avoid having to specify the path to the config file every time we run the relayer:
@@ -105,15 +105,9 @@ hermes create channel --channel-version '{"fee_version":"ics29-1","app_version":
 ```
 
 This will create an incentivized IBC transfer channel between the two chains with the channel id `channel-0`, and channel version `{"fee_version":"ics29-1","app_version":"ics20-1"}`.
+
 Next recall that the Fee Middleware only pays fees on the source chain. That's why we should register `damian` and `charlie` as each other's counterparty on both chains.
-
-```bash title="Terminal 4"
-hermes fee register-counterparty-payee --chain mars --channel channel-0 --port transfer --counterparty-payee cosmos1vapwvcsr0m32ptal6z6g9hjctywrw4yzyf6y6v
-```
-
-```bash title="Terminal 4"
-hermes fee register-counterparty-payee --chain earth --channel channel-0 --port transfer --counterparty-payee cosmos1uu38gkyed0dte5f9xk20p8wcppulsjt90s7f8h
-```
+Luckily, the relayer does this for us under the hood because we've enabled the `auto_register_counterparty_payee` option in the config file.
 
 Now we can run the relayer with the following command:
 

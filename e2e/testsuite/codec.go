@@ -3,7 +3,6 @@ package testsuite
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 
 	"github.com/cosmos/gogoproto/jsonpb"
 	"github.com/cosmos/gogoproto/proto"
@@ -15,6 +14,7 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -23,30 +23,24 @@ import (
 	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
-	icacontrollertypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	v7migrations "github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctmtypes "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	simappparams "github.com/cosmos/ibc-go/v8/testing/simapp/params"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	icahosttypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	v7migrations "github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
+	ibctmtypes "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 // Codec returns the global E2E protobuf codec.
 func Codec() *codec.ProtoCodec {
 	cdc, _ := codecAndEncodingConfig()
 	return cdc
-}
-
-// EncodingConfig returns the global E2E encoding config.
-func EncodingConfig() simappparams.EncodingConfig {
-	_, cfg := codecAndEncodingConfig()
-	return cfg
 }
 
 // SDKEncodingConfig returns the global E2E encoding config.
@@ -60,8 +54,8 @@ func SDKEncodingConfig() *testutil.TestEncodingConfig {
 	}
 }
 
-func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
-	cfg := simappparams.MakeTestEncodingConfig()
+func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
+	cfg := testutil.MakeTestEncodingConfig()
 
 	// ibc types
 	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
@@ -74,7 +68,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	channeltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	connectiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	ibctmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	localhost.RegisterInterfaces(cfg.InterfaceRegistry)
+	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	// all other types
 	upgradetypes.RegisterInterfaces(cfg.InterfaceRegistry)
@@ -86,6 +80,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, simappparams.EncodingConfig) {
 	grouptypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	proposaltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	authz.RegisterInterfaces(cfg.InterfaceRegistry)
+	txtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	return cdc, cfg
@@ -99,28 +94,13 @@ func UnmarshalMsgResponses(txResp sdk.TxResponse, msgs ...codec.ProtoMarshaler) 
 		return err
 	}
 
-	var txMsgData sdk.TxMsgData
-	if err := cdc.Unmarshal(bz, &txMsgData); err != nil {
-		return err
-	}
-
-	if len(msgs) != len(txMsgData.MsgResponses) {
-		return fmt.Errorf("expected %d message responses but got %d", len(msgs), len(txMsgData.MsgResponses))
-	}
-
-	for i, msg := range msgs {
-		if err := cdc.Unmarshal(txMsgData.MsgResponses[i].Value, msg); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return ibctesting.UnmarshalMsgResponses(cdc, bz, msgs...)
 }
 
 // MustProtoMarshalJSON provides an auxiliary function to return Proto3 JSON encoded
 // bytes of a message. This function should be used when marshalling a proto.Message
 // from the e2e tests. This function strips out unknown fields. This is useful for
-// backwards compatibility tests where the the types imported by the e2e package have
+// backwards compatibility tests where the types imported by the e2e package have
 // new fields that older versions do not recognize.
 func MustProtoMarshalJSON(msg proto.Message) []byte {
 	anyResolver := codectypes.NewInterfaceRegistry()

@@ -12,34 +12,37 @@ jobs:
     strategy:
       matrix:
         release-branch:
-          - release/v4.4.x
-          - release/v4.5.x
-          - release/v5.3.x
-          - release/v6.1.x
-          - release/v6.2.x
-          - release/v7.2.x
-          - release/v7.3.x
-          - release/v8.0.x
+          - release/v4.6.x
+          - release/v5.4.x
+          - release/v6.3.x
+          - release/v7.4.x
+          - release/v7.5.x
+          - release/v7.6.x
+          - release/v7.7.x
+          - release/v7.8.x
+          - release/v8.5.x 
+          - release/v8.4.x
+          - release/v9.0.x
     steps:
       - uses: actions/checkout@v4
         with:
           ref: "${{ matrix.release-branch }}"
           fetch-depth: 0
       - name: Log in to the Container registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build image
         run: |
-          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
           # TODO: IBC_GO_VERSION does not yet do anything in the tests but is required.
           docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ matrix.release-branch }}
           docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
       - name: Display image details
         run: |
-          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/\//-/')"
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
           docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
 
   transfer-1:
@@ -74,13 +77,21 @@ jobs:
       test-file-directory: "unreleased"
       test-suite: "connection"
 
-  client:
+  client-1:
     needs:
       - build-release-images
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file-directory: "unreleased"
-      test-suite: "client"
+      test-suite: "clien-1"
+
+  client-2:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "client-2"
 
   genesis:
     needs:
@@ -161,3 +172,75 @@ jobs:
     with:
       test-file-directory: "unreleased"
       test-suite: "transfer-authz"
+
+  transfer-channel-upgrade-chain-a:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-channel-upgrade-chain-a"
+  
+  transfer-channel-upgrade-chain-b:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-channel-upgrade-chain-b"
+
+  transfer-v2-1-channel-upgrade:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-1-channel-upgrade"
+
+  transfer-v2-2-channel-upgrade:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-2-channel-upgrade"
+
+  transfer-v2-forwarding:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-forwarding"
+
+  transfer-v2-multidenom:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "transfer-v2-multidenom"
+
+  ica-channel-upgrade:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "ica-channel-upgrade"
+
+  ica-channel-upgrade-chain-a:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "ica-channel-upgrade-chain-a"
+
+  ica-channel-upgrade-chain-b:
+    needs:
+      - build-release-images
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file-directory: "unreleased"
+      test-suite: "ica-channel-upgrade-chain-b"

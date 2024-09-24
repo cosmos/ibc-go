@@ -5,10 +5,9 @@ sidebar_position: 5
 slug: /ibc/light-clients/localhost/state-verification
 ---
 
-
 # State verification
 
-The localhost client handles state verification through the `ClientState` interface methods `VerifyMembership` and `VerifyNonMembership` by performing read-only operations directly on the core IBC store.
+The localhost client handles state verification through the `LightClientModule` interface methods `VerifyMembership` and `VerifyNonMembership` by performing read-only operations directly on the core IBC store.
 
 When verifying channel state in handshakes or processing packets the `09-localhost` client can simply compare bytes stored under the standardized key paths defined by [ICS-24](https://github.com/cosmos/ibc/tree/main/spec/core/ics-024-host-requirements).
 
@@ -20,3 +19,5 @@ The 09-localhost light client module defines a `SentinelProof` as a single byte.
 ```go
 var SentinelProof = []byte{0x01}
 ```
+
+The `ClientState` of `09-localhost` is stateless, so it is not directly provable with `VerifyMembership` or `VerifyNonMembership`. 

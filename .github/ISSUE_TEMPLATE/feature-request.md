@@ -22,6 +22,10 @@ What problems may be addressed by introducing this feature?
 What benefits does the ibc-go stand to gain by including this feature?
 Are there any disadvantages of including this feature? -->
 
+## Use cases
+
+<!-- What use cases will be enabled by the introduction of this feature? -->
+
 ## Proposal
 
 <!-- Detailed description of requirements of implementation -->
@@ -33,3 +37,4 @@ ____
 - [ ] Not duplicate issue
 - [ ] Appropriate labels applied
 - [ ] Appropriate contributors tagged/assigned
+- [ ] Estimate provided

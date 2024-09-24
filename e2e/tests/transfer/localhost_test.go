@@ -6,18 +6,21 @@ import (
 	"context"
 	"testing"
 
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	localhost "github.com/cosmos/ibc-go/v9/modules/light-clients/09-localhost"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
+
 // compatibility:from_version: v7.2.0
 func TestTransferLocalhostTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(LocalhostTransferTestSuite))
@@ -34,8 +37,9 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
-	_, _ = s.SetupChainsRelayerAndChannel(ctx, s.TransferChannelOptions())
 	chainA, _ := s.GetChains()
+
+	channelVersion := testsuite.DetermineDefaultTransferVersion([]ibc.Chain{chainA})
 
 	chainADenom := chainA.Config().Denom
 
@@ -52,21 +56,9 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
 
-	t.Run("verify begin blocker was executed", func(t *testing.T) {
-		cs, err := s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
-		s.Require().NoError(err)
-		originalHeight := cs.GetLatestHeight()
-
-		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
-
-		cs, err = s.QueryClientState(ctx, chainA, exported.LocalhostClientID)
-		s.Require().NoError(err)
-		s.Require().True(cs.GetLatestHeight().GT(originalHeight), "client state height was not incremented")
-	})
-
 	t.Run("channel open init localhost", func(t *testing.T) {
 		msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
-			transfertypes.PortID, transfertypes.Version,
+			transfertypes.PortID, channelVersion,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, rlyWallet.FormattedAddress(),
 		)
@@ -81,10 +73,10 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	t.Run("channel open try localhost", func(t *testing.T) {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
-			transfertypes.PortID, transfertypes.Version,
+			transfertypes.PortID, channelVersion,
 			channeltypes.UNORDERED, []string{exported.LocalhostConnectionID},
 			transfertypes.PortID, msgChanOpenInitRes.ChannelId,
-			transfertypes.Version, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
+			channelVersion, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
@@ -96,7 +88,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t.Run("channel open ack localhost", func(t *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			transfertypes.PortID, msgChanOpenInitRes.ChannelId,
-			msgChanOpenTryRes.ChannelId, transfertypes.Version,
+			msgChanOpenTryRes.ChannelId, channelVersion,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
 		)
 
@@ -115,20 +107,20 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	})
 
 	t.Run("query localhost transfer channel ends", func(t *testing.T) {
-		channelEndA, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.ChannelId)
+		channelEndA, err := query.Channel(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
 
-		channelEndB, err := s.QueryChannel(ctx, chainA, transfertypes.PortID, msgChanOpenTryRes.ChannelId)
+		channelEndB, err := query.Channel(ctx, chainA, transfertypes.PortID, msgChanOpenTryRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndB)
 
-		s.Require().Equal(channelEndA.GetConnectionHops(), channelEndB.GetConnectionHops())
+		s.Require().Equal(channelEndA.ConnectionHops, channelEndB.ConnectionHops)
 	})
 
 	t.Run("send packet localhost ibc transfer", func(t *testing.T) {
 		var err error
-		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 100), 0, "")
+		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, testvalues.DefaultTransferCoins(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 500), 0, "", nil)
 		s.AssertTxSuccess(txResp)
 
 		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
@@ -167,7 +159,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, msgChanOpenInitRes.ChannelId, 1)
 
 		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, msgChanOpenTryRes.ChannelId)
-		actualBalance, err := s.QueryBalance(ctx, chainA, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
+		actualBalance, err := query.Balance(ctx, chainA, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
 
 		s.Require().NoError(err)
 

@@ -2,12 +2,13 @@ package ibctesting
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 // Path contains two endpoints representing two chains connected over IBC
@@ -32,22 +33,45 @@ func NewPath(chainA, chainB *TestChain) *Path {
 	}
 }
 
+// NewPathWithFeeEnabled constructs an endpoint for each chain using the default values
+// for the endpoints. Each endpoint is updated to have a pointer to the
+// counterparty endpoint. It also enables fee on the path
+func NewPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
+	path := NewPath(chainA, chainB)
+	return EnableFeeOnPath(path)
+}
+
 // NewTransferPath constructs a new path between each chain suitable for use with
 // the transfer module.
 func NewTransferPath(chainA, chainB *TestChain) *Path {
 	path := NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = TransferPort
 	path.EndpointB.ChannelConfig.PortID = TransferPort
-	path.EndpointA.ChannelConfig.Version = transfertypes.Version
-	path.EndpointB.ChannelConfig.Version = transfertypes.Version
+	path.EndpointA.ChannelConfig.Version = transfertypes.V2
+	path.EndpointB.ChannelConfig.Version = transfertypes.V2
 
 	return path
+}
+
+// NewTransferPathWithFeeEnabled constructs a new path between each chain suitable for use with
+// the transfer module, and it enables fee on it.
+func NewTransferPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
+	path := NewTransferPath(chainA, chainB)
+	return EnableFeeOnPath(path)
 }
 
 // SetChannelOrdered sets the channel order for both endpoints to ORDERED.
 func (path *Path) SetChannelOrdered() {
 	path.EndpointA.ChannelConfig.Order = channeltypes.ORDERED
 	path.EndpointB.ChannelConfig.Order = channeltypes.ORDERED
+}
+
+// DisableUniqueChannelIDs provides an opt-out way to not have all channel IDs be different
+// while testing.
+func (path *Path) DisableUniqueChannelIDs() *Path {
+	path.EndpointA.disableUniqueChannelIDs = true
+	path.EndpointB.disableUniqueChannelIDs = true
+	return path
 }
 
 // RelayPacket attempts to relay the packet first on EndpointA and then on EndpointB
@@ -113,5 +137,108 @@ func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.Exec
 		return res, ack, nil
 	}
 
-	return nil, nil, fmt.Errorf("packet commitment does not exist on either endpoint for provided packet")
+	return nil, nil, errors.New("packet commitment does not exist on either endpoint for provided packet")
+}
+
+// Setup constructs a TM client, connection, and channel on both chains provided. It will
+// fail if any error occurs.
+func (path *Path) Setup() {
+	path.SetupConnections()
+
+	// channels can also be referenced through the returned connections
+	path.CreateChannels()
+}
+
+// SetupClients is a helper function to create clients on both chains. It assumes the
+// caller does not anticipate any errors.
+func (path *Path) SetupClients() {
+	err := path.EndpointA.CreateClient()
+	if err != nil {
+		panic(err)
+	}
+
+	err = path.EndpointB.CreateClient()
+	if err != nil {
+		panic(err)
+	}
+}
+
+// SetupConnections is a helper function to create clients and the appropriate
+// connections on both the source and counterparty chain. It assumes the caller does not
+// anticipate any errors.
+func (path *Path) SetupConnections() {
+	path.SetupClients()
+
+	path.CreateConnections()
+}
+
+// CreateConnections constructs and executes connection handshake messages in order to create
+// OPEN connections on chainA and chainB. The function expects the connections to be
+// successfully opened otherwise testing will fail.
+func (path *Path) CreateConnections() {
+	err := path.EndpointA.ConnOpenInit()
+	if err != nil {
+		panic(err)
+	}
+
+	err = path.EndpointB.ConnOpenTry()
+	if err != nil {
+		panic(err)
+	}
+
+	err = path.EndpointA.ConnOpenAck()
+	if err != nil {
+		panic(err)
+	}
+
+	err = path.EndpointB.ConnOpenConfirm()
+	if err != nil {
+		panic(err)
+	}
+
+	// ensure counterparty is up to date
+	err = path.EndpointA.UpdateClient()
+	if err != nil {
+		panic(err)
+	}
+}
+
+// CreateChannels constructs and executes channel handshake messages in order to create
+// OPEN channels on chainA and chainB. The function expects the channels to be successfully
+// opened otherwise testing will fail.
+func (path *Path) CreateChannels() {
+	err := path.EndpointA.ChanOpenInit()
+	if err != nil {
+		panic(err)
+	}
+
+	err = path.EndpointB.ChanOpenTry()
+	if err != nil {
+		panic(err)
+	}
+
+	err = path.EndpointA.ChanOpenAck()
+	if err != nil {
+		panic(err)
+	}
+
+	err = path.EndpointB.ChanOpenConfirm()
+	if err != nil {
+		panic(err)
+	}
+
+	// ensure counterparty is up to date
+	err = path.EndpointA.UpdateClient()
+	if err != nil {
+		panic(err)
+	}
+}
+
+// EnableFeeOnPath enables fee on a channel given a path.
+func EnableFeeOnPath(path *Path) *Path {
+	path.EndpointA.ChannelConfig.Version = ibcmock.MockFeeVersion
+	path.EndpointB.ChannelConfig.Version = ibcmock.MockFeeVersion
+	path.EndpointA.ChannelConfig.PortID = MockFeePort
+	path.EndpointB.ChannelConfig.PortID = MockFeePort
+	return path
 }

@@ -1,13 +1,13 @@
 package types
 
 import (
+	"context"
 	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 const (
@@ -33,7 +33,7 @@ func NewMetadata(version, controllerConnectionID, hostConnectionID, accAddress, 
 }
 
 // NewDefaultMetadata creates and returns a new ICS27 Metadata instance containing the default ICS27 Metadata values
-// with the provided controller and host connection identifiers
+// with the provided controller and host connection identifiers. The host connection identifier may be an empty string.
 func NewDefaultMetadata(controllerConnectionID, hostConnectionID string) Metadata {
 	metadata := Metadata{
 		ControllerConnectionId: controllerConnectionID,
@@ -47,18 +47,27 @@ func NewDefaultMetadata(controllerConnectionID, hostConnectionID string) Metadat
 }
 
 // NewDefaultMetadataString creates and returns a new JSON encoded version string containing the default ICS27 Metadata values
-// with the provided controller and host connection identifiers
+// with the provided controller and host connection identifiers. The host connection identifier may be an empty string.
 func NewDefaultMetadataString(controllerConnectionID, hostConnectionID string) string {
 	metadata := NewDefaultMetadata(controllerConnectionID, hostConnectionID)
 
 	return string(ModuleCdc.MustMarshalJSON(&metadata))
 }
 
+// MetadataFromVersion parses Metadata from a json encoded version string.
+func MetadataFromVersion(versionString string) (Metadata, error) {
+	var metadata Metadata
+	if err := ModuleCdc.UnmarshalJSON([]byte(versionString), &metadata); err != nil {
+		return Metadata{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-27 interchain accounts metadata")
+	}
+	return metadata, nil
+}
+
 // IsPreviousMetadataEqual compares a metadata to a previous version string set in a channel struct.
 // It ensures all fields are equal except the Address string
 func IsPreviousMetadataEqual(previousVersion string, metadata Metadata) bool {
-	var previousMetadata Metadata
-	if err := ModuleCdc.UnmarshalJSON([]byte(previousVersion), &previousMetadata); err != nil {
+	previousMetadata, err := MetadataFromVersion(previousVersion)
+	if err != nil {
 		return false
 	}
 
@@ -69,8 +78,9 @@ func IsPreviousMetadataEqual(previousVersion string, metadata Metadata) bool {
 		previousMetadata.TxType == metadata.TxType)
 }
 
-// ValidateControllerMetadata performs validation of the provided ICS27 controller metadata parameters
-func ValidateControllerMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata) error {
+// ValidateControllerMetadata performs validation of the provided ICS27 controller metadata parameters as well
+// as the connection params against the provided metadata
+func ValidateControllerMetadata(ctx context.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata) error {
 	if !isSupportedEncoding(metadata.Encoding) {
 		return errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", metadata.Encoding)
 	}
@@ -84,7 +94,7 @@ func ValidateControllerMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, co
 		return err
 	}
 
-	if err := validateConnectionParams(metadata, connectionHops[0], connection.GetCounterparty().GetConnectionID()); err != nil {
+	if err := validateConnectionParams(metadata, connectionHops[0], connection.Counterparty.ConnectionId); err != nil {
 		return err
 	}
 
@@ -102,7 +112,7 @@ func ValidateControllerMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, co
 }
 
 // ValidateHostMetadata performs validation of the provided ICS27 host metadata parameters
-func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata) error {
+func ValidateHostMetadata(ctx context.Context, channelKeeper ChannelKeeper, connectionHops []string, metadata Metadata) error {
 	if !isSupportedEncoding(metadata.Encoding) {
 		return errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", metadata.Encoding)
 	}
@@ -116,7 +126,7 @@ func ValidateHostMetadata(ctx sdk.Context, channelKeeper ChannelKeeper, connecti
 		return err
 	}
 
-	if err := validateConnectionParams(metadata, connection.GetCounterparty().GetConnectionID(), connectionHops[0]); err != nil {
+	if err := validateConnectionParams(metadata, connection.Counterparty.ConnectionId, connectionHops[0]); err != nil {
 		return err
 	}
 

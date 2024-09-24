@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,18 +10,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // emitCreateClientEvent emits a create client event
-func emitCreateClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+func emitCreateClientEvent(ctx sdk.Context, clientID, clientType string, initialHeight exported.Height) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, initialHeight.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -32,12 +31,7 @@ func emitCreateClientEvent(ctx sdk.Context, clientID string, clientState exporte
 }
 
 // emitUpdateClientEvent emits an update client event
-func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, cdc codec.BinaryCodec, clientMsg exported.ClientMessage) {
-	// Marshal the ClientMessage as an Any and encode the resulting bytes to hex.
-	// This prevents the event value from containing invalid UTF-8 characters
-	// which may cause data to be lost when JSON encoding/decoding.
-	clientMsgStr := hex.EncodeToString(types.MustMarshalClientMessage(cdc, clientMsg))
-
+func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, _ codec.BinaryCodec, _ exported.ClientMessage) {
 	var consensusHeightAttr string
 	if len(consensusHeights) != 0 {
 		consensusHeightAttr = consensusHeights[0].String()
@@ -57,7 +51,6 @@ func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, 
 			// Please use AttributeKeyConsensusHeights instead.
 			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeightAttr),
 			sdk.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
-			sdk.NewAttribute(types.AttributeKeyHeader, clientMsgStr),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -67,13 +60,13 @@ func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, 
 }
 
 // emitUpgradeClientEvent emits an upgrade client event
-func emitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+func emitUpgradeClientEvent(ctx sdk.Context, clientID, clientType string, latestHeight exported.Height) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpgradeClient,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, clientState.GetLatestHeight().String()),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
+			sdk.NewAttribute(types.AttributeKeyConsensusHeight, latestHeight.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -83,12 +76,12 @@ func emitUpgradeClientEvent(ctx sdk.Context, clientID string, clientState export
 }
 
 // emitSubmitMisbehaviourEvent emits a client misbehaviour event
-func emitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientState exported.ClientState) {
+func emitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientType string) {
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSubmitMisbehaviour,
 			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientState.ClientType()),
+			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

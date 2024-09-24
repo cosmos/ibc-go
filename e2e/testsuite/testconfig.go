@@ -3,11 +3,14 @@ package testsuite
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path"
 	"strings"
+	"time"
 
+	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	interchaintestutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"gopkg.in/yaml.v2"
@@ -20,11 +23,15 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	tmjson "github.com/cometbft/cometbft/libs/json"
+	cmtjson "github.com/cometbft/cometbft/libs/json"
 
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 const (
@@ -46,20 +53,30 @@ const (
 	ChainUpgradePlanEnv = "CHAIN_UPGRADE_PLAN"
 	// E2EConfigFilePathEnv allows you to specify a custom path for the config file to be used.
 	E2EConfigFilePathEnv = "E2E_CONFIG_PATH"
+	// KeepContainersEnv instructs interchaintest to not delete the containers after a test has run.
+	// this ensures that chain containers are not deleted after a test suite is run if other tests
+	// depend on those chains.
+	KeepContainersEnv = "KEEP_CONTAINERS"
 
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
 	defaultRlyTag = "latest"
+
+	// TODO: https://github.com/cosmos/ibc-go/issues/4965
+	defaultHyperspaceTag = "20231122v39"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "bef2f53"
+	defaultHermesTag = "1.10.0"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
-	// e2e tests. See sample.config.yaml as an example for what this should look like.
+	// e2e tests. See sample.config.yaml or sample.config.extended.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
 )
+
+// defaultChainNames contains the default name for chainA and chainB.
+var defaultChainNames = []string{"simapp-a", "simapp-b", "simapp-c"}
 
 func getChainImage(binary string) string {
 	if binary == "" {
@@ -94,6 +111,10 @@ func (tc TestConfig) Validate() error {
 	if err := tc.validateRelayers(); err != nil {
 		return fmt.Errorf("invalid relayer configuration: %w", err)
 	}
+
+	if err := tc.validateGenesisDebugConfig(); err != nil {
+		return fmt.Errorf("invalid Genesis debug configuration: %w", err)
+	}
 	return nil
 }
 
@@ -126,13 +147,20 @@ func (tc TestConfig) validateChains() error {
 			}
 		}
 	}
+
+	// clienttypes.ParseChainID is used to determine revision heights. If the chainIDs are not in the expected format,
+	// tests can fail with timeout errors.
+	if clienttypes.ParseChainID(tc.GetChainAID()) != clienttypes.ParseChainID(tc.GetChainBID()) {
+		return fmt.Errorf("ensure both chainIDs are in the format {chainID}-{revision} and have the same revision. Got: chainA: %s, chainB: %s", tc.GetChainAID(), tc.GetChainBID())
+	}
+
 	return nil
 }
 
 // validateRelayers validates relayer configuration.
 func (tc TestConfig) validateRelayers() error {
 	if len(tc.RelayerConfigs) < 1 {
-		return fmt.Errorf("no relayer configurations specified")
+		return errors.New("no relayer configurations specified")
 	}
 
 	for _, r := range tc.RelayerConfigs {
@@ -152,6 +180,31 @@ func (tc TestConfig) validateRelayers() error {
 	}
 
 	return nil
+}
+
+// GetChainIndex returns the index of the chain with the given name, if it
+// exists.
+func (tc TestConfig) GetChainIndex(name string) (int, error) {
+	for i := range tc.ChainConfigs {
+		chainName := tc.GetChainName(i)
+		if chainName == name {
+			return i, nil
+		}
+	}
+	return -1, fmt.Errorf("chain %s not found in chain configs", name)
+}
+
+// validateGenesisDebugConfig validates configuration of Genesis debug options/
+func (tc TestConfig) validateGenesisDebugConfig() error {
+	cfg := tc.DebugConfig.GenesisDebug
+	if !cfg.DumpGenesisDebugInfo {
+		return nil
+	}
+
+	// Verify that the provided chain exists in our config
+	_, err := tc.GetChainIndex(tc.GetGenesisChainName())
+
+	return err
 }
 
 // GetActiveRelayerConfig returns the currently specified relayer config.
@@ -183,6 +236,7 @@ func (tc TestConfig) GetChainNumFullNodes(idx int) int {
 }
 
 // GetChainAID returns the chain-id for chain A.
+// NOTE: the default return value will ensure that ParseChainID will return 1 as the revision number.
 func (tc TestConfig) GetChainAID() string {
 	if tc.ChainConfigs[0].ChainID != "" {
 		return tc.ChainConfigs[0].ChainID
@@ -191,11 +245,32 @@ func (tc TestConfig) GetChainAID() string {
 }
 
 // GetChainBID returns the chain-id for chain B.
+// NOTE: the default return value will ensure that ParseChainID will return 1 as the revision number.
 func (tc TestConfig) GetChainBID() string {
 	if tc.ChainConfigs[1].ChainID != "" {
 		return tc.ChainConfigs[1].ChainID
 	}
 	return "chainB-1"
+}
+
+// GetChainName returns the name of the chain given an index.
+func (tc TestConfig) GetChainName(idx int) string {
+	// Assumes that only valid indices are provided. We do the same in several other places.
+	chainName := tc.ChainConfigs[idx].Name
+	if chainName == "" {
+		chainName = defaultChainNames[idx]
+	}
+	return chainName
+}
+
+// GetGenesisChainName returns the name of the chain for which to dump Genesis files.
+// If no chain is provided, it uses the default one (chainA).
+func (tc TestConfig) GetGenesisChainName() string {
+	name := tc.DebugConfig.GenesisDebug.ChainName
+	if name == "" {
+		return tc.GetChainName(0)
+	}
+	return name
 }
 
 // UpgradeConfig holds values relevant to upgrade tests.
@@ -207,6 +282,7 @@ type UpgradeConfig struct {
 // ChainConfig holds information about an individual chain used in the tests.
 type ChainConfig struct {
 	ChainID       string `yaml:"chainId"`
+	Name          string `yaml:"name"`
 	Image         string `yaml:"image"`
 	Tag           string `yaml:"tag"`
 	Binary        string `yaml:"binary"`
@@ -218,12 +294,31 @@ type CometBFTConfig struct {
 	LogLevel string `yaml:"logLevel"`
 }
 
+type GenesisDebugConfig struct {
+	// DumpGenesisDebugInfo enables the output of Genesis debug files.
+	DumpGenesisDebugInfo bool `yaml:"dumpGenesisDebugInfo"`
+
+	// ExportFilePath specifies which path to export Genesis debug files to.
+	ExportFilePath string `yaml:"filePath"`
+
+	// ChainName represent which chain to get Genesis debug info for.
+	ChainName string `yaml:"chainName"`
+}
+
 type DebugConfig struct {
 	// DumpLogs forces the logs to be collected before removing test containers.
 	DumpLogs bool `yaml:"dumpLogs"`
+
+	// GenesisDebug contains debug information specific to Genesis.
+	GenesisDebug GenesisDebugConfig `yaml:"genesis"`
+
+	// KeepContainers specifies if the containers should be kept after the test suite is done.
+	// NOTE: when running a full test suite, this value should be set to true in order to preserve
+	// shared resources.
+	KeepContainers bool `yaml:"keepContainers"`
 }
 
-// LoadConfig attempts to load a atest configuration from the default file path.
+// LoadConfig attempts to load a test configuration from the default file path.
 // if any environment variables are specified, they will take precedence over the individual configuration
 // options.
 func LoadConfig() TestConfig {
@@ -256,7 +351,44 @@ func fromFile() (TestConfig, bool) {
 		panic(err)
 	}
 
-	return tc, true
+	return populateDefaults(tc), true
+}
+
+// populateDefaults populates default values for the test config if
+// certain required fields are not specified.
+func populateDefaults(tc TestConfig) TestConfig {
+	for i := range tc.ChainConfigs {
+		if tc.ChainConfigs[i].ChainID == "" {
+			tc.ChainConfigs[i].ChainID = fmt.Sprintf("chain-%d", i+1)
+		}
+		if tc.ChainConfigs[i].Binary == "" {
+			tc.ChainConfigs[i].Binary = defaultBinary
+		}
+		if tc.ChainConfigs[i].Image == "" {
+			tc.ChainConfigs[i].Image = getChainImage(tc.ChainConfigs[i].Binary)
+		}
+		if tc.ChainConfigs[i].NumValidators == 0 {
+			tc.ChainConfigs[i].NumValidators = 1
+		}
+	}
+
+	if tc.ActiveRelayer == "" {
+		tc.ActiveRelayer = relayer.Hermes
+	}
+
+	if tc.RelayerConfigs == nil {
+		tc.RelayerConfigs = []relayer.Config{
+			getDefaultRlyRelayerConfig(),
+			getDefaultHermesRelayerConfig(),
+			getDefaultHyperspaceRelayerConfig(),
+		}
+	}
+
+	if tc.CometBFTConfig.LogLevel == "" {
+		tc.CometBFTConfig.LogLevel = "info"
+	}
+
+	return tc
 }
 
 // applyEnvironmentVariableOverrides applies all environment variable changes to the config
@@ -296,6 +428,10 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 		fromFile.UpgradeConfig.Tag = envTc.UpgradeConfig.Tag
 	}
 
+	if isEnvTrue(KeepContainersEnv) {
+		fromFile.DebugConfig.KeepContainers = true
+	}
+
 	return fromFile
 }
 
@@ -311,6 +447,7 @@ func fromEnv() TestConfig {
 		RelayerConfigs: []relayer.Config{
 			getDefaultRlyRelayerConfig(),
 			getDefaultHermesRelayerConfig(),
+			getDefaultHyperspaceRelayerConfig(),
 		},
 		CometBFTConfig: CometBFTConfig{LogLevel: "info"},
 	}
@@ -339,17 +476,24 @@ func getChainConfigsFromEnv() []ChainConfig {
 		chainAImage = specifiedChainImage
 	}
 
+	numValidators := 4
+	numFullNodes := 1
+
 	chainBImage := chainAImage
 	return []ChainConfig{
 		{
-			Image:  chainAImage,
-			Tag:    chainATag,
-			Binary: chainBinary,
+			Image:         chainAImage,
+			Tag:           chainATag,
+			Binary:        chainBinary,
+			NumValidators: numValidators,
+			NumFullNodes:  numFullNodes,
 		},
 		{
-			Image:  chainBImage,
-			Tag:    chainBTag,
-			Binary: chainBinary,
+			Image:         chainBImage,
+			Tag:           chainBTag,
+			Binary:        chainBinary,
+			NumValidators: numValidators,
+			NumFullNodes:  numFullNodes,
 		},
 	}
 }
@@ -387,6 +531,16 @@ func getDefaultRlyRelayerConfig() relayer.Config {
 	}
 }
 
+// TODO: remove in https://github.com/cosmos/ibc-go/issues/4697
+// getDefaultHyperspaceRelayerConfig returns the default config for the hyperspace relayer.
+func getDefaultHyperspaceRelayerConfig() relayer.Config {
+	return relayer.Config{
+		Tag:   defaultHyperspaceTag,
+		ID:    relayer.Hyperspace,
+		Image: relayer.HyperspaceRelayerRepository,
+	}
+}
+
 // getUpgradePlanConfigFromEnv returns the upgrade config from environment variables.
 func getUpgradePlanConfigFromEnv() UpgradeConfig {
 	upgradeTag, ok := os.LookupEnv(ChainUpgradeTagEnv)
@@ -419,15 +573,25 @@ func GetChainBTag() string {
 // if the tests are running locally.
 // Note: github actions passes a CI env value of true by default to all runners.
 func IsCI() bool {
-	return strings.ToLower(os.Getenv("CI")) == "true"
+	return isEnvTrue("CI")
+}
+
+// IsFork returns true if the tests are running in fork mode, false is returned otherwise.
+func IsFork() bool {
+	return isEnvTrue("FORK")
+}
+
+func isEnvTrue(env string) bool {
+	return strings.ToLower(os.Getenv(env)) == "true"
 }
 
 // ChainOptions stores chain configurations for the chains that will be
 // created for the tests. They can be modified by passing ChainOptionConfiguration
 // to E2ETestSuite.GetChains.
 type ChainOptions struct {
-	ChainAConfig *ibc.ChainConfig
-	ChainBConfig *ibc.ChainConfig
+	ChainSpecs       []*interchaintest.ChainSpec
+	SkipPathCreation bool
+	RelayerCount     int
 }
 
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
@@ -438,11 +602,29 @@ type ChainOptionConfiguration func(options *ChainOptions)
 func DefaultChainOptions() ChainOptions {
 	tc := LoadConfig()
 
-	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], "simapp-a", tc.GetChainAID(), "atoma", tc.CometBFTConfig)
-	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], "simapp-b", tc.GetChainBID(), "atomb", tc.CometBFTConfig)
+	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], tc.GetChainName(0), tc.GetChainAID(), "atoma", tc.CometBFTConfig)
+	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], tc.GetChainName(1), tc.GetChainBID(), "atomb", tc.CometBFTConfig)
+
+	chainAVal, chainAFn := getValidatorsAndFullNodes(0)
+	chainBVal, chainBFn := getValidatorsAndFullNodes(1)
+
+	chainASpec := &interchaintest.ChainSpec{
+		ChainConfig:   chainACfg,
+		NumFullNodes:  &chainAFn,
+		NumValidators: &chainAVal,
+	}
+
+	chainBSpec := &interchaintest.ChainSpec{
+		ChainConfig:   chainBCfg,
+		NumFullNodes:  &chainBFn,
+		NumValidators: &chainBVal,
+	}
+
 	return ChainOptions{
-		ChainAConfig: &chainACfg,
-		ChainBConfig: &chainBCfg,
+		ChainSpecs: []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+		// arbitrary number that will not be required if https://github.com/strangelove-ventures/interchaintest/issues/1153 is resolved.
+		// It can be overridden in individual test suites in SetupSuite if required.
+		RelayerCount: 10,
 	}
 }
 
@@ -462,6 +644,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 			{
 				Repository: cc.Image,
 				Version:    cc.Tag,
+				UidGid:     "1000:1000",
 			},
 		},
 		Bin:                 cc.Binary,
@@ -490,7 +673,7 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 		return defaultGovv1ModifyGenesis(version)
 	}
 
-	return defaultGovv1Beta1ModifyGenesis()
+	return defaultGovv1Beta1ModifyGenesis(version)
 }
 
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
@@ -508,12 +691,27 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into app state: %w", err)
 		}
 
-		govGenBz, err := modifyGovAppState(chainConfig, appState[govtypes.ModuleName])
+		govGenBz, err := modifyGovV1AppState(chainConfig, appState[govtypes.ModuleName])
 		if err != nil {
 			return nil, err
 		}
-
 		appState[govtypes.ModuleName] = govGenBz
+
+		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(version) {
+			ibcGenBz, err := modifyClientGenesisAppState(appState[ibcexported.ModuleName])
+			if err != nil {
+				return nil, err
+			}
+			appState[ibcexported.ModuleName] = ibcGenBz
+		}
+
+		if !testvalues.ChannelParamsFeatureReleases.IsSupported(version) {
+			ibcGenBz, err := modifyChannelGenesisAppState(appState[ibcexported.ModuleName])
+			if err != nil {
+				return nil, err
+			}
+			appState[ibcexported.ModuleName] = ibcGenBz
+		}
 
 		appGenesis.AppState, err = json.Marshal(appState)
 		if err != nil {
@@ -523,7 +721,7 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 		// in older version < v8, tmjson marshal must be used.
 		// regular json marshalling must be used for v8 and above as the
 		// sdk is de-coupled from comet.
-		marshalIndentFn := tmjson.MarshalIndent
+		marshalIndentFn := cmtjson.MarshalIndent
 		if stdlibJSONMarshalling.IsSupported(version) {
 			marshalIndentFn = json.MarshalIndent
 		}
@@ -539,7 +737,7 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 
 // defaultGovv1Beta1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
 // // are functional for e2e testing purposes.
-func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, error) {
+func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
 	const appStateKey = "app_state"
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
 		genesisDocMap := map[string]interface{}{}
@@ -550,7 +748,7 @@ func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, err
 
 		appStateMap, ok := genesisDocMap[appStateKey].(map[string]interface{})
 		if !ok {
-			return nil, fmt.Errorf("failed to extract to app_state")
+			return nil, errors.New("failed to extract to app_state")
 		}
 
 		govModuleBytes, err := json.Marshal(appStateMap[govtypes.ModuleName])
@@ -569,6 +767,24 @@ func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, err
 			return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
 		}
 
+		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(version) {
+			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
+			if err != nil {
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+			}
+
+			ibcGenesisBytes, err := modifyClientGenesisAppState(ibcModuleBytes)
+			if err != nil {
+				return nil, err
+			}
+
+			ibcModuleGenesisMap := map[string]interface{}{}
+			err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
+			}
+		}
+
 		appStateMap[govtypes.ModuleName] = govModuleGenesisMap
 		genesisDocMap[appStateKey] = appStateMap
 
@@ -581,8 +797,8 @@ func defaultGovv1Beta1ModifyGenesis() func(ibc.ChainConfig, []byte) ([]byte, err
 	}
 }
 
-// modifyGovAppState takes the existing gov app state and marshals it to a govv1 GenesisState.
-func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
+// modifyGovV1AppState takes the existing gov app state and marshals it to a govv1 GenesisState.
+func modifyGovV1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
 	cfg := testutil.MakeTestEncodingConfig()
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
@@ -599,6 +815,8 @@ func modifyGovAppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte,
 	}
 
 	govGenesisState.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
+	maxDep := time.Second * 10
+	govGenesisState.Params.MaxDepositPeriod = &maxDep
 	vp := testvalues.VotingPeriod
 	govGenesisState.Params.VotingPeriod = &vp
 
@@ -628,4 +846,44 @@ func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) (
 	}
 
 	return govGenBz, nil
+}
+
+// modifyClientGenesisAppState takes the existing ibc app state and marshals it to an ibc GenesisState.
+func modifyClientGenesisAppState(ibcAppState []byte) ([]byte, error) {
+	cfg := testutil.MakeTestEncodingConfig()
+
+	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	ibcGenesisState := &ibctypes.GenesisState{}
+	if err := cdc.UnmarshalJSON(ibcAppState, ibcGenesisState); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis bytes into client genesis state: %w", err)
+	}
+
+	ibcGenesisState.ClientGenesis.Params.AllowedClients = append(ibcGenesisState.ClientGenesis.Params.AllowedClients, wasmtypes.Wasm)
+	ibcGenBz, err := cdc.MarshalJSON(ibcGenesisState)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+	}
+
+	return ibcGenBz, nil
+}
+
+// modifyChannelGenesisAppState takes the existing ibc app state, unmarshals it to a map and removes the `params` entry from ibc channel genesis.
+// It marshals and returns the ibc GenesisState JSON map as bytes.
+func modifyChannelGenesisAppState(ibcAppState []byte) ([]byte, error) {
+	var ibcGenesisMap map[string]interface{}
+	if err := json.Unmarshal(ibcAppState, &ibcGenesisMap); err != nil {
+		return nil, err
+	}
+
+	var channelGenesis map[string]interface{}
+	// be ashamed, be very ashamed
+	channelGenesis, ok := ibcGenesisMap["channel_genesis"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("can't convert IBC genesis map entry into type %T", &channelGenesis)
+	}
+	delete(channelGenesis, "params")
+
+	return json.Marshal(ibcGenesisMap)
 }

@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	ibc "github.com/cosmos/ibc-go/v9/modules/core"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 func TestCodecTypeRegistration(t *testing.T) {
@@ -18,16 +18,6 @@ func TestCodecTypeRegistration(t *testing.T) {
 		typeURL string
 		expPass bool
 	}{
-		{
-			"success: Channel",
-			sdk.MsgTypeURL(&types.Channel{}),
-			true,
-		},
-		{
-			"success: Counterparty",
-			sdk.MsgTypeURL(&types.Counterparty{}),
-			true,
-		},
 		{
 			"success: Packet",
 			sdk.MsgTypeURL(&types.Packet{}),
@@ -81,6 +71,51 @@ func TestCodecTypeRegistration(t *testing.T) {
 		{
 			"success: MsgTimeoutOnClose",
 			sdk.MsgTypeURL(&types.MsgTimeoutOnClose{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeInit",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeInit{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeTry",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeTry{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeAck",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeAck{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeConfirm",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeConfirm{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeOpen",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeOpen{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeTimeout",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeTimeout{}),
+			true,
+		},
+		{
+			"success: MsgChannelUpgradeCancel",
+			sdk.MsgTypeURL(&types.MsgChannelUpgradeCancel{}),
+			true,
+		},
+		{
+			"success: MsgPruneAcknowledgements",
+			sdk.MsgTypeURL(&types.MsgPruneAcknowledgements{}),
+			true,
+		},
+		{
+			"success: MsgUpdateParams",
+			sdk.MsgTypeURL(&types.MsgUpdateParams{}),
 			true,
 		},
 		{

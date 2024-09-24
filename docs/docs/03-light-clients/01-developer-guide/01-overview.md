@@ -23,10 +23,11 @@ Learn how to build IBC light client modules and fulfill the interfaces required 
 
 IBC uses light clients in order to provide trust-minimized interoperability between sovereign blockchains. Light clients operate under a strict set of rules which provide security guarantees for state updates and facilitate the ability to verify the state of a remote blockchain using merkle proofs.
 
-The following aims to provide a high level IBC light client module developer guide. Access to IBC light clients are gated by the core IBC `MsgServer` which utilizes the abstractions set by the `02-client` submodule to call into a light client module. A light client module developer is only required to implement a set interfaces as defined in the `modules/core/exported` package of ibc-go.
+The following aims to provide a high level IBC light client module developer guide. Access to IBC light clients are gated by the core IBC `MsgServer` which utilizes the abstractions set by the `02-client` submodule to call into a light client module. A light client module developer is only required to implement a set of interfaces as defined in the `modules/core/exported` package of ibc-go.
 
 A light client module developer should be concerned with three main interfaces:
 
+- [`LightClientModule`](#lightclientmodule) a module which manages many light client instances of a certain type. 
 - [`ClientState`](#clientstate) encapsulates the light client implementation and its semantics.
 - [`ConsensusState`](#consensusstate) tracks consensus data used for verification of client updates, misbehaviour detection and proof verification of counterparty state.
 - [`ClientMessage`](#clientmessage) used for submitting block headers for client updates and submission of misbehaviour evidence using conflicting headers.
@@ -34,6 +35,21 @@ A light client module developer should be concerned with three main interfaces:
 Throughout this guide the `07-tendermint` light client module may be referred to as a reference example.
 
 ## Concepts and vocabulary
+
+### `LightClientModule`
+
+`LightClientModule` is an interface defined by core IBC which allows for modular light client implementations. All light client implementations *must* implement the [`LightClientModule` interface](https://github.com/cosmos/ibc-go/blob/501a8462345da099144efe91d495bfcfa18d760d/modules/core/exported/client.go#L51) so that core IBC may redirect calls to the light client module. 
+
+For example a light client module may need to:
+
+- create clients
+- update clients
+- recover and upgrade clients
+- verify membership and non-membership
+
+The methods which make up this interface are detailed at a more granular level in the [`LightClientModule` section of this guide](02-light-client-module.md).
+
+Please refer to the `07-tendermint`'s [`LightClientModule` definition](https://github.com/cosmos/ibc-go/blob/501a8462345da099144efe91d495bfcfa18d760d/modules/light-clients/07-tendermint/light_client_module.go#L17) for more information. 
 
 ### `ClientState`
 
@@ -47,7 +63,7 @@ For example:
 - Constraints used for client upgrades.
 
 The `ClientState` type maintained within the light client module *must* implement the [`ClientState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L36) interface defined in `core/modules/exported/client.go`.
-The methods which make up this interface are detailed at a more granular level in the [ClientState section of this guide](02-client-state.md).
+The methods which make up this interface are detailed at a more granular level in the [`ClientState` section of this guide](03-client-state.md).
 
 Please refer to the `07-tendermint` light client module's [`ClientState` definition](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/proto/ibc/lightclients/tendermint/v1/tendermint.proto#L18) containing information such as chain ID, status, latest height, unbonding period and proof specifications.
 
@@ -58,7 +74,7 @@ Please refer to the `07-tendermint` light client module's [`ClientState` definit
 For example, the `ConsensusState` of the `07-tendermint` light client module defines a trusted root which is used by the `ClientState` to perform verification of membership and non-membership commitment proofs, as well as the next validator set hash used for verifying headers can be trusted in client updates.
 
 The `ConsensusState` type maintained within the light client module *must* implement the [`ConsensusState`](https://github.com/cosmos/ibc-go/tree/02-client-refactor-beta1/modules/core/exported/client.go#L134) interface defined in `modules/core/exported/client.go`.
-The methods which make up this interface are detailed at a more granular level in the [`ConsensusState` section of this guide](03-consensus-state.md).
+The methods which make up this interface are detailed at a more granular level in the [`ConsensusState` section of this guide](04-consensus-state.md).
 
 ### `Height`
 
@@ -76,4 +92,4 @@ The following are considered as valid update scenarios:
 - A batch of block headers which when verified inserts `N` `ConsensusState` instances for `N` unique heights.
 - Evidence of misbehaviour provided by two conflicting block headers.
 
-Learn more in the [Handling update and misbehaviour](04-updates-and-misbehaviour.md) section.
+Learn more in the [Handling update and misbehaviour](05-updates-and-misbehaviour.md) section.

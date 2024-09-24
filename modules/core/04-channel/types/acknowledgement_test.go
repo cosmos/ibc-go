@@ -8,10 +8,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
-	tmstate "github.com/cometbft/cometbft/state"
+	cmtstate "github.com/cometbft/cometbft/state"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 const (
@@ -116,9 +116,9 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	deliverTxDifferentABCICode := sdkerrors.ResponseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
 	resultsDifferentABCICode := []*abcitypes.ExecTxResult{deliverTxDifferentABCICode}
 
-	hash := tmstate.TxResultsHash(execTxResults)
-	hashSameABCICode := tmstate.TxResultsHash(resultsSameABCICode)
-	hashDifferentABCICode := tmstate.TxResultsHash(resultsDifferentABCICode)
+	hash := cmtstate.TxResultsHash(execTxResults)
+	hashSameABCICode := cmtstate.TxResultsHash(resultsSameABCICode)
+	hashDifferentABCICode := cmtstate.TxResultsHash(resultsDifferentABCICode)
 
 	suite.Require().Equal(hash, hashSameABCICode)
 	suite.Require().NotEqual(hash, hashDifferentABCICode)
@@ -140,4 +140,36 @@ func (suite *TypesTestSuite) TestAcknowledgementError() {
 
 	suite.Require().Equal(ack, ackSameABCICode)
 	suite.Require().NotEqual(ack, ackDifferentABCICode)
+}
+
+func (suite TypesTestSuite) TestAcknowledgementWithCodespace() { //nolint:govet // this is a test, we are okay with copying locks
+	testCases := []struct {
+		name     string
+		ack      types.Acknowledgement
+		expBytes []byte
+	}{
+		{
+			"valid failed ack",
+			types.NewErrorAcknowledgementWithCodespace(ibcerrors.ErrInsufficientFunds),
+			[]byte(`{"error":"ABCI error: ibc/3: error handling packet: see events for details"}`),
+		},
+		{
+			"unknown error",
+			types.NewErrorAcknowledgementWithCodespace(fmt.Errorf("unknown error")),
+			[]byte(`{"error":"ABCI error: undefined/1: error handling packet: see events for details"}`),
+		},
+		{
+			"nil error",
+			types.NewErrorAcknowledgementWithCodespace(nil),
+			[]byte(`{"error":"ABCI error: /0: error handling packet: see events for details"}`),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.Require().Equal(tc.expBytes, tc.ack.Acknowledgement())
+		})
+	}
 }
