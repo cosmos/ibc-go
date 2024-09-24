@@ -16,12 +16,12 @@ var (
 )
 
 // NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
-func NewMsgProvideCounterparty(signer, channelID, counterpartyID string, merklePathPrefix commitmenttypes.MerklePath) *MsgProvideCounterparty {
-	counterparty := NewCounterparty(counterpartyID, merklePathPrefix)
+func NewMsgProvideCounterparty(signer, clientID, counterpartyChannelId string, merklePathPrefix commitmenttypes.MerklePath) *MsgProvideCounterparty {
+	counterparty := NewCounterparty(clientID, counterpartyChannelId, merklePathPrefix)
 
 	return &MsgProvideCounterparty{
 		Signer:       signer,
-		ChannelId:    channelID,
+		ChannelId:    clientID,
 		Counterparty: counterparty,
 	}
 }

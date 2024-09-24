@@ -15,48 +15,63 @@ func TestValidateCounterparty(t *testing.T) {
 	testCases := []struct {
 		name             string
 		clientID         string
+        channelID        string
 		merklePathPrefix commitmenttypes.MerklePath
 		expError         error
 	}{
 		{
 			"success",
 			ibctesting.FirstClientID,
+			ibctesting.FirstChannelID,
 			commitmenttypes.NewMerklePath([]byte("ibc")),
 			nil,
 		},
 		{
 			"success with multiple element prefix",
 			ibctesting.FirstClientID,
+			ibctesting.FirstChannelID,
 			commitmenttypes.NewMerklePath([]byte("ibc"), []byte("address")),
 			nil,
 		},
 		{
 			"success with multiple element prefix, last prefix empty",
 			ibctesting.FirstClientID,
+            ibctesting.FirstChannelID,
 			commitmenttypes.NewMerklePath([]byte("ibc"), []byte("")),
 			nil,
 		},
 		{
 			"success with single empty key prefix",
 			ibctesting.FirstClientID,
+            ibctesting.FirstChannelID,
 			commitmenttypes.NewMerklePath([]byte("")),
 			nil,
 		},
 		{
 			"failure: invalid client id",
 			"",
+			ibctesting.FirstChannelID,
+			commitmenttypes.NewMerklePath([]byte("ibc")),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: invalid channel id",
+			ibctesting.FirstClientID,
+            "",
 			commitmenttypes.NewMerklePath([]byte("ibc")),
 			host.ErrInvalidID,
 		},
 		{
 			"failure: empty merkle path prefix",
 			ibctesting.FirstClientID,
+			ibctesting.FirstChannelID,
 			commitmenttypes.NewMerklePath(),
 			types.ErrInvalidCounterparty,
 		},
 		{
 			"failure: empty key in merkle path prefix first element",
 			ibctesting.FirstClientID,
+			ibctesting.FirstChannelID,
 			commitmenttypes.NewMerklePath([]byte(""), []byte("ibc")),
 			types.ErrInvalidCounterparty,
 		},
@@ -65,7 +80,7 @@ func TestValidateCounterparty(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 
-		counterparty := types.NewCounterparty(tc.clientID, tc.merklePathPrefix)
+		counterparty := types.NewCounterparty(tc.clientID, tc.channelID, tc.merklePathPrefix)
 		err := counterparty.Validate()
 
 		expPass := tc.expError == nil
