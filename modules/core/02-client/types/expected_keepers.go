@@ -3,10 +3,10 @@ package types
 import (
 	"context"
 
+	paramtypes "cosmossdk.io/x/params/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // UpgradeKeeper expected upgrade keeper

@@ -83,7 +83,7 @@ func (k Keeper) revertForwardedPacket(ctx context.Context, forwardedPacket chann
 		// given that the packet is being reversed, we check the DestinationChannel and DestinationPort
 		// of the forwardedPacket to see if a hop was added to the trace during the receive step
 		if token.Denom.HasPrefix(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel) {
-			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+			if err := k.bankKeeper.BurnCoins(ctx, forwardingAddr, sdk.NewCoins(coin)); err != nil {
 				return err
 			}
 		} else {

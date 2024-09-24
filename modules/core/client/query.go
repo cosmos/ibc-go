@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -40,7 +40,7 @@ func QueryTendermintProof(clientCtx client.Context, key []byte) ([]byte, []byte,
 		height--
 	}
 
-	req := abci.RequestQuery{
+	req := abci.QueryRequest{
 		Path:   fmt.Sprintf("store/%s/key", ibcexported.StoreKey),
 		Height: height,
 		Data:   key,

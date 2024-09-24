@@ -12,12 +12,12 @@ import (
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
+	banktypes "cosmossdk.io/x/bank/types"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
@@ -157,6 +157,7 @@ func (s *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 	s.Require().NotEmpty(res)
 	s.Require().NoError(err)
 
+	fmt.Println(res.Events)
 	channelID, err := ibctesting.ParseChannelIDFromEvents(res.Events)
 	s.Require().NoError(err)
 
