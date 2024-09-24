@@ -2,6 +2,7 @@ package tendermint
 
 import (
 	"cosmossdk.io/core/registry"
+
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 

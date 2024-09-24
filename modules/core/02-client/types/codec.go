@@ -3,7 +3,7 @@ package types
 import (
 	"github.com/cosmos/gogoproto/proto"
 
-	"cosmossdk.io/core/registry"
+	coreregistry "cosmossdk.io/core/registry"
 	errorsmod "cosmossdk.io/errors"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -15,7 +15,7 @@ import (
 )
 
 // RegisterInterfaces registers the client interfaces to protobuf Any.
-func RegisterInterfaces(registry registry.InterfaceRegistrar) {
+func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 	registry.RegisterInterface(
 		"ibc.core.client.v1.ClientState",
 		(*exported.ClientState)(nil),
