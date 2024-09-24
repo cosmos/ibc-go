@@ -3,9 +3,10 @@
 import argparse
 import json
 import re
+from typing import List, Dict
+
 import requests
 import semver
-from typing import List, Dict
 
 COMPATIBILITY_FLAG = "compatibility"
 FROM_VERSION = "from_version"
@@ -18,15 +19,27 @@ RLY = "rly"
 
 
 def parse_version(version: str) -> semver.Version:
+    """
+    parse_version takes in a version string which can be in multiple formats,
+    and converts it into a valid semver.Version which can be compared with each other.
+    The version string is a docker tag. It can be in the format of
+    - main
+    - v1.2.3
+    - release-v1.2.3 (a tagged release)
+    - release-v1.2.x (a release branch)
+    """
     if version.startswith("v"):
+        # semver versions do not include a "v" prefix.
         version = version[1:]
     if version.startswith("release-"):
         # strip off the release prefix and parse the actual version
         return parse_version(version[len("release-"):])
     # ensure "main" is always greater than other versions for semver comparison.
     if version == "main":
+        # main will always be the newest release.
         version = "9999.999.999"
     if version.endswith("x"):
+        # we always assume the release branch is newer than the previous release.
         version = version.replace("x", "999", 1)
     return semver.Version.parse(version)
 
@@ -114,12 +127,12 @@ def main():
         "chain-image": [args.image]
     }
 
-    _validate(compatibility_json, "")
+    _validate(compatibility_json)
     # output the json on a single line. This ensures the output is directly passable to a github workflow.
     print(json.dumps(compatibility_json), end="")
 
 
-def _validate(compatibility_json: Dict, version: str):
+def _validate(compatibility_json: Dict):
     """validates that the generated compatibility json fields will be valid for a github workflow."""
     required_keys = frozenset({"chain-a", "chain-b", "entrypoint", "test", "relayer-type"})
     for k in required_keys:
@@ -130,7 +143,7 @@ def _validate(compatibility_json: Dict, version: str):
         raise ValueError(f"found more than one entrypoint: {compatibility_json['entrypoint']}")
 
     if len(compatibility_json["test"]) <= 0:
-        raise ValueError(f"no tests found for version {version}")
+        raise ValueError("no tests found")
 
     if len(compatibility_json["relayer-type"]) <= 0:
         raise ValueError("no relayer specified")
@@ -164,7 +177,8 @@ def _get_ibc_go_releases(from_version: str) -> List[str]:
 
 
 def _extract_all_test_functions(file_lines: List[str]) -> List[str]:
-    """creates a list of all test functions that should be run in the compatibility tests based on the version provided"""
+    """creates a list of all test functions that should be run in the compatibility tests
+     based on the version provided"""
     all_tests = []
     for i, line in enumerate(file_lines):
         line = line.strip()
@@ -192,7 +206,8 @@ def _is_test_function(line: str) -> bool:
 
 
 def _extract_test_suite_function(file_lines: List[str]) -> str:
-    """extracts the name of the test suite function in the file. It is assumed there is exactly one test suite defined"""
+    """extracts the name of the test suite function in the file. It is assumed
+    there is exactly one test suite defined"""
     for line in file_lines:
         line = line.strip()
         if "(t *testing.T)" in line:
@@ -224,7 +239,6 @@ def _extract_script_fields(file_lines: List[str]) -> Dict:
         if match:
             script_fields[match.group(1)] = match.group(2)
     return script_fields
-
 
 
 def _semver_to_str(semver_version: semver.Version) -> str:
