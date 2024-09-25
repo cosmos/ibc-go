@@ -108,6 +108,39 @@ type IBCModule interface {
 	) error
 }
 
+type IBCModuleV2 interface {
+	OnSendPacketV2(
+		ctx context.Context,
+		sourceID string,
+		sequence uint64,
+		timeoutTimestamp uint64,
+		payload channeltypes.Payload,
+		signer sdk.AccAddress,
+	) error
+
+	OnRecvPacketV2(
+		ctx context.Context,
+		packet channeltypes.PacketV2,
+		payload channeltypes.Payload,
+		relayer sdk.AccAddress,
+	) channeltypes.RecvPacketResult
+
+	OnAcknowledgementPacketV2(
+		ctx context.Context,
+		packet channeltypes.PacketV2,
+		payload channeltypes.Payload,
+		recvPacketResult channeltypes.RecvPacketResult,
+		relayer sdk.AccAddress,
+	) error
+
+	OnTimeoutPacketV2(
+		ctx context.Context,
+		packet channeltypes.PacketV2,
+		payload channeltypes.Payload,
+		relayer sdk.AccAddress,
+	) error
+}
+
 // UpgradableModule defines the callbacks required to perform a channel upgrade.
 // Note: applications must ensure that state related to packet processing remains unmodified until the OnChanUpgradeOpen callback is executed.
 // This guarantees that in-flight packets are correctly flushed using the existing channel parameters.

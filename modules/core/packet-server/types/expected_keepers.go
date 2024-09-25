@@ -4,6 +4,7 @@ import (
 	"context"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -38,6 +39,11 @@ type ChannelKeeper interface {
 	// SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 	// This is a public path that is standardized by the IBC specification
 	SetPacketAcknowledgement(ctx context.Context, portID, channelID string, sequence uint64, ackHash []byte)
+
+	// GetMultiAcknowledgement returns the multi ack from the store.
+	GetMultiAcknowledgement(ctx context.Context, portID, channelID string, sequence uint64) (types.MultiAcknowledgement, bool)
+	// SetMultiAcknowledgement writes the multi ack under the multi ack path.
+	SetMultiAcknowledgement(ctx context.Context, portID, channelID string, sequence uint64, recvResults types.MultiAcknowledgement)
 }
 
 type ClientKeeper interface {

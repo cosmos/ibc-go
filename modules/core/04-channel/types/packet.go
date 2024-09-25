@@ -138,11 +138,6 @@ func hashPacketData(data PacketData) []byte {
 }
 
 func (p PacketV2) ValidateBasic() error {
-	// TODO: temporarily assume a single packet data
-	if len(p.Data) != 1 {
-		return errorsmod.Wrap(ErrInvalidPacket, "packet data length must be 1")
-	}
-
 	for _, pd := range p.Data {
 		if err := host.PortIdentifierValidator(pd.SourcePort); err != nil {
 			return errorsmod.Wrap(err, "invalid source port ID")
@@ -347,4 +342,22 @@ func ConvertPacketV1toV2(packet Packet) (PacketV2, error) {
 			},
 		},
 	}, nil
+}
+
+// NewPayload constructs and returns a new payload.
+func NewPayload(version, encoding string, value []byte) *Payload {
+	return &Payload{
+		Version:  version,
+		Encoding: encoding,
+		Value:    value,
+	}
+}
+
+// NewPacketData constructs and returns a new PacketData.
+func NewPacketData(sourcePort, destPort string, payload Payload) *PacketData {
+	return &PacketData{
+		SourcePort:      sourcePort,
+		DestinationPort: destPort,
+		Payload:         payload,
+	}
 }

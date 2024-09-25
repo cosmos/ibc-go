@@ -25,7 +25,9 @@ import (
 )
 
 const (
-	ModuleName = "mock"
+	ModuleName    = "mock"
+	ModuleNameV2A = "mockv2A"
+	ModuleNameV2B = "mockv2B"
 
 	MemStoreKey = "memory:mock"
 
