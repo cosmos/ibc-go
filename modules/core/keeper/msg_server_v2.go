@@ -25,9 +25,15 @@ func (k *Keeper) SendPacketV2(ctx context.Context, msg *channeltypesv2.MsgSendPa
 		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceId)
 	}
 
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		sdkCtx.Logger().Error("send packet failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+	}
+
 	for _, pd := range msg.PacketData {
 		cbs := k.PortKeeper.AppRouter.Route(pd.SourcePort)
-		err := cbs.OnSendPacketV2(ctx, msg.SourceId, sequence, msg.TimeoutTimestamp, pd.Payload, sdk.AccAddress(msg.Signer))
+		err := cbs.OnSendPacketV2(ctx, msg.SourceId, sequence, msg.TimeoutTimestamp, pd.Payload, signer)
 		if err != nil {
 			return nil, err
 		}
