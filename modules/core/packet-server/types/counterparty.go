@@ -8,10 +8,10 @@ import (
 )
 
 // NewCounterparty creates a new Counterparty instance
-func NewCounterparty(clientId, counterpartyChannelId string, merklePathPrefix commitmenttypes.MerklePath) Counterparty {
+func NewCounterparty(clientID, counterpartyChannelID string, merklePathPrefix commitmenttypes.MerklePath) Counterparty {
 	return Counterparty{
-		ClientId:            clientId,
-		CounterpartyChannel: counterpartyChannelId,
+		ClientId:            clientID,
+		CounterpartyChannel: counterpartyChannelID,
 		MerklePathPrefix:    merklePathPrefix,
 	}
 }
