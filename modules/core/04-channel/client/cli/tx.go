@@ -70,7 +70,7 @@ func newUpgradeChannelsTxCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			versionStr := args[0]
 
-			clientCtx, err := client.GetClientQueryContext(cmd)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
