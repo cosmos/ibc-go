@@ -36,7 +36,7 @@ func (k Keeper) SendPacket(
 	if !ok {
 		return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceChannel)
 	}
-	destChannel := counterparty.CounterpartyChannel
+	destChannel := counterparty.CounterpartyChannelId
 	clientID := counterparty.ClientId
 
 	// retrieve the sequence send for this channel
@@ -115,7 +115,7 @@ func (k Keeper) RecvPacket(
 		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
 	}
 
-	if counterparty.CounterpartyChannel != packet.SourceChannel {
+	if counterparty.CounterpartyChannelId != packet.SourceChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
 	clientID := counterparty.ClientId

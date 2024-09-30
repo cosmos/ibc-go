@@ -10,9 +10,9 @@ import (
 // NewCounterparty creates a new Counterparty instance
 func NewCounterparty(clientID, counterpartyChannelID string, merklePathPrefix commitmenttypes.MerklePath) Counterparty {
 	return Counterparty{
-		ClientId:            clientID,
-		CounterpartyChannel: counterpartyChannelID,
-		MerklePathPrefix:    merklePathPrefix,
+		ClientId:              clientID,
+		CounterpartyChannelId: counterpartyChannelID,
+		MerklePathPrefix:      merklePathPrefix,
 	}
 }
 
@@ -22,7 +22,7 @@ func (c Counterparty) Validate() error {
 		return err
 	}
 
-	if err := host.ChannelIdentifierValidator(c.CounterpartyChannel); err != nil {
+	if err := host.ChannelIdentifierValidator(c.CounterpartyChannelId); err != nil {
 		return err
 	}
 
