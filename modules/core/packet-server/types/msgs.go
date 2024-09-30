@@ -16,12 +16,12 @@ var (
 )
 
 // NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
-func NewMsgProvideCounterparty(signer, clientID, counterpartyID string, merklePathPrefix commitmenttypes.MerklePath) *MsgProvideCounterparty {
-	counterparty := NewCounterparty(counterpartyID, merklePathPrefix)
+func NewMsgProvideCounterparty(signer, clientID, counterpartyChannelID string, merklePathPrefix commitmenttypes.MerklePath) *MsgProvideCounterparty {
+	counterparty := NewCounterparty(clientID, counterpartyChannelID, merklePathPrefix)
 
 	return &MsgProvideCounterparty{
 		Signer:       signer,
-		ClientId:     clientID,
+		ChannelId:    clientID,
 		Counterparty: counterparty,
 	}
 }
@@ -32,7 +32,7 @@ func (msg *MsgProvideCounterparty) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
+	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
 		return err
 	}
 

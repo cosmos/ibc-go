@@ -32,7 +32,7 @@ func (s *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
 		{
 			"failure: invalid client ID",
 			func() {
-				msg.ClientId = ""
+				msg.ChannelId = ""
 			},
 			host.ErrInvalidID,
 		},

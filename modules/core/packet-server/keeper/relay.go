@@ -36,7 +36,8 @@ func (k Keeper) SendPacket(
 	if !ok {
 		return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceChannel)
 	}
-	destChannel := counterparty.ClientId
+	destChannel := counterparty.CounterpartyChannelId
+	clientID := counterparty.ClientId
 
 	// retrieve the sequence send for this channel
 	// if no packets have been sent yet, initialize the sequence to 1.
@@ -54,17 +55,17 @@ func (k Keeper) SendPacket(
 	}
 
 	// check that the client of counterparty chain is still active
-	if status := k.ClientKeeper.GetClientStatus(ctx, sourceChannel); status != exported.Active {
-		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", sourceChannel, status)
+	if status := k.ClientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
+		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	// retrieve latest height and timestamp of the client of counterparty chain
-	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, sourceChannel)
+	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, clientID)
 	if latestHeight.IsZero() {
-		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", sourceChannel)
+		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", clientID)
 	}
 
-	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceChannel, latestHeight)
+	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientID, latestHeight)
 	if err != nil {
 		return 0, err
 	}
@@ -113,9 +114,11 @@ func (k Keeper) RecvPacket(
 	if !ok {
 		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
 	}
-	if counterparty.ClientId != packet.SourceChannel {
+
+	if counterparty.CounterpartyChannelId != packet.SourceChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
+	clientID := counterparty.ClientId
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
@@ -144,14 +147,14 @@ func (k Keeper) RecvPacket(
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		packet.DestinationChannel,
+		clientID,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 		commitment,
 	); err != nil {
-		return "", errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationChannel)
+		return "", errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
@@ -248,6 +251,7 @@ func (k Keeper) AcknowledgePacket(
 	if counterparty.ClientId != packet.DestinationChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
+	clientID := counterparty.ClientId
 
 	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
@@ -272,14 +276,14 @@ func (k Keeper) AcknowledgePacket(
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		packet.SourceChannel,
+		clientID,
 		proofHeight,
 		0, 0,
 		proofAcked,
 		merklePath,
 		channeltypes.CommitAcknowledgement(acknowledgement),
 	); err != nil {
-		return "", errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", packet.SourceChannel)
+		return "", errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientID)
 	}
 
 	k.ChannelKeeper.DeletePacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
@@ -318,6 +322,7 @@ func (k Keeper) TimeoutPacket(
 	if counterparty.ClientId != packet.DestinationChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
+	clientID := counterparty.ClientId
 
 	// check that timeout height or timeout timestamp has passed on the other end
 	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceChannel, proofHeight)
@@ -354,13 +359,13 @@ func (k Keeper) TimeoutPacket(
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
-		packet.SourceChannel,
+		clientID,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 	); err != nil {
-		return "", errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceChannel)
+		return "", errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientID)
 	}
 
 	// delete packet commitment to prevent replay

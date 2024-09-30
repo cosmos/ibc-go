@@ -1222,7 +1222,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 		{
 			"failure: unknown client identifier",
 			func() {
-				msg.ClientId = ibctesting.InvalidID
+				msg.Counterparty.ClientId = ibctesting.InvalidID
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -1237,7 +1237,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			"failure: counterparty already exists",
 			func() {
 				// set it before handler
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ClientId, msg.Counterparty)
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ChannelId, msg.Counterparty)
 			},
 			packetservertypes.ErrInvalidCounterparty,
 		},
