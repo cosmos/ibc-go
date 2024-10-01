@@ -39,7 +39,7 @@ type ChannelKeeper interface {
 	// This is a public path that is standardized by the IBC specification
 	SetPacketAcknowledgement(ctx context.Context, portID, channelID string, sequence uint64, ackHash []byte)
 
-	// GetChannel returns a version 2 counterparty for a given portID and channel ID
+	// GetV2Counterparty returns a version 2 counterparty for a given portID and channel ID
 	GetV2Counterparty(ctx context.Context, portID, channelID string) (Counterparty, bool)
 }
 
