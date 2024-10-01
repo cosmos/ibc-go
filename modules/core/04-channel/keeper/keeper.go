@@ -846,7 +846,7 @@ func (k *Keeper) GetV2Counterparty(ctx context.Context, portID, channelID string
 	merklePathPrefix := commitmentv2types.NewMerklePath(connection.Counterparty.Prefix.KeyPrefix, []byte(""))
 
 	counterparty := packetserver.Counterparty{
-		CounterpartyChannelId: channelID,
+		CounterpartyChannelId: channel.Counterparty.ChannelId,
 		ClientId:              connection.ClientId,
 		MerklePathPrefix:      merklePathPrefix,
 	}
