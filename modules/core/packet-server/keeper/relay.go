@@ -34,7 +34,16 @@ func (k Keeper) SendPacket(
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
 	counterparty, ok := k.GetCounterparty(ctx, sourceChannel)
 	if !ok {
-		return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceChannel)
+		// If the counterparty is not found, attempt to retrieve a v1 channel from the channel keeper
+		// if it exists, then we will convert it to a v2 counterparty and store it in the packet server keeper
+		// for future use.
+		if counterparty, ok = k.ChannelKeeper.GetV2Counterparty(ctx, sourcePort, sourceChannel); ok {
+			// we can key on just the source channel here since channel ids are globally unique
+			k.SetCounterparty(ctx, sourceChannel, counterparty)
+		} else {
+			// if neither a counterparty nor channel is found then simply return an error
+			return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceChannel)
+		}
 	}
 	destChannel := counterparty.CounterpartyChannelId
 	clientID := counterparty.ClientId
@@ -112,7 +121,16 @@ func (k Keeper) RecvPacket(
 	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
-		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
+		// If the counterparty is not found, attempt to retrieve a v1 channel from the channel keeper
+		// if it exists, then we will convert it to a v2 counterparty and store it in the packet server keeper
+		// for future use.
+		if counterparty, ok = k.ChannelKeeper.GetV2Counterparty(ctx, packet.DestinationPort, packet.DestinationChannel); ok {
+			// we can key on just the destination channel here since channel ids are globally unique
+			k.SetCounterparty(ctx, packet.DestinationChannel, counterparty)
+		} else {
+			// if neither a counterparty nor channel is found then simply return an error
+			return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
+		}
 	}
 
 	if counterparty.CounterpartyChannelId != packet.SourceChannel {

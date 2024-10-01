@@ -11,8 +11,10 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmentv2types "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -542,6 +544,75 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 	suite.Require().Panics(func() {
 		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetParams(ctx)
 	})
+}
+
+func (suite *KeeperTestSuite) TestGetV2Counterparty() {
+	var path *ibctesting.Path
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPass  bool
+	}{
+		{
+			"success",
+			func() {},
+			true,
+		},
+		{
+			"failure: channel not found",
+			func() {
+				path.EndpointA.ChannelID = ""
+			},
+			false,
+		},
+		{
+			"failure: channel not OPEN",
+			func() {
+				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.TRYOPEN })
+			},
+			false,
+		},
+		{
+			"failure: channel is ORDERED",
+			func() {
+				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.Ordering = types.ORDERED })
+			},
+			false,
+		},
+		{
+			"failure: connection not found",
+			func() {
+				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops = []string{ibctesting.InvalidID} })
+			},
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			tc.malleate()
+
+			counterparty, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetV2Counterparty(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+			if tc.expPass {
+				suite.Require().True(found)
+
+				merklePath := commitmentv2types.NewMerklePath([]byte("ibc"), []byte(""))
+				expCounterparty := packetservertypes.NewCounterparty(path.EndpointB.ClientID, path.EndpointA.ChannelID, merklePath)
+				suite.Require().Equal(counterparty, expCounterparty)
+			} else {
+				suite.Require().False(found)
+				suite.Require().Equal(counterparty, packetservertypes.Counterparty{})
+			}
+		})
+	}
 }
 
 func (suite *KeeperTestSuite) TestPruneAcknowledgements() {
