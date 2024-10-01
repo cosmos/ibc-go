@@ -7,6 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+
+	v2types "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 )
 
 // RegisterInterfaces register the ibc channel submodule interfaces to protobuf
@@ -38,6 +40,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgChannelUpgradeCancel{},
 		&MsgPruneAcknowledgements{},
 		&MsgUpdateParams{},
+		&v2types.MsgSendPacket{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
