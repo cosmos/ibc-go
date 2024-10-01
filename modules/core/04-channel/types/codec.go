@@ -6,9 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-
 	v2types "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // RegisterInterfaces register the ibc channel submodule interfaces to protobuf
