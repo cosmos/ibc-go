@@ -605,7 +605,7 @@ func (suite *KeeperTestSuite) TestGetV2Counterparty() {
 				suite.Require().True(found)
 
 				merklePath := commitmentv2types.NewMerklePath([]byte("ibc"), []byte(""))
-				expCounterparty := packetservertypes.NewCounterparty(path.EndpointB.ClientID, path.EndpointA.ChannelID, merklePath)
+				expCounterparty := packetservertypes.NewCounterparty(path.EndpointA.ClientID, path.EndpointB.ChannelID, merklePath)
 				suite.Require().Equal(counterparty, expCounterparty)
 			} else {
 				suite.Require().False(found)
