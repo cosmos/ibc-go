@@ -176,42 +176,6 @@ message PacketId {
   uint64 sequence = 3;
 }
 
-// PacketV2 defines a type that carries data across different chains through IBC
-message PacketV2 {
-  // number corresponds to the order of sends and receives, where a Packet
-  // with an earlier sequence number must be sent and received before a Packet
-  // with a later sequence number.
-  uint64 sequence = 1;
-  // identifies the sending chain.
-  string source_id = 2;
-  // identifies the receiving chain.
-  string destination_id = 3;
-  // timeout timestamp after which the packet times out.
-  uint64 timeout_timestamp = 4;
-  // a list of packet data, each one for a specific application.
-  repeated PacketData data = 5 [(gogoproto.nullable) = false];
-}
-
-// PacketData contains the source and destination ports and payload for the application
-message PacketData {
-  // specifies the source port of the packet.
-  string source_port = 1;
-  // specifies the destination port of the packet.
-  string destination_port = 2;
-  // the payload to be sent to the application.
-  Payload payload = 3 [(gogoproto.nullable) = false];
-}
-
-// Payload holds the version, encoding and raw bytes to be passed to an application
-message Payload {
-  // version of the specified application.
-  string version = 1;
-  // the encoding used for the provided value.
-  string encoding = 2;
-  // the raw bytes for the payload.
-  bytes value = 3;
-}
-
 // Acknowledgement is the recommended acknowledgement format to be used by
 // app-specific protocols.
 // NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
