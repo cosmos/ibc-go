@@ -42,3 +42,34 @@ message Payload {
   // the raw bytes for the payload.
   bytes value = 3;
 }
+
+// Acknowledgement contains a list of all ack results associated with a single packet.
+message Acknowledgement {
+  repeated AcknowledgementResult acknowledgement_results = 1 [(gogoproto.nullable) = false];
+}
+
+// AcknowledgementResult of identified acknowledgement. Correlating IBC application name to opaque ack bytes.
+message AcknowledgementResult {
+  string           app_name           = 1;
+  RecvPacketResult recv_packet_result = 2 [(gogoproto.nullable) = false];
+}
+
+// PacketStatus specifies the status of a RecvPacketResult.
+enum PacketStatus {
+  // PACKET_STATUS_UNSPECIFIED indicates an unknown packet status.
+  PACKET_STATUS_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "NONE"];
+  // PACKET_STATUS_SUCCESS indicates a successful packet receipt.
+  PACKET_STATUS_SUCCESS = 1 [(gogoproto.enumvalue_customname) = "Success"];
+  // PACKET_STATUS_FAILURE indicates a failed packet receipt.
+  PACKET_STATUS_FAILURE = 2 [(gogoproto.enumvalue_customname) = "Failure"];
+  // PACKET_STATUS_ASYNC indicates an async packet receipt.
+  PACKET_STATUS_ASYNC = 3 [(gogoproto.enumvalue_customname) = "Async"];
+}
+
+// RecvPacketResult speecifies the status of a packet as well as the acknowledgement bytes.
+message RecvPacketResult {
+  // status of the packet
+  PacketStatus status = 1;
+  // acknowledgement of the packet
+  bytes acknowledgement = 2;
+}

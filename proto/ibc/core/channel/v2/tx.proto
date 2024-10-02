@@ -19,9 +19,6 @@ service PacketMsg {
 
   // RecvPacket defines a rpc handler method for MsgRecvPacket.
   rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
-
-  // Timeout defines a rpc handler method for MsgTimeout.
-  rpc Timeout(MsgTimeout) returns (MsgTimeoutResponse);
 }
 
 // MsgSendPacket sends an outgoing IBC packet.
@@ -61,21 +58,41 @@ message MsgRecvPacketResponse {
   ibc.core.channel.v1.ResponseResultType result = 1;
 }
 
-// MsgTimeout receives timed-out packet
-message MsgTimeout {
+// MsgAcknowledgement receives incoming IBC acknowledgement.
+message MsgAcknowledgement {
   option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.goproto_getters) = false;
 
-  Packet                    packet             = 1 [(gogoproto.nullable) = false];
-  bytes                     proof_unreceived   = 2;
-  ibc.core.client.v1.Height proof_height       = 3 [(gogoproto.nullable) = false];
-  uint64                    next_sequence_recv = 4;
-  string                    signer             = 5;
+  Packet             packet                = 1 [(gogoproto.nullable) = false];
+  ibc.core.channel.v1.MultiAcknowledgement multi_acknowledgement = 2 [(gogoproto.nullable) = false];
+  bytes                                    proof_acked           = 3;
+  ibc.core.client.v1.Height                proof_height          = 4 [(gogoproto.nullable) = false];
+  string                                   signer                = 5;
 }
 
-// MsgTimeoutResponse defines the Msg/Timeout response type.
-message MsgTimeoutResponse {
+// MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
+message MsgAcknowledgementResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ibc.core.channel.v1.ResponseResultType result = 1;
+}
+
+// MsgAcknowledgement receives incoming IBC acknowledgement
+message MsgAcknowledgement {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  Packet           packet                = 1 [(gogoproto.nullable) = false];
+  Acknowledgement acknowledgement = 2 [(gogoproto.nullable) = false];
+  bytes                                    proof_acked           = 3;
+  ibc.core.client.v1.Height                proof_height          = 4 [(gogoproto.nullable) = false];
+  string                                   signer                = 5;
+}
+
+// MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
+message MsgAcknowledgementResponse {
   option (gogoproto.goproto_getters) = false;
 
   ibc.core.channel.v1.ResponseResultType result = 1;
