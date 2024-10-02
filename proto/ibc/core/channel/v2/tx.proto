@@ -42,7 +42,7 @@ message MsgSendPacketResponse {
   uint64 sequence = 1;
 }
 
-// MsgRecvPacket receives incoming IBC packet
+// MsgRecvPacket receives an incoming IBC packet.
 message MsgRecvPacket {
   option (cosmos.msg.v1.signer) = "signer";
 
