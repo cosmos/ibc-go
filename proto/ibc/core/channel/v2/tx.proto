@@ -7,6 +7,8 @@ option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/type
 import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
 import "ibc/core/channel/v2/channel.proto";
+import "ibc/core/channel/v1/tx.proto";
+import "ibc/core/client/v1/client.proto";
 
 // PacketMsg defines the ibc/channel PacketMsg service.
 service PacketMsg {
@@ -14,6 +16,9 @@ service PacketMsg {
 
   // SendPacket defines a rpc handler method for MsgSendPacket.
   rpc SendPacket(MsgSendPacket) returns (MsgSendPacketResponse);
+
+  // RecvPacket defines a rpc handler method for MsgRecvPacket.
+  rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
 }
 
 // MsgSendPacket sends an outgoing IBC packet.
@@ -32,4 +37,23 @@ message MsgSendPacketResponse {
   option (gogoproto.goproto_getters) = false;
 
   uint64 sequence = 1;
+}
+
+// MsgRecvPacket receives an incoming IBC packet.
+message MsgRecvPacket {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  Packet                    packet           = 1 [(gogoproto.nullable) = false];
+  bytes                     proof_commitment = 2;
+  ibc.core.client.v1.Height proof_height     = 3 [(gogoproto.nullable) = false];
+  string                    signer           = 4;
+}
+
+// MsgRecvPacketResponse defines the Msg/RecvPacket response type.
+message MsgRecvPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ibc.core.channel.v1.ResponseResultType result = 1;
 }
