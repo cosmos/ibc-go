@@ -11,6 +11,6 @@ func NewPacket(sequence uint64, sourceID, destinationID string, timeoutTimestamp
 }
 
 func (p Packet) ValidateBasic() error {
-	// TODO: implement
+	// TODO: https://github.com/cosmos/ibc-go/issues/7385
 	return nil
 }

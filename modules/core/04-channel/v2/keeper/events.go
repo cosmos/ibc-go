@@ -8,5 +8,5 @@ import (
 
 // EmitSendPacketEvents emits events for the SendPacket handler.
 func EmitSendPacketEvents(ctx context.Context, packet channeltypesv2.Packet) {
-	// TODO: Implement this function
+	// TODO: https://github.com/cosmos/ibc-go/issues/7386
 }

@@ -30,6 +30,7 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 	_ = signer
 
 	// TODO: implement once app router is wired up.
+	// https://github.com/cosmos/ibc-go/issues/7384
 	// for _, pd := range msg.PacketData {
 	//	cbs := k.PortKeeper.AppRouter.Route(pd.SourcePort)
 	//	err := cbs.OnSendPacket(ctx, msg.SourceId, sequence, msg.TimeoutTimestamp, pd, signer)
