@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package ibc.core.channel.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
+import "ibc/core/channel/v2/channel.proto";
+
+// PacketMsg defines the ibc/channel PacketMsg service.
+service PacketMsg {
+  option (cosmos.msg.v1.service) = true;
+
+  // SendPacket defines a rpc handler method for MsgSendPacket.
+  rpc SendPacket(MsgSendPacket) returns (MsgSendPacketResponse);
+}
+
+// MsgSendPacket sends an outgoing IBC packet.
+message MsgSendPacket {
+  option (cosmos.msg.v1.signer)      = "signer";
+  option (gogoproto.goproto_getters) = false;
+
+  string              source_id         = 1;
+  uint64              timeout_timestamp = 2;
+  repeated PacketData packet_data       = 3 [(gogoproto.nullable) = false];
+  string              signer            = 4;
+}
+
+// MsgSendPacketResponse defines the Msg/SendPacket response type.
+message MsgSendPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 sequence = 1;
+}
