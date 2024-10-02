@@ -24,7 +24,7 @@ type Keeper struct {
 	storeService corestore.KVStoreService
 }
 
-// NewKeeper creates a new packet keeper
+// NewKeeper creates a new channel v2 keeper
 func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService) *Keeper {
 	return &Keeper{
 		cdc:          cdc,
