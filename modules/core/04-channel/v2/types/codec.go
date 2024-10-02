@@ -12,5 +12,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgSendPacket{},
 		&MsgRecvPacket{},
+		&MsgTimeout{},
 	)
 }

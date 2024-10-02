@@ -19,6 +19,9 @@ service PacketMsg {
 
   // RecvPacket defines a rpc handler method for MsgRecvPacket.
   rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
+
+  // Timeout defines a rpc handler method for MsgTimeout.
+  rpc Timeout(MsgTimeout) returns (MsgTimeoutResponse);
 }
 
 // MsgSendPacket sends an outgoing IBC packet.
@@ -53,6 +56,26 @@ message MsgRecvPacket {
 
 // MsgRecvPacketResponse defines the Msg/RecvPacket response type.
 message MsgRecvPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ibc.core.channel.v1.ResponseResultType result = 1;
+}
+
+// MsgTimeout receives timed-out packet
+message MsgTimeout {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  Packet                    packet             = 1 [(gogoproto.nullable) = false];
+  bytes                     proof_unreceived   = 2;
+  ibc.core.client.v1.Height proof_height       = 3 [(gogoproto.nullable) = false];
+  uint64                    next_sequence_recv = 4;
+  string                    signer             = 5;
+}
+
+// MsgTimeoutResponse defines the Msg/Timeout response type.
+message MsgTimeoutResponse {
   option (gogoproto.goproto_getters) = false;
 
   ibc.core.channel.v1.ResponseResultType result = 1;
