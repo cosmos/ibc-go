@@ -20,7 +20,7 @@ service PacketMsg {
   // RecvPacket defines a rpc handler method for MsgRecvPacket.
   rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
 
-  // Timeout defines a rpc handler method for MsgTimeout.￼
+  // Timeout defines a rpc handler method for MsgTimeout.
   rpc Timeout(MsgTimeout) returns (MsgTimeoutResponse);
 
   // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
