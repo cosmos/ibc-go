@@ -11,6 +11,10 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgSendPacket{},
+<<<<<<< HEAD
 		&MsgRecvPacket{},
+=======
+		&MsgTimeout{},
+>>>>>>> 9e1d37ff4 (add MsgTimeout skeleton)
 	)
 }
