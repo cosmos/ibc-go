@@ -16,6 +16,9 @@ service PacketMsg {
 
   // SendPacket defines a rpc handler method for MsgSendPacket.
   rpc SendPacket(MsgSendPacket) returns (MsgSendPacketResponse);
+
+  // RecvPacket defines a rpc handler method for MsgRecvPacket.
+  rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
 }
 
 // MsgSendPacket sends an outgoing IBC packet.
