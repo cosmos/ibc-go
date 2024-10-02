@@ -23,13 +23,15 @@ import (
 type Keeper struct {
 	cdc          codec.BinaryCodec
 	storeService corestore.KVStoreService
+	ClientKeeper types.ClientKeeper
 }
 
 // NewKeeper creates a new channel v2 keeper
-func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, clientKeeper types.ClientKeeper) *Keeper {
 	return &Keeper{
 		cdc:          cdc,
 		storeService: storeService,
+		ClientKeeper: clientKeeper,
 	}
 }
 
