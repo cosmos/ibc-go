@@ -21,7 +21,7 @@ func (k *Keeper) sendPacket(
 	timeoutTimestamp uint64,
 	data []channeltypesv2.PacketData,
 ) (uint64, error) {
-	// TODO: add aliasing logic
+	// TODO: add aliasing logic https://github.com/cosmos/ibc-go/issues/7387
 
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
 	counterparty, ok := k.GetCounterparty(ctx, sourceID)
