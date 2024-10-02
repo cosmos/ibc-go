@@ -42,3 +42,29 @@ func (msg *MsgProvideCounterparty) ValidateBasic() error {
 
 	return nil
 }
+
+// NewMsgCreateChannel creates a new MsgCreateChannel instance
+func NewMsgCreateChannel(signer, clientID string, merklePathPrefix commitmenttypes.MerklePath) *MsgCreateChannel {
+	return &MsgCreateChannel{
+		Signer:           signer,
+		ClientId:         clientID,
+		MerklePathPrefix: merklePathPrefix,
+	}
+}
+
+// ValidateBasic performs basic checks on a MsgCreateChannel.
+func (msg *MsgCreateChannel) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
+		return err
+	}
+
+	if err := msg.MerklePathPrefix.ValidateAsPrefix(); err != nil {
+		return err
+	}
+
+	return nil
+}

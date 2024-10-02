@@ -6,12 +6,16 @@ package ibc.core.packetserver.v1;
 option go_package = "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types";
 
 import "gogoproto/gogo.proto";
+import "ibc/core/commitment/v2/commitment.proto";
 import "ibc/core/packetserver/v1/counterparty.proto";
 import "cosmos/msg/v1/msg.proto";
 
 // Msg defines the ibc/packetserver Msg service.
 service Msg {
   option (cosmos.msg.v1.service) = true;
+
+  // CreateChannel defines a rpc handler method for MsgCreateChannel
+  rpc CreateChannel(MsgCreateChannel) returns (MsgCreateChannelResponse);
 
   // ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
   rpc ProvideCounterparty(MsgProvideCounterparty) returns (MsgProvideCounterpartyResponse);
@@ -35,3 +39,26 @@ message MsgProvideCounterparty {
 
 // MsgProvideCounterpartyResponse defines the Msg/ProvideCounterparty response type.
 message MsgProvideCounterpartyResponse {}
+
+// MsgCreateChannel defines the message used to create a v2 Channel.
+message MsgCreateChannel {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  // the client identifier of the light client representing the counterparty chain
+  string client_id = 1;
+  // the key path used to store packet flow messages that the counterparty
+  // will use to send to us. In backwards compatible cases, we will append the channelID and sequence in order to create
+  // the final path.
+  ibc.core.commitment.v2.MerklePath merkle_path_prefix = 2 [(gogoproto.nullable) = false];
+  // signer address
+  string signer = 3;
+}
+
+// MsgCreateChannelResponse defines the Msg/CreateChannel response type.
+message MsgCreateChannelResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  string channel_id = 1;
+}
