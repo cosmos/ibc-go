@@ -65,10 +65,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#7277](https://github.com/cosmos/ibc-go/pull/7277) Use `GogoResolver` when populating module query safe allow list to avoid panics from unresolvable protobuf dependencies.
 * (core/04-channel) [\#7342](https://github.com/cosmos/ibc-go/pull/7342) Read Tx cmd flags including from address to avoid Address cannot be empty error when upgrade-channels via cli.
 
-## v9.0.0 (unreleased)
+## [v9.0.0](https://github.com/cosmos/ibc-go/releases/tag/v9.0.0) - 2024-10-01
 
 ### Dependencies
 
+* [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump Cosmos SDK to v0.50.9.
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
 * [\#7126](https://github.com/cosmos/ibc-go/pull/7126) Bump CometBFT to v0.38.11.
 * [\#6380](https://github.com/cosmos/ibc-go/pull/6380) Bump go to v1.22.
@@ -76,16 +77,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
-* (apps/27-interchain-accounts) [\#4977](https://github.com/cosmos/ibc-go/pull/4977) The `InitModule` function has been removed.
-* (core/02-client) [\#5110](https://github.com/cosmos/ibc-go/pull/5110) The `header` attribute has been removed from the `update_client` event.
-* (apps/27-interchain-accounts) [\#5396](https://github.com/cosmos/ibc-go/pull/5396) Remove `GetBytes` function of `CosmosTx` type.
-* (core/04-channel) [\#5691](https://github.com/cosmos/ibc-go/pull/5691) Remove functions `IsOpen` and `IsClosed` of `Channel` type.
-* (core/04-channel) [\#5705](https://github.com/cosmos/ibc-go/pull/5705) Remove functions `GetState`, `GetOrdering`, `GetCounterparty`, `GetConnectionHops`, `GetVersion` of the `Channel` type.
-* (core/04-channel) [\#5603](https://github.com/cosmos/ibc-go/pull/5603) Rename attribute names and constants for channel upgrades events.
 * (core/02-client, light-clients) [\#5806](https://github.com/cosmos/ibc-go/pull/5806) Decouple light client routing from their encoding structure.
 * (core/04-channel) [\#5991](https://github.com/cosmos/ibc-go/pull/5991) The client CLI `QueryLatestConsensusState` has been removed.
 * (light-clients/06-solomachine) [\#6037](https://github.com/cosmos/ibc-go/pull/6037) Remove `Initialize` function from `ClientState` and move logic to `Initialize` function of `LightClientModule`.
-- (core/04-channel) [\#6063](https://github.com/cosmos/ibc-go/pull/6063) Remove attributes `version`, `ordering` and `connection_hops` from the `channel_upgrade_init`, `channel_upgrade_try`, `channel_upgrade_ack`, `channel_upgrade_open`, `channel_upgrade_timeout` and `channel_upgrade_cancelled` events.
 * (light-clients/06-solomachine) [\#6230](https://github.com/cosmos/ibc-go/pull/6230) Remove `GetTimestampAtHeight`, `Status` and `UpdateStateOnMisbehaviour` functions from `ClientState` and move logic to functions of `LightClientModule`.
 * (core/02-client) [\#6084](https://github.com/cosmos/ibc-go/pull/6084) Removed `stakingKeeper` as an argument to `NewKeeper` and replaced with a `ConsensusHost` implementation.
 * (testing) [\#6070](https://github.com/cosmos/ibc-go/pull/6070) Remove `AssertEventsLegacy` function.
@@ -93,7 +87,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#6023](https://github.com/cosmos/ibc-go/pull/6023) Remove emission of non-hexlified event attributes `packet_data` and `packet_ack`.
 * (core) [\#6320](https://github.com/cosmos/ibc-go/pull/6320) Remove unnecessary `Proof` interface from `exported` package.
 * (core/05-port) [\#6341](https://github.com/cosmos/ibc-go/pull/6341) Modify `UnmarshalPacketData` interface to take in the context, portID, and channelID. This allows for packet data's to be unmarshaled based on the channel version.
-* (core/05-port) [\#6341](https://github.com/cosmos/ibc-go/pull/6988) Modify `UnmarshalPacketData` interface to return the underlying application version.
 * (apps/27-interchain-accounts) [\#6433](https://github.com/cosmos/ibc-go/pull/6433) Use UNORDERED as the default ordering for new ICA channels.
 * (apps/transfer) [\#6440](https://github.com/cosmos/ibc-go/pull/6440) Remove `GetPrefixedDenom`.
 * (apps/transfer) [\#6508](https://github.com/cosmos/ibc-go/pull/6508) Remove the `DenomTrace` type.
@@ -108,12 +101,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (light-clients/06-solomachine, light-clients/07-tendermint) [\#6891](https://github.com/cosmos/ibc-go/pull/6891) The `VerifyMembership` and `VerifyNonMembership` functions of solomachine's `ClientState` have been made private. The `VerifyMembership`, `VerifyNonMembership`, `GetTimestampAtHeight`, `Status` and `Initialize` functions of tendermint's `ClientState` have been made private.
 * (core/04-channel) [\#6902](https://github.com/cosmos/ibc-go/pull/6902) Add channel version to core application callbacks.
 * (core/03-connection, core/02-client) [\#6937](https://github.com/cosmos/ibc-go/pull/6937) Remove 'ConsensusHost' interface, also removing self client and consensus state validation in the connection handshake.
-* (core/24-host) [\#6882](https://github.com/cosmos/ibc-go/issues/6882) All functions ending in `Path` have been removed from 24-host in favour of their sibling functions ending in `Key`.
-* (apps/27-interchain-accounts) [\#7053](https://github.com/cosmos/ibc-go/pull/7053) Remove ICS27 channel capability migration introduced in v6. 
+* (core/24-host) [\#6882](https://github.com/cosmos/ibc-go/issues/6882) All functions ending in `Path` have been removed from 24-host in favour of their sybling functions ending in `Key`.
 
 ### State Machine Breaking
 
-* (light-clients/07-tendermint) [\#6276](https://github.com/cosmos/ibc-go/pull/6276) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
 * (light-clients/06-solomachine) [\#6313](https://github.com/cosmos/ibc-go/pull/6313) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
 
 ### Improvements
