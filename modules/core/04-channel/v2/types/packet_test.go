@@ -1,4 +1,4 @@
-package types
+package types_test
 
 import (
 	"testing"
@@ -6,7 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
@@ -14,28 +16,28 @@ import (
 func TestValidate(t *testing.T) {
 	testCases := []struct {
 		name    string
-		payload Payload
+		payload types.Payload
 		expErr  error
 	}{
 		{
 			"success",
-			NewPayload("ics20-v1", "json", mock.MockPacketData),
+			types.NewPayload("ics20-v1", "json", mock.MockPacketData),
 			nil,
 		},
 		{
 			"failure: empty version",
-			NewPayload("", "json", mock.MockPacketData),
-			ErrInvalidPayload,
+			types.NewPayload("", "json", mock.MockPacketData),
+			types.ErrInvalidPayload,
 		},
 		{
 			"failure: empty encoding",
-			NewPayload("ics20-v2", "", mock.MockPacketData),
-			ErrInvalidPayload,
+			types.NewPayload("ics20-v2", "", mock.MockPacketData),
+			types.ErrInvalidPayload,
 		},
 		{
 			"failure: empty value",
-			NewPayload("ics20-v1", "json", []byte{}),
-			ErrInvalidPayload,
+			types.NewPayload("ics20-v1", "json", []byte{}),
+			types.ErrInvalidPayload,
 		},
 	}
 	for _, tc := range testCases {
@@ -52,7 +54,7 @@ func TestValidate(t *testing.T) {
 
 // TestValidateBasic tests the ValidateBasic functio of Packet
 func TestValidateBasic(t *testing.T) {
-	var packet Packet
+	var packet types.Packet
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -66,9 +68,9 @@ func TestValidateBasic(t *testing.T) {
 		{
 			"failure: empty data",
 			func() {
-				packet.Data = []PacketData{}
+				packet.Data = []types.PacketData{}
 			},
-			ErrInvalidPacket,
+			types.ErrInvalidPacket,
 		},
 		{
 			"failure: invalid data source port ID",
@@ -103,24 +105,24 @@ func TestValidateBasic(t *testing.T) {
 			func() {
 				packet.Sequence = 0
 			},
-			ErrInvalidPacket,
+			types.ErrInvalidPacket,
 		},
 		{
 			"failure: invalid timestamp",
 			func() {
 				packet.TimeoutTimestamp = 0
 			},
-			ErrInvalidPacket,
+			types.ErrInvalidPacket,
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			packet = NewPacket(1, "sourceChannelID", "destChannelID", uint64(time.Now().Unix()), PacketData{
-				SourcePort:      "sourcePort",
-				DestinationPort: "destPort",
-				Payload: Payload{
+			packet = types.NewPacket(1, ibctesting.FirstClientID, ibctesting.FirstClientID, uint64(time.Now().Unix()), types.PacketData{
+				SourcePort:      ibctesting.MockPort,
+				DestinationPort: ibctesting.MockPort,
+				Payload: types.Payload{
 					Version:  "ics20-v2",
-					Encoding: "encoding",
+					Encoding: "json",
 					Value:    mock.MockPacketData,
 				},
 			})
