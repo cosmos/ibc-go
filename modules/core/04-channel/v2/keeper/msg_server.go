@@ -23,8 +23,8 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		sdkCtx.Logger().Error("send packet failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
-		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+		sdkCtx.Logger().Error("send packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
+		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
 	_ = signer
