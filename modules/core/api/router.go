@@ -59,9 +59,9 @@ func (rtr *Router) routeOrPrefixedRoute(module string) (IBCModule, bool) {
 
 	// it's possible that some routes have been dynamically added e.g. with interchain accounts.
 	// in this case, we need to check if the module has the specified prefix.
-	for prefix := range rtr.routes {
+	for prefix, ibcModule := range rtr.routes {
 		if strings.HasPrefix(module, prefix) {
-			return rtr.routes[prefix], true
+			return ibcModule, true
 		}
 	}
 	return nil, false

@@ -5,7 +5,7 @@ import (
 	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 )
 
-func (suite *ApiTestSuite) TestRouteer() {
+func (suite *ApiTestSuite) TestRouter() {
 	var router *api.Router
 
 	var testCases = []struct {
