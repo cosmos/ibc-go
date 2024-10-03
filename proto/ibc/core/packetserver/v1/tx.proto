@@ -49,8 +49,7 @@ message MsgCreateChannel {
   // the client identifier of the light client representing the counterparty chain
   string client_id = 1;
   // the key path used to store packet flow messages that the counterparty
-  // will use to send to us. In backwards compatible cases, we will append the channelID and sequence in order to create
-  // the final path.
+  // will use to send to us.
   ibc.core.commitment.v2.MerklePath merkle_path_prefix = 2 [(gogoproto.nullable) = false];
   // signer address
   string signer = 3;
