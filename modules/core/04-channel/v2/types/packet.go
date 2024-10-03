@@ -10,9 +10,10 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
+// ValidateBasic validates that a Packet satisfies the basic requirements.
 func (p Packet) ValidateBasic() error {
-	if len(p.Data) != 1 {
-		return errorsmod.Wrapf(ErrInvalidPacket, "packet data length must be 1, got %d", len(p.Data))
+	if len(p.Data) == 0 {
+		return errorsmod.Wrap(ErrInvalidPacket, "packet data must not be empty")
 	}
 
 	for _, pd := range p.Data {
@@ -44,7 +45,7 @@ func (p Packet) ValidateBasic() error {
 	return nil
 }
 
-// Validate validates a  Payload.
+// Validate validates a Payload.
 func (p Payload) Validate() error {
 	if strings.TrimSpace(p.Version) == "" {
 		return errorsmod.Wrap(ErrInvalidPayload, "payload version cannot be empty")
