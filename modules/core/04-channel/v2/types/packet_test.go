@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
-	"github.com/stretchr/testify/require"
 )
 
 // TestValidate tests the Validate function of Packet
