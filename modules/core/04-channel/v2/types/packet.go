@@ -10,16 +10,6 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
-func NewPacket(sequence uint64, sourceID, destinationID string, timeoutTimestamp uint64, data ...PacketData) Packet {
-	return Packet{
-		Sequence:         sequence,
-		SourceId:         sourceID,
-		DestinationId:    destinationID,
-		TimeoutTimestamp: timeoutTimestamp,
-		Data:             data,
-	}
-}
-
 func (p Packet) ValidateBasic() error {
 	if len(p.Data) != 1 {
 		return errorsmod.Wrapf(ErrInvalidPacket, "packet data length must be 1, got %d", len(p.Data))
