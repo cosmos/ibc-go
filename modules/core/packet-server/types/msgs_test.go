@@ -56,10 +56,10 @@ func (s *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
 
 	for _, tc := range testCases {
 		msg = types.NewMsgProvideCounterparty(
-			ibctesting.TestAccAddress,
 			ibctesting.FirstClientID,
 			ibctesting.SecondClientID,
 			commitmenttypes.NewMerklePath([]byte("key")),
+			ibctesting.TestAccAddress,
 		)
 
 		tc.malleate()
@@ -113,9 +113,9 @@ func (s *TypesTestSuite) TestMsgCreateChannelValidateBasic() {
 
 	for _, tc := range testCases {
 		msg = types.NewMsgCreateChannel(
-			ibctesting.TestAccAddress,
 			ibctesting.FirstClientID,
 			commitmenttypes.NewMerklePath([]byte("key")),
+			ibctesting.TestAccAddress,
 		)
 
 		tc.malleate()

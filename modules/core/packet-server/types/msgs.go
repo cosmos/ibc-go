@@ -16,7 +16,7 @@ var (
 )
 
 // NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
-func NewMsgProvideCounterparty(signer, clientID, counterpartyChannelID string, merklePathPrefix commitmenttypes.MerklePath) *MsgProvideCounterparty {
+func NewMsgProvideCounterparty(clientID, counterpartyChannelID string, merklePathPrefix commitmenttypes.MerklePath, signer string) *MsgProvideCounterparty {
 	counterparty := NewCounterparty(clientID, counterpartyChannelID, merklePathPrefix)
 
 	return &MsgProvideCounterparty{
@@ -44,7 +44,7 @@ func (msg *MsgProvideCounterparty) ValidateBasic() error {
 }
 
 // NewMsgCreateChannel creates a new MsgCreateChannel instance
-func NewMsgCreateChannel(signer, clientID string, merklePathPrefix commitmenttypes.MerklePath) *MsgCreateChannel {
+func NewMsgCreateChannel(clientID string, merklePathPrefix commitmenttypes.MerklePath, signer string) *MsgCreateChannel {
 	return &MsgCreateChannel{
 		Signer:           signer,
 		ClientId:         clientID,
