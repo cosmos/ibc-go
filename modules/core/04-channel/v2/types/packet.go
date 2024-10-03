@@ -10,6 +10,26 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
+// NewPacket constructs a new packet.
+func NewPacket(sequence uint64, sourceID, destinationID string, timeoutTimestamp uint64, data ...PacketData) Packet {
+	return Packet{
+		Sequence:         sequence,
+		SourceId:         sourceID,
+		DestinationId:    destinationID,
+		TimeoutTimestamp: timeoutTimestamp,
+		Data:             data,
+	}
+}
+
+// NewPayload constructs a new Payload
+func NewPayload(version, encoding string, value []byte) Payload {
+	return Payload{
+		Version:  version,
+		Encoding: encoding,
+		Value:    value,
+	}
+}
+
 // ValidateBasic validates that a Packet satisfies the basic requirements.
 func (p Packet) ValidateBasic() error {
 	if len(p.Data) == 0 {
