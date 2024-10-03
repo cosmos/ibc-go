@@ -4,8 +4,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
-// IBC channel sentinel errors
 var (
-	ErrInvalidPacket  = errorsmod.Register(SubModuleName, 1, "invalid packet")
-	ErrInvalidPayload = errorsmod.Register(SubModuleName, 2, "invalid payload")
+	ErrInvalidCounterparty  = errorsmod.Register(SubModuleName, 1, "invalid counterparty")
+	ErrCounterpartyNotFound = errorsmod.Register(SubModuleName, 2, "counterparty not found")
+	ErrInvalidPacket        = errorsmod.Register(SubModuleName, 3, "invalid packet")
+	ErrInvalidPayload       = errorsmod.Register(SubModuleName, 4, "invalid payload")
 )

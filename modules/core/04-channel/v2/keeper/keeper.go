@@ -13,7 +13,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
+	channelkeeperv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
+	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	commitmentv2types "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -23,13 +27,20 @@ import (
 type Keeper struct {
 	cdc          codec.BinaryCodec
 	storeService corestore.KVStoreService
+	ClientKeeper types.ClientKeeper
+	// channelKeeperV1 is used for channel aliasing only.
+	channelKeeperV1  *channelkeeperv1.Keeper
+	connectionKeeper *connectionkeeper.Keeper
 }
 
 // NewKeeper creates a new channel v2 keeper
-func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, clientKeeper types.ClientKeeper, channelKeeperV1 *channelkeeperv1.Keeper, connectionKeeper *connectionkeeper.Keeper) *Keeper {
 	return &Keeper{
-		cdc:          cdc,
-		storeService: storeService,
+		cdc:              cdc,
+		storeService:     storeService,
+		channelKeeperV1:  channelKeeperV1,
+		connectionKeeper: connectionKeeper,
+		ClientKeeper:     clientKeeper,
 	}
 }
 
@@ -161,4 +172,30 @@ func (k *Keeper) SetNextSequenceSend(ctx context.Context, sourceID string, seque
 	if err := store.Set(hostv2.NextSequenceSendKey(sourceID), bigEndianBz); err != nil {
 		panic(err)
 	}
+}
+
+// AliasV1Channel returns a version 2 channel for the given port and channel ID
+// by converting the channel into a version 2 channel.
+func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.Counterparty, bool) {
+	channel, ok := k.channelKeeperV1.GetChannel(ctx, portID, channelID)
+	if !ok {
+		return types.Counterparty{}, false
+	}
+	// Do not allow channel to be converted into a version 2 counterparty
+	// if the channel is not OPEN or if it is ORDERED
+	if channel.State != channeltypesv1.OPEN || channel.Ordering == channeltypesv1.ORDERED {
+		return types.Counterparty{}, false
+	}
+	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	if !ok {
+		return types.Counterparty{}, false
+	}
+	merklePathPrefix := commitmentv2types.NewMerklePath(connection.Counterparty.Prefix.KeyPrefix, []byte(""))
+
+	counterparty := types.Counterparty{
+		CounterpartyChannelId: channel.Counterparty.ChannelId,
+		ClientId:              connection.ClientId,
+		MerklePathPrefix:      merklePathPrefix,
+	}
+	return counterparty, true
 }
