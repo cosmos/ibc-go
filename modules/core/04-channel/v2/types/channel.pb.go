@@ -23,6 +23,42 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// PacketStatus specifies the status of a RecvPacketResult.
+type PacketStatus int32
+
+const (
+	// PACKET_STATUS_UNSPECIFIED indicates an unknown packet status.
+	PacketStatus_NONE PacketStatus = 0
+	// PACKET_STATUS_SUCCESS indicates a successful packet receipt.
+	PacketStatus_Success PacketStatus = 1
+	// PACKET_STATUS_FAILURE indicates a failed packet receipt.
+	PacketStatus_Failure PacketStatus = 2
+	// PACKET_STATUS_ASYNC indicates an async packet receipt.
+	PacketStatus_Async PacketStatus = 3
+)
+
+var PacketStatus_name = map[int32]string{
+	0: "PACKET_STATUS_UNSPECIFIED",
+	1: "PACKET_STATUS_SUCCESS",
+	2: "PACKET_STATUS_FAILURE",
+	3: "PACKET_STATUS_ASYNC",
+}
+
+var PacketStatus_value = map[string]int32{
+	"PACKET_STATUS_UNSPECIFIED": 0,
+	"PACKET_STATUS_SUCCESS":     1,
+	"PACKET_STATUS_FAILURE":     2,
+	"PACKET_STATUS_ASYNC":       3,
+}
+
+func (x PacketStatus) String() string {
+	return proto.EnumName(PacketStatus_name, int32(x))
+}
+
+func (PacketStatus) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_7e9b57d8f218397d, []int{0}
+}
+
 // Packet defines a type that carries data across different chains through IBC
 type Packet struct {
 	// number corresponds to the order of sends and receives, where a Packet
@@ -235,42 +271,215 @@ func (m *Payload) GetValue() []byte {
 	return nil
 }
 
+// Acknowledgement contains a list of all ack results associated with a single packet.
+type Acknowledgement struct {
+	AcknowledgementResults []AcknowledgementResult `protobuf:"bytes,1,rep,name=acknowledgement_results,json=acknowledgementResults,proto3" json:"acknowledgement_results"`
+}
+
+func (m *Acknowledgement) Reset()         { *m = Acknowledgement{} }
+func (m *Acknowledgement) String() string { return proto.CompactTextString(m) }
+func (*Acknowledgement) ProtoMessage()    {}
+func (*Acknowledgement) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7e9b57d8f218397d, []int{3}
+}
+func (m *Acknowledgement) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Acknowledgement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Acknowledgement.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Acknowledgement) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Acknowledgement.Merge(m, src)
+}
+func (m *Acknowledgement) XXX_Size() int {
+	return m.Size()
+}
+func (m *Acknowledgement) XXX_DiscardUnknown() {
+	xxx_messageInfo_Acknowledgement.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Acknowledgement proto.InternalMessageInfo
+
+func (m *Acknowledgement) GetAcknowledgementResults() []AcknowledgementResult {
+	if m != nil {
+		return m.AcknowledgementResults
+	}
+	return nil
+}
+
+// AcknowledgementResult of identified acknowledgement. Correlating IBC application name to opaque ack bytes.
+type AcknowledgementResult struct {
+	AppName          string           `protobuf:"bytes,1,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
+	RecvPacketResult RecvPacketResult `protobuf:"bytes,2,opt,name=recv_packet_result,json=recvPacketResult,proto3" json:"recv_packet_result"`
+}
+
+func (m *AcknowledgementResult) Reset()         { *m = AcknowledgementResult{} }
+func (m *AcknowledgementResult) String() string { return proto.CompactTextString(m) }
+func (*AcknowledgementResult) ProtoMessage()    {}
+func (*AcknowledgementResult) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7e9b57d8f218397d, []int{4}
+}
+func (m *AcknowledgementResult) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *AcknowledgementResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_AcknowledgementResult.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *AcknowledgementResult) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AcknowledgementResult.Merge(m, src)
+}
+func (m *AcknowledgementResult) XXX_Size() int {
+	return m.Size()
+}
+func (m *AcknowledgementResult) XXX_DiscardUnknown() {
+	xxx_messageInfo_AcknowledgementResult.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AcknowledgementResult proto.InternalMessageInfo
+
+func (m *AcknowledgementResult) GetAppName() string {
+	if m != nil {
+		return m.AppName
+	}
+	return ""
+}
+
+func (m *AcknowledgementResult) GetRecvPacketResult() RecvPacketResult {
+	if m != nil {
+		return m.RecvPacketResult
+	}
+	return RecvPacketResult{}
+}
+
+// RecvPacketResult speecifies the status of a packet as well as the acknowledgement bytes.
+type RecvPacketResult struct {
+	// status of the packet
+	Status PacketStatus `protobuf:"varint,1,opt,name=status,proto3,enum=ibc.core.channel.v2.PacketStatus" json:"status,omitempty"`
+	// acknowledgement of the packet
+	Acknowledgement []byte `protobuf:"bytes,2,opt,name=acknowledgement,proto3" json:"acknowledgement,omitempty"`
+}
+
+func (m *RecvPacketResult) Reset()         { *m = RecvPacketResult{} }
+func (m *RecvPacketResult) String() string { return proto.CompactTextString(m) }
+func (*RecvPacketResult) ProtoMessage()    {}
+func (*RecvPacketResult) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7e9b57d8f218397d, []int{5}
+}
+func (m *RecvPacketResult) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RecvPacketResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RecvPacketResult.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RecvPacketResult) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RecvPacketResult.Merge(m, src)
+}
+func (m *RecvPacketResult) XXX_Size() int {
+	return m.Size()
+}
+func (m *RecvPacketResult) XXX_DiscardUnknown() {
+	xxx_messageInfo_RecvPacketResult.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RecvPacketResult proto.InternalMessageInfo
+
+func (m *RecvPacketResult) GetStatus() PacketStatus {
+	if m != nil {
+		return m.Status
+	}
+	return PacketStatus_NONE
+}
+
+func (m *RecvPacketResult) GetAcknowledgement() []byte {
+	if m != nil {
+		return m.Acknowledgement
+	}
+	return nil
+}
+
 func init() {
+	proto.RegisterEnum("ibc.core.channel.v2.PacketStatus", PacketStatus_name, PacketStatus_value)
 	proto.RegisterType((*Packet)(nil), "ibc.core.channel.v2.Packet")
 	proto.RegisterType((*PacketData)(nil), "ibc.core.channel.v2.PacketData")
 	proto.RegisterType((*Payload)(nil), "ibc.core.channel.v2.Payload")
+	proto.RegisterType((*Acknowledgement)(nil), "ibc.core.channel.v2.Acknowledgement")
+	proto.RegisterType((*AcknowledgementResult)(nil), "ibc.core.channel.v2.AcknowledgementResult")
+	proto.RegisterType((*RecvPacketResult)(nil), "ibc.core.channel.v2.RecvPacketResult")
 }
 
 func init() { proto.RegisterFile("ibc/core/channel/v2/channel.proto", fileDescriptor_7e9b57d8f218397d) }
 
 var fileDescriptor_7e9b57d8f218397d = []byte{
-	// 405 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x52, 0x3d, 0x6f, 0xd4, 0x30,
-	0x18, 0x3e, 0xd3, 0x6b, 0xaf, 0xf7, 0x1e, 0x1f, 0xc5, 0x74, 0x88, 0x0a, 0xca, 0x1d, 0x27, 0x21,
-	0x1d, 0x42, 0x8d, 0xd1, 0xc1, 0x52, 0xa9, 0x53, 0xc5, 0xd2, 0xad, 0x8a, 0x80, 0x81, 0xa5, 0x72,
-	0x1c, 0x2b, 0xb5, 0x48, 0xfc, 0x86, 0xd8, 0x89, 0xd4, 0x7f, 0xc1, 0xc4, 0x6f, 0xea, 0x78, 0x23,
-	0x13, 0x42, 0x77, 0x7f, 0x04, 0xc5, 0x4e, 0x20, 0x03, 0x9d, 0xe2, 0xe7, 0xc3, 0x7a, 0x9f, 0x27,
-	0x7e, 0xe1, 0xa5, 0x4a, 0x04, 0x13, 0x58, 0x49, 0x26, 0x6e, 0xb8, 0xd6, 0x32, 0x67, 0xcd, 0xba,
-	0x3f, 0x46, 0x65, 0x85, 0x16, 0xe9, 0x33, 0x95, 0x88, 0xa8, 0xb5, 0x44, 0x3d, 0xdf, 0xac, 0x4f,
-	0x8e, 0x33, 0xcc, 0xd0, 0xe9, 0xac, 0x3d, 0x79, 0xeb, 0x72, 0x43, 0xe0, 0xe0, 0x8a, 0x8b, 0xaf,
-	0xd2, 0xd2, 0x13, 0x38, 0x34, 0xf2, 0x5b, 0x2d, 0xb5, 0x90, 0x01, 0x59, 0x90, 0xd5, 0x38, 0xfe,
-	0x8b, 0xe9, 0x73, 0x98, 0x1a, 0xac, 0x2b, 0x21, 0xaf, 0x55, 0x1a, 0x3c, 0x58, 0x90, 0xd5, 0x34,
-	0x3e, 0xf4, 0xc4, 0x65, 0x4a, 0x5f, 0xc1, 0xe3, 0x54, 0x1a, 0xab, 0x34, 0xb7, 0x0a, 0x75, 0xeb,
-	0xd8, 0x73, 0x8e, 0x47, 0x03, 0xf6, 0x32, 0xa5, 0x6f, 0xe0, 0xa9, 0x55, 0x85, 0xc4, 0xda, 0x5e,
-	0xb7, 0x5f, 0x63, 0x79, 0x51, 0x06, 0x63, 0x37, 0xe8, 0xa8, 0x13, 0x3e, 0xf6, 0x3c, 0x3d, 0x83,
-	0x71, 0xca, 0x2d, 0x0f, 0xf6, 0x17, 0x7b, 0xab, 0xd9, 0x7a, 0x1e, 0xfd, 0xa7, 0x51, 0xe4, 0x73,
-	0x7f, 0xe0, 0x96, 0x5f, 0x8c, 0xef, 0x7e, 0xcd, 0x47, 0xb1, 0xbb, 0xb2, 0xfc, 0x41, 0x00, 0xfe,
-	0x49, 0x74, 0x0e, 0xb3, 0x2e, 0x7a, 0x89, 0x95, 0x75, 0xcd, 0xa6, 0x31, 0x78, 0xea, 0x0a, 0x2b,
-	0x4b, 0x5f, 0xc3, 0xd1, 0x30, 0xbe, 0x73, 0xf9, 0x8a, 0x4f, 0x06, 0xbc, 0xb3, 0x9e, 0xc3, 0xa4,
-	0xe4, 0xb7, 0x39, 0x72, 0x5f, 0x71, 0xb6, 0x7e, 0x71, 0x4f, 0x30, 0xe7, 0xe9, 0x52, 0xf5, 0x57,
-	0x96, 0x9f, 0x60, 0xd2, 0x29, 0x34, 0x80, 0x49, 0x23, 0x2b, 0xa3, 0x50, 0x77, 0x81, 0x7a, 0xd8,
-	0xbe, 0x82, 0xd4, 0x02, 0x53, 0xa5, 0xb3, 0xfe, 0x47, 0xf7, 0x98, 0x1e, 0xc3, 0x7e, 0xc3, 0xf3,
-	0x5a, 0xba, 0xe1, 0x0f, 0x63, 0x0f, 0x2e, 0x3e, 0xdf, 0x6d, 0x43, 0xb2, 0xd9, 0x86, 0xe4, 0xf7,
-	0x36, 0x24, 0xdf, 0x77, 0xe1, 0x68, 0xb3, 0x0b, 0x47, 0x3f, 0x77, 0xe1, 0xe8, 0xcb, 0x79, 0xa6,
-	0xec, 0x4d, 0x9d, 0x44, 0x02, 0x0b, 0x26, 0xd0, 0x14, 0x68, 0x98, 0x4a, 0xc4, 0x69, 0x86, 0xac,
-	0x39, 0x63, 0x05, 0xa6, 0x75, 0x2e, 0x8d, 0x5f, 0xa5, 0xb7, 0xef, 0x4f, 0x07, 0xdb, 0x64, 0x6f,
-	0x4b, 0x69, 0x92, 0x03, 0xb7, 0x21, 0xef, 0xfe, 0x04, 0x00, 0x00, 0xff, 0xff, 0x5b, 0x25, 0x2c,
-	0xa2, 0x71, 0x02, 0x00, 0x00,
+	// 660 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x94, 0x41, 0x4f, 0x1a, 0x4f,
+	0x18, 0xc6, 0x59, 0x45, 0x81, 0x17, 0xff, 0xba, 0xff, 0x51, 0x5b, 0xa4, 0x0d, 0x22, 0x89, 0x2d,
+	0xb5, 0x91, 0x6d, 0x68, 0x2f, 0x26, 0x5e, 0x10, 0x31, 0x21, 0x6d, 0x28, 0xd9, 0x85, 0x26, 0xf6,
+	0x42, 0x86, 0xd9, 0x09, 0x6e, 0xdc, 0xdd, 0xd9, 0xee, 0xcc, 0xae, 0x31, 0xe9, 0x27, 0x30, 0x69,
+	0xd2, 0x53, 0x6f, 0x7e, 0x82, 0x7e, 0x11, 0x8f, 0x1e, 0x7b, 0x6a, 0x1a, 0xfd, 0x22, 0x0d, 0xb3,
+	0xbb, 0x2d, 0x50, 0xda, 0x13, 0xfb, 0x3e, 0xef, 0xef, 0x9d, 0x79, 0x9e, 0x19, 0x32, 0xb0, 0x63,
+	0x0d, 0x89, 0x46, 0x98, 0x4f, 0x35, 0x72, 0x86, 0x5d, 0x97, 0xda, 0x5a, 0x58, 0x4f, 0x3e, 0x6b,
+	0x9e, 0xcf, 0x04, 0x43, 0xeb, 0xd6, 0x90, 0xd4, 0xc6, 0x48, 0x2d, 0xd1, 0xc3, 0x7a, 0x71, 0x63,
+	0xc4, 0x46, 0x4c, 0xf6, 0xb5, 0xf1, 0x57, 0x84, 0x56, 0x6e, 0x15, 0x58, 0xee, 0x62, 0x72, 0x4e,
+	0x05, 0x2a, 0x42, 0x96, 0xd3, 0x0f, 0x01, 0x75, 0x09, 0x2d, 0x28, 0x65, 0xa5, 0x9a, 0xd6, 0x7f,
+	0xd5, 0xe8, 0x11, 0xe4, 0x38, 0x0b, 0x7c, 0x42, 0x07, 0x96, 0x59, 0x58, 0x28, 0x2b, 0xd5, 0x9c,
+	0x9e, 0x8d, 0x84, 0xb6, 0x89, 0x76, 0x61, 0xd5, 0xa4, 0x5c, 0x58, 0x2e, 0x16, 0x16, 0x73, 0xc7,
+	0xc4, 0xa2, 0x24, 0xfe, 0x9b, 0x50, 0xdb, 0x26, 0x7a, 0x0e, 0xff, 0x0b, 0xcb, 0xa1, 0x2c, 0x10,
+	0x83, 0xf1, 0x2f, 0x17, 0xd8, 0xf1, 0x0a, 0x69, 0xb9, 0x91, 0x1a, 0x37, 0x7a, 0x89, 0x8e, 0x0e,
+	0x20, 0x6d, 0x62, 0x81, 0x0b, 0x4b, 0xe5, 0xc5, 0x6a, 0xbe, 0xbe, 0x5d, 0x9b, 0x93, 0xa8, 0x16,
+	0xf9, 0x3e, 0xc6, 0x02, 0x1f, 0xa5, 0x6f, 0xbe, 0x6f, 0xa7, 0x74, 0x39, 0x52, 0xf9, 0xa2, 0x00,
+	0xfc, 0x6e, 0xa1, 0x6d, 0xc8, 0xc7, 0xd6, 0x3d, 0xe6, 0x0b, 0x99, 0x2c, 0xa7, 0x43, 0x24, 0x75,
+	0x99, 0x2f, 0xd0, 0x33, 0x50, 0x27, 0xed, 0x4b, 0x2a, 0x8a, 0xb8, 0x36, 0xa1, 0x4b, 0xf4, 0x10,
+	0x32, 0x1e, 0xbe, 0xb4, 0x19, 0x8e, 0x22, 0xe6, 0xeb, 0x8f, 0xff, 0x62, 0x4c, 0x32, 0xb1, 0xab,
+	0x64, 0xa4, 0xd2, 0x87, 0x4c, 0xdc, 0x41, 0x05, 0xc8, 0x84, 0xd4, 0xe7, 0x16, 0x73, 0x63, 0x43,
+	0x49, 0x39, 0xbe, 0x05, 0xea, 0x12, 0x66, 0x5a, 0xee, 0x28, 0x39, 0xe8, 0xa4, 0x46, 0x1b, 0xb0,
+	0x14, 0x62, 0x3b, 0xa0, 0x72, 0xf3, 0x15, 0x3d, 0x2a, 0x2a, 0x1f, 0x61, 0xad, 0x41, 0xce, 0x5d,
+	0x76, 0x61, 0x53, 0x73, 0x44, 0x1d, 0xea, 0x0a, 0x64, 0xc1, 0x43, 0x3c, 0x2d, 0x0d, 0x7c, 0xca,
+	0x03, 0x5b, 0xf0, 0x82, 0x22, 0x0f, 0x74, 0x6f, 0xae, 0xef, 0x99, 0x65, 0x74, 0x39, 0x12, 0xa7,
+	0x78, 0x80, 0xe7, 0x35, 0x79, 0xe5, 0x93, 0x02, 0x9b, 0x73, 0xe7, 0xd0, 0x16, 0x64, 0xb1, 0xe7,
+	0x0d, 0x5c, 0xec, 0xd0, 0x24, 0x24, 0xf6, 0xbc, 0x0e, 0x76, 0x28, 0x3a, 0x05, 0xe4, 0x53, 0x12,
+	0x0e, 0x3c, 0x79, 0x4d, 0xb1, 0x37, 0x19, 0x37, 0x5f, 0xdf, 0x9d, 0x6b, 0x4d, 0xa7, 0x24, 0x8c,
+	0x2e, 0x75, 0xca, 0x95, 0xea, 0xcf, 0xe8, 0x95, 0x0b, 0x50, 0x67, 0x59, 0x74, 0x00, 0xcb, 0x5c,
+	0x60, 0x11, 0x70, 0xe9, 0x63, 0xb5, 0xbe, 0xf3, 0x8f, 0xbf, 0x93, 0x21, 0x41, 0x3d, 0x1e, 0x40,
+	0x55, 0x58, 0x9b, 0x09, 0x2e, 0x6d, 0xae, 0xe8, 0xb3, 0xf2, 0xde, 0x57, 0x05, 0x56, 0x26, 0x97,
+	0x40, 0x4f, 0x61, 0xab, 0xdb, 0x68, 0xbe, 0x6e, 0xf5, 0x06, 0x46, 0xaf, 0xd1, 0xeb, 0x1b, 0x83,
+	0x7e, 0xc7, 0xe8, 0xb6, 0x9a, 0xed, 0x93, 0x76, 0xeb, 0x58, 0x4d, 0x15, 0xb3, 0x57, 0xd7, 0xe5,
+	0x74, 0xe7, 0x6d, 0xa7, 0x85, 0x9e, 0xc0, 0xe6, 0x34, 0x68, 0xf4, 0x9b, 0xcd, 0x96, 0x61, 0xa8,
+	0x4a, 0x31, 0x7f, 0x75, 0x5d, 0xce, 0x18, 0x01, 0x21, 0x94, 0xf3, 0x3f, 0xb9, 0x93, 0x46, 0xfb,
+	0x4d, 0x5f, 0x6f, 0xa9, 0x0b, 0x11, 0x77, 0x82, 0x2d, 0x3b, 0xf0, 0x29, 0xaa, 0xc0, 0xfa, 0x34,
+	0xd7, 0x30, 0x4e, 0x3b, 0x4d, 0x75, 0xb1, 0x98, 0xbb, 0xba, 0x2e, 0x2f, 0x35, 0xf8, 0xa5, 0x4b,
+	0x8e, 0xde, 0xdd, 0xdc, 0x95, 0x94, 0xdb, 0xbb, 0x92, 0xf2, 0xe3, 0xae, 0xa4, 0x7c, 0xbe, 0x2f,
+	0xa5, 0x6e, 0xef, 0x4b, 0xa9, 0x6f, 0xf7, 0xa5, 0xd4, 0xfb, 0xc3, 0x91, 0x25, 0xce, 0x82, 0x61,
+	0x8d, 0x30, 0x47, 0x23, 0x8c, 0x3b, 0x8c, 0x6b, 0xd6, 0x90, 0xec, 0x8f, 0x98, 0x16, 0x1e, 0x68,
+	0x0e, 0x33, 0x03, 0x9b, 0xf2, 0xe8, 0xfd, 0x79, 0xf1, 0x6a, 0x7f, 0xe2, 0x09, 0x12, 0x97, 0x1e,
+	0xe5, 0xc3, 0x65, 0xf9, 0xac, 0xbc, 0xfc, 0x19, 0x00, 0x00, 0xff, 0xff, 0x55, 0xf8, 0x84, 0x77,
+	0xa6, 0x04, 0x00, 0x00,
 }
 
 func (m *Packet) Marshal() (dAtA []byte, err error) {
@@ -425,6 +634,118 @@ func (m *Payload) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Acknowledgement) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Acknowledgement) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Acknowledgement) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.AcknowledgementResults) > 0 {
+		for iNdEx := len(m.AcknowledgementResults) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.AcknowledgementResults[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintChannel(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *AcknowledgementResult) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AcknowledgementResult) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *AcknowledgementResult) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.RecvPacketResult.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintChannel(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.AppName) > 0 {
+		i -= len(m.AppName)
+		copy(dAtA[i:], m.AppName)
+		i = encodeVarintChannel(dAtA, i, uint64(len(m.AppName)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RecvPacketResult) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RecvPacketResult) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RecvPacketResult) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Acknowledgement) > 0 {
+		i -= len(m.Acknowledgement)
+		copy(dAtA[i:], m.Acknowledgement)
+		i = encodeVarintChannel(dAtA, i, uint64(len(m.Acknowledgement)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintChannel(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintChannel(dAtA []byte, offset int, v uint64) int {
 	offset -= sovChannel(v)
 	base := offset
@@ -499,6 +820,52 @@ func (m *Payload) Size() (n int) {
 		n += 1 + l + sovChannel(uint64(l))
 	}
 	l = len(m.Value)
+	if l > 0 {
+		n += 1 + l + sovChannel(uint64(l))
+	}
+	return n
+}
+
+func (m *Acknowledgement) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.AcknowledgementResults) > 0 {
+		for _, e := range m.AcknowledgementResults {
+			l = e.Size()
+			n += 1 + l + sovChannel(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *AcknowledgementResult) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.AppName)
+	if l > 0 {
+		n += 1 + l + sovChannel(uint64(l))
+	}
+	l = m.RecvPacketResult.Size()
+	n += 1 + l + sovChannel(uint64(l))
+	return n
+}
+
+func (m *RecvPacketResult) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovChannel(uint64(m.Status))
+	}
+	l = len(m.Acknowledgement)
 	if l > 0 {
 		n += 1 + l + sovChannel(uint64(l))
 	}
@@ -969,6 +1336,308 @@ func (m *Payload) Unmarshal(dAtA []byte) error {
 			m.Value = append(m.Value[:0], dAtA[iNdEx:postIndex]...)
 			if m.Value == nil {
 				m.Value = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipChannel(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Acknowledgement) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowChannel
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Acknowledgement: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Acknowledgement: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AcknowledgementResults", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowChannel
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthChannel
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AcknowledgementResults = append(m.AcknowledgementResults, AcknowledgementResult{})
+			if err := m.AcknowledgementResults[len(m.AcknowledgementResults)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipChannel(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AcknowledgementResult) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowChannel
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AcknowledgementResult: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AcknowledgementResult: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AppName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowChannel
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthChannel
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AppName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RecvPacketResult", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowChannel
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthChannel
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.RecvPacketResult.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipChannel(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RecvPacketResult) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowChannel
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RecvPacketResult: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RecvPacketResult: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowChannel
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= PacketStatus(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Acknowledgement", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowChannel
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthChannel
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Acknowledgement = append(m.Acknowledgement[:0], dAtA[iNdEx:postIndex]...)
+			if m.Acknowledgement == nil {
+				m.Acknowledgement = []byte{}
 			}
 			iNdEx = postIndex
 		default:

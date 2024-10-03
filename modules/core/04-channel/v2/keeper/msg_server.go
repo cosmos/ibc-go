@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,6 +39,10 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 	// }
 
 	return &channeltypesv2.MsgSendPacketResponse{Sequence: sequence}, nil
+}
+
+func (k Keeper) Acknowledgement(ctx context.Context, acknowledgement *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {
+	panic("implement me")
 }
 
 // RecvPacket implements the PacketMsgServer RecvPacket method.

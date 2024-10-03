@@ -13,5 +13,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgSendPacket{},
 		&MsgRecvPacket{},
 		&MsgTimeout{},
+		&MsgAcknowledgement{},
 	)
 }

@@ -144,6 +144,21 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 	return &clienttypes.MsgIBCSoftwareUpgradeResponse{}, nil
 }
 
+// CreateChannel defines a rpc handler method for MsgCreateChannel
+func (k *Keeper) CreateChannel(goCtx context.Context, msg *packetservertypes.MsgCreateChannel) (*packetservertypes.MsgCreateChannelResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	channelID := k.ChannelKeeper.GenerateChannelIdentifier(ctx)
+
+	// Initialize counterparty with empty counterparty channel identifier.
+	counterparty := packetservertypes.NewCounterparty(msg.ClientId, "", msg.MerklePathPrefix)
+	k.PacketServerKeeper.SetCounterparty(ctx, channelID, counterparty)
+
+	k.ClientKeeper.SetCreator(ctx, channelID, msg.Signer)
+
+	return &packetservertypes.MsgCreateChannelResponse{ChannelId: channelID}, nil
+}
+
 // ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
 func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *packetservertypes.MsgProvideCounterparty) (*packetservertypes.MsgProvideCounterpartyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
