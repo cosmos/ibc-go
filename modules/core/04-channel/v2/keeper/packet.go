@@ -31,7 +31,7 @@ func (k *Keeper) sendPacket(
 
 	// retrieve the sequence send for this channel
 	// if no packets have been sent yet, initialize the sequence to 1.
-	sequence, found := k.GetNextSequenceSend(ctx, counterparty.ClientId)
+	sequence, found := k.GetNextSequenceSend(ctx, sourceID)
 	if !found {
 		sequence = 1
 	}
@@ -66,9 +66,9 @@ func (k *Keeper) sendPacket(
 
 	commitment := channeltypesv2.CommitPacket(packet)
 
-	// bump the sequence and set the packet commitment so it is provable by the counterparty
-	k.SetNextSequenceSend(ctx, counterparty.ClientId, sequence+1)
-	k.SetPacketCommitment(ctx, counterparty.ClientId, packet.GetSequence(), commitment)
+	// bump the sequence and set the packet commitment, so it is provable by the counterparty
+	k.SetNextSequenceSend(ctx, sourceID, sequence+1)
+	k.SetPacketCommitment(ctx, sourceID, packet.GetSequence(), commitment)
 
 	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest_id", packet.DestinationId, "src_id", packet.SourceId)
 
