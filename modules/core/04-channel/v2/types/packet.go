@@ -38,14 +38,8 @@ func (p Packet) ValidateBasic() error {
 	}
 
 	for _, pd := range p.Data {
-		if err := host.PortIdentifierValidator(pd.SourcePort); err != nil {
-			return errorsmod.Wrap(err, "invalid source port ID")
-		}
-		if err := host.PortIdentifierValidator(pd.DestinationPort); err != nil {
-			return errorsmod.Wrap(err, "invalid destination port ID")
-		}
-		if err := pd.Payload.Validate(); err != nil {
-			return err
+		if err := pd.ValidateBasic(); err != nil {
+			return errorsmod.Wrap(err, "invalid Packet Data")
 		}
 	}
 
@@ -63,6 +57,20 @@ func (p Packet) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidPacket, "packet timeout timestamp cannot be 0")
 	}
 
+	return nil
+}
+
+// ValidateBasic validates a PacketData
+func (p PacketData) ValidateBasic() error {
+	if err := host.PortIdentifierValidator(p.SourcePort); err != nil {
+		return errorsmod.Wrap(err, "invalid source port ID")
+	}
+	if err := host.PortIdentifierValidator(p.DestinationPort); err != nil {
+		return errorsmod.Wrap(err, "invalid destination port ID")
+	}
+	if err := p.Payload.Validate(); err != nil {
+		return err
+	}
 	return nil
 }
 
