@@ -43,12 +43,12 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 	return &channeltypesv2.MsgSendPacketResponse{Sequence: sequence}, nil
 }
 
-func (k Keeper) Acknowledgement(ctx context.Context, acknowledgement *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {
+func (*Keeper) Acknowledgement(ctx context.Context, acknowledgement *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {
 	panic("implement me")
 }
 
 // RecvPacket implements the PacketMsgServer RecvPacket method.
-func (k *Keeper) RecvPacket(ctx context.Context, packet *channeltypesv2.MsgRecvPacket) (*channeltypesv2.MsgRecvPacketResponse, error) {
+func (*Keeper) RecvPacket(ctx context.Context, packet *channeltypesv2.MsgRecvPacket) (*channeltypesv2.MsgRecvPacketResponse, error) {
 	panic("implement me")
 }
 
