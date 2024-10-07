@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"strings"
 
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -47,16 +46,14 @@ func (gs GenesisState) Validate() error {
 	var maxSequence uint64
 
 	for i, conn := range gs.Connections {
-		sequence, err := ParseConnectionSequence(conn.Id)
-		if err != nil {
-			if conn.Id == exported.LocalhostConnectionID && strings.Contains(err.Error(), host.ErrInvalidID.Error()) {
-				continue
+		if conn.Id != exported.LocalhostConnectionID {
+			sequence, err := ParseConnectionSequence(conn.Id)
+			if err != nil {
+				return err
 			}
-			return err
-		}
-
-		if sequence > maxSequence {
-			maxSequence = sequence
+			if sequence > maxSequence {
+				maxSequence = sequence
+			}
 		}
 
 		if err := conn.ValidateBasic(); err != nil {
