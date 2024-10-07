@@ -5,9 +5,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+<<<<<<< HEAD
 	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
 	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+=======
+	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+>>>>>>> ff2b668c (fix: avoid invalid identifier error when validate genesis (#7397))
 )
 
 func TestValidateGenesis(t *testing.T) {
@@ -90,6 +97,20 @@ func TestValidateGenesis(t *testing.T) {
 				types.DefaultParams(),
 			),
 			expPass: false,
+		},
+		{
+			name: "localhost connection identifier",
+			genState: types.NewGenesisState(
+				[]types.IdentifiedConnection{
+					types.NewIdentifiedConnection(exported.LocalhostConnectionID, types.NewConnectionEnd(types.INIT, clientID, types.Counterparty{clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, []*types.Version{ibctesting.ConnectionVersion}, 500)),
+				},
+				[]types.ConnectionPaths{
+					{clientID, []string{connectionID}},
+				},
+				0,
+				types.DefaultParams(),
+			),
+			expPass: true,
 		},
 		{
 			name: "next connection sequence is not greater than maximum connection identifier sequence provided",

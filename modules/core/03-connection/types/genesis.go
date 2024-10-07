@@ -3,7 +3,12 @@ package types
 import (
 	"fmt"
 
+<<<<<<< HEAD
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+=======
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+>>>>>>> ff2b668c (fix: avoid invalid identifier error when validate genesis (#7397))
 )
 
 // NewConnectionPaths creates a ConnectionPaths instance.
@@ -45,13 +50,14 @@ func (gs GenesisState) Validate() error {
 	var maxSequence uint64
 
 	for i, conn := range gs.Connections {
-		sequence, err := ParseConnectionSequence(conn.Id)
-		if err != nil {
-			return err
-		}
-
-		if sequence > maxSequence {
-			maxSequence = sequence
+		if conn.Id != exported.LocalhostConnectionID {
+			sequence, err := ParseConnectionSequence(conn.Id)
+			if err != nil {
+				return err
+			}
+			if sequence > maxSequence {
+				maxSequence = sequence
+			}
 		}
 
 		if err := conn.ValidateBasic(); err != nil {
