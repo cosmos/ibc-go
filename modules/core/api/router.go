@@ -3,8 +3,9 @@ package api
 import (
 	"errors"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Router contains all the module-defined callbacks required by IBC Protocol V2.
@@ -26,7 +27,7 @@ func (rtr *Router) AddRoute(module string, cbs IBCModule) *Router {
 	}
 
 	if rtr.HasRoute(module) {
-		panic(errors.New(fmt.Sprintf("route %s has already been registered", module)))
+		panic(fmt.Errorf("route %s has already been registered", module))
 	}
 
 	rtr.routes[module] = cbs

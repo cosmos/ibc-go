@@ -5,10 +5,10 @@ import (
 	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 )
 
-func (suite *ApiTestSuite) TestRouter() {
+func (suite *APITestSuite) TestRouter() {
 	var router *api.Router
 
-	var testCases = []struct {
+	testCases := []struct {
 		name        string
 		malleate    func()
 		assertionFn func()

@@ -1,14 +1,15 @@
 package api_test
 
 import (
-	testifysuite "github.com/stretchr/testify/suite"
 	"testing"
+
+	testifysuite "github.com/stretchr/testify/suite"
 )
 
-type ApiTestSuite struct {
+type APITestSuite struct {
 	testifysuite.Suite
 }
 
 func TestApiTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(ApiTestSuite))
+	testifysuite.Run(t, new(APITestSuite))
 }
