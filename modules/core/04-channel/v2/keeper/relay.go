@@ -17,10 +17,10 @@ import (
 
 // getV1Counterparty attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
 // to a v2 counterparty and stores it in the packet server keeper for future use
-func (k *Keeper) getV1Counterparty(ctx context.Context, sourcePort, sourceID string) (channeltypesv2.Counterparty, bool) {
-	if counterparty, ok := k.AliasV1Channel(ctx, sourcePort, sourceID); ok {
+func (k *Keeper) getV1Counterparty(ctx context.Context, port, id string) (channeltypesv2.Counterparty, bool) {
+	if counterparty, ok := k.AliasV1Channel(ctx, port, id); ok {
 		// we can key on just the source channel here since channel ids are globally unique
-		k.SetCounterparty(ctx, sourceID, counterparty)
+		k.SetCounterparty(ctx, id, counterparty)
 		return counterparty, true
 	}
 
@@ -114,9 +114,9 @@ func (k Keeper) recvPacket(
 	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationId)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].SourcePort, packet.SourceId)
+		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].DestinationPort, packet.DestinationId)
 		if !ok {
-			return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceId)
+			return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationId)
 		}
 	}
 	if counterparty.ClientId != packet.SourceId {
