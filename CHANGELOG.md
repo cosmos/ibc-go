@@ -48,72 +48,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (core/03-connection) [\#7397](https://github.com/cosmos/ibc-go/pull/7397) Skip the genesis validation connectionID for localhost client.
+
 ## [v8.5.1](https://github.com/cosmos/ibc-go/releases/tag/v8.5.1) - 2024-09-13
 
 ### Bug Fixes
 
 * (apps/27-interchain-accounts) [\#7277](https://github.com/cosmos/ibc-go/pull/7277) Use `GogoResolver` when populating module query safe allow list to avoid panics from unresolvable protobuf dependencies.
-<<<<<<< HEAD
-=======
-* (core/04-channel) [\#7342](https://github.com/cosmos/ibc-go/pull/7342) Read Tx cmd flags including from address to avoid Address cannot be empty error when upgrade-channels via cli.
-* (core/03-connection) [\#7397](https://github.com/cosmos/ibc-go/pull/7397) Skip the genesis validation connectionID for localhost client.
-
-## [v9.0.0](https://github.com/cosmos/ibc-go/releases/tag/v9.0.0) - 2024-10-01
-
-### Dependencies
-
-* [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump Cosmos SDK to v0.50.9.
-* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
-* [\#7126](https://github.com/cosmos/ibc-go/pull/7126) Bump CometBFT to v0.38.11.
-* [\#6380](https://github.com/cosmos/ibc-go/pull/6380) Bump go to v1.22.
-* [\#7223](https://github.com/cosmos/ibc-go/pull/7223) Update ics23 to v0.11.0.
-
-### API Breaking
-
-* (core/02-client, light-clients) [\#5806](https://github.com/cosmos/ibc-go/pull/5806) Decouple light client routing from their encoding structure.
-* (core/04-channel) [\#5991](https://github.com/cosmos/ibc-go/pull/5991) The client CLI `QueryLatestConsensusState` has been removed.
-* (light-clients/06-solomachine) [\#6037](https://github.com/cosmos/ibc-go/pull/6037) Remove `Initialize` function from `ClientState` and move logic to `Initialize` function of `LightClientModule`.
-* (light-clients/06-solomachine) [\#6230](https://github.com/cosmos/ibc-go/pull/6230) Remove `GetTimestampAtHeight`, `Status` and `UpdateStateOnMisbehaviour` functions from `ClientState` and move logic to functions of `LightClientModule`.
-* (core/02-client) [\#6084](https://github.com/cosmos/ibc-go/pull/6084) Removed `stakingKeeper` as an argument to `NewKeeper` and replaced with a `ConsensusHost` implementation.
-* (testing) [\#6070](https://github.com/cosmos/ibc-go/pull/6070) Remove `AssertEventsLegacy` function.
-* (core) [\#6138](https://github.com/cosmos/ibc-go/pull/6138) Remove `Router` reference from IBC core keeper and use instead the router on the existing `PortKeeper` reference.
-* (core/04-channel) [\#6023](https://github.com/cosmos/ibc-go/pull/6023) Remove emission of non-hexlified event attributes `packet_data` and `packet_ack`.
-* (core) [\#6320](https://github.com/cosmos/ibc-go/pull/6320) Remove unnecessary `Proof` interface from `exported` package.
-* (core/05-port) [\#6341](https://github.com/cosmos/ibc-go/pull/6341) Modify `UnmarshalPacketData` interface to take in the context, portID, and channelID. This allows for packet data's to be unmarshaled based on the channel version.
-* (apps/27-interchain-accounts) [\#6433](https://github.com/cosmos/ibc-go/pull/6433) Use UNORDERED as the default ordering for new ICA channels.
-* (apps/transfer) [\#6440](https://github.com/cosmos/ibc-go/pull/6440) Remove `GetPrefixedDenom`.
-* (apps/transfer) [\#6508](https://github.com/cosmos/ibc-go/pull/6508) Remove the `DenomTrace` type.
-* (apps/27-interchain-accounts) [\#6598](https://github.com/cosmos/ibc-go/pull/6598) Mark the `requests` repeated field of `MsgModuleQuerySafe` non-nullable.
-* (23-commmitment) [\#6644](https://github.com/cosmos/ibc-go/pull/6644) Introduce `commitment.v2.MerklePath` to include `repeated bytes` in favour of `repeated string`. This supports using merkle path keys which include non UTF-8 encoded runes.
-* (23-commmitment) [\#6870](https://github.com/cosmos/ibc-go/pull/6870) Remove `commitment.v1.MerklePath` in favour of `commitment.v2.MerklePath`.
-* (apps/27-interchain-accounts) [\#6749](https://github.com/cosmos/ibc-go/pull/6749) The ICA controller `NewIBCMiddleware` constructor function sets by default the auth module to nil.
-* (core, core/02-client) [\#6763](https://github.com/cosmos/ibc-go/pull/6763) Move prometheus metric labels for 02-client and core into a separate `metrics` package on core.
-* (core/02-client) [\#6777](https://github.com/cosmos/ibc-go/pull/6777) The `NewClientProposalHandler` of `02-client` has been removed.
-* (core/types) [\#6794](https://github.com/cosmos/ibc-go/pull/6794) The composite interface `QueryServer` has been removed from package `core/types`. Please use the granular `QueryServer` interfaces provided by each core submodule.
-* (light-clients/06-solomachine) [\#6888](https://github.com/cosmos/ibc-go/pull/6888) Remove `TypeClientMisbehaviour` constant and the `Type` method on `Misbehaviour`.
-* (light-clients/06-solomachine, light-clients/07-tendermint) [\#6891](https://github.com/cosmos/ibc-go/pull/6891) The `VerifyMembership` and `VerifyNonMembership` functions of solomachine's `ClientState` have been made private. The `VerifyMembership`, `VerifyNonMembership`, `GetTimestampAtHeight`, `Status` and `Initialize` functions of tendermint's `ClientState` have been made private.
-* (core/04-channel) [\#6902](https://github.com/cosmos/ibc-go/pull/6902) Add channel version to core application callbacks.
-* (core/03-connection, core/02-client) [\#6937](https://github.com/cosmos/ibc-go/pull/6937) Remove 'ConsensusHost' interface, also removing self client and consensus state validation in the connection handshake.
-* (core/24-host) [\#6882](https://github.com/cosmos/ibc-go/issues/6882) All functions ending in `Path` have been removed from 24-host in favour of their sybling functions ending in `Key`.
-
-### State Machine Breaking
-
-* (light-clients/06-solomachine) [\#6313](https://github.com/cosmos/ibc-go/pull/6313) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
-
-### Improvements
-
-* (apps/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) ICA host sets the host connection ID on `OnChanOpenTry`, so that ICA controller implementations are not obliged to set the value on `OnChanOpenInit` if they are not able.
-* (core/02-client, core/03-connection, apps/27-interchain-accounts) [\#6256](https://github.com/cosmos/ibc-go/pull/6256) Add length checking of array fields in messages.
-
-### Features
-
-* (apps/transfer) [\#6492](https://github.com/cosmos/ibc-go/pull/6492) Added new `Tokens` field to `MsgTransfer` to enable sending of multiple denoms, and deprecated the `Token` field.
-* (apps/transfer) [\#6693](https://github.com/cosmos/ibc-go/pull/6693) Added new `Forwarding` field to `MsgTransfer` to enable forwarding tokens through multiple intermediary chains with a single transaction. This also enables automatic unwinding of tokens to their native chain. `x/authz` support for transfer allows granters to specify a set of possible forwarding hops that are allowed for grantees.
-
-### Bug Fixes
-
-* (apps/27-interchain-accounts) [\#6377](https://github.com/cosmos/ibc-go/pull/6377) Generate ICA simtest proposals only for provided keepers.
->>>>>>> ff2b668c (fix: avoid invalid identifier error when validate genesis (#7397))
 
 ## [v8.5.0](https://github.com/cosmos/ibc-go/releases/tag/v8.5.0) - 2024-08-30
 
