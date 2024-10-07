@@ -190,16 +190,10 @@ func (k Keeper) timeoutPacket(
 	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.GetCounterparty(ctx, packet.SourceId)
 	if !ok {
-		// If the counterparty is not found, attempt to retrieve a v1 channel from the channel keeper
-		// if it exists, then we will convert it to a v2 counterparty and store it in the packet server keeper
-		// for future use.
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		if counterparty, ok = k.AliasV1Channel(ctx, packet.Data[0].SourcePort, packet.SourceId); ok {
-			// we can key on just the source channel here since channel ids are globally unique
-			k.SetCounterparty(ctx, packet.SourceId, counterparty)
-		} else {
-			// if neither a counterparty nor channel is found then simply return an error
-			return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceId)
+		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].SourcePort, packet.SourceId)
+		if !ok {
+			return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationId)
 		}
 	}
 
