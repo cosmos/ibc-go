@@ -15,6 +15,18 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
+// getV1Counterparty attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
+// to a v2 counterparty and stores it in the packet server keeper for future use
+func (k *Keeper) getV1Counterparty(ctx context.Context, sourcePort, sourceID string) (channeltypesv2.Counterparty, bool) {
+	if counterparty, ok := k.AliasV1Channel(ctx, sourcePort, sourceID); ok {
+		// we can key on just the source channel here since channel ids are globally unique
+		k.SetCounterparty(ctx, sourceID, counterparty)
+		return counterparty, true
+	}
+
+	return channeltypesv2.Counterparty{}, false
+}
+
 // sendPacket constructs a packet from the input arguments, writes a packet commitment to state
 // in order for the packet to be sent to the counterparty.
 func (k *Keeper) sendPacket(
@@ -26,15 +38,9 @@ func (k *Keeper) sendPacket(
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
 	counterparty, ok := k.GetCounterparty(ctx, sourceID)
 	if !ok {
-		// If the counterparty is not found, attempt to retrieve a v1 channel from the channel keeper
-		// if it exists, then we will convert it to a v2 counterparty and store it in the packet server keeper
-		// for future use.
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		if counterparty, ok = k.AliasV1Channel(ctx, data[0].SourcePort, sourceID); ok {
-			// we can key on just the source channel here since channel ids are globally unique
-			k.SetCounterparty(ctx, sourceID, counterparty)
-		} else {
-			// if neither a counterparty nor channel is found then simply return an error
+		counterparty, ok = k.getV1Counterparty(ctx, data[0].SourcePort, sourceID)
+		if !ok {
 			return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceID)
 		}
 	}
@@ -107,15 +113,9 @@ func (k Keeper) recvPacket(
 	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationId)
 	if !ok {
-		// If the counterparty is not found, attempt to retrieve a v1 channel from the channel keeper
-		// if it exists, then we will convert it to a v2 counterparty and store it in the packet server keeper
-		// for future use.
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		if counterparty, ok = k.AliasV1Channel(ctx, packet.Data[0].SourcePort, packet.SourceId); ok {
-			// we can key on just the source channel here since channel ids are globally unique
-			k.SetCounterparty(ctx, packet.SourceId, counterparty)
-		} else {
-			// if neither a counterparty nor channel is found then simply return an error
+		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].SourcePort, packet.SourceId)
+		if !ok {
 			return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceId)
 		}
 	}
