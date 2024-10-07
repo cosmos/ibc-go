@@ -19,7 +19,7 @@ import (
 // to a v2 counterparty and stores it in the v2 channel keeper for future use
 func (k *Keeper) getV1Counterparty(ctx context.Context, port, id string) (channeltypesv2.Counterparty, bool) {
 	if counterparty, ok := k.AliasV1Channel(ctx, port, id); ok {
-		// we can key on just the source channel here since channel ids are globally unique
+		// we can key on just the channel here since channel ids are globally unique
 		k.SetCounterparty(ctx, id, counterparty)
 		return counterparty, true
 	}
