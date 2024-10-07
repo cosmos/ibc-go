@@ -3,12 +3,8 @@ package types
 import (
 	"fmt"
 
-<<<<<<< HEAD
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-=======
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
->>>>>>> ff2b668c (fix: avoid invalid identifier error when validate genesis (#7397))
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // NewConnectionPaths creates a ConnectionPaths instance.
