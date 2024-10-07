@@ -23,7 +23,7 @@ The Tendermint client consists of two important structs that keep track of the s
 
 Each Tendermint Client is composed of a single `ClientState` keyed on the client ID, and multiple consensus states which are keyed on both the clientID and header height. Relayers can use the consensus states to verify merkle proofs of packet commitments, acknowledgements, and receipts against the `AppHash` of the counterparty chain in order to enable verified packet flow.
 
-If a counterparty chain violates the CometBFT protocol in a way that is detectable to off-chain light clients, this misbehaviour can also be submitted to an IBC client by any off-chain actor. Upon verification of this misbehaviour, the Tendermint IBC Client will freeze, preventing any further packet flow from this malicious chain from occuring. Governance or some other out-of-band protocol may then be used to unwind any damage that has already occurred.
+If a counterparty chain violates the CometBFT protocol in a way that is detectable to off-chain light clients, this misbehaviour can also be submitted to an IBC client by any off-chain actor. Upon verification of this misbehaviour, the Tendermint IBC Client will freeze, preventing any further packet flow from this malicious chain from occurring. Governance or some other out-of-band protocol may then be used to unwind any damage that has already occurred.
 
 ## Initialization
 
