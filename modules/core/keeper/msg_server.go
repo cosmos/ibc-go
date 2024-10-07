@@ -17,7 +17,6 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
 	packetserverkeeper "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
-	packetserverkeeper "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
