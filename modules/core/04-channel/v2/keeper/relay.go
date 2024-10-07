@@ -90,7 +90,7 @@ func (k *Keeper) sendPacket(
 	return sequence, nil
 }
 
-// RecvPacket implements the packet receiving logic required by a packet handler.
+// recvPacket implements the packet receiving logic required by a packet handler.
 // The packet is checked for correctness including asserting that the packet was
 // sent and received on clients which are counterparties for one another.
 // If the packet has already been received a no-op error is returned.
