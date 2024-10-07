@@ -173,14 +173,14 @@ func (k Keeper) recvPacket(
 	return nil
 }
 
-// TimeoutPacket implements the timeout logic required by a packet handler.
+// timeoutPacket implements the timeout logic required by a packet handler.
 // The packet is checked for correctness including asserting that the packet was
 // sent and received on clients which are counterparties for one another.
 // If no packet commitment exists, a no-op error is returned, otherwise
 // an absence proof of the packet receipt is performed to ensure that the packet
 // was never delivered to the counterparty. If successful, the packet commitment
 // is deleted and the packet has completed its lifecycle.
-func (k Keeper) TimeoutPacket(
+func (k Keeper) timeoutPacket(
 	ctx context.Context,
 	packet channeltypesv2.Packet,
 	proof []byte,

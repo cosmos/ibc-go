@@ -80,9 +80,9 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 // Timeout implements the PacketMsgServer Timeout method.
 func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout) (*channeltypesv2.MsgTimeoutResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	if err := k.TimeoutPacket(ctx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight); err != nil {
-		sdkCtx.Logger().Error("Timeout packet failed", "source-id", timeout.Packet.SourceId, "error", errorsmod.Wrap(err, "timeout packet failed"))
-		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", timeout.Packet.SourceId)
+	if err := k.timeoutPacket(ctx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight); err != nil {
+		sdkCtx.Logger().Error("Timeout packet failed", "source-id", timeout.Packet.SourceId, "destination-id", timeout.Packet.DestinationId, "error", errorsmod.Wrap(err, "timeout packet failed"))
+		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s and destination id: %s", timeout.Packet.SourceId, timeout.Packet.DestinationId)
 	}
 
 	signer, err := sdk.AccAddressFromBech32(timeout.Signer)
