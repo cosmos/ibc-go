@@ -64,6 +64,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/27-interchain-accounts) [\#7277](https://github.com/cosmos/ibc-go/pull/7277) Use `GogoResolver` when populating module query safe allow list to avoid panics from unresolvable protobuf dependencies.
 * (core/04-channel) [\#7342](https://github.com/cosmos/ibc-go/pull/7342) Read Tx cmd flags including from address to avoid Address cannot be empty error when upgrade-channels via cli.
+* (core/03-connection) [\#7397](https://github.com/cosmos/ibc-go/pull/7397) Skip the validation connectionID for localhost client.
 
 ## [v9.0.0](https://github.com/cosmos/ibc-go/releases/tag/v9.0.0) - 2024-10-01
 

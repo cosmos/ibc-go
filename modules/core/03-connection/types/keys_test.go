@@ -30,6 +30,7 @@ func TestParseConnectionSequence(t *testing.T) {
 		{"blank id", "               ", 0, false},
 		{"empty id", "", 0, false},
 		{"negative sequence", "connection--1", 0, false},
+		{"localhost", "connection-localhost", 0, true},
 	}
 
 	for _, tc := range testCases {
