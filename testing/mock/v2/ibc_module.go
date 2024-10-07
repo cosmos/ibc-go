@@ -11,8 +11,43 @@ import (
 
 var _ api.IBCModule = (*IBCModule)(nil)
 
-type IBCModule struct{}
-
-func (IBCModule) OnSendPacket(ctx context.Context, sourceID string, destinationID string, sequence uint64, data channeltypesv2.PacketData, signer sdk.AccAddress) error {
-	panic("implement me")
+// IBCModule is a mock implementation of the IBCModule interface.
+// which delegates calls to the underlying IBCApp.
+type IBCModule struct {
+	IBCApp *IBCApp
 }
+
+// NewIBCModule creates a new IBCModule with an underlying mock IBC application.
+func NewIBCModule() IBCModule {
+	return IBCModule{
+		IBCApp: &IBCApp{},
+	}
+}
+
+func (im IBCModule) OnSendPacket(ctx context.Context, sourceID string, destinationID string, sequence uint64, data channeltypesv2.PacketData, signer sdk.AccAddress) error {
+	if im.IBCApp.OnSendPacket != nil {
+		return im.IBCApp.OnSendPacket(ctx, sourceID, destinationID, sequence, data, signer)
+	}
+	return nil
+}
+
+// func (im IBCModule) OnRecvPacket() error {
+//	if im.IBCApp.OnRecvPacket != nil {
+//		return im.IBCApp.OnRecvPacket(...)
+//	}
+//	return nil
+// }
+//
+// func (im IBCModule) OnAcknowledgementPacket() error {
+//	if im.IBCApp.OnAcknowledgementPacket != nil {
+//		return im.IBCApp.OnAcknowledgementPacket(...)
+//	}
+//	return nil
+// }
+//
+// func (im IBCModule) OnTimeoutPacket() error {
+//	if im.IBCApp.OnTimeoutPacket != nil {
+//		return im.IBCApp.OnTimeoutPacket(...)
+//	}
+//	return nil
+// }
