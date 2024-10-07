@@ -6,7 +6,7 @@ ARG LIBWASM_CHECKSUM
 RUN test -n "${LIBWASM_VERSION}"
 RUN test -n "${LIBWASM_CHECKSUM}"
 
-RUN set -eux; apk add --no-cache git libusb-dev linux-headers gcc musl-dev make;
+RUN set -eux; apk add --no-cache git libusb-dev libstdc++-dev linux-headers gcc musl-dev make;
 
 ENV GOPATH=""
 
