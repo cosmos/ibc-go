@@ -9,7 +9,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
@@ -446,7 +445,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
-	packetHandler, _, _, err = k.getPacketHandlerAndModule(ctx, msg.Packet.ProtocolVersion, msg.Packet.DestinationPort, msg.Packet.DestinationChannel)
+	packetHandler, err = k.getPacketHandlerAndModule(msg.Packet.ProtocolVersion)
 	if err != nil {
 		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.DestinationPort, "channel-id", msg.Packet.DestinationChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
@@ -518,7 +517,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
-	packetHandler, _, _, err = k.getPacketHandlerAndModule(ctx, msg.Packet.ProtocolVersion, msg.Packet.SourcePort, msg.Packet.SourceChannel)
+	packetHandler, err = k.getPacketHandlerAndModule(msg.Packet.ProtocolVersion)
 	if err != nil {
 		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
@@ -627,7 +626,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
-	packetHandler, _, _, err = k.getPacketHandlerAndModule(ctx, msg.Packet.ProtocolVersion, msg.Packet.SourcePort, msg.Packet.SourceChannel)
+	packetHandler, err = k.getPacketHandlerAndModule(msg.Packet.ProtocolVersion)
 	if err != nil {
 		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
 		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
@@ -1065,17 +1064,16 @@ func convertToErrorEvents(events sdk.Events) sdk.Events {
 	return newEvents
 }
 
-// getPacketHandlerAndModule returns the appropriate packet handler, module name, and capability
-// given the provided port and channel identifiers. The packet handler is determined by the
-// provided protocol version. An error is returned if the module cannot be found or if the protocol
+// getPacketHandlerAndModule returns the appropriate packet handler
+// given the protocol version. An error is returned if the protocol
 // version is not supported.
-func (k *Keeper) getPacketHandlerAndModule(ctx sdk.Context, protocolVersion channeltypes.IBCVersion, port, channel string) (PacketHandler, string, *capabilitytypes.Capability, error) {
+func (k *Keeper) getPacketHandlerAndModule(protocolVersion channeltypes.IBCVersion) (PacketHandler, error) {
 	switch protocolVersion {
 	case channeltypes.IBC_VERSION_UNSPECIFIED, channeltypes.IBC_VERSION_1:
-		return k.ChannelKeeper, "", nil, nil
+		return k.ChannelKeeper, nil
 	case channeltypes.IBC_VERSION_2:
-		return k.PacketServerKeeper, port, nil, nil
+		return k.PacketServerKeeper, nil
 	default:
-		return nil, "", nil, fmt.Errorf("unsupported protocol %s", protocolVersion)
+		return nil, fmt.Errorf("unsupported protocol %s", protocolVersion)
 	}
 }
