@@ -48,8 +48,33 @@ func (*Keeper) Acknowledgement(ctx context.Context, acknowledgement *channeltype
 }
 
 // RecvPacket implements the PacketMsgServer RecvPacket method.
-func (*Keeper) RecvPacket(ctx context.Context, packet *channeltypesv2.MsgRecvPacket) (*channeltypesv2.MsgRecvPacketResponse, error) {
-	panic("implement me")
+func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPacket) (*channeltypesv2.MsgRecvPacketResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	err := k.recvPacket(ctx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+	if err != nil {
+		sdkCtx.Logger().Error("receive packet failed", "source-id", msg.Packet.SourceId, "dest-id", msg.Packet.DestinationId, "error", errorsmod.Wrap(err, "send packet failed"))
+		return nil, errorsmod.Wrapf(err, "receive packet failed for source id: %s and destination id: %s", msg.Packet.SourceId, msg.Packet.DestinationId)
+	}
+
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		sdkCtx.Logger().Error("receive packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
+		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
+	}
+
+	_ = signer
+
+	// TODO: implement once app router is wired up.
+	// https://github.com/cosmos/ibc-go/issues/7384
+	// for _, pd := range packet.PacketData {
+	//	cbs := k.PortKeeper.AppRouter.Route(pd.SourcePort)
+	//	err := cbs.OnRecvPacket(ctx, packet, msg.ProofCommitment, msg.ProofHeight, signer)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	// }
+
+	return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.SUCCESS}, nil
 }
 
 // Timeout implements the PacketMsgServer Timeout method.
