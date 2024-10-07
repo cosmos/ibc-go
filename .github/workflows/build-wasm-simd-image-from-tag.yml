@@ -15,19 +15,14 @@ env:
 
 jobs:
    build-image-at-tag:
-      strategy:
-        matrix: 
-          build: 
-            - os: ubuntu-latest
-              platform: linux/amd64
-            - os: macos-latest
-              platform: linux/arm64
-      runs-on: 
+      runs-on: ubuntu-latest
       steps:
          - uses: actions/checkout@v4
            with:
             ref: "${{ env.GIT_TAG }}"
             fetch-depth: 0
+         - name: Set up QEMU
+           uses: docker/setup-qemu-action@v3
          - name: Set up Docker Buildx
            uses: docker/setup-buildx-action@v3
          - name: Log in to the Container registry
@@ -41,7 +36,7 @@ jobs:
          - name: Build and push
            uses: docker/build-push-action@v6
            with:
-             platforms: ${{ matrix.platform }}
+             platforms: linux/amd64,linux/arm64,
              push: true
              tags: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}
              file: modules/light-clients/08-wasm/Dockerfile
