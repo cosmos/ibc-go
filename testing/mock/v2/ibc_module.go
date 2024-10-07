@@ -24,7 +24,7 @@ type IBCModule struct {
 	IBCApp *IBCApp
 }
 
-// NewIBCModule creates a new IBCModule.
+// NewIBCModule creates a new IBCModule with an underlying mock IBC application.
 func NewIBCModule() IBCModule {
 	return IBCModule{
 		IBCApp: &IBCApp{},

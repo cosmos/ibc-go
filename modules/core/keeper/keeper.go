@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/api"
-
 	corestore "cosmossdk.io/core/store"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -18,6 +16,7 @@ import (
 	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	portkeeper "github.com/cosmos/ibc-go/v9/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	packetserver "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/types"
 )

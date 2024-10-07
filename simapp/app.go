@@ -3,7 +3,6 @@ package simapp
 import (
 	"encoding/json"
 	"fmt"
-	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 	"io"
 	"os"
 	"path/filepath"
@@ -126,6 +125,7 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
+	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 )
 
 const appName = "SimApp"
@@ -518,8 +518,13 @@ func NewSimApp(
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 
 	// create two separate mock v2 applications so that it is possible to test multi packet data.
-	ibcRouterV2.AddRoute(mockv2.ModuleNameA, mockv2.NewIBCModule())
-	ibcRouterV2.AddRoute(mockv2.ModuleNameB, mockv2.NewIBCModule())
+	mockV2A := mockv2.NewIBCModule()
+	ibcRouterV2.AddRoute(mockv2.ModuleNameA, mockV2A)
+	app.MockModuleV2A = mockV2A
+
+	mockV2B := mockv2.NewIBCModule()
+	ibcRouterV2.AddRoute(mockv2.ModuleNameB, mockV2B)
+	app.MockModuleV2B = mockV2B
 
 	// Set the IBC Routers
 	app.IBCKeeper.SetRouter(ibcRouter)
