@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
+// EmitCreateChannelEvent emits a channel create event.
 func EmitCreateChannelEvent(ctx context.Context, channelID string) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
