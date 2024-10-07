@@ -2,8 +2,10 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // NewConnectionPaths creates a ConnectionPaths instance.
@@ -47,6 +49,9 @@ func (gs GenesisState) Validate() error {
 	for i, conn := range gs.Connections {
 		sequence, err := ParseConnectionSequence(conn.Id)
 		if err != nil {
+			if conn.Id == exported.LocalhostConnectionID && strings.Contains(err.Error(), host.ErrInvalidID.Error()) {
+				continue
+			}
 			return err
 		}
 

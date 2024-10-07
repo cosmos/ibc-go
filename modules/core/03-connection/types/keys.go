@@ -7,7 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 const (
@@ -53,9 +52,6 @@ func IsValidConnectionID(connectionID string) bool {
 
 // ParseConnectionSequence parses the connection sequence from the connection identifier.
 func ParseConnectionSequence(connectionID string) (uint64, error) {
-	if connectionID == exported.LocalhostConnectionID {
-		return 0, nil
-	}
 	if !IsConnectionIDFormat(connectionID) {
 		return 0, errorsmod.Wrap(host.ErrInvalidID, "connection identifier is not in the format: `connection-{N}`")
 	}
