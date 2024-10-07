@@ -22,7 +22,7 @@ jobs:
               platform: linux/amd64
             - os: macos-latest
               platform: linux/arm64
-      runs-on: ${{ matrix.build.os }}
+      runs-on: 
       steps:
          - uses: actions/checkout@v4
            with:
@@ -41,7 +41,7 @@ jobs:
          - name: Build and push
            uses: docker/build-push-action@v6
            with:
-             platforms: ${{ matrix.build.platform }}
+             platforms: ${{ matrix.platform }}
              push: true
              tags: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}
              file: modules/light-clients/08-wasm/Dockerfile
