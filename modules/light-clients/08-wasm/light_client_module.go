@@ -261,18 +261,18 @@ func (l LightClientModule) VerifyMembership(
 			DelayBlockPeriod: delayBlockPeriod,
 			Proof:            proof,
 			Value:            value,
+			Path:             merklePath.KeyPath,
 		},
 	}
 
-	// NOTE(Backwards compatibility): Encode merkle path to legacy merkle path (string key) if it contains valid utf8 bytes.
-	// Otherwise encode the merkle path bytes to JSON as base64 encoded string.
-	if internaltypes.IsValidUTF8(merklePath.KeyPath) {
-		payload.VerifyMembership.Path = internaltypes.ToLegacyMerklePath(merklePath)
-	} else {
-		payload.VerifyMembership.MerklePath = &merklePath
-	}
-
 	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
+	if err != nil {
+		payloadStr := fmt.Sprintf("%+v", payload.VerifyMembership)
+		ctx.Logger().Error("Verify membership failed", "err", err, "KeyPath[0]", string(merklePath.KeyPath[0]), "payload", payloadStr)
+	} else {
+		ctx.Logger().Info("Verify Membership has no error!")
+	}
+	ctx.Logger().Info("Verify Membership is done")
 	return err
 }
 
