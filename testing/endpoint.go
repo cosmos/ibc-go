@@ -188,6 +188,24 @@ func (endpoint *Endpoint) ProvideCounterparty() (err error) {
 	return err
 }
 
+// CreateChannel will construct and execute a new MsgCreateChannel on the associated endpoint.
+func (endpoint *Endpoint) CreateChannel() (err error) {
+	merklePath := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
+
+	msg := packetservertypes.NewMsgCreateChannel(endpoint.ClientID, merklePath, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	// create channel
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return err
+	}
+
+	endpoint.ChannelID, err = ParseChannelIDV2FromEvents(res.Events)
+	require.NoError(endpoint.Chain.TB, err)
+
+	return nil
+}
+
 // UpgradeChain will upgrade a chain's chainID to the next revision number.
 // It will also update the counterparty client.
 // TODO: implement actual upgrade chain functionality via scheduling an upgrade
