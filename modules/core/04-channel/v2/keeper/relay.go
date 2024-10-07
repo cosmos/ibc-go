@@ -16,7 +16,7 @@ import (
 )
 
 // getV1Counterparty attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
-// to a v2 counterparty and stores it in the packet server keeper for future use
+// to a v2 counterparty and stores it in the v2 channel keeper for future use
 func (k *Keeper) getV1Counterparty(ctx context.Context, port, id string) (channeltypesv2.Counterparty, bool) {
 	if counterparty, ok := k.AliasV1Channel(ctx, port, id); ok {
 		// we can key on just the source channel here since channel ids are globally unique
