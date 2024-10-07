@@ -11,16 +11,23 @@ import (
 
 var _ api.IBCModule = (*IBCModule)(nil)
 
+const (
+	// ModuleNameA is a name that can be used for the first mock application.
+	ModuleNameA = ModuleName + "A"
+	// ModuleNameB is a name that can be used for the second mock application.
+	ModuleNameB = ModuleName + "B"
+)
+
 // IBCModule is a mock implementation of the IBCModule interface.
 // which delegates calls to the underlying IBCApp.
 type IBCModule struct {
 	IBCApp *IBCApp
 }
 
-// NewIBCModule creates a new IBCModule given the underlying mock IBC application.
-func NewIBCModule(app *IBCApp) IBCModule {
+// NewIBCModule creates a new IBCModule.
+func NewIBCModule() IBCModule {
 	return IBCModule{
-		IBCApp: app,
+		IBCApp: &IBCApp{},
 	}
 }
 

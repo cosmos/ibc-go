@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/cosmos/ibc-go/v9/modules/core/api"
+
 	corestore "cosmossdk.io/core/store"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -81,6 +83,11 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 
 	k.PortKeeper.Router = rtr
 	k.PortKeeper.Router.Seal()
+}
+
+// SetRouterV2 sets the v2 router for the IBC Keeper.
+func (k *Keeper) SetRouterV2(rtr *api.Router) {
+	k.PortKeeper.RouterV2 = rtr
 }
 
 // GetAuthority returns the ibc module's authority.
