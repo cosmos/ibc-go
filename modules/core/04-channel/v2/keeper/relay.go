@@ -163,7 +163,7 @@ func (k Keeper) recvPacket(
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
 	k.SetPacketReceipt(ctx, packet.DestinationId, packet.Sequence)
 
-	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_port", packet.SourcePort, "src_channel", packet.SourceChannel, "dst_port", packet.DestinationPort, "dst_channel", packet.DestinationChannel)
+	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_id", packet.SourceId, "dst_id", packet.DestinationId)
 
 	EmitRecvPacketEvents(ctx, packet)
 
