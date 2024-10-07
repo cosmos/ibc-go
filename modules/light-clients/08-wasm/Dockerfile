@@ -1,19 +1,9 @@
-FROM golang:1.21-alpine3.18 as builder
+FROM golang:1.21-alpine as builder
 
-ARG LIBWASM_VERSION
-ARG LIBWASM_CHECKSUM
-
-RUN test -n "${LIBWASM_VERSION}"
-RUN test -n "${LIBWASM_CHECKSUM}"
-
-RUN set -eux; apk add --no-cache git libusb-dev libstdc++-dev linux-headers gcc musl-dev make;
+RUN apk add --no-cache ca-certificates build-base git libusb-dev linux-headers curl
 
 ENV GOPATH=""
 
-# Grab the static library and copy it to location that will be found by the linker flag `-lwasmvm_muslc`.
-ADD https://github.com/CosmWasm/wasmvm/releases/download/${LIBWASM_VERSION}/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
-RUN sha256sum /lib/libwasmvm_muslc.x86_64.a | grep ${LIBWASM_CHECKSUM}
-RUN cp /lib/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
 
 # Copy relevant files before go mod download. Replace directives to local paths break if local
 # files are not copied before go mod download.
@@ -25,9 +15,16 @@ ADD LICENSE LICENSE
 COPY go.mod .
 COPY go.sum .
 
+RUN go mod download
+
 WORKDIR /go/modules/light-clients/08-wasm
 
-RUN go mod download
+RUN set -eux; \
+  WASM_VERSION=$(go list -m all | grep github.com/CosmWasm/wasmvm/v2 | awk '{print $2}'); \
+  if [ ! -z "${WASM_VERSION}" ]; then \
+    curl -L -o /lib/libwasmvm_muslc.x86_64.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.x86_64.a; \
+    curl -L -o /lib/libwasmvm_muslc.aarch64.a https://github.com/CosmWasm/wasmvm/releases/download/${WASM_VERSION}/libwasmvm_muslc.aarch64.a; \
+  fi;
 
 RUN go build -mod=readonly -tags "netgo ledger muslc" -ldflags '-X github.com/cosmos/cosmos-sdk/version.Name=sim -X github.com/cosmos/cosmos-sdk/version.AppName=simd -X github.com/cosmos/cosmos-sdk/version.Version= -X github.com/cosmos/cosmos-sdk/version.Commit= -X "github.com/cosmos/cosmos-sdk/version.BuildTags=netgo ledger muslc," -w -s -linkmode=external -extldflags "-Wl,-z,muldefs -static"' -trimpath -o /go/build/ ./...
 
