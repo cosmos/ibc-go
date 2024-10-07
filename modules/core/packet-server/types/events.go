@@ -10,6 +10,7 @@ import (
 const (
 	AttributeKeyChannelID = "channel_id"
 )
+
 // IBC channel events vars
 var (
 	EventTypeCreateChannel = "create_channel"
