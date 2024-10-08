@@ -16,6 +16,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
+	packetserverkeeper "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
@@ -154,6 +155,8 @@ func (k *Keeper) CreateChannel(goCtx context.Context, msg *packetservertypes.Msg
 	k.PacketServerKeeper.SetCounterparty(ctx, channelID, counterparty)
 
 	k.ClientKeeper.SetCreator(ctx, channelID, msg.Signer)
+
+	packetserverkeeper.EmitCreateChannelEvent(goCtx, channelID)
 
 	return &packetservertypes.MsgCreateChannelResponse{ChannelId: channelID}, nil
 }

@@ -14,6 +14,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
 // ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
@@ -44,10 +45,10 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 }
 
 // ParseChannelIDFromEvents parses events emitted from a MsgChannelOpenInit or
-// MsgChannelOpenTry and returns the channel identifier.
+// MsgChannelOpenTry or a MsgCreateChannel and returns the channel identifier.
 func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
-		if ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
+		if ev.Type == packetservertypes.EventTypeCreateChannel || ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
 			if attribute, found := attributeByKey(ev.Attributes, channeltypes.AttributeKeyChannelID); found {
 				return attribute.Value, nil
 			}
