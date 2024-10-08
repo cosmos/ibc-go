@@ -3,8 +3,6 @@ package simapp
 import (
 	"encoding/json"
 	"fmt"
-	ibcapi "github.com/cosmos/ibc-go/v9/modules/core/api"
-	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 	"io"
 	"os"
 	"path/filepath"
@@ -107,12 +105,14 @@ import (
 	ibcclienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibcapi "github.com/cosmos/ibc-go/v9/modules/core/api"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
 	packetserverkeeper "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
+	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 	ibctestingtypes "github.com/cosmos/ibc-go/v9/testing/types"
 )
 

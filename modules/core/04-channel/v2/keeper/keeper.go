@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"github.com/cosmos/ibc-go/v9/modules/core/api"
 
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
@@ -21,6 +20,7 @@ import (
 	commitmentv2types "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
+	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
