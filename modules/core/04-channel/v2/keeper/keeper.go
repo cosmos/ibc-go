@@ -20,6 +20,7 @@ import (
 	commitmentv2types "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
+	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -31,6 +32,10 @@ type Keeper struct {
 	// channelKeeperV1 is used for channel aliasing only.
 	channelKeeperV1  *channelkeeperv1.Keeper
 	connectionKeeper *connectionkeeper.Keeper
+
+	// Router is used to route messages to the appropriate module callbacks
+	// NOTE: it must be explicitly set before usage.
+	Router *api.Router
 }
 
 // NewKeeper creates a new channel v2 keeper
