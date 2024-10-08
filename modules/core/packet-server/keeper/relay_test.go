@@ -20,6 +20,7 @@ import (
 var (
 	defaultTimeoutHeight     = clienttypes.NewHeight(1, 100)
 	disabledTimeoutTimestamp = uint64(0)
+	unusedChannel            = "channel-5"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.
@@ -68,7 +69,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		{
 			"counterparty not found",
 			func() {
-				packet.SourceChannel = ibctesting.FirstChannelID
+				packet.SourceChannel = ibctesting.InvalidID
 			},
 			types.ErrCounterpartyNotFound,
 		},
@@ -121,7 +122,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			// create standard packet that can be malleated
 			packet = channeltypes.NewPacketWithVersion(mock.MockPacketData, 1, mock.PortID,
-				path.EndpointA.ClientID, mock.PortID, path.EndpointB.ClientID, clienttypes.NewHeight(1, 100), 0, mock.Version)
+				path.EndpointA.ChannelID, mock.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0, mock.Version)
 
 			// malleate the test case
 			tc.malleate()
@@ -173,7 +174,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		{
 			"failure: counterparty not found",
 			func() {
-				packet.DestinationChannel = ibctesting.FirstChannelID
+				packet.DestinationChannel = ibctesting.InvalidID
 			},
 			types.ErrCounterpartyNotFound,
 		},
@@ -187,7 +188,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		{
 			"failure: counterparty client identifier different than source channel",
 			func() {
-				packet.SourceChannel = ibctesting.FirstChannelID
+				packet.SourceChannel = unusedChannel
 			},
 			channeltypes.ErrInvalidChannelIdentifier,
 		},
@@ -230,7 +231,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
 
 			tc.malleate()
 
@@ -280,14 +281,14 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		{
 			"failure: counterparty not found",
 			func() {
-				packet.DestinationChannel = ibctesting.FirstChannelID
+				packet.DestinationChannel = ibctesting.InvalidID
 			},
 			types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
 			func() {
-				packet.SourceChannel = ibctesting.FirstChannelID
+				packet.SourceChannel = unusedChannel
 			},
 			channeltypes.ErrInvalidChannelIdentifier,
 		},
@@ -330,7 +331,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
 			ack = mock.MockAcknowledgement
 
 			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
@@ -381,14 +382,14 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		{
 			"failure: counterparty not found",
 			func() {
-				packet.SourceChannel = ibctesting.FirstChannelID
+				packet.SourceChannel = ibctesting.InvalidID
 			},
 			types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source channel",
 			func() {
-				packet.DestinationChannel = ibctesting.FirstChannelID
+				packet.DestinationChannel = unusedChannel
 			},
 			channeltypes.ErrInvalidChannelIdentifier,
 		},
@@ -436,7 +437,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			sequence, err := path.EndpointA.SendPacketV2(defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
 
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
@@ -523,7 +524,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
 
-				packet.SourceChannel = ibctesting.FirstChannelID
+				packet.SourceChannel = ibctesting.InvalidID
 			},
 			types.ErrCounterpartyNotFound,
 		},
@@ -535,7 +536,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 					packet.TimeoutHeight, packet.TimeoutTimestamp, packet.AppVersion, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
 
-				packet.DestinationChannel = ibctesting.FirstChannelID
+				packet.DestinationChannel = unusedChannel
 			},
 			channeltypes.ErrInvalidChannelIdentifier,
 		},
@@ -607,7 +608,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			// create default packet with a timed out height
 			// test cases may mutate timeout values
 			timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, disabledTimeoutTimestamp, mock.Version)
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp, mock.Version)
 
 			tc.malleate()
 

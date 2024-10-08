@@ -66,3 +66,26 @@ func (k *Keeper) GetCounterparty(ctx context.Context, clientID string) (types.Co
 	k.cdc.MustUnmarshal(bz, &counterparty)
 	return counterparty, true
 }
+
+// GetCreator returns the creator of the client.
+func (k *Keeper) GetCreator(ctx context.Context, clientID string) (string, bool) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	bz := k.ChannelStore(sdkCtx, clientID).Get([]byte(types.CreatorKey))
+	if len(bz) == 0 {
+		return "", false
+	}
+
+	return string(bz), true
+}
+
+// SetCreator sets the creator of the client.
+func (k *Keeper) SetCreator(ctx context.Context, clientID, creator string) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	k.ChannelStore(sdkCtx, clientID).Set([]byte(types.CreatorKey), []byte(creator))
+}
+
+// DeleteCreator deletes the creator associated with the client.
+func (k *Keeper) DeleteCreator(ctx context.Context, clientID string) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	k.ChannelStore(sdkCtx, clientID).Delete([]byte(types.CreatorKey))
+}
