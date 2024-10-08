@@ -66,10 +66,6 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAck
 		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
 	}
 
-	// k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "src_port", packet.GetSourcePort(), "src_channel", packet.GetSourceChannel(), "dst_port", packet.GetDestPort(), "dst_channel", packet.GetDestChannel())
-
-	// channelkeeper.EmitAcknowledgePacketEvent(ctx, packet, nil)
-
 	_ = relayer
 
 	// TODO: implement once app router is wired up.
