@@ -57,9 +57,10 @@ func (im IBCModule) OnRecvPacket(ctx context.Context, sourceID string, destinati
 //	return nil
 // }
 //
-// func (im IBCModule) OnTimeoutPacket() error {
-//	if im.IBCApp.OnTimeoutPacket != nil {
-//		return im.IBCApp.OnTimeoutPacket(...)
-//	}
-//	return nil
-// }
+
+func (im IBCModule) OnTimeoutPacket(ctx context.Context, sourceID string, destinationID string, data channeltypesv2.PacketData, relayer sdk.AccAddress) error {
+	if im.IBCApp.OnTimeoutPacket != nil {
+		return im.IBCApp.OnTimeoutPacket(ctx, sourceID, destinationID, data, relayer)
+	}
+	return nil
+}
