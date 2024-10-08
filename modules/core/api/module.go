@@ -23,7 +23,13 @@ type IBCModule interface {
 		signer sdk.AccAddress,
 	) error
 
-	// OnRecvPacket
+	OnRecvPacket(
+		ctx context.Context,
+		sourceID string,
+		destinationID string,
+		data channeltypesv2.PacketData,
+		relayer sdk.AccAddress,
+	) channeltypesv2.RecvPacketResult
 
 	// OnAcknowledgementPacket
 
