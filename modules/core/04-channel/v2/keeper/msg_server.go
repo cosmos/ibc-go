@@ -11,7 +11,7 @@ import (
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 )
 
-var _ channeltypesv2.PacketMsgServer = &Keeper{}
+var _ channeltypesv2.MsgServer = &Keeper{}
 
 // SendPacket implements the PacketMsgServer SendPacket method.
 func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error) {
