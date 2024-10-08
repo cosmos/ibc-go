@@ -137,8 +137,9 @@ func (k Keeper) recvPacket(
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
 	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
 	// by the increase of the recvStartSequence.
-	_, found := k.GetPacketReceipt(ctx, packet.DestinationId, packet.Sequence)
-	if found {
+	// TODO: change to HasReceipt
+	receipt := k.GetPacketReceipt(ctx, packet.DestinationId, packet.Sequence)
+	if receipt != nil {
 		EmitRecvPacketEvents(ctx, packet)
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
@@ -169,6 +170,58 @@ func (k Keeper) recvPacket(
 	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_id", packet.SourceId, "dst_id", packet.DestinationId)
 
 	EmitRecvPacketEvents(ctx, packet)
+
+	return nil
+}
+
+func (k Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Packet, acknowledgement channeltypesv2.Acknowledgement, proof []byte, proofHeight exported.Height) error {
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.GetCounterparty(ctx, packet.SourceId)
+	if !ok {
+		return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceId)
+	}
+
+	if counterparty.ClientId != packet.DestinationId {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+	clientID := counterparty.ClientId
+
+	commitment := k.GetPacketCommitment(ctx, packet.SourceId, packet.Sequence)
+	if len(commitment) == 0 {
+		// TODO: emit events
+		// k.EmitAcknowledgePacketEvent(ctx, packet, nil)
+
+		// This error indicates that the acknowledgement has already been relayed
+		// or there is a misconfigured relayer attempting to prove an acknowledgement
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
+
+	packetCommitment := channeltypesv2.CommitPacket(packet)
+
+	// verify we sent the packet and haven't cleared it out yet
+	if !bytes.Equal(commitment, packetCommitment) {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
+	}
+
+	path := hostv2.PacketAcknowledgementKey(packet.DestinationId, sdk.Uint64ToBigEndian(packet.Sequence))
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+
+	if err := k.ClientKeeper.VerifyMembership(
+		ctx,
+		clientID,
+		proofHeight,
+		0, 0,
+		proof,
+		merklePath,
+		channeltypesv2.CommitAcknowledgement(acknowledgement),
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientID)
+	}
+
+	k.DeletePacketCommitment(ctx, packet.SourceId, packet.Sequence)
 
 	return nil
 }
@@ -209,9 +262,8 @@ func (k Keeper) timeoutPacket(
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
-	commitment, ok := k.GetPacketCommitment(ctx, packet.SourceId, packet.Sequence)
-
-	if !ok {
+	commitment := k.GetPacketCommitment(ctx, packet.SourceId, packet.Sequence)
+	if len(commitment) == 0 {
 		EmitTimeoutPacketEvents(ctx, packet)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
@@ -222,7 +274,7 @@ func (k Keeper) timeoutPacket(
 
 	packetCommitment := channeltypesv2.CommitPacket(packet)
 	// verify we sent the packet and haven't cleared it out yet
-	if !bytes.Equal([]byte(commitment), packetCommitment) {
+	if !bytes.Equal(commitment, packetCommitment) {
 		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 

@@ -75,7 +75,7 @@ func (k *Keeper) GetCounterparty(ctx context.Context, clientID string) (types.Co
 }
 
 // GetPacketReceipt returns the packet receipt from the packet receipt path based on the sourceID and sequence.
-func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) (string, bool) {
+func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) []byte {
 	store := k.storeService.OpenKVStore(ctx)
 	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
 	bz, err := store.Get(hostv2.PacketReceiptKey(sourceID, bigEndianBz))
@@ -83,9 +83,9 @@ func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence
 		panic(err)
 	}
 	if len(bz) == 0 {
-		return "", false
+		return nil
 	}
-	return string(bz), true
+	return bz
 }
 
 // SetPacketReceipt writes the packet receipt under the receipt path
@@ -121,7 +121,7 @@ func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, sourceID string, 
 }
 
 // GetPacketCommitment returns the packet commitment hash under the commitment path.
-func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, sequence uint64) (string, bool) {
+func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, sequence uint64) []byte {
 	store := k.storeService.OpenKVStore(ctx)
 	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
 	bz, err := store.Get(hostv2.PacketCommitmentKey(sourceID, bigEndianBz))
@@ -129,9 +129,9 @@ func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, seque
 		panic(err)
 	}
 	if len(bz) == 0 {
-		return "", false
+		return nil
 	}
-	return string(bz), true
+	return bz
 }
 
 // SetPacketCommitment writes the commitment hash under the commitment path.
