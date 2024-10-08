@@ -190,8 +190,6 @@ func (endpoint *Endpoint) ProvideCounterparty() (err error) {
 
 // CreateChannel will construct and execute a new MsgCreateChannel on the associated endpoint.
 func (endpoint *Endpoint) CreateChannel() (err error) {
-	merklePath := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
-
 	msg := packetservertypes.NewMsgCreateChannel(endpoint.ClientID, merklePath, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	// create channel
@@ -200,7 +198,7 @@ func (endpoint *Endpoint) CreateChannel() (err error) {
 		return err
 	}
 
-	endpoint.ChannelID, err = ParseChannelIDV2FromEvents(res.Events)
+	endpoint.ChannelID, err = ParseChannelIDFromEvents(res.Events)
 	require.NoError(endpoint.Chain.TB, err)
 
 	return nil

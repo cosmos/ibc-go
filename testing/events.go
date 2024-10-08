@@ -45,24 +45,11 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 }
 
 // ParseChannelIDFromEvents parses events emitted from a MsgChannelOpenInit or
-// MsgChannelOpenTry and returns the channel identifier.
+// MsgChannelOpenTry or a MsgCreateChannel and returns the channel identifier.
 func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
-		if ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
+		if ev.Type == packetservertypes.EventTypeCreateChannel || ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
 			if attribute, found := attributeByKey(ev.Attributes, channeltypes.AttributeKeyChannelID); found {
-				return attribute.Value, nil
-			}
-		}
-	}
-	return "", errors.New("channel identifier event attribute not found")
-}
-
-// ParseChannelIDV2FromEvents parses events emitted from a CreateChannel
-// and returns the channel identifier.
-func ParseChannelIDV2FromEvents(events []abci.Event) (string, error) {
-	for _, ev := range events {
-		if ev.Type == packetservertypes.EventTypeCreateChannel {
-			if attribute, found := attributeByKey(ev.Attributes, packetservertypes.AttributeKeyChannelID); found {
 				return attribute.Value, nil
 			}
 		}
