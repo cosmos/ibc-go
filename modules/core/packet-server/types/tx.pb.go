@@ -117,8 +117,7 @@ type MsgCreateChannel struct {
 	// the client identifier of the light client representing the counterparty chain
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// the key path used to store packet flow messages that the counterparty
-	// will use to send to us. In backwards compatible cases, we will append the channelID and sequence in order to create
-	// the final path.
+	// will use to send to us.
 	MerklePathPrefix v2.MerklePath `protobuf:"bytes,2,opt,name=merkle_path_prefix,json=merklePathPrefix,proto3" json:"merkle_path_prefix"`
 	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`

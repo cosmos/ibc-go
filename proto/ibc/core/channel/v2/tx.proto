@@ -10,8 +10,8 @@ import "ibc/core/channel/v2/channel.proto";
 import "ibc/core/channel/v1/tx.proto";
 import "ibc/core/client/v1/client.proto";
 
-// PacketMsg defines the ibc/channel PacketMsg service.
-service PacketMsg {
+// Msg defines the ibc/channel/v2 Msg service.
+service Msg {
   option (cosmos.msg.v1.service) = true;
 
   // SendPacket defines a rpc handler method for MsgSendPacket.
