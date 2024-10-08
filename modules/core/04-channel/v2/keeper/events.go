@@ -11,6 +11,11 @@ func EmitSendPacketEvents(ctx context.Context, packet channeltypesv2.Packet) {
 	// TODO: https://github.com/cosmos/ibc-go/issues/7386
 }
 
+// EmitTimeoutPacketEvents emits events for the TimeoutPacket handler.
+func EmitTimeoutPacketEvents(ctx context.Context, packet channeltypesv2.Packet) {
+	// TODO: https://github.com/cosmos/ibc-go/issues/7386
+}
+
 // EmitRecvPacketEvents emits events for the RecvPacket handler.
 func EmitRecvPacketEvents(ctx context.Context, packet channeltypesv2.Packet) {
 	// TODO: https://github.com/cosmos/ibc-go/issues/7386

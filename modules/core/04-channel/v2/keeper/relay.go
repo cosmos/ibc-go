@@ -1,10 +1,12 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -96,7 +98,8 @@ func (k *Keeper) sendPacket(
 	return sequence, nil
 }
 
-// recvPacket implements the packet receiving logic required by a packet handler.
+// recvPacket implements the packet receiving logic required by a packet handler.￼
+
 // The packet is checked for correctness including asserting that the packet was
 // sent and received on clients which are counterparties for one another.
 // If the packet has already been received a no-op error is returned.
@@ -166,6 +169,84 @@ func (k Keeper) recvPacket(
 	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_id", packet.SourceId, "dst_id", packet.DestinationId)
 
 	EmitRecvPacketEvents(ctx, packet)
+
+	return nil
+}
+
+// timeoutPacket implements the timeout logic required by a packet handler.
+// The packet is checked for correctness including asserting that the packet was
+// sent and received on clients which are counterparties for one another.
+// If no packet commitment exists, a no-op error is returned, otherwise
+// an absence proof of the packet receipt is performed to ensure that the packet
+// was never delivered to the counterparty. If successful, the packet commitment
+// is deleted and the packet has completed its lifecycle.
+func (k Keeper) timeoutPacket(
+	ctx context.Context,
+	packet channeltypesv2.Packet,
+	proof []byte,
+	proofHeight exported.Height,
+) error {
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.GetCounterparty(ctx, packet.SourceId)
+	if !ok {
+		// TODO: figure out how aliasing will work when more than one packet data is sent.
+		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].SourcePort, packet.SourceId)
+		if !ok {
+			return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationId)
+		}
+	}
+
+	// check that timeout height or timeout timestamp has passed on the other end
+	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceId, proofHeight)
+	if err != nil {
+		return err
+	}
+
+	timeout := channeltypes.NewTimeoutWithTimestamp(packet.GetTimeoutTimestamp())
+	if !timeout.Elapsed(clienttypes.ZeroHeight(), proofTimestamp) {
+		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
+	}
+
+	// check that the commitment has not been cleared and that it matches the packet sent by relayer
+	commitment, ok := k.GetPacketCommitment(ctx, packet.SourceId, packet.Sequence)
+
+	if !ok {
+		EmitTimeoutPacketEvents(ctx, packet)
+		// This error indicates that the timeout has already been relayed
+		// or there is a misconfigured relayer attempting to prove a timeout
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
+
+	packetCommitment := channeltypesv2.CommitPacket(packet)
+	// verify we sent the packet and haven't cleared it out yet
+	if !bytes.Equal([]byte(commitment), packetCommitment) {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
+	}
+
+	// verify packet receipt absence
+	path := hostv2.PacketReceiptKey(packet.SourceId, sdk.Uint64ToBigEndian(packet.Sequence))
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+
+	if err := k.ClientKeeper.VerifyNonMembership(
+		ctx,
+		packet.SourceId,
+		proofHeight,
+		0, 0,
+		proof,
+		merklePath,
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceId)
+	}
+
+	// delete packet commitment to prevent replay
+	k.DeletePacketCommitment(ctx, packet.SourceId, packet.Sequence)
+
+	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_id", packet.SourceId, "dst_id", packet.DestinationId)
+
+	EmitTimeoutPacketEvents(ctx, packet)
 
 	return nil
 }
