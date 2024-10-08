@@ -3,6 +3,8 @@ package simapp
 import (
 	"encoding/json"
 	"fmt"
+	ibcapi "github.com/cosmos/ibc-go/v9/modules/core/api"
+	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 	"io"
 	"os"
 	"path/filepath"
@@ -180,6 +182,9 @@ type SimApp struct {
 	IBCMockModule ibcmock.IBCModule
 	ICAAuthModule ibcmock.IBCModule
 	FeeMockModule ibcmock.IBCModule
+
+	MockModuleV2A mockv2.IBCModule
+	MockModuleV2B mockv2.IBCModule
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -385,6 +390,7 @@ func NewSimApp(
 
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
+	ibcRouterV2 := ibcapi.NewRouter()
 
 	// Middleware Stacks
 
@@ -479,8 +485,18 @@ func NewSimApp(
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 
+	// create two separate mock v2 applications so that it is possible to test multi packet data.
+	mockV2A := mockv2.NewIBCModule()
+	ibcRouterV2.AddRoute(mockv2.ModuleNameA, mockV2A)
+	app.MockModuleV2A = mockV2A
+
+	mockV2B := mockv2.NewIBCModule()
+	ibcRouterV2.AddRoute(mockv2.ModuleNameB, mockV2B)
+	app.MockModuleV2B = mockV2B
+
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
+	app.IBCKeeper.SetRouterV2(ibcRouterV2)
 
 	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
