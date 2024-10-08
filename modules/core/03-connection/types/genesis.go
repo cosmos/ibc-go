@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
 // NewConnectionPaths creates a ConnectionPaths instance.
@@ -45,13 +46,14 @@ func (gs GenesisState) Validate() error {
 	var maxSequence uint64
 
 	for i, conn := range gs.Connections {
-		sequence, err := ParseConnectionSequence(conn.Id)
-		if err != nil {
-			return err
-		}
-
-		if sequence > maxSequence {
-			maxSequence = sequence
+		if conn.Id != exported.LocalhostConnectionID {
+			sequence, err := ParseConnectionSequence(conn.Id)
+			if err != nil {
+				return err
+			}
+			if sequence > maxSequence {
+				maxSequence = sequence
+			}
 		}
 
 		if err := conn.ValidateBasic(); err != nil {

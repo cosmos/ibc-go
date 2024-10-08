@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (core/03-connection) [\#7397](https://github.com/cosmos/ibc-go/pull/7397) Skip the genesis validation connectionID for localhost client.
+
 ## [v8.5.1](https://github.com/cosmos/ibc-go/releases/tag/v8.5.1) - 2024-09-13
 
 ### Bug Fixes
