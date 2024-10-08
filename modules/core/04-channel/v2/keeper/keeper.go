@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"github.com/cosmos/ibc-go/v9/modules/core/api"
 
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
@@ -31,6 +32,10 @@ type Keeper struct {
 	// channelKeeperV1 is used for channel aliasing only.
 	channelKeeperV1  *channelkeeperv1.Keeper
 	connectionKeeper *connectionkeeper.Keeper
+
+	// Router is used to route messages to the appropriate module callbacks
+	// NOTE: it must be explicitly set before usage.
+	Router *api.Router
 }
 
 // NewKeeper creates a new channel v2 keeper

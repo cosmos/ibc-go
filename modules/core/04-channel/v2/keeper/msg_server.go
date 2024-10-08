@@ -16,7 +16,7 @@ var _ channeltypesv2.MsgServer = &Keeper{}
 // SendPacket implements the PacketMsgServer SendPacket method.
 func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sequence, err := k.sendPacket(ctx, msg.SourceId, msg.TimeoutTimestamp, msg.PacketData)
+	sequence, destId, err := k.sendPacket(ctx, msg.SourceId, msg.TimeoutTimestamp, msg.PacketData)
 	if err != nil {
 		sdkCtx.Logger().Error("send packet failed", "source-id", msg.SourceId, "error", errorsmod.Wrap(err, "send packet failed"))
 		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceId)
@@ -28,17 +28,13 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
-	_ = signer
-
-	// TODO: implement once app router is wired up.
-	// https://github.com/cosmos/ibc-go/issues/7384
-	// for _, pd := range msg.PacketData {
-	//	cbs := k.PortKeeper.AppRouter.Route(pd.SourcePort)
-	//	err := cbs.OnSendPacket(ctx, msg.SourceId, sequence, msg.TimeoutTimestamp, pd, signer)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	// }
+	for _, pd := range msg.PacketData {
+		cbs := k.Router.Route(pd.SourcePort)
+		err := cbs.OnSendPacket(ctx, msg.SourceId, destId, sequence, pd, signer)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return &channeltypesv2.MsgSendPacketResponse{Sequence: sequence}, nil
 }
