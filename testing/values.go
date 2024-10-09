@@ -77,5 +77,5 @@ var (
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
 	// unusedHash is a placeholder hash used for testing.
 	unusedHash = tmhash.Sum([]byte{0x00})
-	merklePath = commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
+	MerklePath = commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
 )

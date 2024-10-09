@@ -177,7 +177,7 @@ func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *packetservertyp
 		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidCounterparty, "counterparty must exist for channel %s", msg.ChannelId)
 	}
 
-	counterparty.CounterpartyChannelId = msg.Counterparty.CounterpartyChannelId
+	counterparty.CounterpartyChannelId = msg.CounterpartyChannelId
 	k.PacketServerKeeper.SetCounterparty(ctx, msg.ChannelId, counterparty)
 	// Delete client creator from state as it is not needed after this point.
 	k.PacketServerKeeper.DeleteCreator(ctx, msg.ChannelId)
