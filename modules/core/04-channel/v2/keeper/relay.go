@@ -146,7 +146,7 @@ func (k Keeper) recvPacket(
 		return channeltypes.ErrNoOpMsg
 	}
 
-	path := hostv2.PacketCommitmentKey(packet.SourceId, sdk.Uint64ToBigEndian(packet.Sequence))
+	path := hostv2.PacketCommitmentKey(packet.SourceId, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	commitment := channeltypesv2.CommitPacket(packet)
@@ -227,7 +227,7 @@ func (k Keeper) timeoutPacket(
 	}
 
 	// verify packet receipt absence
-	path := hostv2.PacketReceiptKey(packet.SourceId, sdk.Uint64ToBigEndian(packet.Sequence))
+	path := hostv2.PacketReceiptKey(packet.SourceId, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
