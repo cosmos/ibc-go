@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"context"
 	"fmt"
+	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -103,6 +104,67 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 				suite.Require().True(ok)
 				suite.Require().Equal(uint64(2), nextSequenceSend, "next sequence send was not incremented correctly")
 
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgRecvPacket() {
+	var path *ibctesting.Path
+	var msg *channeltypesv2.MsgRecvPacket
+	var recvPacket channeltypesv2.Packet
+
+	testCases := []struct {
+		name        string
+		malleate    func()
+		expError    error
+		shouldPanic bool
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+			expError: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+			msgSendPacket := channeltypesv2.NewMsgSendPacket(path.EndpointA.ClientID, timeoutTimestamp, suite.chainA.SenderAccount.GetAddress().String(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+
+			res, err := path.EndpointA.Chain.SendMsgs(msgSendPacket)
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
+
+			suite.Require().NoError(path.EndpointB.UpdateClient())
+
+			recvPacket = channeltypesv2.NewPacket(1, path.EndpointA.ClientID, path.EndpointB.ClientID, timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+
+			tc.malleate()
+
+			// get proof of packet commitment from chainA
+			packetKey := hostv2.PacketCommitmentKey(recvPacket.SourceId, sdk.Uint64ToBigEndian(recvPacket.Sequence))
+			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
+
+			msg = channeltypesv2.NewMsgRecvPacket(recvPacket, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
+
+			res, err = path.EndpointB.Chain.SendMsgs(msg)
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())
