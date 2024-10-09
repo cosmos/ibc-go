@@ -91,7 +91,7 @@ func (k *Keeper) sendPacket(
 	k.SetNextSequenceSend(ctx, sourceID, sequence+1)
 	k.SetPacketCommitment(ctx, sourceID, packet.GetSequence(), commitment)
 
-	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest_id", packet.DestinationChannel, "src_id", packet.SourceChannel)
+	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest_channel_id", packet.DestinationChannel, "src_channel_id", packet.SourceChannel)
 
 	EmitSendPacketEvents(ctx, packet)
 
@@ -244,7 +244,7 @@ func (k Keeper) timeoutPacket(
 	// delete packet commitment to prevent replay
 	k.DeletePacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
 
-	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_id", packet.SourceChannel, "dst_id", packet.DestinationChannel)
+	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_channel_id", packet.SourceChannel, "dst_channel_id", packet.DestinationChannel)
 
 	EmitTimeoutPacketEvents(ctx, packet)
 
