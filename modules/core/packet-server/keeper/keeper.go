@@ -48,21 +48,21 @@ func (k Keeper) ChannelStore(ctx context.Context, channelID string) storetypes.K
 	return prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), channelPrefix)
 }
 
-// SetCounterparty sets the Counterparty for a given client identifier.
-func (k *Keeper) SetCounterparty(ctx context.Context, clientID string, counterparty types.Counterparty) {
+// SetChannel sets the Channel for a given client identifier.
+func (k *Keeper) SetChannel(ctx context.Context, clientID string, counterparty types.Channel) {
 	bz := k.cdc.MustMarshal(&counterparty)
-	k.ChannelStore(ctx, clientID).Set([]byte(types.CounterpartyKey), bz)
+	k.ChannelStore(ctx, clientID).Set([]byte(types.ChannelKey), bz)
 }
 
-// GetCounterparty gets the Counterparty for a given client identifier.
-func (k *Keeper) GetCounterparty(ctx context.Context, clientID string) (types.Counterparty, bool) {
+// GetChannel gets the Channel for a given client identifier.
+func (k *Keeper) GetChannel(ctx context.Context, clientID string) (types.Channel, bool) {
 	store := k.ChannelStore(ctx, clientID)
-	bz := store.Get([]byte(types.CounterpartyKey))
+	bz := store.Get([]byte(types.ChannelKey))
 	if len(bz) == 0 {
-		return types.Counterparty{}, false
+		return types.Channel{}, false
 	}
 
-	var counterparty types.Counterparty
+	var counterparty types.Channel
 	k.cdc.MustUnmarshal(bz, &counterparty)
 	return counterparty, true
 }

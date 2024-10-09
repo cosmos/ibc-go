@@ -5,6 +5,6 @@ import (
 )
 
 var (
-	ErrInvalidCounterparty  = errorsmod.Register(SubModuleName, 1, "invalid counterparty")
-	ErrCounterpartyNotFound = errorsmod.Register(SubModuleName, 2, "counterparty not found")
+	ErrInvalidChannel  = errorsmod.Register(SubModuleName, 1, "invalid counterparty")
+	ErrChannelNotFound = errorsmod.Register(SubModuleName, 2, "counterparty not found")
 )

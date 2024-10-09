@@ -32,17 +32,17 @@ func (k Keeper) SendPacket(
 	data []byte,
 ) (uint64, error) {
 	// Lookup counterparty associated with our source channel to retrieve the destination channel
-	counterparty, ok := k.GetCounterparty(ctx, sourceChannel)
+	counterparty, ok := k.GetChannel(ctx, sourceChannel)
 	if !ok {
 		// If the counterparty is not found, attempt to retrieve a v1 channel from the channel keeper
 		// if it exists, then we will convert it to a v2 counterparty and store it in the packet server keeper
 		// for future use.
-		if counterparty, ok = k.ChannelKeeper.GetV2Counterparty(ctx, sourcePort, sourceChannel); ok {
+		if counterparty, ok = k.ChannelKeeper.GetV2Channel(ctx, sourcePort, sourceChannel); ok {
 			// we can key on just the source channel here since channel ids are globally unique
-			k.SetCounterparty(ctx, sourceChannel, counterparty)
+			k.SetChannel(ctx, sourceChannel, counterparty)
 		} else {
 			// if neither a counterparty nor channel is found then simply return an error
-			return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceChannel)
+			return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 		}
 	}
 	destChannel := counterparty.CounterpartyChannelId
@@ -119,17 +119,17 @@ func (k Keeper) RecvPacket(
 
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationChannel)
+	counterparty, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
 		// If the counterparty is not found, attempt to retrieve a v1 channel from the channel keeper
 		// if it exists, then we will convert it to a v2 counterparty and store it in the packet server keeper
 		// for future use.
-		if counterparty, ok = k.ChannelKeeper.GetV2Counterparty(ctx, packet.DestinationPort, packet.DestinationChannel); ok {
+		if counterparty, ok = k.ChannelKeeper.GetV2Channel(ctx, packet.DestinationPort, packet.DestinationChannel); ok {
 			// we can key on just the destination channel here since channel ids are globally unique
-			k.SetCounterparty(ctx, packet.DestinationChannel, counterparty)
+			k.SetChannel(ctx, packet.DestinationChannel, counterparty)
 		} else {
 			// if neither a counterparty nor channel is found then simply return an error
-			return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
+			return "", errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
 
@@ -205,9 +205,9 @@ func (k Keeper) WriteAcknowledgement(
 
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationChannel)
+	counterparty, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
-		return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 	}
 	if counterparty.CounterpartyChannelId != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
@@ -261,9 +261,9 @@ func (k Keeper) AcknowledgePacket(
 
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.SourceChannel)
+	counterparty, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceChannel)
+		return "", errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
 
 	if counterparty.CounterpartyChannelId != packet.DestinationChannel {
@@ -332,9 +332,9 @@ func (k Keeper) TimeoutPacket(
 	}
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.SourceChannel)
+	counterparty, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceChannel)
+		return "", errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
 
 	if counterparty.CounterpartyChannelId != packet.DestinationChannel {

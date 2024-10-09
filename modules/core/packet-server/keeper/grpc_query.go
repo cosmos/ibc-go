@@ -28,31 +28,31 @@ func NewQueryServer(k *Keeper) types.QueryServer {
 	}
 }
 
-// Client implements the Query/Client gRPC method
-func (q *queryServer) Client(ctx context.Context, req *types.QueryClientRequest) (*types.QueryClientResponse, error) {
+// Channel implements the Query/Channel gRPC method
+func (q *queryServer) Channel(ctx context.Context, req *types.QueryChannelRequest) (*types.QueryChannelResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ChannelId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	res := types.QueryClientResponse{}
+	res := types.QueryChannelResponse{}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	creator, foundCreator := q.GetCreator(sdkCtx, req.ClientId)
-	counterparty, foundCounterparty := q.GetCounterparty(sdkCtx, req.ClientId)
+	creator, foundCreator := q.GetCreator(sdkCtx, req.ChannelId)
+	channel, foundChannel := q.GetChannel(sdkCtx, req.ChannelId)
 
-	if !foundCreator && !foundCounterparty {
+	if !foundCreator && !foundChannel {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrCounterpartyNotFound, "client-id: %s", req.ClientId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "client-id: %s", req.ChannelId).Error(),
 		)
 	}
 
-	res.Counterparty = counterparty
+	res.Channel = channel
 	res.Creator = creator
 
 	return &res, nil

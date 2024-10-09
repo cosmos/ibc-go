@@ -30,8 +30,6 @@ var (
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
-// It stores the signer of MsgCreateClient as the creator of the client, which is afterwards
-// compared against the signer of MsgProvideCounterparty.
 // NOTE: The raw bytes of the concrete types encoded into protobuf.Any is passed to the client keeper.
 // The 02-client handler will route to the appropriate light client module based on client type and it is the responsibility
 // of the light client module to unmarshal and interpret the proto encoded bytes.
@@ -149,8 +147,8 @@ func (k *Keeper) CreateChannel(goCtx context.Context, msg *packetservertypes.Msg
 	channelID := k.ChannelKeeper.GenerateChannelIdentifier(ctx)
 
 	// Initialize counterparty with empty counterparty channel identifier.
-	counterparty := packetservertypes.NewCounterparty(msg.ClientId, "", msg.MerklePathPrefix)
-	k.PacketServerKeeper.SetCounterparty(ctx, channelID, counterparty)
+	counterparty := packetservertypes.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
+	k.PacketServerKeeper.SetChannel(ctx, channelID, counterparty)
 
 	k.PacketServerKeeper.SetCreator(ctx, channelID, msg.Signer)
 
@@ -172,13 +170,13 @@ func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *packetservertyp
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "channel creator (%s) must match signer (%s)", creator, msg.Signer)
 	}
 
-	counterparty, ok := k.PacketServerKeeper.GetCounterparty(ctx, msg.ChannelId)
+	counterparty, ok := k.PacketServerKeeper.GetChannel(ctx, msg.ChannelId)
 	if !ok {
-		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidCounterparty, "counterparty must exist for channel %s", msg.ChannelId)
+		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidChannel, "channel must exist for channel %s", msg.ChannelId)
 	}
 
 	counterparty.CounterpartyChannelId = msg.CounterpartyChannelId
-	k.PacketServerKeeper.SetCounterparty(ctx, msg.ChannelId, counterparty)
+	k.PacketServerKeeper.SetChannel(ctx, msg.ChannelId, counterparty)
 	// Delete client creator from state as it is not needed after this point.
 	k.PacketServerKeeper.DeleteCreator(ctx, msg.ChannelId)
 
@@ -874,7 +872,7 @@ func (k *Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.
 	keeper.EmitChannelUpgradeConfirmEvent(ctx, msg.PortId, msg.ChannelId, channel)
 
 	// Move channel to OPEN state if both chains have finished flushing in-flight packets.
-	// Counterparty channel state has been verified in ChanUpgradeConfirm.
+	// Channel channel state has been verified in ChanUpgradeConfirm.
 	if channel.State == channeltypes.FLUSHCOMPLETE && msg.CounterpartyChannelState == channeltypes.FLUSHCOMPLETE {
 		upgrade, found := k.ChannelKeeper.GetUpgrade(ctx, msg.PortId, msg.ChannelId)
 		if !found {
