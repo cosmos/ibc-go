@@ -209,7 +209,7 @@ func (k Keeper) WriteAcknowledgement(
 	if !ok {
 		return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
 	}
-	if counterparty.ClientId != packet.SourceChannel {
+	if counterparty.CounterpartyChannelId != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -266,7 +266,7 @@ func (k Keeper) AcknowledgePacket(
 		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceChannel)
 	}
 
-	if counterparty.ClientId != packet.DestinationChannel {
+	if counterparty.CounterpartyChannelId != packet.DestinationChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
 	clientID := counterparty.ClientId
@@ -337,13 +337,13 @@ func (k Keeper) TimeoutPacket(
 		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceChannel)
 	}
 
-	if counterparty.ClientId != packet.DestinationChannel {
+	if counterparty.CounterpartyChannelId != packet.DestinationChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
 	clientID := counterparty.ClientId
 
 	// check that timeout height or timeout timestamp has passed on the other end
-	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceChannel, proofHeight)
+	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientID, proofHeight)
 	if err != nil {
 		return "", err
 	}

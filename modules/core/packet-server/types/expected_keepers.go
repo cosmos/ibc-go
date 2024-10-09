@@ -55,7 +55,4 @@ type ClientKeeper interface {
 	// GetClientTimestampAtHeight returns the timestamp for a given height on the client
 	// given its client ID and height
 	GetClientTimestampAtHeight(ctx context.Context, clientID string, height exported.Height) (uint64, error)
-
-	// GetCreator returns the creator of the client denoted by the clientID.
-	GetCreator(ctx context.Context, clientID string) (string, bool)
 }

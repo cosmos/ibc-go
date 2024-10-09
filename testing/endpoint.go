@@ -180,7 +180,7 @@ func (endpoint *Endpoint) FreezeClient() {
 func (endpoint *Endpoint) ProvideCounterparty() (err error) {
 	merklePath := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
 
-	msg := packetservertypes.NewMsgProvideCounterparty(endpoint.ClientID, endpoint.Counterparty.ClientID, merklePath, endpoint.Chain.SenderAccount.GetAddress().String())
+	msg := packetservertypes.NewMsgProvideCounterparty(endpoint.ChannelID, endpoint.Counterparty.ChannelID, merklePath, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	// setup counterparty
 	_, err = endpoint.Chain.SendMsgs(msg)
@@ -481,7 +481,7 @@ func (endpoint *Endpoint) SendPacketV2(
 	data []byte,
 ) (uint64, error) {
 	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetPacketServer().SendPacket(endpoint.Chain.GetContext(), endpoint.ClientID, endpoint.ChannelConfig.PortID, endpoint.Counterparty.ChannelConfig.PortID, timeoutHeight, timeoutTimestamp, version, data)
+	sequence, err := endpoint.Chain.App.GetPacketServer().SendPacket(endpoint.Chain.GetContext(), endpoint.ChannelID, endpoint.ChannelConfig.PortID, endpoint.Counterparty.ChannelConfig.PortID, timeoutHeight, timeoutTimestamp, version, data)
 	if err != nil {
 		return 0, err
 	}

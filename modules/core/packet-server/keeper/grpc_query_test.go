@@ -28,7 +28,7 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 			"success",
 			func() {
 				ctx := suite.chainA.GetContext()
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCreator(ctx, ibctesting.FirstClientID, expCreator)
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCreator(ctx, ibctesting.FirstClientID, expCreator)
 				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(ctx, ibctesting.FirstClientID, expCounterparty)
 
 				req = &types.QueryClientRequest{
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 			func() {
 				expCounterparty = types.Counterparty{}
 
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetCreator(suite.chainA.GetContext(), ibctesting.FirstClientID, expCreator)
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCreator(suite.chainA.GetContext(), ibctesting.FirstClientID, expCreator)
 
 				req = &types.QueryClientRequest{
 					ClientId: ibctesting.FirstClientID,

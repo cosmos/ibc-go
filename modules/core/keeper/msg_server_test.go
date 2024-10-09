@@ -241,7 +241,7 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, ibcmock.Version, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
-				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, ibcmock.Version)
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0, ibcmock.Version)
 			},
 			nil,
 			false,
@@ -256,7 +256,7 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, ibcmock.Version, ibctesting.MockFailPacketData)
 				suite.Require().NoError(err)
 
-				packet = channeltypes.NewPacketWithVersion(ibctesting.MockFailPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, ibcmock.Version)
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockFailPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0, ibcmock.Version)
 			},
 			nil,
 			true,
@@ -271,7 +271,7 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, ibcmock.Version, ibcmock.MockAsyncPacketData)
 				suite.Require().NoError(err)
 
-				packet = channeltypes.NewPacketWithVersion(ibcmock.MockAsyncPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, ibcmock.Version)
+				packet = channeltypes.NewPacketWithVersion(ibcmock.MockAsyncPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0, ibcmock.Version)
 			},
 			nil,
 			false,
@@ -287,7 +287,7 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, ibcmock.Version, ibctesting.MockPacketData)
 				suite.Require().NoError(err)
 
-				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, ibcmock.Version)
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0, ibcmock.Version)
 				err = path.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 			},
@@ -311,7 +311,7 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 			"packet not sent",
 			func() {
 				path.SetupV2()
-				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, ibcmock.Version)
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0, ibcmock.Version)
 			},
 			fmt.Errorf("receive packet verification failed"),
 			false,
@@ -696,7 +696,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 			sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, ibcmock.Version, ibctesting.MockPacketData)
 			suite.Require().NoError(err)
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, ibcmock.Version)
+			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0, ibcmock.Version)
 			err = path.EndpointB.RecvPacket(packet)
 			suite.Require().NoError(err)
 
@@ -936,7 +936,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 
-				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, timeoutTimestamp, ibcmock.Version)
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp, ibcmock.Version)
 				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			},
 			nil,
@@ -957,7 +957,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 					sequence, err := path.EndpointA.SendPacketV2(timeoutHeight, 0, ibcmock.Version, ibctesting.MockPacketData)
 					suite.Require().NoError(err)
 
-					packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, timeoutHeight, 0, ibcmock.Version)
+					packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0, ibcmock.Version)
 				}
 
 				err := path.EndpointA.UpdateClient()
@@ -971,7 +971,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 		{
 			"success no-op: packet not sent", func() {
 				path.SetupV2()
-				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ClientID, clienttypes.NewHeight(0, 1), 0, ibcmock.Version)
+				packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(0, 1), 0, ibcmock.Version)
 				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			},
 			nil,
@@ -1216,15 +1216,11 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 	}{
 		{
 			"success",
-			func() {},
-			nil,
-		},
-		{
-			"failure: unknown client identifier",
 			func() {
-				msg.Counterparty.ClientId = ibctesting.InvalidID
+				// set it before handler
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ChannelId, msg.Counterparty)
 			},
-			ibcerrors.ErrUnauthorized,
+			nil,
 		},
 		{
 			"failure: signer does not match creator",
@@ -1234,10 +1230,9 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			ibcerrors.ErrUnauthorized,
 		},
 		{
-			"failure: counterparty already exists",
+			"failure: counterparty does not already exists",
 			func() {
-				// set it before handler
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ChannelId, msg.Counterparty)
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(packetservertypes.CounterpartyKey))
 			},
 			packetservertypes.ErrInvalidCounterparty,
 		},
@@ -1248,9 +1243,11 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 		path = ibctesting.NewPath(suite.chainA, suite.chainB)
 		path.SetupClients()
 
+		suite.Require().NoError(path.EndpointA.CreateChannel())
+
 		signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
 		merklePrefix := commitmenttypesv2.NewMerklePath([]byte("mock-key"))
-		msg = packetservertypes.NewMsgProvideCounterparty(path.EndpointA.ClientID, path.EndpointB.ClientID, merklePrefix, signer)
+		msg = packetservertypes.NewMsgProvideCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, merklePrefix, signer)
 
 		tc.malleate()
 
@@ -1263,11 +1260,11 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			suite.Require().Nil(err)
 
 			// Assert counterparty set and creator deleted
-			counterparty, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			counterparty, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCounterparty(suite.chainA.GetContext(), path.EndpointA.ChannelID)
 			suite.Require().True(found)
 			suite.Require().Equal(counterparty, msg.Counterparty)
 
-			_, found = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			_, found = suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().False(found)
 		} else {
 			suite.Require().Nil(resp)

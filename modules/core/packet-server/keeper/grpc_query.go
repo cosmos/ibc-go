@@ -42,7 +42,7 @@ func (q *queryServer) Client(ctx context.Context, req *types.QueryClientRequest)
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	creator, foundCreator := q.ClientKeeper.GetCreator(sdkCtx, req.ClientId)
+	creator, foundCreator := q.GetCreator(sdkCtx, req.ClientId)
 	counterparty, foundCounterparty := q.GetCounterparty(sdkCtx, req.ClientId)
 
 	if !foundCreator && !foundCounterparty {
