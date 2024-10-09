@@ -94,7 +94,7 @@ func (k *Keeper) sendPacket(
 // The packet handler will verify that the packet has not timed out and that the
 // counterparty stored a packet commitment. If successful, a packet receipt is stored
 // to indicate to the counterparty successful delivery.
-func (k Keeper) recvPacket(
+func (k *Keeper) recvPacket(
 	ctx context.Context,
 	packet channeltypesv2.Packet,
 	proof []byte,
@@ -160,7 +160,7 @@ func (k Keeper) recvPacket(
 	return nil
 }
 
-func (k Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Packet, acknowledgement channeltypesv2.Acknowledgement, proof []byte, proofHeight exported.Height) error {
+func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Packet, acknowledgement channeltypesv2.Acknowledgement, proof []byte, proofHeight exported.Height) error {
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
 	counterparty, ok := k.GetCounterparty(ctx, packet.SourceId)
@@ -223,7 +223,7 @@ func (k Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pac
 // an absence proof of the packet receipt is performed to ensure that the packet
 // was never delivered to the counterparty. If successful, the packet commitment
 // is deleted and the packet has completed its lifecycle.
-func (k Keeper) timeoutPacket(
+func (k *Keeper) timeoutPacket(
 	ctx context.Context,
 	packet channeltypesv2.Packet,
 	proof []byte,
