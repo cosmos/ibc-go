@@ -75,16 +75,27 @@ func (k *Keeper) GetCounterparty(ctx context.Context, clientID string) (types.Co
 }
 
 // GetPacketReceipt returns the packet receipt from the packet receipt path based on the sourceID and sequence.
-func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) []byte {
+func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) ([]byte, bool) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(hostv2.PacketReceiptKey(sourceID, sequence))
 	if err != nil {
 		panic(err)
 	}
 	if len(bz) == 0 {
-		return nil
+		return nil, false
 	}
-	return bz
+	return bz, true
+}
+
+// HasPacketRceipt returns true if the packet receipt exists, otherwise false.
+func (k *Keeper) HasPacketReceipt(ctx context.Context, sourceID string, sequence uint64) bool {
+	store := k.storeService.OpenKVStore(ctx)
+	has, err := store.Has(hostv2.PacketReceiptKey(sourceID, sequence))
+	if err != nil {
+		panic(err)
+	}
+
+	return has
 }
 
 // SetPacketReceipt writes the packet receipt under the receipt path

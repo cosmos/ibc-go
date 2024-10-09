@@ -125,9 +125,7 @@ func (k Keeper) recvPacket(
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
 	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
 	// by the increase of the recvStartSequence.
-	// TODO: change to HasReceipt
-	receipt := k.GetPacketReceipt(ctx, packet.DestinationId, packet.Sequence)
-	if receipt != nil {
+	if k.HasPacketReceipt(ctx, packet.DestinationId, packet.Sequence) {
 		EmitRecvPacketEvents(ctx, packet)
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
@@ -177,8 +175,8 @@ func (k Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pac
 
 	commitment := k.GetPacketCommitment(ctx, packet.SourceId, packet.Sequence)
 	if len(commitment) == 0 {
-		// TODO: emit events
-		// k.EmitAcknowledgePacketEvent(ctx, packet, nil)
+		// TODO: signal noop in events?
+		EmitAcknowledgePacketEvents(ctx, packet)
 
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
@@ -194,7 +192,7 @@ func (k Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pac
 		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
-	path := hostv2.PacketAcknowledgementKey(packet.DestinationId, sdk.Uint64ToBigEndian(packet.Sequence))
+	path := hostv2.PacketAcknowledgementKey(packet.DestinationId, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
@@ -213,7 +211,7 @@ func (k Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pac
 
 	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "source_id", packet.GetSourceId(), "destination_id", packet.GetDestinationId())
 
-	EmitAcknowledgePacketEvents(ctx, packet, acknowledgement)
+	EmitAcknowledgePacketEvents(ctx, packet)
 
 	return nil
 }

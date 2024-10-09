@@ -17,7 +17,7 @@ func EmitRecvPacketEvents(ctx context.Context, packet channeltypesv2.Packet) {
 }
 
 // EmitAcknowledgePacketEvents emits events for the AcknowledgePacket handler.
-func EmitAcknowledgePacketEvents(ctx context.Context, packet channeltypesv2.Packet, acknowledgement channeltypesv2.Acknowledgement) {
+func EmitAcknowledgePacketEvents(ctx context.Context, packet channeltypesv2.Packet) {
 	// TODO: https://github.com/cosmos/ibc-go/issues/7386
 }
 
