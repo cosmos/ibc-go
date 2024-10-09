@@ -127,34 +127,6 @@ func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, sourceID string, 
 	return found
 }
 
-// SetInFlightAcknowledgement sets the ack which has not be fully processed.
-func (k *Keeper) SetInFlightAcknowledgement(ctx context.Context, destID string, sequence uint64, ack types.Acknowledgement) {
-	store := k.storeService.OpenKVStore(ctx)
-	bz := k.cdc.MustMarshal(&ack)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(hostv2.InFlightAckKey(destID, bigEndianBz), bz); err != nil {
-		panic(err)
-	}
-}
-
-// GetInFlightAcknowledgement gets the ack result which has not be fully processed.
-func (k *Keeper) GetInFlightAcknowledgement(ctx context.Context, destID string, sequence uint64) (types.Acknowledgement, bool) {
-	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	bz, err := store.Get(hostv2.InFlightAckKey(destID, bigEndianBz))
-	if err != nil {
-		panic(err)
-	}
-
-	if len(bz) == 0 {
-		return types.Acknowledgement{}, false
-	}
-
-	var res types.Acknowledgement
-	k.cdc.MustUnmarshal(bz, &res)
-	return res, true
-}
-
 // GetPacketCommitment returns the packet commitment hash under the commitment path.
 func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, sequence uint64) (string, bool) {
 	store := k.storeService.OpenKVStore(ctx)

@@ -105,9 +105,11 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 
 	// note this should never happen as the packet data would have had to be empty.
 	if len(ack.AcknowledgementResults) == 0 {
+		sdkCtx.Logger().Error("receive packet failed", "source-id", msg.Packet.SourceId, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
 		return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.FAILURE}, nil
 	}
 
+	// NOTE: TBD how we will handle async acknowledgements with more than one packet data.
 	isAsync := slices.ContainsFunc(ack.AcknowledgementResults, func(ackResult channeltypesv2.AcknowledgementResult) bool {
 		return ackResult.RecvPacketResult.Status == channeltypesv2.PacketStatus_Async
 	})
@@ -119,12 +121,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 		if err := k.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
 			return nil, err
 		}
-		sdkCtx.Logger().Info("receive packet callback succeeded", "source-id", msg.Packet.SourceId, "dest-id", msg.Packet.DestinationId, "result", channeltypesv1.SUCCESS.String())
-		return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.SUCCESS}, nil
 	}
-
-	// there is an async acknowledgement, so we need to store the full acknowledgement, which will be written later.
-	k.SetInFlightAcknowledgement(ctx, msg.Packet.DestinationId, msg.Packet.Sequence, ack)
 
 	// TODO: add issue for this
 	// defer telemetry.ReportRecvPacket(msg.Packet)

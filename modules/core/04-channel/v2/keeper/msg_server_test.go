@@ -3,13 +3,14 @@ package keeper_test
 import (
 	"context"
 	"fmt"
-	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
+
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
@@ -116,6 +117,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 	var path *ibctesting.Path
 	var msg *channeltypesv2.MsgRecvPacket
 	var recvPacket channeltypesv2.Packet
+	var expectedAck channeltypesv2.Acknowledgement
 
 	testCases := []struct {
 		name        string
@@ -127,6 +129,22 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			name:     "success",
 			malleate: func() {},
 			expError: nil,
+		},
+		{
+			name: "success: failed recv result",
+			malleate: func() {
+				failedRecvResult := channeltypesv2.RecvPacketResult{
+					Status:          channeltypesv2.PacketStatus_Failure,
+					Acknowledgement: mock.MockFailPacketData,
+				}
+
+				// a failed ack should be written now.
+				expectedAck.AcknowledgementResults[0].RecvPacketResult = failedRecvResult
+
+				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceID string, destinationID string, data channeltypesv2.PacketData, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+					return failedRecvResult
+				}
+			},
 		},
 	}
 
@@ -150,6 +168,19 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 
 			recvPacket = channeltypesv2.NewPacket(1, path.EndpointA.ClientID, path.EndpointB.ClientID, timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
 
+			// default expected ack is a single successful recv result for moduleB.
+			expectedAck = channeltypesv2.Acknowledgement{
+				AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
+					{
+						AppName: mockv2.ModuleNameB,
+						RecvPacketResult: channeltypesv2.RecvPacketResult{
+							Status:          channeltypesv2.PacketStatus_Success,
+							Acknowledgement: mock.MockPacketData,
+						},
+					},
+				},
+			}
+
 			tc.malleate()
 
 			// get proof of packet commitment from chainA
@@ -161,13 +192,33 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			res, err = path.EndpointB.Chain.SendMsgs(msg)
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
+			ck := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeperV2
+
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
+
+				// packet receipt should be written
+				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), recvPacket.SourceId, recvPacket.Sequence)
+				suite.Require().True(ok)
+
+				// ack should be written for synchronous app (default mock application behaviour)
+				ackWritten := ck.HasPacketAcknowledgement(path.EndpointB.Chain.GetContext(), recvPacket.DestinationId, recvPacket.Sequence)
+				suite.Require().True(ackWritten)
+
+				ackBz := path.EndpointB.Chain.Codec.MustMarshal(&expectedAck)
+				expectedBz := channeltypesv1.CommitAcknowledgement(ackBz)
+
+				actualAckBz := ck.GetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), recvPacket.DestinationId, recvPacket.Sequence)
+				suite.Require().Equal(expectedBz, actualAckBz)
+
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())
+
+				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), recvPacket.SourceId, recvPacket.Sequence)
+				suite.Require().False(ok)
 			}
 		})
 	}
