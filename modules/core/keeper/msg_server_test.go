@@ -1217,7 +1217,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			"success",
 			func() {
 				// set it before handler
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ChannelId, packetservertypes.NewCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, ibctesting.MerklePath))
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ChannelId, packetservertypes.NewCounterparty(path.EndpointA.ClientID, "", ibctesting.MerklePath))
 			},
 			nil,
 		},
