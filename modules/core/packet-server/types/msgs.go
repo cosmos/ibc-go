@@ -16,13 +16,11 @@ var (
 )
 
 // NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
-func NewMsgProvideCounterparty(clientID, counterpartyChannelID string, merklePathPrefix commitmenttypes.MerklePath, signer string) *MsgProvideCounterparty {
-	counterparty := NewCounterparty(clientID, counterpartyChannelID, merklePathPrefix)
-
+func NewMsgProvideCounterparty(channelID, counterpartyChannelID string, signer string) *MsgProvideCounterparty {
 	return &MsgProvideCounterparty{
-		Signer:       signer,
-		ChannelId:    clientID,
-		Counterparty: counterparty,
+		Signer:                signer,
+		ChannelId:             channelID,
+		CounterpartyChannelId: counterpartyChannelID,
 	}
 }
 
@@ -36,7 +34,7 @@ func (msg *MsgProvideCounterparty) ValidateBasic() error {
 		return err
 	}
 
-	if err := msg.Counterparty.Validate(); err != nil {
+	if err := host.ChannelIdentifierValidator(msg.CounterpartyChannelId); err != nil {
 		return err
 	}
 

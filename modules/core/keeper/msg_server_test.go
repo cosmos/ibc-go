@@ -17,7 +17,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -1218,7 +1217,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			"success",
 			func() {
 				// set it before handler
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ChannelId, msg.Counterparty)
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ChannelId, packetservertypes.NewCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, ibctesting.MerklePath))
 			},
 			nil,
 		},
@@ -1246,8 +1245,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 		suite.Require().NoError(path.EndpointA.CreateChannel())
 
 		signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
-		merklePrefix := commitmenttypesv2.NewMerklePath([]byte("mock-key"))
-		msg = packetservertypes.NewMsgProvideCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, merklePrefix, signer)
+		msg = packetservertypes.NewMsgProvideCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, signer)
 
 		tc.malleate()
 
@@ -1259,10 +1257,10 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			suite.Require().NotNil(resp)
 			suite.Require().Nil(err)
 
-			// Assert counterparty set and creator deleted
+			// Assert counterparty channel id filled in and creator deleted
 			counterparty, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCounterparty(suite.chainA.GetContext(), path.EndpointA.ChannelID)
 			suite.Require().True(found)
-			suite.Require().Equal(counterparty, msg.Counterparty)
+			suite.Require().Equal(counterparty.CounterpartyChannelId, path.EndpointB.ChannelID)
 
 			_, found = suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().False(found)
