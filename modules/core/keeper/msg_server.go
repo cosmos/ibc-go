@@ -146,9 +146,9 @@ func (k *Keeper) CreateChannel(goCtx context.Context, msg *packetservertypes.Msg
 
 	channelID := k.ChannelKeeper.GenerateChannelIdentifier(ctx)
 
-	// Initialize counterparty with empty counterparty channel identifier.
-	counterparty := packetservertypes.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
-	k.PacketServerKeeper.SetChannel(ctx, channelID, counterparty)
+	// Initialize channel with empty counterparty channel identifier.
+	channel := packetservertypes.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
+	k.PacketServerKeeper.SetChannel(ctx, channelID, channel)
 
 	k.PacketServerKeeper.SetCreator(ctx, channelID, msg.Signer)
 
@@ -172,7 +172,7 @@ func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *packetservertyp
 
 	channel, ok := k.PacketServerKeeper.GetChannel(ctx, msg.ChannelId)
 	if !ok {
-		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidChannel, "channel must exist for channel %s", msg.ChannelId)
+		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidChannel, "channel must exist for channel id %s", msg.ChannelId)
 	}
 
 	channel.CounterpartyChannelId = msg.CounterpartyChannelId
@@ -872,7 +872,7 @@ func (k *Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.
 	keeper.EmitChannelUpgradeConfirmEvent(ctx, msg.PortId, msg.ChannelId, channel)
 
 	// Move channel to OPEN state if both chains have finished flushing in-flight packets.
-	// Channel channel state has been verified in ChanUpgradeConfirm.
+	// Counterparty channel state has been verified in ChanUpgradeConfirm.
 	if channel.State == channeltypes.FLUSHCOMPLETE && msg.CounterpartyChannelState == channeltypes.FLUSHCOMPLETE {
 		upgrade, found := k.ChannelKeeper.GetUpgrade(ctx, msg.PortId, msg.ChannelId)
 		if !found {

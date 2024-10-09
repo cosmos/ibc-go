@@ -71,13 +71,13 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
-			"no creator and no counterparty",
+			"no creator and no channel",
 			func() {
 				req = &types.QueryChannelRequest{
 					ChannelId: ibctesting.FirstChannelID,
 				}
 			},
-			status.Error(codes.NotFound, fmt.Sprintf("client-id: %s: counterparty not found", ibctesting.FirstChannelID)),
+			status.Error(codes.NotFound, fmt.Sprintf("channel-id: %s: channel not found", ibctesting.FirstChannelID)),
 		},
 		{
 			"invalid channelID",

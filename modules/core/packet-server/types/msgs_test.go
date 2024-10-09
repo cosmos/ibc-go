@@ -95,7 +95,7 @@ func (s *TypesTestSuite) TestMsgCreateChannelValidateBasic() {
 			host.ErrInvalidID,
 		},
 		{
-			"failure: empty key path of counterparty of merkle path prefix",
+			"failure: empty key path",
 			func() {
 				msg.MerklePathPrefix.KeyPath = nil
 			},

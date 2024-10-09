@@ -14,14 +14,13 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
-// newProvideCounterpartyCmd defines the command to provide the counterparty to an IBC client.
+// newProvideCounterpartyCmd defines the command to provide the counterparty to an IBC channel.
 func newProvideCounterpartyCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "provide-counterparty [channel-identifier] [counterparty-channel-identifier]",
-		Args:  cobra.ExactArgs(2),
-		Short: "provide the counterparty channel to an IBC channel end",
-		Long: `Provide the counterparty to an IBC channel end specified by its channel ID.
-The [counterparty-merkle-path-prefix] is a comma-separated list of hex-encoded strings.`,
+		Use:     "provide-counterparty [channel-identifier] [counterparty-channel-identifier]",
+		Args:    cobra.ExactArgs(2),
+		Short:   "provide the counterparty channel id to an IBC channel end",
+		Long:    `Provide the counterparty channel id to an IBC channel end specified by its channel ID.`,
 		Example: fmt.Sprintf("%s tx %s %s provide-counterparty channel-0 channel-1", version.AppName, exported.ModuleName, types.SubModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

@@ -608,17 +608,17 @@ func (suite *KeeperTestSuite) TestGetV2Channel() {
 
 			tc.malleate()
 
-			counterparty, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetV2Channel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			channel, found := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetV2Channel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 			if tc.expPass {
 				suite.Require().True(found)
 
 				merklePath := commitmentv2types.NewMerklePath([]byte("ibc"), []byte(""))
-				expCounterparty := packetservertypes.NewChannel(path.EndpointA.ClientID, path.EndpointB.ChannelID, merklePath)
-				suite.Require().Equal(counterparty, expCounterparty)
+				expChannel := packetservertypes.NewChannel(path.EndpointA.ClientID, path.EndpointB.ChannelID, merklePath)
+				suite.Require().Equal(channel, expChannel)
 			} else {
 				suite.Require().False(found)
-				suite.Require().Equal(counterparty, packetservertypes.Channel{})
+				suite.Require().Equal(channel, packetservertypes.Channel{})
 			}
 		})
 	}

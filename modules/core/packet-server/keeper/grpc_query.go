@@ -48,7 +48,7 @@ func (q *queryServer) Channel(ctx context.Context, req *types.QueryChannelReques
 	if !foundCreator && !foundChannel {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "client-id: %s", req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", req.ChannelId).Error(),
 		)
 	}
 

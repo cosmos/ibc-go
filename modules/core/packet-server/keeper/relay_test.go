@@ -67,7 +67,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
-			"counterparty not found",
+			"channel not found",
 			func() {
 				packet.SourceChannel = ibctesting.InvalidID
 			},
@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			channeltypes.ErrInvalidPacket,
 		},
 		{
-			"failure: counterparty not found",
+			"failure: channel not found",
 			func() {
 				packet.DestinationChannel = ibctesting.InvalidID
 			},
@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			clienttypes.ErrClientNotActive,
 		},
 		{
-			"failure: counterparty client identifier different than source channel",
+			"failure: counterparty channel identifier different than source channel",
 			func() {
 				packet.SourceChannel = unusedChannel
 			},
@@ -279,14 +279,14 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			channeltypes.ErrInvalidPacket,
 		},
 		{
-			"failure: counterparty not found",
+			"failure: channel not found",
 			func() {
 				packet.DestinationChannel = ibctesting.InvalidID
 			},
 			types.ErrChannelNotFound,
 		},
 		{
-			"failure: counterparty client identifier different than source channel",
+			"failure: counterparty channel identifier different than source channel",
 			func() {
 				packet.SourceChannel = unusedChannel
 			},
@@ -380,14 +380,14 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			channeltypes.ErrInvalidPacket,
 		},
 		{
-			"failure: counterparty not found",
+			"failure: channel not found",
 			func() {
 				packet.SourceChannel = ibctesting.InvalidID
 			},
 			types.ErrChannelNotFound,
 		},
 		{
-			"failure: counterparty client identifier different than source channel",
+			"failure: counterparty channel identifier different than source channel",
 			func() {
 				packet.DestinationChannel = unusedChannel
 			},
@@ -517,7 +517,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			channeltypes.ErrInvalidPacket,
 		},
 		{
-			"failure: counterparty not found",
+			"failure: channel not found",
 			func() {
 				// send packet
 				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,
@@ -529,7 +529,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			types.ErrChannelNotFound,
 		},
 		{
-			"failure: counterparty client identifier different than source channel",
+			"failure: counterparty channel identifier different than source channel",
 			func() {
 				// send packet
 				_, err := suite.chainA.App.GetPacketServer().SendPacket(suite.chainA.GetContext(), packet.SourceChannel, packet.SourcePort, packet.DestinationPort,

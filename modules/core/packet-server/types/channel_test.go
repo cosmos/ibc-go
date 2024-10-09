@@ -80,8 +80,8 @@ func TestValidateChannel(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 
-		counterparty := types.NewChannel(tc.clientID, tc.channelID, tc.merklePathPrefix)
-		err := counterparty.Validate()
+		channel := types.NewChannel(tc.clientID, tc.channelID, tc.merklePathPrefix)
+		err := channel.Validate()
 
 		expPass := tc.expError == nil
 		if expPass {

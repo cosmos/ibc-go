@@ -1258,9 +1258,9 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			suite.Require().Nil(err)
 
 			// Assert counterparty channel id filled in and creator deleted
-			counterparty, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+			channel, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelID)
 			suite.Require().True(found)
-			suite.Require().Equal(counterparty.CounterpartyChannelId, path.EndpointB.ChannelID)
+			suite.Require().Equal(channel.CounterpartyChannelId, path.EndpointB.ChannelID)
 
 			_, found = suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().False(found)

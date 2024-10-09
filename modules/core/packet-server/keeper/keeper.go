@@ -49,8 +49,8 @@ func (k Keeper) ChannelStore(ctx context.Context, channelID string) storetypes.K
 }
 
 // SetChannel sets the Channel for a given client identifier.
-func (k *Keeper) SetChannel(ctx context.Context, clientID string, counterparty types.Channel) {
-	bz := k.cdc.MustMarshal(&counterparty)
+func (k *Keeper) SetChannel(ctx context.Context, clientID string, channel types.Channel) {
+	bz := k.cdc.MustMarshal(&channel)
 	k.ChannelStore(ctx, clientID).Set([]byte(types.ChannelKey), bz)
 }
 
@@ -62,9 +62,9 @@ func (k *Keeper) GetChannel(ctx context.Context, clientID string) (types.Channel
 		return types.Channel{}, false
 	}
 
-	var counterparty types.Channel
-	k.cdc.MustUnmarshal(bz, &counterparty)
-	return counterparty, true
+	var channel types.Channel
+	k.cdc.MustUnmarshal(bz, &channel)
+	return channel, true
 }
 
 // GetCreator returns the creator of the client.

@@ -10,19 +10,19 @@ const testClientID = "tendermint-0"
 
 func (suite *KeeperTestSuite) TestSetChannel() {
 	merklePathPrefix := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
-	counterparty := types.Channel{
+	channel := types.Channel{
 		ClientId:         testClientID,
 		MerklePathPrefix: merklePathPrefix,
 	}
-	suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetChannel(suite.chainA.GetContext(), testClientID, counterparty)
+	suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetChannel(suite.chainA.GetContext(), testClientID, channel)
 
 	retrievedChannel, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetChannel(suite.chainA.GetContext(), testClientID)
-	suite.Require().True(found, "GetChannel does not return counterparty")
-	suite.Require().Equal(counterparty, retrievedChannel, "Channel retrieved not equal")
+	suite.Require().True(found, "GetChannel does not return channel")
+	suite.Require().Equal(channel, retrievedChannel, "Channel retrieved not equal")
 
 	// Channel not yet stored for another client.
 	retrievedChannel, found = suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetChannel(suite.chainA.GetContext(), ibctesting.SecondClientID)
-	suite.Require().False(found, "GetChannel unexpectedly returned a counterparty")
+	suite.Require().False(found, "GetChannel unexpectedly returned a channel")
 	suite.Require().Equal(types.Channel{}, retrievedChannel, "Channel retrieved not empty")
 }
 
