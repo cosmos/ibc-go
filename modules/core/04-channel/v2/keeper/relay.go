@@ -91,7 +91,7 @@ func (k *Keeper) sendPacket(
 	k.SetNextSequenceSend(ctx, sourceID, sequence+1)
 	k.SetPacketCommitment(ctx, sourceID, packet.GetSequence(), commitment)
 
-	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest_id", packet.DestinationId, "src_id", packet.SourceId)
+	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest_channel_id", packet.DestinationChannel, "src_channel_id", packet.SourceChannel)
 
 	EmitSendPacketEvents(ctx, packet)
 
@@ -114,15 +114,15 @@ func (k Keeper) recvPacket(
 ) error {
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationId)
+	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].DestinationPort, packet.DestinationId)
+		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
 		if !ok {
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationId)
 		}
 	}
-	if counterparty.ClientId != packet.SourceId {
+	if counterparty.ClientId != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -137,7 +137,7 @@ func (k Keeper) recvPacket(
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
 	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
 	// by the increase of the recvStartSequence.
-	_, found := k.GetPacketReceipt(ctx, packet.DestinationId, packet.Sequence)
+	_, found := k.GetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence)
 	if found {
 		EmitRecvPacketEvents(ctx, packet)
 		// This error indicates that the packet has already been relayed. Core IBC will
@@ -146,27 +146,27 @@ func (k Keeper) recvPacket(
 		return channeltypes.ErrNoOpMsg
 	}
 
-	path := hostv2.PacketCommitmentKey(packet.SourceId, packet.Sequence)
+	path := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	commitment := channeltypesv2.CommitPacket(packet)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		packet.DestinationId,
+		packet.DestinationChannel,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 		commitment,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationId)
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationChannel)
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
-	k.SetPacketReceipt(ctx, packet.DestinationId, packet.Sequence)
+	k.SetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence)
 
-	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_id", packet.SourceId, "dst_id", packet.DestinationId)
+	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_id", packet.SourceChannel, "dst_id", packet.DestinationChannel)
 
 	EmitRecvPacketEvents(ctx, packet)
 
@@ -188,17 +188,17 @@ func (k Keeper) timeoutPacket(
 ) error {
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.SourceId)
+	counterparty, ok := k.GetCounterparty(ctx, packet.SourceChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].SourcePort, packet.SourceId)
-		if !ok {
+		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].SourcePort, packet.SourceChannel)
+    if !ok {
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationId)
 		}
 	}
 
 	// check that timeout height or timeout timestamp has passed on the other end
-	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceId, proofHeight)
+	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceChannel, proofHeight)
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func (k Keeper) timeoutPacket(
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
-	commitment, ok := k.GetPacketCommitment(ctx, packet.SourceId, packet.Sequence)
+	commitment, ok := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
 
 	if !ok {
 		EmitTimeoutPacketEvents(ctx, packet)
@@ -227,24 +227,24 @@ func (k Keeper) timeoutPacket(
 	}
 
 	// verify packet receipt absence
-	path := hostv2.PacketReceiptKey(packet.SourceId, packet.Sequence)
+	path := hostv2.PacketReceiptKey(packet.SourceChannel, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
-		packet.SourceId,
+		packet.SourceChannel,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceId)
+		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceChannel)
 	}
 
 	// delete packet commitment to prevent replay
-	k.DeletePacketCommitment(ctx, packet.SourceId, packet.Sequence)
+	k.DeletePacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
 
-	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_id", packet.SourceId, "dst_id", packet.DestinationId)
+	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_channel_id", packet.SourceChannel, "dst_channel_id", packet.DestinationChannel)
 
 	EmitTimeoutPacketEvents(ctx, packet)
 
