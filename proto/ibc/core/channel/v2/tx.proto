@@ -32,7 +32,7 @@ message MsgSendPacket {
   option (cosmos.msg.v1.signer)      = "signer";
   option (gogoproto.goproto_getters) = false;
 
-  string              source_id         = 1;
+  string              source_channel    = 1;
   uint64              timeout_timestamp = 2;
   repeated PacketData packet_data       = 3 [(gogoproto.nullable) = false];
   string              signer            = 4;
