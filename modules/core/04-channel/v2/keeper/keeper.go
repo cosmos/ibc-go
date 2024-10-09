@@ -3,8 +3,12 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strconv"
+
+	errorsmod "cosmossdk.io/errors"
 
 	corestore "cosmossdk.io/core/store"
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
@@ -125,6 +129,34 @@ func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, sourceID string, 
 	return found
 }
 
+// SetInFlightAcknowledgement sets the ack which has not be fully processed.
+func (k *Keeper) SetInFlightAcknowledgement(ctx context.Context, destID string, sequence uint64, ack types.Acknowledgement) {
+	store := k.storeService.OpenKVStore(ctx)
+	bz := k.cdc.MustMarshal(&ack)
+	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
+	if err := store.Set(hostv2.InFlightAckKey(destID, bigEndianBz), bz); err != nil {
+		panic(err)
+	}
+}
+
+// GetInFlightAcknowledgement gets the ack result which has not be fully processed.
+func (k *Keeper) GetInFlightAcknowledgement(ctx context.Context, destID string, sequence uint64) (types.Acknowledgement, bool) {
+	store := k.storeService.OpenKVStore(ctx)
+	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
+	bz, err := store.Get(hostv2.InFlightAckKey(destID, bigEndianBz))
+	if err != nil {
+		panic(err)
+	}
+
+	if len(bz) == 0 {
+		return types.Acknowledgement{}, false
+	}
+
+	var res types.Acknowledgement
+	k.cdc.MustUnmarshal(bz, &res)
+	return res, true
+}
+
 // GetPacketCommitment returns the packet commitment hash under the commitment path.
 func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, sequence uint64) (string, bool) {
 	store := k.storeService.OpenKVStore(ctx)
@@ -203,4 +235,53 @@ func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (
 		MerklePathPrefix:      merklePathPrefix,
 	}
 	return counterparty, true
+}
+
+// WriteAcknowledgement writes the acknowledgement to the store. In the synchronous case, this is done
+// in the core IBC handler. Async applications should call WriteAcknowledgementAsync to update
+// the RecvPacketResult of the relevant application's recvResult.
+func (k Keeper) WriteAcknowledgement(
+	ctx context.Context,
+	packet types.Packet,
+	ack types.Acknowledgement,
+) error {
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationId)
+	if !ok {
+		// TODO: figure out how aliasing will work when more than one packet data is sent.
+		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].DestinationPort, packet.DestinationId)
+		if !ok {
+			return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationId)
+		}
+	}
+
+	if counterparty.ClientId != packet.SourceId {
+		return channeltypesv1.ErrInvalidChannelIdentifier
+	}
+
+	// NOTE: IBC app modules might have written the acknowledgement synchronously on
+	// the OnRecvPacket callback so we need to check if the acknowledgement is already
+	// set on the store and return an error if so.
+	if k.HasPacketAcknowledgement(ctx, packet.DestinationId, packet.Sequence) {
+		return channeltypesv1.ErrAcknowledgementExists
+	}
+
+	if _, found := k.GetPacketReceipt(ctx, packet.DestinationId, packet.Sequence); !found {
+		return errorsmod.Wrap(channeltypesv1.ErrInvalidPacket, "receipt not found for packet")
+	}
+
+	multiAckBz := k.cdc.MustMarshal(&ack)
+	// set the acknowledgement so that it can be verified on the other side
+	k.SetPacketAcknowledgement(
+		ctx, packet.DestinationId, packet.GetSequence(),
+		channeltypesv1.CommitAcknowledgement(multiAckBz),
+	)
+
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_id", packet.DestinationId)
+
+	// TODO: figure out events, we MUST emit the MultiAck structure here
+	// channelkeeper.EmitWriteAcknowledgementEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel), multiAck)
+
+	return nil
 }

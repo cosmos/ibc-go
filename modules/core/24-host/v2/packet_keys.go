@@ -22,3 +22,8 @@ func PacketCommitmentKey(sourceID string, bigEndianSequence []byte) []byte {
 func NextSequenceSendKey(sourceID string) []byte {
 	return []byte(fmt.Sprintf("nextSequenceSend/%s", sourceID))
 }
+
+// InFlightAckKey returns the store key for the in-flight acks of a given destinationID.
+func InFlightAckKey(destID string, bigEndianSequence []byte) []byte {
+	return []byte(fmt.Sprintf("inflightAcks/%s/%s", destID, bigEndianSequence))
+}
