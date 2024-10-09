@@ -77,8 +77,7 @@ func (k *Keeper) GetCounterparty(ctx context.Context, clientID string) (types.Co
 // GetPacketReceipt returns the packet receipt from the packet receipt path based on the sourceID and sequence.
 func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) []byte {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	bz, err := store.Get(hostv2.PacketReceiptKey(sourceID, bigEndianBz))
+	bz, err := store.Get(hostv2.PacketReceiptKey(sourceID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -92,8 +91,7 @@ func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence
 // This is a public path that is standardized by the IBC V2 specification.
 func (k *Keeper) SetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(hostv2.PacketReceiptKey(sourceID, bigEndianBz), []byte{byte(1)}); err != nil {
+	if err := store.Set(hostv2.PacketReceiptKey(sourceID, sequence), []byte{byte(1)}); err != nil {
 		panic(err)
 	}
 }
@@ -102,8 +100,7 @@ func (k *Keeper) SetPacketReceipt(ctx context.Context, sourceID string, sequence
 // This is a public path that is standardized by the IBC V2 specification.
 func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, sourceID string, sequence uint64, ackHash []byte) {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(hostv2.PacketAcknowledgementKey(sourceID, bigEndianBz), ackHash); err != nil {
+	if err := store.Set(hostv2.PacketAcknowledgementKey(sourceID, sequence), ackHash); err != nil {
 		panic(err)
 	}
 }
@@ -111,8 +108,7 @@ func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, sourceID string, 
 // HasPacketAcknowledgement check if the packet ack hash is already on the store.
 func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, sourceID string, sequence uint64) bool {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	found, err := store.Has(hostv2.PacketAcknowledgementKey(sourceID, bigEndianBz))
+	found, err := store.Has(hostv2.PacketAcknowledgementKey(sourceID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -123,8 +119,7 @@ func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, sourceID string, 
 // GetPacketCommitment returns the packet commitment hash under the commitment path.
 func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, sequence uint64) []byte {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	bz, err := store.Get(hostv2.PacketCommitmentKey(sourceID, bigEndianBz))
+	bz, err := store.Get(hostv2.PacketCommitmentKey(sourceID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -137,8 +132,7 @@ func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, seque
 // SetPacketCommitment writes the commitment hash under the commitment path.
 func (k *Keeper) SetPacketCommitment(ctx context.Context, sourceID string, sequence uint64, commitment []byte) {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(hostv2.PacketCommitmentKey(sourceID, bigEndianBz), commitment); err != nil {
+	if err := store.Set(hostv2.PacketCommitmentKey(sourceID, sequence), commitment); err != nil {
 		panic(err)
 	}
 }
@@ -146,8 +140,7 @@ func (k *Keeper) SetPacketCommitment(ctx context.Context, sourceID string, seque
 // DeletePacketCommitment deletes the packet commitment hash under the commitment path.
 func (k *Keeper) DeletePacketCommitment(ctx context.Context, sourceID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Delete(hostv2.PacketCommitmentKey(sourceID, bigEndianBz)); err != nil {
+	if err := store.Delete(hostv2.PacketCommitmentKey(sourceID, sequence)); err != nil {
 		panic(err)
 	}
 }
