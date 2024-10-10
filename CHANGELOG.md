@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Testing
+
+* [\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update the block proposer in test chains for each block.
+
 ### Dependencies
 
 * [\#7247](https://github.com/cosmos/ibc-go/pull/7247) Bump CometBFT to v0.38.12.
