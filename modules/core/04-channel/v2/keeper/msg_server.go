@@ -9,6 +9,7 @@ import (
 
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 var _ channeltypesv2.MsgServer = &Keeper{}
@@ -134,4 +135,47 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout
 	// }
 
 	return &channeltypesv2.MsgTimeoutResponse{Result: channeltypesv1.SUCCESS}, nil
+}
+
+// CreateChannel defines a rpc handler method for MsgCreateChannel
+func (k *Keeper) CreateChannel(goCtx context.Context, msg *channeltypesv2.MsgCreateChannel) (*channeltypesv2.MsgCreateChannelResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	channelID := k.channelKeeperV1.GenerateChannelIdentifier(ctx)
+
+	// Initialize channel with empty counterparty channel identifier.
+	channel := channeltypesv2.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
+	k.SetChannel(ctx, channelID, channel)
+
+	k.SetCreator(ctx, channelID, msg.Signer)
+
+	k.EmitCreateChannelEvent(goCtx, channelID)
+
+	return &channeltypesv2.MsgCreateChannelResponse{ChannelId: channelID}, nil
+}
+
+// ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
+func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *channeltypesv2.MsgProvideCounterparty) (*channeltypesv2.MsgProvideCounterpartyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	creator, found := k.GetCreator(ctx, msg.ChannelId)
+	if !found {
+		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "channel creator must be set")
+	}
+
+	if creator != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "channel creator (%s) must match signer (%s)", creator, msg.Signer)
+	}
+
+	channel, ok := k.GetChannel(ctx, msg.ChannelId)
+	if !ok {
+		return nil, errorsmod.Wrapf(channeltypesv2.ErrInvalidChannel, "channel must exist for channel id %s", msg.ChannelId)
+	}
+
+	channel.CounterpartyChannelId = msg.CounterpartyChannelId
+	k.SetChannel(ctx, msg.ChannelId, channel)
+	// Delete client creator from state as it is not needed after this point.
+	k.DeleteCreator(ctx, msg.ChannelId)
+
+	return &channeltypesv2.MsgProvideCounterpartyResponse{}, nil
 }

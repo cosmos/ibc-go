@@ -14,5 +14,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgRecvPacket{},
 		&MsgTimeout{},
 		&MsgAcknowledgement{},
+		&MsgCreateChannel{},
+		&MsgProvideCounterparty{},
 	)
 }

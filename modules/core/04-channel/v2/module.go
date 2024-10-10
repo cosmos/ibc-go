@@ -3,8 +3,8 @@ package client
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/client/cli"
-	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/client/cli"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 )
 
 // Name returns the IBC client name

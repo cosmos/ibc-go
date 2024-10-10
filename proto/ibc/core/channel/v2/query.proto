@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package ibc.core.packetserver.v1;
+package ibc.core.channel.v2;
 
-option go_package = "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types";
 
-import "ibc/core/packetserver/v1/channel.proto";
+import "ibc/core/channel/v2/channel.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
 

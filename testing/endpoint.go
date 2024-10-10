@@ -16,10 +16,10 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
@@ -178,7 +178,7 @@ func (endpoint *Endpoint) FreezeClient() {
 
 // ProvideCounterparty will construct and execute a MsgProvideCounterparty on the associated endpoint.
 func (endpoint *Endpoint) ProvideCounterparty() (err error) {
-	msg := packetservertypes.NewMsgProvideCounterparty(endpoint.ChannelID, endpoint.Counterparty.ChannelID, endpoint.Chain.SenderAccount.GetAddress().String())
+	msg := channeltypesv2.NewMsgProvideCounterparty(endpoint.ChannelID, endpoint.Counterparty.ChannelID, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	// setup counterparty
 	_, err = endpoint.Chain.SendMsgs(msg)
@@ -188,7 +188,7 @@ func (endpoint *Endpoint) ProvideCounterparty() (err error) {
 
 // CreateChannel will construct and execute a new MsgCreateChannel on the associated endpoint.
 func (endpoint *Endpoint) CreateChannel() (err error) {
-	msg := packetservertypes.NewMsgCreateChannel(endpoint.ClientID, MerklePath, endpoint.Chain.SenderAccount.GetAddress().String())
+	msg := channeltypesv2.NewMsgCreateChannel(endpoint.ClientID, MerklePath, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	// create channel
 	res, err := endpoint.Chain.SendMsgs(msg)

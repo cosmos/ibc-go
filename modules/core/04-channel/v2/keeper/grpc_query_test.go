@@ -6,9 +6,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -28,8 +28,8 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 			"success",
 			func() {
 				ctx := suite.chainA.GetContext()
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCreator(ctx, ibctesting.FirstChannelID, expCreator)
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetChannel(ctx, ibctesting.FirstChannelID, expChannel)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetCreator(ctx, ibctesting.FirstChannelID, expCreator)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(ctx, ibctesting.FirstChannelID, expChannel)
 
 				req = &types.QueryChannelRequest{
 					ChannelId: ibctesting.FirstChannelID,
@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 			func() {
 				expCreator = ""
 
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetChannel(suite.chainA.GetContext(), ibctesting.FirstChannelID, expChannel)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(suite.chainA.GetContext(), ibctesting.FirstChannelID, expChannel)
 
 				req = &types.QueryChannelRequest{
 					ChannelId: ibctesting.FirstChannelID,
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 			func() {
 				expChannel = types.Channel{}
 
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCreator(suite.chainA.GetContext(), ibctesting.FirstChannelID, expCreator)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetCreator(suite.chainA.GetContext(), ibctesting.FirstChannelID, expCreator)
 
 				req = &types.QueryChannelRequest{
 					ChannelId: ibctesting.FirstChannelID,
@@ -100,7 +100,7 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 
 			tc.malleate()
 
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.PacketServerKeeper)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2)
 			res, err := queryServer.Channel(suite.chainA.GetContext(), req)
 
 			expPass := tc.expError == nil
