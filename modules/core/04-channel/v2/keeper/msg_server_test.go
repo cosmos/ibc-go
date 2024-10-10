@@ -58,9 +58,9 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		{
 			name: "failure: counterparty not found",
 			malleate: func() {
-				msg.SourceId = "foo"
+				msg.SourceChannel = "foo"
 			},
-			expError: fmt.Errorf("counterparty not found"),
+			expError: channeltypesv1.ErrChannelNotFound,
 		},
 		{
 			name: "failure: route to non existing app",
@@ -81,9 +81,9 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			path.SetupV2()
 
 			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
-			msg = channeltypesv2.NewMsgSendPacket(path.EndpointA.ClientID, timeoutTimestamp, suite.chainA.SenderAccount.GetAddress().String(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			msg = channeltypesv2.NewMsgSendPacket(path.EndpointA.ChannelID, timeoutTimestamp, suite.chainA.SenderAccount.GetAddress().String(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
 
-			expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ClientID, path.EndpointB.ClientID, timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
 
 			tc.malleate()
 
@@ -96,11 +96,11 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 
 				ck := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeperV2
 
-				packetCommitment, ok := ck.GetPacketCommitment(path.EndpointA.Chain.GetContext(), path.EndpointA.ClientID, 1)
-				suite.Require().True(ok)
-				suite.Require().Equal(channeltypesv2.CommitPacket(expectedPacket), []byte(packetCommitment), "packet commitment is not stored correctly")
+				packetCommitment := ck.GetPacketCommitment(path.EndpointA.Chain.GetContext(), path.EndpointA.ChannelID, 1)
+				suite.Require().NotNil(packetCommitment)
+				suite.Require().Equal(channeltypesv2.CommitPacket(expectedPacket), packetCommitment, "packet commitment is not stored correctly")
 
-				nextSequenceSend, ok := ck.GetNextSequenceSend(path.EndpointA.Chain.GetContext(), path.EndpointA.ClientID)
+				nextSequenceSend, ok := ck.GetNextSequenceSend(path.EndpointA.Chain.GetContext(), path.EndpointA.ChannelID)
 				suite.Require().True(ok)
 				suite.Require().Equal(uint64(2), nextSequenceSend, "next sequence send was not incremented correctly")
 

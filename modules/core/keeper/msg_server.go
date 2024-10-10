@@ -16,6 +16,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
+	packetserverkeeper "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
@@ -29,8 +30,6 @@ var (
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
-// It stores the signer of MsgCreateClient as the creator of the client, which is afterwards
-// compared against the signer of MsgProvideCounterparty.
 // NOTE: The raw bytes of the concrete types encoded into protobuf.Any is passed to the client keeper.
 // The 02-client handler will route to the appropriate light client module based on client type and it is the responsibility
 // of the light client module to unmarshal and interpret the proto encoded bytes.
@@ -49,9 +48,7 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 		return nil, err
 	}
 
-	k.ClientKeeper.SetCreator(ctx, clientID, msg.Signer)
-
-	return &clienttypes.MsgCreateClientResponse{}, nil
+	return &clienttypes.MsgCreateClientResponse{ClientId: clientID}, nil
 }
 
 // UpdateClient defines a rpc handler method for MsgUpdateClient.
@@ -149,11 +146,13 @@ func (k *Keeper) CreateChannel(goCtx context.Context, msg *packetservertypes.Msg
 
 	channelID := k.ChannelKeeper.GenerateChannelIdentifier(ctx)
 
-	// Initialize counterparty with empty counterparty channel identifier.
-	counterparty := packetservertypes.NewCounterparty(msg.ClientId, "", msg.MerklePathPrefix)
-	k.PacketServerKeeper.SetCounterparty(ctx, channelID, counterparty)
+	// Initialize channel with empty counterparty channel identifier.
+	channel := packetservertypes.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
+	k.PacketServerKeeper.SetChannel(ctx, channelID, channel)
 
-	k.ClientKeeper.SetCreator(ctx, channelID, msg.Signer)
+	k.PacketServerKeeper.SetCreator(ctx, channelID, msg.Signer)
+
+	packetserverkeeper.EmitCreateChannelEvent(goCtx, channelID)
 
 	return &packetservertypes.MsgCreateChannelResponse{ChannelId: channelID}, nil
 }
@@ -162,22 +161,24 @@ func (k *Keeper) CreateChannel(goCtx context.Context, msg *packetservertypes.Msg
 func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *packetservertypes.MsgProvideCounterparty) (*packetservertypes.MsgProvideCounterpartyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	creator, found := k.ClientKeeper.GetCreator(ctx, msg.Counterparty.ClientId)
+	creator, found := k.PacketServerKeeper.GetCreator(ctx, msg.ChannelId)
 	if !found {
-		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "client creator must be set")
+		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "channel creator must be set")
 	}
 
 	if creator != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "client creator (%s) must match signer (%s)", creator, msg.Signer)
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "channel creator (%s) must match signer (%s)", creator, msg.Signer)
 	}
 
-	if _, ok := k.PacketServerKeeper.GetCounterparty(ctx, msg.ChannelId); ok {
-		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidCounterparty, "counterparty already exists for client %s", msg.ChannelId)
+	channel, ok := k.PacketServerKeeper.GetChannel(ctx, msg.ChannelId)
+	if !ok {
+		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidChannel, "channel must exist for channel id %s", msg.ChannelId)
 	}
 
-	k.PacketServerKeeper.SetCounterparty(ctx, msg.ChannelId, msg.Counterparty)
+	channel.CounterpartyChannelId = msg.CounterpartyChannelId
+	k.PacketServerKeeper.SetChannel(ctx, msg.ChannelId, channel)
 	// Delete client creator from state as it is not needed after this point.
-	k.ClientKeeper.DeleteCreator(ctx, msg.Counterparty.ClientId)
+	k.PacketServerKeeper.DeleteCreator(ctx, msg.ChannelId)
 
 	return &packetservertypes.MsgProvideCounterpartyResponse{}, nil
 }
