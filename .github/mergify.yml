@@ -1,6 +1,9 @@
 queue_rules:
   - name: default
-    conditions:
+    commit_message_template: |
+      {{ title }} (#{{ number }})
+      {{ body }}
+    merge_conditions:
       - "#approved-reviews-by>=1"
       - base=main
       - label=automerge
@@ -14,10 +17,7 @@ pull_request_rules:
     actions:
       queue:
         name: default
-        method: squash
-        commit_message_template: |
-          {{ title }} (#{{ number }})
-          {{ body }}
+        merge_method: squash
   - name: backport patches to v0.1.x callbacks ibc-go v7.3.x branch
     conditions:
       - base=main
