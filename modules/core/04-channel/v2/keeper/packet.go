@@ -17,18 +17,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
-// getV1Channel attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
-// to a v2 channel and stores it in the v2 channel keeper for future use
-func (k *Keeper) getV1Channel(ctx context.Context, port, id string) (channeltypesv2.Channel, bool) {
-	if channel, ok := k.AliasV1Channel(ctx, port, id); ok {
-		// we can key on just the channel here since channel ids are globally unique
-		k.SetChannel(ctx, id, channel)
-		return channel, true
-	}
-
-	return channeltypesv2.Channel{}, false
-}
-
 // sendPacket constructs a packet from the input arguments, writes a packet commitment to state
 // in order for the packet to be sent to the counterparty.
 func (k *Keeper) sendPacket(
@@ -106,7 +94,7 @@ func (k *Keeper) sendPacket(
 // The packet handler will verify that the packet has not timed out and that the
 // counterparty stored a packet commitment. If successful, a packet receipt is stored
 // to indicate to the counterparty successful delivery.
-func (k Keeper) recvPacket(
+func (k *Keeper) recvPacket(
 	ctx context.Context,
 	packet channeltypesv2.Packet,
 	proof []byte,
@@ -138,8 +126,7 @@ func (k Keeper) recvPacket(
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
 	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
 	// by the increase of the recvStartSequence.
-	_, found := k.GetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence)
-	if found {
+	if k.HasPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence) {
 		EmitRecvPacketEvents(ctx, packet)
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
@@ -174,6 +161,62 @@ func (k Keeper) recvPacket(
 	return nil
 }
 
+func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Packet, acknowledgement channeltypesv2.Acknowledgement, proof []byte, proofHeight exported.Height) error {
+	// Lookup counterparty associated with our channel and ensure
+	// that the packet was indeed sent by our counterparty.
+	counterparty, ok := k.GetChannel(ctx, packet.SourceChannel)
+	if !ok {
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
+	}
+
+	if counterparty.ClientId != packet.DestinationChannel {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+	clientID := counterparty.ClientId
+
+	commitment := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
+	if len(commitment) == 0 {
+		// TODO: signal noop in events?
+		EmitAcknowledgePacketEvents(ctx, packet)
+
+		// This error indicates that the acknowledgement has already been relayed
+		// or there is a misconfigured relayer attempting to prove an acknowledgement
+		// for a packet never sent. Core IBC will treat this error as a no-op in order to
+		// prevent an entire relay transaction from failing and consuming unnecessary fees.
+		return channeltypes.ErrNoOpMsg
+	}
+
+	packetCommitment := channeltypesv2.CommitPacket(packet)
+
+	// verify we sent the packet and haven't cleared it out yet
+	if !bytes.Equal(commitment, packetCommitment) {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
+	}
+
+	path := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+
+	if err := k.ClientKeeper.VerifyMembership(
+		ctx,
+		clientID,
+		proofHeight,
+		0, 0,
+		proof,
+		merklePath,
+		channeltypesv2.CommitAcknowledgement(acknowledgement),
+	); err != nil {
+		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientID)
+	}
+
+	k.DeletePacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
+
+	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "source_channel_id", packet.GetSourceChannel(), "destination_channel_id", packet.GetDestinationChannel())
+
+	EmitAcknowledgePacketEvents(ctx, packet)
+
+	return nil
+}
+
 // timeoutPacket implements the timeout logic required by a packet handler.
 // The packet is checked for correctness including asserting that the packet was
 // sent and received on clients which are counterparties for one another.
@@ -181,7 +224,7 @@ func (k Keeper) recvPacket(
 // an absence proof of the packet receipt is performed to ensure that the packet
 // was never delivered to the counterparty. If successful, the packet commitment
 // is deleted and the packet has completed its lifecycle.
-func (k Keeper) timeoutPacket(
+func (k *Keeper) timeoutPacket(
 	ctx context.Context,
 	packet channeltypesv2.Packet,
 	proof []byte,
@@ -210,9 +253,8 @@ func (k Keeper) timeoutPacket(
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
-	commitment, ok := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
-
-	if !ok {
+	commitment := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
+	if len(commitment) == 0 {
 		EmitTimeoutPacketEvents(ctx, packet)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
@@ -223,7 +265,7 @@ func (k Keeper) timeoutPacket(
 
 	packetCommitment := channeltypesv2.CommitPacket(packet)
 	// verify we sent the packet and haven't cleared it out yet
-	if !bytes.Equal([]byte(commitment), packetCommitment) {
+	if !bytes.Equal(commitment, packetCommitment) {
 		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
