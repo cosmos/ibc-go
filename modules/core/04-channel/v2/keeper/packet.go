@@ -21,17 +21,17 @@ import (
 // in order for the packet to be sent to the counterparty.
 func (k *Keeper) sendPacket(
 	ctx context.Context,
-	sourceID string,
+	sourceChannel string,
 	timeoutTimestamp uint64,
 	data []channeltypesv2.PacketData,
 ) (uint64, string, error) {
 	// Lookup channel associated with our source channel to retrieve the destination channel
-	channel, ok := k.GetChannel(ctx, sourceID)
+	channel, ok := k.GetChannel(ctx, sourceChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		channel, ok = k.convertV1Channel(ctx, data[0].SourcePort, sourceID)
+		channel, ok = k.convertV1Channel(ctx, data[0].SourcePort, sourceChannel)
 		if !ok {
-			return 0, "", errorsmod.Wrap(types.ErrChannelNotFound, sourceID)
+			return 0, "", errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 		}
 	}
 
@@ -40,13 +40,13 @@ func (k *Keeper) sendPacket(
 
 	// retrieve the sequence send for this channel
 	// if no packets have been sent yet, initialize the sequence to 1.
-	sequence, found := k.GetNextSequenceSend(ctx, sourceID)
+	sequence, found := k.GetNextSequenceSend(ctx, sourceChannel)
 	if !found {
 		sequence = 1
 	}
 
 	// construct packet from given fields and channel state
-	packet := channeltypesv2.NewPacket(sequence, sourceID, destChannel, timeoutTimestamp, data...)
+	packet := channeltypesv2.NewPacket(sequence, sourceChannel, destChannel, timeoutTimestamp, data...)
 
 	if err := packet.ValidateBasic(); err != nil {
 		return 0, "", errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
@@ -76,8 +76,8 @@ func (k *Keeper) sendPacket(
 	commitment := channeltypesv2.CommitPacket(packet)
 
 	// bump the sequence and set the packet commitment, so it is provable by the counterparty
-	k.SetNextSequenceSend(ctx, sourceID, sequence+1)
-	k.SetPacketCommitment(ctx, sourceID, packet.GetSequence(), commitment)
+	k.SetNextSequenceSend(ctx, sourceChannel, sequence+1)
+	k.SetPacketCommitment(ctx, sourceChannel, packet.GetSequence(), commitment)
 
 	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest_channel_id", packet.DestinationChannel, "src_channel_id", packet.SourceChannel)
 
