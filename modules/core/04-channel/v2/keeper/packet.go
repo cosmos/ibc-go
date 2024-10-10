@@ -297,3 +297,50 @@ func (k *Keeper) timeoutPacket(
 
 	return nil
 }
+
+// WriteAcknowledgement writes the acknowledgement to the store.
+func (k Keeper) WriteAcknowledgement(
+	ctx context.Context,
+	packet channeltypesv2.Packet,
+	ack channeltypesv2.Acknowledgement,
+) error {
+	// Lookup channel associated with destination channel ID and ensure
+	// that the packet was indeed sent by our counterparty by verifying
+	// packet sender is our channel's counterparty channel id.
+	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
+	if !ok {
+		// TODO: figure out how aliasing will work when more than one packet data is sent.
+		channel, ok = k.convertV1Channel(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
+		if !ok {
+			return errorsmod.Wrap(channeltypes.ErrChannelNotFound, packet.DestinationChannel)
+		}
+	}
+
+	if channel.CounterpartyChannelId != packet.SourceChannel {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+
+	// NOTE: IBC app modules might have written the acknowledgement synchronously on
+	// the OnRecvPacket callback so we need to check if the acknowledgement is already
+	// set on the store and return an error if so.
+	if k.HasPacketAcknowledgement(ctx, packet.DestinationChannel, packet.Sequence) {
+		return channeltypes.ErrAcknowledgementExists
+	}
+
+	if _, found := k.GetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence); !found {
+		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
+	}
+
+	ackBz := k.cdc.MustMarshal(&ack)
+	// set the acknowledgement so that it can be verified on the other side
+	k.SetPacketAcknowledgement(
+		ctx, packet.DestinationChannel, packet.GetSequence(),
+		channeltypes.CommitAcknowledgement(ackBz),
+	)
+
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)
+
+	EmitWriteAcknowledgementEvents(ctx, packet, ack)
+
+	return nil
+}
