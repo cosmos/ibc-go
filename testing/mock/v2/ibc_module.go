@@ -49,9 +49,9 @@ func (im IBCModule) OnRecvPacket(ctx context.Context, sourceID string, destinati
 	}
 }
 
-func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceID string, destinationID string, data channeltypesv2.PacketData, acknowldgement []byte, relayer sdk.AccAddress) error {
+func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceID string, destinationID string, data channeltypesv2.PacketData, acknowledgement []byte, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnAcknowledgementPacket != nil {
-		return im.IBCApp.OnAcknowledgementPacket(ctx, sourceID, destinationID, data, acknowldgement, relayer)
+		return im.IBCApp.OnAcknowledgementPacket(ctx, sourceID, destinationID, data, acknowledgement, relayer)
 	}
 	return nil
 }

@@ -46,7 +46,7 @@ type IBCModule interface {
 		sourceID string,
 		destinationID string,
 		data channeltypesv2.PacketData,
-		acknowldgement []byte,
+		acknowledgement []byte,
 		relayer sdk.AccAddress,
 	) error
 }
