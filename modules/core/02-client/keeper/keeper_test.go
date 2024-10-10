@@ -129,32 +129,6 @@ func (suite *KeeperTestSuite) TestSetClientState() {
 	suite.Require().Equal(clientState, retrievedState, "Client states are not equal")
 }
 
-func (suite *KeeperTestSuite) TestSetCreator() {
-	clientID := ibctesting.FirstClientID
-	expectedCreator := "test-creator"
-
-	// Set the creator for the client
-	suite.keeper.SetCreator(suite.ctx, clientID, expectedCreator)
-
-	// Retrieve the creator from the store
-	retrievedCreator, found := suite.keeper.GetCreator(suite.ctx, clientID)
-
-	// Verify that the retrieved creator matches the expected creator
-	suite.Require().True(found, "GetCreator did not return stored creator")
-	suite.Require().Equal(expectedCreator, retrievedCreator, "Creator is not retrieved correctly")
-
-	// Verify non stored creator is not found
-	retrievedCreator, found = suite.keeper.GetCreator(suite.ctx, ibctesting.SecondClientID)
-	suite.Require().False(found, "GetCreator unexpectedly returned a creator")
-	suite.Require().Empty(retrievedCreator, "Creator is not empty")
-
-	// Verify that the creator is deleted from the store
-	suite.keeper.DeleteCreator(suite.ctx, clientID)
-	retrievedCreator, found = suite.keeper.GetCreator(suite.ctx, clientID)
-	suite.Require().False(found, "GetCreator unexpectedly returned a creator")
-	suite.Require().Empty(retrievedCreator, "Creator is not empty")
-}
-
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, suite.consensusState)
 

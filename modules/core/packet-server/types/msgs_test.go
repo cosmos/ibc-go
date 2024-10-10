@@ -32,25 +32,18 @@ func (s *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
 			ibcerrors.ErrInvalidAddress,
 		},
 		{
-			"failure: invalid client ID",
+			"failure: invalid channel ID",
 			func() {
 				msg.ChannelId = ""
 			},
 			host.ErrInvalidID,
 		},
 		{
-			"failure: invalid counterparty client ID",
+			"failure: invalid counterparty channel ID",
 			func() {
-				msg.Counterparty.ClientId = ""
+				msg.CounterpartyChannelId = ""
 			},
 			host.ErrInvalidID,
-		},
-		{
-			"failure: empty key path of counterparty of merkle path prefix",
-			func() {
-				msg.Counterparty.MerklePathPrefix.KeyPath = nil
-			},
-			types.ErrInvalidCounterparty,
 		},
 	}
 
@@ -58,7 +51,6 @@ func (s *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
 		msg = types.NewMsgProvideCounterparty(
 			ibctesting.FirstClientID,
 			ibctesting.SecondClientID,
-			commitmenttypes.NewMerklePath([]byte("key")),
 			ibctesting.TestAccAddress,
 		)
 
@@ -103,7 +95,7 @@ func (s *TypesTestSuite) TestMsgCreateChannelValidateBasic() {
 			host.ErrInvalidID,
 		},
 		{
-			"failure: empty key path of counterparty of merkle path prefix",
+			"failure: empty key path",
 			func() {
 				msg.MerklePathPrefix.KeyPath = nil
 			},

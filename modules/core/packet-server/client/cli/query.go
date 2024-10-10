@@ -13,12 +13,12 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
-// getCmdQueryClient defines the command to query the client information (creator and counterparty) for the given client ID.
-func getCmdQueryClient() *cobra.Command {
+// getCmdQueryChannel defines the command to query the client information (creator and channel) for the given client ID.
+func getCmdQueryChannel() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "client [client-id]",
 		Short:   "Query the information of a client.",
-		Long:    "Query the client information (creator and counterparty) for the provided client ID.",
+		Long:    "Query the client information (creator and channel) for the provided client ID.",
 		Example: fmt.Sprintf("%s query %s %s client [client-id]", version.AppName, exported.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -28,11 +28,11 @@ func getCmdQueryClient() *cobra.Command {
 			}
 			clientID := args[0]
 
-			queryClient := types.NewQueryClient(clientCtx)
+			queryChannel := types.NewQueryClient(clientCtx)
 
-			req := &types.QueryClientRequest{ClientId: clientID}
+			req := &types.QueryChannelRequest{ChannelId: clientID}
 
-			res, err := queryClient.Client(cmd.Context(), req)
+			res, err := queryChannel.Channel(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

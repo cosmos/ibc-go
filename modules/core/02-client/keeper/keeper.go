@@ -313,29 +313,6 @@ func (k *Keeper) GetLatestClientConsensusState(ctx context.Context, clientID str
 	return k.GetClientConsensusState(ctx, clientID, clientModule.LatestHeight(ctx, clientID))
 }
 
-// GetCreator returns the creator of the client.
-func (k *Keeper) GetCreator(ctx context.Context, clientID string) (string, bool) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	bz := k.ClientStore(sdkCtx, clientID).Get([]byte(types.CreatorKey))
-	if len(bz) == 0 {
-		return "", false
-	}
-
-	return string(bz), true
-}
-
-// SetCreator sets the creator of the client.
-func (k *Keeper) SetCreator(ctx context.Context, clientID, creator string) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	k.ClientStore(sdkCtx, clientID).Set([]byte(types.CreatorKey), []byte(creator))
-}
-
-// DeleteCreator deletes the creator associated with the client.
-func (k *Keeper) DeleteCreator(ctx context.Context, clientID string) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	k.ClientStore(sdkCtx, clientID).Delete([]byte(types.CreatorKey))
-}
-
 // VerifyMembership retrieves the light client module for the clientID and verifies the proof of the existence of a key-value pair at a specified height.
 func (k *Keeper) VerifyMembership(ctx context.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error {
 	clientModule, err := k.Route(ctx, clientID)

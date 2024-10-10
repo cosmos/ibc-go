@@ -89,14 +89,14 @@ func TestValidateBasic(t *testing.T) {
 		{
 			"failure: invalid source channel ID",
 			func() {
-				packet.SourceId = ""
+				packet.SourceChannel = ""
 			},
 			host.ErrInvalidID,
 		},
 		{
 			"failure: invalid dest channel ID",
 			func() {
-				packet.DestinationId = ""
+				packet.DestinationChannel = ""
 			},
 			host.ErrInvalidID,
 		},
