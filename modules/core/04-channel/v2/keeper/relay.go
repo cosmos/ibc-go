@@ -43,7 +43,7 @@ func (k *Keeper) sendPacket(
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
 		counterparty, ok = k.getV1Counterparty(ctx, data[0].SourcePort, sourceID)
 		if !ok {
-			return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceID)
+			return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceID)
 		}
 	}
 
@@ -119,7 +119,7 @@ func (k Keeper) recvPacket(
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
 		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
 		if !ok {
-			return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
+			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
 	if counterparty.ClientId != packet.SourceChannel {
@@ -193,7 +193,7 @@ func (k Keeper) timeoutPacket(
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
 		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].SourcePort, packet.SourceChannel)
 		if !ok {
-			return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
+			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
 

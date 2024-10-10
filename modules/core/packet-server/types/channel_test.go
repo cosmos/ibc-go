@@ -11,7 +11,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
-func TestValidateCounterparty(t *testing.T) {
+func TestValidateChannel(t *testing.T) {
 	testCases := []struct {
 		name             string
 		clientID         string
@@ -66,22 +66,22 @@ func TestValidateCounterparty(t *testing.T) {
 			ibctesting.FirstClientID,
 			ibctesting.FirstChannelID,
 			commitmenttypes.NewMerklePath(),
-			types.ErrInvalidCounterparty,
+			types.ErrInvalidChannel,
 		},
 		{
 			"failure: empty key in merkle path prefix first element",
 			ibctesting.FirstClientID,
 			ibctesting.FirstChannelID,
 			commitmenttypes.NewMerklePath([]byte(""), []byte("ibc")),
-			types.ErrInvalidCounterparty,
+			types.ErrInvalidChannel,
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
-		counterparty := types.NewCounterparty(tc.clientID, tc.channelID, tc.merklePathPrefix)
-		err := counterparty.Validate()
+		channel := types.NewChannel(tc.clientID, tc.channelID, tc.merklePathPrefix)
+		err := channel.Validate()
 
 		expPass := tc.expError == nil
 		if expPass {

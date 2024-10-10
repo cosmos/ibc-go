@@ -19,7 +19,7 @@ import (
 
 // SendPacket implements the packet sending logic required by a packet handler.
 // It will generate a packet and store the commitment hash if all arguments provided are valid.
-// The destination channel will be filled in using the counterparty information.
+// The destination channel will be filled in using the channel information.
 // The next sequence send will be initialized if this is the first packet sent for the given client.
 func (k Keeper) SendPacket(
 	ctx context.Context,
@@ -31,22 +31,22 @@ func (k Keeper) SendPacket(
 	version string,
 	data []byte,
 ) (uint64, error) {
-	// Lookup counterparty associated with our source channel to retrieve the destination channel
-	counterparty, ok := k.GetCounterparty(ctx, sourceChannel)
+	// Lookup channel associated with our source channel to retrieve the destination channel
+	channel, ok := k.GetChannel(ctx, sourceChannel)
 	if !ok {
-		// If the counterparty is not found, attempt to retrieve a v1 channel from the channel keeper
-		// if it exists, then we will convert it to a v2 counterparty and store it in the packet server keeper
+		// If the channel is not found, attempt to retrieve a v1 channel from the channel keeper
+		// if it exists, then we will convert it to a v2 channel and store it in the packet server keeper
 		// for future use.
-		if counterparty, ok = k.ChannelKeeper.GetV2Counterparty(ctx, sourcePort, sourceChannel); ok {
+		if channel, ok = k.ChannelKeeper.GetV2Channel(ctx, sourcePort, sourceChannel); ok {
 			// we can key on just the source channel here since channel ids are globally unique
-			k.SetCounterparty(ctx, sourceChannel, counterparty)
+			k.SetChannel(ctx, sourceChannel, channel)
 		} else {
-			// if neither a counterparty nor channel is found then simply return an error
-			return 0, errorsmod.Wrap(types.ErrCounterpartyNotFound, sourceChannel)
+			// if neither a channel v2 nor channel v1 is found then simply return an error
+			return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 		}
 	}
-	destChannel := counterparty.CounterpartyChannelId
-	clientID := counterparty.ClientId
+	destChannel := channel.CounterpartyChannelId
+	clientID := channel.ClientId
 
 	// retrieve the sequence send for this channel
 	// if no packets have been sent yet, initialize the sequence to 1.
@@ -117,26 +117,26 @@ func (k Keeper) RecvPacket(
 
 	// packetv2 := convert(packet)
 
-	// Lookup counterparty associated with our channel and ensure
-	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationChannel)
+	// Lookup channel associated with our channel and ensure
+	// that the packet was indeed sent by our channel.
+	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
-		// If the counterparty is not found, attempt to retrieve a v1 channel from the channel keeper
-		// if it exists, then we will convert it to a v2 counterparty and store it in the packet server keeper
+		// If the channel is not found, attempt to retrieve a v1 channel from the channel keeper
+		// if it exists, then we will convert it to a v2 channel and store it in the packet server keeper
 		// for future use.
-		if counterparty, ok = k.ChannelKeeper.GetV2Counterparty(ctx, packet.DestinationPort, packet.DestinationChannel); ok {
+		if channel, ok = k.ChannelKeeper.GetV2Channel(ctx, packet.DestinationPort, packet.DestinationChannel); ok {
 			// we can key on just the destination channel here since channel ids are globally unique
-			k.SetCounterparty(ctx, packet.DestinationChannel, counterparty)
+			k.SetChannel(ctx, packet.DestinationChannel, channel)
 		} else {
-			// if neither a counterparty nor channel is found then simply return an error
-			return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
+			// if neither a channel v1 nor channel v1 is found then simply return an error
+			return "", errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
 
-	if counterparty.CounterpartyChannelId != packet.SourceChannel {
+	if channel.CounterpartyChannelId != packet.SourceChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
-	clientID := counterparty.ClientId
+	clientID := channel.ClientId
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
@@ -159,7 +159,7 @@ func (k Keeper) RecvPacket(
 	}
 
 	path := host.PacketCommitmentKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	commitment := channeltypes.CommitPacket(packet)
 
@@ -203,13 +203,13 @@ func (k Keeper) WriteAcknowledgement(
 		return channeltypes.ErrInvalidPacket
 	}
 
-	// Lookup counterparty associated with our channel and ensure
+	// Lookup channel associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationChannel)
+	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
-		return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationChannel)
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 	}
-	if counterparty.CounterpartyChannelId != packet.SourceChannel {
+	if channel.CounterpartyChannelId != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -261,15 +261,15 @@ func (k Keeper) AcknowledgePacket(
 
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.SourceChannel)
+	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceChannel)
+		return "", errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
 
-	if counterparty.CounterpartyChannelId != packet.DestinationChannel {
+	if channel.CounterpartyChannelId != packet.DestinationChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
-	clientID := counterparty.ClientId
+	clientID := channel.ClientId
 
 	commitment := k.ChannelKeeper.GetPacketCommitment(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
@@ -290,7 +290,7 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	path := host.PacketAcknowledgementKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
@@ -330,17 +330,17 @@ func (k Keeper) TimeoutPacket(
 	if packet.ProtocolVersion != channeltypes.IBC_VERSION_2 {
 		return "", channeltypes.ErrInvalidPacket
 	}
-	// Lookup counterparty associated with our channel and ensure
+	// Lookup channel associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.SourceChannel)
+	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		return "", errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.SourceChannel)
+		return "", errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
 
-	if counterparty.CounterpartyChannelId != packet.DestinationChannel {
+	if channel.CounterpartyChannelId != packet.DestinationChannel {
 		return "", channeltypes.ErrInvalidChannelIdentifier
 	}
-	clientID := counterparty.ClientId
+	clientID := channel.ClientId
 
 	// check that timeout height or timeout timestamp has passed on the other end
 	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientID, proofHeight)
@@ -373,7 +373,7 @@ func (k Keeper) TimeoutPacket(
 
 	// verify packet receipt absence
 	path := host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,

@@ -301,7 +301,7 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 				// any non-nil value of packet is valid
 				suite.Require().NotNil(packet)
 			},
-			packetservertypes.ErrCounterpartyNotFound,
+			packetservertypes.ErrChannelNotFound,
 			false,
 			false,
 			false,
@@ -658,7 +658,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacketV2() {
 			func() {
 				packet.SourceChannel = "invalid-client"
 			},
-			packetservertypes.ErrCounterpartyNotFound,
+			packetservertypes.ErrChannelNotFound,
 			false,
 		},
 		{
@@ -984,7 +984,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacketV2() {
 
 				packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			},
-			packetservertypes.ErrCounterpartyNotFound,
+			packetservertypes.ErrChannelNotFound,
 			false,
 		},
 	}
@@ -1217,7 +1217,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			"success",
 			func() {
 				// set it before handler
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), msg.ChannelId, packetservertypes.NewCounterparty(path.EndpointA.ClientID, "", ibctesting.MerklePath))
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetChannel(suite.chainA.GetContext(), msg.ChannelId, packetservertypes.NewChannel(path.EndpointA.ClientID, "", ibctesting.MerklePath))
 			},
 			nil,
 		},
@@ -1231,9 +1231,9 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 		{
 			"failure: counterparty does not already exists",
 			func() {
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(packetservertypes.CounterpartyKey))
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(packetservertypes.ChannelKey))
 			},
-			packetservertypes.ErrInvalidCounterparty,
+			packetservertypes.ErrInvalidChannel,
 		},
 	}
 
@@ -1258,9 +1258,9 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			suite.Require().Nil(err)
 
 			// Assert counterparty channel id filled in and creator deleted
-			counterparty, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCounterparty(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+			channel, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelID)
 			suite.Require().True(found)
-			suite.Require().Equal(counterparty.CounterpartyChannelId, path.EndpointB.ChannelID)
+			suite.Require().Equal(channel.CounterpartyChannelId, path.EndpointB.ChannelID)
 
 			_, found = suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().False(found)

@@ -8,22 +8,22 @@ import (
 
 const testClientID = "tendermint-0"
 
-func (suite *KeeperTestSuite) TestSetCounterparty() {
+func (suite *KeeperTestSuite) TestSetChannel() {
 	merklePathPrefix := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
-	counterparty := types.Counterparty{
+	channel := types.Channel{
 		ClientId:         testClientID,
 		MerklePathPrefix: merklePathPrefix,
 	}
-	suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), testClientID, counterparty)
+	suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetChannel(suite.chainA.GetContext(), testClientID, channel)
 
-	retrievedCounterparty, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCounterparty(suite.chainA.GetContext(), testClientID)
-	suite.Require().True(found, "GetCounterparty does not return counterparty")
-	suite.Require().Equal(counterparty, retrievedCounterparty, "Counterparty retrieved not equal")
+	retrievedChannel, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetChannel(suite.chainA.GetContext(), testClientID)
+	suite.Require().True(found, "GetChannel does not return channel")
+	suite.Require().Equal(channel, retrievedChannel, "Channel retrieved not equal")
 
-	// Counterparty not yet stored for another client.
-	retrievedCounterparty, found = suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCounterparty(suite.chainA.GetContext(), ibctesting.SecondClientID)
-	suite.Require().False(found, "GetCounterparty unexpectedly returned a counterparty")
-	suite.Require().Equal(types.Counterparty{}, retrievedCounterparty, "Counterparty retrieved not empty")
+	// Channel not yet stored for another client.
+	retrievedChannel, found = suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetChannel(suite.chainA.GetContext(), ibctesting.SecondClientID)
+	suite.Require().False(found, "GetChannel unexpectedly returned a channel")
+	suite.Require().Equal(types.Channel{}, retrievedChannel, "Channel retrieved not empty")
 }
 
 func (suite *KeeperTestSuite) TestSetCreator() {

@@ -4,25 +4,25 @@ package ibc.core.packetserver.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types";
 
-import "ibc/core/packetserver/v1/counterparty.proto";
+import "ibc/core/packetserver/v1/channel.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
 
 // Query provides defines the gRPC querier service
 service Query {
-  // Client queries the counterparty of an IBC client.
-  rpc Client(QueryClientRequest) returns (QueryClientResponse) {
-    option (google.api.http).get = "/ibc/core/client/v1/clients/{client_id}";
+  // Channel queries the counterparty of an IBC client.
+  rpc Channel(QueryChannelRequest) returns (QueryChannelResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v2/channel/{channel_id}";
   }
 }
 
-// QueryClientRequest is the request type for the Query/Client RPC method
-message QueryClientRequest {
-  string client_id = 1;
+// QueryChannelRequest is the request type for the Query/Channel RPC method
+message QueryChannelRequest {
+  string channel_id = 1;
 }
 
-// QueryClientRequest is the response type for the Query/Client RPC method
-message QueryClientResponse {
-  string       creator      = 1;
-  Counterparty counterparty = 2 [(gogoproto.nullable) = false];
+// QueryChannelRequest is the response type for the Query/Channel RPC method
+message QueryChannelResponse {
+  string  creator = 1;
+  Channel channel = 2 [(gogoproto.nullable) = false];
 }

@@ -12,11 +12,11 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
-func (suite *KeeperTestSuite) TestQueryClient() {
+func (suite *KeeperTestSuite) TestQueryChannel() {
 	var (
-		req             *types.QueryClientRequest
-		expCreator      string
-		expCounterparty types.Counterparty
+		req        *types.QueryChannelRequest
+		expCreator string
+		expChannel types.Channel
 	)
 
 	testCases := []struct {
@@ -28,11 +28,11 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 			"success",
 			func() {
 				ctx := suite.chainA.GetContext()
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCreator(ctx, ibctesting.FirstClientID, expCreator)
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(ctx, ibctesting.FirstClientID, expCounterparty)
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCreator(ctx, ibctesting.FirstChannelID, expCreator)
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetChannel(ctx, ibctesting.FirstChannelID, expChannel)
 
-				req = &types.QueryClientRequest{
-					ClientId: ibctesting.FirstClientID,
+				req = &types.QueryChannelRequest{
+					ChannelId: ibctesting.FirstChannelID,
 				}
 			},
 			nil,
@@ -42,23 +42,23 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 			func() {
 				expCreator = ""
 
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCounterparty(suite.chainA.GetContext(), ibctesting.FirstClientID, expCounterparty)
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetChannel(suite.chainA.GetContext(), ibctesting.FirstChannelID, expChannel)
 
-				req = &types.QueryClientRequest{
-					ClientId: ibctesting.FirstClientID,
+				req = &types.QueryChannelRequest{
+					ChannelId: ibctesting.FirstChannelID,
 				}
 			},
 			nil,
 		},
 		{
-			"success: no counterparty",
+			"success: no channel",
 			func() {
-				expCounterparty = types.Counterparty{}
+				expChannel = types.Channel{}
 
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCreator(suite.chainA.GetContext(), ibctesting.FirstClientID, expCreator)
+				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetCreator(suite.chainA.GetContext(), ibctesting.FirstChannelID, expCreator)
 
-				req = &types.QueryClientRequest{
-					ClientId: ibctesting.FirstClientID,
+				req = &types.QueryChannelRequest{
+					ChannelId: ibctesting.FirstChannelID,
 				}
 			},
 			nil,
@@ -71,18 +71,18 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
-			"no creator and no counterparty",
+			"no creator and no channel",
 			func() {
-				req = &types.QueryClientRequest{
-					ClientId: ibctesting.FirstClientID,
+				req = &types.QueryChannelRequest{
+					ChannelId: ibctesting.FirstChannelID,
 				}
 			},
-			status.Error(codes.NotFound, fmt.Sprintf("client-id: %s: counterparty not found", ibctesting.FirstClientID)),
+			status.Error(codes.NotFound, fmt.Sprintf("channel-id: %s: channel not found", ibctesting.FirstChannelID)),
 		},
 		{
-			"invalid clientID",
+			"invalid channelID",
 			func() {
-				req = &types.QueryClientRequest{}
+				req = &types.QueryChannelRequest{}
 			},
 			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
 		},
@@ -96,19 +96,19 @@ func (suite *KeeperTestSuite) TestQueryClient() {
 
 			expCreator = ibctesting.TestAccAddress
 			merklePathPrefix := commitmenttypes.NewMerklePath([]byte("prefix"))
-			expCounterparty = types.Counterparty{ClientId: ibctesting.SecondClientID, MerklePathPrefix: merklePathPrefix}
+			expChannel = types.Channel{ClientId: ibctesting.SecondClientID, CounterpartyChannelId: ibctesting.SecondChannelID, MerklePathPrefix: merklePathPrefix}
 
 			tc.malleate()
 
 			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.PacketServerKeeper)
-			res, err := queryServer.Client(suite.chainA.GetContext(), req)
+			res, err := queryServer.Channel(suite.chainA.GetContext(), req)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expCreator, res.Creator)
-				suite.Require().Equal(expCounterparty, res.Counterparty)
+				suite.Require().Equal(expChannel, res.Channel)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Nil(res)
