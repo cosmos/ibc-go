@@ -15,15 +15,16 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestMsgSendPacket() {
-	var path *ibctesting.Path
-	var msg *channeltypesv2.MsgSendPacket
-	var expectedPacket channeltypesv2.Packet
+	var (
+		path           *ibctesting.Path
+		msg            *channeltypesv2.MsgSendPacket
+		expectedPacket channeltypesv2.Packet
+	)
 
 	testCases := []struct {
-		name        string
-		malleate    func()
-		expError    error
-		shouldPanic bool
+		name     string
+		malleate func()
+		expError error
 	}{
 		{
 			name:     "success",
@@ -105,7 +106,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 
 			} else {
 				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
 			}
 		})
 	}
