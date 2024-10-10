@@ -61,9 +61,9 @@ func (k Keeper) ChannelStore(ctx context.Context, channelID string) storetypes.K
 }
 
 // SetChannel sets the Channel for a given channel identifier.
-func (k *Keeper) SetChannel(ctx context.Context, clientID string, channel types.Channel) {
+func (k *Keeper) SetChannel(ctx context.Context, channelID string, channel types.Channel) {
 	bz := k.cdc.MustMarshal(&channel)
-	k.ChannelStore(ctx, clientID).Set([]byte(types.ChannelKey), bz)
+	k.ChannelStore(ctx, channelID).Set([]byte(types.ChannelKey), bz)
 }
 
 // GetChannel gets the Channel for a given channel identifier.
