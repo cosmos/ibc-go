@@ -16,8 +16,6 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
-	packetserverkeeper "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
-	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
@@ -26,7 +24,6 @@ var (
 	_ connectiontypes.MsgServer    = (*Keeper)(nil)
 	_ channeltypes.MsgServer       = (*Keeper)(nil)
 	_ channeltypes.PacketMsgServer = (*Keeper)(nil)
-	_ packetservertypes.MsgServer  = (*Keeper)(nil)
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
@@ -138,49 +135,6 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 	}
 
 	return &clienttypes.MsgIBCSoftwareUpgradeResponse{}, nil
-}
-
-// CreateChannel defines a rpc handler method for MsgCreateChannel
-func (k *Keeper) CreateChannel(goCtx context.Context, msg *packetservertypes.MsgCreateChannel) (*packetservertypes.MsgCreateChannelResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	channelID := k.ChannelKeeper.GenerateChannelIdentifier(ctx)
-
-	// Initialize channel with empty counterparty channel identifier.
-	channel := packetservertypes.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
-	k.PacketServerKeeper.SetChannel(ctx, channelID, channel)
-
-	k.PacketServerKeeper.SetCreator(ctx, channelID, msg.Signer)
-
-	packetserverkeeper.EmitCreateChannelEvent(goCtx, channelID)
-
-	return &packetservertypes.MsgCreateChannelResponse{ChannelId: channelID}, nil
-}
-
-// ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
-func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *packetservertypes.MsgProvideCounterparty) (*packetservertypes.MsgProvideCounterpartyResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	creator, found := k.PacketServerKeeper.GetCreator(ctx, msg.ChannelId)
-	if !found {
-		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "channel creator must be set")
-	}
-
-	if creator != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "channel creator (%s) must match signer (%s)", creator, msg.Signer)
-	}
-
-	channel, ok := k.PacketServerKeeper.GetChannel(ctx, msg.ChannelId)
-	if !ok {
-		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidChannel, "channel must exist for channel id %s", msg.ChannelId)
-	}
-
-	channel.CounterpartyChannelId = msg.CounterpartyChannelId
-	k.PacketServerKeeper.SetChannel(ctx, msg.ChannelId, channel)
-	// Delete client creator from state as it is not needed after this point.
-	k.PacketServerKeeper.DeleteCreator(ctx, msg.ChannelId)
-
-	return &packetservertypes.MsgProvideCounterpartyResponse{}, nil
 }
 
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
