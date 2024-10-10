@@ -209,7 +209,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pa
 
 	k.DeletePacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
 
-	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "source_id", packet.GetSourceChannel(), "destination_id", packet.GetDestinationChannel())
+	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "source_channel_id", packet.GetSourceChannel(), "destination_channel_id", packet.GetDestinationChannel())
 
 	EmitAcknowledgePacketEvents(ctx, packet)
 
