@@ -164,15 +164,15 @@ func (k *Keeper) recvPacket(
 func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Packet, acknowledgement channeltypesv2.Acknowledgement, proof []byte, proofHeight exported.Height) error {
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetChannel(ctx, packet.SourceChannel)
+	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
 
-	if counterparty.ClientId != packet.DestinationChannel {
+	if channel.ClientId != packet.DestinationChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
-	clientID := counterparty.ClientId
+	clientID := channel.ClientId
 
 	commitment := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
@@ -194,7 +194,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pa
 	}
 
 	path := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
