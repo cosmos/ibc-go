@@ -16,9 +16,9 @@ var _ channeltypesv2.MsgServer = &Keeper{}
 // SendPacket implements the PacketMsgServer SendPacket method.
 func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sequence, err := k.sendPacket(ctx, msg.SourceChannel, msg.TimeoutTimestamp, msg.PacketData)
+	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceChannel, msg.TimeoutTimestamp, msg.PacketData)
 	if err != nil {
-		sdkCtx.Logger().Error("send packet failed", "source-id", msg.SourceChannel, "error", errorsmod.Wrap(err, "send packet failed"))
+		sdkCtx.Logger().Error("send packet failed", "source-channel", msg.SourceChannel, "error", errorsmod.Wrap(err, "send packet failed"))
 		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceChannel)
 	}
 
@@ -28,17 +28,13 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
-	_ = signer
-
-	// TODO: implement once app router is wired up.
-	// https://github.com/cosmos/ibc-go/issues/7384
-	// for _, pd := range msg.PacketData {
-	//	cbs := k.PortKeeper.AppRouter.Route(pd.SourcePort)
-	//	err := cbs.OnSendPacket(ctx, msg.SourceChannel, sequence, msg.TimeoutTimestamp, pd, signer)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	// }
+	for _, pd := range msg.PacketData {
+		cbs := k.Router.Route(pd.SourcePort)
+		err := cbs.OnSendPacket(ctx, msg.SourceChannel, destChannel, sequence, pd, signer)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return &channeltypesv2.MsgSendPacketResponse{Sequence: sequence}, nil
 }
@@ -59,10 +55,10 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAck
 		writeFn()
 	case channeltypesv1.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
-		sdkCtx.Logger().Debug("no-op on redundant relay", "source-id", msg.Packet.SourceChannel)
+		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", msg.Packet.SourceChannel)
 		return &channeltypesv2.MsgAcknowledgementResponse{Result: channeltypesv1.NOOP}, nil
 	default:
-		sdkCtx.Logger().Error("acknowledgement failed", "source-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
+		sdkCtx.Logger().Error("acknowledgement failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
 		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
 	}
 
@@ -86,7 +82,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	err := k.recvPacket(ctx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 	if err != nil {
-		sdkCtx.Logger().Error("receive packet failed", "source-id", msg.Packet.SourceChannel, "dest-id", msg.Packet.DestinationChannel, "error", errorsmod.Wrap(err, "send packet failed"))
+		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "error", errorsmod.Wrap(err, "send packet failed"))
 		return nil, errorsmod.Wrapf(err, "receive packet failed for source id: %s and destination id: %s", msg.Packet.SourceChannel, msg.Packet.DestinationChannel)
 	}
 
@@ -115,7 +111,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout) (*channeltypesv2.MsgTimeoutResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	if err := k.timeoutPacket(ctx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight); err != nil {
-		sdkCtx.Logger().Error("Timeout packet failed", "source-id", timeout.Packet.SourceChannel, "destination-id", timeout.Packet.DestinationChannel, "error", errorsmod.Wrap(err, "timeout packet failed"))
+		sdkCtx.Logger().Error("Timeout packet failed", "source-channel", timeout.Packet.SourceChannel, "destination-channel", timeout.Packet.DestinationChannel, "error", errorsmod.Wrap(err, "timeout packet failed"))
 		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s and destination id: %s", timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel)
 	}
 
