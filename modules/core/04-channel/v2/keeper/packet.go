@@ -21,73 +21,72 @@ import (
 // in order for the packet to be sent to the counterparty.
 func (k *Keeper) sendPacket(
 	ctx context.Context,
-	sourceID string,
+	sourceChannel string,
 	timeoutTimestamp uint64,
 	data []channeltypesv2.PacketData,
-) (uint64, error) {
+) (uint64, string, error) {
 	// Lookup channel associated with our source channel to retrieve the destination channel
-	channel, ok := k.GetChannel(ctx, sourceID)
+	channel, ok := k.GetChannel(ctx, sourceChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		channel, ok = k.convertV1Channel(ctx, data[0].SourcePort, sourceID)
+		channel, ok = k.convertV1Channel(ctx, data[0].SourcePort, sourceChannel)
 		if !ok {
-			return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceID)
+			return 0, "", errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 		}
 	}
 
-	destID := channel.CounterpartyChannelId
+	destChannel := channel.CounterpartyChannelId
 	clientID := channel.ClientId
 
 	// retrieve the sequence send for this channel
 	// if no packets have been sent yet, initialize the sequence to 1.
-	sequence, found := k.GetNextSequenceSend(ctx, sourceID)
+	sequence, found := k.GetNextSequenceSend(ctx, sourceChannel)
 	if !found {
 		sequence = 1
 	}
 
 	// construct packet from given fields and channel state
-	packet := channeltypesv2.NewPacket(sequence, sourceID, destID, timeoutTimestamp, data...)
+	packet := channeltypesv2.NewPacket(sequence, sourceChannel, destChannel, timeoutTimestamp, data...)
 
 	if err := packet.ValidateBasic(); err != nil {
-		return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
+		return 0, "", errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
 	}
 
 	// check that the client of counterparty chain is still active
 	if status := k.ClientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return 0, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+		return 0, "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	// retrieve latest height and timestamp of the client of counterparty chain
 	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, clientID)
 	if latestHeight.IsZero() {
-		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", clientID)
+		return 0, "", errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", clientID)
 	}
 
 	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientID, latestHeight)
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 	// check if packet is timed out on the receiving chain
 	timeout := channeltypes.NewTimeoutWithTimestamp(timeoutTimestamp)
 	if timeout.TimestampElapsed(latestTimestamp) {
-		return 0, errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
+		return 0, "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
 	commitment := channeltypesv2.CommitPacket(packet)
 
 	// bump the sequence and set the packet commitment, so it is provable by the counterparty
-	k.SetNextSequenceSend(ctx, sourceID, sequence+1)
-	k.SetPacketCommitment(ctx, sourceID, packet.GetSequence(), commitment)
+	k.SetNextSequenceSend(ctx, sourceChannel, sequence+1)
+	k.SetPacketCommitment(ctx, sourceChannel, packet.GetSequence(), commitment)
 
 	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest_channel_id", packet.DestinationChannel, "src_channel_id", packet.SourceChannel)
 
 	EmitSendPacketEvents(ctx, packet)
 
-	return sequence, nil
+	return sequence, destChannel, nil
 }
 
 // recvPacket implements the packet receiving logic required by a packet handler.￼
-
 // The packet is checked for correctness including asserting that the packet was
 // sent and received on clients which are counterparties for one another.
 // If the packet has already been received a no-op error is returned.
@@ -111,9 +110,10 @@ func (k *Keeper) recvPacket(
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
-	if channel.ClientId != packet.SourceChannel {
+	if channel.CounterpartyChannelId != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
+	clientID := channel.ClientId
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -141,7 +141,7 @@ func (k *Keeper) recvPacket(
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		packet.DestinationChannel,
+		clientID,
 		proofHeight,
 		0, 0,
 		proof,
@@ -169,7 +169,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pa
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
 
-	if channel.ClientId != packet.DestinationChannel {
+	if channel.CounterpartyChannelId != packet.DestinationChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
 	clientID := channel.ClientId
@@ -240,9 +240,13 @@ func (k *Keeper) timeoutPacket(
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
+	if channel.CounterpartyChannelId != packet.DestinationChannel {
+		return channeltypes.ErrInvalidChannelIdentifier
+	}
+	clientID := channel.ClientId
 
 	// check that timeout height or timeout timestamp has passed on the other end
-	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceChannel, proofHeight)
+	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientID, proofHeight)
 	if err != nil {
 		return err
 	}
@@ -275,7 +279,7 @@ func (k *Keeper) timeoutPacket(
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
-		packet.SourceChannel,
+		clientID,
 		proofHeight,
 		0, 0,
 		proof,

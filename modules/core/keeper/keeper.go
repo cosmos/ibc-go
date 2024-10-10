@@ -86,7 +86,7 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 
 // SetRouterV2 sets the v2 router for the IBC Keeper.
 func (k *Keeper) SetRouterV2(rtr *api.Router) {
-	k.PortKeeper.RouterV2 = rtr
+	k.ChannelKeeperV2.Router = rtr
 }
 
 // GetAuthority returns the ibc module's authority.
