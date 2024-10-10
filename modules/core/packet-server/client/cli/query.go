@@ -28,11 +28,11 @@ func getCmdQueryChannel() *cobra.Command {
 			}
 			clientID := args[0]
 
-			queryChannel := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx)
 
 			req := &types.QueryChannelRequest{ChannelId: clientID}
 
-			res, err := queryChannel.Channel(cmd.Context(), req)
+			res, err := queryClient.Channel(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
