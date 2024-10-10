@@ -195,7 +195,7 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout
 
 // convertToErrorEvents converts all events to error events by appending the
 // error attribute prefix to each event's attribute key.
-// TODO: duplication, create issue for this
+// TODO: https://github.com/cosmos/ibc-go/issues/7436
 func convertToErrorEvents(events sdk.Events) sdk.Events {
 	if events == nil {
 		return nil
