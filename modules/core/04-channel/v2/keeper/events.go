@@ -25,3 +25,8 @@ func EmitAcknowledgePacketEvents(ctx context.Context, packet channeltypesv2.Pack
 func EmitTimeoutPacketEvents(ctx context.Context, packet channeltypesv2.Packet) {
 	// TODO: https://github.com/cosmos/ibc-go/issues/7386
 }
+
+// EmitWriteAcknowledgementEvents emits events for WriteAcknowledgement.
+func EmitWriteAcknowledgementEvents(ctx context.Context, packet channeltypesv2.Packet, ack channeltypesv2.Acknowledgement) {
+	// TODO: https://github.com/cosmos/ibc-go/issues/7386
+}

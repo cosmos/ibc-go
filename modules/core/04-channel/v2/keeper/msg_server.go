@@ -3,13 +3,13 @@ package keeper
 import (
 	"context"
 	"slices"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	telemetryv2 "github.com/cosmos/ibc-go/v9/modules/core/internal/v2/telemetry"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
@@ -157,8 +157,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 		}
 	}
 
-	// TODO: add issue for this
-	// defer telemetry.ReportRecvPacket(msg.Packet)
+	defer telemetryv2.ReportRecvPacket(msg.Packet)
 
 	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "result", channeltypesv1.SUCCESS.String())
 	return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.SUCCESS}, nil

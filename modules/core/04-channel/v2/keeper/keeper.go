@@ -3,10 +3,8 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	corestore "cosmossdk.io/core/store"
-	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
@@ -221,52 +219,4 @@ func (k *Keeper) convertV1Channel(ctx context.Context, port, id string) (types.C
 	}
 
 	return types.Channel{}, false
-}
-
-// WriteAcknowledgement writes the acknowledgement to the store. In the synchronous case, this is done
-// in the core IBC handler. Async applications should call WriteAcknowledgementAsync to update
-// the RecvPacketResult of the relevant application's recvResult.
-func (k Keeper) WriteAcknowledgement(
-	ctx context.Context,
-	packet types.Packet,
-	ack types.Acknowledgement,
-) error {
-	// Lookup channel associated with our source channel to retrieve the destination channel
-	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
-	if !ok {
-		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		channel, ok = k.convertV1Channel(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
-		if !ok {
-			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
-		}
-	}
-
-	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return channeltypesv1.ErrInvalidChannelIdentifier
-	}
-
-	// NOTE: IBC app modules might have written the acknowledgement synchronously on
-	// the OnRecvPacket callback so we need to check if the acknowledgement is already
-	// set on the store and return an error if so.
-	if k.HasPacketAcknowledgement(ctx, packet.DestinationChannel, packet.Sequence) {
-		return channeltypesv1.ErrAcknowledgementExists
-	}
-
-	if _, found := k.GetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence); !found {
-		return errorsmod.Wrap(channeltypesv1.ErrInvalidPacket, "receipt not found for packet")
-	}
-
-	multiAckBz := k.cdc.MustMarshal(&ack)
-	// set the acknowledgement so that it can be verified on the other side
-	k.SetPacketAcknowledgement(
-		ctx, packet.DestinationChannel, packet.GetSequence(),
-		channeltypesv1.CommitAcknowledgement(multiAckBz),
-	)
-
-	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)
-
-	// TODO: figure out events, we MUST emit the MultiAck structure here
-	// channelkeeper.EmitWriteAcknowledgementEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel), multiAck)
-
-	return nil
 }
