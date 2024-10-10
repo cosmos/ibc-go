@@ -298,15 +298,15 @@ func (k *Keeper) timeoutPacket(
 	return nil
 }
 
-// WriteAcknowledgement writes the acknowledgement to the store. In the synchronous case, this is done
-// in the core IBC handler. Async applications should call WriteAcknowledgementAsync to update
-// the RecvPacketResult of the relevant application's recvResult.
+// WriteAcknowledgement writes the acknowledgement to the store.
 func (k Keeper) WriteAcknowledgement(
 	ctx context.Context,
 	packet channeltypesv2.Packet,
 	ack channeltypesv2.Acknowledgement,
 ) error {
-	// Lookup channel associated with our source channel to retrieve the destination channel
+	// Lookup channel associated with destination channel ID and ensure
+	// that the packet was indeed sent by our counterparty by verifying
+	// packet sender is our channel's counterparty channel id.
 	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
@@ -331,11 +331,11 @@ func (k Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
 	}
 
-	multiAckBz := k.cdc.MustMarshal(&ack)
+	ackBz := k.cdc.MustMarshal(&ack)
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
 		ctx, packet.DestinationChannel, packet.GetSequence(),
-		channeltypes.CommitAcknowledgement(multiAckBz),
+		channeltypes.CommitAcknowledgement(ackBz),
 	)
 
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)

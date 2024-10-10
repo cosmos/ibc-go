@@ -253,12 +253,9 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				}
 
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
-
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
 				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence)
 				suite.Require().False(ok)
-				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
 			}
 		})
 	}
