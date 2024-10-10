@@ -55,23 +55,23 @@ func (k Keeper) ChannelStore(ctx context.Context, channelID string) storetypes.K
 	return prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), channelPrefix)
 }
 
-// SetCounterparty sets the Counterparty for a given client identifier.
-func (k *Keeper) SetCounterparty(ctx context.Context, clientID string, counterparty types.Counterparty) {
-	bz := k.cdc.MustMarshal(&counterparty)
-	k.ChannelStore(ctx, clientID).Set([]byte(types.CounterpartyKey), bz)
+// SetChannel sets the Channel for a given client identifier.
+func (k *Keeper) SetChannel(ctx context.Context, clientID string, channel types.Channel) {
+	bz := k.cdc.MustMarshal(&channel)
+	k.ChannelStore(ctx, clientID).Set([]byte(types.ChannelKey), bz)
 }
 
-// GetCounterparty gets the Counterparty for a given client identifier.
-func (k *Keeper) GetCounterparty(ctx context.Context, clientID string) (types.Counterparty, bool) {
+// GetChannel gets the Channel for a given client identifier.
+func (k *Keeper) GetChannel(ctx context.Context, clientID string) (types.Channel, bool) {
 	store := k.ChannelStore(ctx, clientID)
-	bz := store.Get([]byte(types.CounterpartyKey))
+	bz := store.Get([]byte(types.ChannelKey))
 	if len(bz) == 0 {
-		return types.Counterparty{}, false
+		return types.Channel{}, false
 	}
 
-	var counterparty types.Counterparty
-	k.cdc.MustUnmarshal(bz, &counterparty)
-	return counterparty, true
+	var channel types.Channel
+	k.cdc.MustUnmarshal(bz, &channel)
+	return channel, true
 }
 
 // GetPacketReceipt returns the packet receipt from the packet receipt path based on the sourceID and sequence.
@@ -180,38 +180,38 @@ func (k *Keeper) SetNextSequenceSend(ctx context.Context, sourceID string, seque
 
 // AliasV1Channel returns a version 2 channel for the given port and channel ID
 // by converting the channel into a version 2 channel.
-func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.Counterparty, bool) {
+func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.Channel, bool) {
 	channel, ok := k.channelKeeperV1.GetChannel(ctx, portID, channelID)
 	if !ok {
-		return types.Counterparty{}, false
+		return types.Channel{}, false
 	}
-	// Do not allow channel to be converted into a version 2 counterparty
+	// Do not allow channel to be converted into a version 2 channel
 	// if the channel is not OPEN or if it is ORDERED
 	if channel.State != channeltypesv1.OPEN || channel.Ordering == channeltypesv1.ORDERED {
-		return types.Counterparty{}, false
+		return types.Channel{}, false
 	}
 	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !ok {
-		return types.Counterparty{}, false
+		return types.Channel{}, false
 	}
 	merklePathPrefix := commitmentv2types.NewMerklePath(connection.Counterparty.Prefix.KeyPrefix, []byte(""))
 
-	counterparty := types.Counterparty{
+	channelv2 := types.Channel{
 		CounterpartyChannelId: channel.Counterparty.ChannelId,
 		ClientId:              connection.ClientId,
 		MerklePathPrefix:      merklePathPrefix,
 	}
-	return counterparty, true
+	return channelv2, true
 }
 
-// getV1Counterparty attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
+// convertV1Channel attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
 // to a v2 counterparty and stores it in the v2 channel keeper for future use
-func (k *Keeper) getV1Counterparty(ctx context.Context, port, id string) (types.Counterparty, bool) {
+func (k *Keeper) convertV1Channel(ctx context.Context, port, id string) (types.Channel, bool) {
 	if counterparty, ok := k.AliasV1Channel(ctx, port, id); ok {
 		// we can key on just the channel here since channel ids are globally unique
-		k.SetCounterparty(ctx, id, counterparty)
+		k.SetChannel(ctx, id, counterparty)
 		return counterparty, true
 	}
 
-	return types.Counterparty{}, false
+	return types.Channel{}, false
 }

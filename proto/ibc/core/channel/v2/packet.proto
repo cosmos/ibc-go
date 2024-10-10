@@ -1,0 +1,75 @@
+
+syntax = "proto3";
+
+package ibc.core.channel.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types";
+
+import "gogoproto/gogo.proto";
+
+// Packet defines a type that carries data across different chains through IBC
+message Packet {
+  // number corresponds to the order of sends and receives, where a Packet
+  // with an earlier sequence number must be sent and received before a Packet
+  // with a later sequence number.
+  uint64 sequence = 1;
+  // identifies the sending chain.
+  string source_channel = 2;
+  // identifies the receiving chain.
+  string destination_channel = 3;
+  // timeout timestamp after which the packet times out.
+  uint64 timeout_timestamp = 4;
+  // a list of packet data, each one for a specific application.
+  repeated PacketData data = 5 [(gogoproto.nullable) = false];
+}
+
+// PacketData contains the source and destination ports and payload for the application
+message PacketData {
+  // specifies the source port of the packet.
+  string source_port = 1;
+  // specifies the destination port of the packet.
+  string destination_port = 2;
+  // the payload to be sent to the application.
+  Payload payload = 3 [(gogoproto.nullable) = false];
+}
+
+// Payload holds the version, encoding and raw bytes to be passed to an application
+message Payload {
+  // version of the specified application.
+  string version = 1;
+  // the encoding used for the provided value.
+  string encoding = 2;
+  // the raw bytes for the payload.
+  bytes value = 3;
+}
+
+// Acknowledgement contains a list of all ack results associated with a single packet.
+message Acknowledgement {
+  repeated AcknowledgementResult acknowledgement_results = 1 [(gogoproto.nullable) = false];
+}
+
+// AcknowledgementResult of identified acknowledgement. Correlating IBC application name to opaque ack bytes.
+message AcknowledgementResult {
+  string           app_name           = 1;
+  RecvPacketResult recv_packet_result = 2 [(gogoproto.nullable) = false];
+}
+
+// PacketStatus specifies the status of a RecvPacketResult.
+enum PacketStatus {
+  // PACKET_STATUS_UNSPECIFIED indicates an unknown packet status.
+  PACKET_STATUS_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "NONE"];
+  // PACKET_STATUS_SUCCESS indicates a successful packet receipt.
+  PACKET_STATUS_SUCCESS = 1 [(gogoproto.enumvalue_customname) = "Success"];
+  // PACKET_STATUS_FAILURE indicates a failed packet receipt.
+  PACKET_STATUS_FAILURE = 2 [(gogoproto.enumvalue_customname) = "Failure"];
+  // PACKET_STATUS_ASYNC indicates an async packet receipt.
+  PACKET_STATUS_ASYNC = 3 [(gogoproto.enumvalue_customname) = "Async"];
+}
+
+// RecvPacketResult speecifies the status of a packet as well as the acknowledgement bytes.
+message RecvPacketResult {
+  // status of the packet
+  PacketStatus status = 1;
+  // acknowledgement of the packet
+  bytes acknowledgement = 2;
+}

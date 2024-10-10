@@ -25,18 +25,18 @@ func (k *Keeper) sendPacket(
 	timeoutTimestamp uint64,
 	data []channeltypesv2.PacketData,
 ) (uint64, error) {
-	// Lookup counterparty associated with our source channel to retrieve the destination channel
-	counterparty, ok := k.GetCounterparty(ctx, sourceID)
+	// Lookup channel associated with our source channel to retrieve the destination channel
+	channel, ok := k.GetChannel(ctx, sourceID)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		counterparty, ok = k.getV1Counterparty(ctx, data[0].SourcePort, sourceID)
+		channel, ok = k.convertV1Channel(ctx, data[0].SourcePort, sourceID)
 		if !ok {
 			return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceID)
 		}
 	}
 
-	destID := counterparty.CounterpartyChannelId
-	clientID := counterparty.ClientId
+	destID := channel.CounterpartyChannelId
+	clientID := channel.ClientId
 
 	// retrieve the sequence send for this channel
 	// if no packets have been sent yet, initialize the sequence to 1.
@@ -100,17 +100,18 @@ func (k *Keeper) recvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// Lookup counterparty associated with our channel and ensure
-	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationChannel)
+	// Lookup channel associated with destination channel ID and ensure
+	// that the packet was indeed sent by our counterparty by verifying
+	// packet sender is our channel's counterparty channel id.
+	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
+		channel, ok = k.convertV1Channel(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
 		if !ok {
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
-	if counterparty.ClientId != packet.SourceChannel {
+	if channel.ClientId != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
 
@@ -134,7 +135,7 @@ func (k *Keeper) recvPacket(
 	}
 
 	path := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	commitment := channeltypesv2.CommitPacket(packet)
 
@@ -163,7 +164,7 @@ func (k *Keeper) recvPacket(
 func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Packet, acknowledgement channeltypesv2.Acknowledgement, proof []byte, proofHeight exported.Height) error {
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.SourceChannel)
+	counterparty, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
@@ -231,10 +232,10 @@ func (k *Keeper) timeoutPacket(
 ) error {
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.SourceChannel)
+	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].SourcePort, packet.SourceChannel)
+		channel, ok = k.convertV1Channel(ctx, packet.Data[0].SourcePort, packet.SourceChannel)
 		if !ok {
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
@@ -270,7 +271,7 @@ func (k *Keeper) timeoutPacket(
 
 	// verify packet receipt absence
 	path := hostv2.PacketReceiptKey(packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(counterparty.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
