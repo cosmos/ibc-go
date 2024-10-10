@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"slices"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -64,17 +65,18 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAck
 		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
 	}
 
-	_ = relayer
+	recvResults := make(map[string]channeltypesv2.RecvPacketResult)
+	for _, r := range msg.Acknowledgement.AcknowledgementResults {
+		recvResults[r.AppName] = r.RecvPacketResult
+	}
 
-	// TODO: implement once app router is wired up.
-	// https://github.com/cosmos/ibc-go/issues/7384
-	// for _, pd := range msg.PacketData {
-	//	cbs := k.PortKeeper.AppRouter.Route(pd.SourcePort)
-	//	err := cbs.OnSendPacket(ctx, msg.SourceId, sequence, msg.TimeoutTimestamp, pd, signer)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	// }
+	for _, pd := range msg.Packet.Data {
+		cbs := k.Router.Route(pd.SourcePort)
+		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, pd, recvResults[pd.DestinationPort].Acknowledgement, relayer)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return nil, nil
 }
@@ -194,7 +196,7 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout
 
 // convertToErrorEvents converts all events to error events by appending the
 // error attribute prefix to each event's attribute key.
-// TODO: duplication, create issue for this
+// TODO: https://github.com/cosmos/ibc-go/issues/7436
 func convertToErrorEvents(events sdk.Events) sdk.Events {
 	if events == nil {
 		return nil
