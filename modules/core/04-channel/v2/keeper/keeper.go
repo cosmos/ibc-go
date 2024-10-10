@@ -75,16 +75,27 @@ func (k *Keeper) GetCounterparty(ctx context.Context, clientID string) (types.Co
 }
 
 // GetPacketReceipt returns the packet receipt from the packet receipt path based on the sourceID and sequence.
-func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) (string, bool) {
+func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) ([]byte, bool) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(hostv2.PacketReceiptKey(sourceID, sequence))
 	if err != nil {
 		panic(err)
 	}
 	if len(bz) == 0 {
-		return "", false
+		return nil, false
 	}
-	return string(bz), true
+	return bz, true
+}
+
+// HasPacketRceipt returns true if the packet receipt exists, otherwise false.
+func (k *Keeper) HasPacketReceipt(ctx context.Context, sourceID string, sequence uint64) bool {
+	store := k.storeService.OpenKVStore(ctx)
+	has, err := store.Has(hostv2.PacketReceiptKey(sourceID, sequence))
+	if err != nil {
+		panic(err)
+	}
+
+	return has
 }
 
 // SetPacketReceipt writes the packet receipt under the receipt path
@@ -117,16 +128,16 @@ func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, sourceID string, 
 }
 
 // GetPacketCommitment returns the packet commitment hash under the commitment path.
-func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, sequence uint64) (string, bool) {
+func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, sequence uint64) []byte {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(hostv2.PacketCommitmentKey(sourceID, sequence))
 	if err != nil {
 		panic(err)
 	}
 	if len(bz) == 0 {
-		return "", false
+		return nil
 	}
-	return string(bz), true
+	return bz
 }
 
 // SetPacketCommitment writes the commitment hash under the commitment path.
@@ -191,4 +202,16 @@ func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (
 		MerklePathPrefix:      merklePathPrefix,
 	}
 	return counterparty, true
+}
+
+// getV1Counterparty attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
+// to a v2 counterparty and stores it in the v2 channel keeper for future use
+func (k *Keeper) getV1Counterparty(ctx context.Context, port, id string) (types.Counterparty, bool) {
+	if counterparty, ok := k.AliasV1Channel(ctx, port, id); ok {
+		// we can key on just the channel here since channel ids are globally unique
+		k.SetCounterparty(ctx, id, counterparty)
+		return counterparty, true
+	}
+
+	return types.Counterparty{}, false
 }

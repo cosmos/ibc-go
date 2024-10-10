@@ -43,8 +43,42 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 	return &channeltypesv2.MsgSendPacketResponse{Sequence: sequence}, nil
 }
 
-func (*Keeper) Acknowledgement(ctx context.Context, acknowledgement *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {
-	panic("implement me")
+func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		sdkCtx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+	}
+
+	cacheCtx, writeFn := sdkCtx.CacheContext()
+	err = k.acknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
+
+	switch err {
+	case nil:
+		writeFn()
+	case channeltypesv1.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
+		sdkCtx.Logger().Debug("no-op on redundant relay", "source-id", msg.Packet.SourceChannel)
+		return &channeltypesv2.MsgAcknowledgementResponse{Result: channeltypesv1.NOOP}, nil
+	default:
+		sdkCtx.Logger().Error("acknowledgement failed", "source-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
+		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
+	}
+
+	_ = relayer
+
+	// TODO: implement once app router is wired up.
+	// https://github.com/cosmos/ibc-go/issues/7384
+	// for _, pd := range msg.PacketData {
+	//	cbs := k.PortKeeper.AppRouter.Route(pd.SourcePort)
+	//	err := cbs.OnSendPacket(ctx, msg.SourceId, sequence, msg.TimeoutTimestamp, pd, signer)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	// }
+
+	return nil, nil
 }
 
 // RecvPacket implements the PacketMsgServer RecvPacket method.
