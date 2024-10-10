@@ -19,7 +19,7 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	queryCmd.AddCommand(
-		getCmdQueryClient(),
+		getCmdQueryChannel(),
 	)
 
 	return queryCmd

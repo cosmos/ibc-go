@@ -7,7 +7,6 @@ option go_package = "github.com/cosmos/ibc-go/v9/modules/core/packet-server/type
 
 import "gogoproto/gogo.proto";
 import "ibc/core/commitment/v2/commitment.proto";
-import "ibc/core/packetserver/v1/counterparty.proto";
 import "cosmos/msg/v1/msg.proto";
 
 // Msg defines the ibc/packetserver Msg service.
@@ -31,8 +30,8 @@ message MsgProvideCounterparty {
 
   // unique identifier we will use to write all packet messages sent to counterparty
   string channel_id = 1;
-  // counterparty client
-  Counterparty counterparty = 2 [(gogoproto.nullable) = false];
+  // counterparty channel identifier
+  string counterparty_channel_id = 2;
   // signer address
   string signer = 3;
 }

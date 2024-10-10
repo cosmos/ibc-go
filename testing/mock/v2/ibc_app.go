@@ -9,6 +9,7 @@ import (
 )
 
 type IBCApp struct {
-	OnSendPacket func(ctx context.Context, sourceID string, destinationID string, sequence uint64, data channeltypesv2.PacketData, signer sdk.AccAddress) error
-	OnRecvPacket func(ctx context.Context, sourceID string, destinationID string, data channeltypesv2.PacketData, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult
+	OnSendPacket    func(ctx context.Context, sourceID string, destinationID string, sequence uint64, data channeltypesv2.PacketData, signer sdk.AccAddress) error
+	OnRecvPacket    func(ctx context.Context, sourceID string, destinationID string, data channeltypesv2.PacketData, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult
+	OnTimeoutPacket func(ctx context.Context, sourceID string, destinationID string, data channeltypesv2.PacketData, relayer sdk.AccAddress) error
 }

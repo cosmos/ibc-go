@@ -33,5 +33,12 @@ type IBCModule interface {
 
 	// OnAcknowledgementPacket
 
-	// OnTimeoutPacket
+	// OnTimeoutPacket is executed when a packet has timed out on the receiving chain.
+	OnTimeoutPacket(
+		ctx context.Context,
+		sourceID string,
+		destinationID string,
+		data channeltypesv2.PacketData,
+		relayer sdk.AccAddress,
+	) error
 }

@@ -5,9 +5,9 @@ import (
 )
 
 // NewMsgSendPacket creates a new MsgSendPacket instance.
-func NewMsgSendPacket(sourceID string, timeoutTimestamp uint64, signer string, packetData ...PacketData) *MsgSendPacket {
+func NewMsgSendPacket(sourceChannel string, timeoutTimestamp uint64, signer string, packetData ...PacketData) *MsgSendPacket {
 	return &MsgSendPacket{
-		SourceId:         sourceID,
+		SourceChannel:    sourceChannel,
 		TimeoutTimestamp: timeoutTimestamp,
 		PacketData:       packetData,
 		Signer:           signer,

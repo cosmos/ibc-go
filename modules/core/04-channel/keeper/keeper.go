@@ -827,28 +827,28 @@ func (k *Keeper) PruneAcknowledgements(ctx context.Context, portID, channelID st
 	return totalPruned, totalRemaining, nil
 }
 
-// GetV2Counterparty returns a version 2 counterparty for the given port and channel ID
-// by converting the channel into a version 2 counterparty
-func (k *Keeper) GetV2Counterparty(ctx context.Context, portID, channelID string) (packetserver.Counterparty, bool) {
+// GetV2Channel returns a version 2 channel for the given port and channel ID
+// by converting the v1 channel into a version 2 channel
+func (k *Keeper) GetV2Channel(ctx context.Context, portID, channelID string) (packetserver.Channel, bool) {
 	channel, ok := k.GetChannel(ctx, portID, channelID)
 	if !ok {
-		return packetserver.Counterparty{}, false
+		return packetserver.Channel{}, false
 	}
 	// Do not allow channel to be converted into a version 2 counterparty
 	// if the channel is not OPEN or if it is ORDERED
 	if channel.State != types.OPEN || channel.Ordering == types.ORDERED {
-		return packetserver.Counterparty{}, false
+		return packetserver.Channel{}, false
 	}
 	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !ok {
-		return packetserver.Counterparty{}, false
+		return packetserver.Channel{}, false
 	}
 	merklePathPrefix := commitmentv2types.NewMerklePath(connection.Counterparty.Prefix.KeyPrefix, []byte(""))
 
-	counterparty := packetserver.Counterparty{
+	channelv2 := packetserver.Channel{
 		CounterpartyChannelId: channel.Counterparty.ChannelId,
 		ClientId:              connection.ClientId,
 		MerklePathPrefix:      merklePathPrefix,
 	}
-	return counterparty, true
+	return channelv2, true
 }

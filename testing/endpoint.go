@@ -178,9 +178,7 @@ func (endpoint *Endpoint) FreezeClient() {
 
 // ProvideCounterparty will construct and execute a MsgProvideCounterparty on the associated endpoint.
 func (endpoint *Endpoint) ProvideCounterparty() (err error) {
-	merklePath := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
-
-	msg := packetservertypes.NewMsgProvideCounterparty(endpoint.ClientID, endpoint.Counterparty.ClientID, merklePath, endpoint.Chain.SenderAccount.GetAddress().String())
+	msg := packetservertypes.NewMsgProvideCounterparty(endpoint.ChannelID, endpoint.Counterparty.ChannelID, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	// setup counterparty
 	_, err = endpoint.Chain.SendMsgs(msg)
@@ -190,7 +188,7 @@ func (endpoint *Endpoint) ProvideCounterparty() (err error) {
 
 // CreateChannel will construct and execute a new MsgCreateChannel on the associated endpoint.
 func (endpoint *Endpoint) CreateChannel() (err error) {
-	msg := packetservertypes.NewMsgCreateChannel(endpoint.ClientID, merklePath, endpoint.Chain.SenderAccount.GetAddress().String())
+	msg := packetservertypes.NewMsgCreateChannel(endpoint.ClientID, MerklePath, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	// create channel
 	res, err := endpoint.Chain.SendMsgs(msg)
@@ -481,7 +479,7 @@ func (endpoint *Endpoint) SendPacketV2(
 	data []byte,
 ) (uint64, error) {
 	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetPacketServer().SendPacket(endpoint.Chain.GetContext(), endpoint.ClientID, endpoint.ChannelConfig.PortID, endpoint.Counterparty.ChannelConfig.PortID, timeoutHeight, timeoutTimestamp, version, data)
+	sequence, err := endpoint.Chain.App.GetPacketServer().SendPacket(endpoint.Chain.GetContext(), endpoint.ChannelID, endpoint.ChannelConfig.PortID, endpoint.Counterparty.ChannelConfig.PortID, timeoutHeight, timeoutTimestamp, version, data)
 	if err != nil {
 		return 0, err
 	}

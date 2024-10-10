@@ -1,24 +1,21 @@
 package types
 
 import (
-	"crypto/sha256"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
 // NewPacket constructs a new packet.
-func NewPacket(sequence uint64, sourceID, destinationID string, timeoutTimestamp uint64, data ...PacketData) Packet {
+func NewPacket(sequence uint64, sourceChannel, destinationChannel string, timeoutTimestamp uint64, data ...PacketData) Packet {
 	return Packet{
-		Sequence:         sequence,
-		SourceId:         sourceID,
-		DestinationId:    destinationID,
-		TimeoutTimestamp: timeoutTimestamp,
-		Data:             data,
+		Sequence:           sequence,
+		SourceChannel:      sourceChannel,
+		DestinationChannel: destinationChannel,
+		TimeoutTimestamp:   timeoutTimestamp,
+		Data:               data,
 	}
 }
 
@@ -43,10 +40,10 @@ func (p Packet) ValidateBasic() error {
 		}
 	}
 
-	if err := host.ChannelIdentifierValidator(p.SourceId); err != nil {
+	if err := host.ChannelIdentifierValidator(p.SourceChannel); err != nil {
 		return errorsmod.Wrap(err, "invalid source channel ID")
 	}
-	if err := host.ChannelIdentifierValidator(p.DestinationId); err != nil {
+	if err := host.ChannelIdentifierValidator(p.DestinationChannel); err != nil {
 		return errorsmod.Wrap(err, "invalid destination channel ID")
 	}
 
@@ -86,40 +83,4 @@ func (p Payload) Validate() error {
 		return errorsmod.Wrap(ErrInvalidPayload, "payload value cannot be empty")
 	}
 	return nil
-}
-
-// CommitPacket returns the V2 packet commitment bytes. The commitment consists of:
-// sha256_hash(timeout) + sha256_hash(destinationID) + sha256_hash(packetData) from a given packet.
-// This results in a fixed length preimage.
-// NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
-// to malleate the packet fields and create a commitment hash that matches the original packet.
-func CommitPacket(packet Packet) []byte {
-	buf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
-
-	destIDHash := sha256.Sum256([]byte(packet.DestinationId))
-	buf = append(buf, destIDHash[:]...)
-
-	for _, data := range packet.Data {
-		buf = append(buf, hashPacketData(data)...)
-	}
-
-	hash := sha256.Sum256(buf)
-	return hash[:]
-}
-
-// hashPacketData returns the hash of the packet data.
-func hashPacketData(data PacketData) []byte {
-	var buf []byte
-	sourceHash := sha256.Sum256([]byte(data.SourcePort))
-	buf = append(buf, sourceHash[:]...)
-	destHash := sha256.Sum256([]byte(data.DestinationPort))
-	buf = append(buf, destHash[:]...)
-	payloadValueHash := sha256.Sum256(data.Payload.Value)
-	buf = append(buf, payloadValueHash[:]...)
-	payloadEncodingHash := sha256.Sum256([]byte(data.Payload.Encoding))
-	buf = append(buf, payloadEncodingHash[:]...)
-	payloadVersionHash := sha256.Sum256([]byte(data.Payload.Version))
-	buf = append(buf, payloadVersionHash[:]...)
-	hash := sha256.Sum256(buf)
-	return hash[:]
 }

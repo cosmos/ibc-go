@@ -62,64 +62,71 @@ func (k Keeper) ChannelStore(ctx context.Context, channelID string) storetypes.K
 	return prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), channelPrefix)
 }
 
-// SetCounterparty sets the Counterparty for a given client identifier.
-func (k *Keeper) SetCounterparty(ctx context.Context, clientID string, counterparty types.Counterparty) {
-	bz := k.cdc.MustMarshal(&counterparty)
-	k.ChannelStore(ctx, clientID).Set([]byte(types.CounterpartyKey), bz)
+// SetChannel sets the Channel for a given channel identifier.
+func (k *Keeper) SetChannel(ctx context.Context, channelID string, channel types.Channel) {
+	bz := k.cdc.MustMarshal(&channel)
+	k.ChannelStore(ctx, channelID).Set([]byte(types.ChannelKey), bz)
 }
 
-// GetCounterparty gets the Counterparty for a given client identifier.
-func (k *Keeper) GetCounterparty(ctx context.Context, clientID string) (types.Counterparty, bool) {
-	store := k.ChannelStore(ctx, clientID)
-	bz := store.Get([]byte(types.CounterpartyKey))
+// GetChannel gets the Channel for a given channel identifier.
+func (k *Keeper) GetChannel(ctx context.Context, channelID string) (types.Channel, bool) {
+	store := k.ChannelStore(ctx, channelID)
+	bz := store.Get([]byte(types.ChannelKey))
 	if len(bz) == 0 {
-		return types.Counterparty{}, false
+		return types.Channel{}, false
 	}
 
-	var counterparty types.Counterparty
-	k.cdc.MustUnmarshal(bz, &counterparty)
-	return counterparty, true
+	var channel types.Channel
+	k.cdc.MustUnmarshal(bz, &channel)
+	return channel, true
 }
 
-// GetPacketReceipt returns the packet receipt from the packet receipt path based on the sourceID and sequence.
-func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) (string, bool) {
+// GetPacketReceipt returns the packet receipt from the packet receipt path based on the channelID and sequence.
+func (k *Keeper) GetPacketReceipt(ctx context.Context, channelID string, sequence uint64) ([]byte, bool) {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	bz, err := store.Get(hostv2.PacketReceiptKey(sourceID, bigEndianBz))
+	bz, err := store.Get(hostv2.PacketReceiptKey(channelID, sequence))
 	if err != nil {
 		panic(err)
 	}
 	if len(bz) == 0 {
-		return "", false
+		return nil, false
 	}
-	return string(bz), true
+	return bz, true
+}
+
+// HasPacketRceipt returns true if the packet receipt exists, otherwise false.
+func (k *Keeper) HasPacketReceipt(ctx context.Context, channelID string, sequence uint64) bool {
+	store := k.storeService.OpenKVStore(ctx)
+	has, err := store.Has(hostv2.PacketReceiptKey(channelID, sequence))
+	if err != nil {
+		panic(err)
+	}
+
+	return has
 }
 
 // SetPacketReceipt writes the packet receipt under the receipt path
 // This is a public path that is standardized by the IBC V2 specification.
-func (k *Keeper) SetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) {
+func (k *Keeper) SetPacketReceipt(ctx context.Context, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(hostv2.PacketReceiptKey(sourceID, bigEndianBz), []byte{byte(1)}); err != nil {
+	if err := store.Set(hostv2.PacketReceiptKey(channelID, sequence), []byte{byte(1)}); err != nil {
 		panic(err)
 	}
 }
 
 // SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 // This is a public path that is standardized by the IBC V2 specification.
-func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, sourceID string, sequence uint64, ackHash []byte) {
+func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64, ackHash []byte) {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(hostv2.PacketAcknowledgementKey(sourceID, bigEndianBz), ackHash); err != nil {
+	if err := store.Set(hostv2.PacketAcknowledgementKey(channelID, sequence), ackHash); err != nil {
 		panic(err)
 	}
 }
 
 // HasPacketAcknowledgement check if the packet ack hash is already on the store.
-func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, sourceID string, sequence uint64) bool {
+func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64) bool {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	found, err := store.Has(hostv2.PacketAcknowledgementKey(sourceID, bigEndianBz))
+	found, err := store.Has(hostv2.PacketAcknowledgementKey(channelID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -128,41 +135,38 @@ func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, sourceID string, 
 }
 
 // GetPacketCommitment returns the packet commitment hash under the commitment path.
-func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, sequence uint64) (string, bool) {
+func (k *Keeper) GetPacketCommitment(ctx context.Context, channelID string, sequence uint64) []byte {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	bz, err := store.Get(hostv2.PacketCommitmentKey(sourceID, bigEndianBz))
+	bz, err := store.Get(hostv2.PacketCommitmentKey(channelID, sequence))
 	if err != nil {
 		panic(err)
 	}
 	if len(bz) == 0 {
-		return "", false
+		return nil
 	}
-	return string(bz), true
+	return bz
 }
 
 // SetPacketCommitment writes the commitment hash under the commitment path.
-func (k *Keeper) SetPacketCommitment(ctx context.Context, sourceID string, sequence uint64, commitment []byte) {
+func (k *Keeper) SetPacketCommitment(ctx context.Context, channelID string, sequence uint64, commitment []byte) {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(hostv2.PacketCommitmentKey(sourceID, bigEndianBz), commitment); err != nil {
+	if err := store.Set(hostv2.PacketCommitmentKey(channelID, sequence), commitment); err != nil {
 		panic(err)
 	}
 }
 
 // DeletePacketCommitment deletes the packet commitment hash under the commitment path.
-func (k *Keeper) DeletePacketCommitment(ctx context.Context, sourceID string, sequence uint64) {
+func (k *Keeper) DeletePacketCommitment(ctx context.Context, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
-	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Delete(hostv2.PacketCommitmentKey(sourceID, bigEndianBz)); err != nil {
+	if err := store.Delete(hostv2.PacketCommitmentKey(channelID, sequence)); err != nil {
 		panic(err)
 	}
 }
 
 // GetNextSequenceSend returns the next send sequence from the sequence path
-func (k *Keeper) GetNextSequenceSend(ctx context.Context, sourceID string) (uint64, bool) {
+func (k *Keeper) GetNextSequenceSend(ctx context.Context, channelID string) (uint64, bool) {
 	store := k.storeService.OpenKVStore(ctx)
-	bz, err := store.Get(hostv2.NextSequenceSendKey(sourceID))
+	bz, err := store.Get(hostv2.NextSequenceSendKey(channelID))
 	if err != nil {
 		panic(err)
 	}
@@ -173,38 +177,50 @@ func (k *Keeper) GetNextSequenceSend(ctx context.Context, sourceID string) (uint
 }
 
 // SetNextSequenceSend writes the next send sequence under the sequence path
-func (k *Keeper) SetNextSequenceSend(ctx context.Context, sourceID string, sequence uint64) {
+func (k *Keeper) SetNextSequenceSend(ctx context.Context, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(hostv2.NextSequenceSendKey(sourceID), bigEndianBz); err != nil {
+	if err := store.Set(hostv2.NextSequenceSendKey(channelID), bigEndianBz); err != nil {
 		panic(err)
 	}
 }
 
 // AliasV1Channel returns a version 2 channel for the given port and channel ID
 // by converting the channel into a version 2 channel.
-func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.Counterparty, bool) {
+func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.Channel, bool) {
 	channel, ok := k.channelKeeperV1.GetChannel(ctx, portID, channelID)
 	if !ok {
-		return types.Counterparty{}, false
+		return types.Channel{}, false
 	}
-	// Do not allow channel to be converted into a version 2 counterparty
+	// Do not allow channel to be converted into a version 2 channel
 	// if the channel is not OPEN or if it is ORDERED
 	if channel.State != channeltypesv1.OPEN || channel.Ordering == channeltypesv1.ORDERED {
-		return types.Counterparty{}, false
+		return types.Channel{}, false
 	}
 	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !ok {
-		return types.Counterparty{}, false
+		return types.Channel{}, false
 	}
 	merklePathPrefix := commitmentv2types.NewMerklePath(connection.Counterparty.Prefix.KeyPrefix, []byte(""))
 
-	counterparty := types.Counterparty{
+	channelv2 := types.Channel{
 		CounterpartyChannelId: channel.Counterparty.ChannelId,
 		ClientId:              connection.ClientId,
 		MerklePathPrefix:      merklePathPrefix,
 	}
-	return counterparty, true
+	return channelv2, true
+}
+
+// convertV1Channel attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
+// to a v2 counterparty and stores it in the v2 channel keeper for future use
+func (k *Keeper) convertV1Channel(ctx context.Context, port, id string) (types.Channel, bool) {
+	if channel, ok := k.AliasV1Channel(ctx, port, id); ok {
+		// we can key on just the channel here since channel ids are globally unique
+		k.SetChannel(ctx, id, channel)
+		return channel, true
+	}
+
+	return types.Channel{}, false
 }
 
 // WriteAcknowledgement writes the acknowledgement to the store. In the synchronous case, this is done
@@ -215,40 +231,39 @@ func (k Keeper) WriteAcknowledgement(
 	packet types.Packet,
 	ack types.Acknowledgement,
 ) error {
-	// Lookup counterparty associated with our channel and ensure
-	// that the packet was indeed sent by our counterparty.
-	counterparty, ok := k.GetCounterparty(ctx, packet.DestinationId)
+	// Lookup channel associated with our source channel to retrieve the destination channel
+	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		counterparty, ok = k.getV1Counterparty(ctx, packet.Data[0].DestinationPort, packet.DestinationId)
+		channel, ok = k.convertV1Channel(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
 		if !ok {
-			return errorsmod.Wrap(types.ErrCounterpartyNotFound, packet.DestinationId)
+			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
 
-	if counterparty.ClientId != packet.SourceId {
+	if channel.CounterpartyChannelId != packet.SourceChannel {
 		return channeltypesv1.ErrInvalidChannelIdentifier
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
-	if k.HasPacketAcknowledgement(ctx, packet.DestinationId, packet.Sequence) {
+	if k.HasPacketAcknowledgement(ctx, packet.DestinationChannel, packet.Sequence) {
 		return channeltypesv1.ErrAcknowledgementExists
 	}
 
-	if _, found := k.GetPacketReceipt(ctx, packet.DestinationId, packet.Sequence); !found {
+	if _, found := k.GetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence); !found {
 		return errorsmod.Wrap(channeltypesv1.ErrInvalidPacket, "receipt not found for packet")
 	}
 
 	multiAckBz := k.cdc.MustMarshal(&ack)
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
-		ctx, packet.DestinationId, packet.GetSequence(),
+		ctx, packet.DestinationChannel, packet.GetSequence(),
 		channeltypesv1.CommitAcknowledgement(multiAckBz),
 	)
 
-	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_id", packet.DestinationId)
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)
 
 	// TODO: figure out events, we MUST emit the MultiAck structure here
 	// channelkeeper.EmitWriteAcknowledgementEventV2(ctx, packet, sentinelChannel(packet.DestinationChannel), multiAck)
