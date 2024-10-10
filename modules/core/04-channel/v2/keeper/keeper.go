@@ -60,15 +60,15 @@ func (k Keeper) ChannelStore(ctx context.Context, channelID string) storetypes.K
 	return prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), channelPrefix)
 }
 
-// SetChannel sets the Channel for a given client identifier.
+// SetChannel sets the Channel for a given channel identifier.
 func (k *Keeper) SetChannel(ctx context.Context, clientID string, channel types.Channel) {
 	bz := k.cdc.MustMarshal(&channel)
 	k.ChannelStore(ctx, clientID).Set([]byte(types.ChannelKey), bz)
 }
 
-// GetChannel gets the Channel for a given client identifier.
-func (k *Keeper) GetChannel(ctx context.Context, clientID string) (types.Channel, bool) {
-	store := k.ChannelStore(ctx, clientID)
+// GetChannel gets the Channel for a given channel identifier.
+func (k *Keeper) GetChannel(ctx context.Context, channelID string) (types.Channel, bool) {
+	store := k.ChannelStore(ctx, channelID)
 	bz := store.Get([]byte(types.ChannelKey))
 	if len(bz) == 0 {
 		return types.Channel{}, false
@@ -79,10 +79,10 @@ func (k *Keeper) GetChannel(ctx context.Context, clientID string) (types.Channel
 	return channel, true
 }
 
-// GetPacketReceipt returns the packet receipt from the packet receipt path based on the sourceID and sequence.
-func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) ([]byte, bool) {
+// GetPacketReceipt returns the packet receipt from the packet receipt path based on the channelID and sequence.
+func (k *Keeper) GetPacketReceipt(ctx context.Context, channelID string, sequence uint64) ([]byte, bool) {
 	store := k.storeService.OpenKVStore(ctx)
-	bz, err := store.Get(hostv2.PacketReceiptKey(sourceID, sequence))
+	bz, err := store.Get(hostv2.PacketReceiptKey(channelID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -93,9 +93,9 @@ func (k *Keeper) GetPacketReceipt(ctx context.Context, sourceID string, sequence
 }
 
 // HasPacketRceipt returns true if the packet receipt exists, otherwise false.
-func (k *Keeper) HasPacketReceipt(ctx context.Context, sourceID string, sequence uint64) bool {
+func (k *Keeper) HasPacketReceipt(ctx context.Context, channelID string, sequence uint64) bool {
 	store := k.storeService.OpenKVStore(ctx)
-	has, err := store.Has(hostv2.PacketReceiptKey(sourceID, sequence))
+	has, err := store.Has(hostv2.PacketReceiptKey(channelID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -105,26 +105,26 @@ func (k *Keeper) HasPacketReceipt(ctx context.Context, sourceID string, sequence
 
 // SetPacketReceipt writes the packet receipt under the receipt path
 // This is a public path that is standardized by the IBC V2 specification.
-func (k *Keeper) SetPacketReceipt(ctx context.Context, sourceID string, sequence uint64) {
+func (k *Keeper) SetPacketReceipt(ctx context.Context, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
-	if err := store.Set(hostv2.PacketReceiptKey(sourceID, sequence), []byte{byte(1)}); err != nil {
+	if err := store.Set(hostv2.PacketReceiptKey(channelID, sequence), []byte{byte(1)}); err != nil {
 		panic(err)
 	}
 }
 
 // SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 // This is a public path that is standardized by the IBC V2 specification.
-func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, sourceID string, sequence uint64, ackHash []byte) {
+func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64, ackHash []byte) {
 	store := k.storeService.OpenKVStore(ctx)
-	if err := store.Set(hostv2.PacketAcknowledgementKey(sourceID, sequence), ackHash); err != nil {
+	if err := store.Set(hostv2.PacketAcknowledgementKey(channelID, sequence), ackHash); err != nil {
 		panic(err)
 	}
 }
 
 // HasPacketAcknowledgement check if the packet ack hash is already on the store.
-func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, sourceID string, sequence uint64) bool {
+func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64) bool {
 	store := k.storeService.OpenKVStore(ctx)
-	found, err := store.Has(hostv2.PacketAcknowledgementKey(sourceID, sequence))
+	found, err := store.Has(hostv2.PacketAcknowledgementKey(channelID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -133,9 +133,9 @@ func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, sourceID string, 
 }
 
 // GetPacketCommitment returns the packet commitment hash under the commitment path.
-func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, sequence uint64) []byte {
+func (k *Keeper) GetPacketCommitment(ctx context.Context, channelID string, sequence uint64) []byte {
 	store := k.storeService.OpenKVStore(ctx)
-	bz, err := store.Get(hostv2.PacketCommitmentKey(sourceID, sequence))
+	bz, err := store.Get(hostv2.PacketCommitmentKey(channelID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -146,25 +146,25 @@ func (k *Keeper) GetPacketCommitment(ctx context.Context, sourceID string, seque
 }
 
 // SetPacketCommitment writes the commitment hash under the commitment path.
-func (k *Keeper) SetPacketCommitment(ctx context.Context, sourceID string, sequence uint64, commitment []byte) {
+func (k *Keeper) SetPacketCommitment(ctx context.Context, channelID string, sequence uint64, commitment []byte) {
 	store := k.storeService.OpenKVStore(ctx)
-	if err := store.Set(hostv2.PacketCommitmentKey(sourceID, sequence), commitment); err != nil {
+	if err := store.Set(hostv2.PacketCommitmentKey(channelID, sequence), commitment); err != nil {
 		panic(err)
 	}
 }
 
 // DeletePacketCommitment deletes the packet commitment hash under the commitment path.
-func (k *Keeper) DeletePacketCommitment(ctx context.Context, sourceID string, sequence uint64) {
+func (k *Keeper) DeletePacketCommitment(ctx context.Context, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
-	if err := store.Delete(hostv2.PacketCommitmentKey(sourceID, sequence)); err != nil {
+	if err := store.Delete(hostv2.PacketCommitmentKey(channelID, sequence)); err != nil {
 		panic(err)
 	}
 }
 
 // GetNextSequenceSend returns the next send sequence from the sequence path
-func (k *Keeper) GetNextSequenceSend(ctx context.Context, sourceID string) (uint64, bool) {
+func (k *Keeper) GetNextSequenceSend(ctx context.Context, channelID string) (uint64, bool) {
 	store := k.storeService.OpenKVStore(ctx)
-	bz, err := store.Get(hostv2.NextSequenceSendKey(sourceID))
+	bz, err := store.Get(hostv2.NextSequenceSendKey(channelID))
 	if err != nil {
 		panic(err)
 	}
@@ -175,10 +175,10 @@ func (k *Keeper) GetNextSequenceSend(ctx context.Context, sourceID string) (uint
 }
 
 // SetNextSequenceSend writes the next send sequence under the sequence path
-func (k *Keeper) SetNextSequenceSend(ctx context.Context, sourceID string, sequence uint64) {
+func (k *Keeper) SetNextSequenceSend(ctx context.Context, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(hostv2.NextSequenceSendKey(sourceID), bigEndianBz); err != nil {
+	if err := store.Set(hostv2.NextSequenceSendKey(channelID), bigEndianBz); err != nil {
 		panic(err)
 	}
 }
@@ -212,10 +212,10 @@ func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (
 // convertV1Channel attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
 // to a v2 counterparty and stores it in the v2 channel keeper for future use
 func (k *Keeper) convertV1Channel(ctx context.Context, port, id string) (types.Channel, bool) {
-	if counterparty, ok := k.AliasV1Channel(ctx, port, id); ok {
+	if channel, ok := k.AliasV1Channel(ctx, port, id); ok {
 		// we can key on just the channel here since channel ids are globally unique
-		k.SetChannel(ctx, id, counterparty)
-		return counterparty, true
+		k.SetChannel(ctx, id, channel)
+		return channel, true
 	}
 
 	return types.Channel{}, false
