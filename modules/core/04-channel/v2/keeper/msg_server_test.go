@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
@@ -146,6 +146,38 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				}
 			},
 		},
+		{
+			name: "success: async recv result",
+			malleate: func() {
+				asyncResult := channeltypesv2.RecvPacketResult{
+					Status:          channeltypesv2.PacketStatus_Async,
+					Acknowledgement: nil,
+				}
+
+				// a failed ack should be written now.
+				expectedAck.AcknowledgementResults[0].RecvPacketResult = asyncResult
+
+				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceID string, destinationID string, data channeltypesv2.PacketData, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+					return asyncResult
+				}
+			},
+		},
+		{
+			name: "failure: counterparty not found",
+			malleate: func() {
+				// change the destination id to a non-existent counterparty.
+				recvPacket.DestinationId = "not-existent-counterparty"
+			},
+			expError: channeltypesv2.ErrCounterpartyNotFound,
+		},
+		{
+			name: "failure: invalid proof",
+			malleate: func() {
+				// proof verification fails because the packet commitment is different due to a different sequence.
+				recvPacket.Sequence = 10
+			},
+			expError: commitmenttypes.ErrInvalidProof,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -203,15 +235,20 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), recvPacket.SourceId, recvPacket.Sequence)
 				suite.Require().True(ok)
 
-				// ack should be written for synchronous app (default mock application behaviour)
 				ackWritten := ck.HasPacketAcknowledgement(path.EndpointB.Chain.GetContext(), recvPacket.DestinationId, recvPacket.Sequence)
-				suite.Require().True(ackWritten)
 
-				ackBz := path.EndpointB.Chain.Codec.MustMarshal(&expectedAck)
-				expectedBz := channeltypesv1.CommitAcknowledgement(ackBz)
+				if expectedAck.AcknowledgementResults[0].RecvPacketResult.Status == channeltypesv2.PacketStatus_Async {
+					// ack should not be written for async app.
+					suite.Require().False(ackWritten)
+				} else { // successful or failed acknowledgement
+					// ack should be written for synchronous app (default mock application behaviour).
+					suite.Require().True(ackWritten)
+					ackBz := path.EndpointB.Chain.Codec.MustMarshal(&expectedAck)
+					expectedBz := channeltypesv1.CommitAcknowledgement(ackBz)
 
-				actualAckBz := ck.GetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), recvPacket.DestinationId, recvPacket.Sequence)
-				suite.Require().Equal(expectedBz, actualAckBz)
+					actualAckBz := ck.GetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), recvPacket.DestinationId, recvPacket.Sequence)
+					suite.Require().Equal(expectedBz, actualAckBz)
+				}
 
 			} else {
 				suite.Require().Error(err)
