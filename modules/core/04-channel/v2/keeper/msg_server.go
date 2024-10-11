@@ -74,11 +74,12 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAck
 		cbs := k.Router.Route(pd.SourcePort)
 		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, pd, recvResults[pd.DestinationPort].Acknowledgement, relayer)
 		if err != nil {
+			// TODO logging
 			return nil, err
 		}
 	}
 
-	return nil, nil
+	return &channeltypesv2.MsgAcknowledgementResponse{Result: channeltypesv1.SUCCESS}, nil
 }
 
 // RecvPacket implements the PacketMsgServer RecvPacket method.

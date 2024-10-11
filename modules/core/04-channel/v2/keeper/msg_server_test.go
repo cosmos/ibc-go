@@ -263,3 +263,59 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
+	var path *ibctesting.Path
+	testCases := []struct {
+		name string
+	}{
+		{
+			name: "success",
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+			msgSendPacket := channeltypesv2.NewMsgSendPacket(path.EndpointA.ChannelID, timeoutTimestamp, suite.chainA.SenderAccount.GetAddress().String(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+
+			res, err := path.EndpointA.Chain.SendMsgs(msgSendPacket)
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
+
+			suite.Require().NoError(path.EndpointB.UpdateClient())
+			recvPacket := channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			// get proof of packet commitment from chainA
+			packetKey := hostv2.PacketCommitmentKey(recvPacket.SourceChannel, recvPacket.Sequence)
+			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
+			msgRecvPacket := channeltypesv2.NewMsgRecvPacket(recvPacket, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
+			res, err = suite.chainB.SendMsgs(msgRecvPacket)
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
+
+			packetKey = hostv2.PacketAcknowledgementKey(recvPacket.SourceChannel, recvPacket.Sequence)
+			proof, proofHeight = path.EndpointB.QueryProof(packetKey)
+
+			ack := channeltypesv2.Acknowledgement{
+				AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
+					{
+						AppName: mockv2.ModuleNameB,
+						RecvPacketResult: channeltypesv2.RecvPacketResult{
+							Status:          channeltypesv2.PacketStatus_Success,
+							Acknowledgement: mock.MockPacketData,
+						},
+					},
+				},
+			}
+			msgAckPacket := channeltypesv2.NewMsgAcknowledgement(recvPacket, ack, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+
+			res, err = suite.chainA.SendMsgs(msgAckPacket)
+			suite.Require().NoError(err)
+			suite.NotNil(res)
+		})
+	}
+}
