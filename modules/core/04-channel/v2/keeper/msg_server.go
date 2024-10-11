@@ -84,22 +84,18 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAck
 func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPacket) (*channeltypesv2.MsgRecvPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	// Perform TAO verification
-	//
-	// If the packet was already received, perform a no-op
-	// Use a cached context to prevent accidental state changes
-	cacheCtx, writeFn := sdkCtx.CacheContext()
-	err := k.recvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
-	if err != nil {
-		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "error", errorsmod.Wrap(err, "send packet failed"))
-		return nil, errorsmod.Wrapf(err, "receive packet failed for source id: %s and destination id: %s", msg.Packet.SourceChannel, msg.Packet.DestinationChannel)
-	}
-
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		sdkCtx.Logger().Error("receive packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
+
+	// Perform TAO verification
+	//
+	// If the packet was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
+	cacheCtx, writeFn := sdkCtx.CacheContext()
+	err = k.recvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
 	switch err {
 	case nil:
