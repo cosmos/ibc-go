@@ -165,6 +165,13 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			},
 		},
 		{
+			name: "success: NoOp",
+			malleate: func() {
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence)
+				expectedAck = channeltypesv2.Acknowledgement{}
+			},
+		},
+		{
 			name: "failure: counterparty not found",
 			malleate: func() {
 				// change the destination id to a non-existent channel.
@@ -239,8 +246,8 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 
 				ackWritten := ck.HasPacketAcknowledgement(path.EndpointB.Chain.GetContext(), recvPacket.DestinationChannel, recvPacket.Sequence)
 
-				if expectedAck.AcknowledgementResults[0].RecvPacketResult.Status == channeltypesv2.PacketStatus_Async {
-					// ack should not be written for async app.
+				if len(expectedAck.AcknowledgementResults) == 0 || expectedAck.AcknowledgementResults[0].RecvPacketResult.Status == channeltypesv2.PacketStatus_Async {
+					// ack should not be written for async app or if the packet receipt was already present.
 					suite.Require().False(ackWritten)
 				} else { // successful or failed acknowledgement
 					// ack should be written for synchronous app (default mock application behaviour).
