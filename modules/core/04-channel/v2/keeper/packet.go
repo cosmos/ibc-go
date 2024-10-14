@@ -331,11 +331,10 @@ func (k Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
 	}
 
-	ackBz := k.cdc.MustMarshal(&ack)
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
 		ctx, packet.DestinationChannel, packet.GetSequence(),
-		channeltypes.CommitAcknowledgement(ackBz),
+		channeltypesv2.CommitAcknowledgement(ack),
 	)
 
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)

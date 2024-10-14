@@ -252,8 +252,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				} else { // successful or failed acknowledgement
 					// ack should be written for synchronous app (default mock application behaviour).
 					suite.Require().True(ackWritten)
-					ackBz := path.EndpointB.Chain.Codec.MustMarshal(&expectedAck)
-					expectedBz := channeltypesv1.CommitAcknowledgement(ackBz)
+					expectedBz := channeltypesv2.CommitAcknowledgement(expectedAck)
 
 					actualAckBz := ck.GetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), recvPacket.DestinationChannel, recvPacket.Sequence)
 					suite.Require().Equal(expectedBz, actualAckBz)
