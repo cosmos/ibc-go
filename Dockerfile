@@ -35,7 +35,7 @@ COPY go.sum .
 
 RUN go mod download
 
-RUN make build
+RUN BUILD_TAGS=muslc LINK_STATICALLY=true  make build
 
 FROM alpine:3.18
 ARG IBC_GO_VERSION
