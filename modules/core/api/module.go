@@ -16,8 +16,8 @@ type IBCModule interface {
 	// for this specific application.
 	OnSendPacket(
 		ctx context.Context,
-		sourceID string,
-		destinationID string,
+		sourceChannel string,
+		destinationChannel string,
 		sequence uint64,
 		data channeltypesv2.PacketData,
 		signer sdk.AccAddress,
@@ -25,8 +25,8 @@ type IBCModule interface {
 
 	OnRecvPacket(
 		ctx context.Context,
-		sourceID string,
-		destinationID string,
+		sourceChannel string,
+		destinationChannel string,
 		data channeltypesv2.PacketData,
 		relayer sdk.AccAddress,
 	) channeltypesv2.RecvPacketResult
@@ -34,8 +34,8 @@ type IBCModule interface {
 	// OnTimeoutPacket is executed when a packet has timed out on the receiving chain.
 	OnTimeoutPacket(
 		ctx context.Context,
-		sourceID string,
-		destinationID string,
+		sourceChannel string,
+		destinationChannel string,
 		data channeltypesv2.PacketData,
 		relayer sdk.AccAddress,
 	) error
@@ -43,8 +43,8 @@ type IBCModule interface {
 	// OnAcknowledgementPacket is executed when a packet gets acknowledged
 	OnAcknowledgementPacket(
 		ctx context.Context,
-		sourceID string,
-		destinationID string,
+		sourceChannel string,
+		destinationChannel string,
 		data channeltypesv2.PacketData,
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
