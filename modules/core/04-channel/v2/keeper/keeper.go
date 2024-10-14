@@ -135,6 +135,16 @@ func (k *Keeper) SetPacketReceipt(ctx context.Context, channelID string, sequenc
 	}
 }
 
+// GetPacketAcknowledgement fetches the packet acknowledgement from the store.
+func (k *Keeper) GetPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64) []byte {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(hostv2.PacketAcknowledgementKey(channelID, sequence))
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
 // SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 // This is a public path that is standardized by the IBC V2 specification.
 func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64, ackHash []byte) {
@@ -146,13 +156,7 @@ func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, channelID string,
 
 // HasPacketAcknowledgement check if the packet ack hash is already on the store.
 func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64) bool {
-	store := k.storeService.OpenKVStore(ctx)
-	found, err := store.Has(hostv2.PacketAcknowledgementKey(channelID, sequence))
-	if err != nil {
-		panic(err)
-	}
-
-	return found
+	return len(k.GetPacketAcknowledgement(ctx, channelID, sequence)) > 0
 }
 
 // GetPacketCommitment returns the packet commitment hash under the commitment path.

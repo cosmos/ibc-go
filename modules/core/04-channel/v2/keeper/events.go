@@ -28,6 +28,11 @@ func EmitTimeoutPacketEvents(ctx context.Context, packet channeltypesv2.Packet) 
 	// TODO: https://github.com/cosmos/ibc-go/issues/7386
 }
 
+// EmitWriteAcknowledgementEvents emits events for WriteAcknowledgement.
+func EmitWriteAcknowledgementEvents(ctx context.Context, packet channeltypesv2.Packet, ack channeltypesv2.Acknowledgement) {
+	// TODO: https://github.com/cosmos/ibc-go/issues/7386
+}
+
 // EmitCreateChannelEvent emits a channel create event.
 func (*Keeper) EmitCreateChannelEvent(ctx context.Context, channelID string) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)

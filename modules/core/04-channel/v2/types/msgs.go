@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -77,5 +78,15 @@ func NewMsgSendPacket(sourceChannel string, timeoutTimestamp uint64, signer stri
 		TimeoutTimestamp: timeoutTimestamp,
 		PacketData:       packetData,
 		Signer:           signer,
+	}
+}
+
+// NewMsgRecvPacket creates a new MsgRecvPacket instance.
+func NewMsgRecvPacket(packet Packet, proofCommitment []byte, proofHeight clienttypes.Height, signer string) *MsgRecvPacket {
+	return &MsgRecvPacket{
+		Packet:          packet,
+		ProofCommitment: proofCommitment,
+		ProofHeight:     proofHeight,
+		Signer:          signer,
 	}
 }
