@@ -265,12 +265,18 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 }
 
 func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
-	var path *ibctesting.Path
+	var (
+		path         *ibctesting.Path
+		msgAckPacket *channeltypesv2.MsgAcknowledgement
+	)
 	testCases := []struct {
-		name string
+		name     string
+		malleate func()
+		expError error
 	}{
 		{
-			name: "success",
+			name:     "success",
+			malleate: func() {},
 		},
 	}
 	for _, tc := range testCases {
@@ -296,8 +302,9 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			res, err = suite.chainB.SendMsgs(msgRecvPacket)
 			suite.Require().NoError(err)
 			suite.Require().NotNil(res)
+			suite.Require().NoError(path.EndpointA.UpdateClient())
 
-			packetKey = hostv2.PacketAcknowledgementKey(recvPacket.SourceChannel, recvPacket.Sequence)
+			packetKey = hostv2.PacketAcknowledgementKey(recvPacket.DestinationChannel, recvPacket.Sequence)
 			proof, proofHeight = path.EndpointB.QueryProof(packetKey)
 
 			ack := channeltypesv2.Acknowledgement{
@@ -311,11 +318,19 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 					},
 				},
 			}
-			msgAckPacket := channeltypesv2.NewMsgAcknowledgement(recvPacket, ack, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+			msgAckPacket = channeltypesv2.NewMsgAcknowledgement(recvPacket, ack, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+			tc.malleate()
 
 			res, err = suite.chainA.SendMsgs(msgAckPacket)
-			suite.Require().NoError(err)
-			suite.NotNil(res)
+
+			expPass := tc.expError == nil
+
+			if expPass {
+				suite.Require().NoError(err)
+				suite.NotNil(res)
+			} else {
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
+			}
 		})
 	}
 }
