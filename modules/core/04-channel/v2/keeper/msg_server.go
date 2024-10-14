@@ -10,6 +10,8 @@ import (
 
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	telemetryv2 "github.com/cosmos/ibc-go/v9/modules/core/internal/v2/telemetry"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
@@ -85,22 +87,18 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAck
 func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPacket) (*channeltypesv2.MsgRecvPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	// Perform TAO verification
-	//
-	// If the packet was already received, perform a no-op
-	// Use a cached context to prevent accidental state changes
-	cacheCtx, writeFn := sdkCtx.CacheContext()
-	err := k.recvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
-	if err != nil {
-		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "error", errorsmod.Wrap(err, "send packet failed"))
-		return nil, errorsmod.Wrapf(err, "receive packet failed for source id: %s and destination id: %s", msg.Packet.SourceChannel, msg.Packet.DestinationChannel)
-	}
-
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		sdkCtx.Logger().Error("receive packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
+
+	// Perform TAO verification
+	//
+	// If the packet was already received, perform a no-op
+	// Use a cached context to prevent accidental state changes
+	cacheCtx, writeFn := sdkCtx.CacheContext()
+	err = k.recvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
 	switch err {
 	case nil:
@@ -142,7 +140,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 	// note this should never happen as the packet data would have had to be empty.
 	if len(ack.AcknowledgementResults) == 0 {
 		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
-		return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.FAILURE}, nil
+		return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-channel %s invalid acknowledgement results", msg.Packet.SourceChannel)
 	}
 
 	// NOTE: TBD how we will handle async acknowledgements with more than one packet data.
@@ -192,6 +190,49 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout
 	// }
 
 	return &channeltypesv2.MsgTimeoutResponse{Result: channeltypesv1.SUCCESS}, nil
+}
+
+// CreateChannel defines a rpc handler method for MsgCreateChannel
+func (k *Keeper) CreateChannel(goCtx context.Context, msg *channeltypesv2.MsgCreateChannel) (*channeltypesv2.MsgCreateChannelResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	channelID := k.channelKeeperV1.GenerateChannelIdentifier(ctx)
+
+	// Initialize channel with empty counterparty channel identifier.
+	channel := channeltypesv2.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
+	k.SetChannel(ctx, channelID, channel)
+
+	k.SetCreator(ctx, channelID, msg.Signer)
+
+	k.EmitCreateChannelEvent(goCtx, channelID)
+
+	return &channeltypesv2.MsgCreateChannelResponse{ChannelId: channelID}, nil
+}
+
+// ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
+func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *channeltypesv2.MsgProvideCounterparty) (*channeltypesv2.MsgProvideCounterpartyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	creator, found := k.GetCreator(ctx, msg.ChannelId)
+	if !found {
+		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "channel creator must be set")
+	}
+
+	if creator != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "channel creator (%s) must match signer (%s)", creator, msg.Signer)
+	}
+
+	channel, ok := k.GetChannel(ctx, msg.ChannelId)
+	if !ok {
+		return nil, errorsmod.Wrapf(channeltypesv2.ErrInvalidChannel, "channel must exist for channel id %s", msg.ChannelId)
+	}
+
+	channel.CounterpartyChannelId = msg.CounterpartyChannelId
+	k.SetChannel(ctx, msg.ChannelId, channel)
+	// Delete client creator from state as it is not needed after this point.
+	k.DeleteCreator(ctx, msg.ChannelId)
+
+	return &channeltypesv2.MsgProvideCounterpartyResponse{}, nil
 }
 
 // convertToErrorEvents converts all events to error events by appending the

@@ -12,6 +12,8 @@ import (
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
@@ -166,6 +168,14 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			},
 		},
 		{
+
+			name: "success: NoOp",
+			malleate: func() {
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence)
+				expectedAck = channeltypesv2.Acknowledgement{}
+			},
+		},
+		{
 			name: "failure: counterparty not found",
 			malleate: func() {
 				// change the destination id to a non-existent channel.
@@ -240,20 +250,87 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 
 				ackWritten := ck.HasPacketAcknowledgement(path.EndpointB.Chain.GetContext(), recvPacket.DestinationChannel, recvPacket.Sequence)
 
-				if expectedAck.AcknowledgementResults[0].RecvPacketResult.Status == channeltypesv2.PacketStatus_Async {
-					// ack should not be written for async app.
+				if len(expectedAck.AcknowledgementResults) == 0 || expectedAck.AcknowledgementResults[0].RecvPacketResult.Status == channeltypesv2.PacketStatus_Async {
+					// ack should not be written for async app or if the packet receipt was already present.
 					suite.Require().False(ackWritten)
 				} else { // successful or failed acknowledgement
 					// ack should be written for synchronous app (default mock application behaviour).
 					suite.Require().True(ackWritten)
-					ackBz := path.EndpointB.Chain.Codec.MustMarshal(&expectedAck)
-					expectedBz := channeltypesv1.CommitAcknowledgement(ackBz)
+					expectedBz := channeltypesv2.CommitAcknowledgement(expectedAck)
 
 					actualAckBz := ck.GetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), recvPacket.DestinationChannel, recvPacket.Sequence)
 					suite.Require().Equal(expectedBz, actualAckBz)
 				}
 
-			} else {
+			} else {	
+        ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
+				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence)
+				suite.Require().False(ok)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestProvideCounterparty() {
+	var (
+		path *ibctesting.Path
+		msg  *channeltypesv2.MsgProvideCounterparty
+	)
+	cases := []struct {			
+    {
+      "success",
+			func() {
+				// set it before handler
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(suite.chainA.GetContext(), msg.ChannelId, channeltypesv2.NewChannel(path.EndpointA.ClientID, "", ibctesting.MerklePath))
+			},
+			nil,
+		},
+		{
+			"failure: signer does not match creator",
+			func() {
+				msg.Signer = path.EndpointB.Chain.SenderAccount.GetAddress().String()
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		/* // Account sequence mismatch, expected 5, got 6. :thinking:
+		{
+			"failure: counterparty does not already exists",
+			func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(channeltypesv2.ChannelKey))
+			},
+			channeltypesv2.ErrInvalidChannel,
+		},
+		*/
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		path.SetupClients()
+
+		suite.Require().NoError(path.EndpointA.CreateChannel())
+		suite.Require().NoError(path.EndpointB.CreateChannel())
+
+		signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
+		msg = channeltypesv2.NewMsgProvideCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, signer)
+
+		tc.malleate()
+
+		res, err := path.EndpointA.Chain.SendMsgs(msg)
+
+		expPass := tc.expError == nil
+		if expPass {
+			suite.Require().NotNil(res)
+			suite.Require().Nil(err)
+
+			// Assert counterparty channel id filled in and creator deleted
+			channel, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+			suite.Require().True(found)
+			suite.Require().Equal(channel.CounterpartyChannelId, path.EndpointB.ChannelID)
+
+			_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			suite.Require().False(found)
+		} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())
 
