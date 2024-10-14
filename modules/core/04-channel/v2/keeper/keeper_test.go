@@ -12,8 +12,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
-const testClientID = "tendermint-0"
-
 func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
 }
@@ -114,12 +112,12 @@ func (suite *KeeperTestSuite) TestAliasV1Channel() {
 func (suite *KeeperTestSuite) TestSetChannel() {
 	merklePathPrefix := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
 	channel := channeltypes2.Channel{
-		ClientId:         testClientID,
+		ClientId:         ibctesting.FirstClientID,
 		MerklePathPrefix: merklePathPrefix,
 	}
-	suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(suite.chainA.GetContext(), testClientID, channel)
+	suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(suite.chainA.GetContext(), ibctesting.FirstChannelID, channel)
 
-	retrievedChannel, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetChannel(suite.chainA.GetContext(), testClientID)
+	retrievedChannel, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetChannel(suite.chainA.GetContext(), ibctesting.FirstChannelID)
 	suite.Require().True(found, "GetChannel does not return channel")
 	suite.Require().Equal(channel, retrievedChannel, "Channel retrieved not equal")
 
