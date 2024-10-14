@@ -317,6 +317,9 @@ func (chain *TestChain) commitBlock(res *abci.ResponseFinalizeBlock) {
 	chain.Vals = chain.NextVals
 	chain.NextVals = ApplyValSetChanges(chain, chain.Vals, res.ValidatorUpdates)
 
+	// increment the proposer priority of validators
+	chain.Vals.IncrementProposerPriority(1)
+
 	// increment the current header
 	chain.CurrentHeader = cmtproto.Header{
 		ChainID: chain.ChainID,
@@ -327,7 +330,7 @@ func (chain *TestChain) commitBlock(res *abci.ResponseFinalizeBlock) {
 		Time:               chain.CurrentHeader.Time,
 		ValidatorsHash:     chain.Vals.Hash(),
 		NextValidatorsHash: chain.NextVals.Hash(),
-		ProposerAddress:    chain.CurrentHeader.ProposerAddress,
+		ProposerAddress:    chain.Vals.Proposer.Address,
 	}
 }
 
