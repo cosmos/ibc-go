@@ -481,6 +481,9 @@ func (endpoint *Endpoint) SendPacketV2(
 	msg := channeltypesv2.NewMsgSendPacket(endpoint.ChannelID, timeoutTimestamp, endpoint.Chain.SenderAccount.GetAddress().String(), packetData...)
 
 	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return 0, err
+	}
 
 	err = endpoint.Counterparty.UpdateClient()
 	if err != nil {

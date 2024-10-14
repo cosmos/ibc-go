@@ -66,6 +66,13 @@ func TestValidateBasic(t *testing.T) {
 			nil,
 		},
 		{
+			"failure: packet data is nil",
+			func() {
+				packet.Data = nil
+			},
+			types.ErrInvalidPacket,
+		},
+		{
 			"failure: empty data",
 			func() {
 				packet.Data = []types.PacketData{}
