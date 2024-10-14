@@ -330,8 +330,12 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			suite.Require().True(found)
 			suite.Require().Equal(channel.CounterpartyChannelId, path.EndpointB.ChannelID)
 
-			_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID)
 			suite.Require().False(found)
+
+			seq, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+			suite.Require().True(found)
+			suite.Require().Equal(seq, uint64(1))
 		} else {
 			suite.Require().Error(err)
 		}

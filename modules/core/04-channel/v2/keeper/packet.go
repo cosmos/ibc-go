@@ -37,11 +37,12 @@ func (k *Keeper) sendPacket(
 	destChannel := channel.CounterpartyChannelId
 	clientID := channel.ClientId
 
-	// retrieve the sequence send for this channel
-	// if no packets have been sent yet, initialize the sequence to 1.
 	sequence, found := k.GetNextSequenceSend(ctx, sourceChannel)
 	if !found {
-		sequence = 1
+		return 0, "", errorsmod.Wrapf(
+			channeltypesv2.ErrSequenceSendNotFound,
+			"source channel: %s", sourceChannel,
+		)
 	}
 
 	// construct packet from given fields and channel state

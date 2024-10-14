@@ -199,8 +199,8 @@ func (k *Keeper) CreateChannel(goCtx context.Context, msg *channeltypesv2.MsgCre
 	// Initialize channel with empty counterparty channel identifier.
 	channel := channeltypesv2.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
 	k.SetChannel(ctx, channelID, channel)
-
 	k.SetCreator(ctx, channelID, msg.Signer)
+	k.SetNextSequenceSend(ctx, channelID, 1)
 
 	k.EmitCreateChannelEvent(goCtx, channelID)
 
