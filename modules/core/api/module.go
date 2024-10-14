@@ -49,4 +49,14 @@ type IBCModule interface {
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
 	) error
+
+	// OnAcknowledgementPacket is executed when a packet gets acknowledged
+	OnAcknowledgementPacket(
+		ctx context.Context,
+		sourceID string,
+		destinationID string,
+		data channeltypesv2.PacketData,
+		acknowledgement []byte,
+		relayer sdk.AccAddress,
+	) error
 }
