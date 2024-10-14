@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"strconv"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -67,7 +68,9 @@ func (k *Keeper) sendPacket(
 		return 0, "", err
 	}
 	// check if packet is timed out on the receiving chain
-	timeout := channeltypes.NewTimeoutWithTimestamp(timeoutTimestamp)
+	// convert packet timeout to nanoseconds for now to use existing helper function
+	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
+	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
 	if timeout.TimestampElapsed(latestTimestamp) {
 		return 0, "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
@@ -117,7 +120,9 @@ func (k *Keeper) recvPacket(
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano())
-	timeout := channeltypes.NewTimeoutWithTimestamp(packet.GetTimeoutTimestamp())
+	// convert packet timeout to nanoseconds for now to use existing helper function
+	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
+	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
 	}
@@ -250,7 +255,9 @@ func (k *Keeper) timeoutPacket(
 		return err
 	}
 
-	timeout := channeltypes.NewTimeoutWithTimestamp(packet.GetTimeoutTimestamp())
+	// convert packet timeout to nanoseconds for now to use existing helper function
+	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
+	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
 	if !timeout.Elapsed(clienttypes.ZeroHeight(), proofTimestamp) {
 		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
 	}

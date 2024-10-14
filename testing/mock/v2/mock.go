@@ -9,6 +9,27 @@ const (
 	ModuleName = "mockv2"
 )
 
+var (
+	MockAcknowledgement = types.Acknowledgement{
+		AcknowledgementResults: []types.AcknowledgementResult{{
+			AppName: ModuleName,
+			RecvPacketResult: types.RecvPacketResult{
+				Status:          types.PacketStatus_Success,
+				Acknowledgement: mock.MockAcknowledgement.Acknowledgement(),
+			},
+		}},
+	}
+	MockFailAcknowledgement = types.Acknowledgement{
+		AcknowledgementResults: []types.AcknowledgementResult{{
+			AppName: ModuleName,
+			RecvPacketResult: types.RecvPacketResult{
+				Status:          types.PacketStatus_Failure,
+				Acknowledgement: mock.MockFailAcknowledgement.Acknowledgement(),
+			},
+		}},
+	}
+)
+
 func NewMockPacketData(sourcePort, destPort string) types.PacketData {
 	return types.PacketData{
 		SourcePort:      sourcePort,
