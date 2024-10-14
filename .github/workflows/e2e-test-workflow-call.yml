@@ -115,6 +115,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         if: ${{ inputs.build-and-push-docker-image }} 
+      - uses: actions/setup-python@v5
+        if: ${{ inputs.build-and-push-docker-image }}
+        with:
+          python-version: '3.10'
+
       - name: Install dependencies
         if: ${{ inputs.build-and-push-docker-image }}
         run: make python-install-deps
