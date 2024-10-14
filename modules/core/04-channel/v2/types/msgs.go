@@ -90,3 +90,14 @@ func NewMsgRecvPacket(packet Packet, proofCommitment []byte, proofHeight clientt
 		Signer:          signer,
 	}
 }
+
+// NewMsgAcknowledgement creates a new MsgAcknowledgement instance
+func NewMsgAcknowledgement(packet Packet, acknowledgement Acknowledgement, proofAcked []byte, proofHeight clienttypes.Height, signer string) *MsgAcknowledgement {
+	return &MsgAcknowledgement{
+		Packet:          packet,
+		Acknowledgement: acknowledgement,
+		ProofAcked:      proofAcked,
+		ProofHeight:     proofHeight,
+		Signer:          signer,
+	}
+}
