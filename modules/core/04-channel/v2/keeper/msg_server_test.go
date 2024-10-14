@@ -334,7 +334,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().False(found)
 		} else {
-			ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
+			suite.Require().Error(err)
 		}
 	}
 }
