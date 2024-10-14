@@ -3,8 +3,9 @@ ARG IBC_GO_VERSION
 
 ARG LIBWASM_VERSION
 ARG LIBWASM_CHECKSUM
+
 RUN test -n "${LIBWASM_VERSION}"
-RUN test -n "${LIBWASM_CHECKSUM}"jjjjjj
+RUN test -n "${LIBWASM_CHECKSUM}"
 
 RUN set -eux; apk add --no-cache git libusb-dev linux-headers gcc musl-dev make;
 

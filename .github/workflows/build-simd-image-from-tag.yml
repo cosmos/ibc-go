@@ -25,6 +25,11 @@ jobs:
            with:
             ref: "${{ env.GIT_TAG }}"
             fetch-depth: 0
+        - uses: actions/setup-python@v5
+           with:
+             python-version: '3.10'
+        - name: Install dependencies
+           run: make python-install-deps
          - name: Log in to the Container registry
            uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
            with:
@@ -33,6 +38,9 @@ jobs:
               password: ${{ secrets.GITHUB_TOKEN }}
          - name: Build image
            run: |
+            version="$(scripts/get-libwasm-version.py --get-version)"
+            checksum="$(scripts/get-libwasm-version.py --get-checksum)"
+
             # remove any `/` characters from the docker tag and replace them with a -
             docker_tag="$(echo $GIT_TAG | sed 's/[^a-zA-Z0-9\.]/-/g')"
             docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
