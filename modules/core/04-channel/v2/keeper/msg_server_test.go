@@ -433,7 +433,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			suite.Require().NotNil(res)
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
-			// Construct expecte acknowledgement
+			// Construct expected acknowledgement
 			ack := channeltypesv2.Acknowledgement{
 				AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
 					{
