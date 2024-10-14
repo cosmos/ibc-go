@@ -123,15 +123,9 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 const appName = "SimApp"
-
-// IBC application testing ports
-const (
-	MockFeePort string = mock.ModuleName + ibcfeetypes.ModuleName
-)
 
 var (
 	// DefaultNodeHome default home directories for the application daemon
@@ -148,7 +142,6 @@ var (
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		ibcfeetypes.ModuleName:         nil,
 		icatypes.ModuleName:            nil,
-		mock.ModuleName:                nil,
 	}
 )
 
@@ -193,12 +186,6 @@ type SimApp struct {
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	CircuitKeeper         circuitkeeper.Keeper
-
-	// make IBC modules public for test purposes
-	// these modules are never directly routed to by the IBC Router
-	IBCMockModule mock.IBCModule
-	ICAAuthModule mock.IBCModule
-	FeeMockModule mock.IBCModule
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -293,7 +280,6 @@ func NewSimApp(
 	}
 
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
-	memKeys := storetypes.NewMemoryStoreKeys(mock.MemStoreKey)
 
 	app := &SimApp{
 		BaseApp:           bApp,
@@ -303,7 +289,6 @@ func NewSimApp(
 		interfaceRegistry: interfaceRegistry,
 		keys:              keys,
 		tkeys:             tkeys,
-		memKeys:           memKeys,
 	}
 
 	app.ParamsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
@@ -430,25 +415,6 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	// Mock Module Stack
-
-	// Mock Module setup for testing IBC and also acts as the interchain accounts authentication module
-	// NOTE: the IBC mock keeper and application module is used only for testing core IBC. Do
-	// not replicate if you do not need to test core IBC or light clients.
-	mockModule := mock.NewAppModule()
-
-	// The mock module is used for testing IBC
-	mockIBCModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(mock.ModuleName))
-	app.IBCMockModule = mockIBCModule
-	ibcRouter.AddRoute(mock.ModuleName, mockIBCModule)
-
-	// Mock IBC app wrapped with a middleware which does not implement the UpgradeableModule interface.
-	// NOTE: this is used to test integration with apps which do not yet fulfill the UpgradeableModule interface and error when
-	// an upgrade is tried on the channel.
-	mockBlockUpgradeIBCModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(mock.MockBlockUpgrade))
-	mockBlockUpgradeMw := mock.NewBlockUpgradeMiddleware(&mockModule, mockBlockUpgradeIBCModule.IBCApp)
-	ibcRouter.AddRoute(mock.MockBlockUpgrade, mockBlockUpgradeMw)
-
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
 	// transferKeeper.SendPacket -> fee.SendPacket -> channel.SendPacket
@@ -471,15 +437,7 @@ func NewSimApp(
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
 	// icaControllerKeeper.SendTx -> fee.SendPacket -> channel.SendPacket
-
-	// initialize ICA module with mock module as the authentication module on the controller side
 	var icaControllerStack porttypes.IBCModule
-	icaControllerStack = mock.NewIBCModule(&mockModule, mock.NewIBCApp(""))
-	var ok bool
-	app.ICAAuthModule, ok = icaControllerStack.(mock.IBCModule)
-	if !ok {
-		panic(fmt.Errorf("cannot convert %T into %T", icaControllerStack, app.ICAAuthModule))
-	}
 	icaControllerStack = icacontroller.NewIBCMiddleware(app.ICAControllerKeeper)
 	icaControllerStack = ibcfee.NewIBCMiddleware(icaControllerStack, app.IBCFeeKeeper)
 
@@ -493,23 +451,7 @@ func NewSimApp(
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
-		AddRoute(icahosttypes.SubModuleName, icaHostStack).
-		AddRoute(mock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
-
-	// Create Mock IBC Fee module stack for testing
-	// SendPacket, mock module cannot send packets
-
-	// OnRecvPacket, message that originates from core IBC and goes down to app, the flow is the otherway
-	// channel.RecvPacket -> fee.OnRecvPacket -> mockModule.OnRecvPacket
-
-	// OnAcknowledgementPacket as this is where fee's are paid out
-	// mockModule.OnAcknowledgementPacket -> fee.OnAcknowledgementPacket -> channel.OnAcknowledgementPacket
-
-	// create fee wrapped mock module
-	feeMockModule := mock.NewIBCModule(&mockModule, mock.NewIBCApp(MockFeePort))
-	app.FeeMockModule = feeMockModule
-	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
-	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
+		AddRoute(icahosttypes.SubModuleName, icaHostStack)
 
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
@@ -566,7 +508,6 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		mockModule,
 
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
@@ -611,7 +552,6 @@ func NewSimApp(
 		authz.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
-		mock.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
 		crisistypes.ModuleName,
@@ -623,7 +563,6 @@ func NewSimApp(
 		feegrant.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
-		mock.ModuleName,
 		group.ModuleName,
 	)
 
@@ -635,7 +574,7 @@ func NewSimApp(
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
-		icatypes.ModuleName, ibcfeetypes.ModuleName, mock.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
+		icatypes.ModuleName, ibcfeetypes.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, circuittypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
@@ -949,7 +888,6 @@ func BlockedAddresses() map[string]bool {
 
 	// allow the following addresses to receive funds
 	delete(modAccAddrs, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-	delete(modAccAddrs, authtypes.NewModuleAddress(mock.ModuleName).String())
 
 	return modAccAddrs
 }
