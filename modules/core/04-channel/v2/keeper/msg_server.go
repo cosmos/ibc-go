@@ -4,7 +4,6 @@ import (
 	"context"
 	"slices"
 
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -139,7 +138,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 	// note this should never happen as the packet data would have had to be empty.
 	if len(ack.AcknowledgementResults) == 0 {
 		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
-		return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.FAILURE}, nil
+		return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-channel %s invalid acknowledgement results", msg.Packet.SourceChannel)
 	}
 
 	// NOTE: TBD how we will handle async acknowledgements with more than one packet data.
