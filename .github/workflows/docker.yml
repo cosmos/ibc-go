@@ -33,6 +33,9 @@ jobs:
         context: .
         tags: ${{ steps.meta.outputs.tags }}
         build-args: |
+          version="$(scripts/get-libwasm-version.py --get-version)"
+          checksum="$(scripts/get-libwasm-version.py --get-checksum)"
+
           IBC_GO_VERSION=main
 
     - name: Test simd is runnable
@@ -52,4 +55,7 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         build-args: |
+          version="$(scripts/get-libwasm-version.py --get-version)"
+          checksum="$(scripts/get-libwasm-version.py --get-checksum)"
+
           IBC_GO_VERSION=main

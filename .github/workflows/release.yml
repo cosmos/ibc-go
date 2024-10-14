@@ -37,6 +37,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install dependencies
+        run: make python-install-deps
 
       - name: Log in to the Container registry
         uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
@@ -59,3 +61,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             IBC_GO_VERSION=${{ github.ref_name }}
+            version="$(scripts/get-libwasm-version.py --get-version)"
+            checksum="$(scripts/get-libwasm-version.py --get-checksum)"
+
