@@ -18,6 +18,7 @@ RUN cp /lib/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
 # Copy relevant files before go mod download. Replace directives to local paths break if local
 # files are not copied before go mod download.
 ADD internal internal
+ADD simapp simapp
 ADD testing testing
 ADD modules modules
 ADD LICENSE LICENSE
@@ -25,7 +26,7 @@ ADD LICENSE LICENSE
 COPY go.mod .
 COPY go.sum .
 
-WORKDIR /go/modules/light-clients/08-wasm
+#WORKDIR /go/modules/light-clients/08-wasm
 
 RUN go mod download
 
