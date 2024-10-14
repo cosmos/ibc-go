@@ -79,6 +79,29 @@ func (k *Keeper) GetChannel(ctx context.Context, channelID string) (types.Channe
 	return channel, true
 }
 
+// GetCreator returns the creator of the client.
+func (k *Keeper) GetCreator(ctx context.Context, clientID string) (string, bool) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	bz := k.ChannelStore(sdkCtx, clientID).Get([]byte(types.CreatorKey))
+	if len(bz) == 0 {
+		return "", false
+	}
+
+	return string(bz), true
+}
+
+// SetCreator sets the creator of the client.
+func (k *Keeper) SetCreator(ctx context.Context, clientID, creator string) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	k.ChannelStore(sdkCtx, clientID).Set([]byte(types.CreatorKey), []byte(creator))
+}
+
+// DeleteCreator deletes the creator associated with the client.
+func (k *Keeper) DeleteCreator(ctx context.Context, clientID string) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	k.ChannelStore(sdkCtx, clientID).Delete([]byte(types.CreatorKey))
+}
+
 // GetPacketReceipt returns the packet receipt from the packet receipt path based on the channelID and sequence.
 func (k *Keeper) GetPacketReceipt(ctx context.Context, channelID string, sequence uint64) ([]byte, bool) {
 	store := k.storeService.OpenKVStore(ctx)

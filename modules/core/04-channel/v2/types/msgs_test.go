@@ -2,13 +2,34 @@ package types_test
 
 import (
 	"errors"
+	"testing"
 
+	"github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
+
+type TypesTestSuite struct {
+	suite.Suite
+
+	coordinator *ibctesting.Coordinator
+	chainA      *ibctesting.TestChain
+	chainB      *ibctesting.TestChain
+}
+
+func (s *TypesTestSuite) SetupTest() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+}
+
+func TestTypesTestSuite(t *testing.T) {
+	suite.Run(t, new(TypesTestSuite))
+}
 
 // TestMsgProvideCounterpartyValidateBasic tests ValidateBasic for MsgProvideCounterparty
 func (s *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
