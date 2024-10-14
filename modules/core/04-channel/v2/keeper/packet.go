@@ -14,7 +14,6 @@ import (
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
 // sendPacket constructs a packet from the input arguments, writes a packet commitment to state
@@ -31,7 +30,7 @@ func (k *Keeper) sendPacket(
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
 		channel, ok = k.convertV1Channel(ctx, data[0].SourcePort, sourceChannel)
 		if !ok {
-			return 0, "", errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
+			return 0, "", errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, sourceChannel)
 		}
 	}
 
@@ -107,7 +106,7 @@ func (k *Keeper) recvPacket(
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
 		channel, ok = k.convertV1Channel(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
 		if !ok {
-			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
+			return errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
 	if channel.CounterpartyChannelId != packet.SourceChannel {
@@ -135,7 +134,7 @@ func (k *Keeper) recvPacket(
 	}
 
 	path := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	commitment := channeltypesv2.CommitPacket(packet)
 
@@ -166,7 +165,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pa
 	// that the packet was indeed sent by our counterparty.
 	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
+		return errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, packet.SourceChannel)
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
@@ -194,7 +193,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pa
 	}
 
 	path := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
@@ -237,7 +236,7 @@ func (k *Keeper) timeoutPacket(
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
 		channel, ok = k.convertV1Channel(ctx, packet.Data[0].SourcePort, packet.SourceChannel)
 		if !ok {
-			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
+			return errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
@@ -275,7 +274,7 @@ func (k *Keeper) timeoutPacket(
 
 	// verify packet receipt absence
 	path := hostv2.PacketReceiptKey(packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
