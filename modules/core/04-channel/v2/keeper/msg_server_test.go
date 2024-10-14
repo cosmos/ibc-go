@@ -13,7 +13,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"

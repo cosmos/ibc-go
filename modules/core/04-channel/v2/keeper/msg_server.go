@@ -10,7 +10,6 @@ import (
 
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	telemetryv2 "github.com/cosmos/ibc-go/v9/modules/core/internal/v2/telemetry"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
