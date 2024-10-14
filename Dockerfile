@@ -35,7 +35,7 @@ COPY go.sum .
 
 RUN go mod download
 
-RUN BUILD_TAGS=muslc LINK_STATICALLY=true  make build
+RUN cd simapp && GOOS=linux GOARCH=amd64 go build -mod=readonly -tags "netgo ledger muslc" -ldflags '-X github.com/cosmos/cosmos-sdk/version.Name=sim -X github.com/cosmos/cosmos-sdk/version.AppName=simd -X github.com/cosmos/cosmos-sdk/version.Version= -X github.com/cosmos/cosmos-sdk/version.Commit= -X "github.com/cosmos/cosmos-sdk/version.BuildTags=netgo ledger muslc," -w -s -linkmode=external -extldflags "-Wl,-z,muldefs -static"' -trimpath -o /go/build/ ./...
 
 FROM alpine:3.18
 ARG IBC_GO_VERSION
