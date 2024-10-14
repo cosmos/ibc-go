@@ -168,7 +168,6 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			},
 		},
 		{
-
 			name: "success: NoOp",
 			malleate: func() {
 				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence)
@@ -262,8 +261,8 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 					suite.Require().Equal(expectedBz, actualAckBz)
 				}
 
-			} else {	
-        ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
+			} else {
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
 				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence)
 				suite.Require().False(ok)
 			}
@@ -276,9 +275,13 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 		path *ibctesting.Path
 		msg  *channeltypesv2.MsgProvideCounterparty
 	)
-	cases := []struct {			
-    {
-      "success",
+	cases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
 			func() {
 				// set it before handler
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(suite.chainA.GetContext(), msg.ChannelId, channeltypesv2.NewChannel(path.EndpointA.ClientID, "", ibctesting.MerklePath))
@@ -331,14 +334,8 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().False(found)
 		} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
-
-				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence)
-				suite.Require().False(ok)
-				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
-			}
-		})
+			ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
+		}
 	}
 }
 
@@ -382,7 +379,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "failure: counterparty not found",
 			malleate: func() {
-				// change the destination id to a non-existent channel.
+				// change the source id to a non-existent channel.
 				msgAckPacket.Packet.SourceChannel = "not-existent-channel"
 			},
 			expError: channeltypesv2.ErrChannelNotFound,

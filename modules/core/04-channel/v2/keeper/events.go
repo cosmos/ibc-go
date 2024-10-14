@@ -48,4 +48,3 @@ func (*Keeper) EmitCreateChannelEvent(ctx context.Context, channelID string) {
 		),
 	})
 }
-
