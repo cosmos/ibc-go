@@ -334,7 +334,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 	var (
 		path         *ibctesting.Path
 		msgAckPacket *channeltypesv2.MsgAcknowledgement
-		recvPacket   channeltypesv2.Packet
+		packet       channeltypesv2.Packet
 	)
 	testCases := []struct {
 		name     string
@@ -348,7 +348,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "success: NoOp",
 			malleate: func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence, []byte{})
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence, []byte{})
 
 				// Modify the callback to return an error.
 				// This way, we can verify that the callback is not executed in a No-op case.
@@ -384,7 +384,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "failure: invalid commitment",
 			malleate: func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence, []byte("foo"))
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence, []byte("foo"))
 			},
 			expError: channeltypesv2.ErrInvalidPacket,
 		},
@@ -406,24 +406,11 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
 
 			// Send packet from A to B
-			msgSendPacket := channeltypesv2.NewMsgSendPacket(path.EndpointA.ChannelID, timeoutTimestamp, suite.chainA.SenderAccount.GetAddress().String(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
-			res, err := path.EndpointA.Chain.SendMsgs(msgSendPacket)
-			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
-			suite.Require().NoError(path.EndpointB.UpdateClient())
+			var err error
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
 
-			// Receive packet on B
-			recvPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
-			// get proof of packet commitment from chainA
-			packetKey := hostv2.PacketCommitmentKey(recvPacket.SourceChannel, recvPacket.Sequence)
-			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
-
-			// Construct msgRecvPacket to be sent to B
-			msgRecvPacket := channeltypesv2.NewMsgRecvPacket(recvPacket, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
-			res, err = suite.chainB.SendMsgs(msgRecvPacket)
+			err = path.EndpointB.MsgRecvPacket(packet)
 			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
-			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			// Construct expected acknowledgement
 			ack := channeltypesv2.Acknowledgement{
@@ -438,15 +425,15 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 				},
 			}
 
-			// Consttruct MsgAcknowledgement
-			packetKey = hostv2.PacketAcknowledgementKey(recvPacket.DestinationChannel, recvPacket.Sequence)
-			proof, proofHeight = path.EndpointB.QueryProof(packetKey)
-			msgAckPacket = channeltypesv2.NewMsgAcknowledgement(recvPacket, ack, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
+			// Construct MsgAcknowledgement
+			packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
+			proof, proofHeight := path.EndpointB.QueryProof(packetKey)
+			msgAckPacket = channeltypesv2.NewMsgAcknowledgement(packet, ack, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
 
 			tc.malleate()
 
 			// Finally, acknowledge the packet on A
-			res, err = suite.chainA.SendMsgs(msgAckPacket)
+			res, err := suite.chainA.SendMsgs(msgAckPacket)
 
 			expPass := tc.expError == nil
 
