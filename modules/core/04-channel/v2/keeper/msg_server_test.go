@@ -361,7 +361,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "success: NoOp",
 			malleate: func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence, []byte{})
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeletePacketCommitment(suite.chainA.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence)
 
 				// Modify the callback to return an error.
 				// This way, we can verify that the callback is not executed in a No-op case.
@@ -492,7 +492,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 		{
 			name: "failure: no-op",
 			malleate: func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence, []byte{})
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeletePacketCommitment(suite.chainA.GetContext(), packet.DestinationChannel, packet.Sequence)
 
 				// Modify the callback to return a different error.
 				// This way, we can verify that the callback is not executed in a No-op case.
