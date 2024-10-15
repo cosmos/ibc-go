@@ -5,14 +5,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 )
 
-// GetQueryCmd returns the query commands for the IBC packet-server.
+// GetQueryCmd returns the query commands for the IBC channel/v2.
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                        types.SubModuleName,
-		Short:                      "IBC packet-server query subcommands",
+		Short:                      "IBC channel/v2 query subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -25,18 +25,19 @@ func GetQueryCmd() *cobra.Command {
 	return queryCmd
 }
 
-// NewTxCmd returns the command to submit transactions defined for the IBC packet-server.
+// NewTxCmd returns the command to submit transactions defined for IBC channel/v2.
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.SubModuleName,
-		Short:                      "IBC packet-server transaction subcommands",
+		Short:                      "IBC channel/v2 transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
 	txCmd.AddCommand(
-		newProvideCounterpartyCmd(),
+		newCreateChannelTxCmd(),
+		newProvideCounterpartyTxCmd(),
 	)
 
 	return txCmd

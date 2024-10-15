@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -147,8 +148,8 @@ func (s *TypesTestSuite) TestMsgCreateChannelValidateBasic() {
 	}
 }
 
-func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
-	var msg *types.MsgRecvPacket
+func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
+	var msg *types.MsgSendPacket
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -159,25 +160,32 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 			malleate: func() {},
 		},
 		{
-			name: "failure: invalid packet",
+			name: "failure: invalid source channel",
 			malleate: func() {
-				msg.Packet.Data = []types.PacketData{}
+				msg.SourceChannel = ""
 			},
-			expError: types.ErrInvalidPacket,
+			expError: host.ErrInvalidID,
 		},
 		{
-			name: "failure: invalid proof commitment",
+			name: "failure: invalid timestamp",
 			malleate: func() {
-				msg.ProofCommitment = []byte{}
+				msg.TimeoutTimestamp = 0
 			},
-			expError: commitmenttypes.ErrInvalidProof,
+			expError: channeltypesv1.ErrInvalidTimeout,
 		},
 		{
-			name: "failure: invalid proof height",
+			name: "failure: invalid length for packetdata",
 			malleate: func() {
-				msg.ProofHeight = clienttypes.ZeroHeight()
+				msg.PacketData = []types.PacketData{}
 			},
-			expError: clienttypes.ErrInvalidHeight,
+			expError: types.ErrInvalidPacketData,
+		},
+		{
+			name: "failure: invalid packetdata",
+			malleate: func() {
+				msg.PacketData[0].DestinationPort = ""
+			},
+			expError: host.ErrInvalidID,
 		},
 		{
 			name: "failure: invalid signer",
@@ -189,24 +197,16 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 	}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			packet := types.NewPacket(1,
-				ibctesting.FirstChannelID, ibctesting.FirstChannelID,
-				s.chainA.GetTimeoutTimestamp(),
-				types.PacketData{
-					SourcePort:      ibctesting.MockPort,
-					DestinationPort: ibctesting.MockPort,
-					Payload:         types.NewPayload("ics20-1", "json", mock.MockPacketData),
-				},
+			msg = types.NewMsgSendPacket(
+				ibctesting.FirstChannelID, s.chainA.GetTimeoutTimestamp(),
+				s.chainA.SenderAccount.GetAddress().String(),
+				types.PacketData{SourcePort: ibctesting.MockPort, DestinationPort: ibctesting.MockPort, Payload: types.NewPayload("ics20-1", "json", ibctesting.MockPacketData)},
 			)
-
-			msg = types.NewMsgRecvPacket(packet, []byte("foo"), s.chainA.GetTimeoutHeight(), s.chainA.SenderAccount.GetAddress().String())
 
 			tc.malleate()
 
 			err := msg.ValidateBasic()
-
 			expPass := tc.expError == nil
-
 			if expPass {
 				s.Require().NoError(err)
 			} else {

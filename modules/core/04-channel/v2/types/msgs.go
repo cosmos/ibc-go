@@ -8,6 +8,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypesv1 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
@@ -80,6 +81,34 @@ func NewMsgSendPacket(sourceChannel string, timeoutTimestamp uint64, signer stri
 		PacketData:       packetData,
 		Signer:           signer,
 	}
+}
+
+// ValidateBasic performs basic checks on a MsgSendPacket.
+func (msg *MsgSendPacket) ValidateBasic() error {
+	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
+		return err
+	}
+
+	if msg.TimeoutTimestamp == 0 {
+		return errorsmod.Wrap(channeltypesv1.ErrInvalidTimeout, "timeout must not be 0")
+	}
+
+	if len(msg.PacketData) != 1 {
+		return errorsmod.Wrapf(ErrInvalidPacketData, "packet data must be of length 1, got %d instead", len(msg.PacketData))
+	}
+
+	for _, pd := range msg.PacketData {
+		if err := pd.ValidateBasic(); err != nil {
+			return err
+		}
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	return nil
 }
 
 // NewMsgRecvPacket creates a new MsgRecvPacket instance.

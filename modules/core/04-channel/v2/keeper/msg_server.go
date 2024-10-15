@@ -11,8 +11,8 @@ import (
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
 	telemetryv2 "github.com/cosmos/ibc-go/v9/modules/core/internal/v2/telemetry"
-	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 var _ channeltypesv2.MsgServer = &Keeper{}
@@ -127,7 +127,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 			writeFn()
 		} else {
 			// Modify events in cached context to reflect unsuccessful acknowledgement
-			sdkCtx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
+			sdkCtx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
 		}
 
 		ack.AcknowledgementResults = append(ack.AcknowledgementResults, channeltypesv2.AcknowledgementResult{
@@ -232,25 +232,4 @@ func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *channeltypesv2.
 	k.DeleteCreator(ctx, msg.ChannelId)
 
 	return &channeltypesv2.MsgProvideCounterpartyResponse{}, nil
-}
-
-// convertToErrorEvents converts all events to error events by appending the
-// error attribute prefix to each event's attribute key.
-// TODO: https://github.com/cosmos/ibc-go/issues/7436
-func convertToErrorEvents(events sdk.Events) sdk.Events {
-	if events == nil {
-		return nil
-	}
-
-	newEvents := make(sdk.Events, len(events))
-	for i, event := range events {
-		newAttributes := make([]sdk.Attribute, len(event.Attributes))
-		for j, attribute := range event.Attributes {
-			newAttributes[j] = sdk.NewAttribute(coretypes.ErrorAttributeKeyPrefix+attribute.Key, attribute.Value)
-		}
-
-		newEvents[i] = sdk.NewEvent(coretypes.ErrorAttributeKeyPrefix+event.Type, newAttributes...)
-	}
-
-	return newEvents
 }
