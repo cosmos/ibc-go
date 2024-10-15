@@ -514,7 +514,9 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			// Send packet from A to B
 			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
 			mockData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
-			packet, err := path.EndpointA.MsgSendPacket(timeoutTimestamp, mockData)
+
+			var err error
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockData)
 			// msgSendPacket := channeltypesv2.NewMsgSendPacket(path.EndpointA.ChannelID, timeoutTimestamp, suite.chainA.SenderAccount.GetAddress().String(), mockData)
 			// res, err := path.EndpointA.Chain.SendMsgs(msgSendPacket)
 			suite.Require().NoError(err)

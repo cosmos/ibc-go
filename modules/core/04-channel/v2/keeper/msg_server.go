@@ -165,15 +165,29 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 // Timeout implements the PacketMsgServer Timeout method.
 func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout) (*channeltypesv2.MsgTimeoutResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	if err := k.timeoutPacket(ctx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight); err != nil {
-		sdkCtx.Logger().Error("Timeout packet failed", "source-channel", timeout.Packet.SourceChannel, "destination-channel", timeout.Packet.DestinationChannel, "error", errorsmod.Wrap(err, "timeout packet failed"))
-		return nil, errorsmod.Wrapf(err, "timeout packet failed for source id: %s and destination id: %s", timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel)
-	}
 
 	signer, err := sdk.AccAddressFromBech32(timeout.Signer)
 	if err != nil {
 		sdkCtx.Logger().Error("timeout packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
+	}
+
+	cacheCtx, writeFn := sdkCtx.CacheContext()
+	if err := k.timeoutPacket(cacheCtx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight); err != nil {
+		sdkCtx.Logger().Error("Timeout packet failed", "source-channel", timeout.Packet.SourceChannel, "destination-channel", timeout.Packet.DestinationChannel, "error", errorsmod.Wrap(err, "timeout packet failed"))
+		return nil, errorsmod.Wrapf(err, "timeout packet failed for source id: %s and destination id: %s", timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel)
+	}
+
+	switch err {
+	case nil:
+		writeFn()
+	case channeltypesv1.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
+		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", timeout.Packet.SourceChannel)
+		return &channeltypesv2.MsgTimeoutResponse{Result: channeltypesv1.NOOP}, nil
+	default:
+		sdkCtx.Logger().Error("timeout failed", "source-channel", timeout.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet verification failed"))
+		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
 	}
 
 	for _, pd := range timeout.Packet.Data {
