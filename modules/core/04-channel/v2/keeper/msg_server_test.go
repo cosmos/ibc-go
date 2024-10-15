@@ -519,7 +519,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			expError: errors.New("OnTimeoutPacket callback failed"),
 		},
 		{
-			name: "failure: counterparty not found",
+			name: "failure: channel not found",
 			malleate: func() {
 				// change the source id to a non-existent channel.
 				msgTimeout.Packet.SourceChannel = "not-existent-channel"
