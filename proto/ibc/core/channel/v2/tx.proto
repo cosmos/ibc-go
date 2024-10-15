@@ -56,9 +56,8 @@ message MsgCreateChannelResponse {
   string channel_id = 1;
 }
 
-// MsgProvideCounterparty defines the message used to provide the counterparty client
-// identifier. Can only be invoked one time by the signer of MsgCreateClient if the counterparty
-// client identifier was not provided in the initial MsgCreateClient message.
+// MsgProvideCounterparty defines the message used to provide the counterparty channel
+// identifier.
 message MsgProvideCounterparty {
   option (cosmos.msg.v1.signer) = "signer";
 
