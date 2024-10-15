@@ -6,7 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	commitmenttypesv1 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
@@ -46,7 +47,7 @@ func (msg *MsgProvideCounterparty) ValidateBasic() error {
 }
 
 // NewMsgCreateChannel creates a new MsgCreateChannel instance
-func NewMsgCreateChannel(clientID string, merklePathPrefix commitmenttypes.MerklePath, signer string) *MsgCreateChannel {
+func NewMsgCreateChannel(clientID string, merklePathPrefix commitmenttypesv2.MerklePath, signer string) *MsgCreateChannel {
 	return &MsgCreateChannel{
 		Signer:           signer,
 		ClientId:         clientID,
@@ -89,6 +90,27 @@ func NewMsgRecvPacket(packet Packet, proofCommitment []byte, proofHeight clientt
 		ProofHeight:     proofHeight,
 		Signer:          signer,
 	}
+}
+
+// ValidateBasic performs basic checks on a MsgRecvPacket.
+func (msg *MsgRecvPacket) ValidateBasic() error {
+	if err := msg.Packet.ValidateBasic(); err != nil {
+		return err
+	}
+
+	if len(msg.ProofCommitment) == 0 {
+		return errorsmod.Wrap(commitmenttypesv1.ErrInvalidProof, "proof commitment can not be empty")
+	}
+
+	if msg.ProofHeight.IsZero() {
+		return errorsmod.Wrap(clienttypes.ErrInvalidHeight, "proof height can not be zero")
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	return nil
 }
 
 // NewMsgAcknowledgement creates a new MsgAcknowledgement instance
