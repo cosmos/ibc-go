@@ -47,7 +47,9 @@ func (endpoint *Endpoint) MsgRecvPacket(packet channeltypesv2.Packet) error {
 func (endpoint *Endpoint) MsgAcknowledgePacket(packet channeltypesv2.Packet, ack channeltypesv2.Acknowledgement) error {
 	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
 	msg := channeltypesv2.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
 	if err := endpoint.Chain.sendMsgs(msg); err != nil {
 		return err
 	}
