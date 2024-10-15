@@ -121,34 +121,33 @@ func (suite *KeeperTestSuite) TestSetChannel() {
 	suite.Require().True(found, "GetChannel does not return channel")
 	suite.Require().Equal(channel, retrievedChannel, "Channel retrieved not equal")
 
-	// Channel not yet stored for another client.
-	retrievedChannel, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetChannel(suite.chainA.GetContext(), ibctesting.SecondClientID)
+	// No channel stored under other channel identifier.
+	retrievedChannel, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetChannel(suite.chainA.GetContext(), ibctesting.SecondChannelID)
 	suite.Require().False(found, "GetChannel unexpectedly returned a channel")
 	suite.Require().Equal(channeltypes2.Channel{}, retrievedChannel, "Channel retrieved not empty")
 }
 
 func (suite *KeeperTestSuite) TestSetCreator() {
-	clientID := ibctesting.FirstClientID
 	expectedCreator := "test-creator"
 
 	// Set the creator for the client
-	suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetCreator(suite.chainA.GetContext(), clientID, expectedCreator)
+	suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetCreator(suite.chainA.GetContext(), ibctesting.FirstChannelID, expectedCreator)
 
 	// Retrieve the creator from the store
-	retrievedCreator, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), clientID)
+	retrievedCreator, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), ibctesting.FirstChannelID)
 
 	// Verify that the retrieved creator matches the expected creator
 	suite.Require().True(found, "GetCreator did not return stored creator")
 	suite.Require().Equal(expectedCreator, retrievedCreator, "Creator is not retrieved correctly")
 
-	// Verify non stored creator is not found
-	retrievedCreator, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), ibctesting.SecondClientID)
+	// Verify that the creator is deleted from the store
+	suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeleteCreator(suite.chainA.GetContext(), ibctesting.FirstChannelID)
+	retrievedCreator, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), ibctesting.FirstChannelID)
 	suite.Require().False(found, "GetCreator unexpectedly returned a creator")
 	suite.Require().Empty(retrievedCreator, "Creator is not empty")
 
-	// Verify that the creator is deleted from the store
-	suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeleteCreator(suite.chainA.GetContext(), clientID)
-	retrievedCreator, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), clientID)
+	// Verify non stored creator is not found
+	retrievedCreator, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), ibctesting.SecondChannelID)
 	suite.Require().False(found, "GetCreator unexpectedly returned a creator")
 	suite.Require().Empty(retrievedCreator, "Creator is not empty")
 }
