@@ -67,10 +67,9 @@ func (k *Keeper) sendPacket(
 	if err != nil {
 		return 0, "", err
 	}
-	// check if packet is timed out on the receiving chain
-	timeout := channeltypes.NewTimeoutWithTimestamp(timeoutTimestamp)
-	if timeout.TimestampElapsed(latestTimestamp) {
-		return 0, "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
+
+	if timeoutTimestamp < latestTimestamp {
+		return 0, "", errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeoutTimestamp)
 	}
 
 	commitment := channeltypesv2.CommitPacket(packet)
@@ -117,10 +116,9 @@ func (k *Keeper) recvPacket(
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano())
-	timeout := channeltypes.NewTimeoutWithTimestamp(packet.GetTimeoutTimestamp())
-	if timeout.Elapsed(selfHeight, selfTimestamp) {
-		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
+	currentTimestamp := uint64(sdkCtx.BlockTime().Unix())
+	if packet.GetTimeoutTimestamp() >= currentTimestamp {
+		return errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, packet.GetTimeoutTimestamp())
 	}
 
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
@@ -251,9 +249,8 @@ func (k *Keeper) timeoutPacket(
 		return err
 	}
 
-	timeout := channeltypes.NewTimeoutWithTimestamp(packet.GetTimeoutTimestamp())
-	if !timeout.Elapsed(clienttypes.ZeroHeight(), proofTimestamp) {
-		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
+	if packet.GetTimeoutTimestamp() < proofTimestamp {
+		return errorsmod.Wrapf(channeltypes.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, packet.GetTimeoutTimestamp())
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
