@@ -43,7 +43,7 @@ func (endpoint *Endpoint) MsgRecvPacket(packet channeltypesv2.Packet) error {
 	return endpoint.Counterparty.UpdateClient()
 }
 
-// MsgAcknowledgePacket
+// MsgAcknowledgePacket sends a MsgAcknowledgement on the associated endpoint with the provided packet and ack.
 func (endpoint *Endpoint) MsgAcknowledgePacket(packet channeltypesv2.Packet, ack channeltypesv2.Acknowledgement) error {
 	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)

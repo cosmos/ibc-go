@@ -334,6 +334,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 	var (
 		path   *ibctesting.Path
 		packet channeltypesv2.Packet
+		ack    channeltypesv2.Acknowledgement
 	)
 	testCases := []struct {
 		name     string
@@ -380,6 +381,13 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			},
 			expError: channeltypesv2.ErrInvalidPacket,
 		},
+		{
+			name: "failure: failed membership verification",
+			malleate: func() {
+				ack.AcknowledgementResults[0].RecvPacketResult.Acknowledgement = mock.MockFailPacketData
+			},
+			expError: errors.New("failed packet acknowledgement verification"),
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -399,7 +407,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			suite.Require().NoError(err)
 
 			// Construct expected acknowledgement
-			ack := channeltypesv2.Acknowledgement{
+			ack = channeltypesv2.Acknowledgement{
 				AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
 					{
 						AppName: mockv2.ModuleNameB,
