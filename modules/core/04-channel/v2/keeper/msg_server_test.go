@@ -122,7 +122,6 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 	var (
 		path        *ibctesting.Path
-		msg         *channeltypesv2.MsgRecvPacket
 		packet      channeltypesv2.Packet
 		expectedAck channeltypesv2.Acknowledgement
 	)
@@ -223,21 +222,13 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 
 			tc.malleate()
 
-			// get proof of packet commitment from chainA
-			packetKey := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
-			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
-
-			msg = channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
-
-			res, err := path.EndpointB.Chain.SendMsgs(msg)
-			suite.Require().NoError(path.EndpointA.UpdateClient())
+			err = path.EndpointB.MsgRecvPacket(packet)
 
 			ck := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeperV2
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
 
 				// packet receipt should be written
 				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), packet.SourceChannel, packet.Sequence)

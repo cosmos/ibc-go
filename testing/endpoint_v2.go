@@ -2,6 +2,7 @@ package ibctesting
 
 import (
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,24 +27,17 @@ func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, packetData chan
 	return packet, nil
 }
 
-//// RecvPacketWithResult receives a packet on the associated endpoint and the result
-//// of the transaction is returned. The counterparty client is updated.
-//func (endpoint *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*abci.ExecTxResult, error) {
-//	// get proof of packet commitment on source
-//	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-//	proof, proofHeight := endpoint.Counterparty.Chain.QueryProof(packetKey)
-//
-//	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
-//
-//	// receive on counterparty and update source client
-//	res, err := endpoint.Chain.SendMsgs(recvMsg)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	if err := endpoint.Counterparty.UpdateClient(); err != nil {
-//		return nil, err
-//	}
-//
-//	return res, nil
-//}
+// MsgRecvPacket sends a MsgRecvPacket on the associated endpoint with the provided packet.
+func (endpoint *Endpoint) MsgRecvPacket(packet channeltypesv2.Packet) error {
+	// get proof of packet commitment from chainA
+	packetKey := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	msg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	if err := endpoint.Chain.sendMsgs(msg); err != nil {
+		return err
+	}
+
+	return endpoint.Counterparty.UpdateClient()
+}
