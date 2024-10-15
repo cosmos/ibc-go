@@ -36,7 +36,8 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	txCmd.AddCommand(
-		newProvideCounterpartyCmd(),
+		newCreateChannelTxCmd(),
+		newProvideCounterpartyTxCmd(),
 	)
 
 	return txCmd
