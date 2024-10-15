@@ -13,7 +13,7 @@ func (s *TypesTestSuite) TestBuildMerklePath() {
 	path.SetupV2()
 
 	prefixPath := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
-	packetCommitmentKey := host.PacketCommitmentKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, 1)
+	packetCommitmentKey := host.PacketCommitmentKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
 
 	testCases := []struct {
 		name    string

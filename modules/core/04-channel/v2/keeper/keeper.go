@@ -79,10 +79,10 @@ func (k *Keeper) GetChannel(ctx context.Context, channelID string) (types.Channe
 	return channel, true
 }
 
-// GetCreator returns the creator of the client.
-func (k *Keeper) GetCreator(ctx context.Context, clientID string) (string, bool) {
+// GetCreator returns the creator of the channel.
+func (k *Keeper) GetCreator(ctx context.Context, channelID string) (string, bool) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	bz := k.ChannelStore(sdkCtx, clientID).Get([]byte(types.CreatorKey))
+	bz := k.ChannelStore(sdkCtx, channelID).Get([]byte(types.CreatorKey))
 	if len(bz) == 0 {
 		return "", false
 	}
@@ -90,16 +90,16 @@ func (k *Keeper) GetCreator(ctx context.Context, clientID string) (string, bool)
 	return string(bz), true
 }
 
-// SetCreator sets the creator of the client.
-func (k *Keeper) SetCreator(ctx context.Context, clientID, creator string) {
+// SetCreator sets the creator of the channel.
+func (k *Keeper) SetCreator(ctx context.Context, channelID, creator string) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	k.ChannelStore(sdkCtx, clientID).Set([]byte(types.CreatorKey), []byte(creator))
+	k.ChannelStore(sdkCtx, channelID).Set([]byte(types.CreatorKey), []byte(creator))
 }
 
-// DeleteCreator deletes the creator associated with the client.
-func (k *Keeper) DeleteCreator(ctx context.Context, clientID string) {
+// DeleteCreator deletes the creator associated with the channel.
+func (k *Keeper) DeleteCreator(ctx context.Context, channelID string) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	k.ChannelStore(sdkCtx, clientID).Delete([]byte(types.CreatorKey))
+	k.ChannelStore(sdkCtx, channelID).Delete([]byte(types.CreatorKey))
 }
 
 // GetPacketReceipt returns the packet receipt from the packet receipt path based on the channelID and sequence.
@@ -135,6 +135,16 @@ func (k *Keeper) SetPacketReceipt(ctx context.Context, channelID string, sequenc
 	}
 }
 
+// GetPacketAcknowledgement fetches the packet acknowledgement from the store.
+func (k *Keeper) GetPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64) []byte {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(hostv2.PacketAcknowledgementKey(channelID, sequence))
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
 // SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 // This is a public path that is standardized by the IBC V2 specification.
 func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64, ackHash []byte) {
@@ -146,13 +156,7 @@ func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, channelID string,
 
 // HasPacketAcknowledgement check if the packet ack hash is already on the store.
 func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64) bool {
-	store := k.storeService.OpenKVStore(ctx)
-	found, err := store.Has(hostv2.PacketAcknowledgementKey(channelID, sequence))
-	if err != nil {
-		panic(err)
-	}
-
-	return found
+	return len(k.GetPacketAcknowledgement(ctx, channelID, sequence)) > 0
 }
 
 // GetPacketCommitment returns the packet commitment hash under the commitment path.

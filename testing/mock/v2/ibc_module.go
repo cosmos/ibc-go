@@ -32,16 +32,16 @@ func NewIBCModule() IBCModule {
 	}
 }
 
-func (im IBCModule) OnSendPacket(ctx context.Context, sourceID string, destinationID string, sequence uint64, data channeltypesv2.PacketData, signer sdk.AccAddress) error {
+func (im IBCModule) OnSendPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, data channeltypesv2.PacketData, signer sdk.AccAddress) error {
 	if im.IBCApp.OnSendPacket != nil {
-		return im.IBCApp.OnSendPacket(ctx, sourceID, destinationID, sequence, data, signer)
+		return im.IBCApp.OnSendPacket(ctx, sourceChannel, destinationChannel, sequence, data, signer)
 	}
 	return nil
 }
 
-func (im IBCModule) OnRecvPacket(ctx context.Context, sourceID string, destinationID string, data channeltypesv2.PacketData, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+func (im IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.PacketData, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 	if im.IBCApp.OnRecvPacket != nil {
-		return im.IBCApp.OnRecvPacket(ctx, sourceID, destinationID, data, relayer)
+		return im.IBCApp.OnRecvPacket(ctx, sourceChannel, destinationChannel, data, relayer)
 	}
 	return channeltypesv2.RecvPacketResult{
 		Status:          channeltypesv2.PacketStatus_Success,
@@ -49,16 +49,16 @@ func (im IBCModule) OnRecvPacket(ctx context.Context, sourceID string, destinati
 	}
 }
 
-func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceID string, destinationID string, data channeltypesv2.PacketData, acknowledgement []byte, relayer sdk.AccAddress) error {
+func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.PacketData, acknowledgement []byte, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnAcknowledgementPacket != nil {
-		return im.IBCApp.OnAcknowledgementPacket(ctx, sourceID, destinationID, data, acknowledgement, relayer)
+		return im.IBCApp.OnAcknowledgementPacket(ctx, sourceChannel, destinationChannel, data, acknowledgement, relayer)
 	}
 	return nil
 }
 
-func (im IBCModule) OnTimeoutPacket(ctx context.Context, sourceID string, destinationID string, data channeltypesv2.PacketData, relayer sdk.AccAddress) error {
+func (im IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.PacketData, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnTimeoutPacket != nil {
-		return im.IBCApp.OnTimeoutPacket(ctx, sourceID, destinationID, data, relayer)
+		return im.IBCApp.OnTimeoutPacket(ctx, sourceChannel, destinationChannel, data, relayer)
 	}
 	return nil
 }

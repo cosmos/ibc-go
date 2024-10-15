@@ -81,11 +81,22 @@ func NewMsgSendPacket(sourceChannel string, timeoutTimestamp uint64, signer stri
 	}
 }
 
-// NewMsgRecvPacket creates a new MsgRecvPacket instance
-func NewMsgRecvPacket(packet Packet, proof []byte, proofHeight clienttypes.Height, signer string) *MsgRecvPacket {
+// NewMsgRecvPacket creates a new MsgRecvPacket instance.
+func NewMsgRecvPacket(packet Packet, proofCommitment []byte, proofHeight clienttypes.Height, signer string) *MsgRecvPacket {
 	return &MsgRecvPacket{
 		Packet:          packet,
-		ProofCommitment: proof,
+		ProofCommitment: proofCommitment,
+		ProofHeight:     proofHeight,
+		Signer:          signer,
+	}
+}
+
+// NewMsgAcknowledgement creates a new MsgAcknowledgement instance
+func NewMsgAcknowledgement(packet Packet, acknowledgement Acknowledgement, proofAcked []byte, proofHeight clienttypes.Height, signer string) *MsgAcknowledgement {
+	return &MsgAcknowledgement{
+		Packet:          packet,
+		Acknowledgement: acknowledgement,
+		ProofAcked:      proofAcked,
 		ProofHeight:     proofHeight,
 		Signer:          signer,
 	}

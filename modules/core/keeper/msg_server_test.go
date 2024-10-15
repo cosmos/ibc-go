@@ -20,7 +20,7 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
@@ -185,13 +185,13 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 
 				if tc.expRevert {
 					// context events should contain error events
-					suite.Require().Contains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+					suite.Require().Contains(events, internalerrors.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
 				} else {
 					if tc.replay {
 						// context should not contain application events
 						suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
-						suite.Require().NotContains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+						suite.Require().NotContains(events, internalerrors.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					} else {
 						// context events should contain application events
 						suite.Require().Contains(events, ibcmock.NewMockRecvPacketEvent())
@@ -350,20 +350,20 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 // 				_, err := suite.chainB.App.GetIBCKeeper().RecvPacket(suite.chainB.GetContext(), msg)
 // 				suite.Require().NoError(err)
 
-// 				if tc.expRevert {
-// 					// context events should contain error events
-// 					suite.Require().Contains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
-// 					suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
-// 				} else {
-// 					if tc.replay {
-// 						// context should not contain application events
-// 						suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
-// 						suite.Require().NotContains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
-// 					} else {
-// 						// context events should contain application events
-// 						suite.Require().Contains(events, ibcmock.NewMockRecvPacketEvent())
-// 					}
-// 				}
+//			 if tc.expRevert {
+//			 	// context events should contain error events
+//			 	suite.Require().Contains(events, internalerrors.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+//			 	suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
+//			} else {
+//				if tc.replay {
+//					// context should not contain application events
+//					suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
+//					suite.Require().NotContains(events, internalerrors.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+//				} else {
+//					// context events should contain application events
+//					suite.Require().Contains(events, ibcmock.NewMockRecvPacketEvent())
+//				}
+//			}
 
 // 				// verify if ack was written
 // 				ack, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())

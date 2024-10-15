@@ -70,8 +70,8 @@ func (s *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
 
 	for _, tc := range testCases {
 		msg = types.NewMsgProvideCounterparty(
-			ibctesting.FirstClientID,
-			ibctesting.SecondClientID,
+			ibctesting.FirstChannelID,
+			ibctesting.SecondChannelID,
 			ibctesting.TestAccAddress,
 		)
 

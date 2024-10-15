@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
-// TestValidate tests the Validate function of Packet
+// TestValidate tests the Validate function of Payload
 func TestValidate(t *testing.T) {
 	testCases := []struct {
 		name    string
@@ -52,7 +52,7 @@ func TestValidate(t *testing.T) {
 	}
 }
 
-// TestValidateBasic tests the ValidateBasic functio of Packet
+// TestValidateBasic tests the ValidateBasic function of Packet
 func TestValidateBasic(t *testing.T) {
 	var packet types.Packet
 	testCases := []struct {
@@ -124,7 +124,7 @@ func TestValidateBasic(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			packet = types.NewPacket(1, ibctesting.FirstClientID, ibctesting.FirstClientID, uint64(time.Now().Unix()), types.PacketData{
+			packet = types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, uint64(time.Now().Unix()), types.PacketData{
 				SourcePort:      ibctesting.MockPort,
 				DestinationPort: ibctesting.MockPort,
 				Payload: types.Payload{

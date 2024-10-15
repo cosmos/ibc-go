@@ -135,7 +135,7 @@ func (k Keeper) RecvPacket(
 	}
 
 	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return "", channeltypes.ErrInvalidChannelIdentifier
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
 	}
 	clientID := channel.ClientId
 
@@ -211,7 +211,7 @@ func (k Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 	}
 	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return channeltypes.ErrInvalidChannelIdentifier
+		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
@@ -268,7 +268,7 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return "", channeltypes.ErrInvalidChannelIdentifier
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
 	}
 	clientID := channel.ClientId
 
@@ -339,7 +339,7 @@ func (k Keeper) TimeoutPacket(
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return "", channeltypes.ErrInvalidChannelIdentifier
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
 	}
 	clientID := channel.ClientId
 
