@@ -20,9 +20,10 @@ import (
 
 func (suite *KeeperTestSuite) TestMsgSendPacket() {
 	var (
-		path           *ibctesting.Path
-		msg            *channeltypesv2.MsgSendPacket
-		expectedPacket channeltypesv2.Packet
+		path             *ibctesting.Path
+		expectedPacket   channeltypesv2.Packet
+		timeoutTimestamp uint64
+		packetData       channeltypesv2.PacketData
 	)
 
 	testCases := []struct {
@@ -39,7 +40,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			name: "failure: timeout elapsed",
 			malleate: func() {
 				// ensure a message timeout.
-				msg.TimeoutTimestamp = uint64(1)
+				timeoutTimestamp = uint64(1)
 			},
 			expError: channeltypesv1.ErrTimeoutElapsed,
 		},
@@ -62,14 +63,14 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		{
 			name: "failure: counterparty not found",
 			malleate: func() {
-				msg.SourceChannel = "foo"
+				path.EndpointA.ChannelID = "foo"
 			},
 			expError: channeltypesv1.ErrChannelNotFound,
 		},
 		{
 			name: "failure: route to non existing app",
 			malleate: func() {
-				msg.PacketData[0].SourcePort = "foo"
+				packetData.SourcePort = "foo"
 			},
 			expError: fmt.Errorf("no route for foo"),
 		},
@@ -84,19 +85,19 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
-			msg = channeltypesv2.NewMsgSendPacket(path.EndpointA.ChannelID, timeoutTimestamp, suite.chainA.SenderAccount.GetAddress().String(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			timeoutTimestamp = suite.chainA.GetTimeoutTimestamp()
+			packetData = mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
-			expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, packetData)
 
 			tc.malleate()
 
-			res, err := path.EndpointA.Chain.SendMsgs(msg)
+			packet, err := path.EndpointA.MsgSendPacket(timeoutTimestamp, packetData)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
+				suite.Require().NotEmpty(packet)
 
 				ck := path.EndpointA.Chain.GetSimApp().IBCKeeper.ChannelKeeperV2
 
@@ -107,6 +108,8 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 				nextSequenceSend, ok := ck.GetNextSequenceSend(path.EndpointA.Chain.GetContext(), path.EndpointA.ChannelID)
 				suite.Require().True(ok)
 				suite.Require().Equal(uint64(2), nextSequenceSend, "next sequence send was not incremented correctly")
+
+				suite.Require().Equal(expectedPacket, packet)
 
 			} else {
 				suite.Require().Error(err)
@@ -120,7 +123,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 	var (
 		path        *ibctesting.Path
 		msg         *channeltypesv2.MsgRecvPacket
-		recvPacket  channeltypesv2.Packet
+		packet      channeltypesv2.Packet
 		expectedAck channeltypesv2.Acknowledgement
 	)
 
@@ -169,7 +172,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 		{
 			name: "success: NoOp",
 			malleate: func() {
-				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence)
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.SourceChannel, packet.Sequence)
 				expectedAck = channeltypesv2.Acknowledgement{}
 			},
 		},
@@ -177,7 +180,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			name: "failure: counterparty not found",
 			malleate: func() {
 				// change the destination id to a non-existent channel.
-				recvPacket.DestinationChannel = "not-existent-channel"
+				packet.DestinationChannel = "not-existent-channel"
 			},
 			expError: channeltypesv2.ErrChannelNotFound,
 		},
@@ -185,7 +188,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			name: "failure: invalid proof",
 			malleate: func() {
 				// proof verification fails because the packet commitment is different due to a different sequence.
-				recvPacket.Sequence = 10
+				packet.Sequence = 10
 			},
 			expError: commitmenttypes.ErrInvalidProof,
 		},
@@ -201,15 +204,9 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			path.SetupV2()
 
 			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
-			msgSendPacket := channeltypesv2.NewMsgSendPacket(path.EndpointA.ChannelID, timeoutTimestamp, suite.chainA.SenderAccount.GetAddress().String(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
 
-			res, err := path.EndpointA.Chain.SendMsgs(msgSendPacket)
-			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
-
-			suite.Require().NoError(path.EndpointB.UpdateClient())
-
-			recvPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			var err error
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
 
 			// default expected ack is a single successful recv result for moduleB.
 			expectedAck = channeltypesv2.Acknowledgement{
@@ -227,12 +224,12 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			tc.malleate()
 
 			// get proof of packet commitment from chainA
-			packetKey := hostv2.PacketCommitmentKey(recvPacket.SourceChannel, recvPacket.Sequence)
+			packetKey := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
 			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
 
-			msg = channeltypesv2.NewMsgRecvPacket(recvPacket, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
+			msg = channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, suite.chainB.SenderAccount.GetAddress().String())
 
-			res, err = path.EndpointB.Chain.SendMsgs(msg)
+			res, err := path.EndpointB.Chain.SendMsgs(msg)
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			ck := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeperV2
@@ -243,10 +240,10 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				suite.Require().NotNil(res)
 
 				// packet receipt should be written
-				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence)
+				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), packet.SourceChannel, packet.Sequence)
 				suite.Require().True(ok)
 
-				ackWritten := ck.HasPacketAcknowledgement(path.EndpointB.Chain.GetContext(), recvPacket.DestinationChannel, recvPacket.Sequence)
+				ackWritten := ck.HasPacketAcknowledgement(path.EndpointB.Chain.GetContext(), packet.DestinationChannel, packet.Sequence)
 
 				if len(expectedAck.AcknowledgementResults) == 0 || expectedAck.AcknowledgementResults[0].RecvPacketResult.Status == channeltypesv2.PacketStatus_Async {
 					// ack should not be written for async app or if the packet receipt was already present.
@@ -256,13 +253,13 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 					suite.Require().True(ackWritten)
 					expectedBz := channeltypesv2.CommitAcknowledgement(expectedAck)
 
-					actualAckBz := ck.GetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), recvPacket.DestinationChannel, recvPacket.Sequence)
+					actualAckBz := ck.GetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), packet.DestinationChannel, packet.Sequence)
 					suite.Require().Equal(expectedBz, actualAckBz)
 				}
 
 			} else {
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
-				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), recvPacket.SourceChannel, recvPacket.Sequence)
+				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), packet.SourceChannel, packet.Sequence)
 				suite.Require().False(ok)
 			}
 		})
