@@ -215,3 +215,72 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 		})
 	}
 }
+
+func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
+	var msg *types.MsgRecvPacket
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+		},
+		{
+			name: "failure: invalid packet",
+			malleate: func() {
+				msg.Packet.Data = []types.PacketData{}
+			},
+			expError: types.ErrInvalidPacket,
+		},
+		{
+			name: "failure: invalid proof commitment",
+			malleate: func() {
+				msg.ProofCommitment = []byte{}
+			},
+			expError: commitmenttypes.ErrInvalidProof,
+		},
+		{
+			name: "failure: invalid proof height",
+			malleate: func() {
+				msg.ProofHeight = clienttypes.ZeroHeight()
+			},
+			expError: clienttypes.ErrInvalidHeight,
+		},
+		{
+			name: "failure: invalid signer",
+			malleate: func() {
+				msg.Signer = ""
+			},
+			expError: ibcerrors.ErrInvalidAddress,
+		},
+	}
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			packet := types.NewPacket(1,
+				ibctesting.FirstChannelID, ibctesting.FirstChannelID,
+				s.chainA.GetTimeoutTimestamp(),
+				types.PacketData{
+					SourcePort:      ibctesting.MockPort,
+					DestinationPort: ibctesting.MockPort,
+					Payload:         types.NewPayload("ics20-1", "json", mock.MockPacketData),
+				},
+			)
+
+			msg = types.NewMsgRecvPacket(packet, []byte("foo"), s.chainA.GetTimeoutHeight(), s.chainA.SenderAccount.GetAddress().String())
+
+			tc.malleate()
+
+			err := msg.ValidateBasic()
+
+			expPass := tc.expError == nil
+
+			if expPass {
+				s.Require().NoError(err)
+			} else {
+				ibctesting.RequireErrorIsOrContains(s.T(), err, tc.expError)
+			}
+		})
+	}
+}
