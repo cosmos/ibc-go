@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -462,6 +463,115 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 
 			expPass := tc.expError == nil
 
+			if expPass {
+				suite.Require().NoError(err)
+				suite.NotNil(res)
+			} else {
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q, got %q instead", tc.expError, err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgTimeout() {
+	var (
+		path       *ibctesting.Path
+		msgTimeout *channeltypesv2.MsgTimeout
+		packet     channeltypesv2.Packet
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+		},
+		{
+			name: "failure: no-op",
+			malleate: func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence, []byte{})
+
+				// Modify the callback to return an error.
+				// This way, we can verify that the callback is not executed in a No-op case.
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.PacketData, sdk.AccAddress) error {
+					return errors.New("OnAcknowledgementPacket callback failed")
+				}
+			},
+			expError: channeltypesv1.ErrNoOpMsg,
+		},
+		{
+			name: "failure: invalid signer",
+			malleate: func() {
+				msgTimeout.Signer = ""
+			},
+			expError: errors.New("empty address string is not allowed"),
+		},
+		{
+			name: "failure: callback fails",
+			malleate: func() {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.PacketData, sdk.AccAddress) error {
+					return errors.New("OnTimeoutPacket callback failed")
+				}
+			},
+			expError: errors.New("OnTimeoutPacket callback failed"),
+		},
+		{
+			name: "failure: counterparty not found",
+			malleate: func() {
+				// change the source id to a non-existent channel.
+				msgTimeout.Packet.SourceChannel = "not-existent-channel"
+			},
+			expError: channeltypesv2.ErrChannelNotFound,
+		},
+		{
+			name: "failure: invalid commitment",
+			malleate: func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence, []byte("foo"))
+			},
+			expError: channeltypesv2.ErrInvalidPacket,
+		},
+		{
+			name: "failure: failed membership verification",
+			malleate: func() {
+				msgTimeout.ProofHeight = clienttypes.ZeroHeight()
+			},
+			expError: clienttypes.ErrConsensusStateNotFound,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			// Send packet from A to B
+			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+
+			mockData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			msgSendPacket := channeltypesv2.NewMsgSendPacket(path.EndpointA.ChannelID, timeoutTimestamp, suite.chainA.SenderAccount.GetAddress().String(), mockData)
+			res, err := path.EndpointA.Chain.SendMsgs(msgSendPacket)
+			suite.Require().NoError(err)
+			suite.Require().NotNil(res)
+			suite.Require().NoError(path.EndpointB.UpdateClient())
+
+			suite.coordinator.IncrementTimeBy(time.Hour * 20)
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+
+			packet = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, mockData)
+
+			packetKey := hostv2.PacketReceiptKey(packet.DestinationChannel, packet.Sequence)
+			proof, proofHeight := path.EndpointB.QueryProof(packetKey)
+			msgTimeout = channeltypesv2.NewMsgTimeout(packet, proof, proofHeight, 1, suite.chainA.SenderAccount.GetAddress().String())
+
+			tc.malleate()
+
+			res, err = suite.chainA.SendMsgs(msgTimeout)
+
+			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
 				suite.NotNil(res)

@@ -101,3 +101,14 @@ func NewMsgAcknowledgement(packet Packet, acknowledgement Acknowledgement, proof
 		Signer:          signer,
 	}
 }
+
+// NewMsgTimeout creates a new MsgTimeout instance
+func NewMsgTimeout(packet Packet, proofUnreceived []byte, proofHeight clienttypes.Height, nextSequenceRecv uint64, signer string) *MsgTimeout {
+	return &MsgTimeout{
+		Packet:           packet,
+		ProofUnreceived:  proofUnreceived,
+		ProofHeight:      proofHeight,
+		NextSequenceRecv: nextSequenceRecv,
+		Signer:           signer,
+	}
+}

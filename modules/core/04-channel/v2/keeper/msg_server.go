@@ -167,7 +167,7 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	if err := k.timeoutPacket(ctx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight); err != nil {
 		sdkCtx.Logger().Error("Timeout packet failed", "source-channel", timeout.Packet.SourceChannel, "destination-channel", timeout.Packet.DestinationChannel, "error", errorsmod.Wrap(err, "timeout packet failed"))
-		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s and destination id: %s", timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel)
+		return nil, errorsmod.Wrapf(err, "timeout packet failed for source id: %s and destination id: %s", timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel)
 	}
 
 	signer, err := sdk.AccAddressFromBech32(timeout.Signer)
@@ -176,17 +176,13 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
-	_ = signer
-
-	// TODO: implement once app router is wired up.
-	// https://github.com/cosmos/ibc-go/issues/7384
-	// for _, pd := range timeout.Packet.Data {
-	// 	cbs := k.PortKeeper.AppRouter.Route(pd.SourcePort)
-	// 	err := cbs.OnTimeoutPacket(timeout.Packet.SourceChannel, timeout.Packet.TimeoutTimestamp, signer)
-	// 	if err != nil {
-	// 		return err, err
-	// 	}
-	// }
+	for _, pd := range timeout.Packet.Data {
+		cbs := k.Router.Route(pd.SourcePort)
+		err := cbs.OnTimeoutPacket(ctx, timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel, pd, signer)
+		if err != nil {
+			return nil, errorsmod.Wrapf(err, "failed OnTimeoutPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel)
+		}
+	}
 
 	return &channeltypesv2.MsgTimeoutResponse{Result: channeltypesv1.SUCCESS}, nil
 }
