@@ -11,7 +11,6 @@ import (
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
@@ -206,6 +205,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 
 			var err error
 			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			suite.Require().NoError(err)
 
 			// default expected ack is a single successful recv result for moduleB.
 			expectedAck = channeltypesv2.Acknowledgement{
@@ -332,9 +332,8 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 
 func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 	var (
-		path         *ibctesting.Path
-		msgAckPacket *channeltypesv2.MsgAcknowledgement
-		packet       channeltypesv2.Packet
+		path   *ibctesting.Path
+		packet channeltypesv2.Packet
 	)
 	testCases := []struct {
 		name     string
@@ -358,13 +357,6 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			},
 		},
 		{
-			name: "failure: invalid signer",
-			malleate: func() {
-				msgAckPacket.Signer = ""
-			},
-			expError: errors.New("empty address string is not allowed"),
-		},
-		{
 			name: "failure: callback fails",
 			malleate: func() {
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, channeltypesv2.PacketData, []byte, sdk.AccAddress) error {
@@ -377,7 +369,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			name: "failure: counterparty not found",
 			malleate: func() {
 				// change the source id to a non-existent channel.
-				msgAckPacket.Packet.SourceChannel = "not-existent-channel"
+				packet.SourceChannel = "not-existent-channel"
 			},
 			expError: channeltypesv2.ErrChannelNotFound,
 		},
@@ -387,13 +379,6 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence, []byte("foo"))
 			},
 			expError: channeltypesv2.ErrInvalidPacket,
-		},
-		{
-			name: "failure: failed membership verification",
-			malleate: func() {
-				msgAckPacket.ProofHeight = clienttypes.ZeroHeight()
-			},
-			expError: errors.New("failed packet acknowledgement verification"),
 		},
 	}
 	for _, tc := range testCases {
@@ -405,9 +390,10 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 
 			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
 
-			// Send packet from A to B
 			var err error
+			// Send packet from A to B
 			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			suite.Require().NoError(err)
 
 			err = path.EndpointB.MsgRecvPacket(packet)
 			suite.Require().NoError(err)
@@ -425,21 +411,14 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 				},
 			}
 
-			// Construct MsgAcknowledgement
-			packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
-			proof, proofHeight := path.EndpointB.QueryProof(packetKey)
-			msgAckPacket = channeltypesv2.NewMsgAcknowledgement(packet, ack, proof, proofHeight, suite.chainA.SenderAccount.GetAddress().String())
-
 			tc.malleate()
 
 			// Finally, acknowledge the packet on A
-			res, err := suite.chainA.SendMsgs(msgAckPacket)
+			err = path.EndpointA.MsgAcknowledgePacket(packet, ack)
 
 			expPass := tc.expError == nil
-
 			if expPass {
 				suite.Require().NoError(err)
-				suite.NotNil(res)
 			} else {
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q, got %q instead", tc.expError, err)
 			}

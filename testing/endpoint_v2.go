@@ -1,9 +1,10 @@
 package ibctesting
 
 import (
+	"github.com/stretchr/testify/require"
+
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
-	"github.com/stretchr/testify/require"
 )
 
 // MsgSendPacket sends a packet on the associated endpoint. The constructed packet is returned.
@@ -35,6 +36,18 @@ func (endpoint *Endpoint) MsgRecvPacket(packet channeltypesv2.Packet) error {
 
 	msg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
 
+	if err := endpoint.Chain.sendMsgs(msg); err != nil {
+		return err
+	}
+
+	return endpoint.Counterparty.UpdateClient()
+}
+
+// MsgAcknowledgePacket
+func (endpoint *Endpoint) MsgAcknowledgePacket(packet channeltypesv2.Packet, ack channeltypesv2.Acknowledgement) error {
+	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+	msg := channeltypesv2.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
 	if err := endpoint.Chain.sendMsgs(msg); err != nil {
 		return err
 	}
