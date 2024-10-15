@@ -215,11 +215,8 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			expectedAck = channeltypesv2.Acknowledgement{
 				AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
 					{
-						AppName: mockv2.ModuleNameB,
-						RecvPacketResult: channeltypesv2.RecvPacketResult{
-							Status:          channeltypesv2.PacketStatus_Success,
-							Acknowledgement: mock.MockPacketData,
-						},
+						AppName:          mockv2.ModuleNameB,
+						RecvPacketResult: mockv2.MockRecvPacketResult,
 					},
 				},
 			}
@@ -441,11 +438,8 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			ack := channeltypesv2.Acknowledgement{
 				AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
 					{
-						AppName: mockv2.ModuleNameB,
-						RecvPacketResult: channeltypesv2.RecvPacketResult{
-							Status:          channeltypesv2.PacketStatus_Success,
-							Acknowledgement: mock.MockPacketData,
-						},
+						AppName:          mockv2.ModuleNameB,
+						RecvPacketResult: mockv2.MockRecvPacketResult,
 					},
 				},
 			}

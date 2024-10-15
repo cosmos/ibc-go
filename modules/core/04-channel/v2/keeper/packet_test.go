@@ -164,7 +164,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		{
 			"failure: packet has timed out",
 			func() {
-				packet.TimeoutTimestamp = uint64(suite.chainB.GetContext().BlockTime().UnixNano())
+				suite.coordinator.IncrementTimeBy(time.Hour * 20)
 			},
 			channeltypes.ErrTimeoutElapsed,
 		},
@@ -335,8 +335,13 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	var (
-		packet       types.Packet
-		ack          = mockv2.MockAcknowledgement
+		packet types.Packet
+		ack    = types.Acknowledgement{
+			AcknowledgementResults: []types.AcknowledgementResult{{
+				AppName:          mockv2.ModuleNameB,
+				RecvPacketResult: mockv2.MockRecvPacketResult,
+			}},
+		}
 		freezeClient bool
 	)
 
@@ -381,14 +386,15 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		{
 			"failure: packet commitment bytes differ",
 			func() {
-				packet.Sequence = 5
+				// change packet data after send to acknowledge different packet
+				packet.Data[0].Payload.Value = []byte("different value")
 			},
 			channeltypes.ErrInvalidPacket,
 		},
 		{
 			"failure: verify membership fails",
 			func() {
-				ack = mockv2.MockFailAcknowledgement
+				ack.AcknowledgementResults[0].RecvPacketResult = mockv2.MockFailRecvPacketResult
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -512,11 +518,12 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		{
 			"failure: packet does not match commitment",
 			func() {
-				// send a different packet
-				packet.Data[0].Payload.Value = []byte("different valu")
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel,
 					packet.TimeoutTimestamp, packet.Data)
 				suite.Require().NoError(err, "send packet failed")
+
+				// try to timeout packet with different data
+				packet.Data[0].Payload.Value = []byte("different value")
 			},
 			channeltypes.ErrInvalidPacket,
 		},
