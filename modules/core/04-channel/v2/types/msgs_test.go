@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -70,8 +71,8 @@ func (s *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
 
 	for _, tc := range testCases {
 		msg = types.NewMsgProvideCounterparty(
-			ibctesting.FirstClientID,
-			ibctesting.SecondClientID,
+			ibctesting.FirstChannelID,
+			ibctesting.SecondChannelID,
 			ibctesting.TestAccAddress,
 		)
 
@@ -140,5 +141,73 @@ func (s *TypesTestSuite) TestMsgCreateChannelValidateBasic() {
 		} else {
 			s.Require().ErrorContains(err, tc.expError.Error(), "invalid case %s passed", tc.name)
 		}
+	}
+}
+
+func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
+	var msg *types.MsgSendPacket
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+		},
+		{
+			name: "failure: invalid source channel",
+			malleate: func() {
+				msg.SourceChannel = ""
+			},
+			expError: host.ErrInvalidID,
+		},
+		{
+			name: "failure: invalid timestamp",
+			malleate: func() {
+				msg.TimeoutTimestamp = 0
+			},
+			expError: channeltypesv1.ErrInvalidTimeout,
+		},
+		{
+			name: "failure: invalid length for packetdata",
+			malleate: func() {
+				msg.PacketData = []types.PacketData{}
+			},
+			expError: types.ErrInvalidPacketData,
+		},
+		{
+			name: "failure: invalid packetdata",
+			malleate: func() {
+				msg.PacketData[0].DestinationPort = ""
+			},
+			expError: host.ErrInvalidID,
+		},
+		{
+			name: "failure: invalid signer",
+			malleate: func() {
+				msg.Signer = ""
+			},
+			expError: ibcerrors.ErrInvalidAddress,
+		},
+	}
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			msg = types.NewMsgSendPacket(
+				ibctesting.FirstChannelID, s.chainA.GetTimeoutTimestamp(),
+				s.chainA.SenderAccount.GetAddress().String(),
+				types.PacketData{SourcePort: ibctesting.MockPort, DestinationPort: ibctesting.MockPort, Payload: types.NewPayload("ics20-1", "json", ibctesting.MockPacketData)},
+			)
+
+			tc.malleate()
+
+			err := msg.ValidateBasic()
+			expPass := tc.expError == nil
+			if expPass {
+				s.Require().NoError(err)
+			} else {
+				ibctesting.RequireErrorIsOrContains(s.T(), err, tc.expError)
+			}
+		})
 	}
 }

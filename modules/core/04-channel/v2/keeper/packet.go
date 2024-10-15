@@ -148,7 +148,7 @@ func (k *Keeper) recvPacket(
 		merklePath,
 		commitment,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationChannel)
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
@@ -328,7 +328,7 @@ func (k *Keeper) timeoutPacket(
 		proof,
 		merklePath,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceChannel)
+		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientID)
 	}
 
 	// delete packet commitment to prevent replay

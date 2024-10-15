@@ -114,9 +114,8 @@ func (m *MsgCreateChannelResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateChannelResponse proto.InternalMessageInfo
 
-// MsgProvideCounterparty defines the message used to provide the counterparty client
-// identifier. Can only be invoked one time by the signer of MsgCreateClient if the counterparty
-// client identifier was not provided in the initial MsgCreateClient message.
+// MsgProvideCounterparty defines the message used to provide the counterparty channel
+// identifier.
 type MsgProvideCounterparty struct {
 	// unique identifier we will use to write all packet messages sent to counterparty
 	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`

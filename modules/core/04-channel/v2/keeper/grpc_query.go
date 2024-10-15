@@ -16,7 +16,7 @@ import (
 
 var _ types.QueryServer = (*queryServer)(nil)
 
-// queryServer implements the packet-server types.QueryServer interface.
+// queryServer implements the channel/v2 types.QueryServer interface.
 type queryServer struct {
 	*Keeper
 }
