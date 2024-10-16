@@ -12,7 +12,6 @@ import (
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
@@ -64,7 +63,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		{
 			name: "failure: counterparty not found",
 			malleate: func() {
-				path.EndpointA.ChannelID = "foo"
+				path.EndpointA.ChannelID = ibctesting.InvalidID
 			},
 			expError: channeltypesv1.ErrChannelNotFound,
 		},
@@ -180,7 +179,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			name: "failure: counterparty not found",
 			malleate: func() {
 				// change the destination id to a non-existent channel.
-				packet.DestinationChannel = "not-existent-channel"
+				packet.DestinationChannel = ibctesting.InvalidID
 			},
 			expError: channeltypesv2.ErrChannelNotFound,
 		},
@@ -438,9 +437,8 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 
 func (suite *KeeperTestSuite) TestMsgTimeout() {
 	var (
-		path       *ibctesting.Path
-		msgTimeout *channeltypesv2.MsgTimeout
-		packet     channeltypesv2.Packet
+		path   *ibctesting.Path
+		packet channeltypesv2.Packet
 	)
 
 	testCases := []struct {
@@ -466,13 +464,6 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			expError: channeltypesv1.ErrNoOpMsg,
 		},
 		{
-			name: "failure: invalid signer",
-			malleate: func() {
-				msgTimeout.Signer = ""
-			},
-			expError: errors.New("empty address string is not allowed"),
-		},
-		{
 			name: "failure: callback fails",
 			malleate: func() {
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.PacketData, sdk.AccAddress) error {
@@ -485,7 +476,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			name: "failure: channel not found",
 			malleate: func() {
 				// change the source id to a non-existent channel.
-				msgTimeout.Packet.SourceChannel = "not-existent-channel"
+				packet.SourceChannel = "not-existent-channel"
 			},
 			expError: channeltypesv2.ErrChannelNotFound,
 		},
@@ -497,11 +488,12 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			expError: channeltypesv2.ErrInvalidPacket,
 		},
 		{
-			name: "failure: failed membership verification",
+			name: "failure: unable to timeout if packet has been received",
 			malleate: func() {
-				msgTimeout.ProofHeight = clienttypes.ZeroHeight()
+				err := path.EndpointB.MsgRecvPacket(packet)
+				suite.Require().NoError(err)
 			},
-			expError: clienttypes.ErrConsensusStateNotFound,
+			expError: commitmenttypes.ErrInvalidProof,
 		},
 	}
 	for _, tc := range testCases {
@@ -517,29 +509,19 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 
 			var err error
 			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockData)
-			// msgSendPacket := channeltypesv2.NewMsgSendPacket(path.EndpointA.ChannelID, timeoutTimestamp, suite.chainA.SenderAccount.GetAddress().String(), mockData)
-			// res, err := path.EndpointA.Chain.SendMsgs(msgSendPacket)
 			suite.Require().NoError(err)
-			suite.Require().NotNil(packet)
-			// suite.Require().NoError(path.EndpointB.UpdateClient())
+			suite.Require().NotEmpty(packet)
+
+			tc.malleate()
 
 			suite.coordinator.IncrementTimeBy(time.Hour * 20)
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
-			//	packet = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, mockData)
-
-			packetKey := hostv2.PacketReceiptKey(packet.DestinationChannel, packet.Sequence)
-			proof, proofHeight := path.EndpointB.QueryProof(packetKey)
-			msgTimeout = channeltypesv2.NewMsgTimeout(packet, proof, proofHeight, 1, suite.chainA.SenderAccount.GetAddress().String())
-
-			tc.malleate()
-
-			res, err := suite.chainA.SendMsgs(msgTimeout)
+			err = path.EndpointA.MsgTimeoutPacket(packet)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
-				suite.NotNil(res)
 			} else {
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q, got %q instead", tc.expError, err)
 			}
