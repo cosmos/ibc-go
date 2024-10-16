@@ -40,8 +40,9 @@ jobs:
            run: |
             version="$(scripts/get-libwasm-version.py --get-version)"
             checksum="$(scripts/get-libwasm-version.py --get-checksum)"
-
+ 
             # remove any `/` characters from the docker tag and replace them with a -
+            # this ensures the docker tag is valid.
             docker_tag="$(echo $GIT_TAG | sed 's/[^a-zA-Z0-9\.]/-/g')"
             docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
             docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"

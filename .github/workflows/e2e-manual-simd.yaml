@@ -18,6 +18,7 @@ on:
           - TestInterchainAccountsGovTestSuite
           - TestIncentivizedInterchainAccountsTestSuite
           - TestAuthzTransferTestSuite
+          - TestGrandpaTestSuite
       chain-image:
         description: 'The image to use for chain A'
         required: true
@@ -72,6 +73,7 @@ on:
         options:
           - rly
           - hermes
+          - hyperspace
       relayer-tag:
         description: 'The tag to use for the relayer'
         required: true

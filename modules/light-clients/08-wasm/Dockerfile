@@ -26,7 +26,7 @@ ADD LICENSE LICENSE
 COPY go.mod .
 COPY go.sum .
 
-#WORKDIR /go/modules/light-clients/08-wasm
+WORKDIR /go/simapp
 
 RUN go mod download
 

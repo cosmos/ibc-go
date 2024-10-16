@@ -1,5 +1,6 @@
 name: Build Wasm Docker Simapp
-
+# starting ibc-go v10, simd can be reused for wasm images
+# this workflow can be deleted after support for v9 is dropped
 on:
   workflow_dispatch:
     inputs:

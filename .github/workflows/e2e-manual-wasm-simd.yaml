@@ -1,4 +1,6 @@
 name: Manual WASM E2E (Simd)
+# starting ibc-go v10, simd can be reused for wasm images
+# this workflow can be deleted after support for v9 is dropped
 on:
   # when https://github.com/community/community/discussions/11795 is resolved
   # we will be able to dynamically build up the list of valid inputs.
@@ -16,6 +18,9 @@ on:
         required: true
         type: string
         default: "ghcr.io/cosmos/ibc-go-wasm-simd"
+        options:
+          - ghcr.io/cosmos/ibc-go-simd # for v10 and up
+          - ghcr.io/cosmos/ibc-go-wasm-simd
       chain-binary:
         description: 'Specify the chain binary to be used'
         required: true
