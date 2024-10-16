@@ -532,7 +532,7 @@ func (endpoint *Endpoint) SendPacket(
 	return sequence, nil
 }
 
-// RecvPacketV2 receives a v2 packet on the assoicated endpoint
+// RecvPacketV2 receives a v2 packet on the associated endpoint
 // The counterparty client is updated
 func (endpoint *Endpoint) RecvPacketV2(packet channeltypesv2.Packet) error {
 	_, err := endpoint.RecvPacketV2WithResult(packet)
@@ -543,7 +543,7 @@ func (endpoint *Endpoint) RecvPacketV2(packet channeltypesv2.Packet) error {
 	return nil
 }
 
-// RecvPacketV2WithResult receives a packed on the assoicated endpoint and the result
+// RecvPacketV2WithResult receives a packed on the associated endpoint and the result
 // of the transaction is returned. The counterparty client is updated.
 func (endpoint *Endpoint) RecvPacketV2WithResult(packet channeltypesv2.Packet) (*abci.ExecTxResult, error) {
 	// get proof of v2 packet commitment on source

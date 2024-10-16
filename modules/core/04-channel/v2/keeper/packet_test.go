@@ -14,11 +14,7 @@ import (
 	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 )
 
-var (
-	defaultTimeoutHeight     = clienttypes.NewHeight(1, 100)
-	disabledTimeoutTimestamp = uint64(0)
-	unusedChannel            = "channel-5"
-)
+var unusedChannel = "channel-5"
 
 func (suite *KeeperTestSuite) TestSendPacket() {
 	var (

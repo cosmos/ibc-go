@@ -60,11 +60,11 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			expError: mock.MockApplicationCallbackError,
 		},
 		{
-			name: "failure: counterparty not found",
+			name: "failure: channel not found",
 			malleate: func() {
 				msg.SourceChannel = "foo"
 			},
-			expError: channeltypesv1.ErrChannelNotFound,
+			expError: channeltypesv2.ErrChannelNotFound,
 		},
 		{
 			name: "failure: route to non existing app",
