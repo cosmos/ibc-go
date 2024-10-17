@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -20,7 +19,6 @@ import (
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
@@ -470,42 +468,6 @@ func (endpoint *Endpoint) ChanCloseInit() error {
 	return endpoint.Chain.sendMsgs(msg)
 }
 
-// SendPacketV2 sends a packet through the packet server using the associated endpoint
-// The counterparty client is updated so proofs can be sent to the counterparty chain.
-// The packet sequence generated for the packet to be sent is returned. An error
-// is returned if one occurs.
-func (endpoint *Endpoint) SendPacketV2(
-	timeoutTimestamp uint64,
-	packetData ...channeltypesv2.PacketData,
-) (uint64, error) {
-	msg := channeltypesv2.NewMsgSendPacket(endpoint.ChannelID, timeoutTimestamp, endpoint.Chain.SenderAccount.GetAddress().String(), packetData...)
-
-	res, err := endpoint.Chain.SendMsgs(msg)
-	if err != nil {
-		return 0, err
-	}
-
-	err = endpoint.Counterparty.UpdateClient()
-	if err != nil {
-		return 0, err
-	}
-
-	// get sequence from msg response
-	var msgData sdk.TxMsgData
-	err = proto.Unmarshal(res.Data, &msgData)
-	if err != nil {
-		return 0, err
-	}
-	msgResponse := msgData.MsgResponses[0]
-	var sendResponse channeltypesv2.MsgSendPacketResponse
-	err = proto.Unmarshal(msgResponse.Value, &sendResponse)
-	if err != nil {
-		return 0, err
-	}
-
-	return sendResponse.Sequence, nil
-}
-
 // SendPacket sends a packet through the channel keeper using the associated endpoint
 // The counterparty client is updated so proofs can be sent to the counterparty chain.
 // The packet sequence generated for the packet to be sent is returned. An error
@@ -530,39 +492,6 @@ func (endpoint *Endpoint) SendPacket(
 	}
 
 	return sequence, nil
-}
-
-// RecvPacketV2 receives a v2 packet on the associated endpoint
-// The counterparty client is updated
-func (endpoint *Endpoint) RecvPacketV2(packet channeltypesv2.Packet) error {
-	_, err := endpoint.RecvPacketV2WithResult(packet)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// RecvPacketV2WithResult receives a packed on the associated endpoint and the result
-// of the transaction is returned. The counterparty client is updated.
-func (endpoint *Endpoint) RecvPacketV2WithResult(packet channeltypesv2.Packet) (*abci.ExecTxResult, error) {
-	// get proof of v2 packet commitment on source
-	packetKey := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
-	proof, proofHeight := endpoint.Counterparty.Chain.QueryProof(packetKey)
-
-	recvMsg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
-
-	// receive on counterparty and update source client
-	res, err := endpoint.Chain.SendMsgs(recvMsg)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := endpoint.Counterparty.UpdateClient(); err != nil {
-		return nil, err
-	}
-
-	return res, nil
 }
 
 // RecvPacket receives a packet on the associated endpoint.

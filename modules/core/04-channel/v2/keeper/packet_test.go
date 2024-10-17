@@ -135,6 +135,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 func (suite *KeeperTestSuite) TestRecvPacket() {
 	var (
 		path   *ibctesting.Path
+		err    error
 		packet types.Packet
 	)
 
@@ -208,12 +209,8 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 			// send packet
-			sequence, err := path.EndpointA.SendPacketV2(timeoutTimestamp, packetData)
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, packetData)
 			suite.Require().NoError(err)
-
-			// recreate sent packet that can be malleated
-			packet = types.NewPacket(sequence, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
-				timeoutTimestamp, packetData)
 
 			tc.malleate()
 
@@ -342,6 +339,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	var (
 		packet types.Packet
+		err    error
 		ack    = types.Acknowledgement{
 			AcknowledgementResults: []types.AcknowledgementResult{{
 				AppName:          mockv2.ModuleNameB,
@@ -421,14 +419,10 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 			// send packet
-			sequence, err := path.EndpointA.SendPacketV2(timeoutTimestamp, packetData)
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, packetData)
 			suite.Require().NoError(err)
 
-			// create standard packet that can be malleated
-			packet = types.NewPacket(sequence, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
-				timeoutTimestamp, packetData)
-
-			err = path.EndpointB.RecvPacketV2(packet)
+			err = path.EndpointB.MsgRecvPacket(packet)
 			suite.Require().NoError(err)
 
 			tc.malleate()

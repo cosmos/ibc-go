@@ -1,7 +1,9 @@
 package ibctesting
 
 import (
-	"github.com/stretchr/testify/require"
+	"github.com/cosmos/gogoproto/proto"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
@@ -11,7 +13,7 @@ import (
 func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, packetData channeltypesv2.PacketData) (channeltypesv2.Packet, error) {
 	msgSendPacket := channeltypesv2.NewMsgSendPacket(endpoint.ChannelID, timeoutTimestamp, endpoint.Chain.SenderAccount.GetAddress().String(), packetData)
 
-	_, err := endpoint.Chain.SendMsgs(msgSendPacket)
+	res, err := endpoint.Chain.SendMsgs(msgSendPacket)
 	if err != nil {
 		return channeltypesv2.Packet{}, err
 	}
@@ -20,10 +22,20 @@ func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, packetData chan
 		return channeltypesv2.Packet{}, err
 	}
 
-	// TODO: parse the packet from events instead of manually constructing it. https://github.com/cosmos/ibc-go/issues/7459
-	nextSequenceSend, ok := endpoint.Chain.GetSimApp().IBCKeeper.ChannelKeeperV2.GetNextSequenceSend(endpoint.Chain.GetContext(), endpoint.ChannelID)
-	require.True(endpoint.Chain.TB, ok)
-	packet := channeltypesv2.NewPacket(nextSequenceSend-1, endpoint.ChannelID, endpoint.Counterparty.ChannelID, timeoutTimestamp, packetData)
+	// TODO: parse the packet from events instead of from the response. https://github.com/cosmos/ibc-go/issues/7459
+	// get sequence from msg response
+	var msgData sdk.TxMsgData
+	err = proto.Unmarshal(res.Data, &msgData)
+	if err != nil {
+		return channeltypesv2.Packet{}, err
+	}
+	msgResponse := msgData.MsgResponses[0]
+	var sendResponse channeltypesv2.MsgSendPacketResponse
+	err = proto.Unmarshal(msgResponse.Value, &sendResponse)
+	if err != nil {
+		return channeltypesv2.Packet{}, err
+	}
+	packet := channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ChannelID, endpoint.Counterparty.ChannelID, timeoutTimestamp, packetData)
 
 	return packet, nil
 }
