@@ -12,6 +12,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -193,6 +194,10 @@ func (k Keeper) WriteAcknowledgement(
 
 	if _, found := k.GetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence); !found {
 		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
+	}
+
+	if len(ack.AcknowledgementResults) != len(packet.Data) {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of acknowledgement results %d does not match length of packet data %d", len(ack.AcknowledgementResults), len(packet.Data))
 	}
 
 	// set the acknowledgement so that it can be verified on the other side

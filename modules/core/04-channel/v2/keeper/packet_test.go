@@ -237,11 +237,10 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 	}
 }
 
-/*
 func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 	var (
-		packet channeltypes.Packet
-		ack    exported.Acknowledgement
+		packet types.Packet
+		ack    types.Acknowledgement
 	)
 
 	testCases := []struct {
@@ -253,13 +252,6 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			"success",
 			func() {},
 			nil,
-		},
-		{
-			"failure: protocol version is not IBC_VERSION_2",
-			func() {
-				packet.ProtocolVersion = channeltypes.IBC_VERSION_1
-			},
-			channeltypes.ErrInvalidPacket,
 		},
 		{
 			"failure: channel not found",
@@ -278,24 +270,19 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		{
 			"failure: ack already exists",
 			func() {
-				ackBz := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
-				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence, ackBz)
+				ackBz := types.CommitAcknowledgement(ack)
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence, ackBz)
 			},
 			channeltypes.ErrAcknowledgementExists,
 		},
 		{
-			"failure: ack is nil",
-			func() {
-				ack = nil
-			},
-			channeltypes.ErrInvalidAcknowledgement,
-		},
-		{
 			"failure: empty ack",
 			func() {
-				ack = mock.NewEmptyAcknowledgement()
+				ack = types.Acknowledgement{
+					AcknowledgementResults: []types.AcknowledgementResult{},
+				}
 			},
-			channeltypes.ErrInvalidAcknowledgement,
+			types.ErrInvalidAcknowledgement,
 		},
 		{
 			"failure: receipt not found for packet",
@@ -314,10 +301,25 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			packet = channeltypes.NewPacketWithVersion(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp, mock.Version)
-			ack = mock.MockAcknowledgement
+			packetData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
-			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
+
+			// create standard packet that can be malleated
+			packet = types.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
+				timeoutTimestamp, packetData)
+
+			// create standard ack that can be malleated
+			ack = types.Acknowledgement{
+				AcknowledgementResults: []types.AcknowledgementResult{
+					{
+						AppName:          mockv2.ModuleNameB,
+						RecvPacketResult: mockv2.MockRecvPacketResult,
+					},
+				},
+			}
+
+			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence)
 
 			tc.malleate()
 
@@ -327,9 +329,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				ackCommitment, found := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-				suite.Require().True(found)
-				suite.Require().Equal(channeltypes.CommitAcknowledgement(ack.Acknowledgement()), ackCommitment)
+				ackCommitment := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence)
+				suite.Require().Equal(types.CommitAcknowledgement(ack), ackCommitment)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
@@ -337,7 +338,6 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		})
 	}
 }
-*/
 
 func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	var (
