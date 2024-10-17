@@ -18,8 +18,9 @@ var unusedChannel = "channel-5"
 
 func (suite *KeeperTestSuite) TestSendPacket() {
 	var (
-		path   *ibctesting.Path
-		packet types.Packet
+		path        *ibctesting.Path
+		packet      types.Packet
+		expSequence uint64
 	)
 
 	testCases := []struct {
@@ -30,6 +31,16 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		{
 			"success",
 			func() {},
+			nil,
+		},
+		{
+			"success with later packet",
+			func() {
+				// send the same packet earlier so next packet send should be sequence 2
+				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel, packet.TimeoutTimestamp, packet.Data)
+				suite.Require().NoError(err)
+				expSequence = 2
+			},
 			nil,
 		},
 		{
@@ -93,6 +104,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			// create standard packet that can be malleated
 			packet = types.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
 				timeoutTimestamp, packetData)
+			expSequence = 1
 
 			// malleate the test case
 			tc.malleate()
@@ -104,7 +116,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			if expPass {
 				suite.Require().NoError(err)
 				// verify send packet method instantiated packet with correct sequence and destination channel
-				suite.Require().Equal(uint64(1), seq)
+				suite.Require().Equal(expSequence, seq)
 				suite.Require().Equal(path.EndpointB.ChannelID, destChannel)
 				// verify send packet stored the packet commitment correctly
 				expCommitment := types.CommitPacket(packet)
@@ -195,15 +207,13 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
-			// create standard packet that can be malleated
-			packet = types.NewPacket(0, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
-				timeoutTimestamp, packetData)
-
 			// send packet
-			sequence, err := path.EndpointA.SendPacketV2(packet.TimeoutTimestamp, packet.Data...)
+			sequence, err := path.EndpointA.SendPacketV2(timeoutTimestamp, packetData)
 			suite.Require().NoError(err)
 
-			packet.Sequence = sequence
+			// recreate sent packet that can be malleated
+			packet = types.NewPacket(sequence, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
+				timeoutTimestamp, packetData)
 
 			tc.malleate()
 
@@ -410,15 +420,13 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
-			// create standard packet that can be malleated
-			packet = types.NewPacket(0, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
-				timeoutTimestamp, packetData)
-
 			// send packet
 			sequence, err := path.EndpointA.SendPacketV2(timeoutTimestamp, packetData)
 			suite.Require().NoError(err)
 
-			packet.Sequence = sequence
+			// create standard packet that can be malleated
+			packet = types.NewPacket(sequence, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
+				timeoutTimestamp, packetData)
 
 			err = path.EndpointB.RecvPacketV2(packet)
 			suite.Require().NoError(err)
