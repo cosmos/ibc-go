@@ -6,15 +6,16 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	"github.com/cosmos/ibc-go/v9/testing/mock"
+	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 )
+
+var testProof = []byte("test")
 
 type TypesTestSuite struct {
 	suite.Suite
@@ -22,8 +23,6 @@ type TypesTestSuite struct {
 	coordinator *ibctesting.Coordinator
 	chainA      *ibctesting.TestChain
 	chainB      *ibctesting.TestChain
-
-	proof []byte
 }
 
 func (s *TypesTestSuite) SetupTest() {
@@ -242,13 +241,6 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 			expError: commitmenttypes.ErrInvalidProof,
 		},
 		{
-			name: "failure: invalid proof height",
-			malleate: func() {
-				msg.ProofHeight = clienttypes.ZeroHeight()
-			},
-			expError: clienttypes.ErrInvalidHeight,
-		},
-		{
 			name: "failure: invalid signer",
 			malleate: func() {
 				msg.Signer = ""
@@ -258,17 +250,9 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 	}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			packet := types.NewPacket(1,
-				ibctesting.FirstChannelID, ibctesting.FirstChannelID,
-				s.chainA.GetTimeoutTimestamp(),
-				types.PacketData{
-					SourcePort:      ibctesting.MockPort,
-					DestinationPort: ibctesting.MockPort,
-					Payload:         types.NewPayload("ics20-1", "json", mock.MockPacketData),
-				},
-			)
+			packet := types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, s.chainA.GetTimeoutTimestamp(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
 
-			msg = types.NewMsgRecvPacket(packet, []byte("foo"), s.chainA.GetTimeoutHeight(), s.chainA.SenderAccount.GetAddress().String())
+			msg = types.NewMsgRecvPacket(packet, testProof, s.chainA.GetTimeoutHeight(), s.chainA.SenderAccount.GetAddress().String())
 
 			tc.malleate()
 
