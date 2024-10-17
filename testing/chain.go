@@ -579,6 +579,12 @@ func (chain *TestChain) GetTimeoutTimestamp() uint64 {
 	return uint64(chain.GetContext().BlockTime().UnixNano()) + DefaultTimeoutTimestampDelta
 }
 
+// GetTimeoutTimestampSecs is a convenience function which returns a IBC packet timeout timestamp in seconds
+// to be used for testing. It returns the current block timestamp + default timestamp delta (1 hour).
+func (chain *TestChain) GetTimeoutTimestampSecs() uint64 {
+	return uint64(chain.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
+}
+
 // DeleteKey deletes the specified key from the ibc store.
 func (chain *TestChain) DeleteKey(key []byte) {
 	storeKey := chain.GetSimApp().GetKey(exported.StoreKey)
