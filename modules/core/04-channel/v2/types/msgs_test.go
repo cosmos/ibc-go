@@ -12,7 +12,10 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 )
+
+var testProof = []byte("test")
 
 type TypesTestSuite struct {
 	suite.Suite
@@ -203,6 +206,60 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 
 			err := msg.ValidateBasic()
 			expPass := tc.expError == nil
+			if expPass {
+				s.Require().NoError(err)
+			} else {
+				ibctesting.RequireErrorIsOrContains(s.T(), err, tc.expError)
+			}
+		})
+	}
+}
+
+func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
+	var msg *types.MsgRecvPacket
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+		},
+		{
+			name: "failure: invalid packet",
+			malleate: func() {
+				msg.Packet.Data = []types.PacketData{}
+			},
+			expError: types.ErrInvalidPacket,
+		},
+		{
+			name: "failure: invalid proof commitment",
+			malleate: func() {
+				msg.ProofCommitment = []byte{}
+			},
+			expError: commitmenttypes.ErrInvalidProof,
+		},
+		{
+			name: "failure: invalid signer",
+			malleate: func() {
+				msg.Signer = ""
+			},
+			expError: ibcerrors.ErrInvalidAddress,
+		},
+	}
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			packet := types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, s.chainA.GetTimeoutTimestamp(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+
+			msg = types.NewMsgRecvPacket(packet, testProof, s.chainA.GetTimeoutHeight(), s.chainA.SenderAccount.GetAddress().String())
+
+			tc.malleate()
+
+			err := msg.ValidateBasic()
+
+			expPass := tc.expError == nil
+
 			if expPass {
 				s.Require().NoError(err)
 			} else {
