@@ -28,7 +28,6 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
-	packetserverkeeper "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 	"github.com/cosmos/ibc-go/v9/testing/simapp"
 	ibctestingtypes "github.com/cosmos/ibc-go/v9/testing/types"
 )
@@ -43,7 +42,6 @@ type TestingApp interface {
 	GetStakingKeeper() ibctestingtypes.StakingKeeper
 	GetIBCKeeper() *keeper.Keeper
 	GetTxConfig() client.TxConfig
-	GetPacketServer() *packetserverkeeper.Keeper
 
 	// Implemented by SimApp
 	AppCodec() codec.Codec

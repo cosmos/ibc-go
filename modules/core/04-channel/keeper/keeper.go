@@ -21,10 +21,8 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	commitmentv2types "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	packetserver "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
 var _ porttypes.ICS4Wrapper = (*Keeper)(nil)
@@ -825,30 +823,4 @@ func (k *Keeper) PruneAcknowledgements(ctx context.Context, portID, channelID st
 	totalRemaining := pruningSequenceEnd - start
 
 	return totalPruned, totalRemaining, nil
-}
-
-// GetV2Channel returns a version 2 channel for the given port and channel ID
-// by converting the v1 channel into a version 2 channel
-func (k *Keeper) GetV2Channel(ctx context.Context, portID, channelID string) (packetserver.Channel, bool) {
-	channel, ok := k.GetChannel(ctx, portID, channelID)
-	if !ok {
-		return packetserver.Channel{}, false
-	}
-	// Do not allow channel to be converted into a version 2 counterparty
-	// if the channel is not OPEN or if it is ORDERED
-	if channel.State != types.OPEN || channel.Ordering == types.ORDERED {
-		return packetserver.Channel{}, false
-	}
-	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
-	if !ok {
-		return packetserver.Channel{}, false
-	}
-	merklePathPrefix := commitmentv2types.NewMerklePath(connection.Counterparty.Prefix.KeyPrefix, []byte(""))
-
-	channelv2 := packetserver.Channel{
-		CounterpartyChannelId: channel.Counterparty.ChannelId,
-		ClientId:              connection.ClientId,
-		MerklePathPrefix:      merklePathPrefix,
-	}
-	return channelv2, true
 }
