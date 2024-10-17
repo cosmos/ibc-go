@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -484,8 +483,8 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 		{
 			name: "failure: unable to timeout if packet has been received",
 			malleate: func() {
-				err := path.EndpointB.MsgRecvPacket(packet)
-				suite.Require().NoError(err)
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.SourceChannel, packet.Sequence)
+				suite.Require().NoError(path.EndpointB.UpdateClient())
 			},
 			expError: commitmenttypes.ErrInvalidProof,
 		},
@@ -498,7 +497,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			path.SetupV2()
 
 			// Send packet from A to B
-			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Unix())
 			mockData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			var err error
@@ -508,7 +507,6 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 
 			tc.malleate()
 
-			suite.coordinator.IncrementTimeBy(time.Hour * 20)
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			err = path.EndpointA.MsgTimeoutPacket(packet)
