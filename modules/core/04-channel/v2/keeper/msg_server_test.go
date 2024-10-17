@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 		{
 			name: "success: NoOp",
 			malleate: func() {
-				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.SourceChannel, packet.Sequence)
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence)
 				expectedAck = channeltypesv2.Acknowledgement{}
 			},
 		},
@@ -228,7 +228,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				suite.Require().NoError(err)
 
 				// packet receipt should be written
-				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), packet.SourceChannel, packet.Sequence)
+				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), packet.DestinationChannel, packet.Sequence)
 				suite.Require().True(ok)
 
 				ackWritten := ck.HasPacketAcknowledgement(path.EndpointB.Chain.GetContext(), packet.DestinationChannel, packet.Sequence)
