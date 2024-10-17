@@ -19,6 +19,15 @@ func NewPacket(sequence uint64, sourceChannel, destinationChannel string, timeou
 	}
 }
 
+// NewPacketData constructs a new PacketData
+func NewPacketData(sourcePort, destPort string, payload Payload) PacketData {
+	return PacketData{
+		SourcePort:      sourcePort,
+		DestinationPort: destPort,
+		Payload:         payload,
+	}
+}
+
 // NewPayload constructs a new Payload
 func NewPayload(version, encoding string, value []byte) Payload {
 	return Payload{

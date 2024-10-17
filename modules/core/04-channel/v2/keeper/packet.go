@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"strconv"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -11,7 +12,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -22,7 +23,7 @@ func (k *Keeper) sendPacket(
 	ctx context.Context,
 	sourceChannel string,
 	timeoutTimestamp uint64,
-	data []channeltypesv2.PacketData,
+	data []types.PacketData,
 ) (uint64, string, error) {
 	// Lookup channel associated with our source channel to retrieve the destination channel
 	channel, ok := k.GetChannel(ctx, sourceChannel)
@@ -30,7 +31,7 @@ func (k *Keeper) sendPacket(
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
 		channel, ok = k.convertV1Channel(ctx, data[0].SourcePort, sourceChannel)
 		if !ok {
-			return 0, "", errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, sourceChannel)
+			return 0, "", errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 		}
 	}
 
@@ -40,13 +41,13 @@ func (k *Keeper) sendPacket(
 	sequence, found := k.GetNextSequenceSend(ctx, sourceChannel)
 	if !found {
 		return 0, "", errorsmod.Wrapf(
-			channeltypesv2.ErrSequenceSendNotFound,
+			types.ErrSequenceSendNotFound,
 			"source channel: %s", sourceChannel,
 		)
 	}
 
 	// construct packet from given fields and channel state
-	packet := channeltypesv2.NewPacket(sequence, sourceChannel, destChannel, timeoutTimestamp, data...)
+	packet := types.NewPacket(sequence, sourceChannel, destChannel, timeoutTimestamp, data...)
 
 	if err := packet.ValidateBasic(); err != nil {
 		return 0, "", errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
@@ -68,12 +69,14 @@ func (k *Keeper) sendPacket(
 		return 0, "", err
 	}
 	// check if packet is timed out on the receiving chain
-	timeout := channeltypes.NewTimeoutWithTimestamp(timeoutTimestamp)
+	// convert packet timeout to nanoseconds for now to use existing helper function
+	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
+	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
 	if timeout.TimestampElapsed(latestTimestamp) {
 		return 0, "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
 	}
 
-	commitment := channeltypesv2.CommitPacket(packet)
+	commitment := types.CommitPacket(packet)
 
 	// bump the sequence and set the packet commitment, so it is provable by the counterparty
 	k.SetNextSequenceSend(ctx, sourceChannel, sequence+1)
@@ -95,7 +98,7 @@ func (k *Keeper) sendPacket(
 // to indicate to the counterparty successful delivery.
 func (k *Keeper) recvPacket(
 	ctx context.Context,
-	packet channeltypesv2.Packet,
+	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
@@ -107,7 +110,7 @@ func (k *Keeper) recvPacket(
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
 		channel, ok = k.convertV1Channel(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
 		if !ok {
-			return errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, packet.DestinationChannel)
+			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
 	if channel.CounterpartyChannelId != packet.SourceChannel {
@@ -118,7 +121,9 @@ func (k *Keeper) recvPacket(
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano())
-	timeout := channeltypes.NewTimeoutWithTimestamp(packet.GetTimeoutTimestamp())
+	// convert packet timeout to nanoseconds for now to use existing helper function
+	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
+	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
 	}
@@ -135,9 +140,9 @@ func (k *Keeper) recvPacket(
 	}
 
 	path := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
-	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
 
-	commitment := channeltypesv2.CommitPacket(packet)
+	commitment := types.CommitPacket(packet)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
@@ -164,15 +169,15 @@ func (k *Keeper) recvPacket(
 // WriteAcknowledgement writes the acknowledgement to the store.
 func (k Keeper) WriteAcknowledgement(
 	ctx context.Context,
-	packet channeltypesv2.Packet,
-	ack channeltypesv2.Acknowledgement,
+	packet types.Packet,
+	ack types.Acknowledgement,
 ) error {
 	// Lookup channel associated with destination channel ID and ensure
 	// that the packet was indeed sent by our counterparty by verifying
 	// packet sender is our channel's counterparty channel id.
 	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
-		return errorsmod.Wrapf(channeltypesv2.ErrChannelNotFound, "channel (%s) not found", packet.DestinationChannel)
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "channel (%s) not found", packet.DestinationChannel)
 	}
 
 	if channel.CounterpartyChannelId != packet.SourceChannel {
@@ -190,10 +195,16 @@ func (k Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
 	}
 
+	// TODO: Validate Acknowledgment more thoroughly here after Issue #7472: https://github.com/cosmos/ibc-go/issues/7472
+
+	if len(ack.AcknowledgementResults) != len(packet.Data) {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of acknowledgement results %d does not match length of packet data %d", len(ack.AcknowledgementResults), len(packet.Data))
+	}
+
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
 		ctx, packet.DestinationChannel, packet.Sequence,
-		channeltypesv2.CommitAcknowledgement(ack),
+		types.CommitAcknowledgement(ack),
 	)
 
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)
@@ -203,12 +214,12 @@ func (k Keeper) WriteAcknowledgement(
 	return nil
 }
 
-func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Packet, acknowledgement channeltypesv2.Acknowledgement, proof []byte, proofHeight exported.Height) error {
+func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, acknowledgement types.Acknowledgement, proof []byte, proofHeight exported.Height) error {
 	// Lookup counterparty associated with our channel and ensure
 	// that the packet was indeed sent by our counterparty.
 	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		return errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, packet.SourceChannel)
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
@@ -229,7 +240,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pa
 		return channeltypes.ErrNoOpMsg
 	}
 
-	packetCommitment := channeltypesv2.CommitPacket(packet)
+	packetCommitment := types.CommitPacket(packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
@@ -237,7 +248,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pa
 	}
 
 	path := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
-	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
@@ -246,7 +257,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pa
 		0, 0,
 		proof,
 		merklePath,
-		channeltypesv2.CommitAcknowledgement(acknowledgement),
+		types.CommitAcknowledgement(acknowledgement),
 	); err != nil {
 		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientID)
 	}
@@ -269,7 +280,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pa
 // is deleted and the packet has completed its lifecycle.
 func (k *Keeper) timeoutPacket(
 	ctx context.Context,
-	packet channeltypesv2.Packet,
+	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
@@ -280,7 +291,7 @@ func (k *Keeper) timeoutPacket(
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
 		channel, ok = k.convertV1Channel(ctx, packet.Data[0].SourcePort, packet.SourceChannel)
 		if !ok {
-			return errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, packet.DestinationChannel)
+			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
@@ -294,7 +305,9 @@ func (k *Keeper) timeoutPacket(
 		return err
 	}
 
-	timeout := channeltypes.NewTimeoutWithTimestamp(packet.GetTimeoutTimestamp())
+	// convert packet timeout to nanoseconds for now to use existing helper function
+	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
+	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
 	if !timeout.Elapsed(clienttypes.ZeroHeight(), proofTimestamp) {
 		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
 	}
@@ -310,7 +323,7 @@ func (k *Keeper) timeoutPacket(
 		return channeltypes.ErrNoOpMsg
 	}
 
-	packetCommitment := channeltypesv2.CommitPacket(packet)
+	packetCommitment := types.CommitPacket(packet)
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
 		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
@@ -318,7 +331,7 @@ func (k *Keeper) timeoutPacket(
 
 	// verify packet receipt absence
 	path := hostv2.PacketReceiptKey(packet.SourceChannel, packet.Sequence)
-	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,

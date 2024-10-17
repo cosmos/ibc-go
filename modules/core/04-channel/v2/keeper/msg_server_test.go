@@ -61,11 +61,11 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			expError: mock.MockApplicationCallbackError,
 		},
 		{
-			name: "failure: counterparty not found",
+			name: "failure: channel not found",
 			malleate: func() {
 				path.EndpointA.ChannelID = ibctesting.InvalidID
 			},
-			expError: channeltypesv1.ErrChannelNotFound,
+			expError: channeltypesv2.ErrChannelNotFound,
 		},
 		{
 			name: "failure: route to non existing app",
@@ -212,11 +212,8 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			expectedAck = channeltypesv2.Acknowledgement{
 				AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
 					{
-						AppName: mockv2.ModuleNameB,
-						RecvPacketResult: channeltypesv2.RecvPacketResult{
-							Status:          channeltypesv2.PacketStatus_Success,
-							Acknowledgement: mock.MockPacketData,
-						},
+						AppName:          mockv2.ModuleNameB,
+						RecvPacketResult: mockv2.MockRecvPacketResult,
 					},
 				},
 			}
@@ -411,11 +408,8 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			ack = channeltypesv2.Acknowledgement{
 				AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
 					{
-						AppName: mockv2.ModuleNameB,
-						RecvPacketResult: channeltypesv2.RecvPacketResult{
-							Status:          channeltypesv2.PacketStatus_Success,
-							Acknowledgement: mock.MockPacketData,
-						},
+						AppName:          mockv2.ModuleNameB,
+						RecvPacketResult: mockv2.MockRecvPacketResult,
 					},
 				},
 			}
