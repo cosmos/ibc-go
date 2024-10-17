@@ -2,6 +2,7 @@ package types
 
 import (
 	"strings"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -83,4 +84,9 @@ func (p Payload) Validate() error {
 		return errorsmod.Wrap(ErrInvalidPayload, "payload value cannot be empty")
 	}
 	return nil
+}
+
+// TimeoutTimestampToNanos takes seconds as a uint64 and returns Unix nanoseconds as uint64.
+func TimeoutTimestampToNanos(seconds uint64) uint64 {
+	return uint64(time.Unix(int64(seconds), 0).Unix())
 }

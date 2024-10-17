@@ -68,8 +68,9 @@ func (k *Keeper) sendPacket(
 		return 0, "", err
 	}
 
-	if timeoutTimestamp < latestTimestamp {
-		return 0, "", errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeoutTimestamp)
+	timeout := channeltypesv2.TimeoutTimestampToNanos(timeoutTimestamp)
+	if timeout < latestTimestamp {
+		return 0, "", errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, packet.TimeoutTimestamp)
 	}
 
 	commitment := channeltypesv2.CommitPacket(packet)
@@ -98,9 +99,6 @@ func (k *Keeper) recvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// Lookup channel associated with destination channel ID and ensure
-	// that the packet was indeed sent by our counterparty by verifying
-	// packet sender is our channel's counterparty channel id.
 	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
@@ -109,15 +107,18 @@ func (k *Keeper) recvPacket(
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
+
 	if channel.CounterpartyChannelId != packet.SourceChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
+
 	clientID := channel.ClientId
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	currentTimestamp := uint64(sdkCtx.BlockTime().Unix())
-	if packet.GetTimeoutTimestamp() >= currentTimestamp {
+	timeout := channeltypesv2.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
+	if timeout >= currentTimestamp {
 		return errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, packet.GetTimeoutTimestamp())
 	}
 
@@ -160,8 +161,6 @@ func (k *Keeper) recvPacket(
 }
 
 func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Packet, acknowledgement channeltypesv2.Acknowledgement, proof []byte, proofHeight exported.Height) error {
-	// Lookup counterparty associated with our channel and ensure
-	// that the packet was indeed sent by our counterparty.
 	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
@@ -170,6 +169,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pa
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
+
 	clientID := channel.ClientId
 
 	commitment := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
@@ -228,19 +228,15 @@ func (k *Keeper) timeoutPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// Lookup counterparty associated with our channel and ensure
-	// that the packet was indeed sent by our counterparty.
 	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		channel, ok = k.convertV1Channel(ctx, packet.Data[0].SourcePort, packet.SourceChannel)
-		if !ok {
-			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
-		}
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 	}
+
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
 		return channeltypes.ErrInvalidChannelIdentifier
 	}
+
 	clientID := channel.ClientId
 
 	// check that timeout height or timeout timestamp has passed on the other end
@@ -249,7 +245,8 @@ func (k *Keeper) timeoutPacket(
 		return err
 	}
 
-	if packet.GetTimeoutTimestamp() < proofTimestamp {
+	timeout := channeltypesv2.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
+	if timeout < proofTimestamp {
 		return errorsmod.Wrapf(channeltypes.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, packet.GetTimeoutTimestamp())
 	}
 
