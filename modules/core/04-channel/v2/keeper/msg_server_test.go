@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -62,7 +63,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		{
 			name: "failure: channel not found",
 			malleate: func() {
-				path.EndpointA.ChannelID = "channel-foo"
+				path.EndpointA.ChannelID = ibctesting.InvalidID
 			},
 			expError: channeltypesv2.ErrChannelNotFound,
 		},
@@ -178,7 +179,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			name: "failure: counterparty not found",
 			malleate: func() {
 				// change the destination id to a non-existent channel.
-				packet.DestinationChannel = "not-existent-channel"
+				packet.DestinationChannel = ibctesting.InvalidID
 			},
 			expError: channeltypesv2.ErrChannelNotFound,
 		},
@@ -345,12 +346,12 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "success: NoOp",
 			malleate: func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence, []byte{})
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeletePacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence)
 
 				// Modify the callback to return an error.
 				// This way, we can verify that the callback is not executed in a No-op case.
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, channeltypesv2.PacketData, []byte, sdk.AccAddress) error {
-					return errors.New("OnAcknowledgementPacket callback failed")
+					return mock.MockApplicationCallbackError
 				}
 			},
 		},
@@ -358,10 +359,10 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			name: "failure: callback fails",
 			malleate: func() {
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, channeltypesv2.PacketData, []byte, sdk.AccAddress) error {
-					return errors.New("OnAcknowledgementPacket callback failed")
+					return mock.MockApplicationCallbackError
 				}
 			},
-			expError: errors.New("OnAcknowledgementPacket callback failed"),
+			expError: mock.MockApplicationCallbackError,
 		},
 		{
 			name: "failure: counterparty not found",
@@ -417,6 +418,100 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 
 			// Finally, acknowledge the packet on A
 			err = path.EndpointA.MsgAcknowledgePacket(packet, ack)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q, got %q instead", tc.expError, err)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgTimeout() {
+	var (
+		path   *ibctesting.Path
+		packet channeltypesv2.Packet
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+		},
+		{
+			name: "failure: no-op",
+			malleate: func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeletePacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence)
+
+				// Modify the callback to return a different error.
+				// This way, we can verify that the callback is not executed in a No-op case.
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.PacketData, sdk.AccAddress) error {
+					return mock.MockApplicationCallbackError
+				}
+			},
+			expError: channeltypesv1.ErrNoOpMsg,
+		},
+		{
+			name: "failure: callback fails",
+			malleate: func() {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.PacketData, sdk.AccAddress) error {
+					return mock.MockApplicationCallbackError
+				}
+			},
+			expError: mock.MockApplicationCallbackError,
+		},
+		{
+			name: "failure: channel not found",
+			malleate: func() {
+				// change the source id to a non-existent channel.
+				packet.SourceChannel = "not-existent-channel"
+			},
+			expError: channeltypesv2.ErrChannelNotFound,
+		},
+		{
+			name: "failure: invalid commitment",
+			malleate: func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence, []byte("foo"))
+			},
+			expError: channeltypesv2.ErrInvalidPacket,
+		},
+		{
+			name: "failure: unable to timeout if packet has been received",
+			malleate: func() {
+				err := path.EndpointB.MsgRecvPacket(packet)
+				suite.Require().NoError(err)
+			},
+			expError: commitmenttypes.ErrInvalidProof,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			// Send packet from A to B
+			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+			mockData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+
+			var err error
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockData)
+			suite.Require().NoError(err)
+			suite.Require().NotEmpty(packet)
+
+			tc.malleate()
+
+			suite.coordinator.IncrementTimeBy(time.Hour * 20)
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+
+			err = path.EndpointA.MsgTimeoutPacket(packet)
 
 			expPass := tc.expError == nil
 			if expPass {

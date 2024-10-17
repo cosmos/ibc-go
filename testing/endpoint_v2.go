@@ -68,3 +68,17 @@ func (endpoint *Endpoint) MsgAcknowledgePacket(packet channeltypesv2.Packet, ack
 
 	return endpoint.Counterparty.UpdateClient()
 }
+
+// MsgTimeoutPacket sends a MsgTimeout on the associated endpoint with the provided packet.
+func (endpoint *Endpoint) MsgTimeoutPacket(packet channeltypesv2.Packet) error {
+	packetKey := hostv2.PacketReceiptKey(packet.DestinationChannel, packet.Sequence)
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	msg := channeltypesv2.NewMsgTimeout(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	if err := endpoint.Chain.sendMsgs(msg); err != nil {
+		return err
+	}
+
+	return endpoint.Counterparty.UpdateClient()
+}
