@@ -20,7 +20,7 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
 	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -186,13 +186,13 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 
 				if tc.expRevert {
 					// context events should contain error events
-					suite.Require().Contains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+					suite.Require().Contains(events, internalerrors.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
 				} else {
 					if tc.replay {
 						// context should not contain application events
 						suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
-						suite.Require().NotContains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+						suite.Require().NotContains(events, internalerrors.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					} else {
 						// context events should contain application events
 						suite.Require().Contains(events, ibcmock.NewMockRecvPacketEvent())
@@ -353,13 +353,13 @@ func (suite *KeeperTestSuite) TestRecvPacketV2() {
 
 				if tc.expRevert {
 					// context events should contain error events
-					suite.Require().Contains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+					suite.Require().Contains(events, internalerrors.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
 				} else {
 					if tc.replay {
 						// context should not contain application events
 						suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
-						suite.Require().NotContains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+						suite.Require().NotContains(events, internalerrors.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					} else {
 						// context events should contain application events
 						suite.Require().Contains(events, ibcmock.NewMockRecvPacketEvent())
@@ -1200,75 +1200,6 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 				suite.Require().Error(err)
 			}
 		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestProvideCounterparty() {
-	var (
-		path *ibctesting.Path
-		msg  *packetservertypes.MsgProvideCounterparty
-	)
-	cases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success",
-			func() {
-				// set it before handler
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.SetChannel(suite.chainA.GetContext(), msg.ChannelId, packetservertypes.NewChannel(path.EndpointA.ClientID, "", ibctesting.MerklePath))
-			},
-			nil,
-		},
-		{
-			"failure: signer does not match creator",
-			func() {
-				msg.Signer = ibctesting.TestAccAddress
-			},
-			ibcerrors.ErrUnauthorized,
-		},
-		{
-			"failure: counterparty does not already exists",
-			func() {
-				suite.chainA.App.GetIBCKeeper().PacketServerKeeper.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(packetservertypes.ChannelKey))
-			},
-			packetservertypes.ErrInvalidChannel,
-		},
-	}
-
-	for _, tc := range cases {
-		tc := tc
-		path = ibctesting.NewPath(suite.chainA, suite.chainB)
-		path.SetupClients()
-
-		suite.Require().NoError(path.EndpointA.CreateChannel())
-
-		signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
-		msg = packetservertypes.NewMsgProvideCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, signer)
-
-		tc.malleate()
-
-		ctx := suite.chainA.GetContext()
-		resp, err := suite.chainA.App.GetIBCKeeper().ProvideCounterparty(ctx, msg)
-
-		expPass := tc.expError == nil
-		if expPass {
-			suite.Require().NotNil(resp)
-			suite.Require().Nil(err)
-
-			// Assert counterparty channel id filled in and creator deleted
-			channel, found := suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelID)
-			suite.Require().True(found)
-			suite.Require().Equal(channel.CounterpartyChannelId, path.EndpointB.ChannelID)
-
-			_, found = suite.chainA.App.GetIBCKeeper().PacketServerKeeper.GetCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			suite.Require().False(found)
-		} else {
-			suite.Require().Nil(resp)
-			suite.Require().Error(err)
-			suite.Require().ErrorIs(err, tc.expError)
-		}
 	}
 }
 

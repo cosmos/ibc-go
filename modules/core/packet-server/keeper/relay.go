@@ -12,6 +12,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
@@ -134,7 +135,7 @@ func (k Keeper) RecvPacket(
 	}
 
 	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return "", channeltypes.ErrInvalidChannelIdentifier
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
 	}
 	clientID := channel.ClientId
 
@@ -159,7 +160,7 @@ func (k Keeper) RecvPacket(
 	}
 
 	path := host.PacketCommitmentKey(packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	commitment := channeltypes.CommitPacket(packet)
 
@@ -210,7 +211,7 @@ func (k Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 	}
 	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return channeltypes.ErrInvalidChannelIdentifier
+		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
@@ -267,7 +268,7 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return "", channeltypes.ErrInvalidChannelIdentifier
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
 	}
 	clientID := channel.ClientId
 
@@ -290,7 +291,7 @@ func (k Keeper) AcknowledgePacket(
 	}
 
 	path := host.PacketAcknowledgementKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
@@ -338,7 +339,7 @@ func (k Keeper) TimeoutPacket(
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return "", channeltypes.ErrInvalidChannelIdentifier
+		return "", errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
 	}
 	clientID := channel.ClientId
 
@@ -373,7 +374,7 @@ func (k Keeper) TimeoutPacket(
 
 	// verify packet receipt absence
 	path := host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,

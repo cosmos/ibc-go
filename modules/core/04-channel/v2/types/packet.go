@@ -1,6 +1,7 @@
 package types
 
 import (
+	"math"
 	"strings"
 	"time"
 
@@ -88,5 +89,9 @@ func (p Payload) Validate() error {
 
 // TimeoutTimestampToNanos takes seconds as a uint64 and returns Unix nanoseconds as uint64.
 func TimeoutTimestampToNanos(seconds uint64) uint64 {
-	return uint64(time.Unix(int64(seconds), 0).Unix())
+	if seconds >= math.MaxInt64 {
+
+	}
+
+	return uint64(time.Unix(int64(seconds), 0).UnixNano())
 }

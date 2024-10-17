@@ -17,7 +17,7 @@ message Packet {
   string source_channel = 2;
   // identifies the receiving chain.
   string destination_channel = 3;
-  // timeout timestamp after which the packet times out.
+  // timeout timestamp in seconds after which the packet times out.
   uint64 timeout_timestamp = 4;
   // a list of packet data, each one for a specific application.
   repeated PacketData data = 5 [(gogoproto.nullable) = false];

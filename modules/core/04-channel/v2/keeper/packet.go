@@ -14,7 +14,6 @@ import (
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
 // sendPacket constructs a packet from the input arguments, writes a packet commitment to state
@@ -31,18 +30,19 @@ func (k *Keeper) sendPacket(
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
 		channel, ok = k.convertV1Channel(ctx, data[0].SourcePort, sourceChannel)
 		if !ok {
-			return 0, "", errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
+			return 0, "", errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, sourceChannel)
 		}
 	}
 
 	destChannel := channel.CounterpartyChannelId
 	clientID := channel.ClientId
 
-	// retrieve the sequence send for this channel
-	// if no packets have been sent yet, initialize the sequence to 1.
 	sequence, found := k.GetNextSequenceSend(ctx, sourceChannel)
 	if !found {
-		sequence = 1
+		return 0, "", errorsmod.Wrapf(
+			channeltypesv2.ErrSequenceSendNotFound,
+			"source channel: %s", sourceChannel,
+		)
 	}
 
 	// construct packet from given fields and channel state
@@ -68,7 +68,7 @@ func (k *Keeper) sendPacket(
 		return 0, "", err
 	}
 
-	timeout := channeltypesv2.TimeoutTimestampToNanos(timeoutTimestamp)
+	timeout := channeltypesv2.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
 	if timeout < latestTimestamp {
 		return 0, "", errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, packet.TimeoutTimestamp)
 	}
@@ -104,12 +104,12 @@ func (k *Keeper) recvPacket(
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
 		channel, ok = k.convertV1Channel(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
 		if !ok {
-			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
+			return errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
 
 	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return channeltypes.ErrInvalidChannelIdentifier
+		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
 	}
 
 	clientID := channel.ClientId
@@ -118,7 +118,7 @@ func (k *Keeper) recvPacket(
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	currentTimestamp := uint64(sdkCtx.BlockTime().Unix())
 	timeout := channeltypesv2.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
-	if timeout >= currentTimestamp {
+	if timeout <= currentTimestamp {
 		return errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, packet.GetTimeoutTimestamp())
 	}
 
@@ -134,7 +134,7 @@ func (k *Keeper) recvPacket(
 	}
 
 	path := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	commitment := channeltypesv2.CommitPacket(packet)
 
@@ -147,7 +147,7 @@ func (k *Keeper) recvPacket(
 		merklePath,
 		commitment,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationChannel)
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
@@ -160,14 +160,56 @@ func (k *Keeper) recvPacket(
 	return nil
 }
 
+// WriteAcknowledgement writes the acknowledgement to the store.
+func (k Keeper) WriteAcknowledgement(
+	ctx context.Context,
+	packet channeltypesv2.Packet,
+	ack channeltypesv2.Acknowledgement,
+) error {
+	// Lookup channel associated with destination channel ID and ensure
+	// that the packet was indeed sent by our counterparty by verifying
+	// packet sender is our channel's counterparty channel id.
+	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
+	if !ok {
+		return errorsmod.Wrapf(channeltypesv2.ErrChannelNotFound, "channel (%s) not found", packet.DestinationChannel)
+	}
+
+	if channel.CounterpartyChannelId != packet.SourceChannel {
+		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
+	}
+
+	// NOTE: IBC app modules might have written the acknowledgement synchronously on
+	// the OnRecvPacket callback so we need to check if the acknowledgement is already
+	// set on the store and return an error if so.
+	if k.HasPacketAcknowledgement(ctx, packet.DestinationChannel, packet.Sequence) {
+		return errorsmod.Wrapf(channeltypes.ErrAcknowledgementExists, "acknowledgement for channel %s, sequence %d already exists", packet.DestinationChannel, packet.Sequence)
+	}
+
+	if _, found := k.GetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence); !found {
+		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
+	}
+
+	// set the acknowledgement so that it can be verified on the other side
+	k.SetPacketAcknowledgement(
+		ctx, packet.DestinationChannel, packet.Sequence,
+		channeltypesv2.CommitAcknowledgement(ack),
+	)
+
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)
+
+	EmitWriteAcknowledgementEvents(ctx, packet, ack)
+
+	return nil
+}
+
 func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Packet, acknowledgement channeltypesv2.Acknowledgement, proof []byte, proofHeight exported.Height) error {
 	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
+		return errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, packet.SourceChannel)
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return channeltypes.ErrInvalidChannelIdentifier
+		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
 	}
 
 	clientID := channel.ClientId
@@ -192,7 +234,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet channeltypesv2.Pa
 	}
 
 	path := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
@@ -230,11 +272,11 @@ func (k *Keeper) timeoutPacket(
 ) error {
 	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
+		return errorsmod.Wrap(channeltypesv2.ErrChannelNotFound, packet.DestinationChannel)
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return channeltypes.ErrInvalidChannelIdentifier
+		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
 	}
 
 	clientID := channel.ClientId
@@ -269,7 +311,7 @@ func (k *Keeper) timeoutPacket(
 
 	// verify packet receipt absence
 	path := hostv2.PacketReceiptKey(packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	merklePath := channeltypesv2.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
@@ -279,7 +321,7 @@ func (k *Keeper) timeoutPacket(
 		proof,
 		merklePath,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceChannel)
+		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientID)
 	}
 
 	// delete packet commitment to prevent replay

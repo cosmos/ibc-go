@@ -15,10 +15,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
-	packetserverkeeper "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
-	packetservertypes "github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
-	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 var (
@@ -26,7 +24,6 @@ var (
 	_ connectiontypes.MsgServer    = (*Keeper)(nil)
 	_ channeltypes.MsgServer       = (*Keeper)(nil)
 	_ channeltypes.PacketMsgServer = (*Keeper)(nil)
-	_ packetservertypes.MsgServer  = (*Keeper)(nil)
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
@@ -138,49 +135,6 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 	}
 
 	return &clienttypes.MsgIBCSoftwareUpgradeResponse{}, nil
-}
-
-// CreateChannel defines a rpc handler method for MsgCreateChannel
-func (k *Keeper) CreateChannel(goCtx context.Context, msg *packetservertypes.MsgCreateChannel) (*packetservertypes.MsgCreateChannelResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	channelID := k.ChannelKeeper.GenerateChannelIdentifier(ctx)
-
-	// Initialize channel with empty counterparty channel identifier.
-	channel := packetservertypes.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
-	k.PacketServerKeeper.SetChannel(ctx, channelID, channel)
-
-	k.PacketServerKeeper.SetCreator(ctx, channelID, msg.Signer)
-
-	packetserverkeeper.EmitCreateChannelEvent(goCtx, channelID)
-
-	return &packetservertypes.MsgCreateChannelResponse{ChannelId: channelID}, nil
-}
-
-// ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
-func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *packetservertypes.MsgProvideCounterparty) (*packetservertypes.MsgProvideCounterpartyResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	creator, found := k.PacketServerKeeper.GetCreator(ctx, msg.ChannelId)
-	if !found {
-		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "channel creator must be set")
-	}
-
-	if creator != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "channel creator (%s) must match signer (%s)", creator, msg.Signer)
-	}
-
-	channel, ok := k.PacketServerKeeper.GetChannel(ctx, msg.ChannelId)
-	if !ok {
-		return nil, errorsmod.Wrapf(packetservertypes.ErrInvalidChannel, "channel must exist for channel id %s", msg.ChannelId)
-	}
-
-	channel.CounterpartyChannelId = msg.CounterpartyChannelId
-	k.PacketServerKeeper.SetChannel(ctx, msg.ChannelId, channel)
-	// Delete client creator from state as it is not needed after this point.
-	k.PacketServerKeeper.DeleteCreator(ctx, msg.ChannelId)
-
-	return &packetservertypes.MsgProvideCounterpartyResponse{}, nil
 }
 
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
@@ -488,7 +442,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		writeFn()
 	} else {
 		// Modify events in cached context to reflect unsuccessful acknowledgement
-		ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
+		ctx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
 	}
 
 	// Set packet acknowledgement only if the acknowledgement is not nil.
@@ -1043,26 +997,6 @@ func (k *Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Ms
 	k.ChannelKeeper.SetParams(ctx, msg.Params)
 
 	return &channeltypes.MsgUpdateParamsResponse{}, nil
-}
-
-// convertToErrorEvents converts all events to error events by appending the
-// error attribute prefix to each event's attribute key.
-func convertToErrorEvents(events sdk.Events) sdk.Events {
-	if events == nil {
-		return nil
-	}
-
-	newEvents := make(sdk.Events, len(events))
-	for i, event := range events {
-		newAttributes := make([]sdk.Attribute, len(event.Attributes))
-		for j, attribute := range event.Attributes {
-			newAttributes[j] = sdk.NewAttribute(coretypes.ErrorAttributeKeyPrefix+attribute.Key, attribute.Value)
-		}
-
-		newEvents[i] = sdk.NewEvent(coretypes.ErrorAttributeKeyPrefix+event.Type, newAttributes...)
-	}
-
-	return newEvents
 }
 
 // getPacketHandlerAndModule returns the appropriate packet handler

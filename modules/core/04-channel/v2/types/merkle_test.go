@@ -1,41 +1,19 @@
 package types_test
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/suite"
-
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
-
-type TypesTestSuite struct {
-	suite.Suite
-
-	coordinator *ibctesting.Coordinator
-	chainA      *ibctesting.TestChain
-	chainB      *ibctesting.TestChain
-}
-
-func (s *TypesTestSuite) SetupTest() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
-	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
-	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
-}
-
-func TestTypesTestSuite(t *testing.T) {
-	suite.Run(t, new(TypesTestSuite))
-}
 
 func (s *TypesTestSuite) TestBuildMerklePath() {
 	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.SetupV2()
 
 	prefixPath := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
-	packetCommitmentKey := host.PacketCommitmentKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ClientID, 1)
+	packetCommitmentKey := host.PacketCommitmentKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
 
 	testCases := []struct {
 		name    string

@@ -8,8 +8,8 @@ import (
 	ibcclient "github.com/cosmos/ibc-go/v9/modules/core/02-client"
 	connection "github.com/cosmos/ibc-go/v9/modules/core/03-connection"
 	channel "github.com/cosmos/ibc-go/v9/modules/core/04-channel"
+	channelv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
-	packetserver "github.com/cosmos/ibc-go/v9/modules/core/packet-server"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -25,7 +25,7 @@ func GetTxCmd() *cobra.Command {
 	ibcTxCmd.AddCommand(
 		ibcclient.GetTxCmd(),
 		channel.GetTxCmd(),
-		packetserver.GetTxCmd(),
+		channelv2.GetTxCmd(),
 	)
 
 	return ibcTxCmd
@@ -46,7 +46,7 @@ func GetQueryCmd() *cobra.Command {
 		ibcclient.GetQueryCmd(),
 		connection.GetQueryCmd(),
 		channel.GetQueryCmd(),
-		packetserver.GetQueryCmd(),
+		channelv2.GetQueryCmd(),
 	)
 
 	return ibcQueryCmd

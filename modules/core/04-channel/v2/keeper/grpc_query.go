@@ -10,13 +10,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v9/modules/core/packet-server/types"
 )
 
 var _ types.QueryServer = (*queryServer)(nil)
 
-// queryServer implements the packet-server types.QueryServer interface.
+// queryServer implements the channel/v2 types.QueryServer interface.
 type queryServer struct {
 	*Keeper
 }
