@@ -62,7 +62,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		{
 			name: "failure: channel not found",
 			malleate: func() {
-				path.EndpointA.ChannelID = "foo"
+				path.EndpointA.ChannelID = "channel-foo"
 			},
 			expError: channeltypesv2.ErrChannelNotFound,
 		},
