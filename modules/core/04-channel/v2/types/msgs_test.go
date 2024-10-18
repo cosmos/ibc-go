@@ -326,8 +326,7 @@ func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
 	}
 }
 
-
-func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
+func (s *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 	var msg *types.MsgTimeout
 
 	testCases := []struct {
