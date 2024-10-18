@@ -268,3 +268,59 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 		})
 	}
 }
+
+func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
+	var msg *types.MsgTimeout
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+		},
+		{
+			name: "failure: invalid signer",
+			malleate: func() {
+				msg.Signer = ""
+			},
+			expError: ibcerrors.ErrInvalidAddress,
+		},
+		{
+			name: "failure: invalid packet",
+			malleate: func() {
+				msg.Packet.Sequence = 0
+			},
+			expError: types.ErrInvalidPacket,
+		},
+		{
+			name: "failure: invalid proof unreceived",
+			malleate: func() {
+				msg.ProofUnreceived = []byte{}
+			},
+			expError: commitmenttypes.ErrInvalidProof,
+		},
+	}
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			msg = types.NewMsgTimeout(
+				types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, s.chainA.GetTimeoutTimestamp(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)),
+				testProof,
+				clienttypes.ZeroHeight(),
+				s.chainA.SenderAccount.GetAddress().String(),
+			)
+
+			tc.malleate()
+
+			err := msg.ValidateBasic()
+			expPass := tc.expError == nil
+			if expPass {
+				s.Require().NoError(err)
+			} else {
+				ibctesting.RequireErrorIsOrContains(s.T(), err, tc.expError)
+			}
+		})
+	}
+}
