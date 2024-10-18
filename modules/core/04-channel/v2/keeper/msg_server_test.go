@@ -498,7 +498,8 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			path.SetupV2()
 
 			// Send packet from A to B
-			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+			// convert to seconds
+			timeoutTimestamp := uint64(time.Unix(0, int64(suite.chainA.GetTimeoutTimestamp())).Unix())
 			mockData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			var err error

@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -391,19 +390,12 @@ func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.Ms
 
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
-	var packetHandler PacketHandler
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		ctx.Logger().Error("receive packet failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
-	}
-
-	packetHandler, err = k.getPacketHandlerAndModule(msg.Packet.ProtocolVersion)
-	if err != nil {
-		ctx.Logger().Error("receive packet failed", "port-id", msg.Packet.DestinationPort, "channel-id", msg.Packet.DestinationChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
 	// Retrieve callbacks from router
@@ -418,7 +410,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// If the packet was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	channelVersion, err := packetHandler.RecvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+	channelVersion, err := k.ChannelKeeper.RecvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
 	switch err {
 	case nil:
@@ -449,7 +441,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 	// acknowledgement is nil.
 	if ack != nil {
-		if err := packetHandler.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
+		if err := k.ChannelKeeper.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
 			return nil, err
 		}
 	}
@@ -463,19 +455,12 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 
 // Timeout defines a rpc handler method for MsgTimeout.
 func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
-	var packetHandler PacketHandler
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		ctx.Logger().Error("timeout failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
-	}
-
-	packetHandler, err = k.getPacketHandlerAndModule(msg.Packet.ProtocolVersion)
-	if err != nil {
-		ctx.Logger().Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
 	// Retrieve callbacks from router
@@ -490,7 +475,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	// If the timeout was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	channelVersion, err := packetHandler.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
+	channelVersion, err := k.ChannelKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
 
 	switch err {
 	case nil:
@@ -572,19 +557,12 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
-	var packetHandler PacketHandler
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		ctx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
-	}
-
-	packetHandler, err = k.getPacketHandlerAndModule(msg.Packet.ProtocolVersion)
-	if err != nil {
-		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "could not retrieve module from port-id"))
-		return nil, errorsmod.Wrap(err, "could not retrieve module from port-id")
 	}
 
 	// Retrieve callbacks from router
@@ -599,7 +577,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	// If the acknowledgement was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
 	cacheCtx, writeFn := ctx.CacheContext()
-	channelVersion, err := packetHandler.AcknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
+	channelVersion, err := k.ChannelKeeper.AcknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 
 	switch err {
 	case nil:
@@ -997,18 +975,4 @@ func (k *Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Ms
 	k.ChannelKeeper.SetParams(ctx, msg.Params)
 
 	return &channeltypes.MsgUpdateParamsResponse{}, nil
-}
-
-// getPacketHandlerAndModule returns the appropriate packet handler
-// given the protocol version. An error is returned if the protocol
-// version is not supported.
-func (k *Keeper) getPacketHandlerAndModule(protocolVersion channeltypes.IBCVersion) (PacketHandler, error) {
-	switch protocolVersion {
-	case channeltypes.IBC_VERSION_UNSPECIFIED, channeltypes.IBC_VERSION_1:
-		return k.ChannelKeeper, nil
-	case channeltypes.IBC_VERSION_2:
-		return k.PacketServerKeeper, nil
-	default:
-		return nil, fmt.Errorf("unsupported protocol %s", protocolVersion)
-	}
 }
