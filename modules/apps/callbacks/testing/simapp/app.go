@@ -120,7 +120,6 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
-	packetserverkeeper "github.com/cosmos/ibc-go/v9/modules/core/packet-server/keeper"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
@@ -194,7 +193,6 @@ type SimApp struct {
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	CircuitKeeper         circuitkeeper.Keeper
-	PacketServer          *packetserverkeeper.Keeper
 
 	// mock contract keeper used for testing
 	MockContractKeeper *ContractKeeper
@@ -376,7 +374,6 @@ func NewSimApp(
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[ibcexported.StoreKey]), app.GetSubspace(ibcexported.ModuleName), app.UpgradeKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	app.PacketServer = packetserverkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ibcexported.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	// NOTE: The mock ContractKeeper is only created for testing.
 	// Real applications should not use the mock ContractKeeper
@@ -1003,11 +1000,6 @@ func (app *SimApp) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 // GetIBCKeeper implements the TestingApp interface.
 func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
 	return app.IBCKeeper
-}
-
-// GetPacketServer implements the TestingApp interface
-func (app *SimApp) GetPacketServer() *packetserverkeeper.Keeper {
-	return app.PacketServer
 }
 
 // GetTxConfig implements the TestingApp interface.
