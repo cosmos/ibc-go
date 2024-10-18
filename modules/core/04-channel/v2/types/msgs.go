@@ -26,6 +26,9 @@ var (
 	_ sdk.Msg              = (*MsgRecvPacket)(nil)
 	_ sdk.HasValidateBasic = (*MsgRecvPacket)(nil)
 
+	_ sdk.Msg              = (*MsgTimeout)(nil)
+	_ sdk.HasValidateBasic = (*MsgTimeout)(nil)
+
 	_ sdk.Msg              = (*MsgAcknowledgement)(nil)
 	_ sdk.HasValidateBasic = (*MsgAcknowledgement)(nil)
 )
@@ -179,4 +182,18 @@ func NewMsgTimeout(packet Packet, proofUnreceived []byte, proofHeight clienttype
 		ProofHeight:     proofHeight,
 		Signer:          signer,
 	}
+}
+
+// ValidateBasic performs basic checks on a MsgTimeout
+func (msg *MsgTimeout) ValidateBasic() error {
+	if len(msg.ProofUnreceived) == 0 {
+		return errorsmod.Wrap(commitmenttypesv1.ErrInvalidProof, "proof unreceived can not be empty")
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	return msg.Packet.ValidateBasic()
 }
