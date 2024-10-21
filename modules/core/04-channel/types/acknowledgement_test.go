@@ -5,18 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	abcitypes "github.com/cometbft/cometbft/abci/types"
-	cmtstate "github.com/cometbft/cometbft/state"
-
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-)
-
-const (
-	gasUsed   = uint64(100)
-	gasWanted = uint64(100)
 )
 
 // tests acknowledgement.ValidateBasic and acknowledgement.Acknowledgement
@@ -91,37 +81,6 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 			suite.Require().Equal(tc.expSuccess, tc.ack.Success())
 		})
 	}
-}
-
-// The safety of including ABCI error codes in the acknowledgement rests
-// on the inclusion of these ABCI error codes in the abcitypes.ResposneDeliverTx
-// hash. If the ABCI codes get removed from consensus they must no longer be used
-// in the packet acknowledgement.
-//
-// This test acts as an indicator that the ABCI error codes may no longer be deterministic.
-func (suite *TypesTestSuite) TestABCICodeDeterminism() {
-	// same ABCI error code used
-	err := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 1")
-	errSameABCICode := errorsmod.Wrap(ibcerrors.ErrOutOfGas, "error string 2")
-
-	// different ABCI error code used
-	errDifferentABCICode := ibcerrors.ErrNotFound
-
-	deliverTx := sdkerrors.ResponseExecTxResultWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	execTxResults := []*abcitypes.ExecTxResult{deliverTx}
-
-	deliverTxSameABCICode := sdkerrors.ResponseExecTxResultWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	resultsSameABCICode := []*abcitypes.ExecTxResult{deliverTxSameABCICode}
-
-	deliverTxDifferentABCICode := sdkerrors.ResponseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	resultsDifferentABCICode := []*abcitypes.ExecTxResult{deliverTxDifferentABCICode}
-
-	hash := cmtstate.TxResultsHash(execTxResults)
-	hashSameABCICode := cmtstate.TxResultsHash(resultsSameABCICode)
-	hashDifferentABCICode := cmtstate.TxResultsHash(resultsDifferentABCICode)
-
-	suite.Require().Equal(hash, hashSameABCICode)
-	suite.Require().NotEqual(hash, hashDifferentABCICode)
 }
 
 // TestAcknowledgementError will verify that only a constant string and

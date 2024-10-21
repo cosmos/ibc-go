@@ -1,12 +1,13 @@
 package types_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
 	ibc "github.com/cosmos/ibc-go/v9/modules/core"
 	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 )
 
 func (suite *MerkleTestSuite) TestCodecTypeRegistration() {
@@ -41,7 +42,7 @@ func (suite *MerkleTestSuite) TestCodecTypeRegistration() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
 			if tc.expPass {

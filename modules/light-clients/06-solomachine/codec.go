@@ -1,10 +1,10 @@
 package solomachine
 
 import (
+	coreregistry "cosmossdk.io/core/registry"
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -12,7 +12,7 @@ import (
 
 // RegisterInterfaces register the ibc channel submodule interfaces to protobuf
 // Any.
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 	registry.RegisterImplementations(
 		(*exported.ClientState)(nil),
 		&ClientState{},

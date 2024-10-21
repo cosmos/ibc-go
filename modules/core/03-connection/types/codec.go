@@ -1,6 +1,8 @@
 package types
 
 import (
+	coreregistry "cosmossdk.io/core/registry"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,7 +11,7 @@ import (
 
 // RegisterInterfaces register the ibc interfaces submodule implementations to protobuf
 // Any.
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgConnectionOpenInit{},

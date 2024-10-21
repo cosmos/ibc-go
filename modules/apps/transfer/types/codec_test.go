@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
@@ -60,7 +61,7 @@ func (suite *TypesTestSuite) TestCodecTypeRegistration() {
 		tc := tc
 
 		suite.Run(tc.name, func() {
-			encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
+			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, transfer.AppModule{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
 			if tc.expErr == nil {
