@@ -7,6 +7,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/x/staking/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
