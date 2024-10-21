@@ -176,6 +176,13 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 		{
 			name: "failure: invalid length for payload",
 			malleate: func() {
+				msg.Payloads = []types.Payload{{}, {}}
+			},
+			expError: types.ErrInvalidPayload,
+		},
+		{
+			name: "failure: invalid packetdata",
+			malleate: func() {
 				msg.Payloads = []types.Payload{}
 			},
 			expError: types.ErrInvalidPayload,
@@ -242,6 +249,13 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 			expError: commitmenttypes.ErrInvalidProof,
 		},
 		{
+			name: "failure: invalid length for packet payloads",
+			malleate: func() {
+				msg.Packet.Payloads = []types.Payload{{}, {}}
+			},
+			expError: types.ErrInvalidPacket,
+		},
+		{
 			name: "failure: invalid signer",
 			malleate: func() {
 				msg.Signer = ""
@@ -287,6 +301,13 @@ func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
 				msg.ProofAcked = []byte{}
 			},
 			expError: commitmenttypes.ErrInvalidProof,
+		},
+		{
+			name: "failure: invalid length for packet payloads",
+			malleate: func() {
+				msg.Packet.Payloads = []types.Payload{{}, {}}
+			},
+			expError: types.ErrInvalidPacket,
 		},
 		{
 			name: "failure: invalid signer",
@@ -344,6 +365,13 @@ func (s *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 				msg.Signer = ""
 			},
 			expError: ibcerrors.ErrInvalidAddress,
+		},
+		{
+			name: "failure: invalid length for packet payloads",
+			malleate: func() {
+				msg.Packet.Payloads = []types.Payload{{}, {}}
+			},
+			expError: types.ErrInvalidPacket,
 		},
 		{
 			name: "failure: invalid packet",

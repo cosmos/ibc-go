@@ -280,7 +280,7 @@ func (k *Keeper) timeoutPacket(
 ) error {
 	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
