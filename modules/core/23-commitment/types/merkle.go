@@ -10,7 +10,7 @@ import (
 
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -154,18 +154,6 @@ func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root expo
 			"expected proof type: %T, got: %T", &ics23.CommitmentProof_Nonexist{}, proof.Proofs[0].Proof)
 	}
 	return nil
-}
-
-// BatchVerifyMembership verifies a group of key value pairs against the given root
-// NOTE: Currently left unimplemented as it is unused
-func (MerkleProof) BatchVerifyMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, items map[string][]byte) error {
-	return errorsmod.Wrap(ErrInvalidProof, "batch proofs are currently unsupported")
-}
-
-// BatchVerifyNonMembership verifies absence of a group of keys against the given root
-// NOTE: Currently left unimplemented as it is unused
-func (MerkleProof) BatchVerifyNonMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, items [][]byte) error {
-	return errorsmod.Wrap(ErrInvalidProof, "batch proofs are currently unsupported")
 }
 
 // verifyChainedMembershipProof takes a list of proofs and specs and verifies each proof sequentially ensuring that the value is committed to
