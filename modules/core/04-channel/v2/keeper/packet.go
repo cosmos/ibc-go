@@ -70,7 +70,7 @@ func (k *Keeper) sendPacket(
 
 	timeout := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
 	if timeout < latestTimestamp {
-		return 0, "", errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, packet.TimeoutTimestamp)
+		return 0, "", errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeout)
 	}
 
 	commitment := types.CommitPacket(packet)
