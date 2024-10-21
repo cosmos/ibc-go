@@ -188,6 +188,7 @@ func (endpoint *Endpoint) ProvideCounterparty() (err error) {
 
 // CreateChannel will construct and execute a new MsgCreateChannel on the associated endpoint.
 func (endpoint *Endpoint) CreateChannel() (err error) {
+	endpoint.IncrementNextChannelSequence()
 	msg := channeltypesv2.NewMsgCreateChannel(endpoint.ClientID, MerklePath, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	// create channel
