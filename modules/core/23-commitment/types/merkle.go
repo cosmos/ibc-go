@@ -10,7 +10,7 @@ import (
 
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -196,21 +196,21 @@ func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs 
 				return errorsmod.Wrapf(ErrInvalidProof, "could not retrieve key bytes for key %s: %v", keys.KeyPath[len(keys.KeyPath)-1-i], err)
 			}
 
+			ep := proofs[i].GetExist()
+			if ep == nil {
+				return errorsmod.Wrapf(ErrInvalidProof, "empty proof at index %d", i)
+			}
+
 			// verify membership of the proof at this index with appropriate key and value
-			if ok := ics23.VerifyMembership(specs[i], subroot, proofs[i], key, value); !ok {
-				return errorsmod.Wrapf(ErrInvalidProof,
-					"chained membership proof failed to verify membership of value: %X in subroot %X at index %d. Please ensure the path and value are both correct.",
-					value, subroot, i)
+			if err := ep.Verify(specs[i], subroot, key, value); err != nil {
+				return errorsmod.Wrapf(ErrInvalidProof, "failed to verify membership proof at index %d: %v", i, err)
 			}
 			// Set value to subroot so that we verify next proof in chain commits to this subroot
 			value = subroot
 		case *ics23.CommitmentProof_Nonexist:
-			return errorsmod.Wrapf(ErrInvalidProof,
-				"chained membership proof contains nonexistence proof at index %d. If this is unexpected, please ensure that proof was queried from a height that contained the value in store and was queried with the correct key. The key used: %s",
-				i, keys)
+			return errorsmod.Wrapf(ErrInvalidProof, "chained membership proof contains nonexistence proof at index %d. If this is unexpected, please ensure that proof was queried from a height that contained the value in store and was queried with the correct key. The key used: %s", i, keys)
 		default:
-			return errorsmod.Wrapf(ErrInvalidProof,
-				"expected proof type: %T, got: %T", &ics23.CommitmentProof_Exist{}, proofs[i].Proof)
+			return errorsmod.Wrapf(ErrInvalidProof, "expected proof type: %T, got: %T", &ics23.CommitmentProof_Exist{}, proofs[i].Proof)
 		}
 	}
 	// Check that chained proof root equals passed-in root
