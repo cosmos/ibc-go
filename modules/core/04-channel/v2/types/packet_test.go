@@ -12,46 +12,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
-// TestValidate tests the Validate function of Payload
-func TestValidate(t *testing.T) {
-	testCases := []struct {
-		name    string
-		payload types.Payload
-		expErr  error
-	}{
-		{
-			"success",
-			types.NewPayload("ics20-v1", "json", mock.MockPacketData),
-			nil,
-		},
-		{
-			"failure: empty version",
-			types.NewPayload("", "json", mock.MockPacketData),
-			types.ErrInvalidPayload,
-		},
-		{
-			"failure: empty encoding",
-			types.NewPayload("ics20-v2", "", mock.MockPacketData),
-			types.ErrInvalidPayload,
-		},
-		{
-			"failure: empty value",
-			types.NewPayload("ics20-v1", "json", []byte{}),
-			types.ErrInvalidPayload,
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := tc.payload.Validate()
-			if tc.expErr == nil {
-				require.NoError(t, err)
-			} else {
-				require.ErrorIs(t, err, tc.expErr)
-			}
-		})
-	}
-}
-
 // TestValidateBasic tests the ValidateBasic function of Packet
 func TestValidateBasic(t *testing.T) {
 	var packet types.Packet
@@ -75,7 +35,7 @@ func TestValidateBasic(t *testing.T) {
 		{
 			"failure: empty data",
 			func() {
-				packet.Data = []types.PacketData{}
+				packet.Data = []types.Payload{}
 			},
 			types.ErrInvalidPacket,
 		},
@@ -121,17 +81,36 @@ func TestValidateBasic(t *testing.T) {
 			},
 			types.ErrInvalidPacket,
 		},
+		{
+			"failure: empty version",
+			func() {
+				packet.Data[0].Version = ""
+			},
+			types.ErrInvalidPayload,
+		},
+		{
+			"failure: empty encoding",
+			func() {
+				packet.Data[0].Encoding = ""
+			},
+			types.ErrInvalidPayload,
+		},
+		{
+			"failure: empty value",
+			func() {
+				packet.Data[0].Value = []byte{}
+			},
+			types.ErrInvalidPayload,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			packet = types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, uint64(time.Now().Unix()), types.PacketData{
+			packet = types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, uint64(time.Now().Unix()), types.Payload{
 				SourcePort:      ibctesting.MockPort,
 				DestinationPort: ibctesting.MockPort,
-				Payload: types.Payload{
-					Version:  "ics20-v2",
-					Encoding: "json",
-					Value:    mock.MockPacketData,
-				},
+				Version:         "ics20-v2",
+				Encoding:        "json",
+				Value:           mock.MockPacketData,
 			})
 
 			tc.malleate()

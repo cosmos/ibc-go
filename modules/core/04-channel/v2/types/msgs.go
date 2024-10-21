@@ -86,11 +86,11 @@ func (msg *MsgCreateChannel) ValidateBasic() error {
 }
 
 // NewMsgSendPacket creates a new MsgSendPacket instance.
-func NewMsgSendPacket(sourceChannel string, timeoutTimestamp uint64, signer string, packetData ...PacketData) *MsgSendPacket {
+func NewMsgSendPacket(sourceChannel string, timeoutTimestamp uint64, signer string, payloads ...Payload) *MsgSendPacket {
 	return &MsgSendPacket{
 		SourceChannel:    sourceChannel,
 		TimeoutTimestamp: timeoutTimestamp,
-		PacketData:       packetData,
+		Payloads:         payloads,
 		Signer:           signer,
 	}
 }
@@ -105,11 +105,11 @@ func (msg *MsgSendPacket) ValidateBasic() error {
 		return errorsmod.Wrap(channeltypesv1.ErrInvalidTimeout, "timeout must not be 0")
 	}
 
-	if len(msg.PacketData) != 1 {
-		return errorsmod.Wrapf(ErrInvalidPacketData, "packet data must be of length 1, got %d instead", len(msg.PacketData))
+	if len(msg.Payloads) != 1 {
+		return errorsmod.Wrapf(ErrInvalidPayload, "payloads must be of length 1, got %d instead", len(msg.Payloads))
 	}
 
-	for _, pd := range msg.PacketData {
+	for _, pd := range msg.Payloads {
 		if err := pd.ValidateBasic(); err != nil {
 			return err
 		}

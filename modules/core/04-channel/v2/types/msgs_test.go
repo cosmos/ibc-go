@@ -174,16 +174,16 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 			expError: channeltypesv1.ErrInvalidTimeout,
 		},
 		{
-			name: "failure: invalid length for packetdata",
+			name: "failure: invalid length for payload",
 			malleate: func() {
-				msg.PacketData = []types.PacketData{}
+				msg.Payloads = []types.Payload{}
 			},
-			expError: types.ErrInvalidPacketData,
+			expError: types.ErrInvalidPayload,
 		},
 		{
 			name: "failure: invalid packetdata",
 			malleate: func() {
-				msg.PacketData[0].DestinationPort = ""
+				msg.Payloads[0].DestinationPort = ""
 			},
 			expError: host.ErrInvalidID,
 		},
@@ -200,7 +200,7 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 			msg = types.NewMsgSendPacket(
 				ibctesting.FirstChannelID, s.chainA.GetTimeoutTimestamp(),
 				s.chainA.SenderAccount.GetAddress().String(),
-				types.PacketData{SourcePort: ibctesting.MockPort, DestinationPort: ibctesting.MockPort, Payload: types.NewPayload("ics20-1", "json", ibctesting.MockPacketData)},
+				types.Payload{SourcePort: ibctesting.MockPort, DestinationPort: ibctesting.MockPort, Version: "ics20-1", Encoding: "json", Value: ibctesting.MockPacketData},
 			)
 
 			tc.malleate()
@@ -230,7 +230,7 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 		{
 			name: "failure: invalid packet",
 			malleate: func() {
-				msg.Packet.Data = []types.PacketData{}
+				msg.Packet.Data = []types.Payload{}
 			},
 			expError: types.ErrInvalidPacket,
 		},
@@ -251,7 +251,7 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 	}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			packet := types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, s.chainA.GetTimeoutTimestamp(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			packet := types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, s.chainA.GetTimeoutTimestamp(), mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
 
 			msg = types.NewMsgRecvPacket(packet, testProof, s.chainA.GetTimeoutHeight(), s.chainA.SenderAccount.GetAddress().String())
 
@@ -306,7 +306,7 @@ func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			msg = types.NewMsgAcknowledgement(
-				types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, s.chainA.GetTimeoutTimestamp(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)),
+				types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, s.chainA.GetTimeoutTimestamp(), mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)),
 				types.Acknowledgement{},
 				testProof,
 				clienttypes.ZeroHeight(),
@@ -363,7 +363,7 @@ func (s *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			msg = types.NewMsgTimeout(
-				types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, s.chainA.GetTimeoutTimestamp(), mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)),
+				types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, s.chainA.GetTimeoutTimestamp(), mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)),
 				testProof,
 				clienttypes.ZeroHeight(),
 				s.chainA.SenderAccount.GetAddress().String(),

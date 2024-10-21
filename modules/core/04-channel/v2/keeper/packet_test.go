@@ -97,7 +97,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			packetData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			packetData := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
@@ -204,7 +204,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			packetData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			packetData := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
@@ -298,7 +298,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			packetData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			packetData := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
@@ -391,7 +391,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			"failure: packet commitment bytes differ",
 			func() {
 				// change packet data after send to acknowledge different packet
-				packet.Data[0].Payload.Value = []byte("different value")
+				packet.Data[0].Value = []byte("different value")
 			},
 			channeltypes.ErrInvalidPacket,
 		},
@@ -414,7 +414,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			freezeClient = false
 
-			packetData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			packetData := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
@@ -521,7 +521,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				suite.Require().NoError(err, "send packet failed")
 
 				// try to timeout packet with different data
-				packet.Data[0].Payload.Value = []byte("different value")
+				packet.Data[0].Value = []byte("different value")
 			},
 			channeltypes.ErrInvalidPacket,
 		},
@@ -564,7 +564,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			path.SetupV2()
 
 			// create default packet with a timed out timestamp
-			packetData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			packetData := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Unix())
 

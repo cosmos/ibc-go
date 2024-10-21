@@ -18,25 +18,25 @@ func CommitPacket(packet Packet) []byte {
 	buf = append(buf, destIDHash[:]...)
 
 	for _, data := range packet.Data {
-		buf = append(buf, hashPacketData(data)...)
+		buf = append(buf, hashPayload(data)...)
 	}
 
 	hash := sha256.Sum256(buf)
 	return hash[:]
 }
 
-// hashPacketData returns the hash of the packet data.
-func hashPacketData(data PacketData) []byte {
+// hashPayload returns the hash of the packet data.
+func hashPayload(data Payload) []byte {
 	var buf []byte
 	sourceHash := sha256.Sum256([]byte(data.SourcePort))
 	buf = append(buf, sourceHash[:]...)
 	destHash := sha256.Sum256([]byte(data.DestinationPort))
 	buf = append(buf, destHash[:]...)
-	payloadValueHash := sha256.Sum256(data.Payload.Value)
+	payloadValueHash := sha256.Sum256(data.Value)
 	buf = append(buf, payloadValueHash[:]...)
-	payloadEncodingHash := sha256.Sum256([]byte(data.Payload.Encoding))
+	payloadEncodingHash := sha256.Sum256([]byte(data.Encoding))
 	buf = append(buf, payloadEncodingHash[:]...)
-	payloadVersionHash := sha256.Sum256([]byte(data.Payload.Version))
+	payloadVersionHash := sha256.Sum256([]byte(data.Version))
 	buf = append(buf, payloadVersionHash[:]...)
 	hash := sha256.Sum256(buf)
 	return hash[:]

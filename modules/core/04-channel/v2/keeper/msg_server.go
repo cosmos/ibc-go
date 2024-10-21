@@ -20,7 +20,7 @@ var _ channeltypesv2.MsgServer = &Keeper{}
 // SendPacket implements the PacketMsgServer SendPacket method.
 func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceChannel, msg.TimeoutTimestamp, msg.PacketData)
+	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceChannel, msg.TimeoutTimestamp, msg.Payloads)
 	if err != nil {
 		sdkCtx.Logger().Error("send packet failed", "source-channel", msg.SourceChannel, "error", errorsmod.Wrap(err, "send packet failed"))
 		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceChannel)
@@ -32,7 +32,7 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
-	for _, pd := range msg.PacketData {
+	for _, pd := range msg.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
 		err := cbs.OnSendPacket(ctx, msg.SourceChannel, destChannel, sequence, pd, signer)
 		if err != nil {
