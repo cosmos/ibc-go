@@ -69,7 +69,7 @@ type Packet struct {
 	SourceChannel string `protobuf:"bytes,2,opt,name=source_channel,json=sourceChannel,proto3" json:"source_channel,omitempty"`
 	// identifies the receiving chain.
 	DestinationChannel string `protobuf:"bytes,3,opt,name=destination_channel,json=destinationChannel,proto3" json:"destination_channel,omitempty"`
-	// timeout timestamp after which the packet times out.
+	// timeout timestamp in seconds after which the packet times out.
 	TimeoutTimestamp uint64 `protobuf:"varint,4,opt,name=timeout_timestamp,json=timeoutTimestamp,proto3" json:"timeout_timestamp,omitempty"`
 	// a list of packet data, each one for a specific application.
 	Data []PacketData `protobuf:"bytes,5,rep,name=data,proto3" json:"data"`
