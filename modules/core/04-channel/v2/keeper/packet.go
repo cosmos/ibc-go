@@ -119,7 +119,7 @@ func (k *Keeper) recvPacket(
 	currentTimestamp := uint64(sdkCtx.BlockTime().UnixNano())
 	timeout := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
 	if timeout <= currentTimestamp {
-		return errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, packet.GetTimeoutTimestamp())
+		return errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, timeout)
 	}
 
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
