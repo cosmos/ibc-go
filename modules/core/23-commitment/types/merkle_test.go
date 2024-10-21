@@ -9,7 +9,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 )
 
 func (suite *MerkleTestSuite) TestVerifyMembership() {
@@ -26,9 +26,6 @@ func (suite *MerkleTestSuite) TestVerifyMembership() {
 
 	proof, err := types.ConvertProofs(res.ProofOps)
 	require.NoError(suite.T(), err)
-
-	suite.Require().NoError(proof.ValidateBasic())
-	suite.Require().Error(types.MerkleProof{}.ValidateBasic())
 
 	cases := []struct {
 		name       string
@@ -92,8 +89,6 @@ func (suite *MerkleTestSuite) TestVerifyNonMembership() {
 
 	proof, err := types.ConvertProofs(res.ProofOps)
 	require.NoError(suite.T(), err)
-
-	suite.Require().NoError(proof.ValidateBasic())
 
 	cases := []struct {
 		name       string

@@ -10,7 +10,7 @@ import (
 
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -86,19 +86,16 @@ func ApplyPrefix(prefix exported.Prefix, path v2.MerklePath) (v2.MerklePath, err
 // VerifyMembership verifies the membership of a merkle proof against the given root, path, and value.
 // Note that the path is expected as []string{<store key of module>, <key corresponding to requested value>}.
 func (proof MerkleProof) VerifyMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path, value []byte) error {
-	if err := proof.validateVerificationArgs(specs, root); err != nil {
-		return err
-	}
-
-	// VerifyMembership specific argument validation
 	mpath, ok := path.(v2.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ErrInvalidProof, "path %v is not of type MerklePath", path)
 	}
-	if len(mpath.KeyPath) != len(specs) {
-		return errorsmod.Wrapf(ErrInvalidProof, "path length %d not same as proof %d",
-			len(mpath.KeyPath), len(specs))
+
+	if err := validateVerificationArgs(proof, mpath, specs, root); err != nil {
+		return err
 	}
+
+	// VerifyMembership specific argument validation
 	if len(value) == 0 {
 		return errorsmod.Wrap(ErrInvalidProof, "empty value in membership proof")
 	}
@@ -112,18 +109,13 @@ func (proof MerkleProof) VerifyMembership(specs []*ics23.ProofSpec, root exporte
 // VerifyNonMembership verifies a chained proof where the absence of a given path is proven
 // at the lowest subtree and then each subtree's inclusion is proved up to the final root.
 func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root exported.Root, path exported.Path) error {
-	if err := proof.validateVerificationArgs(specs, root); err != nil {
-		return err
-	}
-
-	// VerifyNonMembership specific argument validation
 	mpath, ok := path.(v2.MerklePath)
 	if !ok {
 		return errorsmod.Wrapf(ErrInvalidProof, "path %v is not of type MerkleProof", path)
 	}
-	if len(mpath.KeyPath) != len(specs) {
-		return errorsmod.Wrapf(ErrInvalidProof, "path length %d not same as proof %d",
-			len(mpath.KeyPath), len(specs))
+
+	if err := validateVerificationArgs(proof, mpath, specs, root); err != nil {
+		return err
 	}
 
 	switch proof.Proofs[0].Proof.(type) {
@@ -234,16 +226,8 @@ func (proof *MerkleProof) Empty() bool {
 	return proof == nil || proto.Equal(proof, blankMerkleProof) || proto.Equal(proof, blankProofOps)
 }
 
-// ValidateBasic checks if the proof is empty.
-func (proof MerkleProof) ValidateBasic() error {
-	if proof.Empty() {
-		return ErrInvalidProof
-	}
-	return nil
-}
-
 // validateVerificationArgs verifies the proof arguments are valid
-func (proof MerkleProof) validateVerificationArgs(specs []*ics23.ProofSpec, root exported.Root) error {
+func validateVerificationArgs(proof MerkleProof, path v2.MerklePath, specs []*ics23.ProofSpec, root exported.Root) error {
 	if proof.Empty() {
 		return errorsmod.Wrap(ErrInvalidMerkleProof, "proof cannot be empty")
 	}
@@ -253,9 +237,11 @@ func (proof MerkleProof) validateVerificationArgs(specs []*ics23.ProofSpec, root
 	}
 
 	if len(specs) != len(proof.Proofs) {
-		return errorsmod.Wrapf(ErrInvalidMerkleProof,
-			"length of specs: %d not equal to length of proof: %d",
-			len(specs), len(proof.Proofs))
+		return errorsmod.Wrapf(ErrInvalidMerkleProof, "length of specs: %d not equal to length of proof: %d", len(specs), len(proof.Proofs))
+	}
+
+	if len(path.KeyPath) != len(specs) {
+		return errorsmod.Wrapf(ErrInvalidProof, "path length %d not same as proof %d", len(path.KeyPath), len(specs))
 	}
 
 	for i, spec := range specs {
