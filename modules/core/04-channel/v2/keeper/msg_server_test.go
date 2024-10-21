@@ -22,7 +22,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		path             *ibctesting.Path
 		expectedPacket   channeltypesv2.Packet
 		timeoutTimestamp uint64
-		packetData       channeltypesv2.Payload
+		payload       channeltypesv2.Payload
 	)
 
 	testCases := []struct {
