@@ -26,30 +26,30 @@ func TestValidateBasic(t *testing.T) {
 			nil,
 		},
 		{
-			"failure: packet data is nil",
+			"failure: payloads is nil",
 			func() {
-				packet.Data = nil
+				packet.Payloads = nil
 			},
 			types.ErrInvalidPacket,
 		},
 		{
-			"failure: empty data",
+			"failure: empty payload",
 			func() {
-				packet.Data = []types.Payload{}
+				packet.Payloads = []types.Payload{}
 			},
 			types.ErrInvalidPacket,
 		},
 		{
-			"failure: invalid data source port ID",
+			"failure: invalid payload source port ID",
 			func() {
-				packet.Data[0].SourcePort = ""
+				packet.Payloads[0].SourcePort = ""
 			},
 			host.ErrInvalidID,
 		},
 		{
-			"failure: invalid data dest port ID",
+			"failure: invalid payload dest port ID",
 			func() {
-				packet.Data[0].DestinationPort = ""
+				packet.Payloads[0].DestinationPort = ""
 			},
 			host.ErrInvalidID,
 		},
@@ -84,21 +84,21 @@ func TestValidateBasic(t *testing.T) {
 		{
 			"failure: empty version",
 			func() {
-				packet.Data[0].Version = ""
+				packet.Payloads[0].Version = ""
 			},
 			types.ErrInvalidPayload,
 		},
 		{
 			"failure: empty encoding",
 			func() {
-				packet.Data[0].Encoding = ""
+				packet.Payloads[0].Encoding = ""
 			},
 			types.ErrInvalidPayload,
 		},
 		{
 			"failure: empty value",
 			func() {
-				packet.Data[0].Value = []byte{}
+				packet.Payloads[0].Value = []byte{}
 			},
 			types.ErrInvalidPayload,
 		},
