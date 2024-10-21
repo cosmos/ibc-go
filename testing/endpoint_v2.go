@@ -10,8 +10,8 @@ import (
 )
 
 // MsgSendPacket sends a packet on the associated endpoint. The constructed packet is returned.
-func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, packetData channeltypesv2.PacketData) (channeltypesv2.Packet, error) {
-	msgSendPacket := channeltypesv2.NewMsgSendPacket(endpoint.ChannelID, timeoutTimestamp, endpoint.Chain.SenderAccount.GetAddress().String(), packetData)
+func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, payload channeltypesv2.Payload) (channeltypesv2.Packet, error) {
+	msgSendPacket := channeltypesv2.NewMsgSendPacket(endpoint.ChannelID, timeoutTimestamp, endpoint.Chain.SenderAccount.GetAddress().String(), payload)
 
 	res, err := endpoint.Chain.SendMsgs(msgSendPacket)
 	if err != nil {
@@ -35,7 +35,7 @@ func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, packetData chan
 	if err != nil {
 		return channeltypesv2.Packet{}, err
 	}
-	packet := channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ChannelID, endpoint.Counterparty.ChannelID, timeoutTimestamp, packetData)
+	packet := channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ChannelID, endpoint.Counterparty.ChannelID, timeoutTimestamp, payload)
 
 	return packet, nil
 }

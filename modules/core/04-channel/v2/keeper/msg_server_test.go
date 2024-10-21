@@ -22,7 +22,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		path             *ibctesting.Path
 		expectedPacket   channeltypesv2.Packet
 		timeoutTimestamp uint64
-		packetData       channeltypesv2.PacketData
+		packetData       channeltypesv2.Payload
 	)
 
 	testCases := []struct {
@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		{
 			name: "failure: application callback error",
 			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnSendPacket = func(ctx context.Context, sourceID string, destinationID string, sequence uint64, data channeltypesv2.PacketData, signer sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnSendPacket = func(ctx context.Context, sourceID string, destinationID string, sequence uint64, data channeltypesv2.Payload, signer sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -85,7 +85,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			path.SetupV2()
 
 			timeoutTimestamp = suite.chainA.GetTimeoutTimestamp()
-			packetData = mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			packetData = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, packetData)
 
@@ -146,7 +146,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				// a failed ack should be returned by the application.
 				expectedAck.AcknowledgementResults[0].RecvPacketResult = failedRecvResult
 
-				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.PacketData, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 					return failedRecvResult
 				}
 			},
@@ -162,7 +162,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				// an async ack should be returned by the application.
 				expectedAck.AcknowledgementResults[0].RecvPacketResult = asyncResult
 
-				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.PacketData, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 					return asyncResult
 				}
 			},
@@ -204,7 +204,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
 
 			var err error
-			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
 			suite.Require().NoError(err)
 
 			// default expected ack is a single successful recv result for moduleB.
@@ -349,7 +349,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 
 				// Modify the callback to return an error.
 				// This way, we can verify that the callback is not executed in a No-op case.
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, channeltypesv2.PacketData, []byte, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, channeltypesv2.Payload, []byte, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -357,7 +357,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "failure: callback fails",
 			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, channeltypesv2.PacketData, []byte, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, channeltypesv2.Payload, []byte, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -397,7 +397,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 
 			var err error
 			// Send packet from A to B
-			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.MsgRecvPacket(packet)
@@ -450,7 +450,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 
 				// Modify the callback to return a different error.
 				// This way, we can verify that the callback is not executed in a No-op case.
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.PacketData, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.Payload, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -459,7 +459,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 		{
 			name: "failure: callback fails",
 			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.PacketData, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.Payload, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -498,7 +498,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 
 			// Send packet from A to B
 			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Unix())
-			mockData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			mockData := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			var err error
 			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockData)
