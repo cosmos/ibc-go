@@ -288,11 +288,7 @@ func (k *Keeper) timeoutPacket(
 	// that the packet was indeed sent by our counterparty.
 	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		// TODO: figure out how aliasing will work when more than one payload is sent.
-		channel, ok = k.convertV1Channel(ctx, packet.Payloads[0].SourcePort, packet.SourceChannel)
-		if !ok {
-			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
-		}
+		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
 		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
