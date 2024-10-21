@@ -22,7 +22,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		path             *ibctesting.Path
 		expectedPacket   channeltypesv2.Packet
 		timeoutTimestamp uint64
-		payload       channeltypesv2.Payload
+		payload          channeltypesv2.Payload
 	)
 
 	testCases := []struct {
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		{
 			name: "failure: route to non existing app",
 			malleate: func() {
-				packetData.SourcePort = "foo"
+				payload.SourcePort = "foo"
 			},
 			expError: fmt.Errorf("no route for foo"),
 		},
@@ -85,13 +85,13 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			path.SetupV2()
 
 			timeoutTimestamp = suite.chainA.GetTimeoutTimestamp()
-			packetData = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			payload = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
-			expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, packetData)
+			expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, payload)
 
 			tc.malleate()
 
-			packet, err := path.EndpointA.MsgSendPacket(timeoutTimestamp, packetData)
+			packet, err := path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
 
 			expPass := tc.expError == nil
 			if expPass {

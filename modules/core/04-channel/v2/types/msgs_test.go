@@ -176,14 +176,14 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 		{
 			name: "failure: invalid length for payload",
 			malleate: func() {
-				msg.Payload = []types.Payload{}
+				msg.Payloads = []types.Payload{}
 			},
 			expError: types.ErrInvalidPayload,
 		},
 		{
 			name: "failure: invalid packetdata",
 			malleate: func() {
-				msg.Payload[0].DestinationPort = ""
+				msg.Payloads[0].DestinationPort = ""
 			},
 			expError: host.ErrInvalidID,
 		},

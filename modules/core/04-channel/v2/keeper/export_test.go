@@ -21,7 +21,7 @@ func (k *Keeper) SendPacketTest(
 		ctx,
 		sourceChannel,
 		timeoutTimestamp,
-		data,
+		payloads,
 	)
 }
 

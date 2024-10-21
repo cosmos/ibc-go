@@ -81,7 +81,7 @@ message MsgSendPacket {
 
   string           source_channel    = 1;
   uint64           timeout_timestamp = 2;
-  repeated Payload payloads           = 3 [(gogoproto.nullable) = false];
+  repeated Payload payloads          = 3 [(gogoproto.nullable) = false];
   string           signer            = 4;
 }
 

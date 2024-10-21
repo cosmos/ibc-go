@@ -29,7 +29,7 @@ func (k *Keeper) sendPacket(
 	channel, ok := k.GetChannel(ctx, sourceChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		channel, ok = k.convertV1Channel(ctx, data[0].SourcePort, sourceChannel)
+		channel, ok = k.convertV1Channel(ctx, payloads[0].SourcePort, sourceChannel)
 		if !ok {
 			return 0, "", errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 		}
@@ -47,7 +47,7 @@ func (k *Keeper) sendPacket(
 	}
 
 	// construct packet from given fields and channel state
-	packet := types.NewPacket(sequence, sourceChannel, destChannel, timeoutTimestamp, data...)
+	packet := types.NewPacket(sequence, sourceChannel, destChannel, timeoutTimestamp, payloads...)
 
 	if err := packet.ValidateBasic(); err != nil {
 		return 0, "", errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
