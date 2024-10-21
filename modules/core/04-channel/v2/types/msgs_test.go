@@ -181,7 +181,7 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 			expError: types.ErrInvalidPayload,
 		},
 		{
-			name: "failure: invalid packetdata",
+			name: "failure: invalid payload",
 			malleate: func() {
 				msg.Payloads[0].DestinationPort = ""
 			},
@@ -230,7 +230,7 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 		{
 			name: "failure: invalid packet",
 			malleate: func() {
-				msg.Packet.Data = []types.Payload{}
+				msg.Packet.Payloads = []types.Payload{}
 			},
 			expError: types.ErrInvalidPacket,
 		},

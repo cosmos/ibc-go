@@ -7,7 +7,7 @@ import (
 )
 
 // CommitPacket returns the V2 packet commitment bytes. The commitment consists of:
-// sha256_hash(timeout) + sha256_hash(destinationChannel) + sha256_hash(packetData) from a given packet.
+// sha256_hash(timeout) + sha256_hash(destinationChannel) + sha256_hash(payload) from a given packet.
 // This results in a fixed length preimage.
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
@@ -17,15 +17,15 @@ func CommitPacket(packet Packet) []byte {
 	destIDHash := sha256.Sum256([]byte(packet.DestinationChannel))
 	buf = append(buf, destIDHash[:]...)
 
-	for _, data := range packet.Data {
-		buf = append(buf, hashPayload(data)...)
+	for _, payload := range packet.Payloads {
+		buf = append(buf, hashPayload(payload)...)
 	}
 
 	hash := sha256.Sum256(buf)
 	return hash[:]
 }
 
-// hashPayload returns the hash of the packet data.
+// hashPayload returns the hash of the payload.
 func hashPayload(data Payload) []byte {
 	var buf []byte
 	sourceHash := sha256.Sum256([]byte(data.SourcePort))

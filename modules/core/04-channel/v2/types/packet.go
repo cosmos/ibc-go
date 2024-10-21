@@ -9,17 +9,17 @@ import (
 )
 
 // NewPacket constructs a new packet.
-func NewPacket(sequence uint64, sourceChannel, destinationChannel string, timeoutTimestamp uint64, data ...Payload) Packet {
+func NewPacket(sequence uint64, sourceChannel, destinationChannel string, timeoutTimestamp uint64, payloads ...Payload) Packet {
 	return Packet{
 		Sequence:           sequence,
 		SourceChannel:      sourceChannel,
 		DestinationChannel: destinationChannel,
 		TimeoutTimestamp:   timeoutTimestamp,
-		Data:               data,
+		Payloads:           payloads,
 	}
 }
 
-// NewPayload constructs a new PacketData
+// NewPayload constructs a new Payload
 func NewPayload(sourcePort, destPort, version, encoding string, value []byte) Payload {
 	return Payload{
 		SourcePort:      sourcePort,
@@ -32,13 +32,13 @@ func NewPayload(sourcePort, destPort, version, encoding string, value []byte) Pa
 
 // ValidateBasic validates that a Packet satisfies the basic requirements.
 func (p Packet) ValidateBasic() error {
-	if len(p.Data) == 0 {
-		return errorsmod.Wrap(ErrInvalidPacket, "packet data must not be empty")
+	if len(p.Payloads) == 0 {
+		return errorsmod.Wrap(ErrInvalidPacket, "payloads must not be empty")
 	}
 
-	for _, pd := range p.Data {
+	for _, pd := range p.Payloads {
 		if err := pd.ValidateBasic(); err != nil {
-			return errorsmod.Wrap(err, "invalid Packet Data")
+			return errorsmod.Wrap(err, "invalid Payload")
 		}
 	}
 

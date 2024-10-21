@@ -19,8 +19,8 @@ message Packet {
   string destination_channel = 3;
   // timeout timestamp after which the packet times out.
   uint64 timeout_timestamp = 4;
-  // a list of packet data, each one for a specific application.
-  repeated Payload data = 5 [(gogoproto.nullable) = false];
+  // a list of payloads, each one for a specific application.
+  repeated Payload payloads = 5 [(gogoproto.nullable) = false];
 }
 
 // Payload contains the source and destination ports and payload for the application (version, encoding, raw bytes)

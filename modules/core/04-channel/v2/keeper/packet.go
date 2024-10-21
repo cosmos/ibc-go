@@ -28,7 +28,7 @@ func (k *Keeper) sendPacket(
 	// Lookup channel associated with our source channel to retrieve the destination channel
 	channel, ok := k.GetChannel(ctx, sourceChannel)
 	if !ok {
-		// TODO: figure out how aliasing will work when more than one packet data is sent.
+		// TODO: figure out how aliasing will work when more than one payload is sent.
 		channel, ok = k.convertV1Channel(ctx, payloads[0].SourcePort, sourceChannel)
 		if !ok {
 			return 0, "", errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
@@ -107,8 +107,8 @@ func (k *Keeper) recvPacket(
 	// packet sender is our channel's counterparty channel id.
 	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
-		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		channel, ok = k.convertV1Channel(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
+		// TODO: figure out how aliasing will work when more than one payload is sent.
+		channel, ok = k.convertV1Channel(ctx, packet.Payloads[0].DestinationPort, packet.DestinationChannel)
 		if !ok {
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
@@ -197,8 +197,8 @@ func (k Keeper) WriteAcknowledgement(
 
 	// TODO: Validate Acknowledgment more thoroughly here after Issue #7472: https://github.com/cosmos/ibc-go/issues/7472
 
-	if len(ack.AcknowledgementResults) != len(packet.Data) {
-		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of acknowledgement results %d does not match length of packet data %d", len(ack.AcknowledgementResults), len(packet.Data))
+	if len(ack.AcknowledgementResults) != len(packet.Payloads) {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of acknowledgement results %d does not match length of payload %d", len(ack.AcknowledgementResults), len(packet.Payloads))
 	}
 
 	// set the acknowledgement so that it can be verified on the other side
@@ -288,8 +288,8 @@ func (k *Keeper) timeoutPacket(
 	// that the packet was indeed sent by our counterparty.
 	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
-		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		channel, ok = k.convertV1Channel(ctx, packet.Data[0].SourcePort, packet.SourceChannel)
+		// TODO: figure out how aliasing will work when more than one payload is sent.
+		channel, ok = k.convertV1Channel(ctx, packet.Payloads[0].SourcePort, packet.SourceChannel)
 		if !ok {
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
