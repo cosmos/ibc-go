@@ -3,7 +3,8 @@
     "main"
   ],
   "chain-b": [
-    "main"
+    "main",
+    "v9.0.0"
   ],
   "entrypoint": [
     "TransferChannelUpgradesV1TestSuite"
