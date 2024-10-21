@@ -86,7 +86,7 @@ func (msg *MsgCreateChannel) ValidateBasic() error {
 }
 
 // NewMsgSendPacket creates a new MsgSendPacket instance.
-func NewMsgSendPacket(sourceChannel string, timeoutTimestamp uint64, signer string, packetData ...Payload) *MsgSendPacket {
+func NewMsgSendPacket(sourceChannel string, timeoutTimestamp uint64, signer string, payloads ...Payload) *MsgSendPacket {
 	return &MsgSendPacket{
 		SourceChannel:    sourceChannel,
 		TimeoutTimestamp: timeoutTimestamp,
