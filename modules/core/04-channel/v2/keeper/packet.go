@@ -23,7 +23,7 @@ func (k *Keeper) sendPacket(
 	ctx context.Context,
 	sourceChannel string,
 	timeoutTimestamp uint64,
-	data []types.Payload,
+	payloads []types.Payload,
 ) (uint64, string, error) {
 	// Lookup channel associated with our source channel to retrieve the destination channel
 	channel, ok := k.GetChannel(ctx, sourceChannel)
