@@ -79,6 +79,12 @@ func (k *Keeper) GetChannel(ctx context.Context, channelID string) (types.Channe
 	return channel, true
 }
 
+// HasChannel returns true if a Channel exists for a given channel identifier, otherwise false.
+func (k *Keeper) HasChannel(ctx context.Context, channelID string) bool {
+	store := k.ChannelStore(ctx, channelID)
+	return store.Has([]byte(types.ChannelKey))
+}
+
 // GetCreator returns the creator of the channel.
 func (k *Keeper) GetCreator(ctx context.Context, channelID string) (string, bool) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917

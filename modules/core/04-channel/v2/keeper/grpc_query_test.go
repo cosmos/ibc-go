@@ -116,3 +116,107 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
+	var (
+		expCommitment []byte
+		path          *ibctesting.Path
+		req           *types.QueryPacketCommitmentRequest
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				expCommitment = []byte("commitmentHash")
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelID, 1, expCommitment)
+
+				req = &types.QueryPacketCommitmentRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Sequence:  1,
+				}
+			},
+			nil,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"invalid channel ID",
+			func() {
+				req = &types.QueryPacketCommitmentRequest{
+					ChannelId: "",
+					Sequence:  1,
+				}
+			},
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
+		},
+		{
+			"invalid sequence",
+			func() {
+				req = &types.QueryPacketCommitmentRequest{
+					ChannelId: ibctesting.FirstChannelID,
+					Sequence:  0,
+				}
+			},
+			status.Error(codes.InvalidArgument, "packet sequence cannot be 0"),
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryPacketCommitmentRequest{
+					ChannelId: "channel-141",
+					Sequence:  1,
+				}
+			},
+			status.Error(codes.NotFound, fmt.Sprintf("%s: channel not found", "channel-141")),
+		},
+		{
+			"commitment not found",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				req = &types.QueryPacketCommitmentRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Sequence:  1,
+				}
+			},
+			status.Error(codes.NotFound, "packet commitment hash not found"),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2)
+			res, err := queryServer.PacketCommitment(suite.chainA.GetContext(), req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expCommitment, res.Commitment)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Nil(res)
+			}
+		})
+	}
+}

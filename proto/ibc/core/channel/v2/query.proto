@@ -5,6 +5,7 @@ package ibc.core.channel.v2;
 option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types";
 
 import "ibc/core/channel/v2/channel.proto";
+import "ibc/core/client/v1/client.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
 
@@ -13,6 +14,11 @@ service Query {
   // Channel queries the counterparty of an IBC client.
   rpc Channel(QueryChannelRequest) returns (QueryChannelResponse) {
     option (google.api.http).get = "/ibc/core/channel/v2/channel/{channel_id}";
+  }
+
+  // PacketCommitment queries a stored packet commitment hash.
+  rpc PacketCommitment(QueryPacketCommitmentRequest) returns (QueryPacketCommitmentResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/{sequence}";
   }
 }
 
@@ -25,4 +31,22 @@ message QueryChannelRequest {
 message QueryChannelResponse {
   string  creator = 1;
   Channel channel = 2 [(gogoproto.nullable) = false];
+}
+
+// QueryPacketCommitmentRequest is the request type for the Query/PacketCommitment RPC method.
+message QueryPacketCommitmentRequest {
+  // channel unique identifier
+  string channel_id = 1;
+  // packet sequence
+  uint64 sequence = 2;
+}
+
+// QueryPacketCommitmentResponse is the response type for the Query/PacketCommitment RPC method.
+message QueryPacketCommitmentResponse {
+  // packet associated with the request fields
+  bytes commitment = 1;
+  // merkle proof of existence
+  bytes proof = 2;
+  // height at which the proof was retrieved
+  ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
 }

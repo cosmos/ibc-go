@@ -44,3 +44,7 @@ func getCmdQueryChannel() *cobra.Command {
 
 	return cmd
 }
+
+func getCmdQueryPacketCommitment() *cobra.Command {
+	return nil
+}
