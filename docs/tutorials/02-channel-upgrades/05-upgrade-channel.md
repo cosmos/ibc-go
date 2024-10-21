@@ -122,7 +122,7 @@ proposals:
 
 Now we wait for the relayer to complete the upgrade handshake.
 
-## Check ugprade completed
+## Check upgrade completed
 
 Once the handshake has completed we verify that the channel has successfully upgraded:
 
