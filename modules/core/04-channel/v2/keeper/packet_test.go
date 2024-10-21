@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			"success with later packet",
 			func() {
 				// send the same packet earlier so next packet send should be sequence 2
-				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel, packet.TimeoutTimestamp, packet.Data)
+				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel, packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err)
 				expSequence = 2
 			},
@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			"packet failed basic validation",
 			func() {
 				// invalid data
-				packet.Data = nil
+				packet.Payloads = nil
 			},
 			channeltypes.ErrInvalidPacket,
 		},
@@ -97,20 +97,20 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			packetData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 			// create standard packet that can be malleated
 			packet = types.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
-				timeoutTimestamp, packetData)
+				timeoutTimestamp, payload)
 			expSequence = 1
 
 			// malleate the test case
 			tc.malleate()
 
 			// send packet
-			seq, destChannel, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel, packet.TimeoutTimestamp, packet.Data)
+			seq, destChannel, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel, packet.TimeoutTimestamp, packet.Payloads)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -204,12 +204,12 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			packetData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 			// send packet
-			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, packetData)
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
 			suite.Require().NoError(err)
 
 			tc.malleate()
@@ -298,13 +298,13 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			packetData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 			// create standard packet that can be malleated
 			packet = types.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
-				timeoutTimestamp, packetData)
+				timeoutTimestamp, payload)
 
 			// create standard ack that can be malleated
 			ack = types.Acknowledgement{
@@ -390,8 +390,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		{
 			"failure: packet commitment bytes differ",
 			func() {
-				// change packet data after send to acknowledge different packet
-				packet.Data[0].Payload.Value = []byte("different value")
+				// change payload after send to acknowledge different packet
+				packet.Payloads[0].Value = []byte("different value")
 			},
 			channeltypes.ErrInvalidPacket,
 		},
@@ -414,12 +414,12 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			freezeClient = false
 
-			packetData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 			// send packet
-			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, packetData)
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.MsgRecvPacket(packet)
@@ -467,7 +467,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			func() {
 				// send packet
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel,
-					packet.TimeoutTimestamp, packet.Data)
+					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 			},
 			nil,
@@ -477,7 +477,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			func() {
 				// send packet
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel,
-					packet.TimeoutTimestamp, packet.Data)
+					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 
 				packet.SourceChannel = ibctesting.InvalidID
@@ -489,7 +489,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			func() {
 				// send packet
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel,
-					packet.TimeoutTimestamp, packet.Data)
+					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 
 				packet.DestinationChannel = unusedChannel
@@ -503,7 +503,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 				// send packet
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel,
-					packet.TimeoutTimestamp, packet.Data)
+					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 			},
 			channeltypes.ErrTimeoutNotReached,
@@ -517,11 +517,11 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"failure: packet does not match commitment",
 			func() {
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel,
-					packet.TimeoutTimestamp, packet.Data)
+					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 
 				// try to timeout packet with different data
-				packet.Data[0].Payload.Value = []byte("different value")
+				packet.Payloads[0].Value = []byte("different value")
 			},
 			channeltypes.ErrInvalidPacket,
 		},
@@ -530,7 +530,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			func() {
 				// send packet
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel,
-					packet.TimeoutTimestamp, packet.Data)
+					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 
 				freezeClient = true
@@ -542,7 +542,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			func() {
 				// send packet
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceChannel,
-					packet.TimeoutTimestamp, packet.Data)
+					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 
 				// set packet receipt to mock a valid past receive
@@ -564,13 +564,13 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			path.SetupV2()
 
 			// create default packet with a timed out timestamp
-			packetData := mockv2.NewMockPacketData(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Unix())
 
 			// test cases may mutate timeout values
 			packet = types.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
-				timeoutTimestamp, packetData)
+				timeoutTimestamp, payload)
 
 			tc.malleate()
 

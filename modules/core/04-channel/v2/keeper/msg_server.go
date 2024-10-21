@@ -20,7 +20,7 @@ var _ channeltypesv2.MsgServer = &Keeper{}
 // SendPacket implements the PacketMsgServer SendPacket method.
 func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceChannel, msg.TimeoutTimestamp, msg.PacketData)
+	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceChannel, msg.TimeoutTimestamp, msg.Payloads)
 	if err != nil {
 		sdkCtx.Logger().Error("send packet failed", "source-channel", msg.SourceChannel, "error", errorsmod.Wrap(err, "send packet failed"))
 		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceChannel)
@@ -32,7 +32,7 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
-	for _, pd := range msg.PacketData {
+	for _, pd := range msg.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
 		err := cbs.OnSendPacket(ctx, msg.SourceChannel, destChannel, sequence, pd, signer)
 		if err != nil {
@@ -71,7 +71,7 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAck
 		recvResults[r.AppName] = r.RecvPacketResult
 	}
 
-	for _, pd := range msg.Packet.Data {
+	for _, pd := range msg.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
 		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, pd, recvResults[pd.DestinationPort].Acknowledgement, relayer)
 		if err != nil {
@@ -116,7 +116,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 		AcknowledgementResults: []channeltypesv2.AcknowledgementResult{},
 	}
 
-	for _, pd := range msg.Packet.Data {
+	for _, pd := range msg.Packet.Payloads {
 		// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 		cacheCtx, writeFn = sdkCtx.CacheContext()
 		cb := k.Router.Route(pd.DestinationPort)
@@ -136,13 +136,13 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 		})
 	}
 
-	// note this should never happen as the packet data would have had to be empty.
+	// note this should never happen as the payload would have had to be empty.
 	if len(ack.AcknowledgementResults) == 0 {
 		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
 		return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-channel %s invalid acknowledgement results", msg.Packet.SourceChannel)
 	}
 
-	// NOTE: TBD how we will handle async acknowledgements with more than one packet data.
+	// NOTE: TBD how we will handle async acknowledgements with more than one payload.
 	isAsync := slices.ContainsFunc(ack.AcknowledgementResults, func(ackResult channeltypesv2.AcknowledgementResult) bool {
 		return ackResult.RecvPacketResult.Status == channeltypesv2.PacketStatus_Async
 	})
@@ -190,7 +190,7 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout
 		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
 	}
 
-	for _, pd := range timeout.Packet.Data {
+	for _, pd := range timeout.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
 		err := cbs.OnTimeoutPacket(ctx, timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel, pd, signer)
 		if err != nil {

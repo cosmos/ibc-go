@@ -10,43 +10,36 @@ import (
 )
 
 // NewPacket constructs a new packet.
-func NewPacket(sequence uint64, sourceChannel, destinationChannel string, timeoutTimestamp uint64, data ...PacketData) Packet {
+func NewPacket(sequence uint64, sourceChannel, destinationChannel string, timeoutTimestamp uint64, payloads ...Payload) Packet {
 	return Packet{
 		Sequence:           sequence,
 		SourceChannel:      sourceChannel,
 		DestinationChannel: destinationChannel,
 		TimeoutTimestamp:   timeoutTimestamp,
-		Data:               data,
-	}
-}
-
-// NewPacketData constructs a new PacketData
-func NewPacketData(sourcePort, destPort string, payload Payload) PacketData {
-	return PacketData{
-		SourcePort:      sourcePort,
-		DestinationPort: destPort,
-		Payload:         payload,
+		Payloads:           payloads,
 	}
 }
 
 // NewPayload constructs a new Payload
-func NewPayload(version, encoding string, value []byte) Payload {
+func NewPayload(sourcePort, destPort, version, encoding string, value []byte) Payload {
 	return Payload{
-		Version:  version,
-		Encoding: encoding,
-		Value:    value,
+		SourcePort:      sourcePort,
+		DestinationPort: destPort,
+		Version:         version,
+		Encoding:        encoding,
+		Value:           value,
 	}
 }
 
 // ValidateBasic validates that a Packet satisfies the basic requirements.
 func (p Packet) ValidateBasic() error {
-	if len(p.Data) == 0 {
-		return errorsmod.Wrap(ErrInvalidPacket, "packet data must not be empty")
+	if len(p.Payloads) == 0 {
+		return errorsmod.Wrap(ErrInvalidPacket, "payloads must not be empty")
 	}
 
-	for _, pd := range p.Data {
+	for _, pd := range p.Payloads {
 		if err := pd.ValidateBasic(); err != nil {
-			return errorsmod.Wrap(err, "invalid Packet Data")
+			return errorsmod.Wrap(err, "invalid Payload")
 		}
 	}
 
@@ -67,22 +60,14 @@ func (p Packet) ValidateBasic() error {
 	return nil
 }
 
-// ValidateBasic validates a PacketData
-func (p PacketData) ValidateBasic() error {
+// ValidateBasic validates a Payload.
+func (p Payload) ValidateBasic() error {
 	if err := host.PortIdentifierValidator(p.SourcePort); err != nil {
 		return errorsmod.Wrap(err, "invalid source port ID")
 	}
 	if err := host.PortIdentifierValidator(p.DestinationPort); err != nil {
 		return errorsmod.Wrap(err, "invalid destination port ID")
 	}
-	if err := p.Payload.Validate(); err != nil {
-		return err
-	}
-	return nil
-}
-
-// Validate validates a Payload.
-func (p Payload) Validate() error {
 	if strings.TrimSpace(p.Version) == "" {
 		return errorsmod.Wrap(ErrInvalidPayload, "payload version cannot be empty")
 	}

@@ -15,13 +15,13 @@ func (k *Keeper) SendPacketTest(
 	ctx context.Context,
 	sourceChannel string,
 	timeoutTimestamp uint64,
-	data []channeltypesv2.PacketData,
+	payloads []channeltypesv2.Payload,
 ) (uint64, string, error) {
 	return k.sendPacket(
 		ctx,
 		sourceChannel,
 		timeoutTimestamp,
-		data,
+		payloads,
 	)
 }
 

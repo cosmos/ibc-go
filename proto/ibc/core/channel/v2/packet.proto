@@ -19,28 +19,22 @@ message Packet {
   string destination_channel = 3;
   // timeout timestamp in seconds after which the packet times out.
   uint64 timeout_timestamp = 4;
-  // a list of packet data, each one for a specific application.
-  repeated PacketData data = 5 [(gogoproto.nullable) = false];
+  // a list of payloads, each one for a specific application.
+  repeated Payload payloads = 5 [(gogoproto.nullable) = false];
 }
 
-// PacketData contains the source and destination ports and payload for the application
-message PacketData {
+// Payload contains the source and destination ports and payload for the application (version, encoding, raw bytes)
+message Payload {
   // specifies the source port of the packet.
   string source_port = 1;
   // specifies the destination port of the packet.
   string destination_port = 2;
-  // the payload to be sent to the application.
-  Payload payload = 3 [(gogoproto.nullable) = false];
-}
-
-// Payload holds the version, encoding and raw bytes to be passed to an application
-message Payload {
   // version of the specified application.
-  string version = 1;
+  string version = 3;
   // the encoding used for the provided value.
-  string encoding = 2;
+  string encoding = 4;
   // the raw bytes for the payload.
-  bytes value = 3;
+  bytes value = 5;
 }
 
 // Acknowledgement contains a list of all ack results associated with a single packet.

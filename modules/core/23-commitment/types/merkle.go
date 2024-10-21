@@ -151,7 +151,7 @@ func (proof MerkleProof) VerifyNonMembership(specs []*ics23.ProofSpec, root expo
 			"got ExistenceProof in VerifyNonMembership. If this is unexpected, please ensure that proof was queried with the correct key.")
 	default:
 		return errorsmod.Wrapf(ErrInvalidProof,
-			"expected proof type: %T, got: %T", &ics23.CommitmentProof_Exist{}, proof.Proofs[0].Proof)
+			"expected proof type: %T, got: %T", &ics23.CommitmentProof_Nonexist{}, proof.Proofs[0].Proof)
 	}
 	return nil
 }

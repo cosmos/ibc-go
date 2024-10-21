@@ -20,14 +20,12 @@ var (
 	}
 )
 
-func NewMockPacketData(sourcePort, destPort string) channeltypesv2.PacketData {
-	return channeltypesv2.PacketData{
+func NewMockPayload(sourcePort, destPort string) channeltypesv2.Payload {
+	return channeltypesv2.Payload{
 		SourcePort:      sourcePort,
 		DestinationPort: destPort,
-		Payload: channeltypesv2.Payload{
-			Encoding: "json",
-			Value:    mockv1.MockPacketData,
-			Version:  mockv1.Version,
-		},
+		Encoding:        "json",
+		Value:           mockv1.MockPacketData,
+		Version:         mockv1.Version,
 	}
 }

@@ -3,6 +3,7 @@
     "release-v9.0.x"
   ],
   "chain-b": [
+    "v9.0.0",
     "release-v9.0.x"
   ],
   "entrypoint": [

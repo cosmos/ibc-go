@@ -22,13 +22,13 @@ func (k *Keeper) sendPacket(
 	ctx context.Context,
 	sourceChannel string,
 	timeoutTimestamp uint64,
-	data []types.PacketData,
+	payloads []types.Payload,
 ) (uint64, string, error) {
 	// Lookup channel associated with our source channel to retrieve the destination channel
 	channel, ok := k.GetChannel(ctx, sourceChannel)
 	if !ok {
-		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		channel, ok = k.convertV1Channel(ctx, data[0].SourcePort, sourceChannel)
+		// TODO: figure out how aliasing will work when more than one payload is sent.
+		channel, ok = k.convertV1Channel(ctx, payloads[0].SourcePort, sourceChannel)
 		if !ok {
 			return 0, "", errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
 		}
@@ -46,7 +46,7 @@ func (k *Keeper) sendPacket(
 	}
 
 	// construct packet from given fields and channel state
-	packet := types.NewPacket(sequence, sourceChannel, destChannel, timeoutTimestamp, data...)
+	packet := types.NewPacket(sequence, sourceChannel, destChannel, timeoutTimestamp, payloads...)
 
 	if err := packet.ValidateBasic(); err != nil {
 		return 0, "", errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
@@ -101,8 +101,8 @@ func (k *Keeper) recvPacket(
 ) error {
 	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
-		// TODO: figure out how aliasing will work when more than one packet data is sent.
-		channel, ok = k.convertV1Channel(ctx, packet.Data[0].DestinationPort, packet.DestinationChannel)
+		// TODO: figure out how aliasing will work when more than one payload is sent.
+		channel, ok = k.convertV1Channel(ctx, packet.Payloads[0].DestinationPort, packet.DestinationChannel)
 		if !ok {
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
@@ -191,8 +191,8 @@ func (k Keeper) WriteAcknowledgement(
 
 	// TODO: Validate Acknowledgment more thoroughly here after Issue #7472: https://github.com/cosmos/ibc-go/issues/7472
 
-	if len(ack.AcknowledgementResults) != len(packet.Data) {
-		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of acknowledgement results %d does not match length of packet data %d", len(ack.AcknowledgementResults), len(packet.Data))
+	if len(ack.AcknowledgementResults) != len(packet.Payloads) {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of acknowledgement results %d does not match length of payload %d", len(ack.AcknowledgementResults), len(packet.Payloads))
 	}
 
 	// set the acknowledgement so that it can be verified on the other side
