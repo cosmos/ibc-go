@@ -10,7 +10,7 @@ import (
 
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 
-	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
