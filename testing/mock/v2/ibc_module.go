@@ -7,7 +7,6 @@ import (
 
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
-	mockv1 "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 var _ api.IBCModule = (*IBCModule)(nil)
@@ -43,10 +42,7 @@ func (im IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, dest
 	if im.IBCApp.OnRecvPacket != nil {
 		return im.IBCApp.OnRecvPacket(ctx, sourceChannel, destinationChannel, data, relayer)
 	}
-	return channeltypesv2.RecvPacketResult{
-		Status:          channeltypesv2.PacketStatus_Success,
-		Acknowledgement: mockv1.MockPacketData,
-	}
+	return MockRecvPacketResult
 }
 
 func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.PacketData, acknowledgement []byte, relayer sdk.AccAddress) error {
