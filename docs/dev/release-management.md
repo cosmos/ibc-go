@@ -73,7 +73,6 @@ Additionally, for the first point release of a new major or minor release branch
 - Update the [e2e compatibility test matrices](https://github.com/cosmos/ibc-go/tree/main/.github/compatibility-test-matrices): add the tag for the new release and remove any tags that might not be recommended anymore.
 - Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) test workflow:
     - Remove any tags that might not be recommended anymore. 
-- Bump ibc-go version in [cosmos/interchain-accounts-demo repository](https://github.com/cosmos/interchain-accounts-demo) and create a tag.
 - Update docs site:
     - If the release is occurring on the main branch, on the latest version, then run `npm run docusaurus docs:version vX.Y.Z` in the `docs/` directory. (where `X.Y.Z` is the new version number)
     - If the release is occurring on an older release branch, then make a PR to the main branch called `docs: new release vX.Y.Z` doing the following:

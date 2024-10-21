@@ -10,10 +10,18 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cast"
 
+<<<<<<< HEAD
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/client/v2/autocli"
 	corestore "cosmossdk.io/core/store"
+||||||| 46df6a7ff
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
+	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	"cosmossdk.io/client/v2/autocli"
+	"cosmossdk.io/core/appmodule"
+=======
+>>>>>>> main
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/accounts"
@@ -62,7 +70,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
-	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -631,14 +638,6 @@ func NewSimApp(
 	if err != nil {
 		panic(err)
 	}
-
-	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.ModuleManager.Modules))
-
-	reflectionSvc, err := runtimeservices.NewReflectionService()
-	if err != nil {
-		panic(err)
-	}
-	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
 	// add test gRPC service for testing gRPC queries in isolation
 	testpb.RegisterQueryServer(app.GRPCQueryRouter(), testpb.QueryImpl{})
