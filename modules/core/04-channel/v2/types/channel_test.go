@@ -25,7 +25,7 @@ func (s *TypesTestSuite) TestValidate() {
 			expErr: host.ErrInvalidID,
 		},
 		{
-			name: "failure: invalid counterparty",
+			name: "failure: invalid counterparty channel id",
 			malleate: func() {
 				c.CounterpartyChannelId = ""
 			},
