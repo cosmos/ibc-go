@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -26,13 +27,11 @@ func getCmdQueryChannel() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			channelID := args[0]
 
 			queryClient := types.NewQueryClient(clientCtx)
-
-			req := &types.QueryChannelRequest{ChannelId: channelID}
-
-			res, err := queryClient.Channel(cmd.Context(), req)
+			res, err := queryClient.Channel(cmd.Context(), types.NewQueryChannelRequest(channelID))
 			if err != nil {
 				return err
 			}
@@ -46,5 +45,52 @@ func getCmdQueryChannel() *cobra.Command {
 }
 
 func getCmdQueryPacketCommitment() *cobra.Command {
-	return nil
+	cmd := &cobra.Command{
+		Use:   "packet-commitment [channel-id] [sequence]",
+		Short: "Query a channel/v2 packet commitment",
+		Long:  "Query a channel/v2 packet commitment by channel-id and sequence",
+		Example: fmt.Sprintf(
+			"%s query %s %s packet-commitment [channel-id] [sequence]", version.AppName, exported.ModuleName, types.SubModuleName,
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			channelID := args[0]
+			seq, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			prove, err := cmd.Flags().GetBool(flags.FlagProve)
+			if err != nil {
+				return err
+			}
+
+			if prove {
+				res, err := queryPacketCommitmentABCI(clientCtx, channelID, seq)
+				if err != nil {
+					return err
+				}
+
+				return clientCtx.PrintProto(res)
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.PacketCommitment(cmd.Context(), types.NewQueryPacketCommitmentRequest(channelID, seq))
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
