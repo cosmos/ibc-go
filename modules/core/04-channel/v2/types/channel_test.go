@@ -6,7 +6,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
-func (s *TypesTestSuite) TestValidate() {
+func (s *TypesTestSuite) TestValidateChannel() {
 	var c types.Channel
 	testCases := []struct {
 		name     string
