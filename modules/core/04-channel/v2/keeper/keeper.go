@@ -56,7 +56,7 @@ func (Keeper) Logger(ctx context.Context) log.Logger {
 }
 
 func (k Keeper) ChannelStore(ctx context.Context, channelID string) storetypes.KVStore {
-	channelPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyChannelStorePrefix, channelID))
+	channelPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyChannelPrefix, channelID))
 	return prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), channelPrefix)
 }
 

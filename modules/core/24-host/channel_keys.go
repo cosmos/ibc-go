@@ -2,8 +2,6 @@ package host
 
 import "fmt"
 
-var KeyChannelStorePrefix = []byte("channels")
-
 const (
 	KeyChannelEndPrefix     = "channelEnds"
 	KeyChannelPrefix        = "channels"
