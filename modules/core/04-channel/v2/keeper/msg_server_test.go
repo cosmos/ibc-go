@@ -273,57 +273,65 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			nil,
 		},
 		{
-			"failure: signer does not match creator",
+			"failure: creator not set",
 			func() {
-				msg.Signer = path.EndpointB.Chain.SenderAccount.GetAddress().String()
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeleteCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID)
 			},
 			ibcerrors.ErrUnauthorized,
 		},
-		/* // Account sequence mismatch, expected 5, got 6. :thinking:
 		{
-			"failure: counterparty does not already exists",
+			"failure: signer does not match creator",
+			func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID, ibctesting.TestAccAddress)
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: channel must already exist",
 			func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(channeltypesv2.ChannelKey))
 			},
 			channeltypesv2.ErrInvalidChannel,
 		},
-		*/
 	}
 
 	for _, tc := range cases {
-		tc := tc
-		path = ibctesting.NewPath(suite.chainA, suite.chainB)
-		path.SetupClients()
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-		suite.Require().NoError(path.EndpointA.CreateChannel())
-		suite.Require().NoError(path.EndpointB.CreateChannel())
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
 
-		signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
-		msg = channeltypesv2.NewMsgProvideCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, signer)
+			suite.Require().NoError(path.EndpointA.CreateChannel())
+			suite.Require().NoError(path.EndpointB.CreateChannel())
 
-		tc.malleate()
+			signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
+			msg = channeltypesv2.NewMsgProvideCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, signer)
 
-		res, err := path.EndpointA.Chain.SendMsgs(msg)
+			tc.malleate()
 
-		expPass := tc.expError == nil
-		if expPass {
-			suite.Require().NotNil(res)
-			suite.Require().Nil(err)
+			res, err := path.EndpointA.Chain.SendMsgs(msg)
 
-			// Assert counterparty channel id filled in and creator deleted
-			channel, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelID)
-			suite.Require().True(found)
-			suite.Require().Equal(channel.CounterpartyChannelId, path.EndpointB.ChannelID)
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NotNil(res)
+				suite.Require().Nil(err)
 
-			_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID)
-			suite.Require().False(found)
+				// Assert counterparty channel id filled in and creator deleted
+				channel, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(channel.CounterpartyChannelId, path.EndpointB.ChannelID)
 
-			seq, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChannelID)
-			suite.Require().True(found)
-			suite.Require().Equal(seq, uint64(1))
-		} else {
-			suite.Require().Error(err)
-		}
+				_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+				suite.Require().False(found)
+
+				seq, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(seq, uint64(1))
+			} else {
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q, got %q instead", tc.expError, err)
+			}
+		})
 	}
 }
 
