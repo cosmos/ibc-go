@@ -101,6 +101,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	ibccallbackstesting "github.com/cosmos/ibc-go/modules/apps/callbacks/testing"
 	ica "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
@@ -185,6 +186,9 @@ type SimApp struct {
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	CircuitKeeper         circuitkeeper.Keeper
+
+	// mock contract keeper used for testing
+	MockContractKeeper *ibccallbackstesting.ContractKeeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -356,6 +360,10 @@ func NewSimApp(
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[ibcexported.StoreKey]), app.GetSubspace(ibcexported.ModuleName), app.UpgradeKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+
+	// NOTE: The mock ContractKeeper is only created for testing.
+	// Real applications should not use the mock ContractKeeper
+	app.MockContractKeeper = ibccallbackstesting.NewContractKeeper(memKeys[ibcmock.MemStoreKey])
 
 	govConfig := govtypes.DefaultConfig()
 	/*
