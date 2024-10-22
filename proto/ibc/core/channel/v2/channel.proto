@@ -25,3 +25,13 @@ message Channel {
   // the final path.
   ibc.core.commitment.v2.MerklePath merkle_path_prefix = 3 [(gogoproto.nullable) = false];
 }
+
+// IdentifiedChannel defines a channel with an additional channel identifier field.
+message IdentifiedChannel {
+  option (gogoproto.goproto_getters) = false;
+
+  // channel identified.
+  Channel channel = 1 [(gogoproto.nullable) = false];
+  // channel identifier
+  string channel_id = 2;
+}
