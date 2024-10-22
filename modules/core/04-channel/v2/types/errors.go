@@ -12,4 +12,5 @@ var (
 	ErrSequenceSendNotFound     = errorsmod.Register(SubModuleName, 6, "sequence send not found")
 	ErrInvalidAcknowledgement   = errorsmod.Register(SubModuleName, 8, "invalid acknowledgement")
 	ErrPacketCommitmentNotFound = errorsmod.Register(SubModuleName, 9, "packet commitment not found")
+	ErrAcknowledgementNotFound  = errorsmod.Register(SubModuleName, 10, "packet acknowledgement not found")
 )

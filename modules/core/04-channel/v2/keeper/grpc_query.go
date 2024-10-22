@@ -75,3 +75,29 @@ func (q *queryServer) PacketCommitment(ctx context.Context, req *types.QueryPack
 
 	return types.NewQueryPacketCommitmentResponse(commitment, nil, clienttypes.GetSelfHeight(ctx)), nil
 }
+
+// PacketAcknowledgement implements the Query/PacketAcknowledgement gRPC method.
+func (q *queryServer) PacketAcknowledgement(ctx context.Context, req *types.QueryPacketAcknowledgementRequest) (*types.QueryPacketAcknowledgementResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ClientIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if req.Sequence == 0 {
+		return nil, status.Error(codes.InvalidArgument, "packet sequence cannot be 0")
+	}
+
+	if !q.HasChannel(ctx, req.ChannelId) {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
+	}
+
+	acknowledgement := q.GetPacketAcknowledgement(ctx, req.ChannelId, req.Sequence)
+	if len(acknowledgement) == 0 {
+		return nil, status.Error(codes.NotFound, "packet acknowledgement hash not found")
+	}
+
+	return types.NewQueryPacketAcknowledgementResponse(acknowledgement, nil, clienttypes.GetSelfHeight(ctx)), nil
+}

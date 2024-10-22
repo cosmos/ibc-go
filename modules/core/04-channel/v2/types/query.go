@@ -33,3 +33,20 @@ func NewQueryPacketCommitmentResponse(commitmentHash []byte, proof []byte, proof
 		ProofHeight: proofHeight,
 	}
 }
+
+// NewQueryPacketAcknowledgementRequest creates and returns a new packet acknowledgement query request.
+func NewQueryPacketAcknowledgementRequest(channelID string, sequence uint64) *QueryPacketAcknowledgementRequest {
+	return &QueryPacketAcknowledgementRequest{
+		ChannelId: channelID,
+		Sequence:  sequence,
+	}
+}
+
+// NewQueryPacketAcknowledgementResponse creates and returns a new packet acknowledgement query response.
+func NewQueryPacketAcknowledgementResponse(acknowledgementHash []byte, proof []byte, proofHeight clienttypes.Height) *QueryPacketAcknowledgementResponse {
+	return &QueryPacketAcknowledgementResponse{
+		Acknowledgement: acknowledgementHash,
+		Proof:           proof,
+		ProofHeight:     proofHeight,
+	}
+}

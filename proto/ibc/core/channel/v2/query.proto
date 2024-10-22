@@ -20,6 +20,11 @@ service Query {
   rpc PacketCommitment(QueryPacketCommitmentRequest) returns (QueryPacketCommitmentResponse) {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/{sequence}";
   }
+
+  // PacketAcknowledgement queries a stored acknowledgement commitment hash.
+  rpc PacketAcknowledgement(QueryPacketAcknowledgementRequest) returns (QueryPacketAcknowledgementResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/acknowledgements/{sequence}";
+  }
 }
 
 // QueryChannelRequest is the request type for the Query/Channel RPC method
@@ -45,6 +50,24 @@ message QueryPacketCommitmentRequest {
 message QueryPacketCommitmentResponse {
   // packet associated with the request fields
   bytes commitment = 1;
+  // merkle proof of existence
+  bytes proof = 2;
+  // height at which the proof was retrieved
+  ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryPacketAcknowledgementRequest is the request type for the Query/PacketAcknowledgement RPC method.
+message QueryPacketAcknowledgementRequest {
+  // channel unique identifier
+  string channel_id = 1;
+  // packet sequence
+  uint64 sequence = 2;
+}
+
+// QueryPacketAcknowledgementResponse is the response type for the Query/PacketAcknowledgement RPC method.
+message QueryPacketAcknowledgementResponse {
+  // acknowledgement associated with the request fields
+  bytes acknowledgement = 1;
   // merkle proof of existence
   bytes proof = 2;
   // height at which the proof was retrieved

@@ -21,6 +21,7 @@ func GetQueryCmd() *cobra.Command {
 	queryCmd.AddCommand(
 		getCmdQueryChannel(),
 		getCmdQueryPacketCommitment(),
+		getCmdQueryPacketAcknowledgement(),
 	)
 
 	return queryCmd
