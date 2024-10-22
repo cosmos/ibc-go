@@ -64,7 +64,6 @@ var (
 	disabledTimeout   = clienttypes.ZeroHeight()
 	validPacketData   = []byte("testdata")
 	unknownPacketData = []byte("unknown")
-	validVersion      = "ics-20"
 
 	packet        = types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 	invalidPacket = types.NewPacket(unknownPacketData, 0, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
