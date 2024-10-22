@@ -84,7 +84,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			timeoutTimestamp = suite.chainA.GetTimeoutTimestamp()
+			timeoutTimestamp = suite.chainA.GetTimeoutTimestampSecs()
 			payload = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, payload)
@@ -201,7 +201,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+			timeoutTimestamp := suite.chainA.GetTimeoutTimestampSecs()
 
 			var err error
 			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
@@ -393,7 +393,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+			timeoutTimestamp := suite.chainA.GetTimeoutTimestampSecs()
 
 			var err error
 			// Send packet from A to B

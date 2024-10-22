@@ -68,9 +68,9 @@ func (k *Keeper) sendPacket(
 		return 0, "", err
 	}
 
-	timeout := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
-	if timeout < latestTimestamp {
-		return 0, "", errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeout)
+	timeoutTimestamp = types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
+	if latestTimestamp >= timeoutTimestamp {
+		return 0, "", errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeoutTimestamp)
 	}
 
 	commitment := types.CommitPacket(packet)
@@ -117,9 +117,9 @@ func (k *Keeper) recvPacket(
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	currentTimestamp := uint64(sdkCtx.BlockTime().UnixNano())
-	timeout := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
-	if timeout <= currentTimestamp {
-		return errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, timeout)
+	timeoutTimestamp := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
+	if currentTimestamp >= timeoutTimestamp {
+		return errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, timeoutTimestamp)
 	}
 
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
@@ -295,9 +295,9 @@ func (k *Keeper) timeoutPacket(
 		return err
 	}
 
-	timeout := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
-	if timeout > proofTimestamp {
-		return errorsmod.Wrapf(channeltypes.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, timeout)
+	timeoutTimestamp := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
+	if proofTimestamp < timeoutTimestamp {
+		return errorsmod.Wrapf(channeltypes.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, timeoutTimestamp)
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
