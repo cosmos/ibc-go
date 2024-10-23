@@ -3,14 +3,11 @@ package types
 import (
 	"bytes"
 
-	"github.com/cosmos/gogoproto/proto"
 	ics23 "github.com/cosmos/ics23/go"
 
 	errorsmod "cosmossdk.io/errors"
 
-	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
-
-	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -214,22 +211,13 @@ func verifyChainedMembershipProof(root []byte, specs []*ics23.ProofSpec, proofs 
 	return nil
 }
 
-// blankMerkleProof and blankProofOps will be used to compare against their zero values,
-// and are declared as globals to avoid having to unnecessarily re-allocate on every comparison.
-var (
-	blankMerkleProof = &MerkleProof{}
-	blankProofOps    = &cmtcrypto.ProofOps{}
-)
-
-// Empty returns true if the root is empty
-func (proof *MerkleProof) Empty() bool {
-	return proof == nil || proto.Equal(proof, blankMerkleProof) || proto.Equal(proof, blankProofOps)
-}
-
-// validateVerificationArgs verifies the proof arguments are valid
+// validateVerificationArgs verifies the proof arguments are valid.
+// The merkle path and merkle proof contain a list of keys and their proofs
+// which correspond to individual trees. The length of these keys and their proofs
+// must equal the length of the given specs. All arguments must be non-empty.
 func validateVerificationArgs(proof MerkleProof, path v2.MerklePath, specs []*ics23.ProofSpec, root exported.Root) error {
-	if proof.Empty() {
-		return errorsmod.Wrap(ErrInvalidMerkleProof, "proof cannot be empty")
+	if proof.GetProofs() == nil {
+		return errorsmod.Wrap(ErrInvalidMerkleProof, "proof must not be empty")
 	}
 
 	if root == nil || root.Empty() {
