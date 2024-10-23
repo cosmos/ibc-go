@@ -86,46 +86,6 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 	return &channeltypesv2.MsgSendPacketResponse{Sequence: sequence}, nil
 }
 
-// Acknowledgement defines an rpc handler method for MsgAcknowledgement.
-func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		sdkCtx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
-		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
-	}
-
-	cacheCtx, writeFn := sdkCtx.CacheContext()
-	err = k.acknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
-
-	switch err {
-	case nil:
-		writeFn()
-	case channeltypesv1.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
-		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", msg.Packet.SourceChannel)
-		return &channeltypesv2.MsgAcknowledgementResponse{Result: channeltypesv1.NOOP}, nil
-	default:
-		sdkCtx.Logger().Error("acknowledgement failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
-		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
-	}
-
-	recvResults := make(map[string]channeltypesv2.RecvPacketResult)
-	for _, r := range msg.Acknowledgement.AcknowledgementResults {
-		recvResults[r.AppName] = r.RecvPacketResult
-	}
-
-	for _, pd := range msg.Packet.Payloads {
-		cbs := k.Router.Route(pd.SourcePort)
-		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, pd, recvResults[pd.DestinationPort].Acknowledgement, relayer)
-		if err != nil {
-			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, msg.Packet.SourceChannel, msg.Packet.DestinationChannel)
-		}
-	}
-
-	return &channeltypesv2.MsgAcknowledgementResponse{Result: channeltypesv1.SUCCESS}, nil
-}
-
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPacket) (*channeltypesv2.MsgRecvPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -204,6 +164,46 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 
 	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "result", channeltypesv1.SUCCESS.String())
 	return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.SUCCESS}, nil
+}
+
+// Acknowledgement defines an rpc handler method for MsgAcknowledgement.
+func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		sdkCtx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
+	}
+
+	cacheCtx, writeFn := sdkCtx.CacheContext()
+	err = k.acknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
+
+	switch err {
+	case nil:
+		writeFn()
+	case channeltypesv1.ErrNoOpMsg:
+		// no-ops do not need event emission as they will be ignored
+		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", msg.Packet.SourceChannel)
+		return &channeltypesv2.MsgAcknowledgementResponse{Result: channeltypesv1.NOOP}, nil
+	default:
+		sdkCtx.Logger().Error("acknowledgement failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
+		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
+	}
+
+	recvResults := make(map[string]channeltypesv2.RecvPacketResult)
+	for _, r := range msg.Acknowledgement.AcknowledgementResults {
+		recvResults[r.AppName] = r.RecvPacketResult
+	}
+
+	for _, pd := range msg.Packet.Payloads {
+		cbs := k.Router.Route(pd.SourcePort)
+		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, pd, recvResults[pd.DestinationPort].Acknowledgement, relayer)
+		if err != nil {
+			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, msg.Packet.SourceChannel, msg.Packet.DestinationChannel)
+		}
+	}
+
+	return &channeltypesv2.MsgAcknowledgementResponse{Result: channeltypesv1.SUCCESS}, nil
 }
 
 // Timeout defines a rpc handler method for MsgTimeout.
