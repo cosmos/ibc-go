@@ -17,7 +17,50 @@ import (
 
 var _ channeltypesv2.MsgServer = &Keeper{}
 
-// SendPacket implements the PacketMsgServer SendPacket method.
+// CreateChannel defines a rpc handler method for MsgCreateChannel.
+func (k *Keeper) CreateChannel(goCtx context.Context, msg *channeltypesv2.MsgCreateChannel) (*channeltypesv2.MsgCreateChannelResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	channelID := k.channelKeeperV1.GenerateChannelIdentifier(ctx)
+
+	// Initialize channel with empty counterparty channel identifier.
+	channel := channeltypesv2.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
+	k.SetChannel(ctx, channelID, channel)
+	k.SetCreator(ctx, channelID, msg.Signer)
+	k.SetNextSequenceSend(ctx, channelID, 1)
+
+	k.EmitCreateChannelEvent(goCtx, channelID)
+
+	return &channeltypesv2.MsgCreateChannelResponse{ChannelId: channelID}, nil
+}
+
+// RegisterCounterparty defines a rpc handler method for MsgRegisterCounterparty.
+func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *channeltypesv2.MsgRegisterCounterparty) (*channeltypesv2.MsgRegisterCounterpartyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	creator, found := k.GetCreator(ctx, msg.ChannelId)
+	if !found {
+		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "channel creator must be set")
+	}
+
+	if creator != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "channel creator (%s) must match signer (%s)", creator, msg.Signer)
+	}
+
+	channel, ok := k.GetChannel(ctx, msg.ChannelId)
+	if !ok {
+		return nil, errorsmod.Wrapf(channeltypesv2.ErrInvalidChannel, "channel must exist for channel id %s", msg.ChannelId)
+	}
+
+	channel.CounterpartyChannelId = msg.CounterpartyChannelId
+	k.SetChannel(ctx, msg.ChannelId, channel)
+	// Delete client creator from state as it is not needed after this point.
+	k.DeleteCreator(ctx, msg.ChannelId)
+
+	return &channeltypesv2.MsgRegisterCounterpartyResponse{}, nil
+}
+
+// SendPacket defines a rpc handler method for MsgSendPacket.
 func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceChannel, msg.TimeoutTimestamp, msg.Payloads)
@@ -43,6 +86,7 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 	return &channeltypesv2.MsgSendPacketResponse{Sequence: sequence}, nil
 }
 
+// Acknowledgement defines an rpc handler method for MsgAcknowledgement.
 func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAcknowledgement) (*channeltypesv2.MsgAcknowledgementResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -82,7 +126,7 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAck
 	return &channeltypesv2.MsgAcknowledgementResponse{Result: channeltypesv1.SUCCESS}, nil
 }
 
-// RecvPacket implements the PacketMsgServer RecvPacket method.
+// RecvPacket defines a rpc handler method for MsgRecvPacket.
 func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPacket) (*channeltypesv2.MsgRecvPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
@@ -162,7 +206,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 	return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.SUCCESS}, nil
 }
 
-// Timeout implements the PacketMsgServer Timeout method.
+// Timeout defines a rpc handler method for MsgTimeout.
 func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout) (*channeltypesv2.MsgTimeoutResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
@@ -199,47 +243,4 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout
 	}
 
 	return &channeltypesv2.MsgTimeoutResponse{Result: channeltypesv1.SUCCESS}, nil
-}
-
-// CreateChannel defines a rpc handler method for MsgCreateChannel
-func (k *Keeper) CreateChannel(goCtx context.Context, msg *channeltypesv2.MsgCreateChannel) (*channeltypesv2.MsgCreateChannelResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	channelID := k.channelKeeperV1.GenerateChannelIdentifier(ctx)
-
-	// Initialize channel with empty counterparty channel identifier.
-	channel := channeltypesv2.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
-	k.SetChannel(ctx, channelID, channel)
-	k.SetCreator(ctx, channelID, msg.Signer)
-	k.SetNextSequenceSend(ctx, channelID, 1)
-
-	k.EmitCreateChannelEvent(goCtx, channelID)
-
-	return &channeltypesv2.MsgCreateChannelResponse{ChannelId: channelID}, nil
-}
-
-// ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
-func (k *Keeper) ProvideCounterparty(goCtx context.Context, msg *channeltypesv2.MsgProvideCounterparty) (*channeltypesv2.MsgProvideCounterpartyResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	creator, found := k.GetCreator(ctx, msg.ChannelId)
-	if !found {
-		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "channel creator must be set")
-	}
-
-	if creator != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "channel creator (%s) must match signer (%s)", creator, msg.Signer)
-	}
-
-	channel, ok := k.GetChannel(ctx, msg.ChannelId)
-	if !ok {
-		return nil, errorsmod.Wrapf(channeltypesv2.ErrInvalidChannel, "channel must exist for channel id %s", msg.ChannelId)
-	}
-
-	channel.CounterpartyChannelId = msg.CounterpartyChannelId
-	k.SetChannel(ctx, msg.ChannelId, channel)
-	// Delete client creator from state as it is not needed after this point.
-	k.DeleteCreator(ctx, msg.ChannelId)
-
-	return &channeltypesv2.MsgProvideCounterpartyResponse{}, nil
 }

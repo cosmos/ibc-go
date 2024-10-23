@@ -254,10 +254,10 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestProvideCounterparty() {
+func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 	var (
 		path *ibctesting.Path
-		msg  *channeltypesv2.MsgProvideCounterparty
+		msg  *channeltypesv2.MsgRegisterCounterparty
 	)
 	cases := []struct {
 		name     string
@@ -306,7 +306,7 @@ func (suite *KeeperTestSuite) TestProvideCounterparty() {
 			suite.Require().NoError(path.EndpointB.CreateChannel())
 
 			signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
-			msg = channeltypesv2.NewMsgProvideCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, signer)
+			msg = channeltypesv2.NewMsgRegisterCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, signer)
 
 			tc.malleate()
 
