@@ -20,6 +20,57 @@ type Keeper struct {
 	channelKeeperV2 *channelkeeperv2.Keeper
 }
 
+func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload channeltypesv2.Payload, data types.FungibleTokenPacketDataV2, sender sdk.AccAddress) error {
+	for _, token := range data.Tokens {
+		coin, err := token.ToCoin()
+		if err != nil {
+			return err
+		}
+
+		if coin.Amount.Equal(types.UnboundedSpendLimit()) {
+			coin.Amount = k.BankKeeper.GetBalance(ctx, sender, coin.Denom).Amount
+		}
+
+		// NOTE: SendTransfer simply sends the denomination as it exists on its own
+		// chain inside the packet data. The receiving chain will perform denom
+		// prefixing as necessary.
+
+		// if the denom is prefixed by the port and channel on which we are sending
+		// the token, then we must be returning the token back to the chain they originated from
+		if token.Denom.HasPrefix(payload.SourcePort, sourceChannel) {
+			// transfer the coins to the module account and burn them
+			if err := k.BankKeeper.SendCoinsFromAccountToModule(
+				ctx, sender, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				return err
+			}
+
+			if err := k.BankKeeper.BurnCoins(
+				ctx, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				// NOTE: should not happen as the module account was
+				// retrieved on the step above and it has enough balance
+				// to burn.
+				panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
+			}
+		} else {
+			// obtain the escrow address for the source channel end
+			escrowAddress := types.GetEscrowAddress(payload.SourcePort, sourceChannel)
+			if err := k.EscrowCoin(ctx, sender, escrowAddress, coin); err != nil {
+				return err
+			}
+		}
+	}
+
+	// TODO: events
+	//events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
+
+	// TODO: telemetry
+	//telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
+
+	return nil
+}
+
 func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel string, payload channeltypesv2.Payload, data types.FungibleTokenPacketDataV2) error {
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
@@ -135,6 +186,10 @@ func (k *Keeper) OnAcknowledgementPacket(ctx context.Context, sourcePort, source
 	default:
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 	}
+}
+
+func (k *Keeper) OnTimeoutPacket(ctx context.Context, sourcePort, sourceChannel string, data types.FungibleTokenPacketDataV2) error {
+	return k.refundPacketTokens(ctx, sourcePort, sourceChannel, data)
 }
 
 func (k Keeper) refundPacketTokens(ctx context.Context, sourcePort, sourceChannel string, data types.FungibleTokenPacketDataV2) error {

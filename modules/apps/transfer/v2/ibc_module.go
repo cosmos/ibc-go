@@ -32,8 +32,23 @@ type IBCModule struct {
 	keeper keeper.Keeper
 }
 
-func (im *IBCModule) OnSendPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, data types.Payload, signer sdk.AccAddress) error {
-	panic("implement me")
+func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, signer sdk.AccAddress) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !im.keeper.GetParams(ctx).SendEnabled {
+		return transfertypes.ErrSendDisabled
+	}
+
+	if im.keeper.IsBlockedAddr(signer) {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", signer)
+	}
+
+	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version)
+	if err != nil {
+		return err
+	}
+
+	return im.keeper.OnSendPacket(ctx, sourceChannel, payload, data, signer)
 }
 
 func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, payload types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
@@ -86,7 +101,18 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 }
 
 func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, payload types.Payload, relayer sdk.AccAddress) error {
-	panic("implement me")
+	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version)
+	if err != nil {
+		return err
+	}
+
+	// refund tokens
+	if err := im.keeper.OnTimeoutPacket(ctx, payload.SourcePort, sourceChannel, data); err != nil {
+		return err
+	}
+
+	events.EmitOnTimeoutEvent(ctx, data)
+	return nil
 }
 
 func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, payload types.Payload, acknowledgement []byte, relayer sdk.AccAddress) error {
@@ -104,7 +130,6 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 		return err
 	}
 
-	// TODO: emit events
-	//events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
+	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 	return nil
 }
