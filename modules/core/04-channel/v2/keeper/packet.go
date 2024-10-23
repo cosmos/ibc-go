@@ -68,6 +68,8 @@ func (k *Keeper) sendPacket(
 		return 0, "", err
 	}
 
+        // client timestamps are in nanoseconds while packet timeouts are in seconds
+        // thus to compare them, we convert the packet timeout to nanoseconds
 	timeoutTimestamp = types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
 	if latestTimestamp >= timeoutTimestamp {
 		return 0, "", errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeoutTimestamp)
@@ -116,9 +118,8 @@ func (k *Keeper) recvPacket(
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	currentTimestamp := uint64(sdkCtx.BlockTime().UnixNano())
-	timeoutTimestamp := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
-	if currentTimestamp >= timeoutTimestamp {
+	currentTimestamp := uint64(sdkCtx.BlockTime().Unix())
+	if currentTimestamp >= packet.TimeoutTimestamp {
 		return errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, timeoutTimestamp)
 	}
 
