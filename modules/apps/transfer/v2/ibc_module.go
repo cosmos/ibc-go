@@ -2,6 +2,7 @@ package v2
 
 import (
 	"context"
+	errorsmod "cosmossdk.io/errors"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
@@ -10,6 +11,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 var (
@@ -83,10 +85,26 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	return recvResult
 }
 
-func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, data types.Payload, relayer sdk.AccAddress) error {
+func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, payload types.Payload, relayer sdk.AccAddress) error {
 	panic("implement me")
 }
 
-func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, data types.Payload, acknowledgement []byte, relayer sdk.AccAddress) error {
-	panic("implement me")
+func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, payload types.Payload, acknowledgement []byte, relayer sdk.AccAddress) error {
+	var ack channeltypes.Acknowledgement
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+	}
+
+	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version)
+	if err != nil {
+		return err
+	}
+
+	if err := im.keeper.OnAcknowledgementPacket(ctx, payload.SourcePort, sourceChannel, data, ack); err != nil {
+		return err
+	}
+
+	// TODO: emit events
+	//events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
+	return nil
 }
