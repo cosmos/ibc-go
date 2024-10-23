@@ -13,8 +13,10 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
+	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	portkeeper "github.com/cosmos/ibc-go/v9/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	"github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
@@ -23,6 +25,7 @@ type Keeper struct {
 	ClientKeeper     *clientkeeper.Keeper
 	ConnectionKeeper *connectionkeeper.Keeper
 	ChannelKeeper    *channelkeeper.Keeper
+	ChannelKeeperV2  *channelkeeperv2.Keeper
 	PortKeeper       *portkeeper.Keeper
 
 	cdc codec.BinaryCodec
@@ -48,12 +51,14 @@ func NewKeeper(
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, storeService, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper()
 	channelKeeper := channelkeeper.NewKeeper(cdc, storeService, clientKeeper, connectionKeeper)
+	channelKeeperV2 := channelkeeperv2.NewKeeper(cdc, storeService, clientKeeper, channelKeeper, connectionKeeper)
 
 	return &Keeper{
 		cdc:              cdc,
 		ClientKeeper:     clientKeeper,
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
+		ChannelKeeperV2:  channelKeeperV2,
 		PortKeeper:       portKeeper,
 		authority:        authority,
 	}
@@ -73,6 +78,11 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 
 	k.PortKeeper.Router = rtr
 	k.PortKeeper.Router.Seal()
+}
+
+// SetRouterV2 sets the v2 router for the IBC Keeper.
+func (k *Keeper) SetRouterV2(rtr *api.Router) {
+	k.ChannelKeeperV2.Router = rtr
 }
 
 // GetAuthority returns the ibc module's authority.

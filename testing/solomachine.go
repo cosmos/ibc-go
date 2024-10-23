@@ -568,7 +568,7 @@ func (solo *Solomachine) GenerateChanClosedProof(portID, version, counterpartyCh
 
 // GenerateCommitmentProof generates a commitment proof for the provided packet.
 func (solo *Solomachine) GenerateCommitmentProof(packet channeltypes.Packet) []byte {
-	commitment := channeltypes.CommitPacket(solo.cdc, packet)
+	commitment := channeltypes.CommitPacket(packet)
 
 	path := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	signBytes := &solomachine.SignBytes{

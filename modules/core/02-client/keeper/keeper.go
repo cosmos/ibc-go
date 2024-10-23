@@ -320,6 +320,10 @@ func (k *Keeper) VerifyMembership(ctx context.Context, clientID string, height e
 		return err
 	}
 
+	if status := clientModule.Status(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot call verify membership on client (%s) with status %s", clientID, status)
+	}
+
 	return clientModule.VerifyMembership(ctx, clientID, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
@@ -328,6 +332,10 @@ func (k *Keeper) VerifyNonMembership(ctx context.Context, clientID string, heigh
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return err
+	}
+
+	if status := clientModule.Status(ctx, clientID); status != exported.Active {
+		return errorsmod.Wrapf(types.ErrClientNotActive, "cannot call verify non membership on client (%s) with status %s", clientID, status)
 	}
 
 	return clientModule.VerifyNonMembership(ctx, clientID, height, delayTimePeriod, delayBlockPeriod, proof, path)

@@ -166,7 +166,7 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 		packet := buildInterchainAccountsPacket(path, icaPacketData.GetBytes(), 1)
 
 		// write packet commitment to state on chainA and commit state
-		commitment := channeltypes.CommitPacket(suite.chainA.GetSimApp().AppCodec(), packet)
+		commitment := channeltypes.CommitPacket(packet)
 		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1, commitment)
 		suite.chainA.NextBlock()
 
