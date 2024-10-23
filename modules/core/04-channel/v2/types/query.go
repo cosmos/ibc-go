@@ -50,3 +50,20 @@ func NewQueryPacketAcknowledgementResponse(acknowledgementHash []byte, proof []b
 		ProofHeight:     proofHeight,
 	}
 }
+
+// NewQueryPacketReceiptRequest creates and returns a new packet receipt query request.
+func NewQueryPacketReceiptRequest(channelID string, sequence uint64) *QueryPacketReceiptRequest {
+	return &QueryPacketReceiptRequest{
+		ChannelId: channelID,
+		Sequence:  sequence,
+	}
+}
+
+// NewQueryPacketReceiptResponse creates and returns a new packet receipt query response.
+func NewQueryPacketReceiptResponse(exists bool, proof []byte, height clienttypes.Height) *QueryPacketReceiptResponse {
+	return &QueryPacketReceiptResponse{
+		Received:    exists,
+		Proof:       proof,
+		ProofHeight: height,
+	}
+}

@@ -39,3 +39,14 @@ func queryPacketAcknowledgementABCI(clientCtx client.Context, channelID string, 
 
 	return types.NewQueryPacketAcknowledgementResponse(value, proofBz, proofHeight), nil
 }
+
+func queryPacketReceiptABCI(clientCtx client.Context, channelID string, sequence uint64) (*types.QueryPacketReceiptResponse, error) {
+	key := host.PacketReceiptKey(channelID, sequence)
+
+	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	return types.NewQueryPacketReceiptResponse(value != nil, proofBz, proofHeight), nil
+}
