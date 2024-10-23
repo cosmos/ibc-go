@@ -13,7 +13,7 @@ import "gogoproto/gogo.proto";
 service Query {
   // Channel queries the counterparty of an IBC client.
   rpc Channel(QueryChannelRequest) returns (QueryChannelResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v2/channel/{channel_id}";
+    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}";
   }
 
   // PacketCommitment queries a stored packet commitment hash.
