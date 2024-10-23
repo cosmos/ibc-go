@@ -22,7 +22,7 @@ func (k Keeper) forwardPacket(ctx context.Context, data types.FungibleTokenPacke
 	}
 
 	// sending from module account (used as a temporary forward escrow) to the original receiver address.
-	sender := k.authKeeper.GetModuleAddress(types.ModuleName)
+	sender := k.AuthKeeper.GetModuleAddress(types.ModuleName)
 
 	msg := types.NewMsgTransfer(
 		data.Forwarding.Hops[0].PortId,
@@ -68,7 +68,7 @@ func (k Keeper) revertForwardedPacket(ctx context.Context, forwardedPacket chann
 			2. Burning voucher tokens if the funds are foreign
 	*/
 
-	forwardingAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+	forwardingAddr := k.AuthKeeper.GetModuleAddress(types.ModuleName)
 	escrow := types.GetEscrowAddress(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel)
 
 	// we can iterate over the received tokens of forwardedPacket by iterating over the sent tokens of failedPacketData
@@ -83,7 +83,7 @@ func (k Keeper) revertForwardedPacket(ctx context.Context, forwardedPacket chann
 		// given that the packet is being reversed, we check the DestinationChannel and DestinationPort
 		// of the forwardedPacket to see if a hop was added to the trace during the receive step
 		if token.Denom.HasPrefix(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel) {
-			if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+			if err := k.BankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
 				return err
 			}
 		} else {
@@ -101,7 +101,7 @@ func (k Keeper) revertForwardedPacket(ctx context.Context, forwardedPacket chann
 func (k Keeper) getReceiverFromPacketData(data types.FungibleTokenPacketDataV2) (sdk.AccAddress, error) {
 	if data.HasForwarding() {
 		// since data.Receiver can potentially be a non-CosmosSDK AccAddress, we return early if the packet should be forwarded
-		return k.authKeeper.GetModuleAddress(types.ModuleName), nil
+		return k.AuthKeeper.GetModuleAddress(types.ModuleName), nil
 	}
 
 	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
