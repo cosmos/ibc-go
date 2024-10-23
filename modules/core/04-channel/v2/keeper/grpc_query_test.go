@@ -220,3 +220,107 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
+	var (
+		expAcknowledgement []byte
+		path               *ibctesting.Path
+		req                *types.QueryPacketAcknowledgementRequest
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				expAcknowledgement = []byte("acknowledgementHash")
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainA.GetContext(), path.EndpointA.ChannelID, 1, expAcknowledgement)
+
+				req = &types.QueryPacketAcknowledgementRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Sequence:  1,
+				}
+			},
+			nil,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"invalid channel ID",
+			func() {
+				req = &types.QueryPacketAcknowledgementRequest{
+					ChannelId: "",
+					Sequence:  1,
+				}
+			},
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
+		},
+		{
+			"invalid sequence",
+			func() {
+				req = &types.QueryPacketAcknowledgementRequest{
+					ChannelId: ibctesting.FirstChannelID,
+					Sequence:  0,
+				}
+			},
+			status.Error(codes.InvalidArgument, "packet sequence cannot be 0"),
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryPacketAcknowledgementRequest{
+					ChannelId: "channel-141",
+					Sequence:  1,
+				}
+			},
+			status.Error(codes.NotFound, fmt.Sprintf("%s: channel not found", "channel-141")),
+		},
+		{
+			"acknowledgement not found",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				req = &types.QueryPacketAcknowledgementRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Sequence:  1,
+				}
+			},
+			status.Error(codes.NotFound, "packet acknowledgement hash not found"),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2)
+			res, err := queryServer.PacketAcknowledgement(suite.chainA.GetContext(), req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expAcknowledgement, res.Acknowledgement)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Nil(res)
+			}
+		})
+	}
+}
