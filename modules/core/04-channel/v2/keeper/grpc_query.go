@@ -33,7 +33,7 @@ func (q *queryServer) Channel(ctx context.Context, req *types.QueryChannelReques
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ClientIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -56,7 +56,7 @@ func (q *queryServer) PacketCommitment(ctx context.Context, req *types.QueryPack
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ClientIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -82,7 +82,7 @@ func (q *queryServer) PacketAcknowledgement(ctx context.Context, req *types.Quer
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ClientIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
