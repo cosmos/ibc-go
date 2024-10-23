@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"strconv"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -68,12 +67,12 @@ func (k *Keeper) sendPacket(
 	if err != nil {
 		return 0, "", err
 	}
-	// check if packet is timed out on the receiving chain
-	// convert packet timeout to nanoseconds for now to use existing helper function
-	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
-	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
-	if timeout.TimestampElapsed(latestTimestamp) {
-		return 0, "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
+
+	// client timestamps are in nanoseconds while packet timeouts are in seconds
+	// thus to compare them, we convert the packet timeout to nanoseconds
+	timeoutTimestamp = types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
+	if latestTimestamp >= timeoutTimestamp {
+		return 0, "", errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeoutTimestamp)
 	}
 
 	commitment := types.CommitPacket(packet)
@@ -102,9 +101,6 @@ func (k *Keeper) recvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// Lookup channel associated with destination channel ID and ensure
-	// that the packet was indeed sent by our counterparty by verifying
-	// packet sender is our channel's counterparty channel id.
 	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one payload is sent.
@@ -113,19 +109,18 @@ func (k *Keeper) recvPacket(
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
+
 	if channel.CounterpartyChannelId != packet.SourceChannel {
 		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
 	}
+
 	clientID := channel.ClientId
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano())
-	// convert packet timeout to nanoseconds for now to use existing helper function
-	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
-	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
-	if timeout.Elapsed(selfHeight, selfTimestamp) {
-		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
+	currentTimestamp := uint64(sdkCtx.BlockTime().Unix())
+	if currentTimestamp >= packet.TimeoutTimestamp {
+		return errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, packet.TimeoutTimestamp)
 	}
 
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
@@ -284,15 +279,15 @@ func (k *Keeper) timeoutPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// Lookup counterparty associated with our channel and ensure
-	// that the packet was indeed sent by our counterparty.
 	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
+
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
 		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
 	}
+
 	clientID := channel.ClientId
 
 	// check that timeout height or timeout timestamp has passed on the other end
@@ -301,11 +296,9 @@ func (k *Keeper) timeoutPacket(
 		return err
 	}
 
-	// convert packet timeout to nanoseconds for now to use existing helper function
-	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
-	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
-	if !timeout.Elapsed(clienttypes.ZeroHeight(), proofTimestamp) {
-		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
+	timeoutTimestamp := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
+	if proofTimestamp < timeoutTimestamp {
+		return errorsmod.Wrapf(channeltypes.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, timeoutTimestamp)
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer

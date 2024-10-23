@@ -41,7 +41,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
-	msgservice.RegisterMsgServiceDesc(registry, &_PacketMsg_serviceDesc)
 }
 
 // SubModuleCdc references the global x/ibc/core/04-channel module codec. Note, the codec should

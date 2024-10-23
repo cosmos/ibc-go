@@ -16,7 +16,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -174,33 +173,6 @@ func (endpoint *Endpoint) FreezeClient() {
 
 	tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(endpoint.Chain.GetContext(), endpoint.ClientID, tmClientState)
-}
-
-// ProvideCounterparty will construct and execute a MsgProvideCounterparty on the associated endpoint.
-func (endpoint *Endpoint) ProvideCounterparty() (err error) {
-	msg := channeltypesv2.NewMsgProvideCounterparty(endpoint.ChannelID, endpoint.Counterparty.ChannelID, endpoint.Chain.SenderAccount.GetAddress().String())
-
-	// setup counterparty
-	_, err = endpoint.Chain.SendMsgs(msg)
-
-	return err
-}
-
-// CreateChannel will construct and execute a new MsgCreateChannel on the associated endpoint.
-func (endpoint *Endpoint) CreateChannel() (err error) {
-	endpoint.IncrementNextChannelSequence()
-	msg := channeltypesv2.NewMsgCreateChannel(endpoint.ClientID, MerklePath, endpoint.Chain.SenderAccount.GetAddress().String())
-
-	// create channel
-	res, err := endpoint.Chain.SendMsgs(msg)
-	if err != nil {
-		return err
-	}
-
-	endpoint.ChannelID, err = ParseChannelIDFromEvents(res.Events)
-	require.NoError(endpoint.Chain.TB, err)
-
-	return nil
 }
 
 // UpgradeChain will upgrade a chain's chainID to the next revision number.

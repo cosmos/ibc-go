@@ -14,11 +14,11 @@ import (
 )
 
 var (
-	_ sdk.Msg              = (*MsgProvideCounterparty)(nil)
-	_ sdk.HasValidateBasic = (*MsgProvideCounterparty)(nil)
-
 	_ sdk.Msg              = (*MsgCreateChannel)(nil)
 	_ sdk.HasValidateBasic = (*MsgCreateChannel)(nil)
+
+	_ sdk.Msg              = (*MsgRegisterCounterparty)(nil)
+	_ sdk.HasValidateBasic = (*MsgRegisterCounterparty)(nil)
 
 	_ sdk.Msg              = (*MsgSendPacket)(nil)
 	_ sdk.HasValidateBasic = (*MsgSendPacket)(nil)
@@ -32,32 +32,6 @@ var (
 	_ sdk.Msg              = (*MsgAcknowledgement)(nil)
 	_ sdk.HasValidateBasic = (*MsgAcknowledgement)(nil)
 )
-
-// NewMsgProvideCounterparty creates a new MsgProvideCounterparty instance
-func NewMsgProvideCounterparty(channelID, counterpartyChannelID string, signer string) *MsgProvideCounterparty {
-	return &MsgProvideCounterparty{
-		Signer:                signer,
-		ChannelId:             channelID,
-		CounterpartyChannelId: counterpartyChannelID,
-	}
-}
-
-// ValidateBasic performs basic checks on a MsgProvideCounterparty.
-func (msg *MsgProvideCounterparty) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
-		return err
-	}
-
-	if err := host.ChannelIdentifierValidator(msg.CounterpartyChannelId); err != nil {
-		return err
-	}
-
-	return nil
-}
 
 // NewMsgCreateChannel creates a new MsgCreateChannel instance
 func NewMsgCreateChannel(clientID string, merklePathPrefix commitmenttypesv2.MerklePath, signer string) *MsgCreateChannel {
@@ -79,6 +53,32 @@ func (msg *MsgCreateChannel) ValidateBasic() error {
 	}
 
 	if err := msg.MerklePathPrefix.ValidateAsPrefix(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// NewMsgRegisterCounterparty creates a new MsgRegisterCounterparty instance
+func NewMsgRegisterCounterparty(channelID, counterpartyChannelID string, signer string) *MsgRegisterCounterparty {
+	return &MsgRegisterCounterparty{
+		Signer:                signer,
+		ChannelId:             channelID,
+		CounterpartyChannelId: counterpartyChannelID,
+	}
+}
+
+// ValidateBasic performs basic checks on a MsgRegisterCounterparty.
+func (msg *MsgRegisterCounterparty) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+
+	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
+		return err
+	}
+
+	if err := host.ChannelIdentifierValidator(msg.CounterpartyChannelId); err != nil {
 		return err
 	}
 

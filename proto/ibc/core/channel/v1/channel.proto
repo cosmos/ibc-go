@@ -90,21 +90,6 @@ enum Order {
   ORDER_ORDERED = 2 [(gogoproto.enumvalue_customname) = "ORDERED"];
 }
 
-// IBCVersion defines the version that the IBC packet intends to use.
-// This allows asynchronous upgrades over time as unsupported IBC Versions
-// will simply be rejected by the receiver and timed out on sender.
-enum IBCVersion {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  // zero-value for IBC version.
-  // This will be treated as a classic packet
-  IBC_VERSION_UNSPECIFIED = 0;
-  // IBC version 1 implements the Classic protocol
-  IBC_VERSION_1 = 1;
-  // IBC version 2 implements the Eureka protocol
-  IBC_VERSION_2 = 2;
-}
-
 // Counterparty defines a channel end counterparty
 message Counterparty {
   option (gogoproto.goproto_getters) = false;
@@ -137,12 +122,6 @@ message Packet {
   ibc.core.client.v1.Height timeout_height = 7 [(gogoproto.nullable) = false];
   // block timestamp (in nanoseconds) after which the packet times out
   uint64 timeout_timestamp = 8;
-  // which IBC version to use to commit this packet
-  IBCVersion protocol_version = 9;
-  // version which application should use to process the packet data
-  string app_version = 10;
-  // encoding to be used TODO clearer message
-  string encoding = 11;
 }
 
 // PacketState defines the generic type necessary to retrieve and store

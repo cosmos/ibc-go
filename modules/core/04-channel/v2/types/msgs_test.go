@@ -36,9 +36,8 @@ func TestTypesTestSuite(t *testing.T) {
 	suite.Run(t, new(TypesTestSuite))
 }
 
-// TestMsgProvideCounterpartyValidateBasic tests ValidateBasic for MsgProvideCounterparty
-func (s *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
-	var msg *types.MsgProvideCounterparty
+func (s *TypesTestSuite) TestMsgRegisterCounterpartyValidateBasic() {
+	var msg *types.MsgRegisterCounterparty
 
 	testCases := []struct {
 		name     string
@@ -74,7 +73,7 @@ func (s *TypesTestSuite) TestMsgProvideCounterpartyValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		msg = types.NewMsgProvideCounterparty(
+		msg = types.NewMsgRegisterCounterparty(
 			ibctesting.FirstChannelID,
 			ibctesting.SecondChannelID,
 			ibctesting.TestAccAddress,
