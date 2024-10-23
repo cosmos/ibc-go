@@ -101,3 +101,26 @@ func (q *queryServer) PacketAcknowledgement(ctx context.Context, req *types.Quer
 
 	return types.NewQueryPacketAcknowledgementResponse(acknowledgement, nil, clienttypes.GetSelfHeight(ctx)), nil
 }
+
+// PacketReceipt implements the Query/PacketReceipt gRPC method.
+func (q *queryServer) PacketReceipt(ctx context.Context, req *types.QueryPacketReceiptRequest) (*types.QueryPacketReceiptResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if req.Sequence == 0 {
+		return nil, status.Error(codes.InvalidArgument, "packet sequence cannot be 0")
+	}
+
+	if !q.HasChannel(ctx, req.ChannelId) {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
+	}
+
+	hasReceipt := q.HasPacketReceipt(ctx, req.ChannelId, req.Sequence)
+
+	return types.NewQueryPacketReceiptResponse(hasReceipt, nil, clienttypes.GetSelfHeight(ctx)), nil
+}

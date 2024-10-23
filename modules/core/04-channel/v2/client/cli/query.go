@@ -145,3 +145,54 @@ func getCmdQueryPacketAcknowledgement() *cobra.Command {
 
 	return cmd
 }
+
+func getCmdQueryPacketReceipt() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "packet-receipt [channel-id] [sequence]",
+		Short: "Query a channel/v2 packet receipt",
+		Long:  "Query a channel/v2 packet receipt by channel-id and sequence",
+		Example: fmt.Sprintf(
+			"%s query %s %s packet-receipt [channel-id] [sequence]", version.AppName, exported.ModuleName, types.SubModuleName,
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			channelID := args[0]
+			seq, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			prove, err := cmd.Flags().GetBool(flags.FlagProve)
+			if err != nil {
+				return err
+			}
+
+			if prove {
+				res, err := queryPacketReceiptABCI(clientCtx, channelID, seq)
+				if err != nil {
+					return err
+				}
+
+				return clientCtx.PrintProto(res)
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.PacketReceipt(cmd.Context(), types.NewQueryPacketReceiptRequest(channelID, seq))
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}

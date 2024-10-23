@@ -324,3 +324,108 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
+	var (
+		expReceipt bool
+		path       *ibctesting.Path
+		req        *types.QueryPacketReceiptRequest
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"success with receipt",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelID, 1)
+
+				expReceipt = true
+				req = &types.QueryPacketReceiptRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Sequence:  1,
+				}
+			},
+			nil,
+		},
+		{
+			"success with no receipt",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				expReceipt = false
+				req = &types.QueryPacketReceiptRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Sequence:  1,
+				}
+			},
+			nil,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"invalid channel ID",
+			func() {
+				req = &types.QueryPacketReceiptRequest{
+					ChannelId: "",
+					Sequence:  1,
+				}
+			},
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
+		},
+		{
+			"invalid sequence",
+			func() {
+				req = &types.QueryPacketReceiptRequest{
+					ChannelId: ibctesting.FirstChannelID,
+					Sequence:  0,
+				}
+			},
+			status.Error(codes.InvalidArgument, "packet sequence cannot be 0"),
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryPacketReceiptRequest{
+					ChannelId: "channel-141",
+					Sequence:  1,
+				}
+			},
+			status.Error(codes.NotFound, fmt.Sprintf("%s: channel not found", "channel-141")),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2)
+			res, err := queryServer.PacketReceipt(suite.chainA.GetContext(), req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expReceipt, res.Received)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Nil(res)
+			}
+		})
+	}
+}
