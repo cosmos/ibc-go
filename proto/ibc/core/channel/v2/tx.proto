@@ -18,8 +18,8 @@ service Msg {
   // CreateChannel defines a rpc handler method for MsgCreateChannel
   rpc CreateChannel(MsgCreateChannel) returns (MsgCreateChannelResponse);
 
-  // ProvideCounterparty defines a rpc handler method for MsgProvideCounterparty.
-  rpc ProvideCounterparty(MsgProvideCounterparty) returns (MsgProvideCounterpartyResponse);
+  // RegisterCounterparty defines a rpc handler method for MsgRegisterCounterparty.
+  rpc RegisterCounterparty(MsgRegisterCounterparty) returns (MsgRegisterCounterpartyResponse);
 
   // SendPacket defines a rpc handler method for MsgSendPacket.
   rpc SendPacket(MsgSendPacket) returns (MsgSendPacketResponse);
@@ -56,9 +56,9 @@ message MsgCreateChannelResponse {
   string channel_id = 1;
 }
 
-// MsgProvideCounterparty defines the message used to provide the counterparty channel
+// MsgRegisterCounterparty defines the message used to provide the counterparty channel
 // identifier.
-message MsgProvideCounterparty {
+message MsgRegisterCounterparty {
   option (cosmos.msg.v1.signer) = "signer";
 
   option (gogoproto.goproto_getters) = false;
@@ -71,8 +71,8 @@ message MsgProvideCounterparty {
   string signer = 3;
 }
 
-// MsgProvideCounterpartyResponse defines the Msg/ProvideCounterparty response type.
-message MsgProvideCounterpartyResponse {}
+// MsgRegisterCounterpartyResponse defines the Msg/RegisterCounterparty response type.
+message MsgRegisterCounterpartyResponse {}
 
 // MsgSendPacket sends an outgoing IBC packet.
 message MsgSendPacket {

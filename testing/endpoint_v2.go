@@ -9,6 +9,35 @@ import (
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 )
 
+// CreateChannel will construct and execute a new MsgCreateChannel on the associated endpoint.
+func (endpoint *Endpoint) CreateChannel() (err error) {
+	endpoint.IncrementNextChannelSequence()
+	msg := channeltypesv2.NewMsgCreateChannel(endpoint.ClientID, MerklePath, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	// create channel
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return err
+	}
+
+	endpoint.ChannelID, err = ParseChannelIDFromEvents(res.Events)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RegisterCounterparty will construct and execute a MsgRegisterCounterparty on the associated endpoint.
+func (endpoint *Endpoint) RegisterCounterparty() (err error) {
+	msg := channeltypesv2.NewMsgRegisterCounterparty(endpoint.ChannelID, endpoint.Counterparty.ChannelID, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	// setup counterparty
+	_, err = endpoint.Chain.SendMsgs(msg)
+
+	return err
+}
+
 // MsgSendPacket sends a packet on the associated endpoint. The constructed packet is returned.
 func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, payload channeltypesv2.Payload) (channeltypesv2.Packet, error) {
 	msgSendPacket := channeltypesv2.NewMsgSendPacket(endpoint.ChannelID, timeoutTimestamp, endpoint.Chain.SenderAccount.GetAddress().String(), payload)
