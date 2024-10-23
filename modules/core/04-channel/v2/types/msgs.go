@@ -14,11 +14,11 @@ import (
 )
 
 var (
-	_ sdk.Msg              = (*MsgRegisterCounterparty)(nil)
-	_ sdk.HasValidateBasic = (*MsgRegisterCounterparty)(nil)
-
 	_ sdk.Msg              = (*MsgCreateChannel)(nil)
 	_ sdk.HasValidateBasic = (*MsgCreateChannel)(nil)
+
+	_ sdk.Msg              = (*MsgRegisterCounterparty)(nil)
+	_ sdk.HasValidateBasic = (*MsgRegisterCounterparty)(nil)
 
 	_ sdk.Msg              = (*MsgSendPacket)(nil)
 	_ sdk.HasValidateBasic = (*MsgSendPacket)(nil)
