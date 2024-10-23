@@ -4,19 +4,23 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/ante"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock/v2"
 )
@@ -178,8 +182,7 @@ func (suite *AnteTestSuite) createTimeoutMessageV2(isRedundant bool) *channeltyp
 	packet, err := suite.path.EndpointB.MsgSendPacket(timeoutTimestamp, mock.NewMockPayload(mock.ModuleNameA, mock.ModuleNameB))
 	suite.Require().NoError(err)
 
-	// suite.coordinator.IncrementTimeBy(-1 * time.Hour)
-
+	suite.coordinator.IncrementTimeBy(time.Hour)
 	err = suite.path.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
@@ -253,48 +256,48 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 		malleate func(suite *AnteTestSuite) []sdk.Msg
 		expError error
 	}{
-		// {
-		// 	"success on one new RecvPacket message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		// the RecvPacket message has not been submitted to the chain yet, so it will succeed
-		// 		return []sdk.Msg{suite.createRecvPacketMessage(false)}
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on one new V2 RecvPacket message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		suite.path.SetupV2()
-		// 		// the RecvPacket message has not been submitted to the chain yet, so it will succeed
-		// 		return []sdk.Msg{suite.createRecvPacketMessageV2(false)}
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on one new Acknowledgement message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
-		// 		return []sdk.Msg{suite.createAcknowledgementMessage(false)}
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on one new V2 Acknowledgement message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		suite.path.SetupV2()
-		// 		// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
-		// 		return []sdk.Msg{suite.createAcknowledgementMessageV2(false)}
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on one new Timeout message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		// the Timeout message has not been submitted to the chain yet, so it will succeed
-		// 		return []sdk.Msg{suite.createTimeoutMessage(false)}
-		// 	},
-		// 	nil,
-		// },
+		{
+			"success on one new RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createRecvPacketMessage(false)}
+			},
+			nil,
+		},
+		{
+			"success on one new V2 RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.path.SetupV2()
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createRecvPacketMessageV2(false)}
+			},
+			nil,
+		},
+		{
+			"success on one new Acknowledgement message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createAcknowledgementMessage(false)}
+			},
+			nil,
+		},
+		{
+			"success on one new V2 Acknowledgement message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.path.SetupV2()
+				// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createAcknowledgementMessageV2(false)}
+			},
+			nil,
+		},
+		{
+			"success on one new Timeout message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				// the Timeout message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createTimeoutMessage(false)}
+			},
+			nil,
+		},
 		{
 			"success on one new Timeout V2 message",
 			func(suite *AnteTestSuite) []sdk.Msg {
@@ -304,308 +307,308 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 			},
 			nil,
 		},
-		// {
-		// 	"success on one new TimeoutOnClose message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		// the TimeoutOnClose message has not been submitted to the chain yet, so it will succeed
-		// 		return []sdk.Msg{suite.createTimeoutOnCloseMessage(false)}
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on three new messages of each type",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		var msgs []sdk.Msg
+		{
+			"success on one new TimeoutOnClose message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				// the TimeoutOnClose message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createTimeoutOnCloseMessage(false)}
+			},
+			nil,
+		},
+		{
+			"success on three new messages of each type",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				var msgs []sdk.Msg
 
-		// 		// none of the messages of each type has been submitted to the chain yet,
-		// 		// the first message is succeed and the next two of each type will be rejected
-		// 		// because they are redundant.
+				// none of the messages of each type has been submitted to the chain yet,
+				// the first message is succeed and the next two of each type will be rejected
+				// because they are redundant.
 
-		// 		// from A to B
-		// 		for i := 1; i <= 3; i++ {
-		// 			msgs = append(msgs, suite.createRecvPacketMessage(false))
-		// 		}
+				// from A to B
+				for i := 1; i <= 3; i++ {
+					msgs = append(msgs, suite.createRecvPacketMessage(false))
+				}
 
-		// 		// from B to A
-		// 		for i := 1; i <= 9; i++ {
-		// 			switch {
-		// 			case i >= 1 && i <= 3:
-		// 				msgs = append(msgs, suite.createAcknowledgementMessage(false))
-		// 			case i >= 4 && i <= 6:
-		// 				msgs = append(msgs, suite.createTimeoutMessage(false))
-		// 			case i >= 7 && i <= 9:
-		// 				msgs = append(msgs, suite.createTimeoutOnCloseMessage(false))
-		// 			}
-		// 		}
-		// 		return msgs
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on three redundant messages of RecvPacket, Acknowledgement and TimeoutOnClose, and one new Timeout message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		var msgs []sdk.Msg
+				// from B to A
+				for i := 1; i <= 9; i++ {
+					switch {
+					case i >= 1 && i <= 3:
+						msgs = append(msgs, suite.createAcknowledgementMessage(false))
+					case i >= 4 && i <= 6:
+						msgs = append(msgs, suite.createTimeoutMessage(false))
+					case i >= 7 && i <= 9:
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(false))
+					}
+				}
+				return msgs
+			},
+			nil,
+		},
+		{
+			"success on three redundant messages of RecvPacket, Acknowledgement and TimeoutOnClose, and one new Timeout message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				var msgs []sdk.Msg
 
-		// 		// we pass three messages of RecvPacket, Acknowledgement and TimeoutOnClose that
-		// 		// are all redundant (i.e. those messages have already been submitted and
-		// 		// processed by the chain). But these messages will not be rejected because the
-		// 		// Timeout message is new.
+				// we pass three messages of RecvPacket, Acknowledgement and TimeoutOnClose that
+				// are all redundant (i.e. those messages have already been submitted and
+				// processed by the chain). But these messages will not be rejected because the
+				// Timeout message is new.
 
-		// 		// from A to B
-		// 		for i := 1; i <= 3; i++ {
-		// 			msgs = append(msgs, suite.createRecvPacketMessage(true))
-		// 		}
+				// from A to B
+				for i := 1; i <= 3; i++ {
+					msgs = append(msgs, suite.createRecvPacketMessage(true))
+				}
 
-		// 		// from B to A
-		// 		for i := 1; i <= 7; i++ {
-		// 			switch {
-		// 			case i >= 1 && i <= 3:
-		// 				msgs = append(msgs, suite.createAcknowledgementMessage(true))
-		// 			case i == 4:
-		// 				msgs = append(msgs, suite.createTimeoutMessage(false))
-		// 			case i >= 5 && i <= 7:
-		// 				msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
-		// 			}
-		// 		}
-		// 		return msgs
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on one new message and two redundant messages of each type",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		var msgs []sdk.Msg
+				// from B to A
+				for i := 1; i <= 7; i++ {
+					switch {
+					case i >= 1 && i <= 3:
+						msgs = append(msgs, suite.createAcknowledgementMessage(true))
+					case i == 4:
+						msgs = append(msgs, suite.createTimeoutMessage(false))
+					case i >= 5 && i <= 7:
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
+					}
+				}
+				return msgs
+			},
+			nil,
+		},
+		{
+			"success on one new message and two redundant messages of each type",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				var msgs []sdk.Msg
 
-		// 		// For each type there is a new message and two messages that are redundant
-		// 		// (i.e. they have been already submitted and processed by the chain). But all
-		// 		// the redundant messages will not be rejected because there is a new message
-		// 		// of each type.
+				// For each type there is a new message and two messages that are redundant
+				// (i.e. they have been already submitted and processed by the chain). But all
+				// the redundant messages will not be rejected because there is a new message
+				// of each type.
 
-		// 		// from A to B
-		// 		for i := 1; i <= 3; i++ {
-		// 			msgs = append(msgs, suite.createRecvPacketMessage(i != 2))
-		// 		}
+				// from A to B
+				for i := 1; i <= 3; i++ {
+					msgs = append(msgs, suite.createRecvPacketMessage(i != 2))
+				}
 
-		// 		// from B to A
-		// 		for i := 1; i <= 9; i++ {
-		// 			switch {
-		// 			case i >= 1 && i <= 3:
-		// 				msgs = append(msgs, suite.createAcknowledgementMessage(i != 2))
-		// 			case i >= 4 && i <= 6:
-		// 				msgs = append(msgs, suite.createTimeoutMessage(i != 5))
-		// 			case i >= 7 && i <= 9:
-		// 				msgs = append(msgs, suite.createTimeoutOnCloseMessage(i != 8))
-		// 			}
-		// 		}
-		// 		return msgs
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on one new UpdateClient message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		return []sdk.Msg{suite.createUpdateClientMessage()}
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on three new UpdateClient messages",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		return []sdk.Msg{suite.createUpdateClientMessage(), suite.createUpdateClientMessage(), suite.createUpdateClientMessage()}
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on three new Updateclient messages and one new RecvPacket message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		return []sdk.Msg{
-		// 			suite.createUpdateClientMessage(),
-		// 			suite.createUpdateClientMessage(),
-		// 			suite.createUpdateClientMessage(),
-		// 			suite.createRecvPacketMessage(false),
-		// 		}
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on three redundant RecvPacket messages and one SubmitMisbehaviour message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		msgs := []sdk.Msg{suite.createUpdateClientMessage()}
+				// from B to A
+				for i := 1; i <= 9; i++ {
+					switch {
+					case i >= 1 && i <= 3:
+						msgs = append(msgs, suite.createAcknowledgementMessage(i != 2))
+					case i >= 4 && i <= 6:
+						msgs = append(msgs, suite.createTimeoutMessage(i != 5))
+					case i >= 7 && i <= 9:
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(i != 8))
+					}
+				}
+				return msgs
+			},
+			nil,
+		},
+		{
+			"success on one new UpdateClient message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				return []sdk.Msg{suite.createUpdateClientMessage()}
+			},
+			nil,
+		},
+		{
+			"success on three new UpdateClient messages",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				return []sdk.Msg{suite.createUpdateClientMessage(), suite.createUpdateClientMessage(), suite.createUpdateClientMessage()}
+			},
+			nil,
+		},
+		{
+			"success on three new Updateclient messages and one new RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				return []sdk.Msg{
+					suite.createUpdateClientMessage(),
+					suite.createUpdateClientMessage(),
+					suite.createUpdateClientMessage(),
+					suite.createRecvPacketMessage(false),
+				}
+			},
+			nil,
+		},
+		{
+			"success on three redundant RecvPacket messages and one SubmitMisbehaviour message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msgs := []sdk.Msg{suite.createUpdateClientMessage()}
 
-		// 		for i := 1; i <= 3; i++ {
-		// 			msgs = append(msgs, suite.createRecvPacketMessage(true))
-		// 		}
+				for i := 1; i <= 3; i++ {
+					msgs = append(msgs, suite.createRecvPacketMessage(true))
+				}
 
-		// 		// append non packet and update message to msgs to ensure multimsg tx should pass
-		// 		msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{}) //nolint:staticcheck // we're using the deprecated message for testing
-		// 		return msgs
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"success on app callback error, app callbacks are skipped for performance",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
-		// 			ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
-		// 		) exported.Acknowledgement {
-		// 			panic(fmt.Errorf("failed OnRecvPacket mock callback"))
-		// 		}
+				// append non packet and update message to msgs to ensure multimsg tx should pass
+				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{}) //nolint:staticcheck // we're using the deprecated message for testing
+				return msgs
+			},
+			nil,
+		},
+		{
+			"success on app callback error, app callbacks are skipped for performance",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
+					ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
+				) exported.Acknowledgement {
+					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
+				}
 
-		// 		// the RecvPacket message has not been submitted to the chain yet, so it will succeed
-		// 		return []sdk.Msg{suite.createRecvPacketMessage(false)}
-		// 	},
-		// 	nil,
-		// },
-		// {
-		// 	"no success on one redundant RecvPacket message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		return []sdk.Msg{suite.createRecvPacketMessage(true)}
-		// 	},
-		// 	channeltypes.ErrRedundantTx,
-		// },
-		// {
-		// 	"no success on one redundant V2 RecvPacket message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		suite.path.SetupV2()
-		// 		return []sdk.Msg{suite.createRecvPacketMessageV2(true)}
-		// 	},
-		// 	channeltypes.ErrRedundantTx,
-		// },
-		// {
-		// 	"no success on three redundant messages of each type",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		var msgs []sdk.Msg
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createRecvPacketMessage(false)}
+			},
+			nil,
+		},
+		{
+			"no success on one redundant RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				return []sdk.Msg{suite.createRecvPacketMessage(true)}
+			},
+			channeltypes.ErrRedundantTx,
+		},
+		{
+			"no success on one redundant V2 RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.path.SetupV2()
+				return []sdk.Msg{suite.createRecvPacketMessageV2(true)}
+			},
+			channeltypes.ErrRedundantTx,
+		},
+		{
+			"no success on three redundant messages of each type",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				var msgs []sdk.Msg
 
-		// 		// from A to B
-		// 		for i := 1; i <= 3; i++ {
-		// 			msgs = append(msgs, suite.createRecvPacketMessage(true))
-		// 		}
+				// from A to B
+				for i := 1; i <= 3; i++ {
+					msgs = append(msgs, suite.createRecvPacketMessage(true))
+				}
 
-		// 		// from B to A
-		// 		for i := 1; i <= 9; i++ {
-		// 			switch {
-		// 			case i >= 1 && i <= 3:
-		// 				msgs = append(msgs, suite.createAcknowledgementMessage(true))
-		// 			case i >= 4 && i <= 6:
-		// 				msgs = append(msgs, suite.createTimeoutMessage(true))
-		// 			case i >= 7 && i <= 9:
-		// 				msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
-		// 			}
-		// 		}
-		// 		return msgs
-		// 	},
-		// 	channeltypes.ErrRedundantTx,
-		// },
-		// {
-		// 	"no success on one new UpdateClient message and three redundant RecvPacket messages",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		msgs := []sdk.Msg{suite.createUpdateClientMessage()}
+				// from B to A
+				for i := 1; i <= 9; i++ {
+					switch {
+					case i >= 1 && i <= 3:
+						msgs = append(msgs, suite.createAcknowledgementMessage(true))
+					case i >= 4 && i <= 6:
+						msgs = append(msgs, suite.createTimeoutMessage(true))
+					case i >= 7 && i <= 9:
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
+					}
+				}
+				return msgs
+			},
+			channeltypes.ErrRedundantTx,
+		},
+		{
+			"no success on one new UpdateClient message and three redundant RecvPacket messages",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msgs := []sdk.Msg{suite.createUpdateClientMessage()}
 
-		// 		for i := 1; i <= 3; i++ {
-		// 			msgs = append(msgs, suite.createRecvPacketMessage(true))
-		// 		}
+				for i := 1; i <= 3; i++ {
+					msgs = append(msgs, suite.createRecvPacketMessage(true))
+				}
 
-		// 		return msgs
-		// 	},
-		// 	channeltypes.ErrRedundantTx,
-		// },
-		// {
-		// 	"no success on one new UpdateClient message: invalid client identifier",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
-		// 		suite.Require().NoError(err)
+				return msgs
+			},
+			channeltypes.ErrRedundantTx,
+		},
+		{
+			"no success on one new UpdateClient message: invalid client identifier",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
+				suite.Require().NoError(err)
 
-		// 		msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: ibctesting.InvalidID, ClientMessage: clientMsg}}
-		// 		return msgs
-		// 	},
-		// 	clienttypes.ErrClientNotActive,
-		// },
-		// {
-		// 	"no success on one new UpdateClient message: client module not found",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
-		// 		suite.Require().NoError(err)
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: ibctesting.InvalidID, ClientMessage: clientMsg}}
+				return msgs
+			},
+			clienttypes.ErrClientNotActive,
+		},
+		{
+			"no success on one new UpdateClient message: client module not found",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
+				suite.Require().NoError(err)
 
-		// 		msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: clienttypes.FormatClientIdentifier("08-wasm", 1), ClientMessage: clientMsg}}
-		// 		return msgs
-		// 	},
-		// 	clienttypes.ErrClientNotActive,
-		// },
-		// {
-		// 	"no success on one new UpdateClient message: no consensus state for trusted height",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{TrustedHeight: clienttypes.NewHeight(1, 10000)})
-		// 		suite.Require().NoError(err)
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: clienttypes.FormatClientIdentifier("08-wasm", 1), ClientMessage: clientMsg}}
+				return msgs
+			},
+			clienttypes.ErrClientNotActive,
+		},
+		{
+			"no success on one new UpdateClient message: no consensus state for trusted height",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{TrustedHeight: clienttypes.NewHeight(1, 10000)})
+				suite.Require().NoError(err)
 
-		// 		msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: suite.path.EndpointA.ClientID, ClientMessage: clientMsg}}
-		// 		return msgs
-		// 	},
-		// 	clienttypes.ErrConsensusStateNotFound,
-		// },
-		// {
-		// 	"no success on three new UpdateClient messages and three redundant messages of each type",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		msgs := []sdk.Msg{suite.createUpdateClientMessage(), suite.createUpdateClientMessage(), suite.createUpdateClientMessage()}
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: suite.path.EndpointA.ClientID, ClientMessage: clientMsg}}
+				return msgs
+			},
+			clienttypes.ErrConsensusStateNotFound,
+		},
+		{
+			"no success on three new UpdateClient messages and three redundant messages of each type",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msgs := []sdk.Msg{suite.createUpdateClientMessage(), suite.createUpdateClientMessage(), suite.createUpdateClientMessage()}
 
-		// 		// from A to B
-		// 		for i := 1; i <= 3; i++ {
-		// 			msgs = append(msgs, suite.createRecvPacketMessage(true))
-		// 		}
+				// from A to B
+				for i := 1; i <= 3; i++ {
+					msgs = append(msgs, suite.createRecvPacketMessage(true))
+				}
 
-		// 		// from B to A
-		// 		for i := 1; i <= 9; i++ {
-		// 			switch {
-		// 			case i >= 1 && i <= 3:
-		// 				msgs = append(msgs, suite.createAcknowledgementMessage(true))
-		// 			case i >= 4 && i <= 6:
-		// 				msgs = append(msgs, suite.createTimeoutMessage(true))
-		// 			case i >= 7 && i <= 9:
-		// 				msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
-		// 			}
-		// 		}
-		// 		return msgs
-		// 	},
-		// 	channeltypes.ErrRedundantTx,
-		// },
-		// {
-		// 	"no success on one new message and one invalid message",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		packet := channeltypes.NewPacket(ibctesting.MockPacketData, 2,
-		// 			suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
-		// 			suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
-		// 			clienttypes.NewHeight(2, 0), 0)
+				// from B to A
+				for i := 1; i <= 9; i++ {
+					switch {
+					case i >= 1 && i <= 3:
+						msgs = append(msgs, suite.createAcknowledgementMessage(true))
+					case i >= 4 && i <= 6:
+						msgs = append(msgs, suite.createTimeoutMessage(true))
+					case i >= 7 && i <= 9:
+						msgs = append(msgs, suite.createTimeoutOnCloseMessage(true))
+					}
+				}
+				return msgs
+			},
+			channeltypes.ErrRedundantTx,
+		},
+		{
+			"no success on one new message and one invalid message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				packet := channeltypes.NewPacket(ibctesting.MockPacketData, 2,
+					suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID,
+					suite.path.EndpointB.ChannelConfig.PortID, suite.path.EndpointB.ChannelID,
+					clienttypes.NewHeight(2, 0), 0)
 
-		// 		return []sdk.Msg{
-		// 			suite.createRecvPacketMessage(false),
-		// 			channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
-		// 		}
-		// 	},
-		// 	commitmenttypes.ErrInvalidProof,
-		// },
-		// {
-		// 	"no success on one new message and one redundant message in the same block",
-		// 	func(suite *AnteTestSuite) []sdk.Msg {
-		// 		msg := suite.createRecvPacketMessage(false)
+				return []sdk.Msg{
+					suite.createRecvPacketMessage(false),
+					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
+				}
+			},
+			commitmenttypes.ErrInvalidProof,
+		},
+		{
+			"no success on one new message and one redundant message in the same block",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msg := suite.createRecvPacketMessage(false)
 
-		// 		// We want to be able to run check tx with the non-redundant message without
-		// 		// committing it to a block, so that the when check tx runs with the redundant
-		// 		// message they are both in the same block
-		// 		k := suite.chainB.App.GetIBCKeeper()
-		// 		decorator := ante.NewRedundantRelayDecorator(k)
-		// 		checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
-		// 		next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
-		// 		txBuilder := suite.chainB.TxConfig.NewTxBuilder()
-		// 		err := txBuilder.SetMsgs([]sdk.Msg{msg}...)
-		// 		suite.Require().NoError(err)
-		// 		tx := txBuilder.GetTx()
+				// We want to be able to run check tx with the non-redundant message without
+				// committing it to a block, so that the when check tx runs with the redundant
+				// message they are both in the same block
+				k := suite.chainB.App.GetIBCKeeper()
+				decorator := ante.NewRedundantRelayDecorator(k)
+				checkCtx := suite.chainB.GetContext().WithIsCheckTx(true)
+				next := func(ctx sdk.Context, tx sdk.Tx, simulate bool) (newCtx sdk.Context, err error) { return ctx, nil }
+				txBuilder := suite.chainB.TxConfig.NewTxBuilder()
+				err := txBuilder.SetMsgs([]sdk.Msg{msg}...)
+				suite.Require().NoError(err)
+				tx := txBuilder.GetTx()
 
-		// 		_, err = decorator.AnteHandle(checkCtx, tx, false, next)
-		// 		suite.Require().NoError(err)
+				_, err = decorator.AnteHandle(checkCtx, tx, false, next)
+				suite.Require().NoError(err)
 
-		// 		return []sdk.Msg{msg}
-		// 	},
-		// 	channeltypes.ErrRedundantTx,
-		// },
+				return []sdk.Msg{msg}
+			},
+			channeltypes.ErrRedundantTx,
+		},
 	}
 
 	for _, tc := range testCases {
