@@ -97,33 +97,85 @@ func (m *Channel) GetMerklePathPrefix() v2.MerklePath {
 	return v2.MerklePath{}
 }
 
+// IdentifiedChannel defines a channel with an additional channel identifier field.
+type IdentifiedChannel struct {
+	// the client identifier of the light client representing the counterparty chain
+	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	// the counterparty identifier that must be used by packets sent by counterparty
+	// to our channel end.
+	CounterpartyChannelId string `protobuf:"bytes,2,opt,name=counterparty_channel_id,json=counterpartyChannelId,proto3" json:"counterparty_channel_id,omitempty"`
+	// the key path used to store packet flow messages that the counterparty
+	// will use to send to us. In backwards compatible cases, we will append the channelID and sequence in order to create
+	// the final path.
+	MerklePathPrefix v2.MerklePath `protobuf:"bytes,3,opt,name=merkle_path_prefix,json=merklePathPrefix,proto3" json:"merkle_path_prefix"`
+	// channel identifier
+	ChannelId string `protobuf:"bytes,4,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+}
+
+func (m *IdentifiedChannel) Reset()         { *m = IdentifiedChannel{} }
+func (m *IdentifiedChannel) String() string { return proto.CompactTextString(m) }
+func (*IdentifiedChannel) ProtoMessage()    {}
+func (*IdentifiedChannel) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7e9b57d8f218397d, []int{1}
+}
+func (m *IdentifiedChannel) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *IdentifiedChannel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_IdentifiedChannel.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *IdentifiedChannel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IdentifiedChannel.Merge(m, src)
+}
+func (m *IdentifiedChannel) XXX_Size() int {
+	return m.Size()
+}
+func (m *IdentifiedChannel) XXX_DiscardUnknown() {
+	xxx_messageInfo_IdentifiedChannel.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_IdentifiedChannel proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*Channel)(nil), "ibc.core.channel.v2.Channel")
+	proto.RegisterType((*IdentifiedChannel)(nil), "ibc.core.channel.v2.IdentifiedChannel")
 }
 
 func init() { proto.RegisterFile("ibc/core/channel/v2/channel.proto", fileDescriptor_7e9b57d8f218397d) }
 
 var fileDescriptor_7e9b57d8f218397d = []byte{
-	// 302 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x90, 0xb1, 0x4e, 0x83, 0x40,
-	0x18, 0xc7, 0x39, 0x35, 0x6a, 0x71, 0x31, 0xa8, 0xb1, 0xa9, 0xc9, 0x59, 0xbb, 0xd8, 0xa5, 0x9c,
-	0x41, 0x63, 0x62, 0xe2, 0x54, 0xa7, 0x0e, 0x26, 0x4d, 0x87, 0x0e, 0x2e, 0x04, 0x8e, 0x13, 0x2e,
-	0x72, 0x7c, 0xe4, 0x38, 0x88, 0x7d, 0x0b, 0x9f, 0xc6, 0x67, 0xe8, 0xd8, 0xd1, 0xc9, 0x18, 0x78,
-	0x11, 0xc3, 0xd1, 0x96, 0x6e, 0x1f, 0xff, 0xef, 0xc7, 0x2f, 0xdf, 0xfd, 0xcd, 0x1b, 0xee, 0x53,
-	0x42, 0x41, 0x32, 0x42, 0x23, 0x2f, 0x49, 0x58, 0x4c, 0x0a, 0x67, 0x33, 0xda, 0xa9, 0x04, 0x05,
-	0xd6, 0x19, 0xf7, 0xa9, 0x5d, 0x23, 0xf6, 0x26, 0x2f, 0x9c, 0xde, 0x79, 0x08, 0x21, 0xe8, 0x3d,
-	0xa9, 0xa7, 0x06, 0xed, 0xdd, 0xb6, 0x36, 0x10, 0x82, 0x2b, 0xc1, 0x12, 0xa5, 0x85, 0xdb, 0xaf,
-	0x06, 0x1c, 0x7c, 0x23, 0xf3, 0xe8, 0xa5, 0xb1, 0x59, 0x57, 0x66, 0x87, 0xc6, 0x9c, 0x25, 0xca,
-	0xe5, 0x41, 0x17, 0xf5, 0xd1, 0xb0, 0x33, 0x3b, 0x6e, 0x82, 0x49, 0x60, 0x3d, 0x9a, 0x97, 0x14,
-	0xf2, 0x44, 0x31, 0x99, 0x7a, 0x52, 0x2d, 0xdc, 0xf5, 0x09, 0x35, 0xba, 0xa7, 0xd1, 0x8b, 0xdd,
-	0xf5, 0x5a, 0x39, 0x09, 0xac, 0xb9, 0x69, 0x09, 0x26, 0x3f, 0x62, 0xe6, 0xa6, 0x9e, 0x8a, 0xdc,
-	0x54, 0xb2, 0x77, 0xfe, 0xd9, 0xdd, 0xef, 0xa3, 0xe1, 0x89, 0x33, 0xb0, 0xdb, 0x17, 0xb5, 0x87,
-	0x15, 0x8e, 0xfd, 0xaa, 0xff, 0x98, 0x7a, 0x2a, 0x1a, 0x1f, 0x2c, 0x7f, 0xaf, 0x8d, 0xd9, 0xa9,
-	0xd8, 0x26, 0x53, 0x6d, 0x18, 0xcf, 0x97, 0x25, 0x46, 0xab, 0x12, 0xa3, 0xbf, 0x12, 0xa3, 0xaf,
-	0x0a, 0x1b, 0xab, 0x0a, 0x1b, 0x3f, 0x15, 0x36, 0xde, 0x9e, 0x43, 0xae, 0xa2, 0xdc, 0xaf, 0x95,
-	0x84, 0x42, 0x26, 0x20, 0x23, 0xdc, 0xa7, 0xa3, 0x10, 0x48, 0xf1, 0x44, 0x04, 0x04, 0x79, 0xcc,
-	0xb2, 0xa6, 0x9b, 0xbb, 0x87, 0xd1, 0x4e, 0xd9, 0x6a, 0x91, 0xb2, 0xcc, 0x3f, 0xd4, 0xbd, 0xdc,
-	0xff, 0x07, 0x00, 0x00, 0xff, 0xff, 0xc7, 0xdc, 0xac, 0x74, 0x90, 0x01, 0x00, 0x00,
+	// 341 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0xcc, 0x4c, 0x4a, 0xd6,
+	0x4f, 0xce, 0x2f, 0x4a, 0xd5, 0x4f, 0xce, 0x48, 0xcc, 0xcb, 0x4b, 0xcd, 0xd1, 0x2f, 0x33, 0x82,
+	0x31, 0xf5, 0x0a, 0x8a, 0xf2, 0x4b, 0xf2, 0x85, 0x84, 0x33, 0x93, 0x92, 0xf5, 0x40, 0x4a, 0xf4,
+	0x60, 0xe2, 0x65, 0x46, 0x52, 0x22, 0xe9, 0xf9, 0xe9, 0xf9, 0x60, 0x79, 0x7d, 0x10, 0x0b, 0xa2,
+	0x54, 0x4a, 0x1d, 0x61, 0x5a, 0x7e, 0x6e, 0x6e, 0x66, 0x49, 0x6e, 0x6a, 0x5e, 0x09, 0xd8, 0x40,
+	0x38, 0x0f, 0xa2, 0x50, 0x69, 0x1b, 0x23, 0x17, 0xbb, 0x33, 0xc4, 0x34, 0x21, 0x69, 0x2e, 0xce,
+	0xe4, 0x9c, 0xcc, 0xd4, 0xbc, 0x92, 0xf8, 0xcc, 0x14, 0x09, 0x46, 0x05, 0x46, 0x0d, 0xce, 0x20,
+	0x0e, 0x88, 0x80, 0x67, 0x8a, 0x90, 0x19, 0x97, 0x78, 0x72, 0x7e, 0x69, 0x5e, 0x49, 0x6a, 0x51,
+	0x41, 0x62, 0x51, 0x49, 0x65, 0x3c, 0xd4, 0x09, 0x20, 0xa5, 0x4c, 0x60, 0xa5, 0xa2, 0xc8, 0xd2,
+	0x50, 0x23, 0x3d, 0x53, 0x84, 0xc2, 0xb8, 0x84, 0x72, 0x53, 0x8b, 0xb2, 0x73, 0x52, 0xe3, 0x0b,
+	0x12, 0x4b, 0x32, 0xe2, 0x0b, 0x8a, 0x52, 0xd3, 0x32, 0x2b, 0x24, 0x98, 0x15, 0x18, 0x35, 0xb8,
+	0x8d, 0x94, 0xf4, 0x10, 0x3e, 0x42, 0x38, 0xac, 0xcc, 0x48, 0xcf, 0x17, 0xac, 0x23, 0x20, 0xb1,
+	0x24, 0xc3, 0x89, 0xe5, 0xc4, 0x3d, 0x79, 0x86, 0x20, 0x81, 0x5c, 0xb8, 0x48, 0x00, 0xd8, 0x04,
+	0xa5, 0xa7, 0x8c, 0x5c, 0x82, 0x9e, 0x29, 0xa9, 0x79, 0x25, 0x99, 0x69, 0x99, 0xa9, 0x29, 0x43,
+	0xd1, 0x0b, 0x42, 0xb2, 0x5c, 0x5c, 0x48, 0x4e, 0x60, 0x01, 0x3b, 0x81, 0x33, 0x19, 0x66, 0xad,
+	0x15, 0x4b, 0xc7, 0x02, 0x79, 0x06, 0xa7, 0xb0, 0x13, 0x8f, 0xe4, 0x18, 0x2f, 0x3c, 0x92, 0x63,
+	0x7c, 0xf0, 0x48, 0x8e, 0x71, 0xc2, 0x63, 0x39, 0x86, 0x0b, 0x8f, 0xe5, 0x18, 0x6e, 0x3c, 0x96,
+	0x63, 0x88, 0xb2, 0x49, 0xcf, 0x2c, 0xc9, 0x28, 0x4d, 0x02, 0xd9, 0xab, 0x9f, 0x9c, 0x5f, 0x9c,
+	0x9b, 0x5f, 0xac, 0x9f, 0x99, 0x94, 0xac, 0x9b, 0x9e, 0xaf, 0x5f, 0x66, 0xa9, 0x9f, 0x9b, 0x9f,
+	0x52, 0x9a, 0x93, 0x5a, 0x0c, 0x49, 0x03, 0x06, 0x26, 0xba, 0x48, 0x89, 0xaa, 0xa4, 0xb2, 0x20,
+	0xb5, 0x38, 0x89, 0x0d, 0x1c, 0xff, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x60, 0xda, 0x77,
+	0x0b, 0x78, 0x02, 0x00, 0x00,
 }
 
 func (m *Channel) Marshal() (dAtA []byte, err error) {
@@ -146,6 +198,60 @@ func (m *Channel) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	{
+		size, err := m.MerklePathPrefix.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintChannel(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.CounterpartyChannelId) > 0 {
+		i -= len(m.CounterpartyChannelId)
+		copy(dAtA[i:], m.CounterpartyChannelId)
+		i = encodeVarintChannel(dAtA, i, uint64(len(m.CounterpartyChannelId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.ClientId) > 0 {
+		i -= len(m.ClientId)
+		copy(dAtA[i:], m.ClientId)
+		i = encodeVarintChannel(dAtA, i, uint64(len(m.ClientId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *IdentifiedChannel) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *IdentifiedChannel) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *IdentifiedChannel) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintChannel(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0x22
+	}
 	{
 		size, err := m.MerklePathPrefix.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -200,6 +306,29 @@ func (m *Channel) Size() (n int) {
 	}
 	l = m.MerklePathPrefix.Size()
 	n += 1 + l + sovChannel(uint64(l))
+	return n
+}
+
+func (m *IdentifiedChannel) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ClientId)
+	if l > 0 {
+		n += 1 + l + sovChannel(uint64(l))
+	}
+	l = len(m.CounterpartyChannelId)
+	if l > 0 {
+		n += 1 + l + sovChannel(uint64(l))
+	}
+	l = m.MerklePathPrefix.Size()
+	n += 1 + l + sovChannel(uint64(l))
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovChannel(uint64(l))
+	}
 	return n
 }
 
@@ -334,6 +463,185 @@ func (m *Channel) Unmarshal(dAtA []byte) error {
 			if err := m.MerklePathPrefix.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipChannel(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *IdentifiedChannel) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowChannel
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: IdentifiedChannel: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: IdentifiedChannel: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowChannel
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthChannel
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ClientId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CounterpartyChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowChannel
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthChannel
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CounterpartyChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MerklePathPrefix", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowChannel
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthChannel
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MerklePathPrefix.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowChannel
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthChannel
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthChannel
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
