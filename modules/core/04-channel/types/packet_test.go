@@ -13,7 +13,7 @@ import (
 )
 
 func TestCommitPacket(t *testing.T) {
-	packet := types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
+	basePacket := types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 
 	registry := codectypes.NewInterfaceRegistry()
 	clienttypes.RegisterInterfaces(registry)
@@ -21,8 +21,55 @@ func TestCommitPacket(t *testing.T) {
 
 	cdc := codec.NewProtoCodec(registry)
 
-	commitment := types.CommitPacket(cdc, packet)
-	require.NotNil(t, commitment)
+	baseCommitment := types.CommitPacket(cdc, basePacket)
+	require.NotNil(t, baseCommitment)
+
+	diffValidPackedData := []byte("anotherpackeddata")
+
+	diffHeightRevisionNumber := timeoutHeight
+	diffHeightRevisionNumber.RevisionNumber++
+
+	diffHeightRevisionHeight := timeoutHeight
+	diffHeightRevisionHeight.RevisionHeight++
+
+	diffTimeout := uint64(101)
+
+	diffHeightRevision := timeoutHeight
+	diffHeightRevision.RevisionHeight++
+	diffHeightRevision.RevisionNumber++
+
+	testCases := []struct {
+		name   string
+		packet types.Packet
+	}{
+		{
+			name:   "diff data",
+			packet: types.NewPacket(diffValidPackedData, 0, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp),
+		},
+		{
+			name:   "diff timeout revision number",
+			packet: types.NewPacket(validPacketData, 0, portid, chanid, cpportid, cpchanid, diffHeightRevisionNumber, timeoutTimestamp),
+		},
+		{
+			name:   "diff timeout revision height",
+			packet: types.NewPacket(validPacketData, 0, portid, chanid, cpportid, cpchanid, diffHeightRevisionHeight, timeoutTimestamp),
+		},
+		{
+			name:   "diff timeout timestamp",
+			packet: types.NewPacket(validPacketData, 0, portid, chanid, cpportid, cpchanid, timeoutHeight, diffTimeout),
+		},
+		{
+			name:   "diff every field",
+			packet: types.NewPacket(diffValidPackedData, 0, portid, chanid, cpportid, cpchanid, diffHeightRevision, diffTimeout),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		commitment := types.CommitPacket(cdc, tc.packet)
+		require.NotNil(t, commitment)
+		require.False(t, string(commitment) == string(baseCommitment), tc.name)
+	}
 }
 
 func TestPacketValidateBasic(t *testing.T) {
