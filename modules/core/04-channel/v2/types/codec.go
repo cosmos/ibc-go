@@ -10,11 +10,11 @@ import (
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
+		&MsgCreateChannel{},
+		&MsgRegisterCounterparty{},
 		&MsgSendPacket{},
 		&MsgRecvPacket{},
 		&MsgTimeout{},
 		&MsgAcknowledgement{},
-		&MsgCreateChannel{},
-		&MsgProvideCounterparty{},
 	)
 }
