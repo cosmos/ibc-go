@@ -6,6 +6,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -211,6 +212,125 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 
 				suite.Require().Equal(expectedBalance.Amount, actualBalance.Amount)
 
+			} else {
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q but got %q", tc.expError, err)
+			}
+
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
+	var (
+		path        *ibctesting.Path
+		packet      channeltypesv2.Packet
+		expectedAck channeltypesv2.Acknowledgement
+	)
+
+	testCases := []struct {
+		name               string
+		malleate           func()
+		expError           error
+		causeFailureOnRecv bool
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+			false,
+		},
+		{
+			"failure: proof verification failure",
+			func() {
+				expectedAck.AcknowledgementResults[0].RecvPacketResult.Acknowledgement = channeltypes.NewResultAcknowledgement([]byte{byte(2)}).Acknowledgement()
+			},
+			commitmenttypes.ErrInvalidProof,
+			false,
+		},
+		{
+			"failure: escrowed tokens are refunded",
+			func() {
+				expectedAck.AcknowledgementResults[0].RecvPacketResult = channeltypesv2.RecvPacketResult{
+					Status:          channeltypesv2.PacketStatus_Failure,
+					Acknowledgement: channeltypes.NewErrorAcknowledgement(transfertypes.ErrReceiveDisabled).Acknowledgement(),
+				}
+			},
+			nil,
+			true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			tokens := []transfertypes.Token{
+				{
+					Denom: transfertypes.Denom{
+						Base:  sdk.DefaultBondDenom,
+						Trace: nil,
+					},
+					Amount: ibctesting.DefaultCoinAmount.String(),
+				},
+			}
+
+			ftpd := transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
+			bz := suite.chainA.Codec.MustMarshal(&ftpd)
+
+			timestamp := suite.chainA.GetTimeoutTimestamp()
+			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "json", bz)
+
+			var err error
+			packet, err = path.EndpointA.MsgSendPacket(timestamp, payload)
+
+			if tc.causeFailureOnRecv {
+				suite.chainB.GetSimApp().TransferKeeperV2.SetParams(suite.chainB.GetContext(),
+					transfertypes.Params{
+						ReceiveEnabled: false,
+					})
+			}
+
+			err = path.EndpointB.MsgRecvPacket(packet)
+			suite.Require().NoError(err)
+
+			expectedAck = channeltypesv2.Acknowledgement{AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
+				{
+					AppName: transfertypes.ModuleName,
+					RecvPacketResult: channeltypesv2.RecvPacketResult{
+						Status:          channeltypesv2.PacketStatus_Success,
+						Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
+					},
+				},
+			}}
+
+			tc.malleate()
+
+			err = path.EndpointA.MsgAcknowledgePacket(packet, expectedAck)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				if expectedAck.AcknowledgementResults[0].RecvPacketResult.Status == channeltypesv2.PacketStatus_Success {
+					// tokens remain escrowed
+					for _, t := range tokens {
+						escrowedAmount := suite.chainA.GetSimApp().TransferKeeperV2.GetTotalEscrowForDenom(suite.chainA.GetContext(), t.Denom.IBCDenom())
+						expected, err := t.ToCoin()
+						suite.Require().NoError(err)
+						suite.Require().Equal(expected, escrowedAmount, "escrowed amount is not equal to expected amount")
+					}
+				} else {
+					// tokens have been unescrowed
+					for _, t := range tokens {
+						escrowedAmount := suite.chainA.GetSimApp().TransferKeeperV2.GetTotalEscrowForDenom(suite.chainA.GetContext(), t.Denom.IBCDenom())
+						suite.Require().Equal(sdk.NewCoin(t.Denom.IBCDenom(), sdkmath.NewInt(0)), escrowedAmount, "escrowed amount is not equal to expected amount")
+					}
+				}
 			} else {
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q but got %q", tc.expError, err)
 			}
