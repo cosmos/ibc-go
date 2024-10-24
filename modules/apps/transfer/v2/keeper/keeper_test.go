@@ -1,9 +1,13 @@
 package keeper_test
 
 import (
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	testifysuite "github.com/stretchr/testify/suite"
 	"testing"
+
+	"testing"
+
+	testifysuite "github.com/stretchr/testify/suite"
+
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 type KeeperTestSuite struct {

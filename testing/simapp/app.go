@@ -3,10 +3,11 @@ package simapp
 import (
 	"encoding/json"
 	"fmt"
-	transferv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2"
 	"io"
 	"os"
 	"path/filepath"
+
+	transferv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2"
 
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
@@ -97,6 +98,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2"
 	ibctransferkeeperv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/keeper"
 	ibc "github.com/cosmos/ibc-go/v9/modules/core"
 	ibcclienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"

@@ -2,9 +2,14 @@ package v2
 
 import (
 	"context"
-	errorsmod "cosmossdk.io/errors"
 	"fmt"
+
+	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/keeper"
@@ -14,9 +19,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
-var (
-	_ api.IBCModule = (*IBCModule)(nil)
-)
+var _ api.IBCModule = (*IBCModule)(nil)
 
 // TODO: pass sequence as argument to OnRecvPacket
 const sequence = 1

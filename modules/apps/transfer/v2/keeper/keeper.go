@@ -2,10 +2,13 @@ package keeper
 
 import (
 	"context"
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	transferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -70,10 +73,10 @@ func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload
 	}
 
 	// TODO: events
-	//events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
+	// events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
 
 	// TODO: telemetry
-	//telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
+	// telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
 
 	return nil
 }
@@ -167,7 +170,7 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 	}
 
 	// TODO: forwarding
-	//if data.HasForwarding() {
+	// if data.HasForwarding() {
 	//	// we are now sending from the forward escrow address to the final receiver address.
 	//	if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
 	//		return err
@@ -175,7 +178,7 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 	//}
 
 	// TODO: telemetry
-	//telemetry.ReportOnRecvPacket(packet, data.Tokens)
+	// telemetry.ReportOnRecvPacket(packet, data.Tokens)
 
 	// The ibc_module.go module will return the proper ack.
 	return nil

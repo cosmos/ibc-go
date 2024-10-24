@@ -2,7 +2,9 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
@@ -86,7 +88,6 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q but got %q", tc.expError, err)
 				suite.Require().Empty(packet)
 			}
-
 		})
 	}
 }
@@ -125,7 +126,6 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 		{
 			"failure: receive is disabled",
 			func() {
-
 				expectedAck.AcknowledgementResults[0].RecvPacketResult = channeltypesv2.RecvPacketResult{
 					Status:          channeltypesv2.PacketStatus_Failure,
 					Acknowledgement: channeltypes.NewErrorAcknowledgement(transfertypes.ErrReceiveDisabled).Acknowledgement(),
@@ -167,6 +167,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "json", bz)
 			var err error
 			packet, err = path.EndpointA.MsgSendPacket(timestamp, payload)
+			suite.Require().NoError(err)
 
 			// by default, we assume a successful acknowledgement will be written.
 			expectedAck = channeltypesv2.Acknowledgement{AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
@@ -215,7 +216,6 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			} else {
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q but got %q", tc.expError, err)
 			}
-
 		})
 	}
 }
@@ -287,8 +287,11 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 
 			var err error
 			packet, err = path.EndpointA.MsgSendPacket(timestamp, payload)
+			suite.Require().NoError(err)
 
 			if tc.causeFailureOnRecv {
+				// ensure that the recv packet fails at the application level, but succeeds at the IBC handler level
+				// this will ensure that a failed ack will be written to state.
 				suite.chainB.GetSimApp().TransferKeeperV2.SetParams(suite.chainB.GetContext(),
 					transfertypes.Params{
 						ReceiveEnabled: false,
@@ -334,7 +337,6 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 			} else {
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q but got %q", tc.expError, err)
 			}
-
 		})
 	}
 }
