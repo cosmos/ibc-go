@@ -210,6 +210,8 @@ func (ftpd FungibleTokenPacketDataV2) HasForwarding() bool {
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes into a FungibleTokenPacketDataV2.
 // The version of ics20 should be provided and should be either ics20-1 or ics20-2.
 func UnmarshalPacketData(bz []byte, ics20Version string) (FungibleTokenPacketDataV2, error) {
+	// TODO: in transfer ibc module V2, we need to respect he encoding value passed via the payload, some hard coded assumptions about
+	// encoding exist here based on the ics20 version passed in.
 	switch ics20Version {
 	case V1:
 		var datav1 FungibleTokenPacketData
