@@ -2,17 +2,16 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"time"
 )
 
-// TestMsgTransfer tests Transfer rpc handler
+// TestMsgSendPacketTransfer tests the MsgSendPacket rpc handler for the transfer v2 application.
 func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 	var payload channeltypesv2.Payload
 	var path *ibctesting.Path
@@ -92,6 +91,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 	}
 }
 
+// TestMsgRecvPacketTransfer tests the MsgRecvPacket rpc handler for the transfer v2 application.
 func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 	var (
 		path        *ibctesting.Path
@@ -220,6 +220,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 	}
 }
 
+// TestMsgAckPacketTransfer tests the MsgAcknowledgePacket rpc handler for the transfer v2 application.
 func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 	var (
 		path        *ibctesting.Path
@@ -336,6 +337,98 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 				}
 			} else {
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q but got %q", tc.expError, err)
+			}
+		})
+	}
+}
+
+// TestMsgTimeoutPacketTransfer tests the MsgTimeoutPacket rpc handler for the transfer v2 application.
+func (suite *KeeperTestSuite) TestMsgTimeoutPacketTransfer() {
+	var (
+		path             *ibctesting.Path
+		packet           channeltypesv2.Packet
+		timeoutTimestamp uint64
+	)
+
+	testCases := []struct {
+		name          string
+		malleate      func()
+		timeoutPacket bool
+		expError      error
+	}{
+		{
+			"success",
+			func() {},
+			true,
+			nil,
+		},
+		{
+			"failure: packet has not timed out",
+			func() {},
+			false,
+			channeltypes.ErrTimeoutNotReached,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
+
+			tokens := []transfertypes.Token{
+				{
+					Denom: transfertypes.Denom{
+						Base:  sdk.DefaultBondDenom,
+						Trace: nil,
+					},
+					Amount: ibctesting.DefaultCoinAmount.String(),
+				},
+			}
+
+			ftpd := transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
+			bz := suite.chainA.Codec.MustMarshal(&ftpd)
+
+			timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
+			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "json", bz)
+
+			var err error
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
+			suite.Require().NoError(err)
+
+			if tc.timeoutPacket {
+				suite.coordinator.IncrementTimeBy(time.Hour * 2)
+			}
+
+			// ensure that chainA has an update to date client of chain B.
+			suite.Require().NoError(path.EndpointA.UpdateClient())
+
+			tc.malleate()
+
+			err = path.EndpointA.MsgTimeoutPacket(packet)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+
+				// ensure funds are un-escrowed
+				for _, t := range tokens {
+					escrowedAmount := suite.chainA.GetSimApp().TransferKeeperV2.GetTotalEscrowForDenom(suite.chainA.GetContext(), t.Denom.IBCDenom())
+					suite.Require().Equal(sdk.NewCoin(t.Denom.IBCDenom(), sdkmath.NewInt(0)), escrowedAmount, "escrowed amount is not equal to expected amount")
+				}
+
+			} else {
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q but got %q", tc.expError, err)
+				// tokens remain escrowed if there is a timeout failure
+				for _, t := range tokens {
+					escrowedAmount := suite.chainA.GetSimApp().TransferKeeperV2.GetTotalEscrowForDenom(suite.chainA.GetContext(), t.Denom.IBCDenom())
+					expected, err := t.ToCoin()
+					suite.Require().NoError(err)
+					suite.Require().Equal(expected, escrowedAmount, "escrowed amount is not equal to expected amount")
+				}
 			}
 		})
 	}

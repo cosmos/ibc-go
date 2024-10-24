@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	transferv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2"
-
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cast"

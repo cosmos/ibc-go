@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"testing"
-
 	testifysuite "github.com/stretchr/testify/suite"
 
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
