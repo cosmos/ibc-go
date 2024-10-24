@@ -20,6 +20,13 @@ type Keeper struct {
 	channelKeeperV2 *channelkeeperv2.Keeper
 }
 
+func NewKeeper(transferKeeper transferkeeper.Keeper, channelKeeperV2 *channelkeeperv2.Keeper) *Keeper {
+	return &Keeper{
+		Keeper:          transferKeeper,
+		channelKeeperV2: channelKeeperV2,
+	}
+}
+
 func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload channeltypesv2.Payload, data types.FungibleTokenPacketDataV2, sender sdk.AccAddress) error {
 	for _, token := range data.Tokens {
 		coin, err := token.ToCoin()

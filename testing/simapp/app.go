@@ -3,6 +3,7 @@ package simapp
 import (
 	"encoding/json"
 	"fmt"
+	transferv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2"
 	"io"
 	"os"
 	"path/filepath"
@@ -96,6 +97,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	ibctransferkeeperv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/keeper"
 	ibc "github.com/cosmos/ibc-go/v9/modules/core"
 	ibcclienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
@@ -168,6 +170,7 @@ type SimApp struct {
 	ICAControllerKeeper   icacontrollerkeeper.Keeper
 	ICAHostKeeper         icahostkeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
+	TransferKeeperV2      *ibctransferkeeperv2.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
 	// make IBC modules public for test purposes
@@ -483,6 +486,10 @@ func NewSimApp(
 	mockV2B := mockv2.NewIBCModule()
 	ibcRouterV2.AddRoute(mockv2.ModuleNameB, mockV2B)
 	app.MockModuleV2B = mockV2B
+
+	// register the transfer v2 module.
+	app.TransferKeeperV2 = ibctransferkeeperv2.NewKeeper(app.TransferKeeper, app.IBCKeeper.ChannelKeeperV2)
+	ibcRouterV2.AddRoute(ibctransfertypes.ModuleName, transferv2.NewIBCModule(app.TransferKeeperV2))
 
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)

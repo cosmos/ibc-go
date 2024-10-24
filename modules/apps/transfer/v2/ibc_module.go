@@ -22,14 +22,14 @@ var (
 const sequence = 1
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(keeper keeper.Keeper) IBCModule {
-	return IBCModule{
+func NewIBCModule(keeper *keeper.Keeper) *IBCModule {
+	return &IBCModule{
 		keeper: keeper,
 	}
 }
 
 type IBCModule struct {
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, signer sdk.AccAddress) error {
