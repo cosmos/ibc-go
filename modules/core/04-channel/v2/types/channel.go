@@ -7,17 +7,17 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
-// NewChannel creates a new Channel instance
-func NewChannel(clientID, counterpartyChannelID string, merklePathPrefix commitmenttypes.MerklePath) Channel {
-	return Channel{
+// NewChannel creates a new ChannelEnd instance
+func NewChannel(clientID, counterpartyChannelID string, merklePathPrefix commitmenttypes.MerklePath) ChannelEnd {
+	return ChannelEnd{
 		ClientId:              clientID,
 		CounterpartyChannelId: counterpartyChannelID,
 		MerklePathPrefix:      merklePathPrefix,
 	}
 }
 
-// Validate validates the Channel
-func (c Channel) Validate() error {
+// Validate validates the ChannelEnd
+func (c ChannelEnd) Validate() error {
 	if err := host.ClientIdentifierValidator(c.ClientId); err != nil {
 		return err
 	}

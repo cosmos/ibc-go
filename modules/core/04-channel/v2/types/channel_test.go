@@ -7,7 +7,7 @@ import (
 )
 
 func (s *TypesTestSuite) TestValidateChannel() {
-	var c types.Channel
+	var c types.ChannelEnd
 	testCases := []struct {
 		name     string
 		malleate func()

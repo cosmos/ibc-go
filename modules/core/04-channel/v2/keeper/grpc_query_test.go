@@ -16,7 +16,7 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 	var (
 		req        *types.QueryChannelRequest
 		expCreator string
-		expChannel types.Channel
+		expChannel types.ChannelEnd
 	)
 
 	testCases := []struct {
@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 		{
 			"success: no channel",
 			func() {
-				expChannel = types.Channel{}
+				expChannel = types.ChannelEnd{}
 
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetCreator(suite.chainA.GetContext(), ibctesting.FirstChannelID, expCreator)
 
@@ -96,7 +96,7 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 
 			expCreator = ibctesting.TestAccAddress
 			merklePathPrefix := commitmenttypes.NewMerklePath([]byte("prefix"))
-			expChannel = types.Channel{ClientId: ibctesting.SecondClientID, CounterpartyChannelId: ibctesting.SecondChannelID, MerklePathPrefix: merklePathPrefix}
+			expChannel = types.ChannelEnd{ClientId: ibctesting.SecondClientID, CounterpartyChannelId: ibctesting.SecondChannelID, MerklePathPrefix: merklePathPrefix}
 
 			tc.malleate()
 

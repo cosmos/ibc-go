@@ -103,7 +103,7 @@ func (suite *KeeperTestSuite) TestAliasV1Channel() {
 				suite.Require().Equal(channel, expChannel)
 			} else {
 				suite.Require().False(found)
-				suite.Require().Equal(channel, channeltypes2.Channel{})
+				suite.Require().Equal(channel, channeltypes2.ChannelEnd{})
 			}
 		})
 	}
@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestAliasV1Channel() {
 
 func (suite *KeeperTestSuite) TestSetChannel() {
 	merklePathPrefix := commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
-	channel := channeltypes2.Channel{
+	channel := channeltypes2.ChannelEnd{
 		ClientId:         ibctesting.FirstClientID,
 		MerklePathPrefix: merklePathPrefix,
 	}
@@ -124,7 +124,7 @@ func (suite *KeeperTestSuite) TestSetChannel() {
 	// No channel stored under other channel identifier.
 	retrievedChannel, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetChannel(suite.chainA.GetContext(), ibctesting.SecondChannelID)
 	suite.Require().False(found, "GetChannel unexpectedly returned a channel")
-	suite.Require().Equal(channeltypes2.Channel{}, retrievedChannel, "Channel retrieved not empty")
+	suite.Require().Equal(channeltypes2.ChannelEnd{}, retrievedChannel, "Channel retrieved not empty")
 }
 
 func (suite *KeeperTestSuite) TestSetCreator() {

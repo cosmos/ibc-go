@@ -61,20 +61,20 @@ func (k Keeper) ChannelStore(ctx context.Context, channelID string) storetypes.K
 }
 
 // SetChannel sets the Channel for a given channel identifier.
-func (k *Keeper) SetChannel(ctx context.Context, channelID string, channel types.Channel) {
+func (k *Keeper) SetChannel(ctx context.Context, channelID string, channel types.ChannelEnd) {
 	bz := k.cdc.MustMarshal(&channel)
 	k.ChannelStore(ctx, channelID).Set([]byte(types.ChannelKey), bz)
 }
 
 // GetChannel gets the Channel for a given channel identifier.
-func (k *Keeper) GetChannel(ctx context.Context, channelID string) (types.Channel, bool) {
+func (k *Keeper) GetChannel(ctx context.Context, channelID string) (types.ChannelEnd, bool) {
 	store := k.ChannelStore(ctx, channelID)
 	bz := store.Get([]byte(types.ChannelKey))
 	if len(bz) == 0 {
-		return types.Channel{}, false
+		return types.ChannelEnd{}, false
 	}
 
-	var channel types.Channel
+	var channel types.ChannelEnd
 	k.cdc.MustUnmarshal(bz, &channel)
 	return channel, true
 }
@@ -215,23 +215,23 @@ func (k *Keeper) SetNextSequenceSend(ctx context.Context, channelID string, sequ
 
 // AliasV1Channel returns a version 2 channel for the given port and channel ID
 // by converting the channel into a version 2 channel.
-func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.Channel, bool) {
+func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.ChannelEnd, bool) {
 	channel, ok := k.channelKeeperV1.GetChannel(ctx, portID, channelID)
 	if !ok {
-		return types.Channel{}, false
+		return types.ChannelEnd{}, false
 	}
 	// Do not allow channel to be converted into a version 2 channel
 	// if the channel is not OPEN or if it is ORDERED
 	if channel.State != channeltypesv1.OPEN || channel.Ordering == channeltypesv1.ORDERED {
-		return types.Channel{}, false
+		return types.ChannelEnd{}, false
 	}
 	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !ok {
-		return types.Channel{}, false
+		return types.ChannelEnd{}, false
 	}
 	merklePathPrefix := commitmentv2types.NewMerklePath(connection.Counterparty.Prefix.KeyPrefix, []byte(""))
 
-	channelv2 := types.Channel{
+	channelv2 := types.ChannelEnd{
 		CounterpartyChannelId: channel.Counterparty.ChannelId,
 		ClientId:              connection.ClientId,
 		MerklePathPrefix:      merklePathPrefix,
@@ -241,12 +241,12 @@ func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (
 
 // convertV1Channel attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
 // to a v2 counterparty and stores it in the v2 channel keeper for future use
-func (k *Keeper) convertV1Channel(ctx context.Context, port, id string) (types.Channel, bool) {
+func (k *Keeper) convertV1Channel(ctx context.Context, port, id string) (types.ChannelEnd, bool) {
 	if channel, ok := k.AliasV1Channel(ctx, port, id); ok {
 		// we can key on just the channel here since channel ids are globally unique
 		k.SetChannel(ctx, id, channel)
 		return channel, true
 	}
 
-	return types.Channel{}, false
+	return types.ChannelEnd{}, false
 }
