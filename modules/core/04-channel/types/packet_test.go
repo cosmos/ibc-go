@@ -44,28 +44,27 @@ func TestCommitPacket(t *testing.T) {
 	}{
 		{
 			name:   "diff data",
-			packet: types.NewPacket(diffValidPackedData, 0, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp),
+			packet: types.NewPacket(diffValidPackedData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp),
 		},
 		{
 			name:   "diff timeout revision number",
-			packet: types.NewPacket(validPacketData, 0, portid, chanid, cpportid, cpchanid, diffHeightRevisionNumber, timeoutTimestamp),
+			packet: types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, diffHeightRevisionNumber, timeoutTimestamp),
 		},
 		{
 			name:   "diff timeout revision height",
-			packet: types.NewPacket(validPacketData, 0, portid, chanid, cpportid, cpchanid, diffHeightRevisionHeight, timeoutTimestamp),
+			packet: types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, diffHeightRevisionHeight, timeoutTimestamp),
 		},
 		{
 			name:   "diff timeout timestamp",
-			packet: types.NewPacket(validPacketData, 0, portid, chanid, cpportid, cpchanid, timeoutHeight, diffTimeout),
+			packet: types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, diffTimeout),
 		},
 		{
 			name:   "diff every field",
-			packet: types.NewPacket(diffValidPackedData, 0, portid, chanid, cpportid, cpchanid, diffHeightRevision, diffTimeout),
+			packet: types.NewPacket(diffValidPackedData, 1, portid, chanid, cpportid, cpchanid, diffHeightRevision, diffTimeout),
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		commitment := types.CommitPacket(cdc, tc.packet)
 		require.NotNil(t, commitment)
 		require.False(t, string(commitment) == string(baseCommitment), tc.name)
@@ -91,8 +90,6 @@ func TestPacketValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		tc := tc
-
 		err := tc.packet.ValidateBasic()
 		if tc.expPass {
 			require.NoError(t, err, "Msg %d failed: %s", i, tc.errMsg)
