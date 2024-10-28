@@ -13,5 +13,6 @@ var (
 	ErrInvalidAcknowledgement   = errorsmod.Register(SubModuleName, 7, "invalid acknowledgement")
 	ErrPacketCommitmentNotFound = errorsmod.Register(SubModuleName, 8, "packet commitment not found")
 	ErrAcknowledgementNotFound  = errorsmod.Register(SubModuleName, 9, "packet acknowledgement not found")
-	ErrInvalidTimeout           = errorsmod.Register(SubModuleName, 10, "timeout exceeds max allowed value")
+	ErrMaxTimeoutDeltaExceeded  = errorsmod.Register(SubModuleName, 10, "timeoutTimestamp exceeds max allowed value")
+	ErrTimeoutTooLow            = errorsmod.Register(SubModuleName, 11, "timeoutTimestamp is less than current block timestamp")
 )
