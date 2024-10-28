@@ -122,7 +122,6 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 				// ensure a message timeout.
 				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Unix()) + channeltypesv2.MaxTimeout - 10
 				expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, payload)
-
 			},
 			expError: nil,
 		},
