@@ -13,7 +13,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
-const MaxTimeout uint64 = 86400 // 24h in seconds
+const MaxTimeoutDelta uint64 = 24 * 60 * 60 // 24h in seconds
 
 var (
 	_ sdk.Msg              = (*MsgCreateChannel)(nil)
