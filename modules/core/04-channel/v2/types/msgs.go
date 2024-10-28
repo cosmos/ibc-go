@@ -13,6 +13,8 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
+const MaxTimeout uint64 = 86400 // 24h in seconds
+
 var (
 	_ sdk.Msg              = (*MsgCreateChannel)(nil)
 	_ sdk.HasValidateBasic = (*MsgCreateChannel)(nil)

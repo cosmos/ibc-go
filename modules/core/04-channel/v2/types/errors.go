@@ -13,4 +13,5 @@ var (
 	ErrInvalidAcknowledgement   = errorsmod.Register(SubModuleName, 7, "invalid acknowledgement")
 	ErrPacketCommitmentNotFound = errorsmod.Register(SubModuleName, 8, "packet commitment not found")
 	ErrAcknowledgementNotFound  = errorsmod.Register(SubModuleName, 9, "packet acknowledgement not found")
+	ErrInvalidTimeout           = errorsmod.Register(SubModuleName, 10, "invalid channel")
 )
