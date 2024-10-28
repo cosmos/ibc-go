@@ -70,9 +70,15 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceChannel)
 	}
 
-	// Note, the validate basic function in sendPacket does the TimeoutTimestamp != 0 check and other stateless checks on the packet.
-	if uint64(sdkCtx.BlockTime().Unix()) > msg.TimeoutTimestamp || msg.TimeoutTimestamp > uint64(sdkCtx.BlockTime().Unix())+channeltypesv2.MaxTimeout {
-		return nil, errorsmod.Wrap(channeltypesv2.ErrInvalidTimeout, "The timeout exceeds the maximum expected value")
+	// Note, the validate basic function in sendPacket does the timeoutTimestamp != 0 check and other stateless checks on the packet.
+	// timeoutTimestamp must be less than current block time + MaxTimeoutDelta
+	if msg.TimeoutTimestamp > uint64(sdkCtx.BlockTime().Unix())+channeltypesv2.MaxTimeoutDelta {
+		return nil, errorsmod.Wrap(channeltypesv2.ErrMaxTimeoutDeltaExceeded, "timeout exceeds the maximum expected value")
+	}
+
+	// timeoutTimestamp must be greater than current block time
+	if uint64(sdkCtx.BlockTime().Unix()) > msg.TimeoutTimestamp {
+		return nil, errorsmod.Wrap(channeltypesv2.ErrTimeoutTooLow, "timeout is less than the current block timestamp")
 	}
 
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
