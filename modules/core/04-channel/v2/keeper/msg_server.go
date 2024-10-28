@@ -63,10 +63,16 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *channeltypesv2
 // SendPacket defines a rpc handler method for MsgSendPacket.
 func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceChannel, msg.TimeoutTimestamp, msg.Payloads)
 	if err != nil {
 		sdkCtx.Logger().Error("send packet failed", "source-channel", msg.SourceChannel, "error", errorsmod.Wrap(err, "send packet failed"))
 		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceChannel)
+	}
+
+	// Note, the validate basic function in sendPacket does the TimeoutTimestamp != 0 check and other stateless checks on the packet.
+	if uint64(sdkCtx.BlockTime().Unix()) > msg.TimeoutTimestamp || msg.TimeoutTimestamp > uint64(sdkCtx.BlockTime().Unix())+channeltypesv2.MaxTimeout {
+		return nil, errorsmod.Wrap(channeltypesv2.ErrInvalidTimeout, "The timeout exceeds the maximum expected value")
 	}
 
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
