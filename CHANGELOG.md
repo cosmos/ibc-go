@@ -57,6 +57,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/transfer) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) The following functions have been removed: `BindPort`, `AuthenticateCapability`, `ClaimCapability`
 * (capability) [\#7279](https://github.com/cosmos/ibc-go/pull/7279) The module `capability` has been removed.
 * (testing) [\#7305](https://github.com/cosmos/ibc-go/pull/7305) Added `TrustedValidators` map to `TestChain`. This removes the dependency on the `x/staking` module for retrieving trusted validator sets at a given height, and removes the `GetTrustedValidators` method from the `TestChain` struct.
+* (23-commitment) [\#7486](https://github.com/cosmos/ibc-go/pull/7486) Remove unimplemented `BatchVerifyMembership` and `BatchVerifyNonMembership` functions
 
 ### State Machine Breaking
 
