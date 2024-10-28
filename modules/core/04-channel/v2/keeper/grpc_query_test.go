@@ -15,7 +15,6 @@ import (
 func (suite *KeeperTestSuite) TestQueryChannel() {
 	var (
 		req        *types.QueryChannelRequest
-		expCreator string
 		expChannel types.Channel
 	)
 
@@ -28,34 +27,7 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 			"success",
 			func() {
 				ctx := suite.chainA.GetContext()
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetCreator(ctx, ibctesting.FirstChannelID, expCreator)
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(ctx, ibctesting.FirstChannelID, expChannel)
-
-				req = &types.QueryChannelRequest{
-					ChannelId: ibctesting.FirstChannelID,
-				}
-			},
-			nil,
-		},
-		{
-			"success: no creator",
-			func() {
-				expCreator = ""
-
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(suite.chainA.GetContext(), ibctesting.FirstChannelID, expChannel)
-
-				req = &types.QueryChannelRequest{
-					ChannelId: ibctesting.FirstChannelID,
-				}
-			},
-			nil,
-		},
-		{
-			"success: no channel",
-			func() {
-				expChannel = types.Channel{}
-
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetCreator(suite.chainA.GetContext(), ibctesting.FirstChannelID, expCreator)
 
 				req = &types.QueryChannelRequest{
 					ChannelId: ibctesting.FirstChannelID,
@@ -71,20 +43,20 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
-			"no creator and no channel",
+			"invalid channelID",
+			func() {
+				req = &types.QueryChannelRequest{}
+			},
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
+		},
+		{
+			"channel not found",
 			func() {
 				req = &types.QueryChannelRequest{
 					ChannelId: ibctesting.FirstChannelID,
 				}
 			},
 			status.Error(codes.NotFound, fmt.Sprintf("channel-id: %s: channel not found", ibctesting.FirstChannelID)),
-		},
-		{
-			"invalid channelID",
-			func() {
-				req = &types.QueryChannelRequest{}
-			},
-			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
 		},
 	}
 
@@ -94,7 +66,6 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
-			expCreator = ibctesting.TestAccAddress
 			merklePathPrefix := commitmenttypes.NewMerklePath([]byte("prefix"))
 			expChannel = types.Channel{ClientId: ibctesting.SecondClientID, CounterpartyChannelId: ibctesting.SecondChannelID, MerklePathPrefix: merklePathPrefix}
 
@@ -107,7 +78,6 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(expCreator, res.Creator)
 				suite.Require().Equal(expChannel, res.Channel)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)

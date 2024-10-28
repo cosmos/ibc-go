@@ -34,8 +34,8 @@ message QueryChannelRequest {
 
 // QueryChannelRequest is the response type for the Query/Channel RPC method
 message QueryChannelResponse {
-  string  creator = 1;
-  Channel channel = 2 [(gogoproto.nullable) = false];
+  // the channel associated with the provided channel id
+  Channel channel = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryPacketCommitmentRequest is the request type for the Query/PacketCommitment RPC method.
