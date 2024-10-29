@@ -4,6 +4,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -432,4 +433,139 @@ func (suite *KeeperTestSuite) TestMsgTimeoutPacketTransfer() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
+	suite.SetupTest()
+
+	path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+	path.Setup()
+
+	pathv2 := ibctesting.NewPath(suite.chainB, suite.chainC)
+	pathv2.SetupV2()
+
+	denom := transfertypes.NewDenom(ibctesting.TestCoin.Denom)
+	coins := sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+
+	transferMsg := transfertypes.NewMsgTransfer(
+		path.EndpointA.ChannelConfig.PortID,
+		path.EndpointA.ChannelID,
+		coins,
+		suite.chainA.SenderAccount.GetAddress().String(),
+		suite.chainB.SenderAccount.GetAddress().String(),
+		clienttypes.ZeroHeight(),
+		suite.chainA.GetTimeoutTimestamp(),
+		"memo",
+		nil,
+	)
+
+	result, err := suite.chainA.SendMsgs(transferMsg)
+	suite.Require().NoError(err) // message committed
+
+	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+
+	err = path.RelayPacket(packet)
+	suite.Require().NoError(err)
+
+	tokens := []transfertypes.Token{
+		{
+			Denom: transfertypes.Denom{
+				Base:  sdk.DefaultBondDenom,
+				Trace: []transfertypes.Hop{transfertypes.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)},
+			},
+			Amount: ibctesting.DefaultCoinAmount.String(),
+		},
+	}
+
+	ftpd := transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
+	bz := suite.chainB.Codec.MustMarshal(&ftpd)
+
+	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
+	payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "json", bz)
+
+	packetv2, err := pathv2.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
+	suite.Require().NoError(err)
+
+	err = pathv2.EndpointB.MsgRecvPacket(packetv2)
+	suite.Require().NoError(err)
+
+	ack := channeltypesv2.Acknowledgement{AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
+		{
+			AppName: transfertypes.ModuleName,
+			RecvPacketResult: channeltypesv2.RecvPacketResult{
+				Status:          channeltypesv2.PacketStatus_Success,
+				Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
+			},
+		},
+	}}
+
+	err = pathv2.EndpointA.MsgAcknowledgePacket(packetv2, ack)
+	suite.Require().NoError(err)
+
+	// send from C to B
+	tokens = []transfertypes.Token{
+		{
+			Denom: transfertypes.Denom{
+				Base: sdk.DefaultBondDenom,
+				Trace: []transfertypes.Hop{
+					transfertypes.NewHop(transfertypes.ModuleName, pathv2.EndpointB.ChannelID),
+					transfertypes.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID),
+				},
+			},
+			Amount: ibctesting.DefaultCoinAmount.String(),
+		},
+	}
+
+	ftpd = transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
+	bz = suite.chainC.Codec.MustMarshal(&ftpd)
+
+	timeoutTimestamp = uint64(suite.chainC.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
+	payload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "json", bz)
+
+	packetv2, err = pathv2.EndpointB.MsgSendPacket(timeoutTimestamp, payload)
+	suite.Require().NoError(err)
+
+	err = pathv2.EndpointA.MsgRecvPacket(packetv2)
+	suite.Require().NoError(err)
+
+	ack = channeltypesv2.Acknowledgement{AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
+		{
+			AppName: transfertypes.ModuleName,
+			RecvPacketResult: channeltypesv2.RecvPacketResult{
+				Status:          channeltypesv2.PacketStatus_Success,
+				Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
+			},
+		},
+	}}
+
+	err = pathv2.EndpointB.MsgAcknowledgePacket(packetv2, ack)
+	suite.Require().NoError(err)
+
+	// send from B to A using MsgTransfer
+	denom = transfertypes.NewDenom(ibctesting.TestCoin.Denom, transfertypes.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+	coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+
+	transferMsg = transfertypes.NewMsgTransfer(
+		path.EndpointB.ChannelConfig.PortID,
+		path.EndpointB.ChannelID,
+		coins,
+		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.chainA.SenderAccount.GetAddress().String(),
+		clienttypes.ZeroHeight(),
+		suite.chainB.GetTimeoutTimestamp(),
+		"memo",
+		nil,
+	)
+
+	result, err = suite.chainB.SendMsgs(transferMsg)
+	suite.Require().NoError(err) // message committed
+
+	packet, err = ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+
+	// in order to recv in the other direction, we create a new path and recv
+	// on that with the endpoints reversed.
+	err = path.Reversed().RelayPacket(packet)
+	suite.Require().NoError(err)
 }
