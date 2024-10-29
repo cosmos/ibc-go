@@ -120,7 +120,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 		// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 		cacheCtx, writeFn = sdkCtx.CacheContext()
 		cb := k.Router.Route(pd.DestinationPort)
-		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, pd, signer)
+		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, msg.Packet.Sequence, pd, signer)
 
 		if res.Status != channeltypesv2.PacketStatus_Failure {
 			// write application state changes for asynchronous and successful acknowledgements

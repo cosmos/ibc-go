@@ -146,7 +146,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				// a failed ack should be returned by the application.
 				expectedAck.AcknowledgementResults[0].RecvPacketResult = failedRecvResult
 
-				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 					return failedRecvResult
 				}
 			},
@@ -162,7 +162,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				// an async ack should be returned by the application.
 				expectedAck.AcknowledgementResults[0].RecvPacketResult = asyncResult
 
-				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 					return asyncResult
 				}
 			},

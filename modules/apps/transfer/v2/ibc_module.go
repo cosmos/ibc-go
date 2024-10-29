@@ -19,9 +19,6 @@ import (
 
 var _ api.IBCModule = (*IBCModule)(nil)
 
-// TODO: pass sequence as argument to OnRecvPacket
-const sequence = 1
-
 // NewIBCModule creates a new IBCModule given the keeper
 func NewIBCModule(keeper *keeper.Keeper) *IBCModule {
 	return &IBCModule{
@@ -52,7 +49,7 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 	return im.keeper.OnSendPacket(ctx, sourceChannel, payload, data, signer)
 }
 
-func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, payload types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
+func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
 	var (
 		ackErr error
 		data   transfertypes.FungibleTokenPacketDataV2

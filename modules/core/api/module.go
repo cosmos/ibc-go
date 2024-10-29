@@ -27,6 +27,7 @@ type IBCModule interface {
 		ctx context.Context,
 		sourceChannel string,
 		destinationChannel string,
+		sequence uint64,
 		data channeltypesv2.Payload,
 		relayer sdk.AccAddress,
 	) channeltypesv2.RecvPacketResult

@@ -38,9 +38,9 @@ func (im IBCModule) OnSendPacket(ctx context.Context, sourceChannel string, dest
 	return nil
 }
 
-func (im IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+func (im IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 	if im.IBCApp.OnRecvPacket != nil {
-		return im.IBCApp.OnRecvPacket(ctx, sourceChannel, destinationChannel, data, relayer)
+		return im.IBCApp.OnRecvPacket(ctx, sourceChannel, destinationChannel, sequence, data, relayer)
 	}
 	return MockRecvPacketResult
 }
