@@ -44,7 +44,8 @@ func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
 		func(dt internaltypes.DenomTrace) (stop bool) {
 			// check if the metadata for the given denom trace does not already exist
 			if !m.keeper.bankKeeper.HasDenomMetaData(ctx, dt.IBCDenom()) {
-				m.keeper.setDenomMetadataWithDenomTrace(ctx, dt)
+				denom := m.keeper.bankKeeper.GetDenomMetaData(ctx, dt.IBCDenom())
+				m.keeper.setDenomMetadataWithDenomTrace(ctx, dt, denom)
 			}
 			return false
 		})
@@ -146,15 +147,19 @@ func (k Keeper) iterateDenomTraces(ctx context.Context, cb func(denomTrace inter
 }
 
 // setDenomMetadataWithDenomTrace sets an IBC token's denomination metadata
-func (k Keeper) setDenomMetadataWithDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
+func (k Keeper) setDenomMetadataWithDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace, denomMetadata banktypes.Metadata) {
+	var du = make([]*banktypes.DenomUnit, 0, len(denomMetadata.DenomUnits))
+
+	for _, dunit := range denomMetadata.DenomUnits {
+		du = append(du, &banktypes.DenomUnit{
+			Denom:    dunit.Denom,
+			Exponent: dunit.Exponent,
+			Aliases:  dunit.Aliases,
+		})
+	}
 	metadata := banktypes.Metadata{
 		Description: fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath()),
-		DenomUnits: []*banktypes.DenomUnit{
-			{
-				Denom:    denomTrace.BaseDenom,
-				Exponent: 0,
-			},
-		},
+		DenomUnits:  du,
 		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
 		// Base as key path and the IBC hash is what gives this token uniqueness
 		// on the executing chain
