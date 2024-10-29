@@ -10,9 +10,8 @@ func NewQueryChannelRequest(channelID string) *QueryChannelRequest {
 }
 
 // NewQueryChannelResponse creates and returns a new channel query response.
-func NewQueryChannelResponse(creator string, channel Channel) *QueryChannelResponse {
+func NewQueryChannelResponse(channel Channel) *QueryChannelResponse {
 	return &QueryChannelResponse{
-		Creator: creator,
 		Channel: channel,
 	}
 }
