@@ -37,17 +37,12 @@ func (q *queryServer) Channel(ctx context.Context, req *types.QueryChannelReques
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	creator, foundCreator := q.GetCreator(ctx, req.ChannelId)
-	channel, foundChannel := q.GetChannel(ctx, req.ChannelId)
-
-	if !foundCreator && !foundChannel {
-		return nil, status.Error(
-			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", req.ChannelId).Error(),
-		)
+	channel, found := q.GetChannel(ctx, req.ChannelId)
+	if !found {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", req.ChannelId).Error())
 	}
 
-	return types.NewQueryChannelResponse(creator, channel), nil
+	return types.NewQueryChannelResponse(channel), nil
 }
 
 // PacketCommitment implements the Query/PacketCommitment gRPC method.

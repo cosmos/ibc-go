@@ -19,7 +19,7 @@ func getCmdQueryChannel() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "channel [channel-id]",
 		Short:   "Query the information of a channel.",
-		Long:    "Query the channel information (creator and channel) for the provided channel ID.",
+		Long:    "Query the channel information for the provided channel ID.",
 		Example: fmt.Sprintf("%s query %s %s channel [channel-id]", version.AppName, exported.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -39,6 +39,7 @@ func getCmdQueryChannel() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
