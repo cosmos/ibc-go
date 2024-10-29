@@ -1,15 +1,18 @@
 package keeper_test
 
 import (
+	"time"
+
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	"time"
 )
 
 // TestMsgSendPacketTransfer tests the MsgSendPacket rpc handler for the transfer v2 application.
@@ -476,112 +479,147 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 	originalAmount, ok := sdkmath.NewIntFromString(ibctesting.DefaultGenesisAccBalance)
 	suite.Require().True(ok)
 
-	transferMsg := transfertypes.NewMsgTransfer(
-		path.EndpointA.ChannelConfig.PortID,
-		path.EndpointA.ChannelID,
-		sdk.NewCoins(sdk.NewCoin(denomA.IBCDenom(), ibctesting.TestCoin.Amount)),
-		suite.chainA.SenderAccount.GetAddress().String(),
-		suite.chainB.SenderAccount.GetAddress().String(),
-		clienttypes.ZeroHeight(),
-		suite.chainA.GetTimeoutTimestamp(),
-		"memo",
-		nil,
-	)
+	suite.Run("between A and B", func() {
+		var packet channeltypes.Packet
+		suite.Run("transfer packet", func() {
+			transferMsg := transfertypes.NewMsgTransfer(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				sdk.NewCoins(sdk.NewCoin(denomA.IBCDenom(), ibctesting.TestCoin.Amount)),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+				clienttypes.ZeroHeight(),
+				suite.chainA.GetTimeoutTimestamp(),
+				"memo",
+				nil,
+			)
 
-	result, err := suite.chainA.SendMsgs(transferMsg)
-	suite.Require().NoError(err) // message committed
+			result, err := suite.chainA.SendMsgs(transferMsg)
+			suite.Require().NoError(err) // message committed
 
-	remainingAmount := originalAmount.Sub(ibctesting.DefaultCoinAmount)
-	suite.assertAmountOnChain(suite.chainA, balance, remainingAmount, denomA.IBCDenom())
+			remainingAmount := originalAmount.Sub(ibctesting.DefaultCoinAmount)
+			suite.assertAmountOnChain(suite.chainA, balance, remainingAmount, denomA.IBCDenom())
 
-	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
-	suite.Require().NoError(err)
+			packet, err = ibctesting.ParsePacketFromEvents(result.Events)
+			suite.Require().NoError(err)
+		})
 
-	err = path.RelayPacket(packet)
-	suite.Require().NoError(err)
+		suite.Run("recv and ack packet", func() {
+			err := path.RelayPacket(packet)
+			suite.Require().NoError(err)
+		})
+	})
 
-	tokens := []transfertypes.Token{
-		{
-			Denom:  denomAtoB,
-			Amount: ibctesting.DefaultCoinAmount.String(),
-		},
-	}
+	suite.Run("between B and C", func() {
+		var packetV2 channeltypesv2.Packet
 
-	ftpd := transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
-	bz := suite.chainB.Codec.MustMarshal(&ftpd)
+		suite.Run("send packet", func() {
+			tokens := []transfertypes.Token{
+				{
+					Denom:  denomAtoB,
+					Amount: ibctesting.DefaultCoinAmount.String(),
+				},
+			}
 
-	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
-	payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "json", bz)
+			ftpd := transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainB.SenderAccount.GetAddress().String(), suite.chainC.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
+			bz := suite.chainB.Codec.MustMarshal(&ftpd)
 
-	packetv2, err := pathv2.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
-	suite.Require().NoError(err)
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
+			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "json", bz)
 
-	// the escrow account on chain B should have escrowed the tokens after sending from B to C
-	suite.assertAmountOnChain(suite.chainB, escrow, ibctesting.DefaultCoinAmount, denomAtoB.IBCDenom())
+			var err error
+			packetV2, err = pathv2.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
+			suite.Require().NoError(err)
+			// the escrow account on chain B should have escrowed the tokens after sending from B to C
+			suite.assertAmountOnChain(suite.chainB, escrow, ibctesting.DefaultCoinAmount, denomAtoB.IBCDenom())
+		})
 
-	err = pathv2.EndpointB.MsgRecvPacket(packetv2)
-	suite.Require().NoError(err)
+		suite.Run("recv packet", func() {
+			err := pathv2.EndpointB.MsgRecvPacket(packetV2)
+			suite.Require().NoError(err)
 
-	// the receiving chain should have received the tokens
-	suite.assertAmountOnChain(suite.chainC, balance, ibctesting.DefaultCoinAmount, denomBtoC.IBCDenom())
+			// the receiving chain should have received the tokens
+			suite.assertAmountOnChain(suite.chainC, balance, ibctesting.DefaultCoinAmount, denomBtoC.IBCDenom())
+		})
 
-	err = pathv2.EndpointA.MsgAcknowledgePacket(packetv2, successfulAck)
-	suite.Require().NoError(err)
+		suite.Run("ack packet", func() {
+			err := pathv2.EndpointA.MsgAcknowledgePacket(packetV2, successfulAck)
+			suite.Require().NoError(err)
+		})
+	})
 
-	// send from C to B
-	tokens = []transfertypes.Token{
-		{
-			Denom:  denomBtoC,
-			Amount: ibctesting.DefaultCoinAmount.String(),
-		},
-	}
+	suite.Run("between C and B", func() {
+		var packetV2 channeltypesv2.Packet
 
-	ftpd = transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
-	bz = suite.chainC.Codec.MustMarshal(&ftpd)
+		suite.Run("send packet", func() {
+			// send from C to B
+			tokens := []transfertypes.Token{
+				{
+					Denom:  denomBtoC,
+					Amount: ibctesting.DefaultCoinAmount.String(),
+				},
+			}
 
-	timeoutTimestamp = uint64(suite.chainC.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
-	payload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "json", bz)
+			ftpd := transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainC.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
+			bz := suite.chainC.Codec.MustMarshal(&ftpd)
 
-	packetv2, err = pathv2.EndpointB.MsgSendPacket(timeoutTimestamp, payload)
-	suite.Require().NoError(err)
+			timeoutTimestamp := uint64(suite.chainC.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
+			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "json", bz)
 
-	// tokens have been sent from chain C, and the balance is now empty.
-	suite.assertAmountOnChain(suite.chainC, balance, sdkmath.NewInt(0), denomBtoC.IBCDenom())
+			var err error
+			packetV2, err = pathv2.EndpointB.MsgSendPacket(timeoutTimestamp, payload)
+			suite.Require().NoError(err)
 
-	err = pathv2.EndpointA.MsgRecvPacket(packetv2)
-	suite.Require().NoError(err)
+			// tokens have been sent from chain C, and the balance is now empty.
+			suite.assertAmountOnChain(suite.chainC, balance, sdkmath.NewInt(0), denomBtoC.IBCDenom())
+		})
 
-	// chain B should have received the tokens from chain C.
-	suite.assertAmountOnChain(suite.chainB, balance, ibctesting.DefaultCoinAmount, denomAtoB.IBCDenom())
+		suite.Run("recv packet", func() {
+			err := pathv2.EndpointA.MsgRecvPacket(packetV2)
+			suite.Require().NoError(err)
 
-	err = pathv2.EndpointB.MsgAcknowledgePacket(packetv2, successfulAck)
-	suite.Require().NoError(err)
+			// chain B should have received the tokens from chain C.
+			suite.assertAmountOnChain(suite.chainB, balance, ibctesting.DefaultCoinAmount, denomAtoB.IBCDenom())
+		})
 
-	// send from B to A using MsgTransfer
-	transferMsg = transfertypes.NewMsgTransfer(
-		path.EndpointB.ChannelConfig.PortID,
-		path.EndpointB.ChannelID,
-		sdk.NewCoins(sdk.NewCoin(denomAtoB.IBCDenom(), ibctesting.TestCoin.Amount)),
-		suite.chainB.SenderAccount.GetAddress().String(),
-		suite.chainA.SenderAccount.GetAddress().String(),
-		clienttypes.ZeroHeight(),
-		suite.chainB.GetTimeoutTimestamp(),
-		"memo",
-		nil,
-	)
+		suite.Run("ack packet", func() {
+			err := pathv2.EndpointB.MsgAcknowledgePacket(packetV2, successfulAck)
+			suite.Require().NoError(err)
+		})
+	})
 
-	result, err = suite.chainB.SendMsgs(transferMsg)
-	suite.Require().NoError(err) // message committed
+	suite.Run("between B and A", func() {
+		var packet channeltypes.Packet
 
-	suite.assertAmountOnChain(suite.chainB, balance, sdkmath.NewInt(0), denomAtoB.IBCDenom())
+		suite.Run("transfer packet", func() {
+			// send from B to A using MsgTransfer
+			transferMsg := transfertypes.NewMsgTransfer(
+				path.EndpointB.ChannelConfig.PortID,
+				path.EndpointB.ChannelID,
+				sdk.NewCoins(sdk.NewCoin(denomAtoB.IBCDenom(), ibctesting.TestCoin.Amount)),
+				suite.chainB.SenderAccount.GetAddress().String(),
+				suite.chainA.SenderAccount.GetAddress().String(),
+				clienttypes.ZeroHeight(),
+				suite.chainB.GetTimeoutTimestamp(),
+				"memo",
+				nil,
+			)
 
-	packet, err = ibctesting.ParsePacketFromEvents(result.Events)
-	suite.Require().NoError(err)
+			result, err := suite.chainB.SendMsgs(transferMsg)
+			suite.Require().NoError(err) // message committed
 
-	// in order to recv in the other direction, we create a new path and recv
-	// on that with the endpoints reversed.
-	err = path.Reversed().RelayPacket(packet)
-	suite.Require().NoError(err)
+			suite.assertAmountOnChain(suite.chainB, balance, sdkmath.NewInt(0), denomAtoB.IBCDenom())
 
-	suite.assertAmountOnChain(suite.chainA, balance, originalAmount, denomA.IBCDenom())
+			packet, err = ibctesting.ParsePacketFromEvents(result.Events)
+			suite.Require().NoError(err)
+		})
+		suite.Run("recv and ack packet", func() {
+			// in order to recv in the other direction, we create a new path and recv
+			// on that with the endpoints reversed.
+			err := path.Reversed().RelayPacket(packet)
+			suite.Require().NoError(err)
+
+			suite.assertAmountOnChain(suite.chainA, balance, originalAmount, denomA.IBCDenom())
+		})
+	})
 }
