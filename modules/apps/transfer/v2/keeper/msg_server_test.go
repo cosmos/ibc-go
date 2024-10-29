@@ -444,13 +444,42 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 	pathv2 := ibctesting.NewPath(suite.chainB, suite.chainC)
 	pathv2.SetupV2()
 
-	denom := transfertypes.NewDenom(ibctesting.TestCoin.Denom)
-	coins := sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+	denomA := transfertypes.Denom{
+		Base: sdk.DefaultBondDenom,
+	}
+
+	denomAtoB := transfertypes.Denom{
+		Base: sdk.DefaultBondDenom,
+		Trace: []transfertypes.Hop{
+			transfertypes.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID),
+		},
+	}
+
+	denomBtoC := transfertypes.Denom{
+		Base: sdk.DefaultBondDenom,
+		Trace: []transfertypes.Hop{
+			transfertypes.NewHop(transfertypes.ModuleName, pathv2.EndpointB.ChannelID),
+			transfertypes.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID),
+		},
+	}
+
+	successfulAck := channeltypesv2.Acknowledgement{AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
+		{
+			AppName: transfertypes.ModuleName,
+			RecvPacketResult: channeltypesv2.RecvPacketResult{
+				Status:          channeltypesv2.PacketStatus_Success,
+				Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
+			},
+		},
+	}}
+
+	originalAmount, ok := sdkmath.NewIntFromString(ibctesting.DefaultGenesisAccBalance)
+	suite.Require().True(ok)
 
 	transferMsg := transfertypes.NewMsgTransfer(
 		path.EndpointA.ChannelConfig.PortID,
 		path.EndpointA.ChannelID,
-		coins,
+		sdk.NewCoins(sdk.NewCoin(denomA.IBCDenom(), ibctesting.TestCoin.Amount)),
 		suite.chainA.SenderAccount.GetAddress().String(),
 		suite.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.ZeroHeight(),
@@ -462,6 +491,9 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 	result, err := suite.chainA.SendMsgs(transferMsg)
 	suite.Require().NoError(err) // message committed
 
+	remainingAmount := originalAmount.Sub(ibctesting.DefaultCoinAmount)
+	suite.assertAmountOnChain(suite.chainA, balance, remainingAmount, denomA.IBCDenom())
+
 	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
 
@@ -470,10 +502,7 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 
 	tokens := []transfertypes.Token{
 		{
-			Denom: transfertypes.Denom{
-				Base:  sdk.DefaultBondDenom,
-				Trace: []transfertypes.Hop{transfertypes.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)},
-			},
+			Denom:  denomAtoB,
 			Amount: ibctesting.DefaultCoinAmount.String(),
 		},
 	}
@@ -487,32 +516,22 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 	packetv2, err := pathv2.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
 	suite.Require().NoError(err)
 
+	// the escrow account on chain B should have escrowed the tokens after sending from B to C
+	suite.assertAmountOnChain(suite.chainB, escrow, ibctesting.DefaultCoinAmount, denomAtoB.IBCDenom())
+
 	err = pathv2.EndpointB.MsgRecvPacket(packetv2)
 	suite.Require().NoError(err)
 
-	ack := channeltypesv2.Acknowledgement{AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
-		{
-			AppName: transfertypes.ModuleName,
-			RecvPacketResult: channeltypesv2.RecvPacketResult{
-				Status:          channeltypesv2.PacketStatus_Success,
-				Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
-			},
-		},
-	}}
+	// the receiving chain should have received the tokens
+	suite.assertAmountOnChain(suite.chainC, balance, ibctesting.DefaultCoinAmount, denomBtoC.IBCDenom())
 
-	err = pathv2.EndpointA.MsgAcknowledgePacket(packetv2, ack)
+	err = pathv2.EndpointA.MsgAcknowledgePacket(packetv2, successfulAck)
 	suite.Require().NoError(err)
 
 	// send from C to B
 	tokens = []transfertypes.Token{
 		{
-			Denom: transfertypes.Denom{
-				Base: sdk.DefaultBondDenom,
-				Trace: []transfertypes.Hop{
-					transfertypes.NewHop(transfertypes.ModuleName, pathv2.EndpointB.ChannelID),
-					transfertypes.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID),
-				},
-			},
+			Denom:  denomBtoC,
 			Amount: ibctesting.DefaultCoinAmount.String(),
 		},
 	}
@@ -526,30 +545,23 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 	packetv2, err = pathv2.EndpointB.MsgSendPacket(timeoutTimestamp, payload)
 	suite.Require().NoError(err)
 
+	// tokens have been sent from chain C, and the balance is now empty.
+	suite.assertAmountOnChain(suite.chainC, balance, sdkmath.NewInt(0), denomBtoC.IBCDenom())
+
 	err = pathv2.EndpointA.MsgRecvPacket(packetv2)
 	suite.Require().NoError(err)
 
-	ack = channeltypesv2.Acknowledgement{AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
-		{
-			AppName: transfertypes.ModuleName,
-			RecvPacketResult: channeltypesv2.RecvPacketResult{
-				Status:          channeltypesv2.PacketStatus_Success,
-				Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
-			},
-		},
-	}}
+	// chain B should have received the tokens from chain C.
+	suite.assertAmountOnChain(suite.chainB, balance, ibctesting.DefaultCoinAmount, denomAtoB.IBCDenom())
 
-	err = pathv2.EndpointB.MsgAcknowledgePacket(packetv2, ack)
+	err = pathv2.EndpointB.MsgAcknowledgePacket(packetv2, successfulAck)
 	suite.Require().NoError(err)
 
 	// send from B to A using MsgTransfer
-	denom = transfertypes.NewDenom(ibctesting.TestCoin.Denom, transfertypes.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
-	coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
-
 	transferMsg = transfertypes.NewMsgTransfer(
 		path.EndpointB.ChannelConfig.PortID,
 		path.EndpointB.ChannelID,
-		coins,
+		sdk.NewCoins(sdk.NewCoin(denomAtoB.IBCDenom(), ibctesting.TestCoin.Amount)),
 		suite.chainB.SenderAccount.GetAddress().String(),
 		suite.chainA.SenderAccount.GetAddress().String(),
 		clienttypes.ZeroHeight(),
@@ -561,6 +573,8 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 	result, err = suite.chainB.SendMsgs(transferMsg)
 	suite.Require().NoError(err) // message committed
 
+	suite.assertAmountOnChain(suite.chainB, balance, sdkmath.NewInt(0), denomAtoB.IBCDenom())
+
 	packet, err = ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
 
@@ -568,4 +582,6 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 	// on that with the endpoints reversed.
 	err = path.Reversed().RelayPacket(packet)
 	suite.Require().NoError(err)
+
+	suite.assertAmountOnChain(suite.chainA, balance, originalAmount, denomA.IBCDenom())
 }
