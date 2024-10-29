@@ -148,7 +148,7 @@ func (k Keeper) iterateDenomTraces(ctx context.Context, cb func(denomTrace inter
 
 // setDenomMetadataWithDenomTrace sets an IBC token's denomination metadata
 func (k Keeper) setDenomMetadataWithDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace, denomMetadata banktypes.Metadata) {
-	var du = make([]*banktypes.DenomUnit, 0, len(denomMetadata.DenomUnits))
+	du := make([]*banktypes.DenomUnit, 0, len(denomMetadata.DenomUnits))
 
 	for _, dunit := range denomMetadata.DenomUnits {
 		du = append(du, &banktypes.DenomUnit{
