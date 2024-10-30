@@ -106,6 +106,10 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 		VerifyClientMessage: &types.VerifyClientMessageMsg{ClientMessage: clientMessage.Data},
 	}
 	_, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
+	if err != nil {
+		ctx.Logger().Error("Verify Client Message failed", "err", err)
+	}
+
 	return err
 }
 
@@ -197,6 +201,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 
 	res, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	if err != nil {
+		ctx.Logger().Error("Update State failed", "err", err)
 		panic(err)
 	}
 
