@@ -43,8 +43,8 @@ func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
 	m.keeper.iterateDenomTraces(ctx,
 		func(dt internaltypes.DenomTrace) (stop bool) {
 			// check if the metadata for the given denom trace does not already exist
-			denom, present := m.keeper.bankKeeper.GetDenomMetaData(ctx, dt.IBCDenom())
-			if !present {
+			denom, found := m.keeper.bankKeeper.GetDenomMetaData(ctx, dt.IBCDenom())
+			if !found {
 				m.keeper.setDenomMetadataWithDenomTrace(ctx, dt, denom)
 			}
 			return false
