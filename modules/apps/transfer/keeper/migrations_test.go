@@ -327,11 +327,16 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 				expectedMetadata = []banktypes.Metadata{
 					{
 						Description: "IBC token from transfer/channel-0/foo",
-						DenomUnits:  nil,
-						Base:        denomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
-						Display:     "transfer/channel-0/foo",
-						Name:        "transfer/channel-0/foo IBC token",
-						Symbol:      "FOO",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "foo",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
+						Display: "transfer/channel-0/foo",
+						Name:    "transfer/channel-0/foo IBC token",
+						Symbol:  "FOO",
 					},
 				}
 			},
@@ -349,11 +354,16 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 				expectedMetadata = []banktypes.Metadata{
 					{
 						Description: "IBC token from transfer/channel-1/transfer/channel-2/ubar",
-						DenomUnits:  nil,
-						Base:        denomTraces[0].IBCDenom(), // ibc/8243B3EAA19BAB1DB3B0020B81C0C5A953E7B22C042CEE44E639A11A238BA57C
-						Display:     "transfer/channel-1/transfer/channel-2/ubar",
-						Name:        "transfer/channel-1/transfer/channel-2/ubar IBC token",
-						Symbol:      "UBAR",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "ubar",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[0].IBCDenom(), // ibc/8243B3EAA19BAB1DB3B0020B81C0C5A953E7B22C042CEE44E639A11A238BA57C
+						Display: "transfer/channel-1/transfer/channel-2/ubar",
+						Name:    "transfer/channel-1/transfer/channel-2/ubar IBC token",
+						Symbol:  "UBAR",
 					},
 				}
 			},
@@ -375,19 +385,29 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 				expectedMetadata = []banktypes.Metadata{
 					{
 						Description: "IBC token from transfer/channel-0/foo",
-						DenomUnits:  nil,
-						Base:        denomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
-						Display:     "transfer/channel-0/foo",
-						Name:        "transfer/channel-0/foo IBC token",
-						Symbol:      "FOO",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "foo",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
+						Display: "transfer/channel-0/foo",
+						Name:    "transfer/channel-0/foo IBC token",
+						Symbol:  "FOO",
 					},
 					{
 						Description: "IBC token from transfer/channel-0/bar",
-						DenomUnits:  nil,
-						Base:        denomTraces[1].IBCDenom(), // ibc/E1530E21F1848B6C29C9E89256D43E294976897611A61741CACBA55BE21736F5
-						Display:     "transfer/channel-0/bar",
-						Name:        "transfer/channel-0/bar IBC token",
-						Symbol:      "BAR",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "bar",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[1].IBCDenom(), // ibc/E1530E21F1848B6C29C9E89256D43E294976897611A61741CACBA55BE21736F5
+						Display: "transfer/channel-0/bar",
+						Name:    "transfer/channel-0/bar IBC token",
+						Symbol:  "BAR",
 					},
 				}
 			},
@@ -409,19 +429,29 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 				expectedMetadata = []banktypes.Metadata{
 					{
 						Description: "IBC token from transfer/channel-0/foo",
-						DenomUnits:  nil,
-						Base:        denomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
-						Display:     "transfer/channel-0/foo",
-						Name:        "transfer/channel-0/foo IBC token",
-						Symbol:      "FOO",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "foo",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[0].IBCDenom(), // ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA
+						Display: "transfer/channel-0/foo",
+						Name:    "transfer/channel-0/foo IBC token",
+						Symbol:  "FOO",
 					},
 					{
 						Description: "IBC token from transfer/channel-0/bar",
-						DenomUnits:  nil,
-						Base:        denomTraces[1].IBCDenom(), // ibc/E1530E21F1848B6C29C9E89256D43E294976897611A61741CACBA55BE21736F5
-						Display:     "transfer/channel-0/bar",
-						Name:        "transfer/channel-0/bar IBC token",
-						Symbol:      "BAR",
+						DenomUnits: []*banktypes.DenomUnit{
+							{
+								Denom:    "bar",
+								Exponent: 0,
+							},
+						},
+						Base:    denomTraces[1].IBCDenom(), // ibc/E1530E21F1848B6C29C9E89256D43E294976897611A61741CACBA55BE21736F5
+						Display: "transfer/channel-0/bar",
+						Name:    "transfer/channel-0/bar IBC token",
+						Symbol:  "BAR",
 					},
 				}
 
