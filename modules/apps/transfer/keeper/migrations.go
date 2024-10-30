@@ -157,6 +157,14 @@ func (k Keeper) setDenomMetadataWithDenomTrace(ctx sdk.Context, denomTrace inter
 			Aliases:  dunit.Aliases,
 		})
 	}
+
+	if len(denomMetadata.Base) == 0 {
+		du = append(du, &banktypes.DenomUnit{
+			Denom:    denomTrace.BaseDenom,
+			Exponent: 0,
+		})
+	}
+
 	metadata := banktypes.Metadata{
 		Description: fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath()),
 		DenomUnits:  du,
