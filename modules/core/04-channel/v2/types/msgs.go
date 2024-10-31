@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,7 +15,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
-const MaxTimeoutDelta uint64 = 24 * 60 * 60 // 24h in seconds
+const MaxTimeoutDelta time.Duration = 24 * time.Hour
 
 var (
 	_ sdk.Msg              = (*MsgCreateChannel)(nil)

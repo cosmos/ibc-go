@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"slices"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -71,14 +72,15 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPack
 	}
 
 	// Note, the validate basic function in sendPacket does the timeoutTimestamp != 0 check and other stateless checks on the packet.
-	// timeoutTimestamp must be less than current block time + MaxTimeoutDelta
-	if msg.TimeoutTimestamp > uint64(sdkCtx.BlockTime().Unix())+channeltypesv2.MaxTimeoutDelta {
-		return nil, errorsmod.Wrap(channeltypesv2.ErrMaxTimeoutDeltaExceeded, "timeout exceeds the maximum expected value")
+	// timeoutTimestamp must be greater than current block time
+	timeout := time.Unix(int64(msg.TimeoutTimestamp), 0)
+	if timeout.Before(sdkCtx.BlockTime()) {
+		return nil, errorsmod.Wrap(channeltypesv2.ErrTimeoutTooLow, "timeout is less than the current block timestamp")
 	}
 
-	// timeoutTimestamp must be greater than current block time
-	if uint64(sdkCtx.BlockTime().Unix()) > msg.TimeoutTimestamp {
-		return nil, errorsmod.Wrap(channeltypesv2.ErrTimeoutTooLow, "timeout is less than the current block timestamp")
+	// timeoutTimestamp must be less than current block time + MaxTimeoutDelta
+	if timeout.After(sdkCtx.BlockTime().Add(channeltypesv2.MaxTimeoutDelta)) {
+		return nil, errorsmod.Wrap(channeltypesv2.ErrMaxTimeoutDeltaExceeded, "timeout exceeds the maximum expected value")
 	}
 
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
