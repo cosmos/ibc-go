@@ -172,6 +172,7 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 	// TODO: forwarding
 	// if data.HasForwarding() {
 	//	// we are now sending from the forward escrow address to the final receiver address.
+	// TODO: inside this version of the function, we should fetch the packet that was stored in IBC core in order to set it for forwarding.
 	//	if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
 	//		return err
 	//	}

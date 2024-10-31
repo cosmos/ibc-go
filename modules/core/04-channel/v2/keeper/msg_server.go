@@ -156,6 +156,8 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 		}
 	}
 
+	// TODO: store the packet for async applications to access if required.
+
 	defer telemetryv2.ReportRecvPacket(msg.Packet)
 
 	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "result", channeltypesv1.SUCCESS.String())
