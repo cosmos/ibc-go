@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -122,7 +121,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 				// ensure a message timeout.
 				timeoutTimestamp = uint64(1)
 			},
-			expError: channeltypesv1.ErrTimeoutElapsed,
+			expError: channeltypesv2.ErrTimeoutElapsed,
 		},
 		{
 			name: "failure: inactive client",
@@ -462,7 +461,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 					return mock.MockApplicationCallbackError
 				}
 			},
-			expError: channeltypesv1.ErrNoOpMsg,
+			expError: channeltypesv2.ErrNoOpMsg,
 		},
 		{
 			name: "failure: callback fails",

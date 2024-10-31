@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -170,7 +169,7 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 			malleate: func() {
 				msg.TimeoutTimestamp = 0
 			},
-			expError: channeltypesv1.ErrInvalidTimeout,
+			expError: types.ErrInvalidTimeout,
 		},
 		{
 			name: "failure: invalid length for payload",

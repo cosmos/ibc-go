@@ -13,4 +13,11 @@ var (
 	ErrInvalidAcknowledgement   = errorsmod.Register(SubModuleName, 7, "invalid acknowledgement")
 	ErrPacketCommitmentNotFound = errorsmod.Register(SubModuleName, 8, "packet commitment not found")
 	ErrAcknowledgementNotFound  = errorsmod.Register(SubModuleName, 9, "packet acknowledgement not found")
+	ErrTimeoutElapsed           = errorsmod.Register(SubModuleName, 10, "timeout elapsed")
+	ErrInvalidChannelIdentifier = errorsmod.Register(SubModuleName, 11, "invalid channel identifier")
+	ErrAcknowledgementExists    = errorsmod.Register(SubModuleName, 12, "acknowledgement for packet already exists")
+	ErrTimeoutNotReached        = errorsmod.Register(SubModuleName, 13, "timeout not reached")
+	// Perform a no-op on the current Msg
+	ErrNoOpMsg        = errorsmod.Register(SubModuleName, 14, "message is redundant, no-op will be performed")
+	ErrInvalidTimeout = errorsmod.Register(SubModuleName, 15, "invalid packet timeout")
 )
