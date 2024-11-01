@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -116,12 +117,37 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			expError: nil,
 		},
 		{
+			name: "success: valid timeout timestamp",
+			malleate: func() {
+				// ensure a message timeout.
+				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Add(channeltypesv2.MaxTimeoutDelta - 10*time.Second).Unix())
+				expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, payload)
+			},
+			expError: nil,
+		},
+		{
 			name: "failure: timeout elapsed",
 			malleate: func() {
 				// ensure a message timeout.
 				timeoutTimestamp = uint64(1)
 			},
 			expError: channeltypesv2.ErrTimeoutElapsed,
+		},
+		{
+			name: "failure: timeout timestamp exceeds max allowed input",
+			malleate: func() {
+				// ensure message timeout exceeds max allowed input.
+				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Add(channeltypesv2.MaxTimeoutDelta + 10*time.Second).Unix())
+			},
+			expError: channeltypesv2.ErrMaxTimeoutDeltaExceeded,
+		},
+		{
+			name: "failure: timeout timestamp less than current block timestamp",
+			malleate: func() {
+				// ensure message timeout exceeds max allowed input.
+				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Unix()) - 1
+			},
+			expError: channeltypesv2.ErrTimeoutTooLow,
 		},
 		{
 			name: "failure: inactive client",
