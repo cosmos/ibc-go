@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"slices"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -63,10 +64,23 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *channeltypesv2
 // SendPacket defines a rpc handler method for MsgSendPacket.
 func (k *Keeper) SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceChannel, msg.TimeoutTimestamp, msg.Payloads)
 	if err != nil {
 		sdkCtx.Logger().Error("send packet failed", "source-channel", msg.SourceChannel, "error", errorsmod.Wrap(err, "send packet failed"))
 		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceChannel)
+	}
+
+	// Note, the validate basic function in sendPacket does the timeoutTimestamp != 0 check and other stateless checks on the packet.
+	// timeoutTimestamp must be greater than current block time
+	timeout := time.Unix(int64(msg.TimeoutTimestamp), 0)
+	if timeout.Before(sdkCtx.BlockTime()) {
+		return nil, errorsmod.Wrap(channeltypesv2.ErrTimeoutTooLow, "timeout is less than the current block timestamp")
+	}
+
+	// timeoutTimestamp must be less than current block time + MaxTimeoutDelta
+	if timeout.After(sdkCtx.BlockTime().Add(channeltypesv2.MaxTimeoutDelta)) {
+		return nil, errorsmod.Wrap(channeltypesv2.ErrMaxTimeoutDeltaExceeded, "timeout exceeds the maximum expected value")
 	}
 
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
