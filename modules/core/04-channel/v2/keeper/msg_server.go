@@ -120,7 +120,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 	switch err {
 	case nil:
 		writeFn()
-	case channeltypesv1.ErrNoOpMsg:
+	case channeltypesv2.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
 		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", msg.Packet.SourceChannel)
 		return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.NOOP}, nil
@@ -195,7 +195,7 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAck
 	switch err {
 	case nil:
 		writeFn()
-	case channeltypesv1.ErrNoOpMsg:
+	case channeltypesv2.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
 		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", msg.Packet.SourceChannel)
 		return &channeltypesv2.MsgAcknowledgementResponse{Result: channeltypesv1.NOOP}, nil
@@ -239,7 +239,7 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout
 	switch err {
 	case nil:
 		writeFn()
-	case channeltypesv1.ErrNoOpMsg:
+	case channeltypesv2.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
 		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", timeout.Packet.SourceChannel)
 		return &channeltypesv2.MsgTimeoutResponse{Result: channeltypesv1.NOOP}, nil
