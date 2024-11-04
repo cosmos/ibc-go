@@ -96,6 +96,45 @@ func getCmdQueryPacketCommitment() *cobra.Command {
 	return cmd
 }
 
+func getCmdQueryPacketCommitments() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "packet-commitments [channel-id]",
+		Short:   "Query all packet commitments associated with a channel",
+		Long:    "Query all packet commitments associated with a channel",
+		Example: fmt.Sprintf("%s query %s %s packet-commitments [channel-id]", version.AppName, exported.ModuleName, types.SubModuleName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryPacketCommitmentsRequest{
+				ChannelId:  args[0],
+				Pagination: pageReq,
+			}
+
+			res, err := queryClient.PacketCommitments(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "packet commitments associated with a channel")
+
+	return cmd
+}
+
 func getCmdQueryPacketAcknowledgement() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "packet-acknowledgement [channel-id] [sequence]",
