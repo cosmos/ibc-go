@@ -7,7 +7,6 @@ option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/type
 import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
 import "ibc/core/channel/v2/packet.proto";
-import "ibc/core/channel/v1/tx.proto";
 import "ibc/core/client/v1/client.proto";
 import "ibc/core/commitment/v2/commitment.proto";
 
@@ -104,11 +103,25 @@ message MsgRecvPacket {
   string                    signer           = 4;
 }
 
+// ResponseResultType defines the possible outcomes of the execution of a message
+enum ResponseResultType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // Default zero value enumeration
+  RESPONSE_RESULT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "UNSPECIFIED"];
+  // The message did not call the IBC application callbacks (because, for example, the packet had already been relayed)
+  RESPONSE_RESULT_TYPE_NOOP = 1 [(gogoproto.enumvalue_customname) = "NOOP"];
+  // The message was executed successfully
+  RESPONSE_RESULT_TYPE_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "SUCCESS"];
+  // The message was executed unsuccessfully
+  RESPONSE_RESULT_TYPE_FAILURE = 3 [(gogoproto.enumvalue_customname) = "FAILURE"];
+}
+
 // MsgRecvPacketResponse defines the Msg/RecvPacket response type.
 message MsgRecvPacketResponse {
   option (gogoproto.goproto_getters) = false;
 
-  ibc.core.channel.v1.ResponseResultType result = 1;
+  ResponseResultType result = 1;
 }
 
 // MsgTimeout receives timed-out packet
@@ -127,7 +140,7 @@ message MsgTimeout {
 message MsgTimeoutResponse {
   option (gogoproto.goproto_getters) = false;
 
-  ibc.core.channel.v1.ResponseResultType result = 1;
+  ResponseResultType result = 1;
 }
 
 // MsgAcknowledgement receives incoming IBC acknowledgement.
@@ -147,5 +160,5 @@ message MsgAcknowledgement {
 message MsgAcknowledgementResponse {
   option (gogoproto.goproto_getters) = false;
 
-  ibc.core.channel.v1.ResponseResultType result = 1;
+  ResponseResultType result = 1;
 }
