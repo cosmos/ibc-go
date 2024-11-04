@@ -96,7 +96,7 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 					return ctx, err
 				}
 
-				if response.Result == channeltypes.NOOP {
+				if response.Result == channeltypesv2.NOOP {
 					redundancies++
 				}
 				packetMsgs++
@@ -106,7 +106,7 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 					return ctx, err
 				}
 
-				if response.Result == channeltypes.NOOP {
+				if response.Result == channeltypesv2.NOOP {
 					redundancies++
 				}
 				packetMsgs++
@@ -116,7 +116,7 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 					return ctx, err
 				}
 
-				if response.Result == channeltypes.NOOP {
+				if response.Result == channeltypesv2.NOOP {
 					redundancies++
 				}
 				packetMsgs++
