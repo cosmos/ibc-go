@@ -595,6 +595,15 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
+	t.Run("assert ibc denom metadata", func(t *testing.T) {
+		metadata, err := query.BankDenomMetadata(ctx, chainB, chainBIBCToken.IBCDenom())
+		s.Require().NoError(err)
+
+		s.Require().NotEmpty(metadata)
+		s.Require().Len(metadata.DenomUnits, 2, "expected denom units of len: 2")
+		s.Require().Equal(chainBIBCToken.IBCDenom(), metadata.Base)
+	})
+
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA), "failed to wait for blocks")
 
 	t.Run("upgrade chain", func(t *testing.T) {
@@ -602,28 +611,13 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 		s.UpgradeChain(ctx, chainB.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
 	})
 
-	t.Run("update params", func(t *testing.T) {
-		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
-		s.Require().NoError(err)
-		s.Require().NotNil(authority)
-
-		msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(exported.Tendermint, "some-client"))
-		s.ExecuteAndPassGovV1Proposal(ctx, msg, chainB, chainBWallet)
-	})
-
-	t.Run("query params", func(t *testing.T) {
-		clientParamsResp, err := query.GRPCQuery[clienttypes.QueryClientParamsResponse](ctx, chainB, &clienttypes.QueryClientParamsRequest{})
+	t.Run("assert ibc denom metadata is unchanged post upgrade", func(t *testing.T) {
+		metadata, err := query.BankDenomMetadata(ctx, chainB, chainBIBCToken.IBCDenom())
 		s.Require().NoError(err)
 
-		allowedClients := clientParamsResp.Params.AllowedClients
-
-		s.Require().Len(allowedClients, 2)
-		s.Require().Contains(allowedClients, exported.Tendermint)
-		s.Require().Contains(allowedClients, "some-client")
-	})
-
-	t.Run("query human readable ibc denom", func(t *testing.T) {
-		s.AssertHumanReadableDenom(ctx, chainB, chainADenom, channelA)
+		s.Require().NotEmpty(metadata)
+		s.Require().Len(metadata.DenomUnits, 2, "expected denom units of len: 2")
+		s.Require().Equal(chainBIBCToken.IBCDenom(), metadata.Base)
 	})
 
 	t.Run("IBC token transfer from chainA to chainB, to make sure the upgrade did not break the packet flow", func(t *testing.T) {

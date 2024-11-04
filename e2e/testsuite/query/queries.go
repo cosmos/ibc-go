@@ -217,3 +217,14 @@ func InterchainAccount(ctx context.Context, chain ibc.Chain, address, connection
 func TransferDenoms(ctx context.Context, chain ibc.Chain) (*transfertypes.QueryDenomsResponse, error) {
 	return grpcQueryWithMethod[transfertypes.QueryDenomsResponse](ctx, chain, &transfertypes.QueryDenomsRequest{}, queryPathTransferDenoms)
 }
+
+func BankDenomMetadata(ctx context.Context, chain ibc.Chain, denom string) (banktypes.Metadata, error) {
+	res, err := GRPCQuery[banktypes.QueryDenomMetadataResponse](ctx, chain, &banktypes.QueryDenomMetadataRequest{
+		Denom: denom,
+	})
+	if err != nil {
+		return banktypes.Metadata{}, err
+	}
+
+	return res.Metadata, nil
+}
