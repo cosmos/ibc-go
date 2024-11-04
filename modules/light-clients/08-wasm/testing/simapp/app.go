@@ -9,10 +9,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	transferv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2"
-	ibctransferkeeperv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/keeper"
-	ibcapi "github.com/cosmos/ibc-go/v9/modules/core/api"
-
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cast"
