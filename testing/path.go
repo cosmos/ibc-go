@@ -182,11 +182,11 @@ func (path *Path) SetupClients() {
 // SetupCounterparties is a helper function to set the counterparties supporting ibc-eureka on both
 // chains. It assumes the caller does not anticipate any errors.
 func (path *Path) SetupCounterparties() {
-	if err := path.EndpointB.ProvideCounterparty(); err != nil {
+	if err := path.EndpointB.RegisterCounterparty(); err != nil {
 		panic(err)
 	}
 
-	if err := path.EndpointA.ProvideCounterparty(); err != nil {
+	if err := path.EndpointA.RegisterCounterparty(); err != nil {
 		panic(err)
 	}
 }

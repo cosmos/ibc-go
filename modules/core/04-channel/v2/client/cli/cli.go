@@ -20,6 +20,9 @@ func GetQueryCmd() *cobra.Command {
 
 	queryCmd.AddCommand(
 		getCmdQueryChannel(),
+		getCmdQueryPacketCommitment(),
+		getCmdQueryPacketAcknowledgement(),
+		getCmdQueryPacketReceipt(),
 	)
 
 	return queryCmd
@@ -37,7 +40,7 @@ func NewTxCmd() *cobra.Command {
 
 	txCmd.AddCommand(
 		newCreateChannelTxCmd(),
-		newProvideCounterpartyTxCmd(),
+		newRegisterCounterpartyTxCmd(),
 	)
 
 	return txCmd

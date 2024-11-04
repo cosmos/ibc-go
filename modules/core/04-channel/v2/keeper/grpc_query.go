@@ -8,8 +8,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
@@ -34,26 +33,89 @@ func (q *queryServer) Channel(ctx context.Context, req *types.QueryChannelReques
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ClientIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	res := types.QueryChannelResponse{}
-
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	creator, foundCreator := q.GetCreator(sdkCtx, req.ChannelId)
-	channel, foundChannel := q.GetChannel(sdkCtx, req.ChannelId)
-
-	if !foundCreator && !foundChannel {
-		return nil, status.Error(
-			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", req.ChannelId).Error(),
-		)
+	channel, found := q.GetChannel(ctx, req.ChannelId)
+	if !found {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", req.ChannelId).Error())
 	}
 
-	res.Channel = channel
-	res.Creator = creator
+	return types.NewQueryChannelResponse(channel), nil
+}
 
-	return &res, nil
+// PacketCommitment implements the Query/PacketCommitment gRPC method.
+func (q *queryServer) PacketCommitment(ctx context.Context, req *types.QueryPacketCommitmentRequest) (*types.QueryPacketCommitmentResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if req.Sequence == 0 {
+		return nil, status.Error(codes.InvalidArgument, "packet sequence cannot be 0")
+	}
+
+	if !q.HasChannel(ctx, req.ChannelId) {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
+	}
+
+	commitment := q.GetPacketCommitment(ctx, req.ChannelId, req.Sequence)
+	if len(commitment) == 0 {
+		return nil, status.Error(codes.NotFound, "packet commitment hash not found")
+	}
+
+	return types.NewQueryPacketCommitmentResponse(commitment, nil, clienttypes.GetSelfHeight(ctx)), nil
+}
+
+// PacketAcknowledgement implements the Query/PacketAcknowledgement gRPC method.
+func (q *queryServer) PacketAcknowledgement(ctx context.Context, req *types.QueryPacketAcknowledgementRequest) (*types.QueryPacketAcknowledgementResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if req.Sequence == 0 {
+		return nil, status.Error(codes.InvalidArgument, "packet sequence cannot be 0")
+	}
+
+	if !q.HasChannel(ctx, req.ChannelId) {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
+	}
+
+	acknowledgement := q.GetPacketAcknowledgement(ctx, req.ChannelId, req.Sequence)
+	if len(acknowledgement) == 0 {
+		return nil, status.Error(codes.NotFound, "packet acknowledgement hash not found")
+	}
+
+	return types.NewQueryPacketAcknowledgementResponse(acknowledgement, nil, clienttypes.GetSelfHeight(ctx)), nil
+}
+
+// PacketReceipt implements the Query/PacketReceipt gRPC method.
+func (q *queryServer) PacketReceipt(ctx context.Context, req *types.QueryPacketReceiptRequest) (*types.QueryPacketReceiptResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if req.Sequence == 0 {
+		return nil, status.Error(codes.InvalidArgument, "packet sequence cannot be 0")
+	}
+
+	if !q.HasChannel(ctx, req.ChannelId) {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
+	}
+
+	hasReceipt := q.HasPacketReceipt(ctx, req.ChannelId, req.Sequence)
+
+	return types.NewQueryPacketReceiptResponse(hasReceipt, nil, clienttypes.GetSelfHeight(ctx)), nil
 }

@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -16,6 +16,87 @@ import (
 	"github.com/cosmos/ibc-go/v9/testing/mock"
 	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 )
+
+func (suite *KeeperTestSuite) TestRegisterCounterparty() {
+	var (
+		path *ibctesting.Path
+		msg  *channeltypesv2.MsgRegisterCounterparty
+	)
+	cases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				// set it before handler
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(suite.chainA.GetContext(), msg.ChannelId, channeltypesv2.NewChannel(path.EndpointA.ClientID, "", ibctesting.MerklePath))
+			},
+			nil,
+		},
+		{
+			"failure: creator not set",
+			func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeleteCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: signer does not match creator",
+			func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID, ibctesting.TestAccAddress)
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: channel must already exist",
+			func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(channeltypesv2.ChannelKey))
+			},
+			channeltypesv2.ErrInvalidChannel,
+		},
+	}
+
+	for _, tc := range cases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			suite.Require().NoError(path.EndpointA.CreateChannel())
+			suite.Require().NoError(path.EndpointB.CreateChannel())
+
+			signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
+			msg = channeltypesv2.NewMsgRegisterCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, signer)
+
+			tc.malleate()
+
+			res, err := path.EndpointA.Chain.SendMsgs(msg)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NotNil(res)
+				suite.Require().Nil(err)
+
+				// Assert counterparty channel id filled in and creator deleted
+				channel, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(channel.CounterpartyChannelId, path.EndpointB.ChannelID)
+
+				_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+				suite.Require().False(found)
+
+				seq, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				suite.Require().Equal(seq, uint64(1))
+			} else {
+				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q, got %q instead", tc.expError, err)
+			}
+		})
+	}
+}
 
 func (suite *KeeperTestSuite) TestMsgSendPacket() {
 	var (
@@ -36,12 +117,37 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			expError: nil,
 		},
 		{
+			name: "success: valid timeout timestamp",
+			malleate: func() {
+				// ensure a message timeout.
+				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Add(channeltypesv2.MaxTimeoutDelta - 10*time.Second).Unix())
+				expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, payload)
+			},
+			expError: nil,
+		},
+		{
 			name: "failure: timeout elapsed",
 			malleate: func() {
 				// ensure a message timeout.
 				timeoutTimestamp = uint64(1)
 			},
-			expError: channeltypesv1.ErrTimeoutElapsed,
+			expError: channeltypesv2.ErrTimeoutElapsed,
+		},
+		{
+			name: "failure: timeout timestamp exceeds max allowed input",
+			malleate: func() {
+				// ensure message timeout exceeds max allowed input.
+				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Add(channeltypesv2.MaxTimeoutDelta + 10*time.Second).Unix())
+			},
+			expError: channeltypesv2.ErrInvalidTimeout,
+		},
+		{
+			name: "failure: timeout timestamp less than current block timestamp",
+			malleate: func() {
+				// ensure message timeout exceeds max allowed input.
+				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Unix()) - 1
+			},
+			expError: channeltypesv2.ErrTimeoutElapsed,
 		},
 		{
 			name: "failure: inactive client",
@@ -84,7 +190,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			timeoutTimestamp = suite.chainA.GetTimeoutTimestamp()
+			timeoutTimestamp = suite.chainA.GetTimeoutTimestampSecs()
 			payload = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, payload)
@@ -201,7 +307,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+			timeoutTimestamp := suite.chainA.GetTimeoutTimestampSecs()
 
 			var err error
 			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
@@ -249,87 +355,6 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
 				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), packet.SourceChannel, packet.Sequence)
 				suite.Require().False(ok)
-			}
-		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestProvideCounterparty() {
-	var (
-		path *ibctesting.Path
-		msg  *channeltypesv2.MsgProvideCounterparty
-	)
-	cases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success",
-			func() {
-				// set it before handler
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(suite.chainA.GetContext(), msg.ChannelId, channeltypesv2.NewChannel(path.EndpointA.ClientID, "", ibctesting.MerklePath))
-			},
-			nil,
-		},
-		{
-			"failure: creator not set",
-			func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeleteCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID)
-			},
-			ibcerrors.ErrUnauthorized,
-		},
-		{
-			"failure: signer does not match creator",
-			func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID, ibctesting.TestAccAddress)
-			},
-			ibcerrors.ErrUnauthorized,
-		},
-		{
-			"failure: channel must already exist",
-			func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(channeltypesv2.ChannelKey))
-			},
-			channeltypesv2.ErrInvalidChannel,
-		},
-	}
-
-	for _, tc := range cases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
-			path.SetupClients()
-
-			suite.Require().NoError(path.EndpointA.CreateChannel())
-			suite.Require().NoError(path.EndpointB.CreateChannel())
-
-			signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
-			msg = channeltypesv2.NewMsgProvideCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, signer)
-
-			tc.malleate()
-
-			res, err := path.EndpointA.Chain.SendMsgs(msg)
-
-			expPass := tc.expError == nil
-			if expPass {
-				suite.Require().NotNil(res)
-				suite.Require().Nil(err)
-
-				// Assert counterparty channel id filled in and creator deleted
-				channel, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelID)
-				suite.Require().True(found)
-				suite.Require().Equal(channel.CounterpartyChannelId, path.EndpointB.ChannelID)
-
-				_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID)
-				suite.Require().False(found)
-
-				seq, found := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChannelID)
-				suite.Require().True(found)
-				suite.Require().Equal(seq, uint64(1))
-			} else {
-				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q, got %q instead", tc.expError, err)
 			}
 		})
 	}
@@ -401,7 +426,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			timeoutTimestamp := suite.chainA.GetTimeoutTimestamp()
+			timeoutTimestamp := suite.chainA.GetTimeoutTimestampSecs()
 
 			var err error
 			// Send packet from A to B
@@ -462,7 +487,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 					return mock.MockApplicationCallbackError
 				}
 			},
-			expError: channeltypesv1.ErrNoOpMsg,
+			expError: channeltypesv2.ErrNoOpMsg,
 		},
 		{
 			name: "failure: callback fails",

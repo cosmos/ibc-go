@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
-	telemetryv2 "github.com/cosmos/ibc-go/v9/modules/core/internal/v2/telemetry"
+	"github.com/cosmos/ibc-go/v9/modules/core/internal/v2/telemetry"
 )
 
 var _ types.MsgServer = &Keeper{}
@@ -100,6 +100,7 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *types.MsgSendPacket) (*typ
 }
 
 // RecvPacket implements the PacketMsgServer RecvPacket method.
+
 func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*types.MsgRecvPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
@@ -173,14 +174,16 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		}
 	}
 
-	// TODO: store the packet for async applications to access if required.
 
-	defer telemetryv2.ReportRecvPacket(msg.Packet)
+	// TODO: store the packet for async applications to access if required.
+	defer telemetry.ReportRecvPacket(msg.Packet)
+
 
 	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "result", channeltypesv1.SUCCESS.String())
 	return &types.MsgRecvPacketResponse{Result: channeltypesv1.SUCCESS}, nil
 }
 
+// Acknowledgement defines an rpc handler method for MsgAcknowledgement.
 func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgement) (*types.MsgAcknowledgementResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -212,6 +215,7 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 	for _, pd := range msg.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
 		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, msg.Packet.Sequence, recvResults[pd.DestinationPort].Acknowledgement, pd, relayer)
+
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, msg.Packet.SourceChannel, msg.Packet.DestinationChannel)
 		}
