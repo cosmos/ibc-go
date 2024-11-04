@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -262,6 +263,10 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}
 
 	voucherDenom := denomTrace.IBCDenom()
+	if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
+		k.setDenomMetadata(ctx, denomTrace)
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDenomTrace,
@@ -304,6 +309,32 @@ func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, data t
 	}()
 
 	return nil
+}
+
+// setDenomMetadata sets an IBC token's denomination metadata
+func (k Keeper) setDenomMetadata(ctx sdk.Context, denom types.DenomTrace) {
+	metadata := banktypes.Metadata{
+		Description: fmt.Sprintf("IBC token from %s", denom.Path),
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    denom.BaseDenom,
+				Exponent: 0,
+			},
+			{
+				Denom:    denom.BaseDenom,
+				Exponent: 6,
+			},
+		},
+		// Setting base as IBC hash denom since bank keepers's SetDenomMetadata uses
+		// Base as key path and the IBC hash is what gives this token uniqueness
+		// on the executing chain
+		Base:    denom.IBCDenom(),
+		Display: denom.Path,
+		Name:    fmt.Sprintf("%s IBC token", denom.Path),
+		Symbol:  strings.ToUpper(denom.BaseDenom),
+	}
+
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 }
 
 // OnAcknowledgementPacket responds to the the success or failure of a packet

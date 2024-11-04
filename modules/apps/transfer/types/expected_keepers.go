@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
@@ -27,6 +28,8 @@ type BankKeeper interface {
 	IsSendEnabledCoin(ctx sdk.Context, coin sdk.Coin) bool
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+	HasDenomMetaData(ctx sdk.Context, denom string) bool
+	SetDenomMetaData(ctx sdk.Context, denomMetaData banktypes.Metadata)
 }
 
 // ChannelKeeper defines the expected IBC channel keeper
