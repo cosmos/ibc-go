@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 			ftpd := transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
 			bz := suite.chainA.Codec.MustMarshal(&ftpd)
 
-			timestamp := suite.chainA.GetTimeoutTimestamp()
+			timestamp := suite.chainA.GetTimeoutTimestampSecs()
 			// TODO: note, encoding field currently not respected in the implementation. encoding is determined by the version.
 			// ics20-v1 == json
 			// ics20-v2 == proto
@@ -167,7 +167,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			ftpd := transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
 			bz := suite.chainA.Codec.MustMarshal(&ftpd)
 
-			timestamp := suite.chainA.GetTimeoutTimestamp()
+			timestamp := suite.chainA.GetTimeoutTimestampSecs()
 			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "json", bz)
 			var err error
 			packet, err = path.EndpointA.MsgSendPacket(timestamp, payload)
@@ -287,7 +287,7 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 			ftpd := transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
 			bz := suite.chainA.Codec.MustMarshal(&ftpd)
 
-			timestamp := suite.chainA.GetTimeoutTimestamp()
+			timestamp := suite.chainA.GetTimeoutTimestampSecs()
 			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "json", bz)
 
 			var err error
