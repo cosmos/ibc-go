@@ -73,7 +73,7 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypesv2.MsgAck
 
 	for _, pd := range msg.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
-		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, pd, recvResults[pd.DestinationPort].Acknowledgement, relayer)
+		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, 0, recvResults[pd.DestinationPort].Acknowledgement, relayer, pd)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, msg.Packet.SourceChannel, msg.Packet.DestinationChannel)
 		}

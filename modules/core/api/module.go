@@ -19,7 +19,7 @@ type IBCModule interface {
 		sourceChannel string,
 		destinationChannel string,
 		sequence uint64,
-		data channeltypesv2.Payload,
+		payload channeltypesv2.Payload,
 		signer sdk.AccAddress,
 	) error
 
@@ -28,7 +28,7 @@ type IBCModule interface {
 		sourceChannel string,
 		destinationChannel string,
 		sequence uint64,
-		data channeltypesv2.Payload,
+		payload channeltypesv2.Payload,
 		relayer sdk.AccAddress,
 	) channeltypesv2.RecvPacketResult
 
@@ -39,7 +39,7 @@ type IBCModule interface {
 		destinationChannel string,
 		sequence uint64,
 		relayer sdk.AccAddress,
-		data channeltypesv2.Payload,
+		payload channeltypesv2.Payload,
 	) error
 
 	// OnAcknowledgementPacket is executed when a packet gets acknowledged
@@ -47,8 +47,9 @@ type IBCModule interface {
 		ctx context.Context,
 		sourceChannel string,
 		destinationChannel string,
-		data channeltypesv2.Payload,
+		sequence uint64,
 		acknowledgement []byte,
 		relayer sdk.AccAddress,
+		payload channeltypesv2.Payload,
 	) error
 }
