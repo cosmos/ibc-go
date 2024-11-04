@@ -174,11 +174,8 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		}
 	}
 
-
 	// TODO: store the packet for async applications to access if required.
 	defer telemetry.ReportRecvPacket(msg.Packet)
-
-
 	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "result", channeltypesv1.SUCCESS.String())
 	return &types.MsgRecvPacketResponse{Result: channeltypesv1.SUCCESS}, nil
 }
@@ -215,7 +212,6 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 	for _, pd := range msg.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
 		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, msg.Packet.Sequence, recvResults[pd.DestinationPort].Acknowledgement, pd, relayer)
-
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, msg.Packet.SourceChannel, msg.Packet.DestinationChannel)
 		}

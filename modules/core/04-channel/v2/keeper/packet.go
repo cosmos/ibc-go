@@ -206,7 +206,7 @@ func (k Keeper) WriteAcknowledgement(
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)
 
 	// TODO: decide how relayers will reconstruct the packet as it is not being passed.
-	//EmitWriteAcknowledgementEvents(ctx, packet, ack)
+	// EmitWriteAcknowledgementEvents(ctx, packet, ack)
 
 	// TODO: delete the packet that has been stored in ibc-core.
 

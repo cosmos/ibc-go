@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-
-
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
