@@ -102,11 +102,6 @@ func (q *queryServer) PacketCommitments(ctx context.Context, req *types.QueryPac
 			return types.ErrInvalidPacket
 		}
 
-		// sequence, err := strconv.ParseUint(keySplit[len(keySplit)-1], 10, 64)
-		// if err != nil {
-		// 	return err
-		// }
-
 		commitment := types.NewPacketState(req.ChannelId, sequence, value)
 		commitments = append(commitments, &commitment)
 		return nil
