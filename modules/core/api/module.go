@@ -38,8 +38,8 @@ type IBCModule interface {
 		sourceChannel string,
 		destinationChannel string,
 		sequence uint64,
-		relayer sdk.AccAddress,
 		payload channeltypesv2.Payload,
+		relayer sdk.AccAddress,
 	) error
 
 	// OnAcknowledgementPacket is executed when a packet gets acknowledged
@@ -49,7 +49,7 @@ type IBCModule interface {
 		destinationChannel string,
 		sequence uint64,
 		acknowledgement []byte,
-		relayer sdk.AccAddress,
 		payload channeltypesv2.Payload,
+		relayer sdk.AccAddress,
 	) error
 }
