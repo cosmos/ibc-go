@@ -84,3 +84,12 @@ func (p Payload) ValidateBasic() error {
 func TimeoutTimestampToNanos(seconds uint64) uint64 {
 	return uint64(time.Unix(int64(seconds), 0).UnixNano())
 }
+
+// NewPacketState creates and returns a new PacketState envelope type to encapsulate packet commitments, acks or receipts.
+func NewPacketState(channelID string, sequence uint64, data []byte) PacketState {
+	return PacketState{
+		ChannelId: channelID,
+		Sequence:  sequence,
+		Data:      data,
+	}
+}

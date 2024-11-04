@@ -17,6 +17,11 @@ func PacketAcknowledgementKey(channelID string, sequence uint64) []byte {
 	return []byte(fmt.Sprintf("acks/channels/%s/sequences/%s", channelID, sdk.Uint64ToBigEndian(sequence)))
 }
 
+// PacketCommitmentPrefixKey returns the store key prefix under which packet commitments for a particular channel are stored.
+func PacketCommitmentPrefixKey(channelID string) []byte {
+	return []byte(fmt.Sprintf("commitments/channels/%s", channelID))
+}
+
 // PacketCommitmentKey returns the store key of under which a packet commitment is stored.
 func PacketCommitmentKey(channelID string, sequence uint64) []byte {
 	return []byte(fmt.Sprintf("commitments/channels/%s/sequences/%s", channelID, sdk.Uint64ToBigEndian(sequence)))

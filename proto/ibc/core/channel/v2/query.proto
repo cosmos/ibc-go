@@ -4,6 +4,7 @@ package ibc.core.channel.v2;
 
 option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types";
 
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/core/channel/v2/channel.proto";
 import "ibc/core/client/v1/client.proto";
 import "google/api/annotations.proto";
@@ -19,6 +20,11 @@ service Query {
   // PacketCommitment queries a stored packet commitment hash.
   rpc PacketCommitment(QueryPacketCommitmentRequest) returns (QueryPacketCommitmentResponse) {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/{sequence}";
+  }
+
+  // PacketCommitments queries a stored packet commitment hash.
+  rpc PacketCommitments(QueryPacketCommitmentsRequest) returns (QueryPacketCommitmentsResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments";
   }
 
   // PacketAcknowledgement queries a stored acknowledgement commitment hash.
@@ -59,6 +65,24 @@ message QueryPacketCommitmentResponse {
   bytes proof = 2;
   // height at which the proof was retrieved
   ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryPacketCommitmentsRequest is the request type for the Query/PacketCommitments RPC method.
+message QueryPacketCommitmentsRequest {
+  // channel unique identifier
+  string channel_id = 1;
+  // pagination request
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryPacketCommitmentResponse is the response type for the Query/PacketCommitment RPC method.
+message QueryPacketCommitmentsResponse {
+  // collection of packet commitments for the requested channel identifier.
+  repeated ibc.core.channel.v2.PacketState commitments = 1;
+  // pagination response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  // query block height.
+  ibc.core.client.v1.Height height = 3 [(gogoproto.nullable) = false];
 }
 
 // QueryPacketAcknowledgementRequest is the request type for the Query/PacketAcknowledgement RPC method.
