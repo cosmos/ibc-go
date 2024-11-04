@@ -194,7 +194,7 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *channeltypesv2.MsgTimeout
 
 	for _, pd := range timeout.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
-		err := cbs.OnTimeoutPacket(ctx, timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel, pd, signer)
+		err := cbs.OnTimeoutPacket(ctx, timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel, timeout.Packet.Sequence, signer, pd)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnTimeoutPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel)
 		}

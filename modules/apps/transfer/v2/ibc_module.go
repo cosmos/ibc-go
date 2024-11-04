@@ -98,7 +98,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	return recvResult
 }
 
-func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, payload types.Payload, relayer sdk.AccAddress) error {
+func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, relayer sdk.AccAddress, payload types.Payload) error {
 	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version)
 	if err != nil {
 		return err

@@ -458,7 +458,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 
 				// Modify the callback to return a different error.
 				// This way, we can verify that the callback is not executed in a No-op case.
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.Payload, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -467,7 +467,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 		{
 			name: "failure: callback fails",
 			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.Payload, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},

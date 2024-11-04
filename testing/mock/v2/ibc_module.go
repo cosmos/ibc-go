@@ -52,9 +52,9 @@ func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel s
 	return nil
 }
 
-func (im IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) error {
+func (im IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, relayer sdk.AccAddress, payload channeltypesv2.Payload) error {
 	if im.IBCApp.OnTimeoutPacket != nil {
-		return im.IBCApp.OnTimeoutPacket(ctx, sourceChannel, destinationChannel, data, relayer)
+		return im.IBCApp.OnTimeoutPacket(ctx, sourceChannel, destinationChannel, sequence, payload, relayer)
 	}
 	return nil
 }

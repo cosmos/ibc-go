@@ -37,8 +37,9 @@ type IBCModule interface {
 		ctx context.Context,
 		sourceChannel string,
 		destinationChannel string,
-		data channeltypesv2.Payload,
+		sequence uint64,
 		relayer sdk.AccAddress,
+		data channeltypesv2.Payload,
 	) error
 
 	// OnAcknowledgementPacket is executed when a packet gets acknowledged
