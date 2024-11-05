@@ -34,21 +34,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [[Unreleased]]
+## [v8.5.2](https://github.com/cosmos/ibc-go/releases/tag/v8.5.2) - 2024-11-05
 
 ### Testing
 
 * [\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update the block proposer in test chains for each block.
-
-### Dependencies
-
-### API Breaking
-
-### State Machine Breaking
-
-### Improvements
-
-### Features
 
 ### Bug Fixes
 
