@@ -42,7 +42,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#7247](https://github.com/cosmos/ibc-go/pull/7247) Bump CometBFT to v0.38.12.
+* [\#7516](https://github.com/cosmos/ibc-go/pull/7516) Bump CometBFT to v0.38.13.
 
 ### API Breaking
 
