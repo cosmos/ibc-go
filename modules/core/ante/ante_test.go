@@ -80,7 +80,7 @@ func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) *channelty
 
 // createRecvPacketMessageV2 creates a V2 RecvPacket message for a packet sent from chain A to chain B.
 func (suite *AnteTestSuite) createRecvPacketMessageV2(isRedundant bool) *channeltypesv2.MsgRecvPacket {
-	packet, err := suite.path.EndpointA.MsgSendPacket(suite.chainA.GetTimeoutTimestamp(), mock.NewMockPayload(mock.ModuleNameA, mock.ModuleNameB))
+	packet, err := suite.path.EndpointA.MsgSendPacket(suite.chainA.GetTimeoutTimestampSecs(), mock.NewMockPayload(mock.ModuleNameA, mock.ModuleNameB))
 	suite.Require().NoError(err)
 
 	if isRedundant {
@@ -122,7 +122,7 @@ func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.M
 
 // createAcknowledgementMessageV2 creates a V2 Acknowledgement message for a packet sent from chain B to chain A.
 func (suite *AnteTestSuite) createAcknowledgementMessageV2(isRedundant bool) *channeltypesv2.MsgAcknowledgement {
-	packet, err := suite.path.EndpointB.MsgSendPacket(suite.chainB.GetTimeoutTimestamp(), mock.NewMockPayload(mock.ModuleNameA, mock.ModuleNameB))
+	packet, err := suite.path.EndpointB.MsgSendPacket(suite.chainB.GetTimeoutTimestampSecs(), mock.NewMockPayload(mock.ModuleNameA, mock.ModuleNameB))
 	suite.Require().NoError(err)
 
 	err = suite.path.EndpointA.MsgRecvPacket(packet)
