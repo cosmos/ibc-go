@@ -13,7 +13,6 @@
 7. [Importable Workflow](#importable-workflow)
 8. [Future Improvements](#future-improvements)
 
-
 # Running tests
 
 Tests can be run using a Makefile target under the e2e directory. `e2e/Makefile`
@@ -44,6 +43,10 @@ These environment variables allow us to run tests with arbitrary versions (from 
 Every time changes are pushed to a branch or to `main`, a new `simd` image is built and
 pushed [here](https://github.com/orgs/cosmos/packages?repo_name=ibc-go).
 
+On PRs, E2E tests will only run once the PR is marked as ready for review. This is to prevent unnecessary test runs on PRs that are still in progress.
+
+> If you need the E2E tests to run, you can either run them locally, or you can mark the PR as R4R and then convert it back to a draft PR.
+
 ## Adding a new test
 
 All tests should go under the [e2e](https://github.com/cosmos/ibc-go/tree/main/e2e) directory. When adding a new test, either add a new test function
@@ -57,7 +60,6 @@ New test suites should be composed of `testsuite.E2ETestSuite`. This type has lo
 be quite common in most tests.
 
 > Note: see [here](#how-tests-are-run) for details about these requirements.
-
 
 ### Example of running a single test
 
@@ -194,7 +196,6 @@ Navigate to `Actions` -> `Compatibility E2E` -> `Run Workflow` -> `release/v8.0.
 
 > Note: this will spawn a large number of runners, and should only be used when there is a release candidate and
 > and so should not be run regularly. We can rely on the regular E2Es on PRs for the most part.
-
 
 ### How Compatibility Tests Work
 
