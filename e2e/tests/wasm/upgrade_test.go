@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v9/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v9/ibc"
+	"github.com/strangelove-ventures/interchaintest/v9/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -89,7 +89,11 @@ func (s *IBCWasmUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmo
 		Info:   fmt.Sprintf("upgrade version test from %s to %s", currentVersion, upgradeVersion),
 	}
 
-	upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal(fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion), "upgrade chain E2E test", plan)
+	upgradeProposal := upgradetypes.SoftwareUpgradeProposal{
+		Title:       fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion),
+		Description: "upgrade chain E2E test",
+		Plan:        plan,
+	}
 	s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
 
 	height, err := chain.Height(ctx)

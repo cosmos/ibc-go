@@ -10,15 +10,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	interchaintestutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v9"
+	"github.com/strangelove-ventures/interchaintest/v9/ibc"
+	interchaintestutil "github.com/strangelove-ventures/interchaintest/v9/testutil"
 	"gopkg.in/yaml.v2"
 
 	govtypes "cosmossdk.io/x/gov/types"
 	govv1 "cosmossdk.io/x/gov/types/v1"
 	govv1beta1 "cosmossdk.io/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectestutil "github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
@@ -799,7 +800,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 
 // modifyGovV1AppState takes the existing gov app state and marshals it to a govv1 GenesisState.
 func modifyGovV1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
-	cfg := testutil.MakeTestEncodingConfig()
+	cfg := testutil.MakeTestEncodingConfig(codectestutil.CodecOptions{})
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	govv1.RegisterInterfaces(cfg.InterfaceRegistry)
@@ -827,7 +828,7 @@ func modifyGovV1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byt
 
 // modifyGovv1Beta1AppState takes the existing gov app state and marshals it to a govv1beta1 GenesisState.
 func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
-	cfg := testutil.MakeTestEncodingConfig()
+	cfg := testutil.MakeTestEncodingConfig(codectestutil.CodecOptions{})
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
@@ -850,7 +851,7 @@ func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) (
 
 // modifyClientGenesisAppState takes the existing ibc app state and marshals it to an ibc GenesisState.
 func modifyClientGenesisAppState(ibcAppState []byte) ([]byte, error) {
-	cfg := testutil.MakeTestEncodingConfig()
+	cfg := testutil.MakeTestEncodingConfig(codectestutil.CodecOptions{})
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)

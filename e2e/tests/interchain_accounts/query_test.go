@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v9/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	banktypes "cosmossdk.io/x/bank/types"
@@ -78,7 +78,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	t.Run("query via interchain account", func(t *testing.T) {
 		// the host account need not be funded
 		t.Run("broadcast query packet", func(t *testing.T) {
-			balanceQuery := banktypes.NewQueryBalanceRequest(chainBAccount.Address(), chainB.Config().Denom)
+			balanceQuery := banktypes.NewQueryBalanceRequest(string(chainBAccount.Address()), chainB.Config().Denom) //TODO: address should be a bech32 address?
 			queryBz, err := balanceQuery.Marshal()
 			s.Require().NoError(err)
 

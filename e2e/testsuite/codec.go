@@ -16,6 +16,7 @@ import (
 	grouptypes "cosmossdk.io/x/group"
 	proposaltypes "cosmossdk.io/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectestutil "github.com/cosmos/cosmos-sdk/codec/testutil"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -55,7 +56,7 @@ func SDKEncodingConfig() *testutil.TestEncodingConfig {
 }
 
 func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
-	cfg := testutil.MakeTestEncodingConfig()
+	cfg := testutil.MakeTestEncodingConfig(codectestutil.CodecOptions{})
 
 	// ibc types
 	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
