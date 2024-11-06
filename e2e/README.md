@@ -5,7 +5,7 @@
 3. [Test design](#test-design)
    - a. [interchaintest](#interchaintest)
    - b. [CI configuration](#ci-configuration)
-4. [Github Workflows](#github-workflows)
+4. [Building images](#building-and-pushing-images)
 5. [Compatibility Tests](#compatibility-tests)
    - a. [Running Compatibility Tests](#running-compatibility-tests)
    - b. [How Compatibility Tests Work](#how-compatibility-tests-work)
@@ -169,9 +169,7 @@ in parallel on a shared host.
 In a CI environment variables are passed to the test runner to configure test parameters, while locally using
 environment variables is supported, but it is often more convenient to use configuration files.
 
-## GitHub Workflows
-
-### Building and pushing a `simd` image
+## Building and pushing images
 
 If we ever need to manually build and push an image, we can do so with the [Build Simd Image](../.github/workflows/build-simd-image-from-tag.yml) GitHub workflow.
 
@@ -190,7 +188,7 @@ And providing the git tag.
 To trigger the compatibility tests for a release branch, you can trigger these manually from the Github UI.
 
 This will build an image from the tip of the release branch and run all tests specified in the corresponding
-json matrix files under .github/compatibility-test-matrices.
+json matrix files under [.github/compatibility-test-matrices](../.github/compatibility-test-matrices).
 
 Navigate to `Actions` -> `Compatibility E2E` -> `Run Workflow` -> `release/v8.0.x`
 
@@ -229,7 +227,7 @@ See [this example](https://github.com/cosmos/ibc-go/actions/runs/11645461969) to
 
 ## Importable Workflow
 
-This repository contains an [importable workflow](https://github.com/cosmos/ibc-go/blob/185a220244663457372185992cfc85ed9e458bf1/.github/workflows/e2e-compatibility-workflow-call.yaml) that can be used from any other repository to test chain upgrades. The workflow
+This repository contains an [importable workflow](../.github/workflows/e2e-test-workflow-call.yml) that can be used from any other repository to test two chains. The workflow
 can be used to test both non-IBC chains, and also IBC-enabled chains.
 
 ### Prerequisites
@@ -262,7 +260,7 @@ For a full list of options that can be passed to the workflow, see the [workflow
 
 ## Future Improvements
 
-- Currently, compatibility matricies are manually created and maintained. It would be nice to have a script that can
+- Currently, compatibility matrices are manually created and maintained. It would be nice to have a script that can
   dynamically generate these based on annotations in the test files. There is an issue outlining this [here](https://github.com/cosmos/ibc-go/issues/4872).
 - We are transitioning to running a single test per host, to running a full test suite per host. This will allow us to
   run more tests in parallel and reduce the time it takes to run the full suite. (see `make e2e-test` and `make e2e-suite`). Eventually we would like to run all tests with `make e2e-suite`.
