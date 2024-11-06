@@ -353,7 +353,6 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 	if chain.SendMsgsOverride != nil {
 		return chain.SendMsgsOverride(msgs...)
 	}
-
 	// ensure the chain has the latest time
 	chain.Coordinator.UpdateTimeForChain(chain)
 
@@ -364,7 +363,6 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 			panic(err)
 		}
 	}()
-
 	resp, err := simapp.SignAndDeliver(
 		chain.TB,
 		chain.TxConfig,
@@ -388,7 +386,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 	txResult := resp.TxResults[0]
 
 	if txResult.Code != 0 {
-		return txResult, fmt.Errorf("%s/%d: %q", txResult.Codespace, txResult.Code, txResult.Log)
+		return txResult, fmt.Errorf("%s/%d", txResult.Codespace, txResult.Code)
 	}
 
 	chain.Coordinator.IncrementTime()

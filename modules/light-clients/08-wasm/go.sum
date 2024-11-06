@@ -252,8 +252,8 @@ cosmossdk.io/x/slashing v0.0.0-20240911130545-9e7848985491 h1:1Wqgrq2+3RM/ZautJO
 cosmossdk.io/x/slashing v0.0.0-20240911130545-9e7848985491/go.mod h1:X6YTD2Ksqsc3QMQeupqFHXjtega4oOQY3ln9382CAuU=
 cosmossdk.io/x/staking v0.0.0-20240911130545-9e7848985491 h1:ZKrVePSYlS8qYXcz8L5x1PYuOOKkgIkM8UfFjMzkpAI=
 cosmossdk.io/x/staking v0.0.0-20240911130545-9e7848985491/go.mod h1:AMBXP+pz9KsBueAP6Ks63DHHbo/XCuxt/JFBoleUBM8=
-cosmossdk.io/x/tx v0.13.4-0.20240815194237-858ec2fcb897 h1:J3vS3G41JtTWkUX3wVKcXdy1yPUca0d3QnexCR52PeY=
-cosmossdk.io/x/tx v0.13.4-0.20240815194237-858ec2fcb897/go.mod h1:5+Hpds6bhT6CdR7DqPh0dVOqyqL7NJkq+x+yjLdYSQU=
+cosmossdk.io/x/tx v1.0.0-alpha.1 h1:5w61etWMQbdCSR7uveWXCnGnD5eQ/64B2vzIhqA80yo=
+cosmossdk.io/x/tx v1.0.0-alpha.1/go.mod h1:xlJjZV1wxZBTCP+ygZx9pNT/XxsfHDPf1H0VhHaUp5w=
 cosmossdk.io/x/upgrade v0.0.0-20240911130545-9e7848985491 h1:dvmopa0GxlEkrnS0ZKzm/bP0ZglYCUuGcW/q6Lqb6Rg=
 cosmossdk.io/x/upgrade v0.0.0-20240911130545-9e7848985491/go.mod h1:u5XG/D7wbjinuU7PRc/S2XdJbxT26BepEMby73eGrj8=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
@@ -1389,8 +1389,8 @@ google.golang.org/genproto v0.0.0-20240701130421-f6361c86f094 h1:6whtk83KtD3FkGr
 google.golang.org/genproto v0.0.0-20240701130421-f6361c86f094/go.mod h1:Zs4wYw8z1zr6RNF4cwYb31mvN/EGaKAdQjNCF3DW6K4=
 google.golang.org/genproto/googleapis/api v0.0.0-20240814211410-ddb44dafa142 h1:wKguEg1hsxI2/L3hUYrpo1RVi48K+uTyzKqprwLXsb8=
 google.golang.org/genproto/googleapis/api v0.0.0-20240814211410-ddb44dafa142/go.mod h1:d6be+8HhtEtucleCbxpPW9PA9XwISACu8nvpPqF0BVo=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 h1:pPJltXNxVzT4pK9yD8vR9X75DaWYYmLGMsEvBfFQZzQ=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1/go.mod h1:UqMtugtsSgubUsoxbuAoiCXvqvErP7Gf0so0mK9tHxU=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20240930140551-af27646dc61f h1:cUMEy+8oS78BWIH9OWazBkzbr090Od9tWBNtZHkOhf0=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20240930140551-af27646dc61f/go.mod h1:UqMtugtsSgubUsoxbuAoiCXvqvErP7Gf0so0mK9tHxU=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.20.1/go.mod h1:10oTOabMzJvdu6/UiuZezV6QK5dSlG84ov/aaiqXj38=
 google.golang.org/grpc v1.21.1/go.mod h1:oYelfM1adQP15Ek0mdvEgi9Df8B9CZIaU1084ijfRaM=

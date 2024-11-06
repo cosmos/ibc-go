@@ -310,7 +310,7 @@ replace (
 	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240905174638-8ce77cbb2450
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240905174638-8ce77cbb2450
-	cosmossdk.io/x/tx => cosmossdk.io/x/tx v0.13.4-0.20240815194237-858ec2fcb897 // main
+	cosmossdk.io/x/tx => cosmossdk.io/x/tx v1.0.0-alpha.1
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240905174638-8ce77cbb2450
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1.0.20240908111210-ab0be101882f
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-alpha.1.0.20240909082436-01c0e9ba3581
