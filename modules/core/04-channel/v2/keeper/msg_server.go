@@ -40,7 +40,7 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *types.MsgRegis
 
 	channel, ok := k.GetChannel(ctx, msg.ChannelId)
 	if !ok {
-		return nil, errorsmod.Wrapf(types.ErrInvalidChannel, "channel must exist for channel id %s", msg.ChannelId)
+		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "channel must exist for channel id %s", msg.ChannelId)
 	}
 
 	creator, found := k.GetCreator(ctx, msg.ChannelId)
