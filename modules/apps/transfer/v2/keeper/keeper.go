@@ -4,6 +4,8 @@ import (
 	"context"
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	transferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
@@ -15,7 +17,69 @@ import (
 
 type Keeper struct {
 	transferkeeper.Keeper
-	channelKeeperV2 *channelkeeperv2.Keeper
+	channelKeeperV2  *channelkeeperv2.Keeper
+	msgServiceRouter *baseapp.MsgServiceRouter
+}
+
+func NewKeeper(transferKeeper transferkeeper.Keeper, channelKeeperV2 *channelkeeperv2.Keeper, msgServiceRouter *baseapp.MsgServiceRouter) *Keeper {
+	return &Keeper{
+		Keeper:           transferKeeper,
+		channelKeeperV2:  channelKeeperV2,
+		msgServiceRouter: msgServiceRouter,
+	}
+}
+
+func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload channeltypesv2.Payload, data types.FungibleTokenPacketDataV2, sender sdk.AccAddress) error {
+	// TODO unwind logic for forwarding
+
+	for _, token := range data.Tokens {
+		coin, err := token.ToCoin()
+		if err != nil {
+			return err
+		}
+
+		if coin.Amount.Equal(types.UnboundedSpendLimit()) {
+			coin.Amount = k.BankKeeper.GetBalance(ctx, sender, coin.Denom).Amount
+		}
+
+		// NOTE: SendTransfer simply sends the denomination as it exists on its own
+		// chain inside the packet data. The receiving chain will perform denom
+		// prefixing as necessary.
+
+		// if the denom is prefixed by the port and channel on which we are sending
+		// the token, then we must be returning the token back to the chain they originated from
+		if token.Denom.HasPrefix(payload.SourcePort, sourceChannel) {
+			// transfer the coins to the module account and burn them
+			if err := k.BankKeeper.SendCoinsFromAccountToModule(
+				ctx, sender, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				return err
+			}
+
+			if err := k.BankKeeper.BurnCoins(
+				ctx, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				// NOTE: should not happen as the module account was
+				// retrieved on the step above and it has enough balance
+				// to burn.
+				panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
+			}
+		} else {
+			// obtain the escrow address for the source channel end
+			escrowAddress := types.GetEscrowAddress(payload.SourcePort, sourceChannel)
+			if err := k.EscrowCoin(ctx, sender, escrowAddress, coin); err != nil {
+				return err
+			}
+		}
+	}
+
+	// TODO: events
+	// events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
+
+	// TODO: telemetry
+	// telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
+
+	return nil
 }
 
 func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel string, payload channeltypesv2.Payload, data types.FungibleTokenPacketDataV2) error {
@@ -118,5 +182,109 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 	//telemetry.ReportOnRecvPacket(packet, data.Tokens)
 
 	// The ibc_module.go module will return the proper ack.
+	return nil
+}
+
+// TODO move to a different file
+// forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
+func (k Keeper) forwardPacket(ctx context.Context, data types.FungibleTokenPacketDataV2, payload channeltypesv2.Payload, timeoutTimestamp uint64, receivedCoins sdk.Coins) error {
+	newForwardingPacketData := types.NewForwardingPacketData(data.Forwarding.DestinationMemo)
+	if len(data.Forwarding.Hops) > 1 {
+		// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver
+		newForwardingPacketData.Hops = data.Forwarding.Hops[1:]
+	}
+
+	memo := data.Memo
+	if len(newForwardingPacketData.Hops) > 0 {
+		memo = ""
+	}
+
+	// sending from module account (used as a temporary forward escrow) to the original receiver address.
+	sender := k.AuthKeeper.GetModuleAddress(types.ModuleName)
+
+	newPacketData := types.NewFungibleTokenPacketDataV2(data.Tokens, data.Sender, data.Receiver, memo, newForwardingPacketData)
+
+	pdBz, err := newPacketData.Marshal()
+	if err != nil {
+		return err
+	}
+	payload.Value = pdBz
+
+	msg := channeltypesv2.NewMsgSendPacket(
+		data.Forwarding.Hops[0].ChannelId,
+		timeoutTimestamp,
+		sender.String(),
+		payload,
+	)
+
+	handler := k.msgServiceRouter.Handler(&channeltypesv2.MsgSendPacket{})
+	resp, err := handler(sdk.UnwrapSDKContext(ctx), msg)
+	if err != nil {
+		return err
+	}
+	_ = resp
+	// k.setForwardedPacketSequence(ctx, data.Forwarding.Hops[0].PortId, data.Forwarding.Hops[0].ChannelId, resp.Sequence)
+	return nil
+}
+
+func (k *Keeper) OnAcknowledgementPacket(ctx context.Context, sourcePort, sourceChannel string, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
+	switch ack.Response.(type) {
+	case *channeltypes.Acknowledgement_Result:
+		// the acknowledgement succeeded on the receiving chain so nothing
+		// needs to be executed and no error needs to be returned
+		return nil
+	case *channeltypes.Acknowledgement_Error:
+		// We refund the tokens from the escrow address to the sender
+		return k.refundPacketTokens(ctx, sourcePort, sourceChannel, data)
+	default:
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
+	}
+}
+
+func (k *Keeper) OnTimeoutPacket(ctx context.Context, sourcePort, sourceChannel string, data types.FungibleTokenPacketDataV2) error {
+	return k.refundPacketTokens(ctx, sourcePort, sourceChannel, data)
+}
+
+func (k Keeper) refundPacketTokens(ctx context.Context, sourcePort, sourceChannel string, data types.FungibleTokenPacketDataV2) error {
+	// NOTE: packet data type already checked in handler.go
+
+	sender, err := sdk.AccAddressFromBech32(data.Sender)
+	if err != nil {
+		return err
+	}
+	if k.IsBlockedAddr(sender) {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
+	}
+
+	// escrow address for unescrowing tokens back to sender
+	escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+
+	moduleAccountAddr := k.AuthKeeper.GetModuleAddress(types.ModuleName)
+	for _, token := range data.Tokens {
+		coin, err := token.ToCoin()
+		if err != nil {
+			return err
+		}
+
+		// if the token we must refund is prefixed by the source port and channel
+		// then the tokens were burnt when the packet was sent and we must mint new tokens
+		if token.Denom.HasPrefix(sourcePort, sourceChannel) {
+			// mint vouchers back to sender
+			if err := k.BankKeeper.MintCoins(
+				ctx, types.ModuleName, sdk.NewCoins(coin),
+			); err != nil {
+				return err
+			}
+
+			if err := k.BankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
+				panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
+			}
+		} else {
+			if err := k.UnescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }

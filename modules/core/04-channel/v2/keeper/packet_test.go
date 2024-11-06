@@ -320,7 +320,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 			tc.malleate()
 
-			err := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
+			err := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.WriteAcknowledgement(suite.chainB.GetContext(), packet.SourceChannel, packet.DestinationChannel, packet.Sequence, ack)
 
 			expPass := tc.expError == nil
 			if expPass {

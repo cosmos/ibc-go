@@ -207,6 +207,21 @@ func (k *Keeper) SetNextSequenceSend(ctx context.Context, channelID string, sequ
 	}
 }
 
+func (k *Keeper) SetPacket(ctx context.Context, portID, channelID string, sequence uint64, packet types.Packet) {
+	store := k.storeService.OpenKVStore(ctx)
+	bz := k.cdc.MustMarshal(&packet)
+	if err := store.Set(types.PacketStoreKey(portID, channelID, sequence), bz); err != nil {
+		panic(err)
+	}
+}
+
+func (k *Keeper) DeletePacket(ctx context.Context, portID, channelID string, sequence uint64) {
+	store := k.storeService.OpenKVStore(ctx)
+	if err := store.Delete(types.PacketStoreKey(portID, channelID, sequence)); err != nil {
+		panic(err)
+	}
+}
+
 // AliasV1Channel returns a version 2 channel for the given port and channel ID
 // by converting the channel into a version 2 channel.
 func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.Channel, bool) {

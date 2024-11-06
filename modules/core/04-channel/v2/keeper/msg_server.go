@@ -151,12 +151,19 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 		// Set packet acknowledgement only if the acknowledgement is not async.
 		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 		// acknowledgement is async.
-		if err := k.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
+		if err := k.WriteAcknowledgement(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, msg.Packet.Sequence, ack); err != nil {
 			return nil, err
 		}
 	}
 
-	defer telemetryv2.ReportRecvPacket(msg.Packet)
+	// TODO: store the packet for async applications to access if required.
+	// Does this need to be only if Async is true?
+	k.SetPacket(ctx, msg.Packet.Payloads[0].DestinationPort, msg.Packet.DestinationChannel, msg.Packet.Sequence, msg.Packet)
+	defer telemetry.ReportRecvPacket(msg.Packet)
+
+	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "result", types.SUCCESS.String())
+	return &types.MsgRecvPacketResponse{Result: types.SUCCESS}, nil
+}
 
 	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "result", channeltypesv1.SUCCESS.String())
 	return &channeltypesv2.MsgRecvPacketResponse{Result: channeltypesv1.SUCCESS}, nil

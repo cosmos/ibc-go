@@ -1,5 +1,11 @@
 package types
 
+import (
+	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
 const (
 	// SubModuleName defines the channelv2 module name.
 	SubModuleName = "channelv2"
@@ -13,4 +19,11 @@ const (
 	// the creator key is imported from types instead of host because
 	// the creator key is not a part of the ics-24 host specification
 	CreatorKey = "creator"
+
+	// TODO
+	PacketKey = "packet"
 )
+
+func PacketStoreKey(portID, channelID string, sequence uint64) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s/%s", PacketKey, portID, channelID, sdk.Uint64ToBigEndian(sequence)))
+}

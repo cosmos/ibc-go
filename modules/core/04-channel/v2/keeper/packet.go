@@ -169,47 +169,53 @@ func (k *Keeper) recvPacket(
 // WriteAcknowledgement writes the acknowledgement to the store.
 func (k Keeper) WriteAcknowledgement(
 	ctx context.Context,
-	packet types.Packet,
+	sourceChannel string,
+	destinationChannel string,
+	sequence uint64,
 	ack types.Acknowledgement,
 ) error {
 	// Lookup channel associated with destination channel ID and ensure
 	// that the packet was indeed sent by our counterparty by verifying
 	// packet sender is our channel's counterparty channel id.
-	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
+	channel, ok := k.GetChannel(ctx, destinationChannel)
 	if !ok {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "channel (%s) not found", packet.DestinationChannel)
+		return errorsmod.Wrapf(types.ErrChannelNotFound, "channel (%s) not found", destinationChannel)
 	}
 
-	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
+	if channel.CounterpartyChannelId != sourceChannel {
+		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
-	if k.HasPacketAcknowledgement(ctx, packet.DestinationChannel, packet.Sequence) {
-		return errorsmod.Wrapf(channeltypes.ErrAcknowledgementExists, "acknowledgement for channel %s, sequence %d already exists", packet.DestinationChannel, packet.Sequence)
+	if k.HasPacketAcknowledgement(ctx, destinationChannel, sequence) {
+		return errorsmod.Wrapf(types.ErrAcknowledgementExists, "acknowledgement for channel %s, sequence %d already exists", packet.DestinationChannel, packet.Sequence)
 	}
 
-	if _, found := k.GetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence); !found {
-		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
+	if _, found := k.GetPacketReceipt(ctx, destinationChannel, sequence); !found {
+		return errorsmod.Wrap(types.ErrInvalidPacket, "receipt not found for packet")
 	}
 
 	// TODO: Validate Acknowledgment more thoroughly here after Issue #7472: https://github.com/cosmos/ibc-go/issues/7472
 
-	if len(ack.AcknowledgementResults) != len(packet.Payloads) {
-		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of acknowledgement results %d does not match length of payload %d", len(ack.AcknowledgementResults), len(packet.Payloads))
-	}
+	// TODO: remove this check, maybe pull it up to the handler.
+	// if len(ack.AcknowledgementResults) != len(packet.Payloads) {
+	// 	return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of acknowledgement results %d does not match length of payload %d", len(ack.AcknowledgementResults), len(packet.Payloads))
+	// }
 
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
-		ctx, packet.DestinationChannel, packet.Sequence,
+		ctx, destinationChannel, sequence,
 		types.CommitAcknowledgement(ack),
 	)
 
-	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(sequence, 10), "dest-channel", destinationChannel)
 
-	EmitWriteAcknowledgementEvents(ctx, packet, ack)
+	// TODO: decide how relayers will reconstruct the packet as it is not being passed.
+	// EmitWriteAcknowledgementEvents(ctx, packet, ack)
+
+	k.DeletePacket(ctx, "what here", destinationChannel, sequence)
 
 	return nil
 }
