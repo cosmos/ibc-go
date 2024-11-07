@@ -38,6 +38,11 @@ func (k *Keeper) CreateChannel(goCtx context.Context, msg *types.MsgCreateChanne
 func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *types.MsgRegisterCounterparty) (*types.MsgRegisterCounterpartyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	channel, ok := k.GetChannel(ctx, msg.ChannelId)
+	if !ok {
+		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "channel must exist for channel id %s", msg.ChannelId)
+	}
+
 	creator, found := k.GetCreator(ctx, msg.ChannelId)
 	if !found {
 		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "channel creator must be set")
@@ -45,11 +50,6 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *types.MsgRegis
 
 	if creator != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "channel creator (%s) must match signer (%s)", creator, msg.Signer)
-	}
-
-	channel, ok := k.GetChannel(ctx, msg.ChannelId)
-	if !ok {
-		return nil, errorsmod.Wrapf(types.ErrInvalidChannel, "channel must exist for channel id %s", msg.ChannelId)
 	}
 
 	channel.CounterpartyChannelId = msg.CounterpartyChannelId
