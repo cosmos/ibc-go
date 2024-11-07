@@ -12,14 +12,20 @@ import (
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
 func CommitPacket(packet Packet) []byte {
-	buf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
+	var buf []byte
+	timeoutBytes := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
+	timeoutHash := sha256.Sum256(timeoutBytes)
+	buf = append(buf, timeoutHash[:]...)
 
 	destIDHash := sha256.Sum256([]byte(packet.DestinationChannel))
 	buf = append(buf, destIDHash[:]...)
 
+	var appBytes []byte
 	for _, payload := range packet.Payloads {
-		buf = append(buf, hashPayload(payload)...)
+		appBytes = append(appBytes, hashPayload(payload)...)
 	}
+	appHash := sha256.Sum256(appBytes)
+	buf = append(buf, appHash[:]...)
 
 	hash := sha256.Sum256(buf)
 	return hash[:]
