@@ -38,7 +38,6 @@ var (
 	_ module.HasGenesis             = (*AppModule)(nil)
 	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
 	_ module.HasServices            = (*AppModule)(nil)
-	_ module.HasProposalMsgs        = (*AppModule)(nil)
 	_ appmodule.AppModule           = (*AppModule)(nil)
 	_ appmodule.HasBeginBlocker     = (*AppModule)(nil)
 )

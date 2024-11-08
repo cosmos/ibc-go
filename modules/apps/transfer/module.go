@@ -32,7 +32,6 @@ var (
 	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
 	_ module.HasInvariants          = (*AppModule)(nil)
 	_ module.HasServices            = (*AppModule)(nil)
-	_ module.HasProposalMsgs        = (*AppModule)(nil)
 	_ appmodule.AppModule           = (*AppModule)(nil)
 
 	_ porttypes.IBCModule = (*IBCModule)(nil)
