@@ -101,7 +101,7 @@ require (
 	github.com/emicklei/dot v1.6.2 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/getsentry/sentry-go v0.29.0 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
@@ -172,9 +172,9 @@ require (
 	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/client_golang v1.20.4 // indirect
+	github.com/prometheus/client_golang v1.20.5 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.59.1 // indirect
+	github.com/prometheus/common v0.60.1 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
@@ -232,6 +232,10 @@ require (
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 //TODO: remove everything below after tags are created
+// v0.0.0-20241108061010-a0458127fccf = sdk release/v0.52.x branch
+// v0.0.0-20241106165340-4eb943897eaa = ibc-go marko/gomod_change branch
+// v1.0.0-alpha.5.0.20241108095921-406f977be0b9 = sdk main branch
+// v9.0.0-20241108113619-eedadcc9a686 =  ibc-go custom branch with updates
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20241108095921-406f977be0b9 // main
 	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20241108061010-a0458127fccf
@@ -251,6 +255,7 @@ replace (
 	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/group => cosmossdk.io/x/group v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/nft => cosmossdk.io/x/nft v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20241108061010-a0458127fccf

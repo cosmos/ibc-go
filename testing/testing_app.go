@@ -53,7 +53,7 @@ type TestingApp interface {
 
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, make(simtestutil.AppOptionsMap))
 	return app, app.DefaultGenesis()
 }
 
