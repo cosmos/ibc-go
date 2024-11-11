@@ -7,7 +7,7 @@ import (
 )
 
 // CommitPacket returns the V2 packet commitment bytes. The commitment consists of:
-// sha256_hash(timeout) + sha256_hash(destinationChannel) + sha256_hash(payload) from a given packet.
+// 0x02 + sha256_hash(destinationChannel) + sha256_hash(timeout) + sha256_hash(payload) from a given packet.
 // This results in a fixed length preimage.
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
