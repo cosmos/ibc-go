@@ -92,7 +92,6 @@ def _get_max_version(versions):
 def _get_tags_to_test(min_version: semver.Version, max_version: semver.Version, all_versions: List[semver.Version]):
     all_versions = [parse_version(v) for v in all_versions]
     """return all tags that are between the min and max versions"""
-    # TODO: fix this hack
     return ["v" + str(v) for v in all_versions if min_version < v < max_version]
 
 
@@ -102,8 +101,7 @@ def main():
     file_metadata = _build_file_metadata(file_lines)
     tags = _get_ibc_go_releases(args.release_version)
 
-    # TODO: fix hack
-    # strip the v
+    # strip the v prefix from the version
     min_version = file_metadata["fields"]["from_version"][1:]
     max_version = _get_max_version(tags)
 
@@ -121,37 +119,57 @@ def main():
     test_suite = file_metadata["test_suite"]
     test_functions = file_metadata["tests"]
 
+    include_entries = []
+    for test in test_functions:
+        for version in other_versions:
+            if not _test_should_be_run(test, version, file_metadata["fields"]):
+                continue
+
+            include_entries.append({
+                "chain-a": release_versions[0],
+                "chain-b": version,
+                "entrypoint": test_suite,
+                "test": test,
+                "relayer-type": args.relayer,
+                "chain-image": args.image
+            })
+
     # compatibility_json is the json object that will be used as the input to a github workflow
     # which will expand out into a matrix of tests to run.
     compatibility_json = {
-        "chain-a": sorted(release_versions),
-        "chain-b": sorted(other_versions),
-        "entrypoint": [test_suite],
-        "test": sorted(test_functions),
-        "relayer-type": [args.relayer],
-        "chain-image": [args.image]
+        "include": include_entries,
     }
-
     _validate(compatibility_json)
+
     # output the json on a single line. This ensures the output is directly passable to a github workflow.
     print(json.dumps(compatibility_json), end="")
 
 
 def _validate(compatibility_json: Dict):
     """validates that the generated compatibility json fields will be valid for a github workflow."""
-    required_keys = frozenset({"chain-a", "chain-b", "entrypoint", "test", "relayer-type"})
+    if "include" not in compatibility_json:
+        raise ValueError("no include entries found")
+
+    required_keys = frozenset({"chain-a", "chain-b", "entrypoint", "test", "relayer-type", "chain-image"})
     for k in required_keys:
-        if k not in compatibility_json:
+        if k not in compatibility_json["include"]:
             raise ValueError(f"key {k} not found in {compatibility_json.keys()}")
 
-    if len(compatibility_json["entrypoint"]) != 1:
-        raise ValueError(f"found more than one entrypoint: {compatibility_json['entrypoint']}")
 
-    if len(compatibility_json["test"]) <= 0:
-        raise ValueError("no tests found")
+def _test_should_be_run(test_name: str, version: str, file_fields: Dict) -> bool:
+    """determines if the test should be run. Each test can have its own version defined, if it has been defined
+    we can check to see if this test should run, based on the other test parameters."""
 
-    if len(compatibility_json["relayer-type"]) <= 0:
-        raise ValueError("no relayer specified")
+    min_version = file_fields.get(f"{test_name}:{FROM_VERSION}")
+
+    # no custom version defined for this test, run it as normal using the from_version specified on the test suite.
+    if min_version is None:
+        return True
+
+    min_semver_version = parse_version(min_version)
+    semver_version = parse_version(version)
+
+    return min_semver_version <= semver_version
 
 
 def _get_ibc_go_releases(from_version: str) -> List[str]:
