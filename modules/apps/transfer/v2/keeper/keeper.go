@@ -4,6 +4,7 @@ import (
 	"context"
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -170,13 +171,12 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 		}
 	}
 
-	// TODO: forwarding
-	//if data.HasForwarding() {
-	//	// we are now sending from the forward escrow address to the final receiver address.
-	//	if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
-	//		return err
-	//	}
-	//}
+	if data.HasForwarding() {
+		// we are now sending from the forward escrow address to the final receiver address.
+		if err := k.forwardPacket(ctx, destChannel, data, payload, receivedCoins); err != nil {
+			return err
+		}
+	}
 
 	// TODO: telemetry
 	//telemetry.ReportOnRecvPacket(packet, data.Tokens)
@@ -187,7 +187,7 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 
 // TODO move to a different file
 // forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
-func (k Keeper) forwardPacket(ctx context.Context, data types.FungibleTokenPacketDataV2, payload channeltypesv2.Payload, timeoutTimestamp uint64, receivedCoins sdk.Coins) error {
+func (k Keeper) forwardPacket(ctx context.Context, destChannel string, data types.FungibleTokenPacketDataV2, payload channeltypesv2.Payload, timeoutTimestamp uint64, receivedCoins sdk.Coins) error {
 	newForwardingPacketData := types.NewForwardingPacketData(data.Forwarding.DestinationMemo)
 	if len(data.Forwarding.Hops) > 1 {
 		// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver
@@ -218,12 +218,25 @@ func (k Keeper) forwardPacket(ctx context.Context, data types.FungibleTokenPacke
 	)
 
 	handler := k.msgServiceRouter.Handler(&channeltypesv2.MsgSendPacket{})
-	resp, err := handler(sdk.UnwrapSDKContext(ctx), msg)
+	res, err := handler(sdk.UnwrapSDKContext(ctx), msg)
 	if err != nil {
 		return err
 	}
-	_ = resp
-	// k.setForwardedPacketSequence(ctx, data.Forwarding.Hops[0].PortId, data.Forwarding.Hops[0].ChannelId, resp.Sequence)
+
+	var msgData sdk.TxMsgData
+	err = proto.Unmarshal(res.Data, &msgData)
+	if err != nil {
+		return err
+	}
+	msgResponse := msgData.MsgResponses[0]
+	var sendResponse channeltypesv2.MsgSendPacketResponse
+	err = proto.Unmarshal(msgResponse.Value, &sendResponse)
+	if err != nil {
+		return err
+	}
+
+	// TODO: store sequence and destinationChannel
+	k.SetForwardedPacketSequenceAndDestinationChannel(ctx, data.Forwarding.Hops[0].PortId, data.Forwarding.Hops[0].ChannelId, sendResponse.Sequence, destChannel)
 	return nil
 }
 

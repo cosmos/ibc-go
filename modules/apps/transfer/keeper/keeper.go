@@ -346,6 +346,20 @@ func (k Keeper) getAllForwardedPackets(ctx context.Context) []types.ForwardedPac
 	return packets
 }
 
+// TODO docstring/naming
+func (k Keeper) SetForwardedPacketSequenceAndDestinationChannel(ctx context.Context, portID, channelID string, sequence uint64, destChannel string) {
+	store := k.storeService.OpenKVStore(ctx)
+	// How to store two?
+	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
+	destChannelBz := []byte(destChannel)
+	if err := store.Set( /* key? */ []byte("foo/sequence"), bigEndianBz); err != nil {
+		panic(err)
+	}
+	if err := store.Set( /* key? */ []byte("foo/channel"), destChannelBz); err != nil {
+		panic(err)
+	}
+}
+
 // iterateForwardedPackets iterates over the forward packets in the store and performs a callback function.
 func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet types.ForwardedPacket) bool) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
