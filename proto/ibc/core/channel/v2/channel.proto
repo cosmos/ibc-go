@@ -26,17 +26,12 @@ message Channel {
   ibc.core.commitment.v2.MerklePath merkle_path_prefix = 3 [(gogoproto.nullable) = false];
 }
 
-// PacketState defines the generic type necessary to retrieve and store
-// packet commitments, acknowledgements, and receipts.
-// Caller is responsible for knowing the context necessary to interpret this
-// state as a commitment, acknowledgement, or a receipt.
-message PacketState {
+// IdentifiedChannel defines a channel with an additional channel identifier field.
+message IdentifiedChannel {
   option (gogoproto.goproto_getters) = false;
 
-  // channel unique identifier.
-  string channel_id = 1;
-  // packet sequence.
-  uint64 sequence = 2;
-  // embedded data that represents packet state.
-  bytes data = 3;
+  // channel identified.
+  Channel channel = 1 [(gogoproto.nullable) = false];
+  // channel identifier
+  string channel_id = 2;
 }

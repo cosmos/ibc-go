@@ -9,7 +9,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
@@ -39,6 +38,11 @@ func (k *Keeper) CreateChannel(goCtx context.Context, msg *types.MsgCreateChanne
 func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *types.MsgRegisterCounterparty) (*types.MsgRegisterCounterpartyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	channel, ok := k.GetChannel(ctx, msg.ChannelId)
+	if !ok {
+		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "channel must exist for channel id %s", msg.ChannelId)
+	}
+
 	creator, found := k.GetCreator(ctx, msg.ChannelId)
 	if !found {
 		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "channel creator must be set")
@@ -46,11 +50,6 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *types.MsgRegis
 
 	if creator != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "channel creator (%s) must match signer (%s)", creator, msg.Signer)
-	}
-
-	channel, ok := k.GetChannel(ctx, msg.ChannelId)
-	if !ok {
-		return nil, errorsmod.Wrapf(types.ErrInvalidChannel, "channel must exist for channel id %s", msg.ChannelId)
 	}
 
 	channel.CounterpartyChannelId = msg.CounterpartyChannelId
@@ -123,7 +122,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 	case types.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
 		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", msg.Packet.SourceChannel)
-		return &types.MsgRecvPacketResponse{Result: channeltypesv1.NOOP}, nil
+		return &types.MsgRecvPacketResponse{Result: types.NOOP}, nil
 	default:
 		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "receive packet verification failed"))
 		return nil, errorsmod.Wrap(err, "receive packet verification failed")
@@ -157,7 +156,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 	// note this should never happen as the payload would have had to be empty.
 	if len(ack.AcknowledgementResults) == 0 {
 		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
-		return &types.MsgRecvPacketResponse{Result: channeltypesv1.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-channel %s invalid acknowledgement results", msg.Packet.SourceChannel)
+		return &types.MsgRecvPacketResponse{Result: types.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-channel %s invalid acknowledgement results", msg.Packet.SourceChannel)
 	}
 
 	// NOTE: TBD how we will handle async acknowledgements with more than one payload.
@@ -176,8 +175,8 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 
 	defer telemetry.ReportRecvPacket(msg.Packet)
 
-	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "result", channeltypesv1.SUCCESS.String())
-	return &types.MsgRecvPacketResponse{Result: channeltypesv1.SUCCESS}, nil
+	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "result", types.SUCCESS.String())
+	return &types.MsgRecvPacketResponse{Result: types.SUCCESS}, nil
 }
 
 // Acknowledgement defines an rpc handler method for MsgAcknowledgement.
@@ -198,7 +197,7 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 	case types.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
 		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", msg.Packet.SourceChannel)
-		return &types.MsgAcknowledgementResponse{Result: channeltypesv1.NOOP}, nil
+		return &types.MsgAcknowledgementResponse{Result: types.NOOP}, nil
 	default:
 		sdkCtx.Logger().Error("acknowledgement failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
 		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
@@ -217,7 +216,7 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 		}
 	}
 
-	return &types.MsgAcknowledgementResponse{Result: channeltypesv1.SUCCESS}, nil
+	return &types.MsgAcknowledgementResponse{Result: types.SUCCESS}, nil
 }
 
 // Timeout defines a rpc handler method for MsgTimeout.
@@ -242,7 +241,7 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types
 	case types.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
 		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", timeout.Packet.SourceChannel)
-		return &types.MsgTimeoutResponse{Result: channeltypesv1.NOOP}, nil
+		return &types.MsgTimeoutResponse{Result: types.NOOP}, nil
 	default:
 		sdkCtx.Logger().Error("timeout failed", "source-channel", timeout.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet verification failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
@@ -256,5 +255,5 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types
 		}
 	}
 
-	return &types.MsgTimeoutResponse{Result: channeltypesv1.SUCCESS}, nil
+	return &types.MsgTimeoutResponse{Result: types.SUCCESS}, nil
 }
