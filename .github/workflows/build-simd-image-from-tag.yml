@@ -18,7 +18,7 @@ env:
    GIT_TAG: "${{ inputs.tag }}"
 
 jobs:
-   build-image-at-tag:
+    build-image-at-tag:
       runs-on: ubuntu-latest
       steps:
          - uses: actions/checkout@v4
