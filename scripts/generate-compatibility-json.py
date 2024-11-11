@@ -152,8 +152,9 @@ def _validate(compatibility_json: Dict):
 
     required_keys = frozenset({"chain-a", "chain-b", "entrypoint", "test", "relayer-type", "chain-image"})
     for k in required_keys:
-        if k not in compatibility_json["include"]:
-            raise ValueError(f"key {k} not found in {compatibility_json.keys()}")
+        for item in compatibility_json["include"]:
+            if k not in item:
+                raise ValueError(f"key {k} not found in {item.keys()}")
 
 
 def _test_should_be_run(test_name: str, version: str, file_fields: Dict) -> bool:
