@@ -112,7 +112,7 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite stri
 
 		suiteNameForFile, testCases, err := extractSuiteAndTestNames(f)
 		if err != nil {
-			return fmt.Errorf("failed extracting test suite name and test cases: %s", err)
+			return nil
 		}
 
 		if testName != "" && contains(testName, testCases) {
@@ -145,6 +145,11 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite stri
 			})
 		}
 	}
+
+	if len(gh.Include) == 0 {
+		return GithubActionTestMatrix{}, fmt.Errorf("no test cases found")
+	}
+
 	// Sort the test cases by name so that the order is consistent.
 	sort.SliceStable(gh.Include, func(i, j int) bool {
 		return gh.Include[i].Test < gh.Include[j].Test
