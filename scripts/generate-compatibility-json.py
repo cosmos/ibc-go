@@ -16,6 +16,8 @@ CHAIN_B = "chain-b"
 HERMES = "hermes"
 DEFAULT_IMAGE = "ghcr.io/cosmos/ibc-go-simd"
 RLY = "rly"
+# MAX_VERSION is a version string that will be greater than any other semver version.
+MAX_VERSION = "9999.999.999"
 
 
 def parse_version(version: str) -> semver.Version:
@@ -37,9 +39,10 @@ def parse_version(version: str) -> semver.Version:
     # ensure "main" is always greater than other versions for semver comparison.
     if version == "main":
         # main will always be the newest release.
-        version = "9999.999.999"
+        version = MAX_VERSION
     if version.endswith("x"):
         # we always assume the release branch is newer than the previous release.
+        # for example, release-v9.0.x is newer than release-v9.0.1
         version = version.replace("x", "999", 1)
     return semver.Version.parse(version)
 
@@ -118,6 +121,8 @@ def main():
     test_suite = file_metadata["test_suite"]
     test_functions = file_metadata["tests"]
 
+    # compatibility_json is the json object that will be used as the input to a github workflow
+    # which will expand out into a matrix of tests to run.
     compatibility_json = {
         "chain-a": sorted(release_versions),
         "chain-b": sorted(other_versions),
@@ -154,7 +159,8 @@ def _get_ibc_go_releases(from_version: str) -> List[str]:
 
     from_version_semver = parse_version(from_version)
 
-    resp = requests.get(RELEASES_URL)
+    # ref: documentation https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases
+    resp = requests.get(RELEASES_URL, params={"per_page": 1000})
     resp.raise_for_status()
 
     response_body = resp.json()

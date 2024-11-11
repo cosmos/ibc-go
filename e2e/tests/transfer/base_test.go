@@ -21,7 +21,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 )
 
-// compatibility:from_version: v4.4.2
+// compatibility:from_version: v7.4.0
 func TestTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TransferTestSuite))
 }
