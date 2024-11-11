@@ -13,12 +13,12 @@ import (
 // to malleate the packet fields and create a commitment hash that matches the original packet.
 func CommitPacket(packet Packet) []byte {
 	var buf []byte
+	destIDHash := sha256.Sum256([]byte(packet.DestinationChannel))
+	buf = append(buf, destIDHash[:]...)
+
 	timeoutBytes := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
 	timeoutHash := sha256.Sum256(timeoutBytes)
 	buf = append(buf, timeoutHash[:]...)
-
-	destIDHash := sha256.Sum256([]byte(packet.DestinationChannel))
-	buf = append(buf, destIDHash[:]...)
 
 	var appBytes []byte
 	for _, payload := range packet.Payloads {
@@ -38,12 +38,12 @@ func hashPayload(data Payload) []byte {
 	buf = append(buf, sourceHash[:]...)
 	destHash := sha256.Sum256([]byte(data.DestinationPort))
 	buf = append(buf, destHash[:]...)
-	payloadValueHash := sha256.Sum256(data.Value)
-	buf = append(buf, payloadValueHash[:]...)
-	payloadEncodingHash := sha256.Sum256([]byte(data.Encoding))
-	buf = append(buf, payloadEncodingHash[:]...)
 	payloadVersionHash := sha256.Sum256([]byte(data.Version))
 	buf = append(buf, payloadVersionHash[:]...)
+	payloadEncodingHash := sha256.Sum256([]byte(data.Encoding))
+	buf = append(buf, payloadEncodingHash[:]...)
+	payloadValueHash := sha256.Sum256(data.Value)
+	buf = append(buf, payloadValueHash[:]...)
 	hash := sha256.Sum256(buf)
 	return hash[:]
 }
