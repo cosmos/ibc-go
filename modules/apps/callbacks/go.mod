@@ -239,7 +239,6 @@ require (
 // v0.0.0-20241108061010-a0458127fccf = sdk release/v0.52.x branch
 // v0.0.0-20241106165340-4eb943897eaa = ibc-go marko/gomod_change branch
 // v1.0.0-alpha.5.0.20241108095921-406f977be0b9 = sdk main branch
-// v9.0.0-20241108113619-eedadcc9a686 =  ibc-go custom branch with updates
 replace (
 	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20241108095921-406f977be0b9 // main
 	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20241108061010-a0458127fccf
