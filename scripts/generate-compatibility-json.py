@@ -64,12 +64,6 @@ def parse_args() -> argparse.Namespace:
         help=f"Specify the image to be used in the test. Default: {DEFAULT_IMAGE}",
     )
     parser.add_argument(
-        "--chain",
-        choices=[CHAIN_A, CHAIN_B],
-        default=CHAIN_A,
-        help=f"Specify {CHAIN_A} or {CHAIN_B} for use with the json files.",
-    )
-    parser.add_argument(
         "--relayer",
         choices=[HERMES, RLY],
         default=HERMES,
@@ -105,29 +99,31 @@ def main():
     min_version = file_metadata["fields"]["from_version"][1:]
     max_version = _get_max_version(tags)
 
-    release_versions = [args.release_version]
-
     tags_to_test = _get_tags_to_test(min_version, max_version, tags)
-    tags_to_test.extend(release_versions)
 
-    other_versions = tags_to_test
-
-    # if we are specifying chain B, we invert the versions.
-    if args.chain == CHAIN_B:
-        release_versions, other_versions = other_versions, release_versions
+    # we also want to test the release version against itself, as well as already released versions.
+    tags_to_test.append(args.release_version)
 
     test_suite = file_metadata["test_suite"]
     test_functions = file_metadata["tests"]
 
     include_entries = []
     for test in test_functions:
-        for version in other_versions:
+        for version in tags_to_test:
             if not _test_should_be_run(test, version, file_metadata["fields"]):
                 continue
 
             include_entries.append({
-                "chain-a": release_versions[0],
+                "chain-a": args.release_version,
                 "chain-b": version,
+                "entrypoint": test_suite,
+                "test": test,
+                "relayer-type": args.relayer,
+                "chain-image": args.image
+            })
+            include_entries.append({
+                "chain-a": version,
+                "chain-b": args.release_version,
                 "entrypoint": test_suite,
                 "test": test,
                 "relayer-type": args.relayer,

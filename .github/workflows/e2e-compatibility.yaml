@@ -95,7 +95,6 @@ jobs:
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file: "e2e/tests/transfer/base_test.go"
-      test-chain: "chain-a"
       release-version: "${{ needs.determine-test-directory.outputs.test-directory }}"
 
 #  transfer-chain-b:
