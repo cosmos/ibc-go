@@ -32,7 +32,7 @@ type IncentivizedTransferTestSuite struct {
 	transferTester
 }
 
-// compatibility:from_version: v4.4.2
+// compatibility:from_version: v7.4.0
 func TestIncentivizedTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(IncentivizedTransferTestSuite))
 }

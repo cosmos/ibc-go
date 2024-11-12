@@ -115,16 +115,61 @@ jobs:
       test-file: "e2e/tests/transfer/forwarding_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
+  transfer-incentivized-test:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/incentivized_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-#
-#  transfer-v2-forwarding-chain-a:
-#    needs:
-#      - build-release-images
-#      - determine-test-directory
-#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-#    with:
-#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-#      test-suite: "transfer-v2-forwarding-chain-a"
+  transfer-localhost-test:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/localhost_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+
+  transfer-send-enabled-test:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/send_enabled_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+
+  transfer-receive-test:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/send_receive_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+
+  transfer-upgrades-v1-test:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/upgradesv1_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+
+  transfer-upgrades-v2-test:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/upgradesv2_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+
+
 #
 #  transfer-v2-multidenom-chain-a:
 #    needs:
@@ -152,25 +197,7 @@ jobs:
 #    with:
 #      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
 #      test-suite: "client-chain-a"
-#
-#  incentivized-transfer-chain-a:
-#    needs:
-#      - build-release-images
-#      - determine-test-directory
-#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-#    with:
-#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-#      test-suite: "incentivized-transfer-chain-a"
-#
-#  incentivized-transfer-chain-b:
-#    needs:
-#      - build-release-images
-#      - determine-test-directory
-#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-#    with:
-#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-#      test-suite: "incentivized-transfer-chain-b"
-#
+
 #  ica-chain-a:
 #    needs:
 #      - build-release-images
