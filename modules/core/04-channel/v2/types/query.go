@@ -10,9 +10,8 @@ func NewQueryChannelRequest(channelID string) *QueryChannelRequest {
 }
 
 // NewQueryChannelResponse creates and returns a new channel query response.
-func NewQueryChannelResponse(creator string, channel Channel) *QueryChannelResponse {
+func NewQueryChannelResponse(channel Channel) *QueryChannelResponse {
 	return &QueryChannelResponse{
-		Creator: creator,
 		Channel: channel,
 	}
 }
@@ -48,5 +47,22 @@ func NewQueryPacketAcknowledgementResponse(acknowledgementHash []byte, proof []b
 		Acknowledgement: acknowledgementHash,
 		Proof:           proof,
 		ProofHeight:     proofHeight,
+	}
+}
+
+// NewQueryPacketReceiptRequest creates and returns a new packet receipt query request.
+func NewQueryPacketReceiptRequest(channelID string, sequence uint64) *QueryPacketReceiptRequest {
+	return &QueryPacketReceiptRequest{
+		ChannelId: channelID,
+		Sequence:  sequence,
+	}
+}
+
+// NewQueryPacketReceiptResponse creates and returns a new packet receipt query response.
+func NewQueryPacketReceiptResponse(exists bool, proof []byte, height clienttypes.Height) *QueryPacketReceiptResponse {
+	return &QueryPacketReceiptResponse{
+		Received:    exists,
+		Proof:       proof,
+		ProofHeight: height,
 	}
 }

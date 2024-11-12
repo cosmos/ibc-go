@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -52,9 +52,10 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 		{
 			"failure: channel must already exist",
 			func() {
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeleteCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID)
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(channeltypesv2.ChannelKey))
 			},
-			channeltypesv2.ErrInvalidChannel,
+			channeltypesv2.ErrChannelNotFound,
 		},
 	}
 
@@ -117,12 +118,37 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			expError: nil,
 		},
 		{
+			name: "success: valid timeout timestamp",
+			malleate: func() {
+				// ensure a message timeout.
+				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Add(channeltypesv2.MaxTimeoutDelta - 10*time.Second).Unix())
+				expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, payload)
+			},
+			expError: nil,
+		},
+		{
 			name: "failure: timeout elapsed",
 			malleate: func() {
 				// ensure a message timeout.
 				timeoutTimestamp = uint64(1)
 			},
-			expError: channeltypesv1.ErrTimeoutElapsed,
+			expError: channeltypesv2.ErrTimeoutElapsed,
+		},
+		{
+			name: "failure: timeout timestamp exceeds max allowed input",
+			malleate: func() {
+				// ensure message timeout exceeds max allowed input.
+				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Add(channeltypesv2.MaxTimeoutDelta + 10*time.Second).Unix())
+			},
+			expError: channeltypesv2.ErrInvalidTimeout,
+		},
+		{
+			name: "failure: timeout timestamp less than current block timestamp",
+			malleate: func() {
+				// ensure message timeout exceeds max allowed input.
+				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Unix()) - 1
+			},
+			expError: channeltypesv2.ErrTimeoutElapsed,
 		},
 		{
 			name: "failure: inactive client",
@@ -462,7 +488,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 					return mock.MockApplicationCallbackError
 				}
 			},
-			expError: channeltypesv1.ErrNoOpMsg,
+			expError: channeltypesv2.ErrNoOpMsg,
 		},
 		{
 			name: "failure: callback fails",

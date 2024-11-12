@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -49,7 +48,7 @@ func (k *Keeper) sendPacket(
 	packet := types.NewPacket(sequence, sourceChannel, destChannel, timeoutTimestamp, payloads...)
 
 	if err := packet.ValidateBasic(); err != nil {
-		return 0, "", errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
+		return 0, "", errorsmod.Wrapf(types.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
 	}
 
 	// check that the client of counterparty chain is still active
@@ -72,7 +71,7 @@ func (k *Keeper) sendPacket(
 	// thus to compare them, we convert the packet timeout to nanoseconds
 	timeoutTimestamp = types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
 	if latestTimestamp >= timeoutTimestamp {
-		return 0, "", errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeoutTimestamp)
+		return 0, "", errorsmod.Wrapf(types.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeoutTimestamp)
 	}
 
 	commitment := types.CommitPacket(packet)
@@ -111,7 +110,7 @@ func (k *Keeper) recvPacket(
 	}
 
 	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
+		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
 	}
 
 	clientID := channel.ClientId
@@ -120,7 +119,7 @@ func (k *Keeper) recvPacket(
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	currentTimestamp := uint64(sdkCtx.BlockTime().Unix())
 	if currentTimestamp >= packet.TimeoutTimestamp {
-		return errorsmod.Wrapf(channeltypes.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, packet.TimeoutTimestamp)
+		return errorsmod.Wrapf(types.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, packet.TimeoutTimestamp)
 	}
 
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
@@ -131,7 +130,7 @@ func (k *Keeper) recvPacket(
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
 		// from failing and consuming unnecessary fees.
-		return channeltypes.ErrNoOpMsg
+		return types.ErrNoOpMsg
 	}
 
 	path := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
@@ -176,18 +175,18 @@ func (k Keeper) WriteAcknowledgement(
 	}
 
 	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
+		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
 	if k.HasPacketAcknowledgement(ctx, packet.DestinationChannel, packet.Sequence) {
-		return errorsmod.Wrapf(channeltypes.ErrAcknowledgementExists, "acknowledgement for channel %s, sequence %d already exists", packet.DestinationChannel, packet.Sequence)
+		return errorsmod.Wrapf(types.ErrAcknowledgementExists, "acknowledgement for channel %s, sequence %d already exists", packet.DestinationChannel, packet.Sequence)
 	}
 
 	if _, found := k.GetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence); !found {
-		return errorsmod.Wrap(channeltypes.ErrInvalidPacket, "receipt not found for packet")
+		return errorsmod.Wrap(types.ErrInvalidPacket, "receipt not found for packet")
 	}
 
 	// TODO: Validate Acknowledgment more thoroughly here after Issue #7472: https://github.com/cosmos/ibc-go/issues/7472
@@ -218,7 +217,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
+		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
 	}
 
 	clientID := channel.ClientId
@@ -232,14 +231,14 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return channeltypes.ErrNoOpMsg
+		return types.ErrNoOpMsg
 	}
 
 	packetCommitment := types.CommitPacket(packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
+		return errorsmod.Wrapf(types.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
 	path := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
@@ -285,7 +284,7 @@ func (k *Keeper) timeoutPacket(
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
+		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
 	}
 
 	clientID := channel.ClientId
@@ -298,7 +297,7 @@ func (k *Keeper) timeoutPacket(
 
 	timeoutTimestamp := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
 	if proofTimestamp < timeoutTimestamp {
-		return errorsmod.Wrapf(channeltypes.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, timeoutTimestamp)
+		return errorsmod.Wrapf(types.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, timeoutTimestamp)
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
@@ -309,13 +308,13 @@ func (k *Keeper) timeoutPacket(
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return channeltypes.ErrNoOpMsg
+		return types.ErrNoOpMsg
 	}
 
 	packetCommitment := types.CommitPacket(packet)
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
+		return errorsmod.Wrapf(types.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
 	// verify packet receipt absence

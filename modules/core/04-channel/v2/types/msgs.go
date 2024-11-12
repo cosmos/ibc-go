@@ -1,17 +1,20 @@
 package types
 
 import (
+	"time"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypesv1 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
+
+const MaxTimeoutDelta time.Duration = 24 * time.Hour
 
 var (
 	_ sdk.Msg              = (*MsgCreateChannel)(nil)
@@ -102,7 +105,7 @@ func (msg *MsgSendPacket) ValidateBasic() error {
 	}
 
 	if msg.TimeoutTimestamp == 0 {
-		return errorsmod.Wrap(channeltypesv1.ErrInvalidTimeout, "timeout must not be 0")
+		return errorsmod.Wrap(ErrInvalidTimeout, "timeout must not be 0")
 	}
 
 	if len(msg.Payloads) != 1 {

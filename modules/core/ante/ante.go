@@ -7,6 +7,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
 )
@@ -89,6 +90,36 @@ func (rrd RedundantRelayDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 					return ctx, err
 				}
 
+			case *channeltypesv2.MsgTimeout:
+				response, err := rrd.k.ChannelKeeperV2.Timeout(ctx, msg)
+				if err != nil {
+					return ctx, err
+				}
+
+				if response.Result == channeltypesv2.NOOP {
+					redundancies++
+				}
+				packetMsgs++
+			case *channeltypesv2.MsgAcknowledgement:
+				response, err := rrd.k.ChannelKeeperV2.Acknowledgement(ctx, msg)
+				if err != nil {
+					return ctx, err
+				}
+
+				if response.Result == channeltypesv2.NOOP {
+					redundancies++
+				}
+				packetMsgs++
+			case *channeltypesv2.MsgRecvPacket:
+				response, err := rrd.k.ChannelKeeperV2.RecvPacket(ctx, msg)
+				if err != nil {
+					return ctx, err
+				}
+
+				if response.Result == channeltypesv2.NOOP {
+					redundancies++
+				}
+				packetMsgs++
 			default:
 				// if the multiMsg tx has a msg that is not a packet msg or update msg, then we will not return error
 				// regardless of if all packet messages are redundant. This ensures that non-packet messages get processed
