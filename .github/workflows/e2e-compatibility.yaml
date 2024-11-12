@@ -35,7 +35,7 @@ env:
   IBC_GO_VERSION: ${{ inputs.ibc-go-version || 'latest' }}
 
 jobs:
-  determine-test-directory:
+  determine-image-tag:
     runs-on: ubuntu-latest
     outputs:
       test-directory: ${{ steps.set-test-dir.outputs.test-directory }}
@@ -88,42 +88,25 @@ jobs:
 #          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
 #          docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
 
-  transfer-chain-a:
+  transfer-base-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file: "e2e/tests/transfer/base_test.go"
-      release-version: "${{ needs.determine-test-directory.outputs.test-directory }}"
+      release-version: "${{ needs.determine-image-tag.outputs.test-directory }}"
 
-#  transfer-chain-b:
+#  transfer-authz-test:
 #    needs:
 #      - build-release-images
-#      - determine-test-directory
+#      - determine-image-tag
 #    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
 #    with:
-#      test-file: "e2e/tests/transfer/base_test.go"
-#      test-chain: "chain-b"
-#      release-version: "${{ needs.determine-test-directory.outputs.test-directory }}"
-#
-#  transfer-authz-chain-a:
-#    needs:
-#      - build-release-images
-#      - determine-test-directory
-#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-#    with:
-#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-#      test-suite: "transfer-authz-chain-a"
-#
-#  transfer-authz-chain-b:
-#    needs:
-#      - build-release-images
-#      - determine-test-directory
-#    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-#    with:
-#      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-#      test-suite: "transfer-authz-chain-b"
+#      test-file: "e2e/tests/transfer/authz_test.go"
+#      release-version: "${{ needs.determine-image-tag.outputs.test-directory }}"
+
+
 #
 #  transfer-v2-forwarding-chain-a:
 #    needs:

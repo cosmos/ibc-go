@@ -5,10 +5,6 @@ on:
         description: 'The test file'
         required: true
         type: string
-      test-chain:
-        description: 'The chain name chain-a or chain-b'
-        required: true
-        type: string
       release-version:
         description: 'the release tag, e.g. release-v7.3.0'
         required: true
@@ -25,9 +21,9 @@ jobs:
         with:
           python-version: '3.10'
       - run: pip install -r requirements.txt
-      - uses: andstor/file-existence-action@v3
-        with:
-          files: '.github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json'
+#      - uses: andstor/file-existence-action@v3
+#        with:
+#          files: '.github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json'
       - run: |
           # use jq -c to compact the full json contents into a single line. This is required when using the json body
           # to create the matrix in the following job.
