@@ -18,6 +18,11 @@ service Query {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}";
   }
 
+  // NextSequenceSend returns the next send sequence for a given channel.
+  rpc NextSequenceSend(QueryNextSequenceSendRequest) returns (QueryNextSequenceSendResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/next_sequence_send";
+  }
+
   // PacketCommitment queries a stored packet commitment hash.
   rpc PacketCommitment(QueryPacketCommitmentRequest) returns (QueryPacketCommitmentResponse) {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/{sequence}";
@@ -48,6 +53,22 @@ message QueryChannelRequest {
 message QueryChannelResponse {
   // the channel associated with the provided channel id
   Channel channel = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryNextSequenceSendRequest is the request type for the Query/QueryNextSequenceSend RPC method
+message QueryNextSequenceSendRequest {
+  // channel unique identifier
+  string channel_id = 1;
+}
+
+// QueryNextSequenceSendResponse is the response type for the Query/QueryNextSequenceSend RPC method
+message QueryNextSequenceSendResponse {
+  // next sequence send number
+  uint64 next_sequence_send = 1;
+  // merkle proof of existence
+  bytes proof = 2;
+  // height at which the proof was retrieved
+  ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
 }
 
 // QueryPacketCommitmentRequest is the request type for the Query/PacketCommitment RPC method.
