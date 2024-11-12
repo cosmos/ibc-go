@@ -69,24 +69,24 @@ jobs:
         with:
           ref: "${{ matrix.release-branch }}"
           fetch-depth: 0
-  #      - name: Log in to the Container registry
-  #        if: env.RELEASE_BRANCH == matrix.release-branch
-  #        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
-  #        with:
-  #          registry: ${{ env.REGISTRY }}
-  #          username: ${{ github.actor }}
-  #          password: ${{ secrets.GITHUB_TOKEN }}
-  #      - name: Build image
-  #        if: env.RELEASE_BRANCH == matrix.release-branch
-  #        run: |
-  #          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
-  #          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ env.IBC_GO_VERSION }}
-  #          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
-  #      - name: Display image details
-  #        if: env.RELEASE_BRANCH == matrix.release-branch
-  #        run: |
-  #          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
-  #          docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+      - name: Log in to the Container registry
+        if: env.RELEASE_BRANCH == matrix.release-branch
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build image
+        if: env.RELEASE_BRANCH == matrix.release-branch
+        run: |
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
+          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ env.IBC_GO_VERSION }}
+          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+      - name: Display image details
+        if: env.RELEASE_BRANCH == matrix.release-branch
+        run: |
+          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
+          docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
 
   client-test:
     needs:
