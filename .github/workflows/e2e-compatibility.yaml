@@ -43,8 +43,8 @@ jobs:
       - run: |
           # we sanitize the release branch name. Docker images cannot contain "/"
           # characters so we replace them with a "-".
-          release-version="$(echo $RELEASE_BRANCH | sed 's/\//-/')"
-          echo "release-version=$release-version" >> $GITHUB_OUTPUT
+          release_version="$(echo $RELEASE_BRANCH | sed 's/\//-/')"
+          echo "release-version=$release_version" >> $GITHUB_OUTPUT
         id: set-release-version
 
   # build-release-images builds all docker images that are relevant for the compatibility tests. If a single release
