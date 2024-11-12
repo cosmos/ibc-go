@@ -133,7 +133,7 @@ func (k *Keeper) HasPacketReceipt(ctx context.Context, channelID string, sequenc
 // This is a public path that is standardized by the IBC V2 specification.
 func (k *Keeper) SetPacketReceipt(ctx context.Context, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
-	if err := store.Set(hostv2.PacketReceiptKey(channelID, sequence), []byte{byte(1)}); err != nil {
+	if err := store.Set(hostv2.PacketReceiptKey(channelID, sequence), []byte{byte(2)}); err != nil {
 		panic(err)
 	}
 }
