@@ -33,7 +33,7 @@ func TestCommitPacket(t *testing.T) {
 		},
 		{
 			name:   "diff timeout revision number",
-			packet: types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, clienttypes.NewHeight(timeoutHeight.RevisionNumber + 1, timeoutHeight.RevisionHeight), timeoutTimestamp),
+			packet: types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, clienttypes.NewHeight(timeoutHeight.RevisionNumber+1, timeoutHeight.RevisionHeight), timeoutTimestamp),
 		},
 		{
 			name:   "diff timeout revision height",
