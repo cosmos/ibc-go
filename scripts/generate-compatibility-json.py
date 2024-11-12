@@ -10,6 +10,13 @@ import semver
 
 COMPATIBILITY_FLAG = "compatibility"
 FROM_VERSION = "from_version"
+# FROM_VERSIONS should be specified on individual tests if the features under test are only supported
+# from specific versions of release lines.
+FROM_VERSIONS = "from_versions"
+# fields will contain arbitrary key value pairs in comments that use the compatibility flag.
+FIELDS = "fields"
+TEST_SUITE = "test_suite"
+TESTS = "tests"
 RELEASES_URL = "https://api.github.com/repos/cosmos/ibc-go/releases"
 CHAIN_A = "chain-a"
 CHAIN_B = "chain-b"
@@ -74,61 +81,59 @@ def parse_args() -> argparse.Namespace:
         default=False,
         help="if a json file exists under .github/compatibility-test-matrices, use that instead"
     )
-
     return parser.parse_args()
-
-
-def _get_max_version(versions):
-    """remove the v as it's not a valid semver version"""
-    return max([parse_version(v) for v in versions])
-
-
-def _get_tags_to_test(min_version: semver.Version, max_version: semver.Version, all_versions: List[semver.Version]):
-    all_versions = [parse_version(v) for v in all_versions]
-    """return all tags that are between the min and max versions"""
-    return ["v" + str(v) for v in all_versions if min_version < v < max_version]
 
 
 def main():
     args = parse_args()
-    file_lines = _load_file_lines(args.file)
-    file_metadata = _build_file_metadata(file_lines)
+
+    file_metadata = _build_file_metadata(args.file)
     tags = _get_ibc_go_releases(args.release_version)
 
-    # strip the v prefix from the version
-    min_version = file_metadata["fields"]["from_version"][1:]
-    max_version = _get_max_version(tags)
+    # extract the "from_version" annotation specified in the test file.
+    # this will be the default minimum version that tests will use.
+    min_version = parse_version(file_metadata[FIELDS][FROM_VERSION])
 
-    tags_to_test = _get_tags_to_test(min_version, max_version, tags)
+    all_versions = [parse_version(v) for v in tags]
+
+    # get all tags between the min and max versions.
+    tags_to_test = _get_tags_to_test(min_version, all_versions)
 
     # we also want to test the release version against itself, as well as already released versions.
     tags_to_test.append(args.release_version)
 
-    test_suite = file_metadata["test_suite"]
-    test_functions = file_metadata["tests"]
+    # for each compatibility test run, we are using a single test suite.
+    test_suite = file_metadata[TEST_SUITE]
+
+    # all possible test files that exist within the suite.
+    test_functions = file_metadata[TESTS]
 
     include_entries = []
     for test in test_functions:
         for version in tags_to_test:
-            if not _test_should_be_run(test, version, file_metadata["fields"]):
+            if not _test_should_be_run(test, version, file_metadata[FIELDS]):
                 continue
 
-            include_entries.append({
-                "chain-a": args.release_version,
-                "chain-b": version,
-                "entrypoint": test_suite,
-                "test": test,
-                "relayer-type": args.relayer,
-                "chain-image": args.image
-            })
-            include_entries.append({
-                "chain-a": version,
-                "chain-b": args.release_version,
-                "entrypoint": test_suite,
-                "test": test,
-                "relayer-type": args.relayer,
-                "chain-image": args.image
-            })
+            include_entries.extend(
+                [
+                    {
+                        "chain-a": args.release_version,
+                        "chain-b": version,
+                        "entrypoint": test_suite,
+                        "test": test,
+                        "relayer-type": args.relayer,
+                        "chain-image": args.image
+                    },
+                    {
+                        "chain-a": version,
+                        "chain-b": args.release_version,
+                        "entrypoint": test_suite,
+                        "test": test,
+                        "relayer-type": args.relayer,
+                        "chain-image": args.image
+                    }
+                ]
+            )
 
     # compatibility_json is the json object that will be used as the input to a github workflow
     # which will expand out into a matrix of tests to run.
@@ -139,6 +144,12 @@ def main():
 
     # output the json on a single line. This ensures the output is directly passable to a github workflow.
     print(json.dumps(compatibility_json), end="")
+
+
+def _get_tags_to_test(min_version: semver.Version, all_versions: List[semver.Version]):
+    """return all tags that are between the min and max versions"""
+    max_version = max(all_versions)
+    return ["v" + str(v) for v in all_versions if min_version <= v <= max_version]
 
 
 def _validate(compatibility_json: Dict):
@@ -154,19 +165,34 @@ def _validate(compatibility_json: Dict):
 
 
 def _test_should_be_run(test_name: str, version: str, file_fields: Dict) -> bool:
-    """determines if the test should be run. Each test can have its own version defined, if it has been defined
-    we can check to see if this test should run, based on the other test parameters."""
+    """determines if the test should be run. Each test can have its own versions defined, if it has been defined
+    we can check to see if this test should run, based on the other test parameters.
 
-    min_version = file_fields.get(f"{test_name}:{FROM_VERSION}")
+    If no custom version is specified, the test suite level version is used to determine if the test should run.
+    """
+
+    specified_versions_str = file_fields.get(f"{test_name}:{FROM_VERSIONS}")
+    test_semver_version = parse_version(version)
 
     # no custom version defined for this test, run it as normal using the from_version specified on the test suite.
-    if min_version is None:
-        return True
+    if specified_versions_str is None:
+        # if there is nothing specified for this particular test, we just compare it to the version
+        # specified at the test suite level.
+        test_suite_level_version = file_fields[FROM_VERSION]
+        return test_semver_version >= parse_version(test_suite_level_version)
 
-    min_semver_version = parse_version(min_version)
-    semver_version = parse_version(version)
+    specified_versions = specified_versions_str.split(",")
 
-    return min_semver_version <= semver_version
+    for v in specified_versions:
+        semver_v = parse_version(v)
+        # if the major and minor versions match, there was a specified release line for this version.
+        # do a comparison on that version to determine if the test should run.
+        if semver_v.major == test_semver_version.major and semver_v.minor == test_semver_version.minor:
+            return semver_v >= test_semver_version
+
+    # there was no version defined for this version's release line, but there were versions specified for other release
+    # lines, we assume we should not be running the test.
+    return False
 
 
 def _get_ibc_go_releases(from_version: str) -> List[str]:
@@ -183,7 +209,7 @@ def _get_ibc_go_releases(from_version: str) -> List[str]:
     all_tags = [release["tag_name"] for release in response_body]
     for tag in all_tags:
         # skip alphas, betas and rcs
-        if any(c in tag for c in ("beta", "rc", "alpha", "icq")):
+        if any(t in tag for t in ("beta", "rc", "alpha", "icq")):
             continue
         try:
             semver_tag = parse_version(tag)
@@ -197,33 +223,14 @@ def _get_ibc_go_releases(from_version: str) -> List[str]:
     return releases
 
 
-def _extract_all_test_functions(file_lines: List[str]) -> List[str]:
-    """creates a list of all test functions that should be run in the compatibility tests
-     based on the version provided"""
-    all_tests = []
-    for i, line in enumerate(file_lines):
-        line = line.strip()
-
-        # TODO: handle block comments
-        if line.startswith("//"):
-            continue
-
-        if not _is_test_function(line):
-            continue
-
-        test_function = _test_function_match(line).group(1)
-        all_tests.append(test_function)
-
-    return all_tests
-
-
-def _test_function_match(line: str) -> re.Match:
-    return re.match(r".*(Test.*)\(\)", line)
-
-
-def _is_test_function(line: str) -> bool:
-    """determines if the line contains a test function definition."""
-    return _test_function_match(line) is not None
+def _build_file_metadata(file_name: str) -> Dict:
+    """_build_file_metadata constructs a dictionary of metadata from the test file."""
+    file_lines = _load_file_lines(file_name)
+    return {
+        TEST_SUITE: _extract_test_suite_function(file_lines),
+        TESTS: _extract_all_test_functions(file_lines),
+        FIELDS: _extract_script_fields(file_lines)
+    }
 
 
 def _extract_test_suite_function(file_lines: List[str]) -> str:
@@ -236,9 +243,32 @@ def _extract_test_suite_function(file_lines: List[str]) -> str:
     raise ValueError("unable to find test suite in file lines")
 
 
-def _load_file_lines(file_name: str) -> List[str]:
-    with open(file_name, "r") as f:
-        return f.readlines()
+def _extract_all_test_functions(file_lines: List[str]) -> List[str]:
+    """creates a list of all test functions that should be run in the compatibility tests
+     based on the version provided"""
+    all_tests = []
+    for i, line in enumerate(file_lines):
+        line = line.strip()
+
+        if line.startswith("//"):
+            continue
+
+        if not _is_test_function(line):
+            continue
+
+        test_function = _test_function_match(line).group(1)
+        all_tests.append(test_function)
+
+    return all_tests
+
+
+def _is_test_function(line: str) -> bool:
+    """determines if the line contains a test function definition."""
+    return _test_function_match(line) is not None
+
+
+def _test_function_match(line: str) -> re.Match:
+    return re.match(r".*(Test.*)\(\)", line)
 
 
 def _extract_script_fields(file_lines: List[str]) -> Dict:
@@ -262,22 +292,9 @@ def _extract_script_fields(file_lines: List[str]) -> Dict:
     return script_fields
 
 
-def _semver_to_str(semver_version: semver.Version) -> str:
-    return f"v{semver_version.major}.{semver_version.minor}.{semver_version.patch}"
-
-
-def _str_to_semver(str_version: str) -> semver.Version:
-    if str_version.startswith("v"):
-        str_version = str_version[1:]
-    return semver.Version.parse(str_version)
-
-
-def _build_file_metadata(file_lines: List[str]) -> Dict:
-    return {
-        "test_suite": _extract_test_suite_function(file_lines),
-        "tests": _extract_all_test_functions(file_lines),
-        "fields": _extract_script_fields(file_lines)
-    }
+def _load_file_lines(file_name: str) -> List[str]:
+    with open(file_name, "r") as f:
+        return f.readlines()
 
 
 if __name__ == "__main__":
