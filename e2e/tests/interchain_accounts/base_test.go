@@ -36,7 +36,7 @@ var orderMapping = map[channeltypes.Order][]string{
 	channeltypes.UNORDERED: {channeltypes.UNORDERED.String(), "Unordered"},
 }
 
-// compatibility:from_version: v6.1.1
+// compatibility:from_version: v7.4.0
 func TestInterchainAccountsTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsTestSuite))
 }

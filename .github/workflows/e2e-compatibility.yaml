@@ -97,6 +97,14 @@ jobs:
       test-file: "e2e/tests/core/02-client/client_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
+  connection-test:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/core/03-connection/connection_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
   transfer-base-test:
     needs:
