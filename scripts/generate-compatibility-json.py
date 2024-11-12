@@ -34,7 +34,7 @@ def parse_version(version: str) -> semver.Version:
     The version string is a docker tag. It can be in the format of
     - main
     - v1.2.3
-    = 1.2.3
+    - 1.2.3
     - release-v1.2.3 (a tagged release)
     - release-v1.2.x (a release branch)
     """
