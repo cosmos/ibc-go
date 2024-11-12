@@ -28,7 +28,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
-// compatibility:from_version: v6.1.1
+// compatibility:from_version: v7.4.0
 func TestInterchainAccountsGovTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsGovTestSuite))
 }
