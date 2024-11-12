@@ -9,6 +9,7 @@ import (
 // IBC channel events
 const (
 	AttributeKeyChannelID = "channel_id"
+	AttributeKeyClientID  = "client_id"
 )
 
 // IBC channel events vars
