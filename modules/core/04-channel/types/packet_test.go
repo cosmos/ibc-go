@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
@@ -36,7 +37,7 @@ func TestCommitPacket(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		testCommitment := types.CommitPacket(cdc, tc.packet)
+		testCommitment := types.CommitPacket(tc.packet)
 		require.NotNil(t, testCommitment)
 
 		require.NotEqual(t, commitment, testCommitment)
