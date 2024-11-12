@@ -258,3 +258,12 @@ jobs:
     with:
       test-file: "e2e/tests/transfer/upgradesv2_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+
+  upgrade-genesis-test:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/upgrades/genesis_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
