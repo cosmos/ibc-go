@@ -57,6 +57,8 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *types.MsgRegis
 	// Delete client creator from state as it is not needed after this point.
 	k.DeleteCreator(ctx, msg.ChannelId)
 
+	k.emitRegisterCounterpartyEvent(goCtx, msg.ChannelId, channel)
+
 	return &types.MsgRegisterCounterpartyResponse{}, nil
 }
 

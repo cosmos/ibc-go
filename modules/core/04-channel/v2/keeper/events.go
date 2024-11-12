@@ -48,3 +48,21 @@ func (*Keeper) EmitCreateChannelEvent(ctx context.Context, channelID string) {
 		),
 	})
 }
+
+// emitRegisterCounterpartyEvent emits a register counterparty event.
+func (*Keeper) emitRegisterCounterpartyEvent(ctx context.Context, channelID string, channel types.Channel) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRegisterCounterparty,
+			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
+			sdk.NewAttribute(types.AttributeKeyClientID, channel.ClientId),
+			sdk.NewAttribute(types.AttributeKeyCounterpartyChannelID, channel.CounterpartyChannelId),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+}
