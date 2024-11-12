@@ -109,31 +109,14 @@ def main():
     test_functions = file_metadata[TESTS]
 
     include_entries = []
+
+    seen = set()
     for test in test_functions:
         for version in tags_to_test:
             if not _test_should_be_run(test, version, file_metadata[FIELDS]):
                 continue
 
-            include_entries.extend(
-                [
-                    {
-                        "chain-a": args.release_version,
-                        "chain-b": version,
-                        "entrypoint": test_suite,
-                        "test": test,
-                        "relayer-type": args.relayer,
-                        "chain-image": args.image
-                    },
-                    {
-                        "chain-a": version,
-                        "chain-b": args.release_version,
-                        "entrypoint": test_suite,
-                        "test": test,
-                        "relayer-type": args.relayer,
-                        "chain-image": args.image
-                    }
-                ]
-            )
+            _add_test_entries(include_entries, seen, args.release_version, version, test_suite, test, args.relayer)
 
     # compatibility_json is the json object that will be used as the input to a github workflow
     # which will expand out into a matrix of tests to run.
@@ -144,6 +127,42 @@ def main():
 
     # output the json on a single line. This ensures the output is directly passable to a github workflow.
     print(json.dumps(compatibility_json), end="")
+
+
+def _add_test_entries(include_entries, seen, release_version=None, version=None, entrypoint=None, test=None, relayer=None,
+                      chain_image=None):
+    """_add_test_entries adds two different test entries to the test_entries list. One for chain-a -> chain-b and one
+    from chain-b -> chain-a. entries are only added if there are no duplicate entries that have already been added."""
+    # ensure we don't add duplicate entries.
+    entry = (release_version, version, test, entrypoint, relayer, chain_image)
+
+    if entry not in seen:
+        include_entries.append(
+            {
+                "chain-a": release_version,
+                "chain-b": version,
+                "entrypoint": entrypoint,
+                "test": test,
+                "relayer-type": relayer,
+                "chain-image": chain_image
+            }
+        )
+        seen.add(entry)
+
+    entry = (version, release_version, test, entrypoint, relayer, chain_image)
+
+    if entry not in seen:
+        include_entries.append(
+            {
+                "chain-a": version,
+                "chain-b": release_version,
+                "entrypoint": entrypoint,
+                "test": test,
+                "relayer-type": relayer,
+                "chain-image": chain_image
+            }
+        )
+        seen.add(entry)
 
 
 def _get_tags_to_test(min_version: semver.Version, all_versions: List[semver.Version]):
@@ -268,7 +287,7 @@ def _is_test_function(line: str) -> bool:
 
 
 def _test_function_match(line: str) -> re.Match:
-    return re.match(r".*(Test.*)\(\)", line)
+    return re.match(r".*\).*(Test.*)\(\)", line)
 
 
 def _extract_script_fields(file_lines: List[str]) -> Dict:

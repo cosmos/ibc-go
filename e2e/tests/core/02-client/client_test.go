@@ -44,7 +44,7 @@ const (
 	invalidHashValue = "invalid_hash"
 )
 
-// compatibility:from_version: v6.1.0
+// compatibility:from_version: v7.4.0
 func TestClientTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(ClientTestSuite))
 }
@@ -62,6 +62,7 @@ func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Cha
 }
 
 // TestScheduleIBCUpgrade_Succeeds tests that a governance proposal to schedule an IBC software upgrade is successful.
+// compatibility:TestScheduleIBCUpgrade_Succeeds:from_version: v8.4.0,v8.5.0,v9.0.0
 func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
@@ -133,6 +134,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 }
 
 // TestRecoverClient_Succeeds tests that a governance proposal to recover a client using a MsgRecoverClient is successful.
+// compatibility:TestRecoverClient_Succeeds:from_version: v8.4.0,v8.5.0,v9.0.0
 func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()

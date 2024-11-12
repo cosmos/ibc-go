@@ -88,6 +88,16 @@ jobs:
 #          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
 #          docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
 
+  client-test:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/core/02-client/client_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+
+
   transfer-base-test:
     needs:
       - build-release-images
