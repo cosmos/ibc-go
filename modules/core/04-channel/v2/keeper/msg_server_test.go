@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -20,7 +20,7 @@ import (
 func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 	var (
 		path *ibctesting.Path
-		msg  *channeltypesv2.MsgRegisterCounterparty
+		msg  *types.MsgRegisterCounterparty
 	)
 	cases := []struct {
 		name     string
@@ -31,7 +31,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 			"success",
 			func() {
 				// set it before handler
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(suite.chainA.GetContext(), msg.ChannelId, channeltypesv2.NewChannel(path.EndpointA.ClientID, "", ibctesting.MerklePath))
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(suite.chainA.GetContext(), msg.ChannelId, types.NewChannel(path.EndpointA.ClientID, "", ibctesting.MerklePath))
 			},
 			nil,
 		},
@@ -53,9 +53,9 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 			"failure: channel must already exist",
 			func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeleteCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID)
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(channeltypesv2.ChannelKey))
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(types.ChannelKey))
 			},
-			channeltypesv2.ErrChannelNotFound,
+			types.ErrChannelNotFound,
 		},
 	}
 
@@ -70,7 +70,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 			suite.Require().NoError(path.EndpointB.CreateChannel())
 
 			signer := path.EndpointA.Chain.SenderAccount.GetAddress().String()
-			msg = channeltypesv2.NewMsgRegisterCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, signer)
+			msg = types.NewMsgRegisterCounterparty(path.EndpointA.ChannelID, path.EndpointB.ChannelID, signer)
 
 			tc.malleate()
 
@@ -102,9 +102,9 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 func (suite *KeeperTestSuite) TestMsgSendPacket() {
 	var (
 		path             *ibctesting.Path
-		expectedPacket   channeltypesv2.Packet
+		expectedPacket   types.Packet
 		timeoutTimestamp uint64
-		payload          channeltypesv2.Payload
+		payload          types.Payload
 	)
 
 	testCases := []struct {
@@ -121,8 +121,8 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			name: "success: valid timeout timestamp",
 			malleate: func() {
 				// ensure a message timeout.
-				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Add(channeltypesv2.MaxTimeoutDelta - 10*time.Second).Unix())
-				expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, payload)
+				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Add(types.MaxTimeoutDelta - 10*time.Second).Unix())
+				expectedPacket = types.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, payload)
 			},
 			expError: nil,
 		},
@@ -132,15 +132,15 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 				// ensure a message timeout.
 				timeoutTimestamp = uint64(1)
 			},
-			expError: channeltypesv2.ErrTimeoutElapsed,
+			expError: types.ErrTimeoutElapsed,
 		},
 		{
 			name: "failure: timeout timestamp exceeds max allowed input",
 			malleate: func() {
 				// ensure message timeout exceeds max allowed input.
-				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Add(channeltypesv2.MaxTimeoutDelta + 10*time.Second).Unix())
+				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Add(types.MaxTimeoutDelta + 10*time.Second).Unix())
 			},
-			expError: channeltypesv2.ErrInvalidTimeout,
+			expError: types.ErrInvalidTimeout,
 		},
 		{
 			name: "failure: timeout timestamp less than current block timestamp",
@@ -148,7 +148,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 				// ensure message timeout exceeds max allowed input.
 				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Unix()) - 1
 			},
-			expError: channeltypesv2.ErrTimeoutElapsed,
+			expError: types.ErrTimeoutElapsed,
 		},
 		{
 			name: "failure: inactive client",
@@ -160,7 +160,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		{
 			name: "failure: application callback error",
 			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnSendPacket = func(ctx context.Context, sourceID string, destinationID string, sequence uint64, data channeltypesv2.Payload, signer sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnSendPacket = func(ctx context.Context, sourceID string, destinationID string, sequence uint64, data types.Payload, signer sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -171,7 +171,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			malleate: func() {
 				path.EndpointA.ChannelID = ibctesting.InvalidID
 			},
-			expError: channeltypesv2.ErrChannelNotFound,
+			expError: types.ErrChannelNotFound,
 		},
 		{
 			name: "failure: route to non existing app",
@@ -194,7 +194,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			timeoutTimestamp = suite.chainA.GetTimeoutTimestampSecs()
 			payload = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
-			expectedPacket = channeltypesv2.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, payload)
+			expectedPacket = types.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID, timeoutTimestamp, payload)
 
 			tc.malleate()
 
@@ -209,7 +209,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 
 				packetCommitment := ck.GetPacketCommitment(path.EndpointA.Chain.GetContext(), path.EndpointA.ChannelID, 1)
 				suite.Require().NotNil(packetCommitment)
-				suite.Require().Equal(channeltypesv2.CommitPacket(expectedPacket), packetCommitment, "packet commitment is not stored correctly")
+				suite.Require().Equal(types.CommitPacket(expectedPacket), packetCommitment, "packet commitment is not stored correctly")
 
 				nextSequenceSend, ok := ck.GetNextSequenceSend(path.EndpointA.Chain.GetContext(), path.EndpointA.ChannelID)
 				suite.Require().True(ok)
@@ -228,8 +228,8 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 	var (
 		path       *ibctesting.Path
-		packet     channeltypesv2.Packet
-		expRecvRes channeltypesv2.RecvPacketResult
+		packet     types.Packet
+		expRecvRes types.RecvPacketResult
 	)
 
 	testCases := []struct {
@@ -247,8 +247,8 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 		{
 			name: "success: failed recv result",
 			malleate: func() {
-				expRecvRes = channeltypesv2.RecvPacketResult{
-					Status:          channeltypesv2.PacketStatus_Failure,
+				expRecvRes = types.RecvPacketResult{
+					Status:          types.PacketStatus_Failure,
 					Acknowledgement: mock.MockFailPacketData,
 				}
 			},
@@ -258,8 +258,8 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 		{
 			name: "success: async recv result",
 			malleate: func() {
-				expRecvRes = channeltypesv2.RecvPacketResult{
-					Status:          channeltypesv2.PacketStatus_Async,
+				expRecvRes = types.RecvPacketResult{
+					Status:          types.PacketStatus_Async,
 					Acknowledgement: nil,
 				}
 			},
@@ -280,7 +280,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				// change the destination id to a non-existent channel.
 				packet.DestinationChannel = ibctesting.InvalidID
 			},
-			expError: channeltypesv2.ErrChannelNotFound,
+			expError: types.ErrChannelNotFound,
 		},
 		{
 			name: "failure: invalid proof",
@@ -313,10 +313,10 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			tc.malleate()
 
 			// expectedAck is derived from the expected recv result.
-			expectedAck := channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement}}
+			expectedAck := types.Acknowledgement{AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement}}
 
 			// modify the callback to return the expected recv result.
-			path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+			path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
 				return expRecvRes
 			}
 
@@ -340,7 +340,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				} else { // successful or failed acknowledgement
 					// ack should be written for synchronous app (default mock application behaviour).
 					suite.Require().True(ackWritten)
-					expectedBz := channeltypesv2.CommitAcknowledgement(expectedAck)
+					expectedBz := types.CommitAcknowledgement(expectedAck)
 
 					actualAckBz := ck.GetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), packet.DestinationChannel, packet.Sequence)
 					suite.Require().Equal(expectedBz, actualAckBz)
@@ -358,8 +358,8 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 	var (
 		path   *ibctesting.Path
-		packet channeltypesv2.Packet
-		ack    channeltypesv2.Acknowledgement
+		packet types.Packet
+		ack    types.Acknowledgement
 	)
 	testCases := []struct {
 		name     string
@@ -377,7 +377,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 
 				// Modify the callback to return an error.
 				// This way, we can verify that the callback is not executed in a No-op case.
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, channeltypesv2.Payload, []byte, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, types.Payload, []byte, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -385,7 +385,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "failure: callback fails",
 			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, channeltypesv2.Payload, []byte, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, types.Payload, []byte, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -397,14 +397,14 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 				// change the source id to a non-existent channel.
 				packet.SourceChannel = "not-existent-channel"
 			},
-			expError: channeltypesv2.ErrChannelNotFound,
+			expError: types.ErrChannelNotFound,
 		},
 		{
 			name: "failure: invalid commitment",
 			malleate: func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence, []byte("foo"))
 			},
-			expError: channeltypesv2.ErrInvalidPacket,
+			expError: types.ErrInvalidPacket,
 		},
 		{
 			name: "failure: failed membership verification",
@@ -432,7 +432,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			suite.Require().NoError(err)
 
 			// Construct expected acknowledgement
-			ack = channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement}}
+			ack = types.Acknowledgement{AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement}}
 
 			tc.malleate()
 
@@ -452,7 +452,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 func (suite *KeeperTestSuite) TestMsgTimeout() {
 	var (
 		path   *ibctesting.Path
-		packet channeltypesv2.Packet
+		packet types.Packet
 	)
 
 	testCases := []struct {
@@ -471,16 +471,16 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 
 				// Modify the callback to return a different error.
 				// This way, we can verify that the callback is not executed in a No-op case.
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.Payload, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, types.Payload, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
-			expError: channeltypesv2.ErrNoOpMsg,
+			expError: types.ErrNoOpMsg,
 		},
 		{
 			name: "failure: callback fails",
 			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, channeltypesv2.Payload, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, types.Payload, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -492,14 +492,14 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 				// change the source id to a non-existent channel.
 				packet.SourceChannel = "not-existent-channel"
 			},
-			expError: channeltypesv2.ErrChannelNotFound,
+			expError: types.ErrChannelNotFound,
 		},
 		{
 			name: "failure: invalid commitment",
 			malleate: func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence, []byte("foo"))
 			},
-			expError: channeltypesv2.ErrInvalidPacket,
+			expError: types.ErrInvalidPacket,
 		},
 		{
 			name: "failure: unable to timeout if packet has been received",
