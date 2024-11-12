@@ -167,7 +167,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 // TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom will test sending successful IBC transfers from chainA to chainB.
 // A multidenom transfer with native chainB tokens and IBC tokens from chainA is executed from chainB to chainA.
-// compatibility:TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom:from_version: v9.0.0
+// compatibility:TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom:from_versions: v9.0.0
 func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom() {
 	t := s.T()
 	ctx := context.TODO()
@@ -273,7 +273,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 
 // TestMsgTransfer_Fails_InvalidAddress_MultiDenom attempts to send a multidenom IBC transfer
 // to an invalid address and ensures that the tokens on the sending chain are returned to the sender.
-// compatibility:TestMsgTransfer_Fails_InvalidAddress_MultiDenom:from_version: v9.0.0
+// compatibility:TestMsgTransfer_Fails_InvalidAddress_MultiDenom:from_versions: v9.0.0
 func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 	t := s.T()
 	ctx := context.TODO()
