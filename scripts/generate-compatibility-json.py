@@ -112,7 +112,7 @@ def main():
             if not _test_should_be_run(test, version, file_metadata[FIELDS]):
                 continue
 
-            _add_test_entries(include_entries, seen, args.release_version, version, test_suite, test, args.relayer)
+            _add_test_entries(include_entries, seen, args.release_version, version, test_suite, test, args.relayer, args.image)
 
     # compatibility_json is the json object that will be used as the input to a github workflow
     # which will expand out into a matrix of tests to run.
