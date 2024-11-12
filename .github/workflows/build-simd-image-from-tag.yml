@@ -21,23 +21,23 @@ jobs:
    build-image-at-tag:
       runs-on: ubuntu-latest
       steps:
-         - uses: actions/checkout@v4
-           with:
+        - uses: actions/checkout@v4
+          with:
             ref: "${{ env.GIT_TAG }}"
             fetch-depth: 0
         - uses: actions/setup-python@v5
-           with:
+          with:
              python-version: '3.10'
         - name: Install dependencies
-           run: make python-install-deps
-         - name: Log in to the Container registry
-           uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
-           with:
+          run: make python-install-deps
+        - name: Log in to the Container registry
+          uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+          with:
               registry: ${{ env.REGISTRY }}
               username: ${{ github.actor }}
               password: ${{ secrets.GITHUB_TOKEN }}
-         - name: Build image
-           run: |
+        - name: Build image
+          run: |
             version="$(scripts/get-libwasm-version.py --get-version)"
             checksum="$(scripts/get-libwasm-version.py --get-checksum)"
  
