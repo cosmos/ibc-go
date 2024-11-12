@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestMsgCreateClientEvents() {
 
 	clientState := ibctm.NewClientState(
 		path.EndpointA.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-		height, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+		height, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, 0)
 	consensusState := path.EndpointA.Counterparty.Chain.LatestCommittedHeader.ConsensusState()
 
 	msg, err := clienttypes.NewMsgCreateClient(

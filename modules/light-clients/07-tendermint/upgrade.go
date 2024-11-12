@@ -99,7 +99,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 	// come from current client.
 	newClientState := NewClientState(
 		tmUpgradeClient.ChainId, cs.TrustLevel, cs.TrustingPeriod, tmUpgradeClient.UnbondingPeriod,
-		cs.MaxClockDrift, tmUpgradeClient.LatestHeight, tmUpgradeClient.ProofSpecs, tmUpgradeClient.UpgradePath,
+		cs.MaxClockDrift, tmUpgradeClient.LatestHeight, tmUpgradeClient.ProofSpecs, tmUpgradeClient.UpgradePath, tmUpgradeClient.DelayPeriod,
 	)
 
 	if err := newClientState.Validate(); err != nil {

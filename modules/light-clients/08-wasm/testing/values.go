@@ -43,6 +43,7 @@ func CreateMockTendermintClientState(height clienttypes.Height) *ibctm.ClientSta
 		height,
 		commitmenttypes.GetSDKSpecs(),
 		ibctesting.UpgradePath,
+		ibctesting.DelayPeriod,
 	)
 }
 

@@ -30,7 +30,7 @@ func NewClientState(
 	chainID string, trustLevel Fraction,
 	trustingPeriod, ubdPeriod, maxClockDrift time.Duration,
 	latestHeight clienttypes.Height, specs []*ics23.ProofSpec,
-	upgradePath []string,
+	upgradePath []string, delayPeriod uint64,
 ) *ClientState {
 	return &ClientState{
 		ChainId:         chainID,
@@ -42,6 +42,7 @@ func NewClientState(
 		FrozenHeight:    clienttypes.ZeroHeight(),
 		ProofSpecs:      specs,
 		UpgradePath:     upgradePath,
+		DelayPeriod:     delayPeriod,
 	}
 }
 

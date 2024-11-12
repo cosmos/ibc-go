@@ -105,7 +105,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		require.True(endpoint.Chain.TB, ok)
 		clientState = ibctm.NewClientState(
 			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
+			height, commitmenttypes.GetSDKSpecs(), UpgradePath, 0)
 		consensusState = endpoint.Counterparty.Chain.LatestCommittedHeader.ConsensusState()
 	case exported.Solomachine:
 		// TODO

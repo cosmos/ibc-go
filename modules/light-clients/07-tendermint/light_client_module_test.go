@@ -84,7 +84,7 @@ func (suite *TendermintTestSuite) TestInitialize() {
 			clientState = ibctm.NewClientState(
 				path.EndpointA.Chain.ChainID,
 				tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-				suite.chainA.LatestCommittedHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
+				suite.chainA.LatestCommittedHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, 0,
 			)
 
 			consensusState = ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), suite.chainA.ProposedHeader.ValidatorsHash)
@@ -1160,7 +1160,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 			newChainID, err := clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
 			suite.Require().NoError(err)
 
-			upgradedClientState = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, newUnbondindPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
+			upgradedClientState = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, newUnbondindPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath, 0)
 			upgradedClientStateAny, err = codectypes.NewAnyWithValue(upgradedClientState)
 			suite.Require().NoError(err)
 

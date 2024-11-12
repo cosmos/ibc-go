@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		{
 			"success: 07-tendermint client type supported",
 			func() {
-				tmClientState := ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				tmClientState := ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, 0)
 				clientState = suite.chainA.App.AppCodec().MustMarshal(tmClientState)
 				consensusState = suite.chainA.App.AppCodec().MustMarshal(suite.consensusState)
 			},
@@ -44,7 +44,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		{
 			"failure: 07-tendermint client status is not active",
 			func() {
-				tmClientState := ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				tmClientState := ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, testClientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, 0)
 				tmClientState.FrozenHeight = ibctm.FrozenHeight
 				clientState = suite.chainA.App.AppCodec().MustMarshal(tmClientState)
 				consensusState = suite.chainA.App.AppCodec().MustMarshal(suite.consensusState)
@@ -478,7 +478,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 			newChainID, err := clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
 			suite.Require().NoError(err)
 
-			upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+			upgradedClient = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath, 0)
 			upgradedClient = upgradedClient.ZeroCustomFields()
 
 			upgradedClientAny, err = codectypes.NewAnyWithValue(upgradedClient)

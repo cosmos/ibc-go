@@ -48,6 +48,9 @@ message ClientState {
   bool allow_update_after_expiry = 10 [deprecated = true];
   // allow_update_after_misbehaviour is deprecated
   bool allow_update_after_misbehaviour = 11 [deprecated = true];
+  // delay period that must pass before a consensus state can be used for
+  // packet-verification
+  uint64 delay_period = 12;
 }
 
 // ConsensusState defines the consensus state from Tendermint.

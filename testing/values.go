@@ -67,6 +67,7 @@ var (
 	TestCoins         = sdk.NewCoins(TestCoin, SecondaryTestCoin)
 
 	UpgradePath = []string{"upgrade", "upgradedIBCState"}
+	DelayPeriod = uint64(0)
 
 	ConnectionVersion = connectiontypes.GetCompatibleVersions()[0]
 
