@@ -191,8 +191,8 @@ func (k Keeper) WriteAcknowledgement(
 
 	// TODO: Validate Acknowledgment more thoroughly here after Issue #7472: https://github.com/cosmos/ibc-go/issues/7472
 
-	if len(ack.AcknowledgementResults) != len(packet.Payloads) {
-		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of acknowledgement results %d does not match length of payload %d", len(ack.AcknowledgementResults), len(packet.Payloads))
+	if len(ack.AppAcknowledgements) != len(packet.Payloads) {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(packet.Payloads))
 	}
 
 	// set the acknowledgement so that it can be verified on the other side
