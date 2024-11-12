@@ -227,10 +227,9 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 
 func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 	var (
-		path        *ibctesting.Path
-		packet      channeltypesv2.Packet
-		expectedAck channeltypesv2.Acknowledgement
-		expRecvRes  channeltypesv2.RecvPacketResult
+		path       *ibctesting.Path
+		packet     channeltypesv2.Packet
+		expRecvRes channeltypesv2.RecvPacketResult
 	)
 
 	testCases := []struct {
@@ -252,10 +251,6 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 					Status:          channeltypesv2.PacketStatus_Failure,
 					Acknowledgement: mock.MockFailPacketData,
 				}
-
-				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
-					return expRecvRes
-				}
 			},
 			expError:      nil,
 			expAckWritten: true,
@@ -267,10 +262,6 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 					Status:          channeltypesv2.PacketStatus_Async,
 					Acknowledgement: nil,
 				}
-
-				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
-					return expRecvRes
-				}
 			},
 			expError:      nil,
 			expAckWritten: false,
@@ -279,7 +270,6 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			name: "success: NoOp",
 			malleate: func() {
 				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence)
-				expectedAck = channeltypesv2.Acknowledgement{}
 			},
 			expError:      nil,
 			expAckWritten: false,
@@ -323,7 +313,12 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			tc.malleate()
 
 			// expectedAck is derived from the expected recv result.
-			expectedAck = channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement}}
+			expectedAck := channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement}}
+
+			// modify the callback to return the expected recv result.
+			path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+				return expRecvRes
+			}
 
 			err = path.EndpointB.MsgRecvPacket(packet)
 
