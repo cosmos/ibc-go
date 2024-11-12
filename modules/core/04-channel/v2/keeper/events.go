@@ -33,14 +33,15 @@ func EmitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ac
 	// TODO: https://github.com/cosmos/ibc-go/issues/7386
 }
 
-// EmitCreateChannelEvent emits a channel create event.
-func (*Keeper) EmitCreateChannelEvent(ctx context.Context, channelID string) {
+// emitCreateChannelEvent emits a channel create event.
+func (*Keeper) emitCreateChannelEvent(ctx context.Context, channelID, clientID string) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateChannel,
 			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
+			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
