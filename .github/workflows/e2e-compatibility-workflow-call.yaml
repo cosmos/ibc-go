@@ -21,9 +21,6 @@ jobs:
         with:
           python-version: '3.10'
       - run: pip install -r requirements.txt
-#      - uses: andstor/file-existence-action@v3
-#        with:
-#          files: '.github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json'
       - run: |
           # use jq -c to compact the full json contents into a single line. This is required when using the json body
           # to create the matrix in the following job.

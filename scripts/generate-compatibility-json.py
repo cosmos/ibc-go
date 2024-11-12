@@ -34,6 +34,7 @@ def parse_version(version: str) -> semver.Version:
     The version string is a docker tag. It can be in the format of
     - main
     - v1.2.3
+    = 1.2.3
     - release-v1.2.3 (a tagged release)
     - release-v1.2.x (a release branch)
     """
@@ -75,11 +76,6 @@ def parse_args() -> argparse.Namespace:
         choices=[HERMES, RLY],
         default=HERMES,
         help=f"Specify relayer, either {HERMES} or {RLY}",
-    )
-    parser.add_argument(
-        "--fallback-on-file",
-        default=False,
-        help="if a json file exists under .github/compatibility-test-matrices, use that instead"
     )
     return parser.parse_args()
 
