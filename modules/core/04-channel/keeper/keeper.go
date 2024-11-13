@@ -267,7 +267,7 @@ func (k *Keeper) SetPacketCommitment(ctx context.Context, portID, channelID stri
 	}
 }
 
-func (k *Keeper) DeletePacketCommitment(ctx context.Context, portID, channelID string, sequence uint64) {
+func (k *Keeper) deletePacketCommitment(ctx context.Context, portID, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Delete(host.PacketCommitmentKey(portID, channelID, sequence)); err != nil {
 		panic(err)

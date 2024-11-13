@@ -7,7 +7,7 @@ package keeper
 import (
 	"context"
 
-	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -15,7 +15,7 @@ func (k *Keeper) SendPacketTest(
 	ctx context.Context,
 	sourceChannel string,
 	timeoutTimestamp uint64,
-	payloads []channeltypesv2.Payload,
+	payloads []types.Payload,
 ) (uint64, string, error) {
 	return k.sendPacket(
 		ctx,
@@ -27,7 +27,7 @@ func (k *Keeper) SendPacketTest(
 
 func (k *Keeper) RecvPacketTest(
 	ctx context.Context,
-	packet channeltypesv2.Packet,
+	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
@@ -41,8 +41,8 @@ func (k *Keeper) RecvPacketTest(
 
 func (k *Keeper) AcknowledgePacketTest(
 	ctx context.Context,
-	packet channeltypesv2.Packet,
-	acknowledgement channeltypesv2.Acknowledgement,
+	packet types.Packet,
+	acknowledgement types.Acknowledgement,
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
@@ -57,7 +57,7 @@ func (k *Keeper) AcknowledgePacketTest(
 
 func (k *Keeper) TimeoutPacketTest(
 	ctx context.Context,
-	packet channeltypesv2.Packet,
+	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
@@ -67,4 +67,9 @@ func (k *Keeper) TimeoutPacketTest(
 		proof,
 		proofHeight,
 	)
+}
+
+// AliasV1Channel is a wrapper around aliasV1Channel to allow its usage in tests.
+func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.Channel, bool) {
+	return k.aliasV1Channel(ctx, portID, channelID)
 }

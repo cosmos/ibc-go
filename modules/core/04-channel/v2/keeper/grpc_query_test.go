@@ -514,3 +514,75 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
+	var (
+		req    *types.QueryNextSequenceSendRequest
+		expSeq uint64
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.Setup()
+
+				expSeq = 42
+				seq := uint64(42)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ChannelID, seq)
+				req = types.NewQueryNextSequenceSendRequest(path.EndpointA.ChannelID)
+			},
+			nil,
+		},
+		{
+			"req is nil",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"invalid channel ID",
+			func() {
+				req = types.NewQueryNextSequenceSendRequest("")
+			},
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
+		},
+		{
+			"sequence send not found",
+			func() {
+				req = types.NewQueryNextSequenceSendRequest(ibctesting.FirstChannelID)
+			},
+			status.Error(codes.NotFound, fmt.Sprintf("channel-id %s: sequence send not found", ibctesting.FirstChannelID)),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+			ctx := suite.chainA.GetContext()
+
+			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ChannelKeeperV2)
+			res, err := queryServer.NextSequenceSend(ctx, req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expSeq, res.NextSequenceSend)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Nil(res)
+			}
+		})
+	}
+}

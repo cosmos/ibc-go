@@ -29,7 +29,7 @@ func (k *Keeper) CreateChannel(goCtx context.Context, msg *types.MsgCreateChanne
 	k.SetCreator(ctx, channelID, msg.Signer)
 	k.SetNextSequenceSend(ctx, channelID, 1)
 
-	k.EmitCreateChannelEvent(goCtx, channelID)
+	k.emitCreateChannelEvent(goCtx, channelID, msg.ClientId)
 
 	return &types.MsgCreateChannelResponse{ChannelId: channelID}, nil
 }
@@ -56,6 +56,8 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *types.MsgRegis
 	k.SetChannel(ctx, msg.ChannelId, channel)
 	// Delete client creator from state as it is not needed after this point.
 	k.DeleteCreator(ctx, msg.ChannelId)
+
+	k.emitRegisterCounterpartyEvent(goCtx, msg.ChannelId, channel)
 
 	return &types.MsgRegisterCounterpartyResponse{}, nil
 }

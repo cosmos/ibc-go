@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
@@ -12,6 +13,35 @@ func TestCommitPacket(t *testing.T) {
 	packet := types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
 	commitment := types.CommitPacket(packet)
 	require.NotNil(t, commitment)
+
+	testCases := []struct {
+		name   string
+		packet types.Packet
+	}{
+		{
+			name:   "diff data",
+			packet: types.NewPacket(unknownPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp),
+		},
+		{
+			name:   "diff timeout revision number",
+			packet: types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, clienttypes.NewHeight(timeoutHeight.RevisionNumber+1, timeoutHeight.RevisionHeight), timeoutTimestamp),
+		},
+		{
+			name:   "diff timeout revision height",
+			packet: types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, clienttypes.NewHeight(timeoutHeight.RevisionNumber, timeoutHeight.RevisionHeight+1), timeoutTimestamp),
+		},
+		{
+			name:   "diff timeout timestamp",
+			packet: types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, uint64(1)),
+		},
+	}
+
+	for _, tc := range testCases {
+		testCommitment := types.CommitPacket(tc.packet)
+		require.NotNil(t, testCommitment)
+
+		require.NotEqual(t, commitment, testCommitment)
+	}
 }
 
 func TestPacketValidateBasic(t *testing.T) {
@@ -33,8 +63,6 @@ func TestPacketValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		tc := tc
-
 		err := tc.packet.ValidateBasic()
 		if tc.expPass {
 			require.NoError(t, err, "Msg %d failed: %s", i, tc.errMsg)

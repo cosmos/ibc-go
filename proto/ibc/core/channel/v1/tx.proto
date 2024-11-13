@@ -36,11 +36,11 @@ service Msg {
   // RecvPacket defines a rpc handler method for MsgRecvPacket.
   rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
 
-  // TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose.
-  rpc TimeoutOnClose(MsgTimeoutOnClose) returns (MsgTimeoutOnCloseResponse);
-
   // Timeout defines a rpc handler method for MsgTimeout.
   rpc Timeout(MsgTimeout) returns (MsgTimeoutResponse);
+
+  // TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose.
+  rpc TimeoutOnClose(MsgTimeoutOnClose) returns (MsgTimeoutOnCloseResponse);
 
   // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
   rpc Acknowledgement(MsgAcknowledgement) returns (MsgAcknowledgementResponse);

@@ -45,6 +45,52 @@ func getCmdQueryChannel() *cobra.Command {
 	return cmd
 }
 
+// getCmdQueryNextSequenceSend defines the command to query a next send sequence for a given channel
+func getCmdQueryNextSequenceSend() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "next-sequence-send [channel-id]",
+		Short: "Query a next send sequence",
+		Long:  "Query the next sequence send for a given channel",
+		Example: fmt.Sprintf(
+			"%s query %s %s next-sequence-send [channel-id]", version.AppName, exported.ModuleName, types.SubModuleName,
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			channelID := args[0]
+			prove, err := cmd.Flags().GetBool(flags.FlagProve)
+			if err != nil {
+				return err
+			}
+
+			if prove {
+				res, err := queryNextSequenceSendABCI(clientCtx, channelID)
+				if err != nil {
+					return err
+				}
+
+				return clientCtx.PrintProto(res)
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.NextSequenceSend(cmd.Context(), types.NewQueryNextSequenceSendRequest(channelID))
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 func getCmdQueryPacketCommitment() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "packet-commitment [channel-id] [sequence]",
