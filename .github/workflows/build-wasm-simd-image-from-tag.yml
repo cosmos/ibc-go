@@ -53,5 +53,4 @@ jobs:
              push: true
              tags: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}
              file: modules/light-clients/08-wasm/Dockerfile
-             build-args: 
-              - LIBWASM_VERSION=${{ env.LIBWASM_VERSION }}
+             build-args: LIBWASM_VERSION=${{ env.LIBWASM_VERSION }}
