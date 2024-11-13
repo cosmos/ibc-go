@@ -9,6 +9,10 @@ on:
         description: 'the release tag, e.g. release-v7.3.0'
         required: true
         type: string
+      chain:
+        description: 'Should be one of chain-a, chain-b or all. Split up workflows into multiple (chain-a and chain-b) versions if the job limit is exceeded.'
+        required: false
+        type: string
 
 jobs:
   load-test-matrix:

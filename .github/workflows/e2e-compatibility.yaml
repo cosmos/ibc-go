@@ -106,7 +106,7 @@ jobs:
       test-file: "e2e/tests/core/03-connection/connection_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-base-test:
+  ica-base-test-a:
     needs:
       - build-release-images
       - determine-image-tag
@@ -114,6 +114,17 @@ jobs:
     with:
       test-file: "e2e/tests/interchain_accounts/base_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-a"
+
+  ica-base-test-b:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/interchain_accounts/base_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-b"
 
   ica-gov-test:
     needs:
@@ -178,7 +189,7 @@ jobs:
       test-file: "e2e/tests/interchain_accounts/upgrades_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  transfer-base-test:
+  transfer-base-test-a:
     needs:
       - build-release-images
       - determine-image-tag
@@ -186,6 +197,17 @@ jobs:
     with:
       test-file: "e2e/tests/transfer/base_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-a"
+
+  transfer-base-test-b:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/base_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-b"
 
   transfer-authz-test:
     needs:
@@ -205,7 +227,7 @@ jobs:
       test-file: "e2e/tests/transfer/forwarding_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  transfer-incentivized-test:
+  transfer-incentivized-test-a:
     needs:
       - build-release-images
       - determine-image-tag
@@ -213,6 +235,17 @@ jobs:
     with:
       test-file: "e2e/tests/transfer/incentivized_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-a"
+
+  transfer-incentivized-test-b:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/incentivized_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-b"
 
   transfer-localhost-test:
     needs:

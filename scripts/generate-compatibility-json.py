@@ -77,6 +77,12 @@ def parse_args() -> argparse.Namespace:
         default=HERMES,
         help=f"Specify relayer, either {HERMES} or {RLY}",
     )
+    parser.add_argument(
+        "--chain",
+        choices=["chain-a", "chain-b", "all"],
+        default="all",
+        help=f"Specify the chain to run tests for (chain-a, chain-b, all)",
+    )
     return parser.parse_args()
 
 
@@ -112,7 +118,9 @@ def main():
             if not _test_should_be_run(test, version, file_metadata[FIELDS]):
                 continue
 
-            _add_test_entries(include_entries, seen, args.release_version, version, test_suite, test, args.relayer, args.image)
+            _add_test_entries(include_entries, seen, args.chain, args.release_version, version, test_suite, test,
+                              args.relayer,
+                              args.image)
 
     # compatibility_json is the json object that will be used as the input to a github workflow
     # which will expand out into a matrix of tests to run.
@@ -125,14 +133,15 @@ def main():
     print(json.dumps(compatibility_json), end="")
 
 
-def _add_test_entries(include_entries, seen, release_version=None, version=None, entrypoint=None, test=None, relayer=None,
+def _add_test_entries(include_entries, seen, chain, release_version=None, version=None, entrypoint=None, test=None,
+                      relayer=None,
                       chain_image=None):
     """_add_test_entries adds two different test entries to the test_entries list. One for chain-a -> chain-b and one
     from chain-b -> chain-a. entries are only added if there are no duplicate entries that have already been added."""
     # ensure we don't add duplicate entries.
     entry = (release_version, version, test, entrypoint, relayer, chain_image)
 
-    if entry not in seen:
+    if entry not in seen and chain in ("chain-a", "all"):
         include_entries.append(
             {
                 "chain-a": release_version,
@@ -146,8 +155,7 @@ def _add_test_entries(include_entries, seen, release_version=None, version=None,
         seen.add(entry)
 
     entry = (version, release_version, test, entrypoint, relayer, chain_image)
-
-    if entry not in seen:
+    if entry not in seen and chain in ("chain-b", "all"):
         include_entries.append(
             {
                 "chain-a": version,
@@ -177,6 +185,11 @@ def _validate(compatibility_json: Dict):
         for item in compatibility_json["include"]:
             if k not in item:
                 raise ValueError(f"key {k} not found in {item.keys()}")
+
+    if len(compatibility_json["include"]) > 256:
+        # if this error occurs, split out the workflow into two jobs, one for chain-a and one for chain-b
+        # using the --chain flag for this script.
+        raise ValueError(f"maximum number of jobs exceeded (256): {len(compatibility_json['include'])}")
 
 
 def _test_should_be_run(test_name: str, version: str, file_fields: Dict) -> bool:
