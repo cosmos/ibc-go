@@ -52,6 +52,26 @@ func (q *queryServer) Channel(ctx context.Context, req *types.QueryChannelReques
 	return types.NewQueryChannelResponse(channel), nil
 }
 
+// NextSequenceSend implements the Query/NextSequenceSend gRPC method
+func (q *queryServer) NextSequenceSend(ctx context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	sequence, found := q.GetNextSequenceSend(ctx, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrSequenceSendNotFound, "channel-id %s", req.ChannelId).Error(),
+		)
+	}
+	return types.NewQueryNextSequenceSendResponse(sequence, nil, clienttypes.GetSelfHeight(ctx)), nil
+}
+
 // PacketCommitment implements the Query/PacketCommitment gRPC method.
 func (q *queryServer) PacketCommitment(ctx context.Context, req *types.QueryPacketCommitmentRequest) (*types.QueryPacketCommitmentResponse, error) {
 	if req == nil {

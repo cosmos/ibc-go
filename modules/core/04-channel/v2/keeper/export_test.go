@@ -68,3 +68,8 @@ func (k *Keeper) TimeoutPacketTest(
 		proofHeight,
 	)
 }
+
+// AliasV1Channel is a wrapper around aliasV1Channel to allow its usage in tests.
+func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.Channel, bool) {
+	return k.aliasV1Channel(ctx, portID, channelID)
+}
