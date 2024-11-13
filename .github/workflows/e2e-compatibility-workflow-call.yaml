@@ -13,6 +13,7 @@ on:
         description: 'Should be one of chain-a, chain-b or all. Split up workflows into multiple (chain-a and chain-b) versions if the job limit is exceeded.'
         required: false
         type: string
+        default: all
 
 jobs:
   load-test-matrix:
@@ -28,7 +29,7 @@ jobs:
       - run: |
           # use jq -c to compact the full json contents into a single line. This is required when using the json body
           # to create the matrix in the following job.
-          test_matrix="$(python scripts/generate-compatibility-json.py --file ${{ inputs.test-file }} --release-version ${{ inputs.release-version }})"
+          test_matrix="$(python scripts/generate-compatibility-json.py --file ${{ inputs.test-file }} --release-version ${{ inputs.release-version }} --chain ${{ inputs.chain }})"
           echo "test-matrix=$test_matrix" >> $GITHUB_OUTPUT
         id: set-test-matrix
 
