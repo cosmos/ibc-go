@@ -51,8 +51,8 @@ func hashPayload(data Payload) []byte {
 // CommitAcknowledgement returns the hash of the acknowledgement data.
 func CommitAcknowledgement(acknowledgement Acknowledgement) []byte {
 	var buf []byte
-	for _, ack := range acknowledgement.GetAcknowledgementResults() {
-		hash := sha256.Sum256(ack.RecvPacketResult.GetAcknowledgement())
+	for _, ack := range acknowledgement.GetAppAcknowledgements() {
+		hash := sha256.Sum256(ack)
 		buf = append(buf, hash[:]...)
 	}
 

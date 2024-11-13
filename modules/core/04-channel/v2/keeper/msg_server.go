@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"slices"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -132,9 +131,10 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 
 	// build up the recv results for each application callback.
 	ack := types.Acknowledgement{
-		AcknowledgementResults: []types.AcknowledgementResult{},
+		AppAcknowledgements: [][]byte{},
 	}
 
+	var isAsync bool
 	for _, pd := range msg.Packet.Payloads {
 		// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 		cacheCtx, writeFn = sdkCtx.CacheContext()
@@ -149,22 +149,25 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 			sdkCtx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
 		}
 
-		ack.AcknowledgementResults = append(ack.AcknowledgementResults, types.AcknowledgementResult{
-			AppName:          pd.DestinationPort,
-			RecvPacketResult: res,
-		})
+		if res.Status == types.PacketStatus_Async {
+			// Set packet acknowledgement to async if any of the acknowledgements are async.
+			isAsync = true
+			// Return error if there is more than 1 payload
+			// TODO: Handle case where there are multiple payloads
+			if len(msg.Packet.Payloads) > 1 {
+				return nil, errorsmod.Wrapf(types.ErrInvalidPacket, "packet with multiple payloads cannot have async acknowledgement")
+			}
+		}
+
+		// append app acknowledgement to the overall acknowledgement
+		ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
 	}
 
 	// note this should never happen as the payload would have had to be empty.
-	if len(ack.AcknowledgementResults) == 0 {
+	if len(ack.AppAcknowledgements) == 0 {
 		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
 		return &types.MsgRecvPacketResponse{Result: types.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-channel %s invalid acknowledgement results", msg.Packet.SourceChannel)
 	}
-
-	// NOTE: TBD how we will handle async acknowledgements with more than one payload.
-	isAsync := slices.ContainsFunc(ack.AcknowledgementResults, func(ackResult types.AcknowledgementResult) bool {
-		return ackResult.RecvPacketResult.Status == types.PacketStatus_Async
-	})
 
 	if !isAsync {
 		// Set packet acknowledgement only if the acknowledgement is not async.
@@ -205,14 +208,10 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
 	}
 
-	recvResults := make(map[string]types.RecvPacketResult)
-	for _, r := range msg.Acknowledgement.AcknowledgementResults {
-		recvResults[r.AppName] = r.RecvPacketResult
-	}
-
-	for _, pd := range msg.Packet.Payloads {
+	for i, pd := range msg.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
-		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, pd, recvResults[pd.DestinationPort].Acknowledgement, relayer)
+		ack := msg.Acknowledgement.AppAcknowledgements[i]
+		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, pd, ack, relayer)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, msg.Packet.SourceChannel, msg.Packet.DestinationChannel)
 		}

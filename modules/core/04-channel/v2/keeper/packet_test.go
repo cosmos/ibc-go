@@ -275,7 +275,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			"failure: empty ack",
 			func() {
 				ack = types.Acknowledgement{
-					AcknowledgementResults: []types.AcknowledgementResult{},
+					AppAcknowledgements: [][]byte{},
 				}
 			},
 			types.ErrInvalidAcknowledgement,
@@ -307,12 +307,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 			// create standard ack that can be malleated
 			ack = types.Acknowledgement{
-				AcknowledgementResults: []types.AcknowledgementResult{
-					{
-						AppName:          mockv2.ModuleNameB,
-						RecvPacketResult: mockv2.MockRecvPacketResult,
-					},
-				},
+				AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement},
 			}
 
 			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence)
@@ -340,10 +335,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		packet types.Packet
 		err    error
 		ack    = types.Acknowledgement{
-			AcknowledgementResults: []types.AcknowledgementResult{{
-				AppName:          mockv2.ModuleNameB,
-				RecvPacketResult: mockv2.MockRecvPacketResult,
-			}},
+			AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement},
 		}
 		freezeClient bool
 	)
@@ -397,7 +389,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		{
 			"failure: verify membership fails",
 			func() {
-				ack.AcknowledgementResults[0].RecvPacketResult = mockv2.MockFailRecvPacketResult
+				ack.AppAcknowledgements[0] = mockv2.MockFailRecvPacketResult.Acknowledgement
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
