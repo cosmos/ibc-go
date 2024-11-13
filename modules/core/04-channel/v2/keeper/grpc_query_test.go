@@ -410,6 +410,119 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
+	var (
+		req                 *types.QueryPacketAcknowledgementsRequest
+		expAcknowledgements = []*types.PacketState{}
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				var commitments []uint64
+
+				for i := uint64(0); i < 100; i++ {
+					ack := types.NewPacketState(path.EndpointA.ChannelID, i, []byte(fmt.Sprintf("hash_%d", i)))
+					suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.ChannelId, ack.Sequence, ack.Data)
+
+					if i < 10 { // populate the store with 100 and query for 10 specific acks
+						expAcknowledgements = append(expAcknowledgements, &ack)
+						commitments = append(commitments, ack.Sequence)
+					}
+				}
+
+				req = &types.QueryPacketAcknowledgementsRequest{
+					ChannelId:                 path.EndpointA.ChannelID,
+					PacketCommitmentSequences: commitments,
+					Pagination:                nil,
+				}
+			},
+			nil,
+		},
+		{
+			"success: with pagination",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				expAcknowledgements = make([]*types.PacketState, 0, 10)
+
+				for i := uint64(1); i <= 10; i++ {
+					ack := types.NewPacketState(path.EndpointA.ChannelID, i, []byte(fmt.Sprintf("hash_%d", i)))
+					suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.ChannelId, ack.Sequence, ack.Data)
+					expAcknowledgements = append(expAcknowledgements, &ack)
+				}
+
+				req = &types.QueryPacketAcknowledgementsRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Pagination: &query.PageRequest{
+						Key:        nil,
+						Limit:      11,
+						CountTotal: true,
+					},
+				}
+			},
+			nil,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"invalid ID",
+			func() {
+				req = &types.QueryPacketAcknowledgementsRequest{
+					ChannelId: "",
+				}
+			},
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryPacketAcknowledgementsRequest{
+					ChannelId: "test-channel-id",
+				}
+			},
+			status.Error(codes.NotFound, fmt.Sprintf("%s: channel not found", "test-channel-id")),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+			ctx := suite.chainA.GetContext()
+
+			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ChannelKeeperV2)
+			res, err := queryServer.PacketAcknowledgements(ctx, req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expAcknowledgements, res.Acknowledgements)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 	var (
 		expReceipt bool
