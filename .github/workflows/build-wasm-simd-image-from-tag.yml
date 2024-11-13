@@ -41,7 +41,7 @@ jobs:
 
          - name: Get arguments and docker tag
            run: |
-              echo "LIBWASM_VERSION=$(scripts/get-libwasm-version.py --get-version) >> $GITHUB_ENV
+              echo "LIBWASM_VERSION=$(scripts/get-libwasm-version.py --get-version)" >> $GITHUB_ENV
               # remove all `/` or `+` characters from the docker tag and replace them with a -.
               # this ensures the docker tag is valid.
               echo "DOCKER_TAG=$(echo $GIT_TAG | sed 's/[^a-zA-Z0-9\.]/-/g')" >> $GITHUB_ENV
