@@ -20,6 +20,7 @@ func GetQueryCmd() *cobra.Command {
 
 	queryCmd.AddCommand(
 		getCmdQueryChannel(),
+		getCmdQueryChannels(),
 		getCmdQueryChannelClientState(),
 		getCmdQueryNextSequenceSend(),
 		getCmdQueryPacketCommitment(),

@@ -68,6 +68,7 @@
         "rename": {
           "Params": "ChannelV2Params",
           "Channel": "ChannelV2",
+          "Channels": "ChannelsV2",
           "ChannelClientState": "ChannelClientStateV2",
           "ChannelConsensusState": "ChannelConsensusStateV2",
           "NextSequenceSend": "NextSequenceSendV2",
