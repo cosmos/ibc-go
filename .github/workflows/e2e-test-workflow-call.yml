@@ -21,11 +21,6 @@ on:
         required: false
         type: string
         default: '' # empty string means don't skip any test.
-      chain-image:
-        description: 'The image to use for chains'
-        required: true
-        type: string
-        default: 'ghcr.io/cosmos/ibc-go-simd'
       chain-a-tag:
         description: 'The tag to use for chain A'
         required: true
@@ -35,11 +30,6 @@ on:
         default: main
         description: 'The tag to use for chain B'
         required: true
-        type: string
-      chain-binary:
-        default: 'simd'
-        description: 'The chain binary'
-        required: false
         type: string
       chain-upgrade-tag:
         default: ''
@@ -51,21 +41,6 @@ on:
         default: ''
         description: 'The upgrade plan name'
         required: false
-        type: string
-      relayer-image:
-        description: 'The image to use for the relayer'
-        required: false
-        default: '' # the tests themselves will choose a sensible default when unset.
-        type: string
-      relayer-type:
-        description: 'The type of relayer to use'
-        required: false
-        default: 'hermes'
-        type: string
-      relayer-tag:
-        description: 'The tag to use for the relayer'
-        required: false
-        default: '' # the tests themselves will choose a sensible default when unset.
         type: string
       build-and-push-docker-image:
         description: 'Flag to specify if the docker image should be built and pushed beforehand'
@@ -100,14 +75,10 @@ jobs:
     steps:
       - name: Display Inputs
         run: |
-          echo "Chain Image:       ${{ inputs.chain-image }}"
           echo "Chain A Tag:       ${{ inputs.chain-a-tag }}"
           echo "Chain B Tag:       ${{ inputs.chain-b-tag }}"
           echo "Chain Upgrade Tag: ${{ inputs.chain-upgrade-tag }}"
           echo "Upgrade Plan Name: ${{ inputs.upgrade-plan-name }}"
-          echo "Relayer Image:"    ${{ inputs.relayer-image }}
-          echo "Relayer Type:      ${{ inputs.relayer-type }}"
-          echo "Relayer Tag:       ${{ inputs.relayer-tag }}"
           echo "Test Entry Point:  ${{ inputs.test-entry-point }}"
           echo "Test:              ${{ inputs.test }}"
           echo "Github Ref Name:   ${{ github.ref_name }}"
