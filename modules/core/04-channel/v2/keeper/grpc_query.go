@@ -187,3 +187,56 @@ func (q *queryServer) PacketReceipt(ctx context.Context, req *types.QueryPacketR
 
 	return types.NewQueryPacketReceiptResponse(hasReceipt, nil, clienttypes.GetSelfHeight(ctx)), nil
 }
+
+// UnreceivedPackets implements the Query/UnreceivedPackets gRPC method. Given
+// a list of counterparty packet commitments, the querier checks if the packet
+// has already been received by checking if a receipt exists on this
+// chain for the packet sequence. All packets that haven't been received yet
+// are returned in the response
+// Usage: To use this method correctly, first query all packet commitments on
+// the sending chain using the Query/PacketCommitments gRPC method.
+// Then input the returned sequences into the QueryUnreceivedPacketsRequest
+// and send the request to this Query/UnreceivedPackets on the **receiving**
+// chain. This gRPC method will then return the list of packet sequences that
+// are yet to be received on the receiving chain.
+//
+// NOTE: The querier makes the assumption that the provided list of packet
+// commitments is correct and will not function properly if the list
+// is not up to date. Ideally the query height should equal the latest height
+// on the counterparty's client which represents this chain.
+func (q *queryServer) UnreceivedPackets(ctx context.Context, req *types.QueryUnreceivedPacketsRequest) (*types.QueryUnreceivedPacketsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	_, found := q.GetChannel(ctx, req.ChannelId)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id %s", req.ChannelId).Error(),
+		)
+	}
+
+	var unreceivedSequences []uint64
+	for i, seq := range req.Sequences {
+		// filter for invalid sequences to ensure they are not included in the response value.
+		if seq == 0 {
+			return nil, status.Errorf(codes.InvalidArgument, "packet sequence %d cannot be 0", i)
+		}
+
+		// if the packet receipt does not exist, then it is unreceived
+		if _, found := q.GetPacketReceipt(ctx, req.ChannelId, seq); !found {
+			unreceivedSequences = append(unreceivedSequences, seq)
+		}
+	}
+
+	selfHeight := clienttypes.GetSelfHeight(ctx)
+	return &types.QueryUnreceivedPacketsResponse{
+		Sequences: unreceivedSequences,
+		Height:    selfHeight,
+	}, nil
+}

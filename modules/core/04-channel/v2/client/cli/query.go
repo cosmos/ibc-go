@@ -14,6 +14,10 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
+const (
+	flagSequences = "sequences"
+)
+
 // getCmdQueryChannel defines the command to query the channel information (creator and channel) for the given channel ID.
 func getCmdQueryChannel() *cobra.Command {
 	cmd := &cobra.Command{
@@ -269,6 +273,48 @@ func getCmdQueryPacketReceipt() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 			res, err := queryClient.PacketReceipt(cmd.Context(), types.NewQueryPacketReceiptRequest(channelID, seq))
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func getCmdQueryUnreceivedPackets() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "unreceived-packets [channel-id]",
+		Short: "Query a channel/v2 unreceived-packets",
+		Long:  "Query a channel/v2 unreceived-packets by channel-id and sequences",
+		Example: fmt.Sprintf(
+			"%s query %s %s unreceived-packet [channel-id] --sequences=1,2,3", version.AppName, exported.ModuleName, types.SubModuleName,
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			channelID := args[0]
+			seqSlice, err := cmd.Flags().GetInt64Slice(flagSequences)
+			if err != nil {
+				return err
+			}
+
+			seqs := make([]uint64, len(seqSlice))
+			for i := range seqSlice {
+				seqs[i] = uint64(seqSlice[i])
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.UnreceivedPackets(cmd.Context(), types.NewQueryUnreceivedPacketsRequest(channelID, seqs))
 			if err != nil {
 				return err
 			}

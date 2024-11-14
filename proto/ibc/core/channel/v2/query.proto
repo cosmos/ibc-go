@@ -42,6 +42,11 @@ service Query {
   rpc PacketReceipt(QueryPacketReceiptRequest) returns (QueryPacketReceiptResponse) {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_receipts/{sequence}";
   }
+
+  rpc UnreceivedPackets(QueryUnreceivedPacketsRequest) returns (QueryUnreceivedPacketsResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/"
+                                   "{sequences}/unreceived_packets";
+  }
 }
 
 // QueryChannelRequest is the request type for the Query/Channel RPC method
@@ -143,4 +148,20 @@ message QueryPacketReceiptResponse {
   bytes proof = 3;
   // height at which the proof was retrieved
   ibc.core.client.v1.Height proof_height = 4 [(gogoproto.nullable) = false];
+}
+
+// QueryUnreceivedPacketsRequest is the request type for the Query/UnreceivedPackets RPC method
+message QueryUnreceivedPacketsRequest {
+  // channel unique identifier
+  string channel_id = 1;
+  // list of packet sequences
+  repeated uint64 sequences = 2;
+}
+
+// QueryUnreceivedPacketsResponse is the response type for the Query/UnreceivedPacketCommitments RPC method
+message QueryUnreceivedPacketsResponse {
+  // list of unreceived packet sequences
+  repeated uint64 sequences = 1;
+  // query block height
+  ibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
 }
