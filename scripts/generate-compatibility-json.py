@@ -13,6 +13,8 @@ FROM_VERSION = "from_version"
 # FROM_VERSIONS should be specified on individual tests if the features under test are only supported
 # from specific versions of release lines.
 FROM_VERSIONS = "from_versions"
+# SKIP is a flag that can be used to skip a test from running in compatibility tests.
+SKIP = "skip"
 # fields will contain arbitrary key value pairs in comments that use the compatibility flag.
 FIELDS = "fields"
 TEST_SUITE = "test_suite"
@@ -198,6 +200,11 @@ def _test_should_be_run(test_name: str, version: str, file_fields: Dict) -> bool
 
     If no custom version is specified, the test suite level version is used to determine if the test should run.
     """
+
+    # the test has been explicitly marked to be skipped for compatibility tests.
+    if file_fields.get(f"{test_name}:{SKIP}") is not None:
+        return False
+
     test_semver_version = parse_version(version)
 
     specified_from_version = file_fields.get(f"{test_name}:{FROM_VERSION}")

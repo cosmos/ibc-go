@@ -430,10 +430,12 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 }
 
+// compatibility:TestMsgSendTx_SuccessfulSubmitGovProposal:skip
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulSubmitGovProposal() {
 	s.testMsgSendTxSuccessfulGovProposal(channeltypes.ORDERED)
 }
 
+// compatibility:TestMsgSendTx_SuccessfulSubmitGovProposal_UnorderedChannel:skip
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulSubmitGovProposal_UnorderedChannel() {
 	s.testMsgSendTxSuccessfulGovProposal(channeltypes.UNORDERED)
 }
