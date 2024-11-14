@@ -24,6 +24,6 @@ const (
 	PacketKey = "packet"
 )
 
-func PacketStoreKey(portID, channelID string, sequence uint64) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s/%s", PacketKey, portID, channelID, sdk.Uint64ToBigEndian(sequence)))
+func PacketStoreKey(channelID string, sequence uint64) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", PacketKey, channelID, sdk.Uint64ToBigEndian(sequence)))
 }

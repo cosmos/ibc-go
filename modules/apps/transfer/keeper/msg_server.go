@@ -82,7 +82,7 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 	msg.Forwarding.Hops = append(unwindHops[1:], msg.Forwarding.Hops...)
 	msg.Forwarding.Unwind = false
 
-	// Message is validate again, this would only fail if hops now exceeds maximum allowed.
+	// Message is validated again, this would only fail if hops now exceeds maximum allowed.
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}

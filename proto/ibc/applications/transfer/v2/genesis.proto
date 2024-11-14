@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.transfer.v2;
 
-option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/types";
 
 import "ibc/applications/transfer/v1/transfer.proto";
 import "ibc/applications/transfer/v2/token.proto";

@@ -148,7 +148,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 	})
 
 	if isAsync {
-		k.SetPacket(ctx, msg.Packet.Payloads[0].DestinationPort, msg.Packet.DestinationChannel, msg.Packet.Sequence, msg.Packet)
+		k.SetPacket(ctx, msg.Packet.DestinationChannel, msg.Packet.Sequence, msg.Packet)
 	} else {
 		// Set packet acknowledgement only if the acknowledgement is not async.
 		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the

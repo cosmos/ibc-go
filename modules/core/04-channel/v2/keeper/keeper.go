@@ -207,17 +207,17 @@ func (k *Keeper) SetNextSequenceSend(ctx context.Context, channelID string, sequ
 	}
 }
 
-func (k *Keeper) SetPacket(ctx context.Context, portID, channelID string, sequence uint64, packet types.Packet) {
+func (k *Keeper) SetPacket(ctx context.Context, channelID string, sequence uint64, packet types.Packet) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&packet)
-	if err := store.Set(types.PacketStoreKey(portID, channelID, sequence), bz); err != nil {
+	if err := store.Set(types.PacketStoreKey(channelID, sequence), bz); err != nil {
 		panic(err)
 	}
 }
 
-func (k *Keeper) DeletePacket(ctx context.Context, portID, channelID string, sequence uint64) {
+func (k *Keeper) DeletePacket(ctx context.Context, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
-	if err := store.Delete(types.PacketStoreKey(portID, channelID, sequence)); err != nil {
+	if err := store.Delete(types.PacketStoreKey(channelID, sequence)); err != nil {
 		panic(err)
 	}
 }
