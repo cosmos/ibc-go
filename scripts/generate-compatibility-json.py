@@ -20,13 +20,19 @@ FIELDS = "fields"
 TEST_SUITE = "test_suite"
 TESTS = "tests"
 RELEASES_URL = "https://api.github.com/repos/cosmos/ibc-go/releases"
+# CHAIN_A should be specified if just chain-a -> chain-b tests should be run.
 CHAIN_A = "chain-a"
+# CHAIN_B should be specified if just chain-b -> chain-a tests should be run.
 CHAIN_B = "chain-b"
+# ALL is the default value chosen, and used to indicate that a test matrix which contains.
+# both chain-a -> chain-b and chain-b -> chain-a tests should be run.
+ALL = "all"
 HERMES = "hermes"
 DEFAULT_IMAGE = "ghcr.io/cosmos/ibc-go-simd"
 RLY = "rly"
 # MAX_VERSION is a version string that will be greater than any other semver version.
 MAX_VERSION = "9999.999.999"
+RELEASE_PREFIX = "release-"
 
 
 def parse_version(version: str) -> semver.Version:
@@ -40,12 +46,12 @@ def parse_version(version: str) -> semver.Version:
     - release-v1.2.3 (a tagged release)
     - release-v1.2.x (a release branch)
     """
+    if version.startswith(RELEASE_PREFIX):
+        # strip off the release prefix and parse the actual version
+        version = version[len(RELEASE_PREFIX):]
     if version.startswith("v"):
         # semver versions do not include a "v" prefix.
         version = version[1:]
-    if version.startswith("release-"):
-        # strip off the release prefix and parse the actual version
-        version = version[len("release-"):]
     # ensure "main" is always greater than other versions for semver comparison.
     if version == "main":
         # main will always be the newest release.
@@ -62,10 +68,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate Compatibility JSON.")
     parser.add_argument(
         "--file",
-        help="The test file to look at.",
+        help="The test file to look at. Specify the path to a file under e2e/tests",
     )
     parser.add_argument(
         "--release-version",
+        default="main",
         help="The version to run tests for.",
     )
     parser.add_argument(
@@ -81,9 +88,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--chain",
-        choices=["chain-a", "chain-b", "all"],
-        default="all",
-        help=f"Specify the chain to run tests for (chain-a, chain-b, all)",
+        choices=[CHAIN_A, CHAIN_B, ALL],
+        default=ALL,
+        help=f"Specify the chain to run tests for must be one of ({CHAIN_A}, {CHAIN_B}, {ALL})",
     )
     return parser.parse_args()
 
@@ -120,9 +127,7 @@ def main():
             if not _test_should_be_run(test, version, file_metadata[FIELDS]):
                 continue
 
-            _add_test_entries(include_entries, seen, args.chain, args.release_version, version, test_suite, test,
-                              args.relayer,
-                              args.image)
+            _add_test_entries(include_entries, seen, version, test_suite, test, args)
 
     # compatibility_json is the json object that will be used as the input to a github workflow
     # which will expand out into a matrix of tests to run.
@@ -135,33 +140,29 @@ def main():
     print(json.dumps(compatibility_json), end="")
 
 
-def _add_test_entries(include_entries, seen, chain, release_version=None, version=None, entrypoint=None, test=None,
-                      relayer=None,
-                      chain_image=None):
+def _add_test_entries(include_entries, seen, version, test_suite, test, args):
     """_add_test_entries adds two different test entries to the test_entries list. One for chain-a -> chain-b and one
     from chain-b -> chain-a. entries are only added if there are no duplicate entries that have already been added."""
+
+    # add entry from chain-a -> chain-b
+    _add_test_entry(include_entries, seen, args.chain, CHAIN_A, args.release_version, version, test_suite, test,
+                    args.relayer, args.image)
+    # add entry from chain-b -> chain-a
+    _add_test_entry(include_entries, seen, args.chain, CHAIN_B, version, args.release_version, test_suite, test,
+                    args.relayer, args.image)
+
+
+def _add_test_entry(include_entries, seen, chain_arg, chain, version_a="", version_b="", entrypoint="", test="",
+                    relayer="",
+                    chain_image=""):
+    """_add_test_entry adds a test entry to the include_entries list if it has not already been added."""
+    entry = (version_a, version_b, test, entrypoint, relayer, chain_image)
     # ensure we don't add duplicate entries.
-    entry = (release_version, version, test, entrypoint, relayer, chain_image)
-
-    if entry not in seen and chain in ("chain-a", "all"):
+    if entry not in seen and chain_arg in (chain, ALL):
         include_entries.append(
             {
-                "chain-a": release_version,
-                "chain-b": version,
-                "entrypoint": entrypoint,
-                "test": test,
-                "relayer-type": relayer,
-                "chain-image": chain_image
-            }
-        )
-        seen.add(entry)
-
-    entry = (version, release_version, test, entrypoint, relayer, chain_image)
-    if entry not in seen and chain in ("chain-b", "all"):
-        include_entries.append(
-            {
-                "chain-a": version,
-                "chain-b": release_version,
+                "chain-a": version_a,
+                "chain-b": version_b,
                 "entrypoint": entrypoint,
                 "test": test,
                 "relayer-type": relayer,
@@ -187,11 +188,14 @@ def _validate(compatibility_json: Dict):
         for item in compatibility_json["include"]:
             if k not in item:
                 raise ValueError(f"key {k} not found in {item.keys()}")
+            if not item[k]:
+                raise ValueError(f"key {k} must have non empty value")
 
     if len(compatibility_json["include"]) > 256:
         # if this error occurs, split out the workflow into two jobs, one for chain-a and one for chain-b
         # using the --chain flag for this script.
-        raise ValueError(f"maximum number of jobs exceeded (256): {len(compatibility_json['include'])}")
+        raise ValueError(f"maximum number of jobs exceeded (256): {len(compatibility_json['include'])}. "
+                         f"Consider using the --chain argument to split the jobs.")
 
 
 def _test_should_be_run(test_name: str, version: str, file_fields: Dict) -> bool:
