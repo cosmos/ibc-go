@@ -589,6 +589,7 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 
 func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 	var (
+		path   *ibctesting.Path
 		req    *types.QueryUnreceivedAcksRequest
 		expSeq = []uint64{}
 	)
@@ -601,9 +602,6 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 		{
 			"success",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				path.SetupV2()
-
 				expSeq = []uint64(nil)
 				req = &types.QueryUnreceivedAcksRequest{
 					ChannelId:          path.EndpointA.ChannelID,
@@ -615,9 +613,6 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 		{
 			"success: single unreceived packet ack",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				path.SetupV2()
-
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelID, 1, []byte("commitment"))
 
 				expSeq = []uint64{1}
@@ -631,8 +626,6 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 		{
 			"success: multiple unreceived packet acknowledgements",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				path.SetupV2()
 				expSeq = []uint64{} // reset
 				packetAcks := []uint64{}
 
@@ -681,9 +674,6 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 		{
 			"invalid seq",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
-				path.SetupV2()
-
 				req = &types.QueryUnreceivedAcksRequest{
 					ChannelId:          path.EndpointA.ChannelID,
 					PacketAckSequences: []uint64{0},
@@ -698,6 +688,8 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupV2()
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
