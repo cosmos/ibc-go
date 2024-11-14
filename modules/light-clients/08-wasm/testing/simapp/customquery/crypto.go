@@ -2,12 +2,14 @@ package customquery
 
 import (
 	"fmt"
+
 	"github.com/prysmaticlabs/prysm/v4/crypto/bls"
 )
 
 func AggregatePublicKeys(publicKeys [][]byte) (bls.PublicKey, error) {
 	return bls.AggregatePublicKeys(publicKeys)
 }
+
 func VerifySignature(signature []byte, message [32]byte, publicKeys [][]byte) (bool, error) {
 	aggregatedPublicKey, err := AggregatePublicKeys(publicKeys)
 	if err != nil {
