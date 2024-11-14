@@ -45,7 +45,7 @@ def parse_version(version: str) -> semver.Version:
         version = version[1:]
     if version.startswith("release-"):
         # strip off the release prefix and parse the actual version
-        return parse_version(version[len("release-"):])
+        version = version[len("release-"):]
     # ensure "main" is always greater than other versions for semver comparison.
     if version == "main":
         # main will always be the newest release.
