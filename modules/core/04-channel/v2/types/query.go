@@ -86,9 +86,9 @@ func NewQueryPacketReceiptResponse(exists bool, proof []byte, height clienttypes
 }
 
 // NewQueryPacketReceiptRequest creates and returns a new packet receipt query request.
-func NewQueryUnreceivedPacketsRequest(channelID string, sequence []uint64) *QueryUnreceivedPacketsRequest {
+func NewQueryUnreceivedPacketsRequest(channelID string, sequences []uint64) *QueryUnreceivedPacketsRequest {
 	return &QueryUnreceivedPacketsRequest{
 		ChannelId: channelID,
-		Sequences: sequence,
+		Sequences: sequences,
 	}
 }
