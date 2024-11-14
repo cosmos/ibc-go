@@ -27,8 +27,10 @@ func CommitPacket(packet Packet) []byte {
 	appHash := sha256.Sum256(appBytes)
 	buf = append(buf, appHash[:]...)
 
+	buf = append([]byte{byte(2)}, buf...)
+
 	hash := sha256.Sum256(buf)
-	return append([]byte{byte(2)}, hash[:]...)
+	return hash[:]
 }
 
 // hashPayload returns the hash of the payload.
@@ -56,6 +58,8 @@ func CommitAcknowledgement(acknowledgement Acknowledgement) []byte {
 		buf = append(buf, hash[:]...)
 	}
 
+	buf = append([]byte{byte(2)}, buf...)
+
 	hash := sha256.Sum256(buf)
-	return append([]byte{byte(2)}, hash[:]...)
+	return hash[:]
 }
