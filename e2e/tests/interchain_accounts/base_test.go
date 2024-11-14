@@ -55,6 +55,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 	s.testMsgSendTxSuccessfulTransfer(channeltypes.ORDERED)
 }
 
+// compatibility:TestMsgSendTx_SuccessfulTransfer_UnorderedChannel:from_version: v7.5.0
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_UnorderedChannel() {
 	s.testMsgSendTxSuccessfulTransfer(channeltypes.UNORDERED)
 }

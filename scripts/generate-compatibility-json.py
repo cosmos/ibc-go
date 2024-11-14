@@ -198,11 +198,18 @@ def _test_should_be_run(test_name: str, version: str, file_fields: Dict) -> bool
 
     If no custom version is specified, the test suite level version is used to determine if the test should run.
     """
-
-    specified_versions_str = file_fields.get(f"{test_name}:{FROM_VERSIONS}")
     test_semver_version = parse_version(version)
 
-    # no custom version defined for this test, run it as normal using the from_version specified on the test suite.
+    specified_from_version = file_fields.get(f"{test_name}:{FROM_VERSION}")
+    if specified_from_version is not None:
+        # the test has specified a minimum version for which to run.
+        return test_semver_version >= parse_version(specified_from_version)
+
+    # check to see if there is a list of versions that this test should run for.
+    specified_versions_str = file_fields.get(f"{test_name}:{FROM_VERSIONS}")
+
+    # no custom minimum version defined for this test
+    # run it as normal using the from_version specified on the test suite.
     if specified_versions_str is None:
         # if there is nothing specified for this particular test, we just compare it to the version
         # specified at the test suite level.
