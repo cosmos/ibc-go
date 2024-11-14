@@ -227,59 +227,52 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 
 func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 	var (
-		path        *ibctesting.Path
-		packet      types.Packet
-		expectedAck types.Acknowledgement
+		path       *ibctesting.Path
+		packet     types.Packet
+		expRecvRes types.RecvPacketResult
 	)
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
+		name          string
+		malleate      func()
+		expError      error
+		expAckWritten bool
 	}{
 		{
-			name:     "success",
-			malleate: func() {},
-			expError: nil,
+			name:          "success",
+			malleate:      func() {},
+			expError:      nil,
+			expAckWritten: true,
 		},
 		{
 			name: "success: failed recv result",
 			malleate: func() {
-				failedRecvResult := types.RecvPacketResult{
+				expRecvRes = types.RecvPacketResult{
 					Status:          types.PacketStatus_Failure,
 					Acknowledgement: mock.MockFailPacketData,
 				}
-
-				// a failed ack should be returned by the application.
-				expectedAck.AcknowledgementResults[0].RecvPacketResult = failedRecvResult
-
-				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
-					return failedRecvResult
-				}
 			},
+			expError:      nil,
+			expAckWritten: true,
 		},
 		{
 			name: "success: async recv result",
 			malleate: func() {
-				asyncResult := types.RecvPacketResult{
+				expRecvRes = types.RecvPacketResult{
 					Status:          types.PacketStatus_Async,
 					Acknowledgement: nil,
 				}
-
-				// an async ack should be returned by the application.
-				expectedAck.AcknowledgementResults[0].RecvPacketResult = asyncResult
-
-				path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
-					return asyncResult
-				}
 			},
+			expError:      nil,
+			expAckWritten: false,
 		},
 		{
 			name: "success: NoOp",
 			malleate: func() {
 				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence)
-				expectedAck = types.Acknowledgement{}
 			},
+			expError:      nil,
+			expAckWritten: false,
 		},
 		{
 			name: "failure: counterparty not found",
@@ -314,17 +307,18 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
 			suite.Require().NoError(err)
 
-			// default expected ack is a single successful recv result for moduleB.
-			expectedAck = types.Acknowledgement{
-				AcknowledgementResults: []types.AcknowledgementResult{
-					{
-						AppName:          mockv2.ModuleNameB,
-						RecvPacketResult: mockv2.MockRecvPacketResult,
-					},
-				},
-			}
+			// default expected receive result is a single successful recv result for moduleB.
+			expRecvRes = mockv2.MockRecvPacketResult
 
 			tc.malleate()
+
+			// expectedAck is derived from the expected recv result.
+			expectedAck := types.Acknowledgement{AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement}}
+
+			// modify the callback to return the expected recv result.
+			path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
+				return expRecvRes
+			}
 
 			err = path.EndpointB.MsgRecvPacket(packet)
 
@@ -340,7 +334,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 
 				ackWritten := ck.HasPacketAcknowledgement(path.EndpointB.Chain.GetContext(), packet.DestinationChannel, packet.Sequence)
 
-				if len(expectedAck.AcknowledgementResults) == 0 || expectedAck.AcknowledgementResults[0].RecvPacketResult.Status == types.PacketStatus_Async {
+				if !tc.expAckWritten {
 					// ack should not be written for async app or if the packet receipt was already present.
 					suite.Require().False(ackWritten)
 				} else { // successful or failed acknowledgement
@@ -415,7 +409,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "failure: failed membership verification",
 			malleate: func() {
-				ack.AcknowledgementResults[0].RecvPacketResult.Acknowledgement = mock.MockFailPacketData
+				ack.AppAcknowledgements[0] = mock.MockFailPacketData
 			},
 			expError: errors.New("failed packet acknowledgement verification"),
 		},
@@ -438,14 +432,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			suite.Require().NoError(err)
 
 			// Construct expected acknowledgement
-			ack = types.Acknowledgement{
-				AcknowledgementResults: []types.AcknowledgementResult{
-					{
-						AppName:          mockv2.ModuleNameB,
-						RecvPacketResult: mockv2.MockRecvPacketResult,
-					},
-				},
-			}
+			ack = types.Acknowledgement{AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement}}
 
 			tc.malleate()
 
