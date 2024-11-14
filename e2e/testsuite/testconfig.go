@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -51,7 +52,8 @@ const (
 	ChainUpgradeTagEnv = "CHAIN_UPGRADE_TAG"
 	// ChainUpgradePlanEnv specifies the upgrade plan name
 	ChainUpgradePlanEnv = "CHAIN_UPGRADE_PLAN"
-	// E2EConfigFilePathEnv allows you to specify a custom path for the config file to be used.
+	// E2EConfigFilePathEnv allows you to specify a custom path for the config file to be used. It can be relative
+	// or absolute.
 	E2EConfigFilePathEnv = "E2E_CONFIG_PATH"
 	// KeepContainersEnv instructs interchaintest to not delete the containers after a test has run.
 	// this ensures that chain containers are not deleted after a test suite is run if other tests
@@ -131,20 +133,8 @@ func (tc TestConfig) validateChains() error {
 			return fmt.Errorf("chain config missing tag: %+v", cfg)
 		}
 
-		// TODO: validate chainID in https://github.com/cosmos/ibc-go/issues/4697
-		// these are not passed in the CI at the moment. Defaults are used.
-		if !IsCI() {
-			if cfg.ChainID == "" {
-				return fmt.Errorf("chain config missing chainID: %+v", cfg)
-			}
-		}
-
-		// TODO: validate number of nodes in https://github.com/cosmos/ibc-go/issues/4697
-		// these are not passed in the CI at the moment.
-		if !IsCI() {
-			if cfg.NumValidators == 0 && cfg.NumFullNodes == 0 {
-				return fmt.Errorf("chain config missing number of validators or full nodes: %+v", cfg)
-			}
+		if cfg.NumValidators == 0 && cfg.NumFullNodes == 0 {
+			return fmt.Errorf("chain config missing number of validators or full nodes: %+v", cfg)
 		}
 	}
 
@@ -438,17 +428,9 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 // fromEnv returns a TestConfig constructed from environment variables.
 func fromEnv() TestConfig {
 	return TestConfig{
-		ChainConfigs:  getChainConfigsFromEnv(),
-		UpgradeConfig: getUpgradePlanConfigFromEnv(),
-		ActiveRelayer: os.Getenv(RelayerIDEnv),
-
-		// TODO: we can remove this, and specify these values in a config file for the CI
-		// in https://github.com/cosmos/ibc-go/issues/4697
-		RelayerConfigs: []relayer.Config{
-			getDefaultRlyRelayerConfig(),
-			getDefaultHermesRelayerConfig(),
-			getDefaultHyperspaceRelayerConfig(),
-		},
+		ChainConfigs:   getChainConfigsFromEnv(),
+		UpgradeConfig:  getUpgradePlanConfigFromEnv(),
+		ActiveRelayer:  os.Getenv(RelayerIDEnv),
 		CometBFTConfig: CometBFTConfig{LogLevel: "info"},
 	}
 }
@@ -500,8 +482,12 @@ func getChainConfigsFromEnv() []ChainConfig {
 
 // getConfigFilePath returns the absolute path where the e2e config file should be.
 func getConfigFilePath() string {
-	if absoluteConfigPath := os.Getenv(E2EConfigFilePathEnv); absoluteConfigPath != "" {
-		return absoluteConfigPath
+	if specifiedConfigPath := os.Getenv(E2EConfigFilePathEnv); specifiedConfigPath != "" {
+		absolutePath, err := filepath.Abs(specifiedConfigPath)
+		if err != nil {
+			panic(fmt.Errorf("failed to convert specified config path to absolute path: %w", err))
+		}
+		return absolutePath
 	}
 
 	homeDir, err := os.UserHomeDir()

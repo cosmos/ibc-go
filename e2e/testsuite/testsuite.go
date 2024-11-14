@@ -735,9 +735,6 @@ func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.
 // use less resources and allow the tests to run faster.
 // both the number of validators and full nodes can be overwritten in a config file.
 func getValidatorsAndFullNodes(chainIdx int) (int, int) {
-	if IsCI() {
-		return 4, 1
-	}
 	tc := LoadConfig()
 	return tc.GetChainNumValidators(chainIdx), tc.GetChainNumFullNodes(chainIdx)
 }

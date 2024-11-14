@@ -82,6 +82,11 @@ on:
         required: false
         type: boolean
         default: false
+      e2e-config-path:
+        description: 'Specify relative or absolute path of config file for test'
+        required: false
+        type: string
+        default: 'e2e/ci-e2e-config.yaml'
 
 env:
   REGISTRY: ghcr.io
@@ -225,15 +230,9 @@ jobs:
       - docker-build
       - docker-build-wasm
     env:
-      CHAIN_IMAGE: '${{ inputs.chain-image }}'
       CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
       CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
-      RELAYER_IMAGE: '${{ inputs.relayer-image }}'
-      RELAYER_TAG: '${{ inputs.relayer-tag }}'
-      RELAYER_ID: '${{ inputs.relayer-type }}'
-      CHAIN_BINARY: '${{ inputs.chain-binary }}'
-      CHAIN_UPGRADE_TAG: '${{ inputs.chain-upgrade-tag }}'
-      CHAIN_UPGRADE_PLAN: '${{ inputs.upgrade-plan-name }}'
+      E2E_CONFIG_PATH: '${{ inputs.e2e-config-path }}'
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
@@ -268,17 +267,9 @@ jobs:
       - docker-build
       - docker-build-wasm
     env:
-      CHAIN_IMAGE: '${{ inputs.chain-image }}'
       CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
       CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
-      RELAYER_IMAGE: '${{ inputs.relayer-image }}'
-      RELAYER_TAG: '${{ inputs.relayer-tag }}'
-      RELAYER_ID: '${{ inputs.relayer-type }}'
-      CHAIN_BINARY: '${{ inputs.chain-binary }}'
-      CHAIN_UPGRADE_TAG: '${{ inputs.chain-upgrade-tag }}'
-      CHAIN_UPGRADE_PLAN: '${{ inputs.upgrade-plan-name }}'
-      # explicitly set to true so that if a test fails, it doesn't delete the chain and cause other tests to fail.
-      KEEP_CONTAINERS: "true"
+      E2E_CONFIG_PATH: '${{ inputs.e2e-config-path }}'
     strategy:
       fail-fast: false
       matrix:
