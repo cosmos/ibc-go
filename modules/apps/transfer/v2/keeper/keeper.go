@@ -21,6 +21,8 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
+var _ typesv2.MsgServer = (*Keeper)(nil)
+
 type Keeper struct {
 	transferkeeper.Keeper
 	channelKeeperV2  *channelkeeperv2.Keeper
@@ -63,14 +65,14 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *typesv2.MsgTransfer) (*typ
 	}
 
 	tokens := []types.Token{}
-	for _, c := range msg.GetCoins() {
+	for _, c := range msg.Tokens {
 		t, err := k.Keeper.TokenFromCoin(ctx, c)
 		if err != nil {
 			return nil, err
 		}
 		tokens = append(tokens, t)
 	}
-	fowardingPacketData := types.NewForwardingPacketData(msg.Memo /* TODO is this correct? */, msg.Forwarding.Hops...)
+	fowardingPacketData := NewForwardingPacketData(msg.Memo /* TODO is this correct? */, msg.Forwarding.Hops...)
 	data := types.NewFungibleTokenPacketDataV2(tokens, msg.Sender, msg.Receiver, msg.Memo, fowardingPacketData)
 	dataBz, err := data.Marshal()
 	if err != nil {
@@ -91,6 +93,19 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *typesv2.MsgTransfer) (*typ
 	}
 
 	return &typesv2.MsgTransferResponse{Sequence: sequence}, nil
+}
+
+// NewForwardingPacketData creates a new ForwardingPacketData instance given a memo and a variable number of hops.
+func NewForwardingPacketData(destinationMemo string, hops ...typesv2.Hop) types.ForwardingPacketData {
+	// Ugly ugly ugly
+	v1Hops := make([]types.Hop, len(hops))
+	for i, v2hop := range hops {
+		v1Hops[i] = types.NewHop(v2hop.PortId, v2hop.ChannelId)
+	}
+	return types.ForwardingPacketData{
+		DestinationMemo: destinationMemo,
+		Hops:            v1Hops,
+	}
 }
 
 // TODO move somewhere else?
@@ -162,12 +177,17 @@ func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]typesv2.Hop, 
 		}
 	}
 
-	return unwindTrace, nil
+	// TODO ugly ugly ugly
+	v2Trace := make([]typesv2.Hop, len(unwindTrace))
+	for i, t := range unwindTrace {
+		v2Trace[i] = typesv2.Hop{PortId: t.PortId, ChannelId: t.ChannelId}
+	}
+
+	return v2Trace, nil
 }
 
 func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload channeltypesv2.Payload, data types.FungibleTokenPacketDataV2, sender sdk.AccAddress) error {
 	// TODO unwind logic for forwarding
-
 	for _, token := range data.Tokens {
 		coin, err := token.ToCoin()
 		if err != nil {

@@ -5,17 +5,10 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	sdkmath "cosmossdk.io/math"
-
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	typesv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-)
-
-const (
-	escrow amountType = iota
-	balance
 )
 
 type ForwardingTestSuite struct {
@@ -29,8 +22,6 @@ type ForwardingTestSuite struct {
 	chainC *ibctesting.TestChain
 	chainD *ibctesting.TestChain
 }
-
-type amountType int
 
 func TestForwardingTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(ForwardingTestSuite))
@@ -71,30 +62,29 @@ func (suite *ForwardingTestSuite) TestSuccessfulForward() {
 			C: finalReceiver = amount,transfer/channel-0/transfer/channel-0/denom
 	*/
 
-	amount := sdkmath.NewInt(100)
-
 	pathAtoB, pathBtoC := suite.setupForwardingPaths()
 
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount
-	forwarding := types.NewForwarding(false, types.NewHop(
-		pathBtoC.EndpointA.ChannelConfig.PortID,
-		pathBtoC.EndpointA.ChannelID,
-	))
 
-	tokens := types.Tokens{
-		types.Token{
-			Denom:  types.NewDenom(ibctesting.TestCoin.Denom),
-			Amount: ibctesting.TestCoin.Amount.String(),
+	msg := &typesv2.MsgTransfer{
+		SourceChannel:    pathAtoB.EndpointA.ClientID,
+		SourcePort:       pathAtoB.EndpointA.ChannelConfig.PortID,
+		DestinationPort:  pathAtoB.EndpointB.ChannelConfig.PortID,
+		Version:          transfertypes.V2,
+		Encoding:         "json",
+		Sender:           sender.GetAddress().String(),
+		Receiver:         receiver.GetAddress().String(),
+		TimeoutTimestamp: suite.chainA.GetTimeoutTimestamp(),
+		Memo:             "",
+		Tokens:           sdk.NewCoins(ibctesting.TestCoin),
+		Forwarding: &typesv2.Forwarding{
+			Unwind: false,
+			Hops: []typesv2.Hop{
+				{PortId: pathBtoC.EndpointA.ChannelConfig.PortID, ChannelId: pathBtoC.EndpointA.ChannelID},
+			},
 		},
 	}
-	fungibleData := types.NewFungibleTokenPacketDataV2()
-	bz, err := fungibleData.Marshal()
-	suite.Require().NoError(err)
-
-	payload := channeltypes.NewPayload(pathAtoB.EndpointA.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelConfig.PortID, types.V2, "json", bz)
-	msg := channeltypes.NewMsgSendPacket(pathAtoB.EndpointA.ChannelID, suite.chainA.GetTimeoutTimestamp(), sender.GetAddress().String(), payload)
-
 	result, err := suite.chainA.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 	suite.Require().NotNil(result)
