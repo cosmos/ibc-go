@@ -16,6 +16,24 @@ func NewQueryChannelResponse(channel Channel) *QueryChannelResponse {
 	}
 }
 
+// NewQueryNextSequenceSendRequest creates a new next sequence send query.
+func NewQueryNextSequenceSendRequest(channelID string) *QueryNextSequenceSendRequest {
+	return &QueryNextSequenceSendRequest{
+		ChannelId: channelID,
+	}
+}
+
+// NewQueryNextSequenceSendResponse creates a new QueryNextSequenceSendResponse instance
+func NewQueryNextSequenceSendResponse(
+	sequence uint64, proof []byte, height clienttypes.Height,
+) *QueryNextSequenceSendResponse {
+	return &QueryNextSequenceSendResponse{
+		NextSequenceSend: sequence,
+		Proof:            proof,
+		ProofHeight:      height,
+	}
+}
+
 // NewQueryPacketCommitmentRequest creates and returns a new packet commitment query request.
 func NewQueryPacketCommitmentRequest(channelID string, sequence uint64) *QueryPacketCommitmentRequest {
 	return &QueryPacketCommitmentRequest{

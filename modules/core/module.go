@@ -25,6 +25,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/client/cli"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"

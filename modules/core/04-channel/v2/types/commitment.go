@@ -7,19 +7,27 @@ import (
 )
 
 // CommitPacket returns the V2 packet commitment bytes. The commitment consists of:
-// sha256_hash(timeout) + sha256_hash(destinationChannel) + sha256_hash(payload) from a given packet.
-// This results in a fixed length preimage.
+// ha256_hash(0x02 + sha256_hash(destinationChannel) + sha256_hash(timeout) + sha256_hash(payload)) from a given packet.
+// This results in a fixed length preimage of 32 bytes.
 // NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
 // to malleate the packet fields and create a commitment hash that matches the original packet.
 func CommitPacket(packet Packet) []byte {
-	buf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
-
+	var buf []byte
 	destIDHash := sha256.Sum256([]byte(packet.DestinationChannel))
 	buf = append(buf, destIDHash[:]...)
 
+	timeoutBytes := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
+	timeoutHash := sha256.Sum256(timeoutBytes)
+	buf = append(buf, timeoutHash[:]...)
+
+	var appBytes []byte
 	for _, payload := range packet.Payloads {
-		buf = append(buf, hashPayload(payload)...)
+		appBytes = append(appBytes, hashPayload(payload)...)
 	}
+	appHash := sha256.Sum256(appBytes)
+	buf = append(buf, appHash[:]...)
+
+	buf = append([]byte{byte(2)}, buf...)
 
 	hash := sha256.Sum256(buf)
 	return hash[:]
@@ -32,23 +40,26 @@ func hashPayload(data Payload) []byte {
 	buf = append(buf, sourceHash[:]...)
 	destHash := sha256.Sum256([]byte(data.DestinationPort))
 	buf = append(buf, destHash[:]...)
-	payloadValueHash := sha256.Sum256(data.Value)
-	buf = append(buf, payloadValueHash[:]...)
-	payloadEncodingHash := sha256.Sum256([]byte(data.Encoding))
-	buf = append(buf, payloadEncodingHash[:]...)
 	payloadVersionHash := sha256.Sum256([]byte(data.Version))
 	buf = append(buf, payloadVersionHash[:]...)
+	payloadEncodingHash := sha256.Sum256([]byte(data.Encoding))
+	buf = append(buf, payloadEncodingHash[:]...)
+	payloadValueHash := sha256.Sum256(data.Value)
+	buf = append(buf, payloadValueHash[:]...)
 	hash := sha256.Sum256(buf)
 	return hash[:]
 }
 
-// CommitAcknowledgement returns the hash of the acknowledgement data.
+// CommitAcknowledgement returns the V2 acknowledgement commitment bytes. The commitment consists of:
+// sha256_hash(0x02 + sha256_hash(ack1) + sha256_hash(ack2) + ...) from a given acknowledgement.
 func CommitAcknowledgement(acknowledgement Acknowledgement) []byte {
 	var buf []byte
-	for _, ack := range acknowledgement.GetAcknowledgementResults() {
-		hash := sha256.Sum256(ack.RecvPacketResult.GetAcknowledgement())
+	for _, ack := range acknowledgement.GetAppAcknowledgements() {
+		hash := sha256.Sum256(ack)
 		buf = append(buf, hash[:]...)
 	}
+
+	buf = append([]byte{byte(2)}, buf...)
 
 	hash := sha256.Sum256(buf)
 	return hash[:]

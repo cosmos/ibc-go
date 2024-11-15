@@ -133,7 +133,7 @@ func (k *Keeper) HasPacketReceipt(ctx context.Context, channelID string, sequenc
 // This is a public path that is standardized by the IBC V2 specification.
 func (k *Keeper) SetPacketReceipt(ctx context.Context, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
-	if err := store.Set(hostv2.PacketReceiptKey(channelID, sequence), []byte{byte(1)}); err != nil {
+	if err := store.Set(hostv2.PacketReceiptKey(channelID, sequence), []byte{byte(2)}); err != nil {
 		panic(err)
 	}
 }
@@ -213,9 +213,9 @@ func (k *Keeper) SetNextSequenceSend(ctx context.Context, channelID string, sequ
 	}
 }
 
-// AliasV1Channel returns a version 2 channel for the given port and channel ID
+// aliasV1Channel returns a version 2 channel for the given port and channel ID
 // by converting the channel into a version 2 channel.
-func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.Channel, bool) {
+func (k *Keeper) aliasV1Channel(ctx context.Context, portID, channelID string) (types.Channel, bool) {
 	channel, ok := k.channelKeeperV1.GetChannel(ctx, portID, channelID)
 	if !ok {
 		return types.Channel{}, false
@@ -242,7 +242,7 @@ func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (
 // convertV1Channel attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
 // to a v2 counterparty and stores it in the v2 channel keeper for future use
 func (k *Keeper) convertV1Channel(ctx context.Context, port, id string) (types.Channel, bool) {
-	if channel, ok := k.AliasV1Channel(ctx, port, id); ok {
+	if channel, ok := k.aliasV1Channel(ctx, port, id); ok {
 		// we can key on just the channel here since channel ids are globally unique
 		k.SetChannel(ctx, id, channel)
 		return channel, true
