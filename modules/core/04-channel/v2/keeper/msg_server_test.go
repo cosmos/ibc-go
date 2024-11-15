@@ -316,7 +316,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			expectedAck := types.Acknowledgement{AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement}}
 
 			// modify the callback to return the expected recv result.
-			path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, data types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
+			path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, data types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
 				return expRecvRes
 			}
 
@@ -377,7 +377,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 
 				// Modify the callback to return an error.
 				// This way, we can verify that the callback is not executed in a No-op case.
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, channeltypesv2.Payload, []byte, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, types.Payload, []byte, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -385,7 +385,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "failure: callback fails",
 			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, channeltypesv2.Payload, []byte, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, types.Payload, []byte, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -471,7 +471,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 
 				// Modify the callback to return a different error.
 				// This way, we can verify that the callback is not executed in a No-op case.
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, uint64, types.Payload, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -480,7 +480,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 		{
 			name: "failure: callback fails",
 			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(context.Context, string, string, uint64, types.Payload, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},

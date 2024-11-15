@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"bytes"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -13,6 +14,7 @@ import (
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 )
 
 // TestMsgSendPacketTransfer tests the MsgSendPacket rpc handler for the transfer v2 application.
@@ -130,11 +132,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 		{
 			"failure: receive is disabled",
 			func() {
-				expectedAck.AcknowledgementResults[0].RecvPacketResult = channeltypesv2.RecvPacketResult{
-					Status:          channeltypesv2.PacketStatus_Failure,
-					Acknowledgement: channeltypes.NewErrorAcknowledgement(transfertypes.ErrReceiveDisabled).Acknowledgement(),
-				}
-
+				expectedAck.AppAcknowledgements[0] = channeltypes.NewErrorAcknowledgement(transfertypes.ErrReceiveDisabled).Acknowledgement()
 				suite.chainB.GetSimApp().TransferKeeperV2.SetParams(suite.chainB.GetContext(),
 					transfertypes.Params{
 						ReceiveEnabled: false,
@@ -174,16 +172,8 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			suite.Require().NoError(err)
 
 			// by default, we assume a successful acknowledgement will be written.
-			expectedAck = channeltypesv2.Acknowledgement{AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
-				{
-					AppName: transfertypes.ModuleName,
-					RecvPacketResult: channeltypesv2.RecvPacketResult{
-						Status:          channeltypesv2.PacketStatus_Success,
-						Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
-					},
-				},
-			}}
-
+			ackBytes := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+			expectedAck = channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{ackBytes}}
 			tc.malleate()
 
 			err = path.EndpointB.MsgRecvPacket(packet)
@@ -208,7 +198,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 
 				var expectedBalance sdk.Coin
 				// on a successful ack we expect the full amount to be transferred
-				if expectedAck.AcknowledgementResults[0].RecvPacketResult.Status == channeltypesv2.PacketStatus_Success {
+				if bytes.Equal(expectedAck.AppAcknowledgements[0], ackBytes) {
 					expectedBalance = sdk.NewCoin(denom.IBCDenom(), ibctesting.DefaultCoinAmount)
 				} else {
 					// otherwise the tokens do not make it to the address.
@@ -247,7 +237,7 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 		{
 			"failure: proof verification failure",
 			func() {
-				expectedAck.AcknowledgementResults[0].RecvPacketResult.Acknowledgement = channeltypes.NewResultAcknowledgement([]byte{byte(2)}).Acknowledgement()
+				expectedAck.AppAcknowledgements[0] = mockv2.MockFailRecvPacketResult.Acknowledgement
 			},
 			commitmenttypes.ErrInvalidProof,
 			false,
@@ -255,10 +245,7 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 		{
 			"failure: escrowed tokens are refunded",
 			func() {
-				expectedAck.AcknowledgementResults[0].RecvPacketResult = channeltypesv2.RecvPacketResult{
-					Status:          channeltypesv2.PacketStatus_Failure,
-					Acknowledgement: channeltypes.NewErrorAcknowledgement(transfertypes.ErrReceiveDisabled).Acknowledgement(),
-				}
+				expectedAck.AppAcknowledgements[0] = channeltypes.NewErrorAcknowledgement(transfertypes.ErrReceiveDisabled).Acknowledgement()
 			},
 			nil,
 			true,
@@ -306,16 +293,8 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 			err = path.EndpointB.MsgRecvPacket(packet)
 			suite.Require().NoError(err)
 
-			expectedAck = channeltypesv2.Acknowledgement{AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
-				{
-					AppName: transfertypes.ModuleName,
-					RecvPacketResult: channeltypesv2.RecvPacketResult{
-						Status:          channeltypesv2.PacketStatus_Success,
-						Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
-					},
-				},
-			}}
-
+			ackBytes := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+			expectedAck = channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{ackBytes}}
 			tc.malleate()
 
 			err = path.EndpointA.MsgAcknowledgePacket(packet, expectedAck)
@@ -324,7 +303,7 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				if expectedAck.AcknowledgementResults[0].RecvPacketResult.Status == channeltypesv2.PacketStatus_Success {
+				if bytes.Equal(expectedAck.AppAcknowledgements[0], ackBytes) {
 					// tokens remain escrowed
 					for _, t := range tokens {
 						escrowedAmount := suite.chainA.GetSimApp().TransferKeeperV2.GetTotalEscrowForDenom(suite.chainA.GetContext(), t.Denom.IBCDenom())
@@ -466,15 +445,8 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 		},
 	}
 
-	successfulAck := channeltypesv2.Acknowledgement{AcknowledgementResults: []channeltypesv2.AcknowledgementResult{
-		{
-			AppName: transfertypes.ModuleName,
-			RecvPacketResult: channeltypesv2.RecvPacketResult{
-				Status:          channeltypesv2.PacketStatus_Success,
-				Acknowledgement: channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(),
-			},
-		},
-	}}
+	ackBytes := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+	successfulAck := channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{ackBytes}}
 
 	originalAmount, ok := sdkmath.NewIntFromString(ibctesting.DefaultGenesisAccBalance)
 	suite.Require().True(ok)
