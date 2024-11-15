@@ -169,6 +169,7 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 		}
 	}
 
+	_ = receivedCoins // TODO: remove this line when forwarding is implemented
 	// TODO: forwarding
 	// if data.HasForwarding() {
 	//	// we are now sending from the forward escrow address to the final receiver address.
@@ -176,7 +177,7 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 	//	if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
 	//		return err
 	//	}
-	//}
+	// }
 
 	// TODO: telemetry
 	// telemetry.ReportOnRecvPacket(packet, data.Tokens)
