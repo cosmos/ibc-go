@@ -150,6 +150,9 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypesv2.MsgRecvPack
 	if isAsync {
 		k.SetPacket(ctx, msg.Packet.DestinationChannel, msg.Packet.Sequence, msg.Packet)
 	} else {
+		if len(ack.AcknowledgementResults) != len(msg.Packet.Payloads) {
+			return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of acknowledgement results %d does not match length of payload %d", len(ack.AcknowledgementResults), len(msg.Packet.Payloads))
+		}
 		// Set packet acknowledgement only if the acknowledgement is not async.
 		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 		// acknowledgement is async.
