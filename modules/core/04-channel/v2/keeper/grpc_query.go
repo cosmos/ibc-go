@@ -240,3 +240,55 @@ func (q *queryServer) UnreceivedPackets(ctx context.Context, req *types.QueryUnr
 		Height:    selfHeight,
 	}, nil
 }
+
+// UnreceivedAcks implements the Query/UnreceivedAcks gRPC method. Given
+// a list of counterparty packet acknowledgements, the querier checks if the packet
+// has already been received by checking if the packet commitment still exists on this
+// chain (original sender) for the packet sequence.
+// All acknowledgmeents that haven't been received yet are returned in the response.
+// Usage: To use this method correctly, first query all packet acknowledgements on
+// the original receiving chain (ie the chain that wrote the acks) using the Query/PacketAcknowledgements gRPC method.
+// Then input the returned sequences into the QueryUnreceivedAcksRequest
+// and send the request to this Query/UnreceivedAcks on the **original sending**
+// chain. This gRPC method will then return the list of packet sequences whose
+// acknowledgements are already written on the receiving chain but haven't yet
+// been received back to the sending chain.
+//
+// NOTE: The querier makes the assumption that the provided list of packet
+// acknowledgements is correct and will not function properly if the list
+// is not up to date. Ideally the query height should equal the latest height
+// on the counterparty's client which represents this chain.
+func (q *queryServer) UnreceivedAcks(ctx context.Context, req *types.QueryUnreceivedAcksRequest) (*types.QueryUnreceivedAcksResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if !q.HasChannel(ctx, req.ChannelId) {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
+	}
+
+	var unreceivedSequences []uint64
+
+	for _, seq := range req.PacketAckSequences {
+		if seq == 0 {
+			return nil, status.Error(codes.InvalidArgument, "packet sequence cannot be 0")
+		}
+
+		// if packet commitment still exists on the original sending chain, then packet ack has not been received
+		// since processing the ack will delete the packet commitment
+		if commitment := q.GetPacketCommitment(ctx, req.ChannelId, seq); len(commitment) != 0 {
+			unreceivedSequences = append(unreceivedSequences, seq)
+		}
+
+	}
+
+	selfHeight := clienttypes.GetSelfHeight(ctx)
+	return &types.QueryUnreceivedAcksResponse{
+		Sequences: unreceivedSequences,
+		Height:    selfHeight,
+	}, nil
+}

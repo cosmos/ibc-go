@@ -47,6 +47,12 @@ service Query {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/"
                                    "{sequences}/unreceived_packets";
   }
+                               
+  // UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a channel and sequences.
+  rpc UnreceivedAcks(QueryUnreceivedAcksRequest) returns (QueryUnreceivedAcksResponse) {
+    option (google.api.http).get =
+        "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks";
+  }
 }
 
 // QueryChannelRequest is the request type for the Query/Channel RPC method
@@ -161,6 +167,23 @@ message QueryUnreceivedPacketsRequest {
 // QueryUnreceivedPacketsResponse is the response type for the Query/UnreceivedPacketCommitments RPC method
 message QueryUnreceivedPacketsResponse {
   // list of unreceived packet sequences
+  repeated uint64 sequences = 1;
+  // query block height
+  ibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
+}
+// QueryUnreceivedAcks is the request type for the
+// Query/UnreceivedAcks RPC method
+message QueryUnreceivedAcksRequest {
+  // channel unique identifier
+  string channel_id = 1;
+  // list of acknowledgement sequences
+  repeated uint64 packet_ack_sequences = 2;
+}
+
+// QueryUnreceivedAcksResponse is the response type for the
+// Query/UnreceivedAcks RPC method
+message QueryUnreceivedAcksResponse {
+  // list of unreceived acknowledgement sequences
   repeated uint64 sequences = 1;
   // query block height
   ibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
