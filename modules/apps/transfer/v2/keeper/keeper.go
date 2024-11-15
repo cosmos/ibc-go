@@ -97,14 +97,9 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *typesv2.MsgTransfer) (*typ
 
 // NewForwardingPacketData creates a new ForwardingPacketData instance given a memo and a variable number of hops.
 func NewForwardingPacketData(destinationMemo string, hops ...typesv2.Hop) types.ForwardingPacketData {
-	// Ugly ugly ugly
-	v1Hops := make([]types.Hop, len(hops))
-	for i, v2hop := range hops {
-		v1Hops[i] = types.NewHop(v2hop.PortId, v2hop.ChannelId)
-	}
 	return types.ForwardingPacketData{
 		DestinationMemo: destinationMemo,
-		Hops:            v1Hops,
+		Hops:            typesv2.V2HopsToV1Hops(hops),
 	}
 }
 
@@ -177,13 +172,7 @@ func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]typesv2.Hop, 
 		}
 	}
 
-	// TODO ugly ugly ugly
-	v2Trace := make([]typesv2.Hop, len(unwindTrace))
-	for i, t := range unwindTrace {
-		v2Trace[i] = typesv2.Hop{PortId: t.PortId, ChannelId: t.ChannelId}
-	}
-
-	return v2Trace, nil
+	return typesv2.V1HopsToV2Hops(unwindTrace), nil
 }
 
 func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload channeltypesv2.Payload, data types.FungibleTokenPacketDataV2, sender sdk.AccAddress) error {
