@@ -25,6 +25,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
+// compatibility:from_version: v7.4.0
 func TestConnectionTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(ConnectionTestSuite))
 }
