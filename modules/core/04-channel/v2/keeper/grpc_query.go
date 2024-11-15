@@ -215,10 +215,7 @@ func (q *queryServer) UnreceivedPackets(ctx context.Context, req *types.QueryUnr
 
 	found := q.HasChannel(ctx, req.ChannelId)
 	if !found {
-		return nil, status.Error(
-			codes.NotFound,
-			errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id %s", req.ChannelId).Error(),
-		)
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
 	}
 
 	var unreceivedSequences []uint64

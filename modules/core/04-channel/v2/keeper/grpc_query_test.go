@@ -597,14 +597,14 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
 			"invalid channel ID",
@@ -613,17 +613,20 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 					ChannelId: "",
 				}
 			},
-			false,
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"invalid seq",
 			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
 				req = &types.QueryUnreceivedPacketsRequest{
-					ChannelId: ibctesting.FirstChannelID,
+					ChannelId: path.EndpointA.ChannelID,
 					Sequences: []uint64{0},
 				}
 			},
-			false,
+			status.Error(codes.InvalidArgument, "packet sequence 0 cannot be 0"),
 		},
 		{
 			"channel not found",
@@ -632,7 +635,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 					ChannelId: "invalid-channel-id",
 				}
 			},
-			false,
+			status.Error(codes.NotFound, fmt.Sprintf("%s: channel not found", "invalid-channel-id")),
 		},
 		{
 			"basic success empty packet commitments",
@@ -646,7 +649,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 					Sequences: []uint64{},
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"basic success unreceived packet commitments",
@@ -662,7 +665,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 					Sequences: []uint64{1},
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"basic success unreceived packet commitments, nothing to relay",
@@ -678,7 +681,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 					Sequences: []uint64{1},
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success multiple unreceived packet commitments",
@@ -704,7 +707,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 					Sequences: packetCommitments,
 				}
 			},
-			true,
+			nil,
 		},
 	}
 
@@ -720,11 +723,13 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ChannelKeeperV2)
 			res, err := queryServer.UnreceivedPackets(ctx, req)
 
-			if tc.expPass {
+			expPass := tc.expError == nil
+			if expPass {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expSeq, res.Sequences)
 			} else {
+				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Error(err)
 			}
 		})
