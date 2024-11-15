@@ -287,6 +287,8 @@ func getCmdQueryPacketReceipt() *cobra.Command {
 	return cmd
 }
 
+// getCmdQueryUnreceivedPackets defines the command to query all the unreceived
+// packets on the receiving chain
 func getCmdQueryUnreceivedPackets() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unreceived-packets [channel-id]",
@@ -323,7 +325,7 @@ func getCmdQueryUnreceivedPackets() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
+	cmd.Flags().Int64Slice(flagSequences, []int64{}, "comma separated list of packet sequence numbers")
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
