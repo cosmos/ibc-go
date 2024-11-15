@@ -61,7 +61,7 @@ on:
         description: 'Specify relative or absolute path of config file for test'
         required: false
         type: string
-        default: 'e2e/ci-e2e-config.yaml'
+        default: 'ci-e2e-config.yaml'
 
 env:
   REGISTRY: ghcr.io
