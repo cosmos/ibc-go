@@ -107,6 +107,7 @@ import (
 
 	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp/customquery"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ica "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller"
@@ -438,9 +439,17 @@ func NewSimApp(
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, app.GRPCQueryRouter(),
 		)
 	} else {
+		querierOption := wasmkeeper.WithQueryPlugins(&wasmkeeper.QueryPlugins{
+			Custom: customquery.CustomQuerier(),
+			Stargate: wasmkeeper.AcceptListStargateQuerier(
+				[]string{"/cosmos.base.tendermint.v1beta1.Service/ABCIQuery"},
+				app.GRPCQueryRouter(),
+			),
+		})
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, app.GRPCQueryRouter(),
+			querierOption,
 		)
 	}
 
