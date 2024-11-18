@@ -60,9 +60,11 @@ require (
 	cosmossdk.io/core/testing v0.0.0-20240923163230-04da382a9f29 // indirect
 	cosmossdk.io/depinject v1.1.0 // indirect
 	cosmossdk.io/schema v0.3.1-0.20240930054013-7c6e0388a3f9 // indirect
+	cosmossdk.io/x/accounts/defaults/base v0.0.0-20241108095921-406f977be0b9 // indirect
 	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5 // indirect
 	cosmossdk.io/x/accounts/defaults/multisig v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/epochs v0.0.0-20240522060652-a1ae4c3e0337 // indirect
+	cosmossdk.io/x/nft v0.0.0-00010101000000-000000000000 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
@@ -239,30 +241,32 @@ replace github.com/cosmos/ibc-go/modules/capability => ../../capability
 
 //TODO: remove everything below after tags are created
 replace (
-	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20240815194237-858ec2fcb897 // main
-	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20240905174638-8ce77cbb2450
-	cosmossdk.io/core => cosmossdk.io/core v0.12.1-0.20240906083041-6033330182c7 // main
+	cosmossdk.io/api => cosmossdk.io/api v0.7.3-0.20241108095921-406f977be0b9 // main
+	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/core => cosmossdk.io/core v1.0.0-alpha.5.0.20241108095921-406f977be0b9 // main
 	cosmossdk.io/store => cosmossdk.io/store v1.0.0-rc.0.0.20240906090851-36d9b25e8981 // main
-	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/accounts/defaults/lockup => cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/accounts/defaults/multisig => cosmossdk.io/x/accounts/defaults/multisig v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/circuit => cosmossdk.io/x/circuit v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/epochs => cosmossdk.io/x/epochs v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/feegrant => cosmossdk.io/x/feegrant v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/group => cosmossdk.io/x/group v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20240909082436-01c0e9ba3581
-	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20240911130545-9e7848985491
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20240911130545-9e7848985491
+	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/accounts/defaults/lockup => cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/accounts/defaults/multisig => cosmossdk.io/x/accounts/defaults/multisig v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/circuit => cosmossdk.io/x/circuit v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/epochs => cosmossdk.io/x/epochs v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/feegrant => cosmossdk.io/x/feegrant v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/group => cosmossdk.io/x/group v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/nft => cosmossdk.io/x/nft v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/tx => cosmossdk.io/x/tx v1.0.0-alpha.1
-	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20240911130545-9e7848985491
+	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20241108061010-a0458127fccf
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1.0.20240908111210-ab0be101882f
 	// pseudo version lower than the latest tag
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-beta.1
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.0.0-20241108061010-a0458127fccf
 )
