@@ -72,7 +72,7 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *typesv2.MsgTransfer) (*typ
 		}
 		tokens = append(tokens, t)
 	}
-	fowardingPacketData := NewForwardingPacketData(msg.Memo /* TODO is this correct? */, msg.Forwarding.Hops...)
+	fowardingPacketData := types.NewForwardingPacketData(msg.Memo /* TODO is this correct? */, msg.Forwarding.Hops...)
 	data := types.NewFungibleTokenPacketDataV2(tokens, msg.Sender, msg.Receiver, msg.Memo, fowardingPacketData)
 	dataBz, err := data.Marshal()
 	if err != nil {
@@ -93,14 +93,6 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *typesv2.MsgTransfer) (*typ
 	}
 
 	return &typesv2.MsgTransferResponse{Sequence: sequence}, nil
-}
-
-// NewForwardingPacketData creates a new ForwardingPacketData instance given a memo and a variable number of hops.
-func NewForwardingPacketData(destinationMemo string, hops ...typesv2.Hop) types.ForwardingPacketData {
-	return types.ForwardingPacketData{
-		DestinationMemo: destinationMemo,
-		Hops:            typesv2.V2HopsToV1Hops(hops),
-	}
 }
 
 // TODO move somewhere else?
@@ -144,7 +136,7 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *typesv2.MsgTransfer) (*typesv2.
 // getUnwindHops returns the hops to be used during unwinding. If coins consists of more than
 // one coin, all coins must have the exact same trace, else an error is returned. getUnwindHops
 // also validates that the coins are not native to the chain.
-func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]typesv2.Hop, error) {
+func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]types.Hop, error) {
 	// Sanity: validation for MsgTransfer ensures coins are not empty.
 	if len(coins) == 0 {
 		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "coins cannot be empty")
@@ -172,7 +164,7 @@ func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]typesv2.Hop, 
 		}
 	}
 
-	return typesv2.V1HopsToV2Hops(unwindTrace), nil
+	return unwindTrace, nil
 }
 
 func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload channeltypesv2.Payload, data types.FungibleTokenPacketDataV2, sender sdk.AccAddress) error {

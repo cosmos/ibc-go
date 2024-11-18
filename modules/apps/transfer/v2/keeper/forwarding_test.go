@@ -78,9 +78,9 @@ func (suite *ForwardingTestSuite) TestSuccessfulForward() {
 		TimeoutTimestamp: suite.chainA.GetTimeoutTimestamp(),
 		Memo:             "",
 		Tokens:           sdk.NewCoins(ibctesting.TestCoin),
-		Forwarding: &typesv2.Forwarding{
+		Forwarding: &transfertypes.Forwarding{
 			Unwind: false,
-			Hops: []typesv2.Hop{
+			Hops: []transfertypes.Hop{
 				{PortId: pathBtoC.EndpointA.ChannelConfig.PortID, ChannelId: pathBtoC.EndpointA.ChannelID},
 			},
 		},
