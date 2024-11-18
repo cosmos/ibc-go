@@ -26,6 +26,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
+// compatibility:from_version: v7.5.0
 func TestInterchainAccountsQueryTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsQueryTestSuite))
 }
@@ -34,6 +35,7 @@ type InterchainAccountsQueryTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// compatibility:InterchainAccountsQueryTestSuite:from_versions: v7.5.0,v7.6.0,v7.7.0,v7.8.0,v8.4.0,v8.5.0,v9.0.0
 func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	t := s.T()
 	ctx := context.TODO()

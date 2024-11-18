@@ -23,6 +23,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
+// compatibility:from_version: v8.4.0
 func TestTransferChannelUpgradesTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TransferChannelUpgradesTestSuite))
 }
@@ -413,6 +414,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 }
 
 // TestChannelDowngrade_WithICS20v1_Succeeds tests downgrading a transfer channel from ICS20 v2 to ICS20 v1.
+// compatibility:TestChannelDowngrade_WithICS20v1_Succeeds:from_versions: v9.0.0
 func (s *TransferChannelUpgradesTestSuite) TestChannelDowngrade_WithICS20v1_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
