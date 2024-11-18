@@ -99,7 +99,7 @@ func (k Keeper) sendTransfer(
 			coin.Amount = k.BankKeeper.GetBalance(ctx, sender, coin.Denom).Amount
 		}
 
-		token, err := k.tokenFromCoin(ctx, coin)
+		token, err := k.TokenFromCoin(ctx, coin)
 		if err != nil {
 			return 0, err
 		}
@@ -419,7 +419,7 @@ func (k Keeper) UnescrowCoin(ctx context.Context, escrowAddress, receiver sdk.Ac
 }
 
 // tokenFromCoin constructs an IBC token given an SDK coin.
-func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
+func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
 	// if the coin does not have an IBC denom, return as is
 	if !strings.HasPrefix(coin.Denom, "ibc/") {
 		return types.Token{

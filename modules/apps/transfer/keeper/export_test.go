@@ -29,10 +29,10 @@ func (k Keeper) GetAllDenomTraces(ctx sdk.Context) []internaltypes.DenomTrace {
 	return traces
 }
 
-// TokenFromCoin is a wrapper around tokenFromCoin for testing purposes.
-func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
-	return k.tokenFromCoin(ctx, coin)
-}
+// // TokenFromCoin is a wrapper around tokenFromCoin for testing purposes.
+// func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
+// 	return k.tokenFromCoin(ctx, coin)
+// }
 
 // UnwindHops is a wrapper around unwindHops for testing purposes.
 func (k Keeper) UnwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
