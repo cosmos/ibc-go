@@ -331,7 +331,7 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 
 // TODO move to a different file
 // forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
-func (k Keeper) forwardPacket(ctx context.Context, destChannel string, data types.FungibleTokenPacketDataV2, payload channeltypesv2.Payload, timeoutTimestamp uint64, receivedCoins sdk.Coins) error {
+func (k Keeper) forwardPacket(ctx context.Context, destChannel string, data types.FungibleTokenPacketDataV2, payload channeltypesv2.Payload, receivedCoins sdk.Coins) error {
 	newForwardingPacketData := types.NewForwardingPacketData(data.Forwarding.DestinationMemo)
 	if len(data.Forwarding.Hops) > 1 {
 		// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver
@@ -356,7 +356,7 @@ func (k Keeper) forwardPacket(ctx context.Context, destChannel string, data type
 
 	msg := channeltypesv2.NewMsgSendPacket(
 		data.Forwarding.Hops[0].ChannelId,
-		timeoutTimestamp,
+		data.Forwarding.TimeoutTimestamp,
 		sender.String(),
 		payload,
 	)

@@ -1,6 +1,7 @@
 syntax = "proto3";
 
-package ibc.applications.transfer.v2;
+// TODO ugly: find a better package name?
+package ibc.applications.transfer.v3;
 
 option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/types";
 
@@ -8,7 +9,7 @@ import "amino/amino.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "ibc/applications/transfer/v2/transfer.proto";
+import "ibc/applications/transfer/v1/transfer.proto";
 
 // Msg defines the ibc/transfer Msg service.
 service Msg {
@@ -48,7 +49,7 @@ message MsgTransfer {
   // tokens to be transferred
   repeated cosmos.base.v1beta1.Coin tokens = 10 [(gogoproto.nullable) = false];
   // optional forwarding information
-  Forwarding forwarding = 11;
+  ibc.applications.transfer.v1.Forwarding forwarding = 11;
 }
 
 // MsgTransferResponse defines the Msg/Transfer response type.
