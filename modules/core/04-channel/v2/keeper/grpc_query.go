@@ -225,7 +225,7 @@ func (q *queryServer) UnreceivedPackets(ctx context.Context, req *types.QueryUnr
 		}
 
 		// if the packet receipt does not exist, then it is unreceived
-		if _, found := q.GetPacketReceipt(ctx, req.ChannelId, seq); !found {
+		if !q.HasPacketReceipt(ctx, req.ChannelId, seq) {
 			unreceivedSequences = append(unreceivedSequences, seq)
 		}
 	}
