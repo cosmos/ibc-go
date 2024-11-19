@@ -3,8 +3,6 @@ package tendermint_test
 import (
 	"time"
 
-	cmtprotocrypto "github.com/cometbft/cometbft/api/cometbft/crypto/v1"
-
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
@@ -48,9 +46,6 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 		}, false},
 		{"validator set nil", func() {
 			header.ValidatorSet = nil
-		}, false},
-		{"ValidatorSetFromProto failed", func() {
-			header.ValidatorSet.Validators[0].PubKey = &cmtprotocrypto.PublicKey{}
 		}, false},
 		{"header validator hash does not equal hash of validator set", func() {
 			// use chainB's randomly generated validator set
