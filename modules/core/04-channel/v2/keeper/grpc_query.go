@@ -213,8 +213,7 @@ func (q *queryServer) UnreceivedPackets(ctx context.Context, req *types.QueryUnr
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	found := q.HasChannel(ctx, req.ChannelId)
-	if !found {
+	if !q.HasChannel(ctx, req.ChannelId) {
 		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
 	}
 
