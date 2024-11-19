@@ -24,7 +24,7 @@ func NewMockPayload(sourcePort, destPort string) channeltypesv2.Payload {
 	return channeltypesv2.Payload{
 		SourcePort:      sourcePort,
 		DestinationPort: destPort,
-		Encoding:        "json",
+		Encoding:        "proto",
 		Value:           mockv1.MockPacketData,
 		Version:         mockv1.Version,
 	}
