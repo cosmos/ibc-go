@@ -123,10 +123,13 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2"
+	ibctransferkeeperv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/keeper"
 	ibc "github.com/cosmos/ibc-go/v9/modules/core"
 	ibcclienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibcapi "github.com/cosmos/ibc-go/v9/modules/core/api"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
@@ -198,6 +201,7 @@ type SimApp struct {
 	ICAHostKeeper         icahostkeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
+	TransferKeeperV2      *ibctransferkeeperv2.Keeper
 	WasmClientKeeper      wasmkeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	GroupKeeper           groupkeeper.Keeper
@@ -477,6 +481,7 @@ func NewSimApp(
 
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
+	ibcRouterV2 := ibcapi.NewRouter()
 
 	// Middleware Stacks
 
@@ -563,8 +568,13 @@ func NewSimApp(
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 
-	// Seal the IBC Router
+	// register the transfer v2 module.
+	app.TransferKeeperV2 = ibctransferkeeperv2.NewKeeper(app.TransferKeeper, app.IBCKeeper.ChannelKeeperV2)
+	ibcRouterV2.AddRoute(ibctransfertypes.ModuleName, transferv2.NewIBCModule(app.TransferKeeperV2))
+
+	// Seal the IBC Routers.
 	app.IBCKeeper.SetRouter(ibcRouter)
+	app.IBCKeeper.SetRouterV2(ibcRouterV2)
 
 	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()

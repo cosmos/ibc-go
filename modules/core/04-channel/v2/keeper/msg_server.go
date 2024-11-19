@@ -61,10 +61,9 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *types.MsgRegis
 	return &types.MsgRegisterCounterpartyResponse{}, nil
 }
 
-// SendPacket defines a rpc handler method for MsgSendPacket.
+// SendPacket implements the PacketMsgServer SendPacket method.
 func (k *Keeper) SendPacket(ctx context.Context, msg *types.MsgSendPacket) (*types.MsgSendPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceChannel, msg.TimeoutTimestamp, msg.Payloads)
 	if err != nil {
 		sdkCtx.Logger().Error("send packet failed", "source-channel", msg.SourceChannel, "error", errorsmod.Wrap(err, "send packet failed"))
@@ -100,7 +99,8 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *types.MsgSendPacket) (*typ
 	return &types.MsgSendPacketResponse{Sequence: sequence}, nil
 }
 
-// RecvPacket defines a rpc handler method for MsgRecvPacket.
+// RecvPacket implements the PacketMsgServer RecvPacket method.
+
 func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*types.MsgRecvPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
@@ -139,7 +139,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 		cacheCtx, writeFn = sdkCtx.CacheContext()
 		cb := k.Router.Route(pd.DestinationPort)
-		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, pd, signer)
+		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, msg.Packet.Sequence, pd, signer)
 
 		if res.Status != types.PacketStatus_Failure {
 			// write application state changes for asynchronous and successful acknowledgements
@@ -178,6 +178,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		}
 	}
 
+	// TODO: store the packet for async applications to access if required.
 	defer telemetry.ReportRecvPacket(msg.Packet)
 
 	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "result", types.SUCCESS.String())
@@ -211,7 +212,7 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 	for i, pd := range msg.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
 		ack := msg.Acknowledgement.AppAcknowledgements[i]
-		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, pd, ack, relayer)
+		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, msg.Packet.Sequence, ack, pd, relayer)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, msg.Packet.SourceChannel, msg.Packet.DestinationChannel)
 		}
@@ -220,7 +221,7 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 	return &types.MsgAcknowledgementResponse{Result: types.SUCCESS}, nil
 }
 
-// Timeout defines a rpc handler method for MsgTimeout.
+// Timeout implements the PacketMsgServer Timeout method.
 func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types.MsgTimeoutResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
@@ -250,7 +251,7 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types
 
 	for _, pd := range timeout.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
-		err := cbs.OnTimeoutPacket(ctx, timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel, pd, signer)
+		err := cbs.OnTimeoutPacket(ctx, timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel, timeout.Packet.Sequence, pd, signer)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnTimeoutPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel)
 		}

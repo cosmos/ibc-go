@@ -161,6 +161,7 @@ func (k *Keeper) recvPacket(
 }
 
 // WriteAcknowledgement writes the acknowledgement to the store.
+// TODO: change this function to accept destPort, destChannel, sequence, ack
 func (k Keeper) WriteAcknowledgement(
 	ctx context.Context,
 	packet types.Packet,
@@ -191,6 +192,7 @@ func (k Keeper) WriteAcknowledgement(
 
 	// TODO: Validate Acknowledgment more thoroughly here after Issue #7472: https://github.com/cosmos/ibc-go/issues/7472
 
+	// TODO: remove this check, maybe pull it up to the handler.
 	if len(ack.AppAcknowledgements) != len(packet.Payloads) {
 		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(packet.Payloads))
 	}
@@ -203,7 +205,10 @@ func (k Keeper) WriteAcknowledgement(
 
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)
 
-	EmitWriteAcknowledgementEvents(ctx, packet, ack)
+	// TODO: decide how relayers will reconstruct the packet as it is not being passed.
+	// EmitWriteAcknowledgementEvents(ctx, packet, ack)
+
+	// TODO: delete the packet that has been stored in ibc-core.
 
 	return nil
 }

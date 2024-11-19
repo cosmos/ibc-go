@@ -139,6 +139,13 @@ func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.Exec
 	return nil, nil, errors.New("packet commitment does not exist on either endpoint for provided packet")
 }
 
+// Reversed returns a new path with endpoints reversed.
+func (path *Path) Reversed() *Path {
+	reversedPath := *path
+	reversedPath.EndpointA, reversedPath.EndpointB = path.EndpointB, path.EndpointA
+	return &reversedPath
+}
+
 // Setup constructs a TM client, connection, and channel on both chains provided. It will
 // fail if any error occurs.
 func (path *Path) Setup() {
