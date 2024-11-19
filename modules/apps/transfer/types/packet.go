@@ -212,7 +212,7 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 	const failedUnmarshalingErrorMsg = "cannot unmarshal %s transfer packet data: %s"
 
 	// Depending on the ics20 version, we use a different default encoding (json for V1, proto for V2)
-	// and we have a different type to unmarshal the data into.i
+	// and we have a different type to unmarshal the data into.
 	var data proto.Message
 	switch ics20Version {
 	case V1:
@@ -234,6 +234,10 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 		errorMsgVersion = "ICS20-V1"
 	}
 
+	// Here we perform the unmarshaling based on the specified encoding.
+	// The functions act on the generic "data" variable which is of type proto.Message (an interface).
+	// The underlying type is either FungibleTokenPacketData or FungibleTokenPacketDataV2, based on the value
+	// of "ics20Version".
 	switch encoding {
 	case "json":
 		if err := json.Unmarshal(bz, &data); err != nil {
@@ -252,7 +256,9 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 		return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid encoding provided, must be either empty or one of `json`,`proto`, got %s", encoding)
 	}
 
-	// We need to branch again based on the version as we have to cast the interface to the correct type.
+	// When the unmarshaling is done, we want to retrieve the underlying data type based on the value of ics20Version
+	// If it's v1, we convert the data to FungibleTokenPacketData and then call the conversion function to construct
+	// the v2 type.
 	if ics20Version == V1 {
 		datav1, ok := data.(*FungibleTokenPacketData)
 		if !ok {
@@ -263,6 +269,7 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 		return PacketDataV1ToV2(*datav1)
 	}
 
+	// If it's v2, we convert the data to FungibleTokenPacketDataV2, validate it and return it.
 	datav2, ok := data.(*FungibleTokenPacketDataV2)
 	if !ok {
 		// We should never get here, as we manually constructed the type at the beginning of the file
