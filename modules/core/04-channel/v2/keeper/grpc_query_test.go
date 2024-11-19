@@ -587,6 +587,155 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
+	var (
+		expSeq []uint64
+		path   *ibctesting.Path
+		req    *types.QueryUnreceivedPacketsRequest
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"invalid channel ID",
+			func() {
+				req = &types.QueryUnreceivedPacketsRequest{
+					ChannelId: "",
+				}
+			},
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
+		},
+		{
+			"invalid seq",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				req = &types.QueryUnreceivedPacketsRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Sequences: []uint64{0},
+				}
+			},
+			status.Error(codes.InvalidArgument, "packet sequence 0 cannot be 0"),
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryUnreceivedPacketsRequest{
+					ChannelId: "invalid-channel-id",
+				}
+			},
+			status.Error(codes.NotFound, fmt.Sprintf("%s: channel not found", "invalid-channel-id")),
+		},
+		{
+			"basic success empty packet commitments",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				expSeq = []uint64(nil)
+				req = &types.QueryUnreceivedPacketsRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Sequences: []uint64{},
+				}
+			},
+			nil,
+		},
+		{
+			"basic success unreceived packet commitments",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				// no ack exists
+
+				expSeq = []uint64{1}
+				req = &types.QueryUnreceivedPacketsRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Sequences: []uint64{1},
+				}
+			},
+			nil,
+		},
+		{
+			"basic success unreceived packet commitments, nothing to relay",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelID, 1)
+
+				expSeq = []uint64(nil)
+				req = &types.QueryUnreceivedPacketsRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Sequences: []uint64{1},
+				}
+			},
+			nil,
+		},
+		{
+			"success multiple unreceived packet commitments",
+			func() {
+				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+				expSeq = []uint64(nil) // reset
+				packetCommitments := []uint64{}
+
+				// set packet receipt for every other sequence
+				for seq := uint64(1); seq < 10; seq++ {
+					packetCommitments = append(packetCommitments, seq)
+
+					if seq%2 == 0 {
+						suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelID, seq)
+					} else {
+						expSeq = append(expSeq, seq)
+					}
+				}
+
+				req = &types.QueryUnreceivedPacketsRequest{
+					ChannelId: path.EndpointA.ChannelID,
+					Sequences: packetCommitments,
+				}
+			},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+			ctx := suite.chainA.GetContext()
+
+			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ChannelKeeperV2)
+			res, err := queryServer.UnreceivedPackets(ctx, req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expSeq, res.Sequences)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Error(err)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 	var (
 		path   *ibctesting.Path

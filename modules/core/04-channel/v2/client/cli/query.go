@@ -287,6 +287,50 @@ func getCmdQueryPacketReceipt() *cobra.Command {
 	return cmd
 }
 
+// getCmdQueryUnreceivedPackets defines the command to query all the unreceived
+// packets on the receiving chain
+func getCmdQueryUnreceivedPackets() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "unreceived-packets [channel-id]",
+		Short: "Query a channel/v2 unreceived-packets",
+		Long:  "Query a channel/v2 unreceived-packets by channel-id and sequences",
+		Example: fmt.Sprintf(
+			"%s query %s %s unreceived-packet [channel-id] --sequences=1,2,3", version.AppName, exported.ModuleName, types.SubModuleName,
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			channelID := args[0]
+			seqSlice, err := cmd.Flags().GetInt64Slice(flagSequences)
+			if err != nil {
+				return err
+			}
+
+			seqs := make([]uint64, len(seqSlice))
+			for i := range seqSlice {
+				seqs[i] = uint64(seqSlice[i])
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.UnreceivedPackets(cmd.Context(), types.NewQueryUnreceivedPacketsRequest(channelID, seqs))
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	cmd.Flags().Int64Slice(flagSequences, []int64{}, "comma separated list of packet sequence numbers")
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // getCmdQueryUnreceivedAcks defines the command to query all the unreceived acks on the original sending chain
 func getCmdQueryUnreceivedAcks() *cobra.Command {
 	cmd := &cobra.Command{
