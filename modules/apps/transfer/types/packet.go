@@ -5,11 +5,12 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/codec/unknownproto"
 	"github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
+	"github.com/cosmos/cosmos-sdk/codec/unknownproto"
 
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
