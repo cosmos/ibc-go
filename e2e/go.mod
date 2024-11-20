@@ -42,7 +42,7 @@ require (
 	cosmossdk.io/collections v0.4.1-0.20241107084833-00f3065e70ee // indirect
 	cosmossdk.io/core v1.0.0 // indirect
 	cosmossdk.io/depinject v1.1.0 // indirect
-	cosmossdk.io/log v1.4.1 // indirect
+	cosmossdk.io/log v1.5.0 // indirect
 	cosmossdk.io/schema v0.3.1-0.20240930054013-7c6e0388a3f9 // indirect
 	cosmossdk.io/store v1.1.1 // indirect
 	cosmossdk.io/x/authz v0.0.0-00010101000000-000000000000
@@ -233,13 +233,13 @@ require (
 	go.opentelemetry.io/otel/metric v1.27.0 // indirect
 	go.opentelemetry.io/otel/trace v1.27.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.28.0 // indirect
+	golang.org/x/crypto v0.29.0 // indirect
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/oauth2 v0.23.0 // indirect
 	golang.org/x/sync v0.9.0 // indirect
 	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/term v0.25.0 // indirect
+	golang.org/x/term v0.26.0 // indirect
 	golang.org/x/text v0.20.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.25.0 // indirect
@@ -267,7 +267,7 @@ require cosmossdk.io/x/group v0.0.0-00010101000000-000000000000
 
 require (
 	cosmossdk.io/client/v2 v2.0.0-beta.5 // indirect
-	cosmossdk.io/core/testing v0.0.0-20240923163230-04da382a9f29 // indirect
+	cosmossdk.io/core/testing v0.0.0-20241108153815-606544c7be7e // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240913065641-0064ccbce64e // indirect
 	cosmossdk.io/x/accounts/defaults/base v0.0.0-20241108095921-406f977be0b9 // indirect
 	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5 // indirect
@@ -275,6 +275,13 @@ require (
 	cosmossdk.io/x/circuit v0.1.1 // indirect
 	cosmossdk.io/x/evidence v0.1.1 // indirect
 	cosmossdk.io/x/nft v0.0.0-00010101000000-000000000000 // indirect
+	github.com/bytedance/sonic v1.12.4 // indirect
+	github.com/bytedance/sonic/loader v0.2.1 // indirect
+	github.com/cloudwego/base64x v0.1.4 // indirect
+	github.com/cloudwego/iasm v0.2.0 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
+	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
+	golang.org/x/arch v0.12.0 // indirect
 )
 
 // TODO: using version v1.0.0 causes a build failure. This is the previous version which compiles successfully.
