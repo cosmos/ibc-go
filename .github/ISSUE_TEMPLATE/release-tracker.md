@@ -66,7 +66,7 @@ versions of ibc-go to guarantee that no regression is introduced -->
       - [ ] In `docs/versions.json`.
       - [ ] Rename `docs/versioned_sidebars/version-vx.y.z-sidebars.json`
       - [ ] Rename `docs/versioned_docs/version-vx.y.z`
-- [ ] Update the [compatibility test matrices](https://github.com/cosmos/ibc-go/tree/main/.github/compatibility-test-matrices):
+- [ ] Ensure annotations on tests are correct as per the [compatibility test tool](../../scripts/compatibility.md):
   - Add the new release.
   - Remove any tags that might not be recommended anymore.
 - [ ] Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) test workflow:
