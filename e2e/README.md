@@ -261,18 +261,16 @@ For a full list of options that can be passed to the workflow, see the [workflow
 
 ## Future Improvements
 
-- Currently, compatibility matrices are manually created and maintained. It would be nice to have a script that can
-  dynamically generate these based on annotations in the test files. There is an issue outlining this [here](https://github.com/cosmos/ibc-go/issues/4872).
 - We are transitioning to running a single test per host, to running a full test suite per host. This will allow us to
   run more tests in parallel and reduce the time it takes to run the full suite. (see `make e2e-test` and `make e2e-suite`). Eventually we would like to run all tests with `make e2e-suite`.
   However, it may not be possible run compatibility tests in this fashion, as there was a concurrency issue in older versions of the SDK that caused chains to panic. See [this issue](https://github.com/cosmos/cosmos-sdk/pull/21073) for more details.
   Because of this, it may be necessary to run compatibility tests in a single test per host fashion.
 - When running `make e2e-suite` we currently pre-create relayers, as each test uses a different relayer.
-  An improvement would be to ensure that only enough relayers are created to satisfy the tests that are being run. This may require some changes to interchaintest and/or ibc-go test code.
+  An improvement would be to ensure that only enough relayers are created to satisfy the tests that are being run. This may require some changes to interchaintest and/or ibc-go test code. See [this issue](https://github.com/cosmos/ibc-go/issues/7578) for more details.
 - There is a lot of duplication in the e2e test code. It would be nice to refactor the tests themselves to be more composable. For example, lots of tests perform an ics20 transfer, it would be nice to have
   this logic abstracted away into a helper function and be able to call this function from multiple tests.
 - We currently have some e2e workflows that may no longer be necessary, such as the [e2e manual simd](../.github/workflows/e2e-manual-simd.yaml). These manual dispatch workflows were utilized a lot in the past, but are not used as much anymore.  
-  It may be safe to remove these in the future.
+  It may be safe to remove these in the future. See [this issue](https://github.com/cosmos/ibc-go/issues/7579) for more details.
 - We currently are maintaining a lot of different simapps, all with different configurations and wiring in their app.gos. Ideally, we only need to maintain a single one. Some refactoring will be necessary to achieve this. See [this](https://github.com/cosmos/ibc-go/issues/4527) related issue.
 - The current parallel tests establish a connection and run each test on a different channel. This will need to be refactored once the concept Eureka is shipped, however consideration will need to be made for backwards compatibility tests. Both flows may need to be supported.
 - CI still relies on passing lots of environment variables, it should be possible to provide a default CI configuration file to be used, and override specifics such as chain image, relayer image, etc. with environment variables. Or template configuration files in some way. This is tracked [here](https://github.com/cosmos/ibc-go/issues/4697).
