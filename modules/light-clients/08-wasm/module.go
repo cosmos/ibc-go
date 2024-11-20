@@ -10,12 +10,10 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/core/registry"
-	"cosmossdk.io/x/gov/simulation"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/client/cli"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
@@ -25,7 +23,6 @@ import (
 var (
 	_ module.AppModule              = (*AppModule)(nil)
 	_ module.AppModuleBasic         = (*AppModule)(nil)
-	_ module.HasProposalMsgs        = (*AppModule)(nil)
 	_ module.HasGenesis             = (*AppModule)(nil)
 	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
 	_ module.HasServices            = (*AppModule)(nil)
@@ -114,11 +111,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 2 }
-
-// ProposalMsgs returns msgs used for governance proposals for simulations.
-func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
-	return simulation.ProposalMsgs()
-}
 
 func (am AppModule) InitGenesis(ctx context.Context, bz json.RawMessage) error {
 	var gs types.GenesisState
