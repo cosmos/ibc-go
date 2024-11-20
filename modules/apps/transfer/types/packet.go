@@ -25,7 +25,7 @@ var (
 
 const (
 	JsonEncoding  = "application/json"
-	ProtoEncoding = "application/proto"
+	ProtoEncoding = "application/x-protobuf"
 )
 
 // NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
