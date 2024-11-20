@@ -82,7 +82,7 @@ func (k *Keeper) sendPacket(
 
 	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest_channel_id", packet.DestinationChannel, "src_channel_id", packet.SourceChannel)
 
-	EmitSendPacketEvents(ctx, packet)
+	emitSendPacketEvents(ctx, packet)
 
 	return sequence, destChannel, nil
 }
