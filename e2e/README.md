@@ -1,17 +1,51 @@
 # Table of Contents
 
-1. [How to write tests](#how-to-write-tests)
-    - a. [Adding a new test](#adding-a-new-test)
-    - b. [Running the tests with custom images](#running-tests-with-custom-images)
-2. [Test design](#test-design)
+1. [Running Tests](#running-tests)
+2. [Adding a new test](#adding-a-new-test)
+3. [Test design](#test-design)
    - a. [interchaintest](#interchaintest)
    - b. [CI configuration](#ci-configuration)
-3. [Github Workflows](#github-workflows)
-4. [Running Compatibility Tests](#running-compatibility-tests)
-5. [Troubleshooting](#troubleshooting)
-6. [Importable Workflow](#importable-workflow)
+4. [Building images](#building-and-pushing-images)
+5. [Compatibility Tests](#compatibility-tests)
+   - a. [Running Compatibility Tests](#running-compatibility-tests)
+   - b. [How Compatibility Tests Work](#how-compatibility-tests-work)
+6. [Troubleshooting](#troubleshooting)
+7. [Importable Workflow](#importable-workflow)
+8. [Future Improvements](#future-improvements)
 
-# How to write tests
+# Running tests
+
+Tests can be run using a Makefile target under the e2e directory. `e2e/Makefile`
+
+The tests can be configured using a configuration file or environment variables.
+
+See the [minimal example](./sample.config.yaml) or [extended example](./sample.config.extended.yaml) to get started. The default location the tests look is `~/.ibc-go-e2e-config.yaml`
+But this can be specified directly using the `E2E_CONFIG_PATH` environment variable.
+
+It is possible to maintain multiple configuration files for tests. This can be useful when wanting to run the tests
+using different images, relayers etc.
+
+By creating an `./e2e/dev-configs` directory, and placing any number of configurations there. You will be prompted to choose
+which configuration to use when running tests.
+
+> Note: this requires fzf to be installed to support the interactive selection of configuration files.
+
+There are several environment variables that alter the behaviour of the make target which will override any
+options specified in your config file. These are primarily used for CI and are not required for local development.
+
+See the extended sample config to understand all the available fields and their purposes.
+
+> Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
+> The images which are used only exist locally only.
+
+These environment variables allow us to run tests with arbitrary versions (from branches or releases) of simd and the go / hermes relayer.
+
+Every time changes are pushed to a branch or to `main`, a new `simd` image is built and
+pushed [here](https://github.com/orgs/cosmos/packages?repo_name=ibc-go).
+
+On PRs, E2E tests will only run once the PR is marked as ready for review. This is to prevent unnecessary test runs on PRs that are still in progress.
+
+> If you need the E2E tests to run, you can either run them locally, or you can mark the PR as R4R and then convert it back to a draft PR.
 
 ## Adding a new test
 
@@ -26,37 +60,6 @@ New test suites should be composed of `testsuite.E2ETestSuite`. This type has lo
 be quite common in most tests.
 
 > Note: see [here](#how-tests-are-run) for details about these requirements.
-
-## Running tests with custom images
-
-Tests can be run using a Makefile target under the e2e directory. `e2e/Makefile`
-
-The tests can be configured using a configuration file or environment variables.
-
-See the [minimal example](./sample.config.yaml) or [extended example](./sample.config.extended.yaml) to get started. The default location the tests look is `~/.ibc-go-e2e-config.yaml`
-But this can be specified directly using the `E2E_CONFIG_PATH` environment variable.
-
-The sample config contains comments outlining the available fields and their purpose.
-
-There are several environment variables that alter the behaviour of the make target which will override any
-options specified in your config file. These are primarily used for CI and are not required for local development.
-
-| Environment Variable | Description                               | Default Value               |
-|----------------------|-------------------------------------------|-----------------------------|
-| CHAIN_IMAGE          | The image that will be used for the chain | ghcr.io/cosmos/ibc-go-simd  |
-| CHAIN_A_TAG          | The tag used for chain A                  | N/A                         |
-| CHAIN_B_TAG          | The tag used for chain B                  | N/A                         |
-| CHAIN_BINARY         | The binary used in the container          | simd                        |
-| RELAYER_TAG          | The tag used for the relayer              | 1.10.0                      |
-| RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes                      |
-
-> Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
-> The images which are used only exist locally only.
-
-These environment variables allow us to run tests with arbitrary versions (from branches or releases) of simd and the go / hermes relayer.
-
-Every time changes are pushed to a branch or to `main`, a new `simd` image is built and
-pushed [here](https://github.com/orgs/cosmos/packages?repo_name=ibc-go).
 
 ### Example of running a single test
 
@@ -119,9 +122,9 @@ In order for tests to be run in parallel, we create the chains in `SetupSuite`, 
 creating clients/connections/channels for itself.
 
 This is explicitly not being done in `SetupTest` to enable maximum control and flexibility over the channel creation
-params.
+params. e.g. some tests may not want a channel created initially, and may want more flexibility over the channel creation itself.
 
-### When to use t.Parallel
+### When to use t.Parallel()
 
 tests should **not** be run in parallel when:
 
@@ -129,9 +132,9 @@ tests should **not** be run in parallel when:
 - the test needs to perform a chain restart.
 - the test must make assertions which may not be deterministic due to other tests. (e.g. the TotalEscrowForDenom may be modified between tests)
 
-### CI configuration
+### CI Configuration
 
-There are two main github actions for e2e tests.
+There are two main github actions for standard e2e tests.
 
 [e2e.yaml](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e.yaml) which runs when collaborators create branches.
 
@@ -142,7 +145,7 @@ that is run uses the image that was built.
 
 In `e2e-fork.yaml`, images are not pushed to this registry, but instead remain local to the host runner.
 
-## How tests are run
+## How Tests Are Run
 
 The tests use the `matrix` feature of Github Actions. The matrix is
 dynamically generated using [this tool](https://github.com/cosmos/ibc-go/blob/main/cmd/build_test_matrix/main.go).
@@ -150,8 +153,7 @@ dynamically generated using [this tool](https://github.com/cosmos/ibc-go/blob/ma
 > Note: there is currently a limitation that all tests belonging to a test suite must be in the same file.
 > In order to support test functions spread in different files, we would either need to manually maintain a matrix
 > or update the script to account for this. The script assumes there is a single test suite per test file to avoid an
-> overly complex
-> generation process.
+> overly complex generation process.
 
 Which looks under the `e2e` directory, and creates a task for each test suite function.
 
@@ -166,11 +168,10 @@ This string is used to generate a test matrix in the Github Action that runs the
 All tests will be run on different hosts when running `make e2e-test` but `make e2e-suite` will run multiple tests
 in parallel on a shared host.
 
-### Miscellaneous
+In a CI environment variables are passed to the test runner to configure test parameters, while locally using
+environment variables is supported, but it is often more convenient to use configuration files.
 
-## GitHub Workflows
-
-### Building and pushing a `simd` image
+## Building and pushing images
 
 If we ever need to manually build and push an image, we can do so with the [Build Simd Image](../.github/workflows/build-simd-image-from-tag.yml) GitHub workflow.
 
@@ -180,24 +181,31 @@ This can be triggered manually from the UI by navigating to
 
 And providing the git tag.
 
-Alternatively, the [gh](https://cli.github.com/) CLI tool can be used to trigger this workflow.
+> There are similar workflows for other simapps in the repo.
 
-```bash
-gh workflow run "Build Simd Image" -f tag=v3.0.0
-```
+## Compatibility Tests
 
-## Running Compatibility Tests
+### Running Compatibility Tests
 
-To trigger the compatibility tests for a release branch, you can use the following command.
-
-```bash
-make compatibility-tests release_branch=release/v5.0.x
-```
+To trigger the compatibility tests for a release branch, you can trigger these manually from the Github UI.
 
 This will build an image from the tip of the release branch and run all tests specified in the corresponding
-json matrix files under .github/compatibility-test-matrices and is equivalent to going to the Github UI and navigating to
+json matrix files under [.github/compatibility-test-matrices](../.github/compatibility-test-matrices).
 
-`Actions` -> `Compatibility E2E` -> `Run Workflow` -> `release/v5.0.x`
+Navigate to `Actions` -> `Compatibility E2E` -> `Run Workflow` -> `release/v8.0.x`
+
+> Note: this will spawn a large number of runners, and should only be used when there is a release candidate and
+> and so should not be run regularly. We can rely on the regular E2Es on PRs for the most part.
+
+### How Compatibility Tests Work
+
+The compatibility tests are executed in [this workflow](../.github/workflows/e2e-compatibility.yaml). This workflow
+will build an image for a specified release candidate based on the release branch as an input. And run the corresponding
+jobs which are maintained under the `.github/compatibility-test-matrices` directory.
+
+> At the moment these are manually maintained, but in the future we may be able to generate these matrices dynamically. See the [future improvements](#future-improvements) section for more details.
+
+See [this example](https://github.com/cosmos/ibc-go/actions/runs/11645461969) to what the output of a compatibility test run looks like.
 
 ## Troubleshooting
 
@@ -215,19 +223,19 @@ json matrix files under .github/compatibility-test-matrices and is equivalent to
 ### Accessing Logs
 
 - When a test fails in GitHub. The logs of the test will be uploaded (viewable in the summary page of the workflow). Note: There
-  may be some discrepancy in the logs collected and the output of interchain test. The containers may run for a some
+  may be some discrepancy in the logs collected and the output of interchaintest. The containers may run for a some
   time after the logs are collected, resulting in the displayed logs to differ slightly.
 
 ## Importable Workflow
 
-This repository contains an [importable workflow](https://github.com/cosmos/ibc-go/blob/185a220244663457372185992cfc85ed9e458bf1/.github/workflows/e2e-compatibility-workflow-call.yaml) that can be used from any other repository to test chain upgrades. The workflow
+This repository contains an [importable workflow](../.github/workflows/e2e-test-workflow-call.yml) that can be used from any other repository to test two chains. The workflow
 can be used to test both non-IBC chains, and also IBC-enabled chains.
 
 ### Prerequisites
 
 - In order to run this workflow, a docker container is required with tags for the versions you want to test.
 
-- Have an upgrade handler in the chain binary which is being upgraded to.
+- If you are running an upgrade, Have an upgrade handler in the chain binary which is being upgraded to.
 
 > It's worth noting that all github repositories come with a built-in docker registry that makes it convenient to build and push images to.
 
@@ -249,15 +257,21 @@ The referenced job will do the following:
 
 ### Workflow Options
 
-| Workflow Field    | Purpose                                           |
-|-------------------|---------------------------------------------------|
-| chain-image       | The docker image to use for the test              |
-| chain-a-tag       | The tag of chain A to use                         |
-| chain-b-tag       | The tag of chain B to use                         |
-| chain-upgrade-tag | The tag chain A should be upgraded to             |
-| chain-binary      | The chain binary name                             |
-| upgrade-plan-name | The name of the upgrade plan to execute           |
-| test-entry-point  | Always TestUpgradeTestSuite                       |
-| test              | Should be TestIBCChainUpgrade or TestChainUpgrade |
+For a full list of options that can be passed to the workflow, see the [workflow file](../.github/workflows/e2e-test-workflow-call.yml).
 
-> TestIBCChainUpgrade should be used for ibc tests, while TestChainUpgrade should be used for single chain tests.
+## Future Improvements
+
+- We are transitioning to running a single test per host, to running a full test suite per host. This will allow us to
+  run more tests in parallel and reduce the time it takes to run the full suite. (see `make e2e-test` and `make e2e-suite`). Eventually we would like to run all tests with `make e2e-suite`.
+  However, it may not be possible run compatibility tests in this fashion, as there was a concurrency issue in older versions of the SDK that caused chains to panic. See [this issue](https://github.com/cosmos/cosmos-sdk/pull/21073) for more details.
+  Because of this, it may be necessary to run compatibility tests in a single test per host fashion.
+- When running `make e2e-suite` we currently pre-create relayers, as each test uses a different relayer.
+  An improvement would be to ensure that only enough relayers are created to satisfy the tests that are being run. This may require some changes to interchaintest and/or ibc-go test code. See [this issue](https://github.com/cosmos/ibc-go/issues/7578) for more details.
+- There is a lot of duplication in the e2e test code. It would be nice to refactor the tests themselves to be more composable. For example, lots of tests perform an ics20 transfer, it would be nice to have
+  this logic abstracted away into a helper function and be able to call this function from multiple tests.
+- We currently have some e2e workflows that may no longer be necessary, such as the [e2e manual simd](../.github/workflows/e2e-manual-simd.yaml). These manual dispatch workflows were utilized a lot in the past, but are not used as much anymore.  
+  It may be safe to remove these in the future. See [this issue](https://github.com/cosmos/ibc-go/issues/7579) for more details.
+- We currently are maintaining a lot of different simapps, all with different configurations and wiring in their app.gos. Ideally, we only need to maintain a single one. Some refactoring will be necessary to achieve this. See [this](https://github.com/cosmos/ibc-go/issues/4527) related issue.
+- The current parallel tests establish a connection and run each test on a different channel. This will need to be refactored once the concept Eureka is shipped, however consideration will need to be made for backwards compatibility tests. Both flows may need to be supported.
+- CI still relies on passing lots of environment variables, it should be possible to provide a default CI configuration file to be used, and override specifics such as chain image, relayer image, etc. with environment variables. Or template configuration files in some way. This is tracked [here](https://github.com/cosmos/ibc-go/issues/4697).
+- Currently, there is a single denom used for all tests. Ideally, there is a dynamically generated denom used on a per test level. The fact that a single denom is shared means certain features may not be testable in parallel, for example [this](https://github.com/cosmos/ibc-go/blob/main/e2e/tests/transfer/base_test.go#L94-L101).
