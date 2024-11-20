@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -109,7 +110,7 @@ func TestValidateBasic(t *testing.T) {
 				SourcePort:      ibctesting.MockPort,
 				DestinationPort: ibctesting.MockPort,
 				Version:         "ics20-v2",
-				Encoding:        "proto",
+				Encoding:        transfertypes.ProtoEncoding,
 				Value:           mock.MockPacketData,
 			})
 

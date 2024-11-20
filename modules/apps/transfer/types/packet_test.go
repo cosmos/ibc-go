@@ -819,7 +819,7 @@ func TestV2ForwardsCompatibilityFails(t *testing.T) {
 
 		tc.malleate()
 
-		packetData, err := types.UnmarshalPacketData(packetDataBz, types.V2, "proto")
+		packetData, err := types.UnmarshalPacketData(packetDataBz, types.V2, types.ProtoEncoding)
 
 		expPass := tc.expError == nil
 		if expPass {

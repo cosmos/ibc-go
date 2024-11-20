@@ -68,7 +68,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 			bz := suite.chainA.Codec.MustMarshal(&ftpd)
 
 			timestamp := suite.chainA.GetTimeoutTimestampSecs()
-			payload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "proto", bz)
+			payload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, transfertypes.ProtoEncoding, bz)
 
 			tc.malleate()
 
@@ -163,7 +163,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			bz := suite.chainA.Codec.MustMarshal(&ftpd)
 
 			timestamp := suite.chainA.GetTimeoutTimestampSecs()
-			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "proto", bz)
+			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, transfertypes.ProtoEncoding, bz)
 			var err error
 			packet, err = path.EndpointA.MsgSendPacket(timestamp, payload)
 			suite.Require().NoError(err)
@@ -272,7 +272,7 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 			bz := suite.chainA.Codec.MustMarshal(&ftpd)
 
 			timestamp := suite.chainA.GetTimeoutTimestampSecs()
-			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "proto", bz)
+			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, transfertypes.ProtoEncoding, bz)
 
 			var err error
 			packet, err = path.EndpointA.MsgSendPacket(timestamp, payload)
@@ -373,7 +373,7 @@ func (suite *KeeperTestSuite) TestMsgTimeoutPacketTransfer() {
 			bz := suite.chainA.Codec.MustMarshal(&ftpd)
 
 			timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
-			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "proto", bz)
+			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, transfertypes.ProtoEncoding, bz)
 
 			var err error
 			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
@@ -494,7 +494,7 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 			bz := suite.chainB.Codec.MustMarshal(&ftpd)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
-			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "proto", bz)
+			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, transfertypes.ProtoEncoding, bz)
 
 			var err error
 			packetV2, err = pathv2.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
@@ -533,7 +533,7 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 			bz := suite.chainC.Codec.MustMarshal(&ftpd)
 
 			timeoutTimestamp := uint64(suite.chainC.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
-			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, "proto", bz)
+			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, transfertypes.ProtoEncoding, bz)
 
 			var err error
 			packetV2, err = pathv2.EndpointB.MsgSendPacket(timeoutTimestamp, payload)

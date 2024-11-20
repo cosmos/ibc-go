@@ -1,6 +1,7 @@
 package mock
 
 import (
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	mockv1 "github.com/cosmos/ibc-go/v9/testing/mock"
 )
@@ -24,7 +25,7 @@ func NewMockPayload(sourcePort, destPort string) channeltypesv2.Payload {
 	return channeltypesv2.Payload{
 		SourcePort:      sourcePort,
 		DestinationPort: destPort,
-		Encoding:        "proto",
+		Encoding:        transfertypes.ProtoEncoding,
 		Value:           mockv1.MockPacketData,
 		Version:         mockv1.Version,
 	}

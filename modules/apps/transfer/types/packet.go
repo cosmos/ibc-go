@@ -23,6 +23,11 @@ var (
 	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketDataV2)(nil)
 )
 
+const (
+	JsonEncoding  = "application/json"
+	ProtoEncoding = "application/proto"
+)
+
 // NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
 func NewFungibleTokenPacketData(
 	denom string, amount string,
@@ -217,12 +222,12 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 	switch ics20Version {
 	case V1:
 		if encoding == "" {
-			encoding = "json"
+			encoding = JsonEncoding
 		}
 		data = &FungibleTokenPacketData{}
 	case V2:
 		if encoding == "" {
-			encoding = "proto"
+			encoding = ProtoEncoding
 		}
 		data = &FungibleTokenPacketDataV2{}
 	default:
@@ -239,11 +244,11 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 	// The underlying type is either FungibleTokenPacketData or FungibleTokenPacketDataV2, based on the value
 	// of "ics20Version".
 	switch encoding {
-	case "json":
+	case JsonEncoding:
 		if err := json.Unmarshal(bz, &data); err != nil {
 			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
 		}
-	case "proto":
+	case ProtoEncoding:
 		if err := unknownproto.RejectUnknownFieldsStrict(bz, data, unknownproto.DefaultAnyResolver{}); err != nil {
 			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
 		}
@@ -253,7 +258,7 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 		}
 
 	default:
-		return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid encoding provided, must be either empty or one of `json`,`proto`, got %s", encoding)
+		return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid encoding provided, must be either empty or one of [%q, %q], got %s", JsonEncoding, ProtoEncoding, encoding)
 	}
 
 	// When the unmarshaling is done, we want to retrieve the underlying data type based on the value of ics20Version

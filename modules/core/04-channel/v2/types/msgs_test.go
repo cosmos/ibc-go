@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -205,7 +206,7 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 			msg = types.NewMsgSendPacket(
 				ibctesting.FirstChannelID, s.chainA.GetTimeoutTimestamp(),
 				s.chainA.SenderAccount.GetAddress().String(),
-				types.Payload{SourcePort: ibctesting.MockPort, DestinationPort: ibctesting.MockPort, Version: "ics20-1", Encoding: "json", Value: ibctesting.MockPacketData},
+				types.Payload{SourcePort: ibctesting.MockPort, DestinationPort: ibctesting.MockPort, Version: "ics20-1", Encoding: transfertypes.JsonEncoding, Value: ibctesting.MockPacketData},
 			)
 
 			tc.malleate()
