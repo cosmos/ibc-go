@@ -41,7 +41,7 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", signer)
 	}
 
-	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version)
+	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
 	}()
 
-	data, ackErr = transfertypes.UnmarshalPacketData(payload.Value, payload.Version)
+	data, ackErr = transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
@@ -99,7 +99,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 }
 
 func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, relayer sdk.AccAddress) error {
-	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version)
+	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version)
+	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {
 		return err
 	}
