@@ -35,17 +35,17 @@ env:
   IBC_GO_VERSION: ${{ inputs.ibc-go-version || 'latest' }}
 
 jobs:
-  determine-test-directory:
+  determine-image-tag:
     runs-on: ubuntu-latest
     outputs:
-      test-directory: ${{ steps.set-test-dir.outputs.test-directory }}
+      release-version: ${{ steps.set-release-version.outputs.release-version }}
     steps:
       - run: |
           # we sanitize the release branch name. Docker images cannot contain "/"
           # characters so we replace them with a "-".
-          test_dir="$(echo $RELEASE_BRANCH | sed 's/\//-/')"
-          echo "test-directory=$test_dir" >> $GITHUB_OUTPUT
-        id: set-test-dir
+          release_version="$(echo $RELEASE_BRANCH | sed 's/\//-/')"
+          echo "release-version=$release_version" >> $GITHUB_OUTPUT
+        id: set-release-version
 
   # build-release-images builds all docker images that are relevant for the compatibility tests. If a single release
   # branch is specified, only that image will be built, e.g. release-v6.0.x.
@@ -88,281 +88,215 @@ jobs:
           docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
           docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
 
-  transfer-chain-a:
+  client-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-chain-a"
+      test-file: "e2e/tests/core/02-client/client_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  transfer-chain-b:
+  connection-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-chain-b"
+      test-file: "e2e/tests/core/03-connection/connection_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  transfer-authz-chain-a:
+  ica-base-test-a:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-authz-chain-a"
+      test-file: "e2e/tests/interchain_accounts/base_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-a"
 
-  transfer-authz-chain-b:
+  ica-base-test-b:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-authz-chain-b"
+      test-file: "e2e/tests/interchain_accounts/base_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-b"
 
-  transfer-v2-forwarding-chain-a:
+  ica-gov-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-v2-forwarding-chain-a"
+      test-file: "e2e/tests/interchain_accounts/gov_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  transfer-v2-multidenom-chain-a:
+  ica-groups-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-v2-multidenom-chain-a"
+      test-file: "e2e/tests/interchain_accounts/groups_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  connection-chain-a:
+  ica-inventivized-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "connection-chain-a"
+      test-file: "e2e/tests/interchain_accounts/incentivized_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  client-chain-a:
+  ica-localhost-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "client-chain-a"
+      test-file: "e2e/tests/interchain_accounts/localhost_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  incentivized-transfer-chain-a:
+  ica-params-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "incentivized-transfer-chain-a"
+      test-file: "e2e/tests/interchain_accounts/params_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  incentivized-transfer-chain-b:
+  ica-query-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "incentivized-transfer-chain-b"
+      test-file: "e2e/tests/interchain_accounts/query_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-chain-a:
+  ica-upgrade-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-chain-a"
+      test-file: "e2e/tests/interchain_accounts/upgrades_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-chain-b:
+  transfer-base-test-a:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-chain-b"
+      test-file: "e2e/tests/transfer/base_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-a"
 
-  incentivized-ica-chain-a:
+  transfer-base-test-b:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "incentivized-ica-chain-a"
+      test-file: "e2e/tests/transfer/base_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-b"
 
-  incentivized-ica-chain-b:
+  transfer-authz-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "incentivized-ica-chain-b"
+      test-file: "e2e/tests/transfer/authz_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-groups-chain-a:
+  transfer-forwarding-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-groups-chain-a"
+      test-file: "e2e/tests/transfer/forwarding_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-groups-chain-b:
+  transfer-incentivized-test-a:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-groups-chain-b"
+      test-file: "e2e/tests/transfer/incentivized_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-a"
 
-  ica-gov-chain-a:
+  transfer-incentivized-test-b:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-gov-chain-a"
+      test-file: "e2e/tests/transfer/incentivized_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-b"
 
-  ica-gov-chain-b:
+  transfer-localhost-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-gov-chain-b"
+      test-file: "e2e/tests/transfer/localhost_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-queries-chain-a:
+  transfer-send-enabled-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-queries-chain-a"
+      test-file: "e2e/tests/transfer/send_enabled_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-queries-chain-b:
+  transfer-receive-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-queries-chain-b"
+      test-file: "e2e/tests/transfer/send_receive_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-unordered-channel-chain-a:
+  transfer-upgrades-v1-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-unordered-channel-chain-a"
+      test-file: "e2e/tests/transfer/upgradesv1_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-unordered-channel-chain-b:
+  transfer-upgrades-v2-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-unordered-channel-chain-b"
+      test-file: "e2e/tests/transfer/upgradesv2_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  localhost-transfer-chain-a:
+  upgrade-genesis-test:
     needs:
       - build-release-images
-      - determine-test-directory
+      - determine-image-tag
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "localhost-transfer-chain-a"
-
-  localhost-ica-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "localhost-ica-chain-a"
-  
-  genesis-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "genesis-chain-a"
-  
-  transfer-channel-upgrade-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-channel-upgrade-chain-a"
-  
-  transfer-channel-upgrade-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-channel-upgrade-chain-b"
-
-  transfer-v2-1-channel-upgrade-chain-1:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-v2-1-channel-upgrade-chain-1"
-
-  transfer-v2-2-channel-upgrade-chain-1:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "transfer-v2-2-channel-upgrade-chain-1"
-
-  ica-channel-upgrade-chain-a:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-channel-upgrade-chain-a"
-
-  ica-channel-upgrade-chain-b:
-    needs:
-      - build-release-images
-      - determine-test-directory
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file-directory: "${{ needs.determine-test-directory.outputs.test-directory }}"
-      test-suite: "ica-channel-upgrade-chain-b"
+      test-file: "e2e/tests/upgrades/genesis_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"

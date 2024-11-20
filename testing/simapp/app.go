@@ -1106,11 +1106,18 @@ func BlockedAddresses(ac coreaddress.Codec) (map[string]bool, error) {
 	}
 
 	// allow the following addresses to receive funds
-	addr, err := ac.BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
+	govAddr, err := ac.BytesToString(authtypes.NewModuleAddress(govtypes.ModuleName))
 	if err != nil {
 		return nil, err
 	}
-	delete(modAccAddrs, addr)
+
+	ibcMockAddr, err := ac.BytesToString(authtypes.NewModuleAddress(ibcmock.ModuleName))
+	if err != nil {
+		return nil, err
+	}
+
+	delete(modAccAddrs, govAddr)
+	delete(modAccAddrs, ibcMockAddr)
 
 	return modAccAddrs, nil
 }

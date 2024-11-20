@@ -29,6 +29,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
+// compatibility:from_version: v8.4.0
 func TestGenesisTestSuite(t *testing.T) {
 	suite.Run(t, new(GenesisTestSuite))
 }

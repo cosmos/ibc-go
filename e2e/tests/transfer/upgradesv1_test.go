@@ -22,6 +22,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
+// compatibility:from_version: v9.0.0
 func TestTransferChannelUpgradesV1TestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TransferChannelUpgradesV1TestSuite))
 }

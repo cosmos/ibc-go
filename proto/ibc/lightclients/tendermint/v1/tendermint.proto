@@ -4,7 +4,8 @@ package ibc.lightclients.tendermint.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint;tendermint";
 
-import "cometbft/types/v1/validator.proto";;
+import "cometbft/types/v1/validator.proto";
+;
 import "cometbft/types/v1/types.proto";
 import "cosmos/ics23/v1/proofs.proto";
 import "google/protobuf/duration.proto";
@@ -89,7 +90,7 @@ message Header {
   .cometbft.types.v1.SignedHeader signed_header = 1 [(gogoproto.embed) = true];
 
   .cometbft.types.v1.ValidatorSet validator_set      = 2;
-  ibc.core.client.v1.Height      trusted_height     = 3 [(gogoproto.nullable) = false];
+  ibc.core.client.v1.Height       trusted_height     = 3 [(gogoproto.nullable) = false];
   .cometbft.types.v1.ValidatorSet trusted_validators = 4;
 }
 

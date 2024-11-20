@@ -1,6 +1,7 @@
 package ibctesting
 
 import (
+	"cosmossdk.io/core/header"
 	"fmt"
 	"testing"
 	"time"
@@ -198,7 +199,16 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (chain *TestChain) GetContext() sdk.Context {
-	return chain.App.GetBaseApp().NewUncachedContext(false, chain.ProposedHeader)
+
+	ctx := chain.App.GetBaseApp().NewUncachedContext(false, chain.ProposedHeader)
+
+	// when fetching time from context, the header info time is used, rather than the proposed header.
+	headerInfo := header.Info{
+		Time:    chain.ProposedHeader.Time,
+		ChainID: chain.ProposedHeader.ChainID,
+	}
+
+	return ctx.WithHeaderInfo(headerInfo)
 }
 
 // GetSimApp returns the SimApp to allow usage ofnon-interface fields.

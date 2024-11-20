@@ -21,6 +21,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 )
 
+// compatibility:from_version: v7.4.0
 func TestTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TransferTestSuite))
 }
@@ -166,6 +167,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 // TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom will test sending successful IBC transfers from chainA to chainB.
 // A multidenom transfer with native chainB tokens and IBC tokens from chainA is executed from chainB to chainA.
+// compatibility:TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom:from_versions: v9.0.0
 func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom() {
 	t := s.T()
 	ctx := context.TODO()
@@ -271,6 +273,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 
 // TestMsgTransfer_Fails_InvalidAddress_MultiDenom attempts to send a multidenom IBC transfer
 // to an invalid address and ensures that the tokens on the sending chain are returned to the sender.
+// compatibility:TestMsgTransfer_Fails_InvalidAddress_MultiDenom:from_versions: v9.0.0
 func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 	t := s.T()
 	ctx := context.TODO()
@@ -549,6 +552,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 // TestMsgTransfer_EntireBalance tests that it is possible to transfer the entire balance
 // of a given denom by using types.UnboundedSpendLimit as the amount.
+// compatibility:TestMsgTransfer_EntireBalance:from_versions: v7.7.0,v7.8.0,v8.4.0,v8.5.0,v9.0.0
 func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 	t := s.T()
 	ctx := context.TODO()

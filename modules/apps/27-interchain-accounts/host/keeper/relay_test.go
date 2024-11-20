@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr).String(), govtypesv1.ProposalType_PROPOSAL_TYPE_EXPEDITED)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr).String(), govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD)
 				suite.Require().NoError(err)
 
 				err = suite.chainB.GetSimApp().GovKeeper.Proposals.Set(suite.chainB.GetContext(), proposal.Id, proposal)
@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				msg, err := govtypesv1.NewMsgSubmitProposal([]sdk.Msg{}, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))), interchainAccountAddr, "metadata", "title", "summary", govtypesv1.ProposalType_PROPOSAL_TYPE_EXPEDITED)
+				msg, err := govtypesv1.NewMsgSubmitProposal([]sdk.Msg{}, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))), interchainAccountAddr, "metadata", "title", "summary", govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD)
 				suite.Require().NoError(err)
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
@@ -194,7 +194,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(found)
 
-				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr).String(), govtypesv1.ProposalType_PROPOSAL_TYPE_EXPEDITED)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr).String(), govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD)
 				suite.Require().NoError(err)
 
 				err = suite.chainB.GetSimApp().GovKeeper.Proposals.Set(suite.chainB.GetContext(), proposal.Id, proposal)
@@ -574,7 +574,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 		{
 			"interchain account successfully executes an arbitrary message type using the * (allow all message types) param",
 			func(icaAddress string) {
-				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr).String(), govtypesv1.ProposalType_PROPOSAL_TYPE_EXPEDITED)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr).String(), govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD)
 				suite.Require().NoError(err)
 
 				err = suite.chainB.GetSimApp().GovKeeper.Proposals.Set(suite.chainB.GetContext(), proposal.Id, proposal)
@@ -641,7 +641,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"messages": [],
 							"metadata": "ipfs://CID",
  							"title": "IBC Gov Proposal",
-							"summary": "tokens for all!",
+							"summary": "tokens for some, miniature American flags for others!",
 							"expedited": false,
 							"initial_deposit": [{ "denom": "stake", "amount": "100000" }],
 							"proposer": "` + icaAddress + `"
@@ -663,7 +663,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 		{
 			"interchain account successfully executes govtypesv1.MsgVote",
 			func(icaAddress string) {
-				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr).String(), govtypesv1.ProposalType_PROPOSAL_TYPE_EXPEDITED)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr).String(), govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD)
 				suite.Require().NoError(err)
 
 				err = suite.chainB.GetSimApp().GovKeeper.Proposals.Set(suite.chainB.GetContext(), proposal.Id, proposal)
