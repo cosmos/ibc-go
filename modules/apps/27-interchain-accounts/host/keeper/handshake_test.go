@@ -1,9 +1,8 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	hosttypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
@@ -173,9 +172,9 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 				"account already exists",
 				func() {
 					interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-					err := suite.chainB.GetSimApp().BankKeeper.SendCoins(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), interchainAccAddr, sdk.Coins{sdk.NewCoin("stake", sdkmath.NewInt(1))})
-					suite.Require().NoError(err)
-					suite.Require().True(suite.chainB.GetSimApp().AuthKeeper.HasAccount(suite.chainB.GetContext(), interchainAccAddr))
+					interchainAcc := icatypes.NewInterchainAccount(authtypes.NewBaseAccountWithAddress(interchainAccAddr), path.EndpointA.ChannelConfig.PortID)
+					suite.chainB.GetSimApp().AuthKeeper.NewAccount(suite.chainB.GetContext(), interchainAcc)
+					suite.chainB.GetSimApp().AuthKeeper.SetAccount(suite.chainB.GetContext(), interchainAcc)
 				},
 				icatypes.ErrAccountAlreadyExist,
 			},
