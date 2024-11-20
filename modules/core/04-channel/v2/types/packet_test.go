@@ -110,7 +110,7 @@ func TestValidateBasic(t *testing.T) {
 				SourcePort:      ibctesting.MockPort,
 				DestinationPort: ibctesting.MockPort,
 				Version:         "ics20-v2",
-				Encoding:        transfertypes.ProtoEncoding,
+				Encoding:        transfertypes.EncodingProtobuf,
 				Value:           mock.MockPacketData,
 			})
 

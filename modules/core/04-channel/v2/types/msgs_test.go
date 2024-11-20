@@ -206,7 +206,7 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 			msg = types.NewMsgSendPacket(
 				ibctesting.FirstChannelID, s.chainA.GetTimeoutTimestamp(),
 				s.chainA.SenderAccount.GetAddress().String(),
-				types.Payload{SourcePort: ibctesting.MockPort, DestinationPort: ibctesting.MockPort, Version: "ics20-1", Encoding: transfertypes.JsonEncoding, Value: ibctesting.MockPacketData},
+				types.Payload{SourcePort: ibctesting.MockPort, DestinationPort: ibctesting.MockPort, Version: "ics20-1", Encoding: transfertypes.EncodingJSON, Value: ibctesting.MockPacketData},
 			)
 
 			tc.malleate()
