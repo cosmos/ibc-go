@@ -50,6 +50,7 @@ func NewGenesisState(
 	return GenesisState{
 		Channels:            channels,
 		Acknowledgements:    acks,
+		Receipts:            receipts,
 		Commitments:         commitments,
 		SendSequences:       sendSeqs,
 		RecvSequences:       recvSeqs,
