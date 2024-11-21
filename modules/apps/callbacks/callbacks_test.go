@@ -40,7 +40,7 @@ func init() {
 // SetupTestingApp provides the duplicated simapp which is specific to the callbacks module on chain creation.
 func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.AppOptionsMap{})
 	return app, app.DefaultGenesis()
 }
 
@@ -157,7 +157,6 @@ func (s *CallbacksTestSuite) RegisterInterchainAccount(owner string) {
 	s.Require().NotEmpty(res)
 	s.Require().NoError(err)
 
-	fmt.Println(res.Events)
 	channelID, err := ibctesting.ParseChannelIDFromEvents(res.Events)
 	s.Require().NoError(err)
 
