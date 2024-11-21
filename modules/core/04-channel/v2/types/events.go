@@ -11,7 +11,9 @@ const (
 	EventTypeCreateChannel        = "create_channel"
 	EventTypeRegisterCounterparty = "register_counterparty"
 	EventTypeSendPacket           = "send_packet"
-	EventTypeSendPayload          = "send_payload"
+	EventTypeWriteAcknowledgement = "write_acknowledgement"
+
+	EventTypeSendPayload = "send_payload"
 
 	AttributeKeyChannelID             = "channel_id"
 	AttributeKeyClientID              = "client_id"
@@ -25,6 +27,7 @@ const (
 	AttributeKeyVersion               = "payload_version"
 	AttributeKeyEncoding              = "payload_encoding"
 	AttributeKeyData                  = "payload_data"
+	AttributeKeyAcknowledgement       = "acknowledgement"
 )
 
 // IBC channel events vars

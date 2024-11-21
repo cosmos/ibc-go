@@ -67,9 +67,26 @@ func EmitTimeoutPacketEvents(ctx context.Context, packet types.Packet) {
 	// TODO: https://github.com/cosmos/ibc-go/issues/7386
 }
 
-// EmitWriteAcknowledgementEvents emits events for WriteAcknowledgement.
-func EmitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ack types.Acknowledgement) {
-	// TODO: https://github.com/cosmos/ibc-go/issues/7386
+// emitWriteAcknowledgementEvents emits events for WriteAcknowledgement.
+func emitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ack types.Acknowledgement) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	for i, ack := range ack.AppAcknowledgements {
+		sdkCtx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeWriteAcknowledgement,
+				sdk.NewAttribute(types.AttributeKeySrcChannel, packet.SourceChannel),
+				sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
+				sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
+				sdk.NewAttribute(types.AttributeKeyPayloadSequence, fmt.Sprintf("%d", i)),
+				sdk.NewAttribute(types.AttributeKeyAcknowledgement, hex.EncodeToString(ack)),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			),
+		})
+	}
 }
 
 // emitCreateChannelEvent emits a channel create event.
