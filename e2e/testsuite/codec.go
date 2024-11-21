@@ -55,6 +55,8 @@ func SDKEncodingConfig() *testutil.TestEncodingConfig {
 	}
 }
 
+// codecAndEncodingConfig returns the codec and encoding config used in the E2E tests.
+// Note: any new types added to the codec must be added here.
 func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 	cfg := testutil.MakeTestEncodingConfig()
 
