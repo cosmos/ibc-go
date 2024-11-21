@@ -396,7 +396,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 	txResult := resp.TxResults[0]
 
 	if txResult.Code != 0 {
-		return txResult, fmt.Errorf("%s/%d", txResult.Codespace, txResult.Code)
+		return txResult, fmt.Errorf("%s/%d: %q", txResult.Codespace, txResult.Code, txResult.Log)
 	}
 
 	chain.Coordinator.IncrementTime()
