@@ -1,6 +1,7 @@
 package simulation_test
 
 import (
+	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
 	"math/rand"
 	"testing"
 
@@ -23,6 +24,7 @@ func TestProposalMsgs(t *testing.T) {
 	r := rand.New(s)
 
 	ctx := sdk.NewContext(nil, true, nil)
+	codec := codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
 	accounts := simtypes.RandomAccounts(r, 3)
 
 	tests := []struct {
@@ -84,7 +86,7 @@ func TestProposalMsgs(t *testing.T) {
 				require.Equal(t, simulation.OpWeightMsgUpdateParams, weightedMsg.AppParamsKey())
 				require.Equal(t, simulation.DefaultWeightMsgUpdateParams, weightedMsg.DefaultWeight())
 
-				msg, err := weightedMsg.MsgSimulatorFn()(ctx, r, accounts, nil)
+				msg, err := weightedMsg.MsgSimulatorFn()(ctx, r, accounts, codec)
 				require.NoError(t, err)
 
 				if msgUpdateHostParams, ok := msg.(*hosttypes.MsgUpdateParams); ok {
