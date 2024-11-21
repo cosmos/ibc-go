@@ -230,7 +230,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 	commitment := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
 		// TODO: signal noop in events?
-		EmitAcknowledgePacketEvents(ctx, packet)
+		emitAcknowledgePacketEvents(ctx, packet, acknowledgement)
 
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
@@ -265,7 +265,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 
 	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "source_channel_id", packet.GetSourceChannel(), "destination_channel_id", packet.GetDestinationChannel())
 
-	EmitAcknowledgePacketEvents(ctx, packet)
+	emitAcknowledgePacketEvents(ctx, packet, acknowledgement)
 
 	return nil
 }

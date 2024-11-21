@@ -57,9 +57,26 @@ func EmitRecvPacketEvents(ctx context.Context, packet types.Packet) {
 	// TODO: https://github.com/cosmos/ibc-go/issues/7386
 }
 
-// EmitAcknowledgePacketEvents emits events for the AcknowledgePacket handler.
-func EmitAcknowledgePacketEvents(ctx context.Context, packet types.Packet) {
-	// TODO: https://github.com/cosmos/ibc-go/issues/7386
+// emitAcknowledgePacketEvents emits events for the AcknowledgePacket handler.
+func emitAcknowledgePacketEvents(ctx context.Context, packet types.Packet, ack types.Acknowledgement) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	for i, ack := range ack.AppAcknowledgements {
+		sdkCtx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeAcknowledgePacket,
+				sdk.NewAttribute(types.AttributeKeySrcChannel, packet.SourceChannel),
+				sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
+				sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
+				sdk.NewAttribute(types.AttributeKeyPayloadSequence, fmt.Sprintf("%d", i)),
+				sdk.NewAttribute(types.AttributeKeyAcknowledgement, hex.EncodeToString(ack)),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			),
+		})
+	}
 }
 
 // EmitTimeoutPacketEvents emits events for the TimeoutPacket handler.
