@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/core/header"
-
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/core/header"
