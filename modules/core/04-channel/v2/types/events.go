@@ -12,6 +12,8 @@ const (
 	EventTypeRegisterCounterparty = "register_counterparty"
 	EventTypeSendPacket           = "send_packet"
 	EventTypeSendPayload          = "send_payload"
+	EventTypeRecvPacket           = "recv_packet"
+	EventTypeRecvPayload          = "recv_payload"
 
 	AttributeKeyChannelID             = "channel_id"
 	AttributeKeyClientID              = "client_id"
