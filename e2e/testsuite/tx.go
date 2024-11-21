@@ -37,7 +37,7 @@ import (
 )
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
-// Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
+// Once the broadcast response is returned, we wait for a few blocks to be created on the chain the message was broadcast to.
 func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgs ...sdk.Msg) sdk.TxResponse {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {

@@ -720,7 +720,6 @@ func NewSimApp(
 		distrtypes.ModuleName,
 		pooltypes.ModuleName,
 		slashingtypes.ModuleName,
-		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		ibcexported.ModuleName,
 		ibctransfertypes.ModuleName,
@@ -737,7 +736,6 @@ func NewSimApp(
 		ibcexported.ModuleName,
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
-		feegrant.ModuleName,
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
 		ibcmock.ModuleName,
@@ -895,8 +893,7 @@ func (app *SimApp) setAnteHandler(txConfig client.TxConfig) {
 				SigGasConsumer:           ante.DefaultSigVerificationGasConsumer,
 				UnorderedTxManager:       app.UnorderedTxManager,
 			},
-			CircuitKeeper: &app.CircuitKeeper,
-			IBCKeeper:     app.IBCKeeper,
+			IBCKeeper: app.IBCKeeper,
 		},
 	)
 	if err != nil {

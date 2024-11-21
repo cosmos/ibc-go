@@ -206,7 +206,7 @@ def _test_should_be_run(test_name: str, version: str, file_fields: Dict) -> bool
     """
 
     # the test has been explicitly marked to be skipped for compatibility tests.
-    if file_fields.get(f"{test_name}:{SKIP}") is not None:
+    if file_fields.get(f"{test_name}:{SKIP}") == "true":
         return False
 
     test_semver_version = parse_version(version)

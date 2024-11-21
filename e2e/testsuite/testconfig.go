@@ -634,7 +634,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 	configFileOverrides := make(map[string]any)
 	tmTomlOverrides := make(interchaintestutil.Toml)
 
-	tmTomlOverrides["log_level"] = cometCfg.LogLevel // change to debug in ~/.ibc-go-e2e-config.json to increase cometbft logging.
+	tmTomlOverrides["log_level"] = cometCfg.LogLevel // change to debug in the e2e test config to increase cometbft logging.
 	configFileOverrides["config/config.toml"] = tmTomlOverrides
 
 	return ibc.ChainConfig{
