@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/core/appmodule"
 	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
@@ -28,6 +29,8 @@ import (
 
 // Keeper defines the IBC interchain accounts controller keeper
 type Keeper struct {
+	appmodule.Environment
+
 	storeService   corestore.KVStoreService
 	cdc            codec.Codec
 	legacySubspace icatypes.ParamSubspace
@@ -43,7 +46,7 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
-	cdc codec.Codec, storeService corestore.KVStoreService, legacySubspace icatypes.ParamSubspace,
+	cdc codec.Codec, env appmodule.Environment, storeService corestore.KVStoreService, legacySubspace icatypes.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper,
 	msgRouter icatypes.MessageRouter, authority string,
 ) Keeper {
@@ -52,6 +55,7 @@ func NewKeeper(
 	}
 
 	return Keeper{
+		Environment:    env,
 		storeService:   storeService,
 		cdc:            cdc,
 		legacySubspace: legacySubspace,

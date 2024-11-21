@@ -3,9 +3,11 @@ package keeper_test
 import (
 	"fmt"
 
+	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 )
 
@@ -29,6 +31,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 					suite.chainA.Codec,
+					runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
 					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(icacontrollertypes.StoreKey)),
 					nil, // assign a nil legacy param subspace
 					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,

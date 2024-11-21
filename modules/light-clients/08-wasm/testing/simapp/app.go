@@ -1,6 +1,14 @@
 package simapp
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"math/rand"
+	"os"
+	"path/filepath"
+	"strconv"
+
 	coreaddress "cosmossdk.io/core/address"
 	"cosmossdk.io/x/accounts/accountstd"
 	baseaccount "cosmossdk.io/x/accounts/defaults/base"
@@ -9,17 +17,10 @@ import (
 	epochstypes "cosmossdk.io/x/epochs/types"
 	nftkeeper "cosmossdk.io/x/nft/keeper"
 	txdecode "cosmossdk.io/x/tx/decode"
-	"encoding/json"
-	"fmt"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	cmted25519 "github.com/cometbft/cometbft/crypto/ed25519"
 	sigtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
-	"io"
-	"math/rand"
-	"os"
-	"path/filepath"
-	"strconv"
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cast"
@@ -559,11 +560,13 @@ func NewSimApp(
 
 	// ICA Controller keeper
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[icacontrollertypes.StoreKey]), app.GetSubspace(icacontrollertypes.SubModuleName),
+		appCodec,
+		runtime.NewEnvironment(runtime.NewKVStoreService(keys[icacontrollertypes.StoreKey]), logger.With(log.ModuleKey, "x/icacontroller"), runtime.EnvWithMsgRouterService(app.MsgServiceRouter())),
+		runtime.NewKVStoreService(keys[icacontrollertypes.StoreKey]), app.GetSubspace(icacontrollertypes.SubModuleName),
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper,
 		app.MsgServiceRouter(),
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		govModuleAddr,
 	)
 
 	// ICA Host keeper
