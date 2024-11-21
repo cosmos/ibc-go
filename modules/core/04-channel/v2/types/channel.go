@@ -32,3 +32,20 @@ func (c Channel) Validate() error {
 
 	return nil
 }
+
+// NewIdentifiedChannel creates a new IdentifiedChannel instance
+func NewIdentifiedChannel(channelID string, channel Channel) IdentifiedChannel {
+	return IdentifiedChannel{
+		Channel:   channel,
+		ChannelId: channelID,
+	}
+}
+
+// ValidateBasic performs a basic validation of the identifiers and channel fields.
+func (ic IdentifiedChannel) ValidateBasic() error {
+	if err := host.ChannelIdentifierValidator(ic.ChannelId); err != nil {
+		return errorsmod.Wrap(err, "invalid channel ID")
+	}
+
+	return ic.Channel.Validate()
+}

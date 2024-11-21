@@ -7,13 +7,15 @@ option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/type
 import "gogoproto/gogo.proto";
 import "ibc/core/channel/v2/channel.proto";
 
-// GenesisState defines the ibc channel submodule's genesis state.
+// GenesisState defines the ibc channel/v2 submodule's genesis state.
 message GenesisState {
   repeated IdentifiedChannel channels = 1 [(gogoproto.casttype) = "IdentifiedChannel", (gogoproto.nullable) = false];
   repeated PacketState       acknowledgements = 2 [(gogoproto.nullable) = false];
   repeated PacketState       commitments      = 3 [(gogoproto.nullable) = false];
   repeated PacketState       receipts         = 4 [(gogoproto.nullable) = false];
   repeated PacketSequence    send_sequences   = 5 [(gogoproto.nullable) = false];
+  // the sequence for the next generated channel identifier
+  uint64 next_channel_sequence = 6;
 }
 
 // PacketState defines the generic type necessary to retrieve and store
