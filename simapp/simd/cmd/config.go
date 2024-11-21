@@ -3,11 +3,11 @@ package cmd
 import (
 	"strings"
 
-	cmtcfg "github.com/cometbft/cometbft/config"
-
 	clientconfig "github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
+
+	cmtcfg "github.com/cometbft/cometbft/config"
 )
 
 // initCometBFTConfig helps to override default CometBFT Config values.

@@ -1,13 +1,15 @@
 package ibctesting
 
 import (
-	"cosmossdk.io/core/header"
 	"fmt"
 	"testing"
 	"time"
 
+	"cosmossdk.io/core/header"
+
 	"github.com/stretchr/testify/require"
 
+	"cosmossdk.io/core/header"
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	banktypes "cosmossdk.io/x/bank/types"
@@ -199,7 +201,6 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (chain *TestChain) GetContext() sdk.Context {
-
 	ctx := chain.App.GetBaseApp().NewUncachedContext(false, chain.ProposedHeader)
 
 	// when fetching time from context, the header info time is used, rather than the proposed header.
