@@ -1,6 +1,7 @@
 package types
 
 import (
+	fmt "fmt"
 	"math/big"
 	"reflect"
 
@@ -8,11 +9,12 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
+// TODO: Check if order matters in the struct
 type abiFungibleTokenPacketData struct {
 	Denom    string
-	Amount   *big.Int
 	Sender   string
 	Receiver string
+	Amount   *big.Int
 	Memo     string
 }
 
@@ -46,7 +48,7 @@ func DecodeABIFungibleTokenPacketData(abiEncodedData []byte) (*FungibleTokenPack
 	// Unpack the data
 	unpacked, err := parsedABI.Unpack(abiEncodedData)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unpack: %w", err)
 	}
 	unpackedData := reflect.ValueOf(unpacked[0])
 
@@ -65,12 +67,13 @@ func DecodeABIFungibleTokenPacketData(abiEncodedData []byte) (*FungibleTokenPack
 }
 
 func getFungibleTokenPacketDataABI() (abi.Arguments, error) {
-	abiType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
-		{Name: "Denom", Type: "string"},
-		{Name: "Amount", Type: "uint256"},
-		{Name: "Sender", Type: "string"},
-		{Name: "Receiver", Type: "string"},
-		{Name: "Memo", Type: "string"},
+	abiType, err := abi.NewType("tuple", "struct ICS20Lib.FungibleTokenPacketData", []abi.ArgumentMarshaling{
+		// The order of the fields need to match the order in solidity
+		{Name: "Denom", Type: "string", InternalType: "string"},
+		{Name: "Sender", Type: "string", InternalType: "string"},
+		{Name: "Receiver", Type: "string", InternalType: "string"},
+		{Name: "Amount", Type: "uint256", InternalType: "uint256"},
+		{Name: "Memo", Type: "string", InternalType: "string"},
 	})
 	if err != nil {
 		return abi.Arguments{}, err

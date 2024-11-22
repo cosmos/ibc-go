@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -28,12 +29,22 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 		expError error
 	}{
 		{
-			"success",
+			"success: v2 payload",
 			func() {},
 			nil,
 		},
 		{
-			"success: ABI encoded payload",
+			"success: v1 payload",
+			func() {
+				ftpd := transfertypes.NewFungibleTokenPacketData(sdk.DefaultBondDenom, ibctesting.DefaultCoinAmount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
+				bz, err := json.Marshal(ftpd)
+				suite.Require().NoError(err)
+				payload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V1, transfertypes.EncodingJSON, bz)
+			},
+			nil,
+		},
+		{
+			"success: v1 ABI encoded payload",
 			func() {
 				ftpd := transfertypes.NewFungibleTokenPacketData(sdk.DefaultBondDenom, ibctesting.DefaultCoinAmount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
 				bz, err := transfertypes.EncodeABIFungibleTokenPacketData(ftpd)
@@ -110,20 +121,46 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 		path        *ibctesting.Path
 		packet      channeltypesv2.Packet
 		expectedAck channeltypesv2.Acknowledgement
+		sendPayload channeltypesv2.Payload
 	)
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
+		name         string
+		malleateSend func()
+		malleate     func()
+		expError     error
 	}{
 		{
-			"success",
+			"success: v2 payload",
+			func() {},
+			func() {},
+			nil,
+		},
+		{
+			"success: v1 payload",
+			func() {
+				ftpd := transfertypes.NewFungibleTokenPacketData(sdk.DefaultBondDenom, ibctesting.DefaultCoinAmount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
+				bz, err := json.Marshal(ftpd)
+				suite.Require().NoError(err)
+				sendPayload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V1, transfertypes.EncodingJSON, bz)
+			},
+			func() {},
+			nil,
+		},
+		{
+			"success: v1 ABI encoded payload",
+			func() {
+				ftpd := transfertypes.NewFungibleTokenPacketData(sdk.DefaultBondDenom, ibctesting.DefaultCoinAmount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
+				bz, err := transfertypes.EncodeABIFungibleTokenPacketData(ftpd)
+				suite.Require().NoError(err)
+				sendPayload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V1, transfertypes.EncodingABI, bz)
+			},
 			func() {},
 			nil,
 		},
 		{
 			"failure: invalid destination channel on received packet",
+			func() {},
 			func() {
 				packet.DestinationChannel = ibctesting.InvalidID
 			},
@@ -131,6 +168,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 		},
 		{
 			"failure: counter party channel does not match source channel",
+			func() {},
 			func() {
 				packet.SourceChannel = ibctesting.InvalidID
 			},
@@ -138,6 +176,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 		},
 		{
 			"failure: receive is disabled",
+			func() {},
 			func() {
 				expectedAck.AppAcknowledgements[0] = channeltypes.NewErrorAcknowledgement(transfertypes.ErrReceiveDisabled).Acknowledgement()
 				suite.chainB.GetSimApp().TransferKeeperV2.SetParams(suite.chainB.GetContext(),
@@ -173,9 +212,10 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			bz := suite.chainA.Codec.MustMarshal(&ftpd)
 
 			timestamp := suite.chainA.GetTimeoutTimestampSecs()
-			payload := channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, transfertypes.EncodingProtobuf, bz)
+			sendPayload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, transfertypes.EncodingProtobuf, bz)
+			tc.malleateSend()
 			var err error
-			packet, err = path.EndpointA.MsgSendPacket(timestamp, payload)
+			packet, err = path.EndpointA.MsgSendPacket(timestamp, sendPayload)
 			suite.Require().NoError(err)
 
 			// by default, we assume a successful acknowledgement will be written.
@@ -197,7 +237,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 				denom := transfertypes.Denom{
 					Base: sdk.DefaultBondDenom,
 					Trace: []transfertypes.Hop{
-						transfertypes.NewHop(payload.DestinationPort, packet.DestinationChannel),
+						transfertypes.NewHop(sendPayload.DestinationPort, packet.DestinationChannel),
 					},
 				}
 
