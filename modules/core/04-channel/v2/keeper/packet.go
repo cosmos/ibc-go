@@ -126,7 +126,7 @@ func (k *Keeper) recvPacket(
 	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
 	// by the increase of the recvStartSequence.
 	if k.HasPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence) {
-		EmitRecvPacketEvents(ctx, packet)
+		emitRecvPacketEvents(ctx, packet)
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
 		// from failing and consuming unnecessary fees.
@@ -155,7 +155,7 @@ func (k *Keeper) recvPacket(
 
 	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_id", packet.SourceChannel, "dst_id", packet.DestinationChannel)
 
-	EmitRecvPacketEvents(ctx, packet)
+	emitRecvPacketEvents(ctx, packet)
 
 	return nil
 }
