@@ -26,6 +26,7 @@ var (
 const (
 	EncodingJSON     = "application/json"
 	EncodingProtobuf = "application/x-protobuf"
+	EncodingABI      = "application/x-abi"
 )
 
 // NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
@@ -256,7 +257,12 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 		if err := proto.Unmarshal(bz, data); err != nil {
 			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
 		}
-
+	case EncodingABI:
+		var err error
+		data, err = DecodeABIFungibleTokenPacketData(bz)
+		if err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
+		}
 	default:
 		return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid encoding provided, must be either empty or one of [%q, %q], got %s", EncodingJSON, EncodingProtobuf, encoding)
 	}

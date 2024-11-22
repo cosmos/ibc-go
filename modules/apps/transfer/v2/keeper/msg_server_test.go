@@ -33,6 +33,16 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 			nil,
 		},
 		{
+			"success: ABI encoded payload",
+			func() {
+				ftpd := transfertypes.NewFungibleTokenPacketData(sdk.DefaultBondDenom, ibctesting.DefaultCoinAmount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
+				bz, err := transfertypes.EncodeABIFungibleTokenPacketData(ftpd)
+				suite.Require().NoError(err)
+				payload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V1, transfertypes.EncodingABI, bz)
+			},
+			nil,
+		},
+		{
 			"failure: send transfers disabled",
 			func() {
 				suite.chainA.GetSimApp().TransferKeeperV2.SetParams(suite.chainA.GetContext(),
@@ -76,6 +86,8 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 
 			expPass := tc.expError == nil
 			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotEmpty(packet)
 
 				// ensure every token sent is escrowed.
 				for _, t := range tokens {
@@ -84,8 +96,6 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 					suite.Require().NoError(err)
 					suite.Require().Equal(expected, escrowedAmount, "escrowed amount is not equal to expected amount")
 				}
-				suite.Require().NoError(err)
-				suite.Require().NotEmpty(packet)
 			} else {
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError, "expected error %q but got %q", tc.expError, err)
 				suite.Require().Empty(packet)
