@@ -139,6 +139,13 @@ func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.Exec
 	return nil, nil, errors.New("packet commitment does not exist on either endpoint for provided packet")
 }
 
+// Reversed returns a new path with endpoints reversed.
+func (path *Path) Reversed() *Path {
+	reversedPath := *path
+	reversedPath.EndpointA, reversedPath.EndpointB = path.EndpointB, path.EndpointA
+	return &reversedPath
+}
+
 // Setup constructs a TM client, connection, and channel on both chains provided. It will
 // fail if any error occurs.
 func (path *Path) Setup() {
@@ -175,11 +182,11 @@ func (path *Path) SetupClients() {
 // SetupCounterparties is a helper function to set the counterparties supporting ibc-eureka on both
 // chains. It assumes the caller does not anticipate any errors.
 func (path *Path) SetupCounterparties() {
-	if err := path.EndpointB.ProvideCounterparty(); err != nil {
+	if err := path.EndpointB.RegisterCounterparty(); err != nil {
 		panic(err)
 	}
 
-	if err := path.EndpointA.ProvideCounterparty(); err != nil {
+	if err := path.EndpointA.RegisterCounterparty(); err != nil {
 		panic(err)
 	}
 }

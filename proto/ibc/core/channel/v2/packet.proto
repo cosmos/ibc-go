@@ -17,7 +17,7 @@ message Packet {
   string source_channel = 2;
   // identifies the receiving chain.
   string destination_channel = 3;
-  // timeout timestamp after which the packet times out.
+  // timeout timestamp in seconds after which the packet times out.
   uint64 timeout_timestamp = 4;
   // a list of payloads, each one for a specific application.
   repeated Payload payloads = 5 [(gogoproto.nullable) = false];
@@ -39,13 +39,7 @@ message Payload {
 
 // Acknowledgement contains a list of all ack results associated with a single packet.
 message Acknowledgement {
-  repeated AcknowledgementResult acknowledgement_results = 1 [(gogoproto.nullable) = false];
-}
-
-// AcknowledgementResult of identified acknowledgement. Correlating IBC application name to opaque ack bytes.
-message AcknowledgementResult {
-  string           app_name           = 1;
-  RecvPacketResult recv_packet_result = 2 [(gogoproto.nullable) = false];
+  repeated bytes app_acknowledgements = 1;
 }
 
 // PacketStatus specifies the status of a RecvPacketResult.

@@ -8,12 +8,29 @@ import (
 
 // IBC channel events
 const (
-	AttributeKeyChannelID = "channel_id"
+	EventTypeCreateChannel        = "create_channel"
+	EventTypeRegisterCounterparty = "register_counterparty"
+	EventTypeSendPacket           = "send_packet"
+	EventTypeRecvPacket           = "recv_packet"
+
+	EventTypeSendPayload = "send_payload"
+	EventTypeRecvPayload = "recv_payload"
+
+	AttributeKeyChannelID             = "channel_id"
+	AttributeKeyClientID              = "client_id"
+	AttributeKeyCounterpartyChannelID = "counterparty_channel_id"
+	AttributeKeySrcChannel            = "packet_source_channel"
+	AttributeKeyDstChannel            = "packet_dest_channel"
+	AttributeKeySequence              = "packet_sequence"
+	AttributeKeyTimeoutTimestamp      = "packet_timeout_timestamp"
+	AttributeKeyPayloadLength         = "packet_payload_length"
+	AttributeKeyPayloadSequence       = "payload_sequence"
+	AttributeKeyVersion               = "payload_version"
+	AttributeKeyEncoding              = "payload_encoding"
+	AttributeKeyData                  = "payload_data"
 )
 
 // IBC channel events vars
 var (
-	EventTypeCreateChannel = "create_channel"
-
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )

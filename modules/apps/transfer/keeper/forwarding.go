@@ -88,7 +88,7 @@ func (k Keeper) revertForwardedPacket(ctx context.Context, forwardedPacket chann
 			}
 		} else {
 			// send it back to the escrow address
-			if err := k.escrowCoin(ctx, forwardingAddr, escrow, coin); err != nil {
+			if err := k.EscrowCoin(ctx, forwardingAddr, escrow, coin); err != nil {
 				return err
 			}
 		}

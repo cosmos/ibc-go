@@ -6,9 +6,11 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
+	types "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -76,8 +78,8 @@ func (m *QueryChannelRequest) GetChannelId() string {
 
 // QueryChannelRequest is the response type for the Query/Channel RPC method
 type QueryChannelResponse struct {
-	Creator string  `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	Channel Channel `protobuf:"bytes,2,opt,name=channel,proto3" json:"channel"`
+	// the channel associated with the provided channel id
+	Channel Channel `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel"`
 }
 
 func (m *QueryChannelResponse) Reset()         { *m = QueryChannelResponse{} }
@@ -113,13 +115,6 @@ func (m *QueryChannelResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryChannelResponse proto.InternalMessageInfo
 
-func (m *QueryChannelResponse) GetCreator() string {
-	if m != nil {
-		return m.Creator
-	}
-	return ""
-}
-
 func (m *QueryChannelResponse) GetChannel() Channel {
 	if m != nil {
 		return m.Channel
@@ -127,37 +122,911 @@ func (m *QueryChannelResponse) GetChannel() Channel {
 	return Channel{}
 }
 
+// QueryNextSequenceSendRequest is the request type for the Query/QueryNextSequenceSend RPC method
+type QueryNextSequenceSendRequest struct {
+	// channel unique identifier
+	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+}
+
+func (m *QueryNextSequenceSendRequest) Reset()         { *m = QueryNextSequenceSendRequest{} }
+func (m *QueryNextSequenceSendRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryNextSequenceSendRequest) ProtoMessage()    {}
+func (*QueryNextSequenceSendRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{2}
+}
+func (m *QueryNextSequenceSendRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryNextSequenceSendRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryNextSequenceSendRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryNextSequenceSendRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryNextSequenceSendRequest.Merge(m, src)
+}
+func (m *QueryNextSequenceSendRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryNextSequenceSendRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryNextSequenceSendRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryNextSequenceSendRequest proto.InternalMessageInfo
+
+func (m *QueryNextSequenceSendRequest) GetChannelId() string {
+	if m != nil {
+		return m.ChannelId
+	}
+	return ""
+}
+
+// QueryNextSequenceSendResponse is the response type for the Query/QueryNextSequenceSend RPC method
+type QueryNextSequenceSendResponse struct {
+	// next sequence send number
+	NextSequenceSend uint64 `protobuf:"varint,1,opt,name=next_sequence_send,json=nextSequenceSend,proto3" json:"next_sequence_send,omitempty"`
+	// merkle proof of existence
+	Proof []byte `protobuf:"bytes,2,opt,name=proof,proto3" json:"proof,omitempty"`
+	// height at which the proof was retrieved
+	ProofHeight types.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+}
+
+func (m *QueryNextSequenceSendResponse) Reset()         { *m = QueryNextSequenceSendResponse{} }
+func (m *QueryNextSequenceSendResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryNextSequenceSendResponse) ProtoMessage()    {}
+func (*QueryNextSequenceSendResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{3}
+}
+func (m *QueryNextSequenceSendResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryNextSequenceSendResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryNextSequenceSendResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryNextSequenceSendResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryNextSequenceSendResponse.Merge(m, src)
+}
+func (m *QueryNextSequenceSendResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryNextSequenceSendResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryNextSequenceSendResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryNextSequenceSendResponse proto.InternalMessageInfo
+
+func (m *QueryNextSequenceSendResponse) GetNextSequenceSend() uint64 {
+	if m != nil {
+		return m.NextSequenceSend
+	}
+	return 0
+}
+
+func (m *QueryNextSequenceSendResponse) GetProof() []byte {
+	if m != nil {
+		return m.Proof
+	}
+	return nil
+}
+
+func (m *QueryNextSequenceSendResponse) GetProofHeight() types.Height {
+	if m != nil {
+		return m.ProofHeight
+	}
+	return types.Height{}
+}
+
+// QueryPacketCommitmentRequest is the request type for the Query/PacketCommitment RPC method.
+type QueryPacketCommitmentRequest struct {
+	// channel unique identifier
+	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	// packet sequence
+	Sequence uint64 `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
+}
+
+func (m *QueryPacketCommitmentRequest) Reset()         { *m = QueryPacketCommitmentRequest{} }
+func (m *QueryPacketCommitmentRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryPacketCommitmentRequest) ProtoMessage()    {}
+func (*QueryPacketCommitmentRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{4}
+}
+func (m *QueryPacketCommitmentRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryPacketCommitmentRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryPacketCommitmentRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryPacketCommitmentRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPacketCommitmentRequest.Merge(m, src)
+}
+func (m *QueryPacketCommitmentRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryPacketCommitmentRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPacketCommitmentRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryPacketCommitmentRequest proto.InternalMessageInfo
+
+func (m *QueryPacketCommitmentRequest) GetChannelId() string {
+	if m != nil {
+		return m.ChannelId
+	}
+	return ""
+}
+
+func (m *QueryPacketCommitmentRequest) GetSequence() uint64 {
+	if m != nil {
+		return m.Sequence
+	}
+	return 0
+}
+
+// QueryPacketCommitmentResponse is the response type for the Query/PacketCommitment RPC method.
+type QueryPacketCommitmentResponse struct {
+	// packet associated with the request fields
+	Commitment []byte `protobuf:"bytes,1,opt,name=commitment,proto3" json:"commitment,omitempty"`
+	// merkle proof of existence
+	Proof []byte `protobuf:"bytes,2,opt,name=proof,proto3" json:"proof,omitempty"`
+	// height at which the proof was retrieved
+	ProofHeight types.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+}
+
+func (m *QueryPacketCommitmentResponse) Reset()         { *m = QueryPacketCommitmentResponse{} }
+func (m *QueryPacketCommitmentResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryPacketCommitmentResponse) ProtoMessage()    {}
+func (*QueryPacketCommitmentResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{5}
+}
+func (m *QueryPacketCommitmentResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryPacketCommitmentResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryPacketCommitmentResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryPacketCommitmentResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPacketCommitmentResponse.Merge(m, src)
+}
+func (m *QueryPacketCommitmentResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryPacketCommitmentResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPacketCommitmentResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryPacketCommitmentResponse proto.InternalMessageInfo
+
+func (m *QueryPacketCommitmentResponse) GetCommitment() []byte {
+	if m != nil {
+		return m.Commitment
+	}
+	return nil
+}
+
+func (m *QueryPacketCommitmentResponse) GetProof() []byte {
+	if m != nil {
+		return m.Proof
+	}
+	return nil
+}
+
+func (m *QueryPacketCommitmentResponse) GetProofHeight() types.Height {
+	if m != nil {
+		return m.ProofHeight
+	}
+	return types.Height{}
+}
+
+// QueryPacketCommitmentsRequest is the request type for the Query/PacketCommitments RPC method.
+type QueryPacketCommitmentsRequest struct {
+	// channel unique identifier
+	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	// pagination request
+	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryPacketCommitmentsRequest) Reset()         { *m = QueryPacketCommitmentsRequest{} }
+func (m *QueryPacketCommitmentsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryPacketCommitmentsRequest) ProtoMessage()    {}
+func (*QueryPacketCommitmentsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{6}
+}
+func (m *QueryPacketCommitmentsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryPacketCommitmentsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryPacketCommitmentsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryPacketCommitmentsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPacketCommitmentsRequest.Merge(m, src)
+}
+func (m *QueryPacketCommitmentsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryPacketCommitmentsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPacketCommitmentsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryPacketCommitmentsRequest proto.InternalMessageInfo
+
+func (m *QueryPacketCommitmentsRequest) GetChannelId() string {
+	if m != nil {
+		return m.ChannelId
+	}
+	return ""
+}
+
+func (m *QueryPacketCommitmentsRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+// QueryPacketCommitmentResponse is the response type for the Query/PacketCommitment RPC method.
+type QueryPacketCommitmentsResponse struct {
+	// collection of packet commitments for the requested channel identifier.
+	Commitments []*PacketState `protobuf:"bytes,1,rep,name=commitments,proto3" json:"commitments,omitempty"`
+	// pagination response.
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	// query block height.
+	Height types.Height `protobuf:"bytes,3,opt,name=height,proto3" json:"height"`
+}
+
+func (m *QueryPacketCommitmentsResponse) Reset()         { *m = QueryPacketCommitmentsResponse{} }
+func (m *QueryPacketCommitmentsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryPacketCommitmentsResponse) ProtoMessage()    {}
+func (*QueryPacketCommitmentsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{7}
+}
+func (m *QueryPacketCommitmentsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryPacketCommitmentsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryPacketCommitmentsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryPacketCommitmentsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPacketCommitmentsResponse.Merge(m, src)
+}
+func (m *QueryPacketCommitmentsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryPacketCommitmentsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPacketCommitmentsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryPacketCommitmentsResponse proto.InternalMessageInfo
+
+func (m *QueryPacketCommitmentsResponse) GetCommitments() []*PacketState {
+	if m != nil {
+		return m.Commitments
+	}
+	return nil
+}
+
+func (m *QueryPacketCommitmentsResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+func (m *QueryPacketCommitmentsResponse) GetHeight() types.Height {
+	if m != nil {
+		return m.Height
+	}
+	return types.Height{}
+}
+
+// QueryPacketAcknowledgementRequest is the request type for the Query/PacketAcknowledgement RPC method.
+type QueryPacketAcknowledgementRequest struct {
+	// channel unique identifier
+	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	// packet sequence
+	Sequence uint64 `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
+}
+
+func (m *QueryPacketAcknowledgementRequest) Reset()         { *m = QueryPacketAcknowledgementRequest{} }
+func (m *QueryPacketAcknowledgementRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryPacketAcknowledgementRequest) ProtoMessage()    {}
+func (*QueryPacketAcknowledgementRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{8}
+}
+func (m *QueryPacketAcknowledgementRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryPacketAcknowledgementRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryPacketAcknowledgementRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryPacketAcknowledgementRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPacketAcknowledgementRequest.Merge(m, src)
+}
+func (m *QueryPacketAcknowledgementRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryPacketAcknowledgementRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPacketAcknowledgementRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryPacketAcknowledgementRequest proto.InternalMessageInfo
+
+func (m *QueryPacketAcknowledgementRequest) GetChannelId() string {
+	if m != nil {
+		return m.ChannelId
+	}
+	return ""
+}
+
+func (m *QueryPacketAcknowledgementRequest) GetSequence() uint64 {
+	if m != nil {
+		return m.Sequence
+	}
+	return 0
+}
+
+// QueryPacketAcknowledgementResponse is the response type for the Query/PacketAcknowledgement RPC method.
+type QueryPacketAcknowledgementResponse struct {
+	// acknowledgement associated with the request fields
+	Acknowledgement []byte `protobuf:"bytes,1,opt,name=acknowledgement,proto3" json:"acknowledgement,omitempty"`
+	// merkle proof of existence
+	Proof []byte `protobuf:"bytes,2,opt,name=proof,proto3" json:"proof,omitempty"`
+	// height at which the proof was retrieved
+	ProofHeight types.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+}
+
+func (m *QueryPacketAcknowledgementResponse) Reset()         { *m = QueryPacketAcknowledgementResponse{} }
+func (m *QueryPacketAcknowledgementResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryPacketAcknowledgementResponse) ProtoMessage()    {}
+func (*QueryPacketAcknowledgementResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{9}
+}
+func (m *QueryPacketAcknowledgementResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryPacketAcknowledgementResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryPacketAcknowledgementResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryPacketAcknowledgementResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPacketAcknowledgementResponse.Merge(m, src)
+}
+func (m *QueryPacketAcknowledgementResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryPacketAcknowledgementResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPacketAcknowledgementResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryPacketAcknowledgementResponse proto.InternalMessageInfo
+
+func (m *QueryPacketAcknowledgementResponse) GetAcknowledgement() []byte {
+	if m != nil {
+		return m.Acknowledgement
+	}
+	return nil
+}
+
+func (m *QueryPacketAcknowledgementResponse) GetProof() []byte {
+	if m != nil {
+		return m.Proof
+	}
+	return nil
+}
+
+func (m *QueryPacketAcknowledgementResponse) GetProofHeight() types.Height {
+	if m != nil {
+		return m.ProofHeight
+	}
+	return types.Height{}
+}
+
+// QueryPacketReceiptRequest is the request type for the Query/PacketReceipt RPC method.
+type QueryPacketReceiptRequest struct {
+	// port unique identifier
+	PortId string `protobuf:"bytes,1,opt,name=port_id,json=portId,proto3" json:"port_id,omitempty"`
+	// channel unique identifier
+	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	// packet sequence
+	Sequence uint64 `protobuf:"varint,3,opt,name=sequence,proto3" json:"sequence,omitempty"`
+}
+
+func (m *QueryPacketReceiptRequest) Reset()         { *m = QueryPacketReceiptRequest{} }
+func (m *QueryPacketReceiptRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryPacketReceiptRequest) ProtoMessage()    {}
+func (*QueryPacketReceiptRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{10}
+}
+func (m *QueryPacketReceiptRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryPacketReceiptRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryPacketReceiptRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryPacketReceiptRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPacketReceiptRequest.Merge(m, src)
+}
+func (m *QueryPacketReceiptRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryPacketReceiptRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPacketReceiptRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryPacketReceiptRequest proto.InternalMessageInfo
+
+func (m *QueryPacketReceiptRequest) GetPortId() string {
+	if m != nil {
+		return m.PortId
+	}
+	return ""
+}
+
+func (m *QueryPacketReceiptRequest) GetChannelId() string {
+	if m != nil {
+		return m.ChannelId
+	}
+	return ""
+}
+
+func (m *QueryPacketReceiptRequest) GetSequence() uint64 {
+	if m != nil {
+		return m.Sequence
+	}
+	return 0
+}
+
+// QueryPacketReceiptResponse is the response type for the Query/PacketReceipt RPC method.
+type QueryPacketReceiptResponse struct {
+	// success flag for if receipt exists
+	Received bool `protobuf:"varint,2,opt,name=received,proto3" json:"received,omitempty"`
+	// merkle proof of existence or absence
+	Proof []byte `protobuf:"bytes,3,opt,name=proof,proto3" json:"proof,omitempty"`
+	// height at which the proof was retrieved
+	ProofHeight types.Height `protobuf:"bytes,4,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+}
+
+func (m *QueryPacketReceiptResponse) Reset()         { *m = QueryPacketReceiptResponse{} }
+func (m *QueryPacketReceiptResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryPacketReceiptResponse) ProtoMessage()    {}
+func (*QueryPacketReceiptResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{11}
+}
+func (m *QueryPacketReceiptResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryPacketReceiptResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryPacketReceiptResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryPacketReceiptResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPacketReceiptResponse.Merge(m, src)
+}
+func (m *QueryPacketReceiptResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryPacketReceiptResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPacketReceiptResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryPacketReceiptResponse proto.InternalMessageInfo
+
+func (m *QueryPacketReceiptResponse) GetReceived() bool {
+	if m != nil {
+		return m.Received
+	}
+	return false
+}
+
+func (m *QueryPacketReceiptResponse) GetProof() []byte {
+	if m != nil {
+		return m.Proof
+	}
+	return nil
+}
+
+func (m *QueryPacketReceiptResponse) GetProofHeight() types.Height {
+	if m != nil {
+		return m.ProofHeight
+	}
+	return types.Height{}
+}
+
+// QueryUnreceivedPacketsRequest is the request type for the Query/UnreceivedPackets RPC method
+type QueryUnreceivedPacketsRequest struct {
+	// channel unique identifier
+	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	// list of packet sequences
+	Sequences []uint64 `protobuf:"varint,2,rep,packed,name=sequences,proto3" json:"sequences,omitempty"`
+}
+
+func (m *QueryUnreceivedPacketsRequest) Reset()         { *m = QueryUnreceivedPacketsRequest{} }
+func (m *QueryUnreceivedPacketsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryUnreceivedPacketsRequest) ProtoMessage()    {}
+func (*QueryUnreceivedPacketsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{12}
+}
+func (m *QueryUnreceivedPacketsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryUnreceivedPacketsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryUnreceivedPacketsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryUnreceivedPacketsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryUnreceivedPacketsRequest.Merge(m, src)
+}
+func (m *QueryUnreceivedPacketsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryUnreceivedPacketsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryUnreceivedPacketsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryUnreceivedPacketsRequest proto.InternalMessageInfo
+
+func (m *QueryUnreceivedPacketsRequest) GetChannelId() string {
+	if m != nil {
+		return m.ChannelId
+	}
+	return ""
+}
+
+func (m *QueryUnreceivedPacketsRequest) GetSequences() []uint64 {
+	if m != nil {
+		return m.Sequences
+	}
+	return nil
+}
+
+// QueryUnreceivedPacketsResponse is the response type for the Query/UnreceivedPacketCommitments RPC method
+type QueryUnreceivedPacketsResponse struct {
+	// list of unreceived packet sequences
+	Sequences []uint64 `protobuf:"varint,1,rep,packed,name=sequences,proto3" json:"sequences,omitempty"`
+	// query block height
+	Height types.Height `protobuf:"bytes,2,opt,name=height,proto3" json:"height"`
+}
+
+func (m *QueryUnreceivedPacketsResponse) Reset()         { *m = QueryUnreceivedPacketsResponse{} }
+func (m *QueryUnreceivedPacketsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryUnreceivedPacketsResponse) ProtoMessage()    {}
+func (*QueryUnreceivedPacketsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{13}
+}
+func (m *QueryUnreceivedPacketsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryUnreceivedPacketsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryUnreceivedPacketsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryUnreceivedPacketsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryUnreceivedPacketsResponse.Merge(m, src)
+}
+func (m *QueryUnreceivedPacketsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryUnreceivedPacketsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryUnreceivedPacketsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryUnreceivedPacketsResponse proto.InternalMessageInfo
+
+func (m *QueryUnreceivedPacketsResponse) GetSequences() []uint64 {
+	if m != nil {
+		return m.Sequences
+	}
+	return nil
+}
+
+func (m *QueryUnreceivedPacketsResponse) GetHeight() types.Height {
+	if m != nil {
+		return m.Height
+	}
+	return types.Height{}
+}
+
+// QueryUnreceivedAcks is the request type for the
+// Query/UnreceivedAcks RPC method
+type QueryUnreceivedAcksRequest struct {
+	// channel unique identifier
+	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	// list of acknowledgement sequences
+	PacketAckSequences []uint64 `protobuf:"varint,2,rep,packed,name=packet_ack_sequences,json=packetAckSequences,proto3" json:"packet_ack_sequences,omitempty"`
+}
+
+func (m *QueryUnreceivedAcksRequest) Reset()         { *m = QueryUnreceivedAcksRequest{} }
+func (m *QueryUnreceivedAcksRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryUnreceivedAcksRequest) ProtoMessage()    {}
+func (*QueryUnreceivedAcksRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{14}
+}
+func (m *QueryUnreceivedAcksRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryUnreceivedAcksRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryUnreceivedAcksRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryUnreceivedAcksRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryUnreceivedAcksRequest.Merge(m, src)
+}
+func (m *QueryUnreceivedAcksRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryUnreceivedAcksRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryUnreceivedAcksRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryUnreceivedAcksRequest proto.InternalMessageInfo
+
+func (m *QueryUnreceivedAcksRequest) GetChannelId() string {
+	if m != nil {
+		return m.ChannelId
+	}
+	return ""
+}
+
+func (m *QueryUnreceivedAcksRequest) GetPacketAckSequences() []uint64 {
+	if m != nil {
+		return m.PacketAckSequences
+	}
+	return nil
+}
+
+// QueryUnreceivedAcksResponse is the response type for the
+// Query/UnreceivedAcks RPC method
+type QueryUnreceivedAcksResponse struct {
+	// list of unreceived acknowledgement sequences
+	Sequences []uint64 `protobuf:"varint,1,rep,packed,name=sequences,proto3" json:"sequences,omitempty"`
+	// query block height
+	Height types.Height `protobuf:"bytes,2,opt,name=height,proto3" json:"height"`
+}
+
+func (m *QueryUnreceivedAcksResponse) Reset()         { *m = QueryUnreceivedAcksResponse{} }
+func (m *QueryUnreceivedAcksResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryUnreceivedAcksResponse) ProtoMessage()    {}
+func (*QueryUnreceivedAcksResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a328cba4986edcab, []int{15}
+}
+func (m *QueryUnreceivedAcksResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryUnreceivedAcksResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryUnreceivedAcksResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryUnreceivedAcksResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryUnreceivedAcksResponse.Merge(m, src)
+}
+func (m *QueryUnreceivedAcksResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryUnreceivedAcksResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryUnreceivedAcksResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryUnreceivedAcksResponse proto.InternalMessageInfo
+
+func (m *QueryUnreceivedAcksResponse) GetSequences() []uint64 {
+	if m != nil {
+		return m.Sequences
+	}
+	return nil
+}
+
+func (m *QueryUnreceivedAcksResponse) GetHeight() types.Height {
+	if m != nil {
+		return m.Height
+	}
+	return types.Height{}
+}
+
 func init() {
 	proto.RegisterType((*QueryChannelRequest)(nil), "ibc.core.channel.v2.QueryChannelRequest")
 	proto.RegisterType((*QueryChannelResponse)(nil), "ibc.core.channel.v2.QueryChannelResponse")
+	proto.RegisterType((*QueryNextSequenceSendRequest)(nil), "ibc.core.channel.v2.QueryNextSequenceSendRequest")
+	proto.RegisterType((*QueryNextSequenceSendResponse)(nil), "ibc.core.channel.v2.QueryNextSequenceSendResponse")
+	proto.RegisterType((*QueryPacketCommitmentRequest)(nil), "ibc.core.channel.v2.QueryPacketCommitmentRequest")
+	proto.RegisterType((*QueryPacketCommitmentResponse)(nil), "ibc.core.channel.v2.QueryPacketCommitmentResponse")
+	proto.RegisterType((*QueryPacketCommitmentsRequest)(nil), "ibc.core.channel.v2.QueryPacketCommitmentsRequest")
+	proto.RegisterType((*QueryPacketCommitmentsResponse)(nil), "ibc.core.channel.v2.QueryPacketCommitmentsResponse")
+	proto.RegisterType((*QueryPacketAcknowledgementRequest)(nil), "ibc.core.channel.v2.QueryPacketAcknowledgementRequest")
+	proto.RegisterType((*QueryPacketAcknowledgementResponse)(nil), "ibc.core.channel.v2.QueryPacketAcknowledgementResponse")
+	proto.RegisterType((*QueryPacketReceiptRequest)(nil), "ibc.core.channel.v2.QueryPacketReceiptRequest")
+	proto.RegisterType((*QueryPacketReceiptResponse)(nil), "ibc.core.channel.v2.QueryPacketReceiptResponse")
+	proto.RegisterType((*QueryUnreceivedPacketsRequest)(nil), "ibc.core.channel.v2.QueryUnreceivedPacketsRequest")
+	proto.RegisterType((*QueryUnreceivedPacketsResponse)(nil), "ibc.core.channel.v2.QueryUnreceivedPacketsResponse")
+	proto.RegisterType((*QueryUnreceivedAcksRequest)(nil), "ibc.core.channel.v2.QueryUnreceivedAcksRequest")
+	proto.RegisterType((*QueryUnreceivedAcksResponse)(nil), "ibc.core.channel.v2.QueryUnreceivedAcksResponse")
 }
 
 func init() { proto.RegisterFile("ibc/core/channel/v2/query.proto", fileDescriptor_a328cba4986edcab) }
 
 var fileDescriptor_a328cba4986edcab = []byte{
-	// 339 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0xcf, 0x4c, 0x4a, 0xd6,
-	0x4f, 0xce, 0x2f, 0x4a, 0xd5, 0x4f, 0xce, 0x48, 0xcc, 0xcb, 0x4b, 0xcd, 0xd1, 0x2f, 0x33, 0xd2,
-	0x2f, 0x2c, 0x4d, 0x2d, 0xaa, 0xd4, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0xce, 0x4c, 0x4a,
-	0xd6, 0x03, 0x29, 0xd0, 0x83, 0x2a, 0xd0, 0x2b, 0x33, 0x92, 0x52, 0xc4, 0xa6, 0x0b, 0x26, 0x0f,
-	0xd6, 0x27, 0x25, 0x93, 0x9e, 0x9f, 0x9f, 0x9e, 0x93, 0xaa, 0x9f, 0x58, 0x90, 0xa9, 0x9f, 0x98,
-	0x97, 0x97, 0x5f, 0x92, 0x58, 0x92, 0x99, 0x9f, 0x57, 0x0c, 0x95, 0x15, 0x49, 0xcf, 0x4f, 0xcf,
-	0x07, 0x33, 0xf5, 0x41, 0x2c, 0x88, 0xa8, 0x92, 0x09, 0x97, 0x70, 0x20, 0xc8, 0x6a, 0x67, 0x88,
-	0x49, 0x41, 0xa9, 0x85, 0xa5, 0xa9, 0xc5, 0x25, 0x42, 0xb2, 0x5c, 0x5c, 0x50, 0xb3, 0xe3, 0x33,
-	0x53, 0x24, 0x18, 0x15, 0x18, 0x35, 0x38, 0x83, 0x38, 0xa1, 0x22, 0x9e, 0x29, 0x4a, 0x79, 0x5c,
-	0x22, 0xa8, 0xba, 0x8a, 0x0b, 0xf2, 0xf3, 0x8a, 0x53, 0x85, 0x24, 0xb8, 0xd8, 0x93, 0x8b, 0x52,
-	0x13, 0x4b, 0xf2, 0x8b, 0xa0, 0x7a, 0x60, 0x5c, 0x21, 0x1b, 0x2e, 0x76, 0xa8, 0x76, 0x09, 0x26,
-	0x05, 0x46, 0x0d, 0x6e, 0x23, 0x19, 0x3d, 0x2c, 0xbe, 0xd4, 0x83, 0x1a, 0xe8, 0xc4, 0x72, 0xe2,
-	0x9e, 0x3c, 0x43, 0x10, 0x4c, 0x8b, 0xd1, 0x6c, 0x46, 0x2e, 0x56, 0xb0, 0x85, 0x42, 0x13, 0x19,
-	0xb9, 0xd8, 0xa1, 0x8a, 0x84, 0x34, 0xb0, 0x1a, 0x81, 0xc5, 0x3b, 0x52, 0x9a, 0x44, 0xa8, 0x84,
-	0x78, 0x41, 0xc9, 0xb0, 0xe9, 0xf2, 0x93, 0xc9, 0x4c, 0xda, 0x42, 0x9a, 0xfa, 0x78, 0x02, 0x5c,
-	0xbf, 0x1a, 0x11, 0x3a, 0xb5, 0x4e, 0x61, 0x27, 0x1e, 0xc9, 0x31, 0x5e, 0x78, 0x24, 0xc7, 0xf8,
-	0xe0, 0x91, 0x1c, 0xe3, 0x84, 0xc7, 0x72, 0x0c, 0x17, 0x1e, 0xcb, 0x31, 0xdc, 0x78, 0x2c, 0xc7,
-	0x10, 0x65, 0x93, 0x9e, 0x59, 0x92, 0x51, 0x9a, 0xa4, 0x97, 0x9c, 0x9f, 0xab, 0x9f, 0x9c, 0x5f,
-	0x9c, 0x9b, 0x5f, 0x0c, 0x32, 0x55, 0x37, 0x3d, 0x5f, 0xbf, 0xcc, 0x52, 0x3f, 0x37, 0x3f, 0xa5,
-	0x34, 0x27, 0xb5, 0x18, 0x62, 0x87, 0x81, 0x89, 0x2e, 0x92, 0x35, 0x25, 0x95, 0x05, 0xa9, 0xc5,
-	0x49, 0x6c, 0xe0, 0x28, 0x32, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x3d, 0x69, 0x95, 0xfc, 0x31,
-	0x02, 0x00, 0x00,
+	// 1028 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0x5d, 0x6f, 0xdb, 0x54,
+	0x18, 0xee, 0x49, 0xb2, 0xb5, 0x7d, 0x53, 0xa0, 0x3b, 0x2b, 0x22, 0x98, 0x2e, 0xcb, 0x7c, 0x01,
+	0x61, 0xda, 0x7c, 0x9a, 0x6c, 0xe2, 0x43, 0xda, 0x84, 0xda, 0x6a, 0x6c, 0x45, 0x02, 0x15, 0x17,
+	0x90, 0x40, 0xd3, 0x22, 0xc7, 0x39, 0x73, 0xad, 0x24, 0x3e, 0x5e, 0xec, 0x84, 0x4e, 0x53, 0x6f,
+	0xb8, 0xe0, 0x1a, 0xb1, 0x3b, 0x7e, 0x01, 0xfc, 0x0a, 0x90, 0xb8, 0x99, 0xc4, 0xcd, 0xa4, 0x71,
+	0xc1, 0x15, 0x82, 0x16, 0x89, 0xbf, 0x81, 0x72, 0xce, 0x71, 0x62, 0x27, 0xb6, 0x6b, 0xb3, 0xf5,
+	0xce, 0x3e, 0x79, 0x3f, 0x9e, 0xe7, 0xf1, 0xfb, 0xfa, 0x89, 0xe1, 0xa2, 0xdd, 0x36, 0x89, 0xc9,
+	0x06, 0x94, 0x98, 0xfb, 0x86, 0xe3, 0xd0, 0x1e, 0x19, 0x35, 0xc9, 0x83, 0x21, 0x1d, 0x3c, 0xd4,
+	0xdc, 0x01, 0xf3, 0x19, 0x3e, 0x6f, 0xb7, 0x4d, 0x6d, 0x1c, 0xa0, 0xc9, 0x00, 0x6d, 0xd4, 0x54,
+	0x2e, 0x9b, 0xcc, 0xeb, 0x33, 0x8f, 0xb4, 0x0d, 0x8f, 0x8a, 0x68, 0x32, 0x6a, 0xb4, 0xa9, 0x6f,
+	0x34, 0x88, 0x6b, 0x58, 0xb6, 0x63, 0xf8, 0x36, 0x73, 0x44, 0x01, 0xe5, 0x52, 0x5c, 0x87, 0xa0,
+	0x56, 0x4a, 0x88, 0x45, 0x1d, 0xea, 0xd9, 0x9e, 0x0c, 0x09, 0xe1, 0xec, 0xd9, 0xd4, 0xf1, 0xc9,
+	0xa8, 0x21, 0xaf, 0x64, 0xc0, 0xba, 0xc5, 0x98, 0xd5, 0xa3, 0xc4, 0x70, 0x6d, 0x62, 0x38, 0x0e,
+	0xf3, 0x39, 0x86, 0x20, 0x7d, 0xcd, 0x62, 0x16, 0xe3, 0x97, 0x64, 0x7c, 0x25, 0x4e, 0xd5, 0xeb,
+	0x70, 0xfe, 0xd3, 0x31, 0xf8, 0x6d, 0xd1, 0x55, 0xa7, 0x0f, 0x86, 0xd4, 0xf3, 0xf1, 0x05, 0x00,
+	0x89, 0xa3, 0x65, 0x77, 0x2a, 0xa8, 0x86, 0xea, 0xcb, 0xfa, 0xb2, 0x3c, 0xd9, 0xe9, 0xa8, 0x9f,
+	0xc1, 0x5a, 0x34, 0xcb, 0x73, 0x99, 0xe3, 0x51, 0x7c, 0x03, 0x16, 0x65, 0x10, 0xcf, 0x29, 0x37,
+	0xd7, 0xb5, 0x18, 0xed, 0x34, 0x99, 0xb6, 0x55, 0x7a, 0xf2, 0xe7, 0xc5, 0x05, 0x3d, 0x48, 0x51,
+	0x6f, 0xc2, 0x3a, 0xaf, 0xfa, 0x09, 0x3d, 0xf0, 0xf7, 0xc6, 0x40, 0x1c, 0x93, 0xee, 0x51, 0xa7,
+	0x93, 0x11, 0xd4, 0x8f, 0x08, 0x2e, 0x24, 0xe4, 0x4b, 0x78, 0x57, 0x00, 0x3b, 0xf4, 0xc0, 0x6f,
+	0x79, 0xf2, 0xc7, 0x96, 0x47, 0x1d, 0x51, 0xa8, 0xa4, 0xaf, 0x3a, 0x33, 0x59, 0x78, 0x0d, 0xce,
+	0xb8, 0x03, 0xc6, 0xee, 0x57, 0x0a, 0x35, 0x54, 0x5f, 0xd1, 0xc5, 0x0d, 0xde, 0x86, 0x15, 0x7e,
+	0xd1, 0xda, 0xa7, 0xb6, 0xb5, 0xef, 0x57, 0x8a, 0x9c, 0xa7, 0x12, 0xe2, 0x29, 0x1e, 0xc9, 0xa8,
+	0xa1, 0xdd, 0xe1, 0x11, 0x92, 0x65, 0x99, 0x67, 0x89, 0x23, 0xf5, 0x4b, 0xc9, 0x74, 0xd7, 0x30,
+	0xbb, 0xd4, 0xdf, 0x66, 0xfd, 0xbe, 0xed, 0xf7, 0xa9, 0xe3, 0x67, 0x63, 0x8a, 0x15, 0x58, 0x0a,
+	0x28, 0x70, 0x70, 0x25, 0x7d, 0x72, 0xaf, 0xfe, 0x10, 0xa8, 0x30, 0x5f, 0x5b, 0xaa, 0x50, 0x05,
+	0x30, 0x27, 0xa7, 0xbc, 0xf8, 0x8a, 0x1e, 0x3a, 0x39, 0x4d, 0xde, 0xdf, 0x26, 0x81, 0xf3, 0x32,
+	0x32, 0xff, 0x10, 0x60, 0xba, 0x5d, 0x1c, 0x60, 0xb9, 0xf9, 0xa6, 0x26, 0x56, 0x51, 0x1b, 0xaf,
+	0xa2, 0x26, 0x16, 0x57, 0xae, 0xa2, 0xb6, 0x6b, 0x58, 0x54, 0x96, 0xd6, 0x43, 0x99, 0xea, 0xbf,
+	0x08, 0xaa, 0x49, 0x40, 0xa4, 0x4c, 0x5b, 0x50, 0x9e, 0x8a, 0xe2, 0x55, 0x50, 0xad, 0x58, 0x2f,
+	0x37, 0x6b, 0xb1, 0xf3, 0x2c, 0x8a, 0xec, 0xf9, 0x86, 0x4f, 0xf5, 0x70, 0x12, 0xbe, 0x1d, 0x03,
+	0xf7, 0xad, 0x13, 0xe1, 0x0a, 0x00, 0x61, 0xbc, 0xf8, 0x3d, 0x38, 0x9b, 0x53, 0x77, 0x19, 0xaf,
+	0xde, 0x83, 0x4b, 0x21, 0xa2, 0x9b, 0x66, 0xd7, 0x61, 0x5f, 0xf7, 0x68, 0xc7, 0xa2, 0x2f, 0x68,
+	0xde, 0x7e, 0x42, 0xa0, 0xa6, 0x35, 0x90, 0x6a, 0xd6, 0xe1, 0x15, 0x23, 0xfa, 0x93, 0x9c, 0xbc,
+	0xd9, 0xe3, 0xd3, 0x1c, 0x3f, 0x06, 0xaf, 0x87, 0xa0, 0xea, 0xd4, 0xa4, 0xb6, 0x3b, 0xd1, 0xe0,
+	0x35, 0x58, 0x74, 0xd9, 0xc0, 0x9f, 0x0a, 0x70, 0x76, 0x7c, 0xbb, 0xd3, 0x99, 0x11, 0xa7, 0x90,
+	0x26, 0x4e, 0x71, 0x46, 0x9c, 0xc7, 0x08, 0x94, 0xb8, 0x8e, 0x52, 0x14, 0x05, 0x96, 0x06, 0xe3,
+	0xa3, 0x11, 0x15, 0x75, 0x97, 0xf4, 0xc9, 0xfd, 0x54, 0x86, 0x62, 0x9a, 0x0c, 0xa5, 0xff, 0x23,
+	0xc3, 0x5d, 0xb9, 0x84, 0x9f, 0x3b, 0x41, 0x37, 0x01, 0x2f, 0xeb, 0x12, 0xae, 0xc3, 0x72, 0xc0,
+	0xd0, 0xab, 0x14, 0x6a, 0xc5, 0x7a, 0x49, 0x9f, 0x1e, 0xa8, 0x07, 0x72, 0xb3, 0x62, 0xaa, 0x4b,
+	0xda, 0x91, 0x7c, 0x34, 0x93, 0x1f, 0x1a, 0xf5, 0x42, 0xce, 0x51, 0xef, 0x4b, 0xb1, 0xa7, 0x9d,
+	0x37, 0xcd, 0x6e, 0x56, 0x52, 0x1b, 0xb0, 0xe6, 0x72, 0x9c, 0x2d, 0xc3, 0xec, 0xb6, 0x66, 0xf9,
+	0x61, 0x37, 0x98, 0xee, 0xbd, 0x09, 0xd1, 0x21, 0xbc, 0x11, 0xdb, 0xee, 0x74, 0x59, 0x36, 0x7f,
+	0x5f, 0x81, 0x33, 0xbc, 0x2f, 0xfe, 0x1e, 0xc1, 0xa2, 0xb4, 0x52, 0x5c, 0x8f, 0x7d, 0x31, 0xc5,
+	0x58, 0xbb, 0xf2, 0x76, 0x86, 0x48, 0x41, 0x41, 0x6d, 0x7e, 0xf3, 0xec, 0x9f, 0xc7, 0x85, 0x2b,
+	0xf8, 0x32, 0x49, 0xf9, 0x03, 0xe3, 0x91, 0x47, 0x53, 0x5d, 0x0f, 0xf1, 0x2f, 0x08, 0x56, 0x67,
+	0x0d, 0x18, 0x37, 0x92, 0x7b, 0x26, 0x98, 0xbd, 0xd2, 0xcc, 0x93, 0x22, 0xf1, 0xde, 0xe2, 0x78,
+	0x3f, 0xc0, 0x37, 0xb3, 0xe3, 0x25, 0xf3, 0x7f, 0x08, 0xf0, 0x6f, 0x08, 0x56, 0x67, 0x7d, 0x21,
+	0x8d, 0x42, 0x82, 0x8b, 0xa7, 0x51, 0x48, 0x32, 0x67, 0x75, 0x97, 0x53, 0xf8, 0x08, 0xdf, 0xc9,
+	0x41, 0x41, 0xce, 0x6d, 0xc8, 0x78, 0xc8, 0xa3, 0x80, 0xd1, 0x21, 0xfe, 0x15, 0xc1, 0xb9, 0x39,
+	0x97, 0xc3, 0x39, 0xb0, 0x05, 0x1b, 0xa4, 0x5c, 0xcb, 0x95, 0xf3, 0x1c, 0xcf, 0x64, 0x9e, 0x10,
+	0x7e, 0x86, 0xe0, 0xd5, 0x58, 0x87, 0xc1, 0xef, 0x9c, 0x84, 0x2a, 0xde, 0xf3, 0x94, 0x77, 0x73,
+	0xe7, 0x49, 0x46, 0x3b, 0x9c, 0xd1, 0x36, 0xde, 0xcc, 0xcf, 0xc8, 0x30, 0xbb, 0x91, 0x67, 0xf3,
+	0x33, 0x82, 0x97, 0x22, 0xd6, 0x80, 0xb5, 0x93, 0x50, 0x45, 0x5d, 0x4b, 0x21, 0x99, 0xe3, 0x25,
+	0xfa, 0x8f, 0x39, 0xfa, 0xdb, 0xf8, 0x56, 0x7e, 0xf4, 0x03, 0x51, 0x2a, 0xc2, 0xe0, 0x08, 0xc1,
+	0xb9, 0xb9, 0x37, 0x7d, 0xda, 0x74, 0x25, 0x99, 0x4e, 0xda, 0x74, 0x25, 0x5a, 0x89, 0xda, 0xe1,
+	0x6c, 0xee, 0xe1, 0xbb, 0x2f, 0x68, 0x5d, 0xbc, 0x43, 0x32, 0x9c, 0x34, 0x6b, 0xb9, 0x92, 0xce,
+	0xdf, 0x08, 0x5e, 0x8e, 0xbe, 0xe5, 0x31, 0xc9, 0x82, 0x36, 0x64, 0x3f, 0xca, 0x46, 0xf6, 0x04,
+	0xc9, 0xad, 0xc7, 0xb9, 0xdd, 0xc7, 0x9d, 0xe7, 0xe4, 0x16, 0x67, 0x6b, 0x11, 0x9a, 0xe3, 0xa9,
+	0xdc, 0xfa, 0xe2, 0xc9, 0x51, 0x15, 0x3d, 0x3d, 0xaa, 0xa2, 0xbf, 0x8e, 0xaa, 0xe8, 0xbb, 0xe3,
+	0xea, 0xc2, 0xd3, 0xe3, 0xea, 0xc2, 0x1f, 0xc7, 0xd5, 0x85, 0xaf, 0x6e, 0x58, 0xb6, 0xbf, 0x3f,
+	0x6c, 0x6b, 0x26, 0xeb, 0x13, 0xf9, 0xd1, 0x6b, 0xb7, 0xcd, 0xab, 0x16, 0x23, 0xa3, 0xf7, 0x49,
+	0x9f, 0x75, 0x86, 0x3d, 0xea, 0x09, 0x78, 0x1b, 0xd7, 0xaf, 0x86, 0x10, 0xfa, 0x0f, 0x5d, 0xea,
+	0xb5, 0xcf, 0xf2, 0xef, 0xcc, 0x6b, 0xff, 0x05, 0x00, 0x00, 0xff, 0xff, 0x9c, 0x92, 0x15, 0x18,
+	0x66, 0x0f, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -174,6 +1043,19 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Channel queries the counterparty of an IBC client.
 	Channel(ctx context.Context, in *QueryChannelRequest, opts ...grpc.CallOption) (*QueryChannelResponse, error)
+	// NextSequenceSend returns the next send sequence for a given channel.
+	NextSequenceSend(ctx context.Context, in *QueryNextSequenceSendRequest, opts ...grpc.CallOption) (*QueryNextSequenceSendResponse, error)
+	// PacketCommitment queries a stored packet commitment hash.
+	PacketCommitment(ctx context.Context, in *QueryPacketCommitmentRequest, opts ...grpc.CallOption) (*QueryPacketCommitmentResponse, error)
+	// PacketCommitments queries a stored packet commitment hash.
+	PacketCommitments(ctx context.Context, in *QueryPacketCommitmentsRequest, opts ...grpc.CallOption) (*QueryPacketCommitmentsResponse, error)
+	// PacketAcknowledgement queries a stored acknowledgement commitment hash.
+	PacketAcknowledgement(ctx context.Context, in *QueryPacketAcknowledgementRequest, opts ...grpc.CallOption) (*QueryPacketAcknowledgementResponse, error)
+	// PacketReceipt queries a stored packet receipt.
+	PacketReceipt(ctx context.Context, in *QueryPacketReceiptRequest, opts ...grpc.CallOption) (*QueryPacketReceiptResponse, error)
+	UnreceivedPackets(ctx context.Context, in *QueryUnreceivedPacketsRequest, opts ...grpc.CallOption) (*QueryUnreceivedPacketsResponse, error)
+	// UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a channel and sequences.
+	UnreceivedAcks(ctx context.Context, in *QueryUnreceivedAcksRequest, opts ...grpc.CallOption) (*QueryUnreceivedAcksResponse, error)
 }
 
 type queryClient struct {
@@ -193,10 +1075,86 @@ func (c *queryClient) Channel(ctx context.Context, in *QueryChannelRequest, opts
 	return out, nil
 }
 
+func (c *queryClient) NextSequenceSend(ctx context.Context, in *QueryNextSequenceSendRequest, opts ...grpc.CallOption) (*QueryNextSequenceSendResponse, error) {
+	out := new(QueryNextSequenceSendResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v2.Query/NextSequenceSend", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) PacketCommitment(ctx context.Context, in *QueryPacketCommitmentRequest, opts ...grpc.CallOption) (*QueryPacketCommitmentResponse, error) {
+	out := new(QueryPacketCommitmentResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v2.Query/PacketCommitment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) PacketCommitments(ctx context.Context, in *QueryPacketCommitmentsRequest, opts ...grpc.CallOption) (*QueryPacketCommitmentsResponse, error) {
+	out := new(QueryPacketCommitmentsResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v2.Query/PacketCommitments", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) PacketAcknowledgement(ctx context.Context, in *QueryPacketAcknowledgementRequest, opts ...grpc.CallOption) (*QueryPacketAcknowledgementResponse, error) {
+	out := new(QueryPacketAcknowledgementResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v2.Query/PacketAcknowledgement", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) PacketReceipt(ctx context.Context, in *QueryPacketReceiptRequest, opts ...grpc.CallOption) (*QueryPacketReceiptResponse, error) {
+	out := new(QueryPacketReceiptResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v2.Query/PacketReceipt", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) UnreceivedPackets(ctx context.Context, in *QueryUnreceivedPacketsRequest, opts ...grpc.CallOption) (*QueryUnreceivedPacketsResponse, error) {
+	out := new(QueryUnreceivedPacketsResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v2.Query/UnreceivedPackets", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) UnreceivedAcks(ctx context.Context, in *QueryUnreceivedAcksRequest, opts ...grpc.CallOption) (*QueryUnreceivedAcksResponse, error) {
+	out := new(QueryUnreceivedAcksResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.channel.v2.Query/UnreceivedAcks", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Channel queries the counterparty of an IBC client.
 	Channel(context.Context, *QueryChannelRequest) (*QueryChannelResponse, error)
+	// NextSequenceSend returns the next send sequence for a given channel.
+	NextSequenceSend(context.Context, *QueryNextSequenceSendRequest) (*QueryNextSequenceSendResponse, error)
+	// PacketCommitment queries a stored packet commitment hash.
+	PacketCommitment(context.Context, *QueryPacketCommitmentRequest) (*QueryPacketCommitmentResponse, error)
+	// PacketCommitments queries a stored packet commitment hash.
+	PacketCommitments(context.Context, *QueryPacketCommitmentsRequest) (*QueryPacketCommitmentsResponse, error)
+	// PacketAcknowledgement queries a stored acknowledgement commitment hash.
+	PacketAcknowledgement(context.Context, *QueryPacketAcknowledgementRequest) (*QueryPacketAcknowledgementResponse, error)
+	// PacketReceipt queries a stored packet receipt.
+	PacketReceipt(context.Context, *QueryPacketReceiptRequest) (*QueryPacketReceiptResponse, error)
+	UnreceivedPackets(context.Context, *QueryUnreceivedPacketsRequest) (*QueryUnreceivedPacketsResponse, error)
+	// UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a channel and sequences.
+	UnreceivedAcks(context.Context, *QueryUnreceivedAcksRequest) (*QueryUnreceivedAcksResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -205,6 +1163,27 @@ type UnimplementedQueryServer struct {
 
 func (*UnimplementedQueryServer) Channel(ctx context.Context, req *QueryChannelRequest) (*QueryChannelResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Channel not implemented")
+}
+func (*UnimplementedQueryServer) NextSequenceSend(ctx context.Context, req *QueryNextSequenceSendRequest) (*QueryNextSequenceSendResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NextSequenceSend not implemented")
+}
+func (*UnimplementedQueryServer) PacketCommitment(ctx context.Context, req *QueryPacketCommitmentRequest) (*QueryPacketCommitmentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PacketCommitment not implemented")
+}
+func (*UnimplementedQueryServer) PacketCommitments(ctx context.Context, req *QueryPacketCommitmentsRequest) (*QueryPacketCommitmentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PacketCommitments not implemented")
+}
+func (*UnimplementedQueryServer) PacketAcknowledgement(ctx context.Context, req *QueryPacketAcknowledgementRequest) (*QueryPacketAcknowledgementResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PacketAcknowledgement not implemented")
+}
+func (*UnimplementedQueryServer) PacketReceipt(ctx context.Context, req *QueryPacketReceiptRequest) (*QueryPacketReceiptResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PacketReceipt not implemented")
+}
+func (*UnimplementedQueryServer) UnreceivedPackets(ctx context.Context, req *QueryUnreceivedPacketsRequest) (*QueryUnreceivedPacketsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnreceivedPackets not implemented")
+}
+func (*UnimplementedQueryServer) UnreceivedAcks(ctx context.Context, req *QueryUnreceivedAcksRequest) (*QueryUnreceivedAcksResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnreceivedAcks not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -229,6 +1208,132 @@ func _Query_Channel_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_NextSequenceSend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryNextSequenceSendRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).NextSequenceSend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v2.Query/NextSequenceSend",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).NextSequenceSend(ctx, req.(*QueryNextSequenceSendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_PacketCommitment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPacketCommitmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).PacketCommitment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v2.Query/PacketCommitment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).PacketCommitment(ctx, req.(*QueryPacketCommitmentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_PacketCommitments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPacketCommitmentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).PacketCommitments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v2.Query/PacketCommitments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).PacketCommitments(ctx, req.(*QueryPacketCommitmentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_PacketAcknowledgement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPacketAcknowledgementRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).PacketAcknowledgement(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v2.Query/PacketAcknowledgement",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).PacketAcknowledgement(ctx, req.(*QueryPacketAcknowledgementRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_PacketReceipt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPacketReceiptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).PacketReceipt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v2.Query/PacketReceipt",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).PacketReceipt(ctx, req.(*QueryPacketReceiptRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_UnreceivedPackets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryUnreceivedPacketsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).UnreceivedPackets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v2.Query/UnreceivedPackets",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).UnreceivedPackets(ctx, req.(*QueryUnreceivedPacketsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_UnreceivedAcks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryUnreceivedAcksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).UnreceivedAcks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.channel.v2.Query/UnreceivedAcks",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).UnreceivedAcks(ctx, req.(*QueryUnreceivedAcksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.core.channel.v2.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -236,6 +1341,34 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Channel",
 			Handler:    _Query_Channel_Handler,
+		},
+		{
+			MethodName: "NextSequenceSend",
+			Handler:    _Query_NextSequenceSend_Handler,
+		},
+		{
+			MethodName: "PacketCommitment",
+			Handler:    _Query_PacketCommitment_Handler,
+		},
+		{
+			MethodName: "PacketCommitments",
+			Handler:    _Query_PacketCommitments_Handler,
+		},
+		{
+			MethodName: "PacketAcknowledgement",
+			Handler:    _Query_PacketAcknowledgement_Handler,
+		},
+		{
+			MethodName: "PacketReceipt",
+			Handler:    _Query_PacketReceipt_Handler,
+		},
+		{
+			MethodName: "UnreceivedPackets",
+			Handler:    _Query_UnreceivedPackets_Handler,
+		},
+		{
+			MethodName: "UnreceivedAcks",
+			Handler:    _Query_UnreceivedAcks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -301,11 +1434,634 @@ func (m *QueryChannelResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintQuery(dAtA, i, uint64(size))
 	}
 	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryNextSequenceSendRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryNextSequenceSendRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryNextSequenceSendRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryNextSequenceSendResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryNextSequenceSendResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryNextSequenceSendResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.ProofHeight.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.Proof) > 0 {
+		i -= len(m.Proof)
+		copy(dAtA[i:], m.Proof)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Proof)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.NextSequenceSend != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.NextSequenceSend))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryPacketCommitmentRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryPacketCommitmentRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryPacketCommitmentRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Sequence != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Sequence))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryPacketCommitmentResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryPacketCommitmentResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryPacketCommitmentResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.ProofHeight.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.Proof) > 0 {
+		i -= len(m.Proof)
+		copy(dAtA[i:], m.Proof)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Proof)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Commitment) > 0 {
+		i -= len(m.Commitment)
+		copy(dAtA[i:], m.Commitment)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Commitment)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryPacketCommitmentsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryPacketCommitmentsRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryPacketCommitmentsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryPacketCommitmentsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryPacketCommitmentsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryPacketCommitmentsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Height.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Commitments) > 0 {
+		for iNdEx := len(m.Commitments) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Commitments[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryPacketAcknowledgementRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryPacketAcknowledgementRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryPacketAcknowledgementRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Sequence != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Sequence))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryPacketAcknowledgementResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryPacketAcknowledgementResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryPacketAcknowledgementResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.ProofHeight.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.Proof) > 0 {
+		i -= len(m.Proof)
+		copy(dAtA[i:], m.Proof)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Proof)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Acknowledgement) > 0 {
+		i -= len(m.Acknowledgement)
+		copy(dAtA[i:], m.Acknowledgement)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Acknowledgement)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryPacketReceiptRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryPacketReceiptRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryPacketReceiptRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Sequence != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Sequence))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.PortId) > 0 {
+		i -= len(m.PortId)
+		copy(dAtA[i:], m.PortId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.PortId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryPacketReceiptResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryPacketReceiptResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryPacketReceiptResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.ProofHeight.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.Proof) > 0 {
+		i -= len(m.Proof)
+		copy(dAtA[i:], m.Proof)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.Proof)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Received {
+		i--
+		if m.Received {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryUnreceivedPacketsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryUnreceivedPacketsRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryUnreceivedPacketsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Sequences) > 0 {
+		dAtA10 := make([]byte, len(m.Sequences)*10)
+		var j9 int
+		for _, num := range m.Sequences {
+			for num >= 1<<7 {
+				dAtA10[j9] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j9++
+			}
+			dAtA10[j9] = uint8(num)
+			j9++
+		}
+		i -= j9
+		copy(dAtA[i:], dAtA10[:j9])
+		i = encodeVarintQuery(dAtA, i, uint64(j9))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryUnreceivedPacketsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryUnreceivedPacketsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryUnreceivedPacketsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Height.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
 	dAtA[i] = 0x12
-	if len(m.Creator) > 0 {
-		i -= len(m.Creator)
-		copy(dAtA[i:], m.Creator)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Creator)))
+	if len(m.Sequences) > 0 {
+		dAtA13 := make([]byte, len(m.Sequences)*10)
+		var j12 int
+		for _, num := range m.Sequences {
+			for num >= 1<<7 {
+				dAtA13[j12] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j12++
+			}
+			dAtA13[j12] = uint8(num)
+			j12++
+		}
+		i -= j12
+		copy(dAtA[i:], dAtA13[:j12])
+		i = encodeVarintQuery(dAtA, i, uint64(j12))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryUnreceivedAcksRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryUnreceivedAcksRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryUnreceivedAcksRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.PacketAckSequences) > 0 {
+		dAtA15 := make([]byte, len(m.PacketAckSequences)*10)
+		var j14 int
+		for _, num := range m.PacketAckSequences {
+			for num >= 1<<7 {
+				dAtA15[j14] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j14++
+			}
+			dAtA15[j14] = uint8(num)
+			j14++
+		}
+		i -= j14
+		copy(dAtA[i:], dAtA15[:j14])
+		i = encodeVarintQuery(dAtA, i, uint64(j14))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.ChannelId) > 0 {
+		i -= len(m.ChannelId)
+		copy(dAtA[i:], m.ChannelId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ChannelId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryUnreceivedAcksResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryUnreceivedAcksResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryUnreceivedAcksResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Height.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.Sequences) > 0 {
+		dAtA18 := make([]byte, len(m.Sequences)*10)
+		var j17 int
+		for _, num := range m.Sequences {
+			for num >= 1<<7 {
+				dAtA18[j17] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j17++
+			}
+			dAtA18[j17] = uint8(num)
+			j17++
+		}
+		i -= j17
+		copy(dAtA[i:], dAtA18[:j17])
+		i = encodeVarintQuery(dAtA, i, uint64(j17))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -342,11 +2098,260 @@ func (m *QueryChannelResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Creator)
+	l = m.Channel.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryNextSequenceSendRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ChannelId)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
-	l = m.Channel.Size()
+	return n
+}
+
+func (m *QueryNextSequenceSendResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.NextSequenceSend != 0 {
+		n += 1 + sovQuery(uint64(m.NextSequenceSend))
+	}
+	l = len(m.Proof)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = m.ProofHeight.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryPacketCommitmentRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Sequence != 0 {
+		n += 1 + sovQuery(uint64(m.Sequence))
+	}
+	return n
+}
+
+func (m *QueryPacketCommitmentResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Commitment)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.Proof)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = m.ProofHeight.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryPacketCommitmentsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryPacketCommitmentsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Commitments) > 0 {
+		for _, e := range m.Commitments {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = m.Height.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryPacketAcknowledgementRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Sequence != 0 {
+		n += 1 + sovQuery(uint64(m.Sequence))
+	}
+	return n
+}
+
+func (m *QueryPacketAcknowledgementResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Acknowledgement)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.Proof)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = m.ProofHeight.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryPacketReceiptRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.PortId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Sequence != 0 {
+		n += 1 + sovQuery(uint64(m.Sequence))
+	}
+	return n
+}
+
+func (m *QueryPacketReceiptResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Received {
+		n += 2
+	}
+	l = len(m.Proof)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = m.ProofHeight.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryUnreceivedPacketsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if len(m.Sequences) > 0 {
+		l = 0
+		for _, e := range m.Sequences {
+			l += sovQuery(uint64(e))
+		}
+		n += 1 + sovQuery(uint64(l)) + l
+	}
+	return n
+}
+
+func (m *QueryUnreceivedPacketsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Sequences) > 0 {
+		l = 0
+		for _, e := range m.Sequences {
+			l += sovQuery(uint64(e))
+		}
+		n += 1 + sovQuery(uint64(l)) + l
+	}
+	l = m.Height.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryUnreceivedAcksRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ChannelId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if len(m.PacketAckSequences) > 0 {
+		l = 0
+		for _, e := range m.PacketAckSequences {
+			l += sovQuery(uint64(e))
+		}
+		n += 1 + sovQuery(uint64(l)) + l
+	}
+	return n
+}
+
+func (m *QueryUnreceivedAcksResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Sequences) > 0 {
+		l = 0
+		for _, e := range m.Sequences {
+			l += sovQuery(uint64(e))
+		}
+		n += 1 + sovQuery(uint64(l)) + l
+	}
+	l = m.Height.Size()
 	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
@@ -470,38 +2475,6 @@ func (m *QueryChannelResponse) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Creator = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Channel", wireType)
 			}
 			var msglen int
@@ -530,6 +2503,1903 @@ func (m *QueryChannelResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.Channel.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryNextSequenceSendRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryNextSequenceSendRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryNextSequenceSendRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryNextSequenceSendResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryNextSequenceSendResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryNextSequenceSendResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NextSequenceSend", wireType)
+			}
+			m.NextSequenceSend = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.NextSequenceSend |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Proof", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Proof = append(m.Proof[:0], dAtA[iNdEx:postIndex]...)
+			if m.Proof == nil {
+				m.Proof = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProofHeight", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ProofHeight.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryPacketCommitmentRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryPacketCommitmentRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryPacketCommitmentRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sequence", wireType)
+			}
+			m.Sequence = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Sequence |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryPacketCommitmentResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryPacketCommitmentResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryPacketCommitmentResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Commitment", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Commitment = append(m.Commitment[:0], dAtA[iNdEx:postIndex]...)
+			if m.Commitment == nil {
+				m.Commitment = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Proof", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Proof = append(m.Proof[:0], dAtA[iNdEx:postIndex]...)
+			if m.Proof == nil {
+				m.Proof = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProofHeight", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ProofHeight.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryPacketCommitmentsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryPacketCommitmentsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryPacketCommitmentsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryPacketCommitmentsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryPacketCommitmentsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryPacketCommitmentsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Commitments", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Commitments = append(m.Commitments, &PacketState{})
+			if err := m.Commitments[len(m.Commitments)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Height.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryPacketAcknowledgementRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryPacketAcknowledgementRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryPacketAcknowledgementRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sequence", wireType)
+			}
+			m.Sequence = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Sequence |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryPacketAcknowledgementResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryPacketAcknowledgementResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryPacketAcknowledgementResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Acknowledgement", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Acknowledgement = append(m.Acknowledgement[:0], dAtA[iNdEx:postIndex]...)
+			if m.Acknowledgement == nil {
+				m.Acknowledgement = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Proof", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Proof = append(m.Proof[:0], dAtA[iNdEx:postIndex]...)
+			if m.Proof == nil {
+				m.Proof = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProofHeight", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ProofHeight.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryPacketReceiptRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryPacketReceiptRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryPacketReceiptRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PortId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PortId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sequence", wireType)
+			}
+			m.Sequence = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Sequence |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryPacketReceiptResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryPacketReceiptResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryPacketReceiptResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Received", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Received = bool(v != 0)
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Proof", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Proof = append(m.Proof[:0], dAtA[iNdEx:postIndex]...)
+			if m.Proof == nil {
+				m.Proof = []byte{}
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProofHeight", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ProofHeight.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryUnreceivedPacketsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryUnreceivedPacketsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryUnreceivedPacketsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType == 0 {
+				var v uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.Sequences = append(m.Sequences, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthQuery
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthQuery
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.Sequences) == 0 {
+					m.Sequences = make([]uint64, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowQuery
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.Sequences = append(m.Sequences, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sequences", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryUnreceivedPacketsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryUnreceivedPacketsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryUnreceivedPacketsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType == 0 {
+				var v uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.Sequences = append(m.Sequences, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthQuery
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthQuery
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.Sequences) == 0 {
+					m.Sequences = make([]uint64, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowQuery
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.Sequences = append(m.Sequences, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sequences", wireType)
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Height.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryUnreceivedAcksRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryUnreceivedAcksRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryUnreceivedAcksRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType == 0 {
+				var v uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.PacketAckSequences = append(m.PacketAckSequences, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthQuery
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthQuery
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.PacketAckSequences) == 0 {
+					m.PacketAckSequences = make([]uint64, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowQuery
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.PacketAckSequences = append(m.PacketAckSequences, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field PacketAckSequences", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryUnreceivedAcksResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryUnreceivedAcksResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryUnreceivedAcksResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType == 0 {
+				var v uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.Sequences = append(m.Sequences, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthQuery
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthQuery
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.Sequences) == 0 {
+					m.Sequences = make([]uint64, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowQuery
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.Sequences = append(m.Sequences, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sequences", wireType)
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Height.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

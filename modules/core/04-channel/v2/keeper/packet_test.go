@@ -5,7 +5,6 @@ import (
 	"time"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
@@ -56,7 +55,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				// invalid data
 				packet.Payloads = nil
 			},
-			channeltypes.ErrInvalidPacket,
+			types.ErrInvalidPacket,
 		},
 		{
 			"client status invalid",
@@ -84,7 +83,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			"timeout elapsed", func() {
 				packet.TimeoutTimestamp = 1
 			},
-			channeltypes.ErrTimeoutElapsed,
+			types.ErrTimeoutElapsed,
 		},
 	}
 
@@ -168,21 +167,21 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {
 				packet.SourceChannel = unusedChannel
 			},
-			channeltypes.ErrInvalidChannelIdentifier,
+			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"failure: packet has timed out",
 			func() {
 				suite.coordinator.IncrementTimeBy(time.Hour * 20)
 			},
-			channeltypes.ErrTimeoutElapsed,
+			types.ErrTimeoutElapsed,
 		},
 		{
 			"failure: packet already received",
 			func() {
 				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence)
 			},
-			channeltypes.ErrNoOpMsg,
+			types.ErrNoOpMsg,
 		},
 		{
 			"failure: verify membership failed",
@@ -262,7 +261,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			func() {
 				packet.SourceChannel = unusedChannel
 			},
-			channeltypes.ErrInvalidChannelIdentifier,
+			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"failure: ack already exists",
@@ -270,13 +269,13 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				ackBz := types.CommitAcknowledgement(ack)
 				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence, ackBz)
 			},
-			channeltypes.ErrAcknowledgementExists,
+			types.ErrAcknowledgementExists,
 		},
 		{
 			"failure: empty ack",
 			func() {
 				ack = types.Acknowledgement{
-					AcknowledgementResults: []types.AcknowledgementResult{},
+					AppAcknowledgements: [][]byte{},
 				}
 			},
 			types.ErrInvalidAcknowledgement,
@@ -286,7 +285,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			func() {
 				packet.Sequence = 2
 			},
-			channeltypes.ErrInvalidPacket,
+			types.ErrInvalidPacket,
 		},
 	}
 
@@ -308,12 +307,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 			// create standard ack that can be malleated
 			ack = types.Acknowledgement{
-				AcknowledgementResults: []types.AcknowledgementResult{
-					{
-						AppName:          mockv2.ModuleNameB,
-						RecvPacketResult: mockv2.MockRecvPacketResult,
-					},
-				},
+				AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement},
 			}
 
 			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence)
@@ -341,10 +335,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		packet types.Packet
 		err    error
 		ack    = types.Acknowledgement{
-			AcknowledgementResults: []types.AcknowledgementResult{{
-				AppName:          mockv2.ModuleNameB,
-				RecvPacketResult: mockv2.MockRecvPacketResult,
-			}},
+			AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement},
 		}
 		freezeClient bool
 	)
@@ -371,14 +362,14 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			func() {
 				packet.DestinationChannel = unusedChannel
 			},
-			channeltypes.ErrInvalidChannelIdentifier,
+			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"failure: packet commitment doesn't exist.",
 			func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeletePacketCommitment(suite.chainA.GetContext(), packet.SourceChannel, packet.Sequence)
 			},
-			channeltypes.ErrNoOpMsg,
+			types.ErrNoOpMsg,
 		},
 		{
 			"failure: client status invalid",
@@ -393,12 +384,12 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				// change payload after send to acknowledge different packet
 				packet.Payloads[0].Value = []byte("different value")
 			},
-			channeltypes.ErrInvalidPacket,
+			types.ErrInvalidPacket,
 		},
 		{
 			"failure: verify membership fails",
 			func() {
-				ack.AcknowledgementResults[0].RecvPacketResult = mockv2.MockFailRecvPacketResult
+				ack.AppAcknowledgements[0] = mockv2.MockFailRecvPacketResult.Acknowledgement
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -494,7 +485,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 				packet.DestinationChannel = unusedChannel
 			},
-			channeltypes.ErrInvalidChannelIdentifier,
+			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"failure: packet has not timed out yet",
@@ -506,12 +497,12 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 			},
-			channeltypes.ErrTimeoutNotReached,
+			types.ErrTimeoutNotReached,
 		},
 		{
 			"failure: packet already timed out",
 			func() {}, // equivalent to not sending packet at all
-			channeltypes.ErrNoOpMsg,
+			types.ErrNoOpMsg,
 		},
 		{
 			"failure: packet does not match commitment",
@@ -523,7 +514,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				// try to timeout packet with different data
 				packet.Payloads[0].Value = []byte("different value")
 			},
-			channeltypes.ErrInvalidPacket,
+			types.ErrInvalidPacket,
 		},
 		{
 			"failure: client status invalid",

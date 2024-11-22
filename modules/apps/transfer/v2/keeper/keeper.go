@@ -15,6 +15,7 @@ import (
 	transferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	typesv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/types"
+
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
@@ -168,7 +169,6 @@ func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]types.Hop, er
 }
 
 func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload channeltypesv2.Payload, data types.FungibleTokenPacketDataV2, sender sdk.AccAddress) error {
-	// TODO unwind logic for forwarding
 	for _, token := range data.Tokens {
 		coin, err := token.ToCoin()
 		if err != nil {

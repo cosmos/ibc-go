@@ -27,9 +27,6 @@ func (suite *MerkleTestSuite) TestVerifyMembership() {
 	proof, err := types.ConvertProofs(res.ProofOps)
 	require.NoError(suite.T(), err)
 
-	suite.Require().NoError(proof.ValidateBasic())
-	suite.Require().Error(types.MerkleProof{}.ValidateBasic())
-
 	cases := []struct {
 		name       string
 		root       []byte
@@ -92,8 +89,6 @@ func (suite *MerkleTestSuite) TestVerifyNonMembership() {
 
 	proof, err := types.ConvertProofs(res.ProofOps)
 	require.NoError(suite.T(), err)
-
-	suite.Require().NoError(proof.ValidateBasic())
 
 	cases := []struct {
 		name       string

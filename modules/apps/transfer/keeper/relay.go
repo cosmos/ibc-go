@@ -129,7 +129,7 @@ func (k Keeper) sendTransfer(
 		} else {
 			// obtain the escrow address for the source channel end
 			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-			if err := k.escrowCoin(ctx, sender, escrowAddress, coin); err != nil {
+			if err := k.EscrowCoin(ctx, sender, escrowAddress, coin); err != nil {
 				return 0, err
 			}
 		}
@@ -383,9 +383,10 @@ func (k Keeper) refundPacketTokens(ctx context.Context, packet channeltypes.Pack
 	return nil
 }
 
-// escrowCoin will send the given coin from the provided sender to the escrow address. It will also
+// EscrowCoin will send the given coin from the provided sender to the escrow address. It will also
 // update the total escrowed amount by adding the escrowed coin's amount to the current total escrow.
-func (k Keeper) escrowCoin(ctx context.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
+
+func (k Keeper) EscrowCoin(ctx context.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
 	if err := k.BankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(coin)); err != nil {
 		// failure is expected for insufficient balances
 		return err

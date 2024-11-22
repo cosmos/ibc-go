@@ -4,14 +4,12 @@ import (
 	"bytes"
 	"context"
 	"strconv"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -50,7 +48,7 @@ func (k *Keeper) sendPacket(
 	packet := types.NewPacket(sequence, sourceChannel, destChannel, timeoutTimestamp, payloads...)
 
 	if err := packet.ValidateBasic(); err != nil {
-		return 0, "", errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
+		return 0, "", errorsmod.Wrapf(types.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
 	}
 
 	// check that the client of counterparty chain is still active
@@ -68,12 +66,12 @@ func (k *Keeper) sendPacket(
 	if err != nil {
 		return 0, "", err
 	}
-	// check if packet is timed out on the receiving chain
-	// convert packet timeout to nanoseconds for now to use existing helper function
-	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
-	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
-	if timeout.TimestampElapsed(latestTimestamp) {
-		return 0, "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(latestHeight, latestTimestamp), "invalid packet timeout")
+
+	// client timestamps are in nanoseconds while packet timeouts are in seconds
+	// thus to compare them, we convert the packet timeout to nanoseconds
+	timeoutTimestamp = types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
+	if latestTimestamp >= timeoutTimestamp {
+		return 0, "", errorsmod.Wrapf(types.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeoutTimestamp)
 	}
 
 	commitment := types.CommitPacket(packet)
@@ -84,7 +82,7 @@ func (k *Keeper) sendPacket(
 
 	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest_channel_id", packet.DestinationChannel, "src_channel_id", packet.SourceChannel)
 
-	EmitSendPacketEvents(ctx, packet)
+	emitSendPacketEvents(ctx, packet)
 
 	return sequence, destChannel, nil
 }
@@ -102,9 +100,6 @@ func (k *Keeper) recvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// Lookup channel associated with destination channel ID and ensure
-	// that the packet was indeed sent by our counterparty by verifying
-	// packet sender is our channel's counterparty channel id.
 	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
 	if !ok {
 		// TODO: figure out how aliasing will work when more than one payload is sent.
@@ -113,30 +108,29 @@ func (k *Keeper) recvPacket(
 			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
 		}
 	}
+
 	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
+		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
 	}
+
 	clientID := channel.ClientId
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano())
-	// convert packet timeout to nanoseconds for now to use existing helper function
-	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
-	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
-	if timeout.Elapsed(selfHeight, selfTimestamp) {
-		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
+	currentTimestamp := uint64(sdkCtx.BlockTime().Unix())
+	if currentTimestamp >= packet.TimeoutTimestamp {
+		return errorsmod.Wrapf(types.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, packet.TimeoutTimestamp)
 	}
 
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
 	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
 	// by the increase of the recvStartSequence.
 	if k.HasPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence) {
-		EmitRecvPacketEvents(ctx, packet)
+		emitRecvPacketEvents(ctx, packet)
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
 		// from failing and consuming unnecessary fees.
-		return channeltypes.ErrNoOpMsg
+		return types.ErrNoOpMsg
 	}
 
 	path := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
@@ -161,12 +155,13 @@ func (k *Keeper) recvPacket(
 
 	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_id", packet.SourceChannel, "dst_id", packet.DestinationChannel)
 
-	EmitRecvPacketEvents(ctx, packet)
+	emitRecvPacketEvents(ctx, packet)
 
 	return nil
 }
 
 // WriteAcknowledgement writes the acknowledgement to the store.
+// TODO: change this function to accept destPort, destChannel, sequence, ack
 func (k Keeper) WriteAcknowledgement(
 	ctx context.Context,
 	sourceChannel string,
@@ -211,6 +206,8 @@ func (k Keeper) WriteAcknowledgement(
 	// EmitWriteAcknowledgementEvents(ctx, packet, ack)
 
 	k.DeletePacket(ctx, destinationChannel, sequence)
+	// TODO: decide how relayers will reconstruct the packet as it is not being passed.
+	// EmitWriteAcknowledgementEvents(ctx, packet, ack)
 
 	return nil
 }
@@ -224,7 +221,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 	}
 
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
+		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
 	}
 
 	clientID := channel.ClientId
@@ -238,14 +235,14 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return channeltypes.ErrNoOpMsg
+		return types.ErrNoOpMsg
 	}
 
 	packetCommitment := types.CommitPacket(packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
+		return errorsmod.Wrapf(types.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
 	path := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
@@ -285,15 +282,15 @@ func (k *Keeper) timeoutPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// Lookup counterparty associated with our channel and ensure
-	// that the packet was indeed sent by our counterparty.
 	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
 	if !ok {
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
 	}
+
 	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
+		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
 	}
+
 	clientID := channel.ClientId
 
 	// check that timeout height or timeout timestamp has passed on the other end
@@ -302,11 +299,9 @@ func (k *Keeper) timeoutPacket(
 		return err
 	}
 
-	// convert packet timeout to nanoseconds for now to use existing helper function
-	// TODO: Remove this workaround with Issue #7414: https://github.com/cosmos/ibc-go/issues/7414
-	timeout := channeltypes.NewTimeoutWithTimestamp(uint64(time.Unix(int64(packet.GetTimeoutTimestamp()), 0).UnixNano()))
-	if !timeout.Elapsed(clienttypes.ZeroHeight(), proofTimestamp) {
-		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
+	timeoutTimestamp := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
+	if proofTimestamp < timeoutTimestamp {
+		return errorsmod.Wrapf(types.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, timeoutTimestamp)
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
@@ -317,13 +312,13 @@ func (k *Keeper) timeoutPacket(
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return channeltypes.ErrNoOpMsg
+		return types.ErrNoOpMsg
 	}
 
 	packetCommitment := types.CommitPacket(packet)
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
-		return errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
+		return errorsmod.Wrapf(types.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
 	// verify packet receipt absence

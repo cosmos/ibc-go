@@ -1,14 +1,19 @@
 on:
   workflow_call:
     inputs:
-      test-file-directory:
-        description: 'Directory containing compatibility matrices'
+      test-file:
+        description: 'The test file'
         required: true
         type: string
-      test-suite:
-        description: 'Test suite to run'
+      release-version:
+        description: 'the release tag, e.g. release-v7.3.0'
         required: true
         type: string
+      chain:
+        description: 'Should be one of chain-a, chain-b or all. Split up workflows into multiple (chain-a and chain-b) versions if the job limit is exceeded.'
+        required: false
+        type: string
+        default: all
 
 jobs:
   load-test-matrix:
@@ -17,13 +22,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: andstor/file-existence-action@v3
+      - uses: actions/setup-python@v5
         with:
-          files: '.github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json'
+          python-version: '3.10'
+      - run: pip install -r requirements.txt
       - run: |
           # use jq -c to compact the full json contents into a single line. This is required when using the json body
           # to create the matrix in the following job.
-          test_matrix="$(cat .github/compatibility-test-matrices/${{ inputs.test-file-directory }}/${{ inputs.test-suite }}.json | jq -c)"
+          test_matrix="$(python scripts/generate-compatibility-json.py --file ${{ inputs.test-file }} --release-version ${{ inputs.release-version }} --chain ${{ inputs.chain }})"
           echo "test-matrix=$test_matrix" >> $GITHUB_OUTPUT
         id: set-test-matrix
 

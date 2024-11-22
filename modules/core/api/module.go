@@ -19,7 +19,7 @@ type IBCModule interface {
 		sourceChannel string,
 		destinationChannel string,
 		sequence uint64,
-		data channeltypesv2.Payload,
+		payload channeltypesv2.Payload,
 		signer sdk.AccAddress,
 	) error
 
@@ -27,7 +27,8 @@ type IBCModule interface {
 		ctx context.Context,
 		sourceChannel string,
 		destinationChannel string,
-		data channeltypesv2.Payload,
+		sequence uint64,
+		payload channeltypesv2.Payload,
 		relayer sdk.AccAddress,
 	) channeltypesv2.RecvPacketResult
 
@@ -36,7 +37,8 @@ type IBCModule interface {
 		ctx context.Context,
 		sourceChannel string,
 		destinationChannel string,
-		data channeltypesv2.Payload,
+		sequence uint64,
+		payload channeltypesv2.Payload,
 		relayer sdk.AccAddress,
 	) error
 
@@ -45,8 +47,9 @@ type IBCModule interface {
 		ctx context.Context,
 		sourceChannel string,
 		destinationChannel string,
-		data channeltypesv2.Payload,
+		sequence uint64,
 		acknowledgement []byte,
+		payload channeltypesv2.Payload,
 		relayer sdk.AccAddress,
 	) error
 }

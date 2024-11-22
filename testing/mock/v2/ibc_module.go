@@ -38,23 +38,23 @@ func (im IBCModule) OnSendPacket(ctx context.Context, sourceChannel string, dest
 	return nil
 }
 
-func (im IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+func (im IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 	if im.IBCApp.OnRecvPacket != nil {
-		return im.IBCApp.OnRecvPacket(ctx, sourceChannel, destinationChannel, data, relayer)
+		return im.IBCApp.OnRecvPacket(ctx, sourceChannel, destinationChannel, sequence, data, relayer)
 	}
 	return MockRecvPacketResult
 }
 
-func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, acknowledgement []byte, relayer sdk.AccAddress) error {
+func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnAcknowledgementPacket != nil {
-		return im.IBCApp.OnAcknowledgementPacket(ctx, sourceChannel, destinationChannel, data, acknowledgement, relayer)
+		return im.IBCApp.OnAcknowledgementPacket(ctx, sourceChannel, destinationChannel, sequence, payload, acknowledgement, relayer)
 	}
 	return nil
 }
 
-func (im IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, data channeltypesv2.Payload, relayer sdk.AccAddress) error {
+func (im IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnTimeoutPacket != nil {
-		return im.IBCApp.OnTimeoutPacket(ctx, sourceChannel, destinationChannel, data, relayer)
+		return im.IBCApp.OnTimeoutPacket(ctx, sourceChannel, destinationChannel, sequence, payload, relayer)
 	}
 	return nil
 }

@@ -21,6 +21,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
+// compatibility:from_version: v7.2.0
 func TestTransferLocalhostTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(LocalhostTransferTestSuite))
 }

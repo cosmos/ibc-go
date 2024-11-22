@@ -1,8 +1,8 @@
 # CODEOWNERS: https://help.github.com/articles/about-codeowners/
 
-*       @colin-axner @AdityaSripal @damiannolan @chatton @DimitrisJim @gjermundgaraba @bznein
+*       @AdityaSripal @damiannolan @chatton @DimitrisJim @gjermundgaraba @bznein
 
-# Our appreciation and gratitude to past code owners: @fedekunze @seantking @tmsdkeys @charleenfei @crodriguezvega
+# Our appreciation and gratitude to past code owners: @fedekunze @seantking @tmsdkeys @charleenfei @crodriguezvega @colin-axner 
 
 # Order is important; the last matching pattern takes the most
 # precedence. When someone opens a pull request that only
@@ -11,42 +11,42 @@
 
 # CODEOWNERS for the CODEOWNER file
 
-/.github/CODEOWNERS @colin-axner @AdityaSripal @damiannolan @chatton
+/.github/CODEOWNERS @AdityaSripal @damiannolan @chatton
 
 # CODEOWNERS for the core IBC module
 
-/modules/core/ @colin-axner @AdityaSripal @damiannolan @chatton
-/proto/ibc/core/ @colin-axner @AdityaSripal @damiannolan @chatton
+/modules/core/ @AdityaSripal @damiannolan @chatton
+/proto/ibc/core/ @AdityaSripal @damiannolan @chatton
 
 # CODEOWNERS for the light-clients
 
-/modules/light-clients/ @colin-axner @AdityaSripal @damiannolan @chatton
-/proto/ibc/lightclients/ @colin-axner @AdityaSripal @damiannolan @chatton
+/modules/light-clients/ @AdityaSripal @damiannolan @chatton
+/proto/ibc/lightclients/ @AdityaSripal @damiannolan @chatton
 
 # CODEOWNERS for 08-wasm light client module
 
-/modules/light-clients/08-wasm/ @colin-axner @AdityaSripal @damiannolan @chatton @DimitrisJim @srdtrk
+/modules/light-clients/08-wasm/ @AdityaSripal @damiannolan @chatton @DimitrisJim @srdtrk
 
 # CODEOWNERS for ICS 20
 
-/modules/apps/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton @DimitrisJim
-/proto/ibc/applications/transfer/ @colin-axner @AdityaSripal @damiannolan @chatton @DimitrisJim
+/modules/apps/transfer/ @AdityaSripal @damiannolan @chatton @DimitrisJim
+/proto/ibc/applications/transfer/ @AdityaSripal @damiannolan @chatton @DimitrisJim
 
 # CODEOWNERS for interchain-accounts module
 
-/modules/apps/27-interchain-accounts/ @colin-axner @AdityaSripal @damiannolan @chatton
-/proto/ibc/applications/interchain_accounts/ @colin-axner @AdityaSripal @damiannolan @chatton
+/modules/apps/27-interchain-accounts/ @AdityaSripal @damiannolan @chatton
+/proto/ibc/applications/interchain_accounts/ @AdityaSripal @damiannolan @chatton
 
 # CODEOWNERS for fee module
 
-/modules/apps/29-fee/ @AdityaSripal @colin-axner @damiannolan @chatton
-/proto/ibc/applications/fee/ @AdityaSripal @colin-axner @damiannolan @chatton
+/modules/apps/29-fee/ @AdityaSripal @damiannolan @chatton
+/proto/ibc/applications/fee/ @AdityaSripal @damiannolan @chatton
 
 # CODEOWNERS for callbacks middleware
 
-/modules/apps/callbacks/ @colin-axner @AdityaSripal @damiannolan @srdtrk @chatton
+/modules/apps/callbacks/ @AdityaSripal @damiannolan @srdtrk @chatton
 
 # CODEOWNERS for docs
 
-/docs/ @colin-axner @AdityaSripal @damiannolan @chatton @DimitrisJim @srdtrk
+/docs/ @AdityaSripal @damiannolan @chatton @DimitrisJim @srdtrk
 

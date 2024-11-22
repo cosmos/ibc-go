@@ -24,6 +24,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/client/cli"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -92,6 +93,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 	if err != nil {
 		panic(err)
 	}
+	err = channeltypesv2.RegisterQueryHandlerClient(context.Background(), mux, channeltypesv2.NewQueryClient(clientCtx))
 	if err != nil {
 		panic(err)
 	}
@@ -140,6 +142,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	clienttypes.RegisterQueryServer(cfg.QueryServer(), clientkeeper.NewQueryServer(am.keeper.ClientKeeper))
 	connectiontypes.RegisterQueryServer(cfg.QueryServer(), connectionkeeper.NewQueryServer(am.keeper.ConnectionKeeper))
 	channeltypes.RegisterQueryServer(cfg.QueryServer(), channelkeeper.NewQueryServer(am.keeper.ChannelKeeper))
+	channeltypesv2.RegisterQueryServer(cfg.QueryServer(), channelkeeperv2.NewQueryServer(am.keeper.ChannelKeeperV2))
 
 	clientMigrator := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
 	if err := cfg.RegisterMigration(exported.ModuleName, 2, clientMigrator.Migrate2to3); err != nil {

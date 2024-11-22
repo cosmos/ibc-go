@@ -47,14 +47,14 @@ func newCreateChannelTxCmd() *cobra.Command {
 	return cmd
 }
 
-// newProvideCounterpartyCmd defines the command to provide the counterparty channel identifier to an IBC channel.
-func newProvideCounterpartyTxCmd() *cobra.Command {
+// newRegisterCounterpartyCmd defines the command to provide the counterparty channel identifier to an IBC channel.
+func newRegisterCounterpartyTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "provide-counterparty [channel-identifier] [counterparty-channel-identifier]",
+		Use:     "register-counterparty [channel-identifier] [counterparty-channel-identifier]",
 		Args:    cobra.ExactArgs(2),
-		Short:   "provide the counterparty channel id to an IBC channel",
-		Long:    `Provide the counterparty channel id to an IBC channel specified by its channel ID.`,
-		Example: fmt.Sprintf("%s tx %s %s provide-counterparty channel-0 channel-1", version.AppName, exported.ModuleName, types.SubModuleName),
+		Short:   "Register the counterparty channel identifier for an IBC channel",
+		Long:    `Register the counterparty channel identifier for an IBC channel specified by its channel ID.`,
+		Example: fmt.Sprintf("%s tx %s %s register-counterparty channel-0 channel-1", version.AppName, exported.ModuleName, types.SubModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -64,7 +64,7 @@ func newProvideCounterpartyTxCmd() *cobra.Command {
 			channelID := args[0]
 			counterpartyChannelID := args[1]
 
-			msg := types.MsgProvideCounterparty{
+			msg := types.MsgRegisterCounterparty{
 				ChannelId:             channelID,
 				CounterpartyChannelId: counterpartyChannelID,
 				Signer:                clientCtx.GetFromAddress().String(),
