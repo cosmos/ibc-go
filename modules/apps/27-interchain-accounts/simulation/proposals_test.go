@@ -4,8 +4,6 @@ import (
 	"math/rand"
 	"testing"
 
-	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
-
 	"github.com/stretchr/testify/require"
 
 	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
