@@ -804,7 +804,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 				version = types.V2
 				encoding = types.EncodingABI
 			},
-			"encoding application/x-abi is only supported for ICS20-V1",
+			"encoding application/x-solidity-abi is only supported for ICS20-V1",
 		},
 		{
 			"failure: invalid encoding",

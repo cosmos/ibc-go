@@ -26,7 +26,7 @@ var (
 const (
 	EncodingJSON     = "application/json"
 	EncodingProtobuf = "application/x-protobuf"
-	EncodingABI      = "application/x-abi"
+	EncodingABI      = "application/x-solidity-abi"
 )
 
 // NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance

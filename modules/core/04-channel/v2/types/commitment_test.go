@@ -41,9 +41,9 @@ func TestCommitPacket(t *testing.T) {
 				fmt.Printf("hex value: %s\n", hex.EncodeToString(transferData))
 				require.NoError(t, err)
 				packet.Payloads[0].Value = transferData
-				packet.Payloads[0].Encoding = "application/x-abi"
+				packet.Payloads[0].Encoding = transfertypes.EncodingABI
 			},
-			"5d47f1550f95d29d73c0e0af6940be5837cbd311b3c72d99fd6cb640081e7495",
+			"b691a1950f6fb0bbbcf4bdb16fe2c4d0aa7ef783eb7803073f475cb8164d9b7a",
 		},
 	}
 
@@ -67,7 +67,7 @@ func TestCommitPacket(t *testing.T) {
 						SourcePort:      transfertypes.PortID,
 						DestinationPort: transfertypes.PortID,
 						Version:         transfertypes.V1,
-						Encoding:        "application/json",
+						Encoding:        transfertypes.EncodingJSON,
 						Value:           transferData,
 					},
 				},
