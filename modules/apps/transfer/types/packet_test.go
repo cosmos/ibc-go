@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 
 	errorsmod "cosmossdk.io/errors"
@@ -719,20 +720,52 @@ func TestUnmarshalPacketData(t *testing.T) {
 	var (
 		packetDataBz []byte
 		version      string
+		encoding     string
 	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
-		expError error
+		expError string
 	}{
 		{
-			"success: v1 -> v2",
+			"success: v1 -> v2 with empty encoding (JSON)",
 			func() {},
-			nil,
+			"",
 		},
 		{
-			"success: v2",
+			"success: v1 -> v2 with JSON encoding",
+			func() {
+				encoding = types.EncodingJSON
+			},
+			"",
+		},
+		{
+			"success: v1 -> v2 with protobuf encoding",
+			func() {
+				packetData := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, "")
+				bz, err := proto.Marshal(&packetData)
+				require.NoError(t, err)
+
+				packetDataBz = bz
+				encoding = types.EncodingProtobuf
+			},
+			"",
+		},
+		{
+			"success: v1 -> v2 with abi encoding",
+			func() {
+				packetData := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, "")
+				bz, err := types.EncodeABIFungibleTokenPacketData(packetData)
+				require.NoError(t, err)
+
+				packetDataBz = bz
+				encoding = types.EncodingABI
+			},
+			"",
+		},
+		{
+			"success: v2 with empty encoding (protobuf)",
 			func() {
 				packetData := types.NewFungibleTokenPacketDataV2(
 					[]types.Token{
@@ -745,33 +778,93 @@ func TestUnmarshalPacketData(t *testing.T) {
 				packetDataBz = packetData.GetBytes()
 				version = types.V2
 			},
-			nil,
+			"",
+		},
+		{
+			"success: v2 with JSON encoding",
+			func() {
+				packetData := types.NewFungibleTokenPacketDataV2(
+					[]types.Token{
+						{
+							Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0")),
+							Amount: "1000",
+						},
+					}, sender, receiver, "", types.ForwardingPacketData{})
+
+				packetDataBz, _ = json.Marshal(packetData)
+				version = types.V2
+				encoding = types.EncodingJSON
+			},
+			"",
+		},
+		{
+			"failure: v2 with ABI encoding (not supported)",
+			func() {
+				packetDataBz = []byte("should fail before this gets relevant")
+				version = types.V2
+				encoding = types.EncodingABI
+			},
+			"encoding application/x-abi is only supported for ICS20-V1",
+		},
+		{
+			"failure: invalid encoding",
+			func() {
+				encoding = "invalid"
+			},
+			"invalid encoding provided",
+		},
+		{
+			"failure: invalid type for json",
+			func() {
+				packetDataBz = []byte("invalid")
+				encoding = types.EncodingJSON
+			},
+			ibcerrors.ErrInvalidType.Error(),
+		},
+		{
+			"failure: invalid type for protobuf",
+			func() {
+				packetDataBz = []byte("invalid")
+				encoding = types.EncodingProtobuf
+			},
+			ibcerrors.ErrInvalidType.Error(),
+		},
+		{
+			"failure: invalid type for abi",
+			func() {
+				packetDataBz = []byte("invalid")
+				encoding = types.EncodingABI
+			},
+			ibcerrors.ErrInvalidType.Error(),
 		},
 		{
 			"invalid version",
 			func() {
 				version = "ics20-100"
 			},
-			types.ErrInvalidVersion,
+			types.ErrInvalidVersion.Error(),
 		},
 	}
 
 	for _, tc := range testCases {
-
 		packetDataV1 := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, "")
 
 		packetDataBz = packetDataV1.GetBytes()
 		version = types.V1
+		encoding = ""
 
 		tc.malleate()
 
-		packetData, err := types.UnmarshalPacketData(packetDataBz, version, "")
+		packetData, err := types.UnmarshalPacketData(packetDataBz, version, encoding)
 
-		expPass := tc.expError == nil
+		expPass := tc.expError == ""
 		if expPass {
-			require.IsType(t, types.FungibleTokenPacketDataV2{}, packetData)
+			require.NoError(t, err)
+			require.NotEmpty(t, packetData.Tokens)
+			require.NotEmpty(t, packetData.Sender)
+			require.NotEmpty(t, packetData.Receiver)
 		} else {
-			require.ErrorIs(t, err, tc.expError)
+			require.ErrorContains(t, err, tc.expError)
 		}
 	}
 }

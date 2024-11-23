@@ -258,6 +258,9 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
 		}
 	case EncodingABI:
+		if ics20Version != V1 {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "encoding %s is only supported for ICS20-V1", EncodingABI)
+		}
 		var err error
 		data, err = DecodeABIFungibleTokenPacketData(bz)
 		if err != nil {
