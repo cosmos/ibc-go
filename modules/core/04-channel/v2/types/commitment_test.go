@@ -3,15 +3,15 @@ package types_test
 import (
 	"encoding/hex"
 	"encoding/json"
-	fmt "fmt"
+	"fmt"
 	"math/big"
 	"testing"
 
+	"github.com/cosmos/solidity-ibc-eureka/abigen/ics20lib"
 	"github.com/stretchr/testify/require"
 
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	"github.com/cosmos/solidity-ibc-eureka/abigen/ics20lib"
 )
 
 // TestCommitPacket is primarily used to document the expected commitment output
