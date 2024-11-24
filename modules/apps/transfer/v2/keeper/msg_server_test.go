@@ -8,6 +8,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/solidity-ibc-eureka/abigen/ics20lib"
 
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -46,8 +47,13 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 		{
 			"success: v1 ABI encoded payload",
 			func() {
-				ftpd := transfertypes.NewFungibleTokenPacketData(sdk.DefaultBondDenom, ibctesting.DefaultCoinAmount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
-				bz, err := transfertypes.EncodeABIFungibleTokenPacketData(ftpd)
+				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketData{
+					Denom:    sdk.DefaultBondDenom,
+					Amount:   ibctesting.DefaultCoinAmount.BigInt(),
+					Sender:   suite.chainA.SenderAccount.GetAddress().String(),
+					Receiver: suite.chainB.SenderAccount.GetAddress().String(),
+					Memo:     "",
+				})
 				suite.Require().NoError(err)
 				payload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V1, transfertypes.EncodingABI, bz)
 			},
@@ -150,8 +156,13 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 		{
 			"success: v1 ABI encoded payload",
 			func() {
-				ftpd := transfertypes.NewFungibleTokenPacketData(sdk.DefaultBondDenom, ibctesting.DefaultCoinAmount.String(), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
-				bz, err := transfertypes.EncodeABIFungibleTokenPacketData(ftpd)
+				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketData{
+					Denom:    sdk.DefaultBondDenom,
+					Amount:   ibctesting.DefaultCoinAmount.BigInt(),
+					Sender:   suite.chainA.SenderAccount.GetAddress().String(),
+					Receiver: suite.chainB.SenderAccount.GetAddress().String(),
+					Memo:     "",
+				})
 				suite.Require().NoError(err)
 				sendPayload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V1, transfertypes.EncodingABI, bz)
 			},

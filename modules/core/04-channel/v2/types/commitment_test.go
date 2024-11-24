@@ -4,12 +4,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	fmt "fmt"
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	"github.com/cosmos/solidity-ibc-eureka/abigen/ics20lib"
 )
 
 // TestCommitPacket is primarily used to document the expected commitment output
@@ -30,9 +32,9 @@ func TestCommitPacket(t *testing.T) {
 		{
 			"abi packet",
 			func() {
-				transferData, err := transfertypes.EncodeABIFungibleTokenPacketData(transfertypes.FungibleTokenPacketData{
+				transferData, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketData{
 					Denom:    "uatom",
-					Amount:   "1000000",
+					Amount:   big.NewInt(1000000),
 					Sender:   "sender",
 					Receiver: "receiver",
 					Memo:     "memo",

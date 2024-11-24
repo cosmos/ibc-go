@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/solidity-ibc-eureka/abigen/ics20lib"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -315,5 +316,20 @@ func PacketDataV1ToV2(packetData FungibleTokenPacketData) (FungibleTokenPacketDa
 		Receiver:   packetData.Receiver,
 		Memo:       packetData.Memo,
 		Forwarding: ForwardingPacketData{},
+	}, nil
+}
+
+func DecodeABIFungibleTokenPacketData(data []byte) (*FungibleTokenPacketData, error) {
+	solidityFtpd, err := ics20lib.DecodeFungibleTokenPacketData(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &FungibleTokenPacketData{
+		Denom:    solidityFtpd.Denom,
+		Amount:   solidityFtpd.Amount.String(),
+		Sender:   solidityFtpd.Sender,
+		Receiver: solidityFtpd.Receiver,
+		Memo:     solidityFtpd.Memo,
 	}, nil
 }

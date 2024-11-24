@@ -3,9 +3,11 @@ package types_test
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/solidity-ibc-eureka/abigen/ics20lib"
 	"github.com/stretchr/testify/require"
 
 	errorsmod "cosmossdk.io/errors"
@@ -755,8 +757,13 @@ func TestUnmarshalPacketData(t *testing.T) {
 		{
 			"success: v1 -> v2 with abi encoding",
 			func() {
-				packetData := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, "")
-				bz, err := types.EncodeABIFungibleTokenPacketData(packetData)
+				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketData{
+					Denom:    "atom",
+					Amount:   big.NewInt(1000),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     "",
+				})
 				require.NoError(t, err)
 
 				packetDataBz = bz
