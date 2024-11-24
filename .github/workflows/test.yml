@@ -34,14 +34,14 @@ jobs:
             **/**.go
             go.mod
             go.sum
-      - name: Build ibc-go
-        run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
       - name: Install compiler for arm64.
         if: matrix.go-arch == 'arm64'
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu build-essential
           echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+      - name: Build ibc-go
+        run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
       - name: Build e2e
         run: |
           cd e2e
