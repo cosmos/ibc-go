@@ -3,7 +3,7 @@ package customquery
 import (
 	"fmt"
 
-	"github.com/prysmaticlabs/prysm/v4/crypto/bls"
+	"github.com/prysmaticlabs/prysm/v5/crypto/bls"
 )
 
 func AggregatePublicKeys(publicKeys [][]byte) (bls.PublicKey, error) {
