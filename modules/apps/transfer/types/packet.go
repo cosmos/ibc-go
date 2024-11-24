@@ -263,7 +263,7 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "encoding %s is only supported for ICS20-V1", EncodingABI)
 		}
 		var err error
-		data, err = DecodeABIFungibleTokenPacketData(bz)
+		data, err = decodeABIFungibleTokenPacketData(bz)
 		if err != nil {
 			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
 		}
@@ -319,7 +319,9 @@ func PacketDataV1ToV2(packetData FungibleTokenPacketData) (FungibleTokenPacketDa
 	}, nil
 }
 
-func DecodeABIFungibleTokenPacketData(data []byte) (*FungibleTokenPacketData, error) {
+// decodeABIFungibleTokenPacketData decodes a solidity ABI encoded ics20lib.ICS20LibFungibleTokenPacketData
+// and converts it into an ibc-go FungibleTokenPacketData.
+func decodeABIFungibleTokenPacketData(data []byte) (*FungibleTokenPacketData, error) {
 	solidityFtpd, err := ics20lib.DecodeFungibleTokenPacketData(data)
 	if err != nil {
 		return nil, err
