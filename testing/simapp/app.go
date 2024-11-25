@@ -318,7 +318,7 @@ func NewSimApp(
 	//	voteExtHandler := NewVoteExtensionHandler()
 	//	voteExtHandler.SetHandlers(bApp)
 	//}
-	//baseAppOptions = append(baseAppOptions, voteExtOp, baseapp.SetOptimisticExecution(),
+	// baseAppOptions = append(baseAppOptions, voteExtOp, baseapp.SetOptimisticExecution(),
 	//	baseapp.SetIncludeNestedMsgsGas([]sdk.Msg{&govv1.MsgSubmitProposal{}}))
 
 	bApp := baseapp.NewBaseApp(appName, logger, db, txConfig.TxDecoder(), baseAppOptions...)
