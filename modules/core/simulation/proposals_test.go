@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
-
 	"github.com/stretchr/testify/require"
 
 	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
