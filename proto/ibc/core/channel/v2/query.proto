@@ -43,11 +43,12 @@ service Query {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_receipts/{sequence}";
   }
 
+  // UnreceivedPakcets returns all unreceived packets.
   rpc UnreceivedPackets(QueryUnreceivedPacketsRequest) returns (QueryUnreceivedPacketsResponse) {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/"
                                    "{sequences}/unreceived_packets";
   }
-                               
+
   // UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a channel and sequences.
   rpc UnreceivedAcks(QueryUnreceivedAcksRequest) returns (QueryUnreceivedAcksResponse) {
     option (google.api.http).get =

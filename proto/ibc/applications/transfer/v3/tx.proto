@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-// TODO ugly: find a better package name?
+// TODO(bznein) ugly: find a better package name?
 package ibc.applications.transfer.v3;
 
 option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/types";

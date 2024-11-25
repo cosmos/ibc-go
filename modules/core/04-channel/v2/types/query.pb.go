@@ -1053,6 +1053,7 @@ type QueryClient interface {
 	PacketAcknowledgement(ctx context.Context, in *QueryPacketAcknowledgementRequest, opts ...grpc.CallOption) (*QueryPacketAcknowledgementResponse, error)
 	// PacketReceipt queries a stored packet receipt.
 	PacketReceipt(ctx context.Context, in *QueryPacketReceiptRequest, opts ...grpc.CallOption) (*QueryPacketReceiptResponse, error)
+	// UnreceivedPakcets returns all unreceived packets.
 	UnreceivedPackets(ctx context.Context, in *QueryUnreceivedPacketsRequest, opts ...grpc.CallOption) (*QueryUnreceivedPacketsResponse, error)
 	// UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a channel and sequences.
 	UnreceivedAcks(ctx context.Context, in *QueryUnreceivedAcksRequest, opts ...grpc.CallOption) (*QueryUnreceivedAcksResponse, error)
@@ -1152,6 +1153,7 @@ type QueryServer interface {
 	PacketAcknowledgement(context.Context, *QueryPacketAcknowledgementRequest) (*QueryPacketAcknowledgementResponse, error)
 	// PacketReceipt queries a stored packet receipt.
 	PacketReceipt(context.Context, *QueryPacketReceiptRequest) (*QueryPacketReceiptResponse, error)
+	// UnreceivedPakcets returns all unreceived packets.
 	UnreceivedPackets(context.Context, *QueryUnreceivedPacketsRequest) (*QueryUnreceivedPacketsResponse, error)
 	// UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a channel and sequences.
 	UnreceivedAcks(context.Context, *QueryUnreceivedAcksRequest) (*QueryUnreceivedAcksResponse, error)
