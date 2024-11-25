@@ -48,11 +48,11 @@ func (s msgServer) RegisterInterchainAccount(goCtx context.Context, msg *types.M
 
 	channelID, err := s.registerInterchainAccount(ctx, msg.ConnectionId, portID, msg.Version, order)
 	if err != nil {
-		s.Logger(ctx).Error("error registering interchain account", "error", err.Error())
+		s.Logger.Error("error registering interchain account", "error", err.Error())
 		return nil, err
 	}
 
-	s.Logger(ctx).Info("successfully registered interchain account", "channel-id", channelID)
+	s.Logger.Info("successfully registered interchain account", "channel-id", channelID)
 
 	return &types.MsgRegisterInterchainAccountResponse{
 		ChannelId: channelID,

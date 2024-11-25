@@ -33,7 +33,6 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 				suite.chainA.GetSimApp().ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 					suite.chainA.Codec,
 					runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
-					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(icacontrollertypes.StoreKey)),
 					nil, // assign a nil legacy param subspace
 					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
