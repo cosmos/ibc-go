@@ -66,10 +66,6 @@ func (k Keeper) executeTx(ctx context.Context, sourcePort, destPort, destChannel
 		MsgResponses: make([]*codectypes.Any, len(msgs)),
 	}
 
-	// CacheContext returns a new context with the multi-store branched into a cached storage object
-	// writeCache is called only if all msgs succeed, performing state transitions atomically
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	cacheCtx, writeCache := sdkCtx.CacheContext()
 	for i, msg := range msgs {
 		if m, ok := msg.(sdk.HasValidateBasic); ok {
 			if err := m.ValidateBasic(); err != nil {
@@ -77,15 +73,18 @@ func (k Keeper) executeTx(ctx context.Context, sourcePort, destPort, destChannel
 			}
 		}
 
-		protoAny, err := k.executeMsg(cacheCtx, msg)
-		if err != nil {
+		if err := k.BranchService.Execute(ctx, func(ctx context.Context) error {
+			protoAny, err := k.executeMsg(ctx, msg)
+			if err != nil {
+				return err
+			}
+
+			txMsgData.MsgResponses[i] = protoAny
+			return nil
+		}); err != nil {
 			return nil, err
 		}
-
-		txMsgData.MsgResponses[i] = protoAny
 	}
-
-	writeCache()
 
 	txResponse, err := proto.Marshal(txMsgData)
 	if err != nil {
@@ -131,24 +130,19 @@ func (k Keeper) authenticateTx(ctx context.Context, msgs []sdk.Msg, connectionID
 
 // Attempts to get the message handler from the router and if found will then execute the message.
 // If the message execution is successful, the proto marshaled message response will be returned.
-func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) { // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	handler := k.msgRouter.Handler(msg)
-	if handler == nil {
-		return nil, icatypes.ErrInvalidRoute
+func (k Keeper) executeMsg(ctx context.Context, msg sdk.Msg) (*codectypes.Any, error) { // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	if err := k.MsgRouterService.CanInvoke(ctx, sdk.MsgTypeURL(msg)); err != nil {
+		return nil, errorsmod.Wrap(err, icatypes.ErrInvalidRoute.Error())
 	}
 
-	res, err := handler(ctx, msg)
+	res, err := k.MsgRouterService.Invoke(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
 
-	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
-	ctx.EventManager().EmitEvents(res.GetEvents())
-
-	// Each individual sdk.Result has exactly one Msg response. We aggregate here.
-	msgResponse := res.MsgResponses[0]
-	if msgResponse == nil {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrLogic, "got nil Msg response for msg %s", sdk.MsgTypeURL(msg))
+	msgResponse, err := codectypes.NewAnyWithValue(res)
+	if err != nil {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrPackAny, "failed to pack msg response as Any: %T", res)
 	}
 
 	return msgResponse, nil

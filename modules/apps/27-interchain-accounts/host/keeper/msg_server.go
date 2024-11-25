@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -38,24 +38,29 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "not module query safe: %s", query.Path)
 		}
 
-		route := m.queryRouter.Route(query.Path)
-		if route == nil {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no route to query: %s", query.Path)
-		}
+		// TODO: sort this out!
+		// if err := m.QueryRouterService.CanInvoke(ctx, query.Path); err != nil {
+		// 	return nil, errorsmod.Wrapf(err, "no route to query: %s", query.Path)
+		// }
 
-		res, err := route(ctx, &abci.QueryRequest{
+		// res, err := m.QueryRouterService.Invoke(ctx, &abci.QueryRequest{
+		// 	Path: query.Path,
+		// 	Data: query.Data,
+		// })
+
+		res, err := m.QueryRouterService.Invoke(ctx, &cmtservice.ABCIQueryRequest{
 			Path: query.Path,
 			Data: query.Data,
 		})
 		if err != nil {
-			m.Logger(ctx).Debug("query failed", "path", query.Path, "error", err)
+			m.Logger.Debug("query failed", "path", query.Path, "error", err)
 			return nil, err
 		}
-		if res == nil || res.Value == nil {
+		if res == nil {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no response for query: %s", query.Path)
 		}
 
-		responses[i] = res.Value
+		responses[i] = m.cdc.MustMarshal(res)
 	}
 
 	return &types.MsgModuleQuerySafeResponse{Responses: responses, Height: uint64(ctx.BlockHeight())}, nil
