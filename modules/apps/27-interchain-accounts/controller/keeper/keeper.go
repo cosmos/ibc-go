@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"cosmossdk.io/core/appmodule"
-	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -27,7 +26,6 @@ import (
 type Keeper struct {
 	appmodule.Environment
 
-	storeService   corestore.KVStoreService
 	cdc            codec.Codec
 	legacySubspace icatypes.ParamSubspace
 	ics4Wrapper    porttypes.ICS4Wrapper
