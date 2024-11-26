@@ -6,8 +6,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
@@ -28,9 +26,7 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 
 // ModuleQuerySafe routes the queries to the keeper's query router if they are module_query_safe.
 // This handler doesn't use the signer.
-func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQuerySafe) (*types.MsgModuleQuerySafeResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
+func (m msgServer) ModuleQuerySafe(ctx context.Context, msg *types.MsgModuleQuerySafe) (*types.MsgModuleQuerySafeResponse, error) {
 	responses := make([][]byte, len(msg.Requests))
 	for i, query := range msg.Requests {
 		isModuleQuerySafe := slices.Contains(m.mqsAllowList, query.Path)
@@ -63,7 +59,8 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 		responses[i] = m.cdc.MustMarshal(res)
 	}
 
-	return &types.MsgModuleQuerySafeResponse{Responses: responses, Height: uint64(ctx.BlockHeight())}, nil
+	height := m.HeaderService.HeaderInfo(ctx).Height
+	return &types.MsgModuleQuerySafeResponse{Responses: responses, Height: uint64(height)}, nil
 }
 
 // UpdateParams updates the host submodule's params.

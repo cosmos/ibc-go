@@ -117,7 +117,7 @@ func (im IBCModule) OnRecvPacket(
 ) ibcexported.Acknowledgement {
 	if !im.keeper.GetParams(ctx).HostEnabled {
 		im.keeper.Logger.Info("host submodule is disabled")
-		keeper.EmitHostDisabledEvent(ctx, packet)
+		im.keeper.EmitHostDisabledEvent(ctx, packet)
 		return channeltypes.NewErrorAcknowledgement(types.ErrHostSubModuleDisabled)
 	}
 
@@ -131,7 +131,7 @@ func (im IBCModule) OnRecvPacket(
 	}
 
 	// Emit an event indicating a successful or failed acknowledgement.
-	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
+	im.keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
