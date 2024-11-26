@@ -1,0 +1,60 @@
+name: Wasm Light Clients
+# This workflow runs when a PR is opened that targets code that is part of the 08-wasm-light-clients
+on:
+  merge_group:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feat/ibc-eureka # TODO: Remove before merging to main
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+          target: wasm32-unknown-unknown
+
+      - name: Lint 08-wasm-light-clients workspace
+        run: make lint-wasm-light-clients
+
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Cargo build 08-wasm-light-clients workspace
+        run: make build-wasm-light-clients
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Unit test 08-wasm-light-clients workspace
+        run: make test-wasm-light-clients

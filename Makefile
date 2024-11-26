@@ -141,6 +141,11 @@ build-docker-wasm:
 
 .PHONY: build-docker-wasm
 
+build-wasm-light-clients:
+	cd modules/light-clients/08-wasm-light-clients && cargo wasm
+
+.PHONY: build-wasm-light-clients
+
 ###############################################################################
 ###                          Tools & Dependencies                           ###
 ###############################################################################
@@ -310,6 +315,11 @@ benchmark:
 	@go test -mod=readonly -bench=. $(PACKAGES_NOSIMULATION)
 .PHONY: benchmark
 
+test-wasm-light-clients:
+	cd modules/light-clients/08-wasm-light-clients && cargo test
+
+.PHONY: test-wasm-light-clients
+
 ###############################################################################
 ###                                Linting                                  ###
 ###############################################################################
@@ -350,6 +360,11 @@ docs-link-check:
 	find . -name 'node_modules' -prune -o -name '*.md' -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
 
 .PHONY: lint lint-fix docs-lint docs-lint-fix docs-link-check
+
+lint-wasm-light-clients:
+	cd modules/light-clients/08-wasm-light-clients && cargo fmt -- --check && cargo clippy
+
+.PHONY: lint-wasm-light-clients
 
 ###############################################################################
 ###                                Protobuf                                 ###

@@ -1,0 +1,16 @@
+version: v1
+plugins:
+  - plugin: buf.build/community/neoeinstein-prost:v0.4.0
+    out: ../prostgen
+    opt:
+      - compile_well_known_types
+      - enable_type_names
+      - extern_path=.google.protobuf=::tendermint_proto::google::protobuf
+      - extern_path=.cosmos.ics23.v1=::ics23
+      - extern_path=.tendermint=::tendermint_proto
+      - extern_path=.cosmos=::cosmos_sdk_proto::cosmos
+      - extern_path=.cosmwasm.Binary=::cosmwasm::Binary
+  - plugin: buf.build/community/neoeinstein-prost-crate:v0.4.1
+    out: ../prostgen
+    opt:
+      - no_features

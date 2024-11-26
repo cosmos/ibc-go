@@ -1,0 +1,11 @@
+[package]
+name = "ibc-go-proto"
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+tendermint-proto = { workspace = true }
+prost = { workspace = true }
+cosmos-sdk-proto = { workspace = true }
+ics23 = { workspace = true }

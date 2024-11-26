@@ -70,3 +70,7 @@ go.work.sum
 
 # Python
 venv
+
+# Rust
+target
+artifacts

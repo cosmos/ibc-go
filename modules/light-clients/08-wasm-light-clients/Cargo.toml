@@ -1,0 +1,39 @@
+[workspace]
+resolver = "2"
+members = [
+    "contracts/*",
+    "packages/*",
+]
+
+[workspace.package]
+edition = "2021"
+repository = "https://github.com/cosmos/ibc-go"
+version = "0.1.0"
+
+[workspace.metadata.scripts]
+optimize = """docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  cosmwasm/optimizer:0.16.0"""
+
+[workspace.dependencies]
+# Local packages
+ibc-go-proto = { path = "packages/ibc-go-proto" }
+
+# CosmWasm related dependencies
+cosmwasm-schema = "2.1.4"
+cosmwasm-std = { version = "2.1.4" }
+cw-storage-plus = "2.0.0"
+serde = { version = "1.0.215", default-features = false, features = ["derive"] }
+thiserror = { version = "2.0.3" }
+
+# Proto related dependencies
+ics23                  = { version = "0.12.0", default-features = false }
+tendermint-proto = { version = "0.40.0", default-features = false }
+cosmos-sdk-proto = { version = "0.26.1", default-features = false }
+prost                  = { version = "0.13.3", default-features = false, features = ["prost-derive"] }
+
+# dev-dependencies
+cw-multi-test = "2.2.0"
+
+

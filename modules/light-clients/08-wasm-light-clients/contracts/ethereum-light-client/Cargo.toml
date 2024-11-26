@@ -1,0 +1,22 @@
+[package]
+name = "ethereum-light-client"
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+ibc-go-proto = { workspace = true }
+
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-storage-plus = { workspace = true }
+tendermint-proto = { workspace = true }
+prost = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+cw-multi-test = { workspace = true }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
