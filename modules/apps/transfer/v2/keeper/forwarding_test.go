@@ -29,7 +29,6 @@ func TestForwardingTestSuite(t *testing.T) {
 
 func (suite *ForwardingTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 4)
-
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
@@ -67,15 +66,16 @@ func (suite *ForwardingTestSuite) TestSuccessfulForward() {
 	sender := suite.chainA.SenderAccounts[0].SenderAccount
 	receiver := suite.chainC.SenderAccounts[0].SenderAccount
 
+	timeoutTimestamp := suite.chainA.GetTimeoutTimestampSecs()
 	msg := &typesv2.MsgTransfer{
-		SourceChannel:    pathAtoB.EndpointA.ClientID,
+		SourceChannel:    pathAtoB.EndpointA.ChannelID,
 		SourcePort:       pathAtoB.EndpointA.ChannelConfig.PortID,
 		DestinationPort:  pathAtoB.EndpointB.ChannelConfig.PortID,
 		Version:          transfertypes.V2,
-		Encoding:         "json",
+		Encoding:         transfertypes.EncodingProtobuf,
 		Sender:           sender.GetAddress().String(),
 		Receiver:         receiver.GetAddress().String(),
-		TimeoutTimestamp: suite.chainA.GetTimeoutTimestamp(),
+		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             "",
 		Tokens:           sdk.NewCoins(ibctesting.TestCoin),
 		Forwarding: &transfertypes.Forwarding{
@@ -89,10 +89,10 @@ func (suite *ForwardingTestSuite) TestSuccessfulForward() {
 	suite.Require().NoError(err) // message committed
 	suite.Require().NotNil(result)
 
-	// // parse the packet from result events and recv packet on chainB
-	// packetFromAtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
-	// suite.Require().NoError(err)
-	// suite.Require().NotNil(packetFromAtoB)
+	// parse the packet from result events and recv packet on chainB
+	//packetFromAtoB, err := ibctesting.ParsePacketFromEvents(result.Events)
+	//suite.Require().NoError(err)
+	//suite.Require().NotNil(packetFromAtoB)
 
 	// err = pathAtoB.EndpointB.UpdateClient()
 	// suite.Require().NoError(err)
@@ -101,8 +101,8 @@ func (suite *ForwardingTestSuite) TestSuccessfulForward() {
 	// suite.Require().NoError(err)
 	// suite.Require().NotNil(result)
 
-	// // Check that Escrow A has amount
-	// suite.assertAmountOnChain(suite.chainA, escrow, amount, sdk.DefaultBondDenom)
+	// Check that Escrow A has amount
+	//suite.assertAmountOnChain(suite.chainA, escrow, amount, sdk.DefaultBondDenom)
 
 	// // denom path: transfer/channel-0
 	// denom := types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID))

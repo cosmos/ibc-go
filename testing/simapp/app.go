@@ -98,6 +98,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	transferv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2"
 	ibctransferkeeperv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/keeper"
+	ibctransfertypesv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/types"
 	ibc "github.com/cosmos/ibc-go/v9/modules/core"
 	ibcclienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
@@ -530,7 +531,7 @@ func NewSimApp(
 		// IBC modules
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
-		// transferv2.NewAppModule(app.)
+		transferv2.NewAppModule(app.TransferKeeperV2),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		mockModule,
@@ -598,7 +599,7 @@ func NewSimApp(
 		authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
-		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
+		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName, ibctransfertypesv2.ModuleName,
 		icatypes.ModuleName, ibcfeetypes.ModuleName, ibcmock.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
 	}

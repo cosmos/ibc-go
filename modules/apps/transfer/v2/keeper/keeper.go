@@ -79,10 +79,12 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *typesv2.MsgTransfer) (*typ
 	if err != nil {
 		return nil, err
 	}
+
+	//TODO bznein use msgtransfer instead of sendpacket
 	payload := channeltypesv2.NewPayload(msg.SourcePort, msg.DestinationPort, msg.Version, msg.Encoding, dataBz)
 	msgSendPacket := channeltypesv2.NewMsgSendPacket(msg.SourceChannel, msg.TimeoutTimestamp, msg.Sender, payload)
 
-	handler := k.msgServiceRouter.Handler(&channeltypesv2.MsgSendPacket{})
+	handler := k.msgServiceRouter.Handler(msgSendPacket)
 	res, err := handler(ctx, msgSendPacket)
 	if err != nil {
 		return nil, err
@@ -98,14 +100,14 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *typesv2.MsgTransfer) (*typ
 
 // TODO move somewhere else?
 func (k *Keeper) GetSequenceFromSendPacketResult(result *sdk.Result) (uint64, error) {
-	var msgData sdk.TxMsgData
-	err := proto.Unmarshal(result.Data, &msgData)
-	if err != nil {
-		return 0, err
-	}
-	msgResponse := msgData.MsgResponses[0]
+	//var msgData sdk.TxMsgData
+	//err := proto.Unmarshal(result.MsgResponses[0].Value, &msgData)
+	//if err != nil {
+	//	return 0, err
+	//}
+	msgResponse := result.MsgResponses[0]
 	var resp channeltypesv2.MsgSendPacketResponse
-	err = proto.Unmarshal(msgResponse.Value, &resp)
+	err := proto.Unmarshal(msgResponse.Value, &resp)
 	if err != nil {
 		return 0, err
 	}

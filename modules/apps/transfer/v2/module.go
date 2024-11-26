@@ -18,9 +18,9 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/client/cli"
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/simulation"
 	typesv1 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
@@ -46,8 +46,7 @@ type AppModuleBasic struct{}
 
 // Name implements AppModuleBasic interface
 func (AppModuleBasic) Name() string {
-	// TODO(bznein) extract somewhere else
-	return "transfer-v2" // types.ModuleName
+	return types.ModuleName
 }
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
@@ -76,7 +75,7 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var gs typesv1.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", "transfer-v2", err)
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
 
 	return gs.Validate()
@@ -85,10 +84,6 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc-transfer module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
-		panic(err)
-	}
-
-	if err := types.RegisterQueryV2HandlerClient(context.Background(), mux, types.NewQueryV2Client(clientCtx)); err != nil {
 		panic(err)
 	}
 }
@@ -106,11 +101,11 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for this module
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // NewAppModule creates a new 20-transfer module
-func NewAppModule(k keeper.Keeper) AppModule {
+func NewAppModule(k *keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,
 	}
@@ -118,20 +113,21 @@ func NewAppModule(k keeper.Keeper) AppModule {
 
 // RegisterInvariants implements the AppModule interface
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	keeper.RegisterInvariants(ir, &am.keeper)
+	// TODO(bznein) figure out what is this
+	// keeper.RegisterInvariants(ir, &am.keeper)
 }
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-	types.RegisterQueryV2Server(cfg.QueryServer(), am.keeper)
+	// typesv1.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+	// typesv1.RegisterQueryV2Server(cfg.QueryServer(), am.keeper)
 }
 
 // InitGenesis performs genesis initialization for the ibc-transfer module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
-	var genesisState types.GenesisState
+	var genesisState typesv1.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	am.keeper.InitGenesis(ctx, genesisState)
 }
@@ -160,7 +156,7 @@ func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.Weight
 
 // RegisterStoreDecoder registers a decoder for transfer module's types
 func (AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore()
+	sdr[types.ModuleName] = simulation.NewDecodeStore()
 }
 
 // WeightedOperations returns the all the transfer module operations with their respective weights.
