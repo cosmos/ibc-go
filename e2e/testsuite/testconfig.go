@@ -625,7 +625,7 @@ func DefaultChainOptions() ChainOptions {
 		ChainSpecs: []*interchaintest.ChainSpec{chainASpec, chainBSpec},
 		// arbitrary number that will not be required if https://github.com/strangelove-ventures/interchaintest/issues/1153 is resolved.
 		// It can be overridden in individual test suites in SetupSuite if required.
-		RelayerCount: 10,
+		RelayerCount: 1,
 	}
 }
 
@@ -650,7 +650,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 		},
 		Bin:                 cc.Binary,
 		Bech32Prefix:        "cosmos",
-		CoinType:            fmt.Sprint(sdk.GetConfig().GetCoinType()),
+		CoinType:            fmt.Sprint(sdk.CoinType),
 		Denom:               denom,
 		EncodingConfig:      SDKEncodingConfig(),
 		GasPrices:           fmt.Sprintf("0.00%s", denom),
