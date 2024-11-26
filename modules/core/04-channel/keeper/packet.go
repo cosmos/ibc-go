@@ -85,9 +85,9 @@ func (k *Keeper) SendPacket(
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	emitSendPacketEvent(sdkCtx, packet, channel, timeoutHeight)
+	k.emitSendPacketEvent(sdkCtx, packet, channel, timeoutHeight)
 
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet sent",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", sourcePort,
@@ -180,7 +180,7 @@ func (k *Keeper) RecvPacket(
 	}
 
 	// log that a packet has been received & executed
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet received",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -190,7 +190,7 @@ func (k *Keeper) RecvPacket(
 	)
 
 	// emit an event that the relayer can query for
-	emitRecvPacketEvent(sdkCtx, packet, channel)
+	k.emitRecvPacketEvent(sdkCtx, packet, channel)
 
 	return channel.Version, nil
 }
@@ -215,7 +215,7 @@ func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet,
 		// by the increase of the recvStartSequence.
 		_, found := k.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		if found {
-			emitRecvPacketEvent(sdkCtx, packet, channel)
+			k.emitRecvPacketEvent(sdkCtx, packet, channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -239,7 +239,7 @@ func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet,
 		}
 
 		if packet.GetSequence() < nextSequenceRecv {
-			emitRecvPacketEvent(sdkCtx, packet, channel)
+			k.emitRecvPacketEvent(sdkCtx, packet, channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -325,7 +325,7 @@ func (k *Keeper) WriteAcknowledgement(
 	)
 
 	// log that a packet acknowledgement has been written
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"acknowledgement written",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -335,7 +335,7 @@ func (k *Keeper) WriteAcknowledgement(
 	)
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	emitWriteAcknowledgementEvent(sdkCtx, packet.(types.Packet), channel, bz)
+	k.emitWriteAcknowledgementEvent(sdkCtx, packet.(types.Packet), channel, bz)
 
 	return nil
 }
@@ -392,7 +392,7 @@ func (k *Keeper) AcknowledgePacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		emitAcknowledgePacketEvent(ctx, packet, channel)
+		k.emitAcknowledgePacketEvent(ctx, packet, channel)
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -444,7 +444,7 @@ func (k *Keeper) AcknowledgePacket(
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// log that a packet has been acknowledged
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet acknowledged",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -454,7 +454,7 @@ func (k *Keeper) AcknowledgePacket(
 	)
 
 	// emit an event marking that we have processed the acknowledgement
-	emitAcknowledgePacketEvent(ctx, packet, channel)
+	k.emitAcknowledgePacketEvent(ctx, packet, channel)
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {
@@ -477,13 +477,13 @@ func (k *Keeper) handleFlushState(ctx context.Context, packet types.Packet, chan
 		if timeout.Elapsed(selfHeight, selfTimestamp) {
 			// packet flushing timeout has expired, abort the upgrade
 			// committing an error receipt to state, deleting upgrade information and restoring the channel.
-			k.Logger(ctx).Info("upgrade aborted", "port_id", packet.GetSourcePort(), "channel_id", packet.GetSourceChannel(), "upgrade_sequence", channel.UpgradeSequence)
+			k.Logger.Info("upgrade aborted", "port_id", packet.GetSourcePort(), "channel_id", packet.GetSourceChannel(), "upgrade_sequence", channel.UpgradeSequence)
 			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp))
 		} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 			// set the channel state to flush complete if all packets have been acknowledged/flushed.
 			channel.State = types.FLUSHCOMPLETE
 			k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-			emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+			k.emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 		}
 	}
 }

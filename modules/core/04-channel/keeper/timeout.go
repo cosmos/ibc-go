@@ -70,7 +70,7 @@ func (k *Keeper) TimeoutPacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		emitTimeoutPacketEvent(ctx, packet, channel)
+		k.emitTimeoutPacketEvent(ctx, packet, channel)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -145,7 +145,7 @@ func (k *Keeper) TimeoutExecuted(
 		// all upgrade information is deleted and the channel is set to CLOSED.
 		if channel.State == types.FLUSHING {
 			k.deleteUpgradeInfo(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-			k.Logger(ctx).Info(
+			k.Logger.Info(
 				"upgrade info deleted",
 				"port_id", packet.GetSourcePort(),
 				"channel_id", packet.GetSourceChannel(),
@@ -155,10 +155,10 @@ func (k *Keeper) TimeoutExecuted(
 
 		channel.State = types.CLOSED
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-		emitChannelClosedEvent(ctx, packet, channel)
+		k.emitChannelClosedEvent(ctx, packet, channel)
 	}
 
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet timed-out",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -168,7 +168,7 @@ func (k *Keeper) TimeoutExecuted(
 	)
 
 	// emit an event marking that we have processed the timeout
-	emitTimeoutPacketEvent(ctx, packet, channel)
+	k.emitTimeoutPacketEvent(ctx, packet, channel)
 
 	return nil
 }
@@ -212,7 +212,7 @@ func (k *Keeper) TimeoutOnClose(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		emitTimeoutPacketEvent(ctx, packet, channel)
+		k.emitTimeoutPacketEvent(ctx, packet, channel)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to

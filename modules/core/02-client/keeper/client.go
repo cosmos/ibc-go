@@ -36,10 +36,10 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 	}
 
 	initialHeight := clientModule.LatestHeight(ctx, clientID)
-	k.Logger(ctx).Info("client created at height", "client-id", clientID, "height", initialHeight.String())
+	k.Logger.Info("client created at height", "client-id", clientID, "height", initialHeight.String())
 
 	defer telemetry.ReportCreateClient(clientType)
-	emitCreateClientEvent(ctx, clientID, clientType, initialHeight)
+	k.emitCreateClientEvent(ctx, clientID, clientType, initialHeight)
 
 	return clientID, nil
 }
@@ -63,22 +63,22 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 	if foundMisbehaviour {
 		clientModule.UpdateStateOnMisbehaviour(ctx, clientID, clientMsg)
 
-		k.Logger(ctx).Info("client frozen due to misbehaviour", "client-id", clientID)
+		k.Logger.Info("client frozen due to misbehaviour", "client-id", clientID)
 
 		clientType := types.MustParseClientIdentifier(clientID)
 		defer telemetry.ReportUpdateClient(foundMisbehaviour, clientType, clientID)
-		emitSubmitMisbehaviourEvent(ctx, clientID, clientType)
+		k.emitSubmitMisbehaviourEvent(ctx, clientID, clientType)
 
 		return nil
 	}
 
 	consensusHeights := clientModule.UpdateState(ctx, clientID, clientMsg)
 
-	k.Logger(ctx).Info("client state updated", "client-id", clientID, "heights", consensusHeights)
+	k.Logger.Info("client state updated", "client-id", clientID, "heights", consensusHeights)
 
 	clientType := types.MustParseClientIdentifier(clientID)
 	defer telemetry.ReportUpdateClient(foundMisbehaviour, clientType, clientID)
-	emitUpdateClientEvent(ctx, clientID, clientType, consensusHeights, k.cdc, clientMsg)
+	k.emitUpdateClientEvent(ctx, clientID, clientType, consensusHeights, k.cdc, clientMsg)
 
 	return nil
 }
@@ -104,11 +104,11 @@ func (k *Keeper) UpgradeClient(
 	}
 
 	latestHeight := clientModule.LatestHeight(ctx, clientID)
-	k.Logger(ctx).Info("client state upgraded", "client-id", clientID, "height", latestHeight.String())
+	k.Logger.Info("client state upgraded", "client-id", clientID, "height", latestHeight.String())
 
 	clientType := types.MustParseClientIdentifier(clientID)
 	defer telemetry.ReportUpgradeClient(clientType, clientID)
-	emitUpgradeClientEvent(ctx, clientID, clientType, latestHeight)
+	k.emitUpgradeClientEvent(ctx, clientID, clientType, latestHeight)
 
 	return nil
 }
@@ -142,11 +142,11 @@ func (k *Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClien
 		return err
 	}
 
-	k.Logger(ctx).Info("client recovered", "client-id", subjectClientID)
+	k.Logger.Info("client recovered", "client-id", subjectClientID)
 
 	clientType := types.MustParseClientIdentifier(subjectClientID)
 	defer telemetry.ReportRecoverClient(clientType, subjectClientID)
-	emitRecoverClientEvent(ctx, subjectClientID, clientType)
+	k.emitRecoverClientEvent(ctx, subjectClientID, clientType)
 
 	return nil
 }

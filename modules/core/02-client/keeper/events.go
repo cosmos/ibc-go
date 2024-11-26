@@ -1,10 +1,12 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
+	"cosmossdk.io/core/event"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -15,23 +17,22 @@ import (
 )
 
 // emitCreateClientEvent emits a create client event
-func emitCreateClientEvent(ctx sdk.Context, clientID, clientType string, initialHeight exported.Height) {
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeCreateClient,
-			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, initialHeight.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
+func (k *Keeper) emitCreateClientEvent(ctx context.Context, clientID, clientType string, initialHeight exported.Height) {
+	k.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeCreateClient,
+		event.NewAttribute(types.AttributeKeyClientID, clientID),
+		event.NewAttribute(types.AttributeKeyClientType, clientType),
+		event.NewAttribute(types.AttributeKeyConsensusHeight, initialHeight.String()),
+	)
+
+	k.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+	)
 }
 
 // emitUpdateClientEvent emits an update client event
-func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, consensusHeights []exported.Height, _ codec.BinaryCodec, _ exported.ClientMessage) {
+func (k *Keeper) emitUpdateClientEvent(ctx context.Context, clientID string, clientType string, consensusHeights []exported.Height, _ codec.BinaryCodec, _ exported.ClientMessage) {
 	var consensusHeightAttr string
 	if len(consensusHeights) != 0 {
 		consensusHeightAttr = consensusHeights[0].String()
@@ -42,95 +43,89 @@ func emitUpdateClientEvent(ctx sdk.Context, clientID string, clientType string, 
 		consensusHeightsAttr[i] = height.String()
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUpdateClient,
-			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
-			// Deprecated: AttributeKeyConsensusHeight is deprecated and will be removed in a future release.
-			// Please use AttributeKeyConsensusHeights instead.
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeightAttr),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
+	k.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeUpdateClient,
+		event.NewAttribute(types.AttributeKeyClientID, clientID),
+		event.NewAttribute(types.AttributeKeyClientType, clientType),
+		// Deprecated: AttributeKeyConsensusHeight is deprecated and will be removed in a future release.
+		// Please use AttributeKeyConsensusHeights instead.
+		event.NewAttribute(types.AttributeKeyConsensusHeight, consensusHeightAttr),
+		event.NewAttribute(types.AttributeKeyConsensusHeights, strings.Join(consensusHeightsAttr, ",")),
+	)
+
+	k.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+	)
 }
 
 // emitUpgradeClientEvent emits an upgrade client event
-func emitUpgradeClientEvent(ctx sdk.Context, clientID, clientType string, latestHeight exported.Height) {
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUpgradeClient,
-			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
-			sdk.NewAttribute(types.AttributeKeyConsensusHeight, latestHeight.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
+func (k *Keeper) emitUpgradeClientEvent(ctx context.Context, clientID, clientType string, latestHeight exported.Height) {
+	k.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeUpgradeClient,
+		event.NewAttribute(types.AttributeKeyClientID, clientID),
+		event.NewAttribute(types.AttributeKeyClientType, clientType),
+		event.NewAttribute(types.AttributeKeyConsensusHeight, latestHeight.String()),
+	)
+
+	k.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+	)
 }
 
 // emitSubmitMisbehaviourEvent emits a client misbehaviour event
-func emitSubmitMisbehaviourEvent(ctx sdk.Context, clientID string, clientType string) {
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeSubmitMisbehaviour,
-			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
+func (k *Keeper) emitSubmitMisbehaviourEvent(ctx context.Context, clientID string, clientType string) {
+	k.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeSubmitMisbehaviour,
+		event.NewAttribute(types.AttributeKeyClientID, clientID),
+		event.NewAttribute(types.AttributeKeyClientType, clientType),
+	)
+
+	k.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+	)
 }
 
 // emitRecoverClientEvent emits a recover client event
-func emitRecoverClientEvent(ctx sdk.Context, clientID, clientType string) {
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeRecoverClient,
-			sdk.NewAttribute(types.AttributeKeySubjectClientID, clientID),
-			sdk.NewAttribute(types.AttributeKeyClientType, clientType),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
+func (k *Keeper) emitRecoverClientEvent(ctx context.Context, clientID, clientType string) {
+	k.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeRecoverClient,
+		event.NewAttribute(types.AttributeKeySubjectClientID, clientID),
+		event.NewAttribute(types.AttributeKeyClientType, clientType),
+	)
+
+	k.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+	)
 }
 
 // emitScheduleIBCSoftwareUpgradeEvent emits a schedule IBC software upgrade event
-func emitScheduleIBCSoftwareUpgradeEvent(ctx sdk.Context, title string, height int64) {
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeScheduleIBCSoftwareUpgrade,
-			sdk.NewAttribute(types.AttributeKeyUpgradePlanTitle, title),
-			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, fmt.Sprintf("%d", height)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
+func (k *Keeper) emitScheduleIBCSoftwareUpgradeEvent(ctx context.Context, title string, height int64) {
+	k.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeScheduleIBCSoftwareUpgrade,
+		event.NewAttribute(types.AttributeKeyUpgradePlanTitle, title),
+		event.NewAttribute(types.AttributeKeyUpgradePlanHeight, fmt.Sprintf("%d", height)),
+	)
+
+	k.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+	)
 }
 
 // EmitUpgradeChainEvent emits an upgrade chain event.
-func EmitUpgradeChainEvent(ctx sdk.Context, height int64) {
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUpgradeChain,
-			sdk.NewAttribute(types.AttributeKeyUpgradePlanHeight, strconv.FormatInt(height, 10)),
-			sdk.NewAttribute(types.AttributeKeyUpgradeStore, upgradetypes.StoreKey), // which store to query proof of consensus state from
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
+func (k *Keeper) EmitUpgradeChainEvent(ctx context.Context, height int64) {
+	k.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeUpgradeChain,
+		event.NewAttribute(types.AttributeKeyUpgradePlanHeight, strconv.FormatInt(height, 10)),
+		event.NewAttribute(types.AttributeKeyUpgradeStore, upgradetypes.StoreKey), // which store to query proof of consensus state from
+	)
+
+	k.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+	)
 }

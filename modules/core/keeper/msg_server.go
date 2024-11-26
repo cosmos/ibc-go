@@ -10,7 +10,6 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -651,7 +650,7 @@ func (k *Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.Msg
 	channel, upgrade := k.ChannelKeeper.WriteUpgradeInitChannel(ctx, msg.PortId, msg.ChannelId, upgrade, upgradeVersion)
 
 	ctx.Logger().Info("channel upgrade init succeeded", "channel-id", msg.ChannelId, "version", upgradeVersion)
-	keeper.EmitChannelUpgradeInitEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
+	k.ChannelKeeper.EmitChannelUpgradeInitEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
 	return &channeltypes.MsgChannelUpgradeInitResponse{
 		Upgrade:         upgrade,
@@ -705,7 +704,7 @@ func (k *Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgC
 	channel, upgrade = k.ChannelKeeper.WriteUpgradeTryChannel(ctx, msg.PortId, msg.ChannelId, upgrade, upgradeVersion)
 
 	ctx.Logger().Info("channel upgrade try succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
-	keeper.EmitChannelUpgradeTryEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
+	k.ChannelKeeper.EmitChannelUpgradeTryEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
 	return &channeltypes.MsgChannelUpgradeTryResponse{
 		Result:          channeltypes.SUCCESS,
@@ -769,7 +768,7 @@ func (k *Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgC
 	channel, upgrade := k.ChannelKeeper.WriteUpgradeAckChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade)
 
 	ctx.Logger().Info("channel upgrade ack succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
-	keeper.EmitChannelUpgradeAckEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
+	k.ChannelKeeper.EmitChannelUpgradeAckEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
 	return &channeltypes.MsgChannelUpgradeAckResponse{Result: channeltypes.SUCCESS}, nil
 }
@@ -809,7 +808,7 @@ func (k *Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.
 
 	channel := k.ChannelKeeper.WriteUpgradeConfirmChannel(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyUpgrade)
 	ctx.Logger().Info("channel upgrade confirm succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
-	keeper.EmitChannelUpgradeConfirmEvent(ctx, msg.PortId, msg.ChannelId, channel)
+	k.ChannelKeeper.EmitChannelUpgradeConfirmEvent(ctx, msg.PortId, msg.ChannelId, channel)
 
 	// Move channel to OPEN state if both chains have finished flushing in-flight packets.
 	// Counterparty channel state has been verified in ChanUpgradeConfirm.
@@ -823,7 +822,7 @@ func (k *Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.
 		channel := k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
 
 		ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
-		keeper.EmitChannelUpgradeOpenEvent(ctx, msg.PortId, msg.ChannelId, channel)
+		k.ChannelKeeper.EmitChannelUpgradeOpenEvent(ctx, msg.PortId, msg.ChannelId, channel)
 	}
 
 	return &channeltypes.MsgChannelUpgradeConfirmResponse{Result: channeltypes.SUCCESS}, nil
@@ -861,7 +860,7 @@ func (k *Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.Msg
 	channel := k.ChannelKeeper.WriteUpgradeOpenChannel(ctx, msg.PortId, msg.ChannelId)
 
 	ctx.Logger().Info("channel upgrade open succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
-	keeper.EmitChannelUpgradeOpenEvent(ctx, msg.PortId, msg.ChannelId, channel)
+	k.ChannelKeeper.EmitChannelUpgradeOpenEvent(ctx, msg.PortId, msg.ChannelId, channel)
 
 	return &channeltypes.MsgChannelUpgradeOpenResponse{}, nil
 }
@@ -877,7 +876,7 @@ func (k *Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.
 	channel, upgrade := k.ChannelKeeper.WriteUpgradeTimeoutChannel(ctx, msg.PortId, msg.ChannelId)
 
 	ctx.Logger().Info("channel upgrade timeout callback succeeded: portID %s, channelID %s", msg.PortId, msg.ChannelId)
-	keeper.EmitChannelUpgradeTimeoutEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
+	k.ChannelKeeper.EmitChannelUpgradeTimeoutEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
 	return &channeltypes.MsgChannelUpgradeTimeoutResponse{}, nil
 }
@@ -904,7 +903,7 @@ func (k *Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.M
 
 		ctx.Logger().Info("channel upgrade cancel succeeded", "port-id", msg.PortId, "channel-id", msg.ChannelId)
 
-		keeper.EmitChannelUpgradeCancelEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
+		k.ChannelKeeper.EmitChannelUpgradeCancelEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
 		return &channeltypes.MsgChannelUpgradeCancelResponse{}, nil
 	}
@@ -929,7 +928,7 @@ func (k *Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.M
 	if !found {
 		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.PortId, msg.ChannelId)
 	}
-	keeper.EmitChannelUpgradeCancelEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
+	k.ChannelKeeper.EmitChannelUpgradeCancelEvent(ctx, msg.PortId, msg.ChannelId, channel, upgrade)
 
 	return &channeltypes.MsgChannelUpgradeCancelResponse{}, nil
 }
