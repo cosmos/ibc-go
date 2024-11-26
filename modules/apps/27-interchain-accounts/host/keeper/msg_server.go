@@ -3,10 +3,13 @@ package keeper
 import (
 	"context"
 	"slices"
+	"strings"
+
+	gogoproto "github.com/cosmos/gogoproto/proto"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/dynamicpb"
 
 	errorsmod "cosmossdk.io/errors"
-
-	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -34,20 +37,25 @@ func (m msgServer) ModuleQuerySafe(ctx context.Context, msg *types.MsgModuleQuer
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "not module query safe: %s", query.Path)
 		}
 
-		// TODO: sort this out!
-		// if err := m.QueryRouterService.CanInvoke(ctx, query.Path); err != nil {
-		// 	return nil, errorsmod.Wrapf(err, "no route to query: %s", query.Path)
-		// }
+		path := strings.TrimPrefix(query.Path, "/")
+		pathFullName := protoreflect.FullName(strings.ReplaceAll(path, "/", "."))
 
-		// res, err := m.QueryRouterService.Invoke(ctx, &abci.QueryRequest{
-		// 	Path: query.Path,
-		// 	Data: query.Data,
-		// })
+		desc, err := gogoproto.GogoResolver.FindDescriptorByName(pathFullName)
+		if err != nil {
+			return nil, err
+		}
 
-		res, err := m.QueryRouterService.Invoke(ctx, &cmtservice.ABCIQueryRequest{
-			Path: query.Path,
-			Data: query.Data,
-		})
+		md, isGRPC := desc.(protoreflect.MethodDescriptor)
+		if !isGRPC {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no descriptor found for query path: %s", string(desc.FullName()))
+		}
+
+		msg := dynamicpb.NewMessage(md.Input())
+		if err := m.cdc.Unmarshal(query.Data, msg); err != nil {
+			return nil, err
+		}
+
+		res, err := m.QueryRouterService.Invoke(ctx, msg)
 		if err != nil {
 			m.Logger.Debug("query failed", "path", query.Path, "error", err)
 			return nil, err
