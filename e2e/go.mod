@@ -7,7 +7,7 @@ toolchain go1.23.2
 // needed temporarily for v9.
 replace (
 	github.com/misko9/go-substrate-rpc-client/v4 => github.com/DimitrisJim/go-substrate-rpc-client/v4 v4.0.0-20240717100841-406da076c1d5
-	github.com/strangelove-ventures/interchaintest/v9 => github.com/DimitrisJim/interchaintest/v9 v9.0.0-20241126111826-1ed6f77b844e
+	github.com/strangelove-ventures/interchaintest/v9 => github.com/DimitrisJim/interchaintest/v9 v9.0.0-20241126144844-695732964035
 )
 
 require (

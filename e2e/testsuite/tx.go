@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"slices"
 	"strconv"
 	"strings"
@@ -50,7 +52,18 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 		// use a codec with all the types our tests care about registered.
 		// BroadcastTx will deserialize the response and will not be able to otherwise.
 		cdc := Codec()
-		return clientContext.WithCodec(cdc).WithTxConfig(SDKEncodingConfig().TxConfig)
+
+		signingCtx := SDKEncodingConfig().TxConfig.SigningContext()
+		txConfig := authtx.NewTxConfig(cdc, signingCtx.AddressCodec(), signingCtx.ValidatorAddressCodec(), authtx.DefaultSignModes)
+
+		return clientContext.WithCodec(cdc).
+			WithTxConfig(txConfig).
+			WithValidatorPrefix("cosmosvaloper").
+			WithAddressPrefix("cosmos").
+			WithAddressCodec(txConfig.SigningContext().AddressCodec()).
+			WithValidatorAddressCodec(txConfig.SigningContext().ValidatorAddressCodec()).
+			WithConsensusAddressCodec(addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix())).
+			WithBroadcastMode("async")
 	})
 
 	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {

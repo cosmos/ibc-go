@@ -84,7 +84,6 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 	proposaltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	authz.RegisterInterfaces(cfg.InterfaceRegistry)
 	txtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	return cdc, cfg
 }
