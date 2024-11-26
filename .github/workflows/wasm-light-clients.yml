@@ -23,7 +23,6 @@ jobs:
           profile: minimal
           toolchain: stable
           components: rustfmt, clippy
-          target: wasm32-unknown-unknown
 
       - name: Lint 08-wasm-light-clients workspace
         run: make lint-wasm-light-clients
@@ -40,6 +39,7 @@ jobs:
           profile: minimal
           toolchain: stable
           components: rustfmt, clippy
+          target: wasm32-unknown-unknown
 
       - name: Cargo build 08-wasm-light-clients workspace
         run: make build-wasm-light-clients
