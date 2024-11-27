@@ -142,7 +142,7 @@ build-docker-wasm:
 .PHONY: build-docker-wasm
 
 build-wasm-light-clients:
-	cd modules/light-clients/08-wasm-light-clients && cargo wasm
+	cd modules/light-clients/08-wasm-light-clients && cargo build --release --lib --target wasm32-unknown-unknown
 
 .PHONY: build-wasm-light-clients
 

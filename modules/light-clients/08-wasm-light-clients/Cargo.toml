@@ -21,17 +21,17 @@ optimize = """docker run --rm -v "$(pwd)":/code \
 ibc-go-proto = { path = "packages/ibc-go-proto" }
 
 # CosmWasm related dependencies
-cosmwasm-schema = "2.1.4"
-cosmwasm-std = "2.1.4"
-cw-storage-plus = "2.0.0"
+cosmwasm-schema = "2.1"
+cosmwasm-std = "2.1"
+cw-storage-plus = "2.0"
 serde = { version = "1.0.215", default-features = false, features = ["derive"] }
-thiserror = "2.0.3"
+thiserror = "2.0"
 
 # Proto related dependencies
-ics23                  = { version = "0.12.0", default-features = false }
-tendermint-proto = { version = "0.40.0", default-features = false }
-cosmos-sdk-proto = { version = "0.26.1", default-features = false }
-prost                  = { version = "0.13.3", default-features = false, features = ["prost-derive"] }
+ics23 = { version = "0.12", default-features = false }
+tendermint-proto = { version = "0.40", default-features = false }
+cosmos-sdk-proto = { version = "0.26", default-features = false }
+prost = { version = "0.13", default-features = false, features = ["prost-derive"] }
 
 # dev-dependencies
 cw-multi-test = "2.2.0"
