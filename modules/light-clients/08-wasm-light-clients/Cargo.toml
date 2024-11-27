@@ -22,10 +22,10 @@ ibc-go-proto = { path = "packages/ibc-go-proto" }
 
 # CosmWasm related dependencies
 cosmwasm-schema = "2.1.4"
-cosmwasm-std = { version = "2.1.4" }
+cosmwasm-std = "2.1.4"
 cw-storage-plus = "2.0.0"
 serde = { version = "1.0.215", default-features = false, features = ["derive"] }
-thiserror = { version = "2.0.3" }
+thiserror = "2.0.3"
 
 # Proto related dependencies
 ics23                  = { version = "0.12.0", default-features = false }
