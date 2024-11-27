@@ -278,8 +278,8 @@ github.com/DataDog/datadog-go v4.8.3+incompatible h1:fNGaYSuObuQb5nzeTQqowRAd9bp
 github.com/DataDog/datadog-go v4.8.3+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/zstd v1.5.6 h1:LbEglqepa/ipmmQJUDnSsfvA8e8IStVcGaFWDuxvGOY=
 github.com/DataDog/zstd v1.5.6/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
-github.com/DimitrisJim/interchaintest/v9 v9.0.0-20241127101005-ba7e1a2d6068 h1:hnRZk4NRjlE3DowpIFEGOka7qZTB/RJT5Uq/dVpq+Os=
-github.com/DimitrisJim/interchaintest/v9 v9.0.0-20241127101005-ba7e1a2d6068/go.mod h1:/6jnE/3C1tdH1mFseJDZfYf8PqUwTRY5PVf0tXuKqVE=
+github.com/DimitrisJim/interchaintest/v9 v9.0.0-20241127135837-285cf3b21950 h1:/wk2s7Q3nWIRsBlPMSbIG4ozPmQuxdoZNfmBFBn+fEs=
+github.com/DimitrisJim/interchaintest/v9 v9.0.0-20241127135837-285cf3b21950/go.mod h1:/6jnE/3C1tdH1mFseJDZfYf8PqUwTRY5PVf0tXuKqVE=
 github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e h1:ahyvB3q25YnZWly5Gq1ekg6jcmWaGj/vG/MhF4aisoc=
 github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e/go.mod h1:kGUqhHd//musdITWjFvNTHn90WG9bMLBEPQZ17Cmlpw=
 github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec h1:1Qb69mGp/UtRPn422BH4/Y4Q3SLUrD9KHuDkm8iodFc=
