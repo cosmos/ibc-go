@@ -15,10 +15,10 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-
 	govtypes "cosmossdk.io/x/gov/types"
 	paramsproposaltypes "cosmossdk.io/x/params/types/proposal"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
+
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
