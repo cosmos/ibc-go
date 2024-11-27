@@ -3,7 +3,6 @@ package types_test
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -39,8 +38,6 @@ func TestCommitPacket(t *testing.T) {
 					Receiver: "receiver",
 					Memo:     "memo",
 				})
-				fmt.Printf("transferData: %s\n", string(transferData))
-				fmt.Printf("hex value: %s\n", hex.EncodeToString(transferData))
 				require.NoError(t, err)
 				packet.Payloads[0].Value = transferData
 				packet.Payloads[0].Encoding = transfertypes.EncodingABI

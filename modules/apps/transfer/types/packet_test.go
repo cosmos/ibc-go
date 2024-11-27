@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"testing"
@@ -728,19 +729,19 @@ func TestUnmarshalPacketData(t *testing.T) {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expError string
+		expError error
 	}{
 		{
 			"success: v1 -> v2 with empty encoding (JSON)",
 			func() {},
-			"",
+			nil,
 		},
 		{
 			"success: v1 -> v2 with JSON encoding",
 			func() {
 				encoding = types.EncodingJSON
 			},
-			"",
+			nil,
 		},
 		{
 			"success: v1 -> v2 with protobuf encoding",
@@ -752,7 +753,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 				packetDataBz = bz
 				encoding = types.EncodingProtobuf
 			},
-			"",
+			nil,
 		},
 		{
 			"success: v1 -> v2 with abi encoding",
@@ -769,7 +770,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 				packetDataBz = bz
 				encoding = types.EncodingABI
 			},
-			"",
+			nil,
 		},
 		{
 			"success: v2 with empty encoding (protobuf)",
@@ -785,7 +786,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 				packetDataBz = packetData.GetBytes()
 				version = types.V2
 			},
-			"",
+			nil,
 		},
 		{
 			"success: v2 with JSON encoding",
@@ -802,7 +803,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 				version = types.V2
 				encoding = types.EncodingJSON
 			},
-			"",
+			nil,
 		},
 		{
 			"failure: v2 with ABI encoding (not supported)",
@@ -811,14 +812,14 @@ func TestUnmarshalPacketData(t *testing.T) {
 				version = types.V2
 				encoding = types.EncodingABI
 			},
-			"encoding application/x-solidity-abi is only supported for ICS20-V1",
+			errors.New("encoding application/x-solidity-abi is only supported for ICS20-V1"),
 		},
 		{
 			"failure: invalid encoding",
 			func() {
 				encoding = "invalid"
 			},
-			"invalid encoding provided",
+			errors.New("invalid encoding provided"),
 		},
 		{
 			"failure: invalid type for json",
@@ -826,7 +827,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 				packetDataBz = []byte("invalid")
 				encoding = types.EncodingJSON
 			},
-			ibcerrors.ErrInvalidType.Error(),
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: invalid type for protobuf",
@@ -834,7 +835,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 				packetDataBz = []byte("invalid")
 				encoding = types.EncodingProtobuf
 			},
-			ibcerrors.ErrInvalidType.Error(),
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: invalid type for abi",
@@ -842,14 +843,14 @@ func TestUnmarshalPacketData(t *testing.T) {
 				packetDataBz = []byte("invalid")
 				encoding = types.EncodingABI
 			},
-			ibcerrors.ErrInvalidType.Error(),
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"invalid version",
 			func() {
 				version = "ics20-100"
 			},
-			types.ErrInvalidVersion.Error(),
+			types.ErrInvalidVersion,
 		},
 	}
 
@@ -864,14 +865,14 @@ func TestUnmarshalPacketData(t *testing.T) {
 
 		packetData, err := types.UnmarshalPacketData(packetDataBz, version, encoding)
 
-		expPass := tc.expError == ""
+		expPass := tc.expError == nil
 		if expPass {
 			require.NoError(t, err)
 			require.NotEmpty(t, packetData.Tokens)
 			require.NotEmpty(t, packetData.Sender)
 			require.NotEmpty(t, packetData.Receiver)
 		} else {
-			require.ErrorContains(t, err, tc.expError)
+			ibctesting.RequireErrorIsOrContains(t, err, tc.expError)
 		}
 	}
 }
