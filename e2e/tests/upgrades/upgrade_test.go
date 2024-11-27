@@ -74,21 +74,12 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 		Info:   fmt.Sprintf("upgrade version test from %s to %s", currentVersion, upgradeVersion),
 	}
 
-	if testvalues.GovV1MessagesFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
-		msgSoftwareUpgrade := &upgradetypes.MsgSoftwareUpgrade{
-			Plan:      plan,
-			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		}
-
-		s.ExecuteAndPassGovV1Proposal(ctx, msgSoftwareUpgrade, chain, wallet)
-	} else {
-		upgradeProposal := upgradetypes.SoftwareUpgradeProposal{
-			Title:       fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion),
-			Description: "upgrade chain E2E test",
-			Plan:        plan,
-		}
-		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
+	msgSoftwareUpgrade := &upgradetypes.MsgSoftwareUpgrade{
+		Plan:      plan,
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	}
+
+	s.ExecuteAndPassGovV1Proposal(ctx, msgSoftwareUpgrade, chain, wallet)
 
 	err = test.WaitForCondition(time.Minute*2, time.Second*2, func() (bool, error) {
 		status, err := chain.GetNode().Client.Status(ctx)
