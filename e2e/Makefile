@@ -16,7 +16,4 @@ e2e-test: init cleanup-ibc-test-containers
 e2e-suite: init cleanup-ibc-test-containers
 	RUN_SUITE="true" ./scripts/run-e2e.sh "" $(entrypoint)
 
-compatibility-tests:
-	./scripts/run-compatibility-tests.sh $(release_branch)
-
-.PHONY: cleanup-ibc-test-containers e2e-test compatibility-tests init
+.PHONY: cleanup-ibc-test-containers e2e-test init
