@@ -49,8 +49,6 @@ const (
 	RelayerIDEnv = "RELAYER_ID"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
 	ChainBinaryEnv = "CHAIN_BINARY"
-	// ChainUpgradeTagEnv specifies the upgrade version tag
-	ChainUpgradeTagEnv = "CHAIN_UPGRADE_TAG"
 	// ChainUpgradePlanEnv specifies the upgrade plan name
 	ChainUpgradePlanEnv = "CHAIN_UPGRADE_PLAN"
 	// E2EConfigFilePathEnv allows you to specify a custom path for the config file to be used. It can be relative
@@ -98,8 +96,6 @@ type TestConfig struct {
 	RelayerConfigs []relayer.Config `yaml:"relayers"`
 	// ActiveRelayer specifies the relayer that will be used. It must match the ID of one of the entries in RelayerConfigs.
 	ActiveRelayer string `yaml:"activeRelayer"`
-	// UpgradeConfig holds values used only for the upgrade tests.
-	UpgradeConfig UpgradeConfig `yaml:"upgrade"`
 	// CometBFTConfig holds values for configuring CometBFT.
 	CometBFTConfig CometBFTConfig `yaml:"cometbft"`
 	// DebugConfig holds configuration for miscellaneous options.
@@ -468,14 +464,6 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 		fromFile.ActiveRelayer = envTc.ActiveRelayer
 	}
 
-	if os.Getenv(ChainUpgradePlanEnv) != "" {
-		fromFile.UpgradePlanName = envTc.UpgradeConfig.PlanName
-	}
-
-	if os.Getenv(ChainUpgradeTagEnv) != "" {
-		fromFile.UpgradeConfig.Tag = envTc.UpgradeConfig.Tag
-	}
-
 	if isEnvTrue(KeepContainersEnv) {
 		fromFile.DebugConfig.KeepContainers = true
 	}
@@ -595,23 +583,6 @@ func getDefaultHyperspaceRelayerConfig() relayer.Config {
 		Tag:   defaultHyperspaceTag,
 		ID:    relayer.Hyperspace,
 		Image: relayer.HyperspaceRelayerRepository,
-	}
-}
-
-// getUpgradePlanConfigFromEnv returns the upgrade config from environment variables.
-func getUpgradePlanConfigFromEnv() UpgradeConfig {
-	upgradeTag, ok := os.LookupEnv(ChainUpgradeTagEnv)
-	if !ok {
-		upgradeTag = ""
-	}
-
-	upgradePlan, ok := os.LookupEnv(ChainUpgradePlanEnv)
-	if !ok {
-		upgradePlan = ""
-	}
-	return UpgradeConfig{
-		PlanName: upgradePlan,
-		Tag:      upgradeTag,
 	}
 }
 
