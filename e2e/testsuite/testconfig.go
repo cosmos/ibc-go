@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cosmos/ibc-go/e2e/internal/directories"
-
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	interchaintestutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
@@ -27,6 +25,7 @@ import (
 
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 
+	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
