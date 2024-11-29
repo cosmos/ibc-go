@@ -464,6 +464,10 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 		fromFile.ActiveRelayer = envTc.ActiveRelayer
 	}
 
+	if os.Getenv(ChainUpgradePlanEnv) != "" {
+		fromFile.UpgradePlanName = envTc.UpgradePlanName
+	}
+
 	if isEnvTrue(KeepContainersEnv) {
 		fromFile.DebugConfig.KeepContainers = true
 	}
