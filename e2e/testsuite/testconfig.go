@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/cosmos/ibc-go/e2e/internal/directories"
 
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
