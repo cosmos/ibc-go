@@ -29,7 +29,7 @@ func E2E() (string, error) {
 
 	// arbitrary value to avoid getting stuck in an infinite loop if this is called
 	// in a context where the e2e directory does not exist.
-	if count > maxAttempts {
+	if count == maxAttempts {
 		return "", fmt.Errorf("unable to find e2e directory after %d tries", maxAttempts)
 	}
 

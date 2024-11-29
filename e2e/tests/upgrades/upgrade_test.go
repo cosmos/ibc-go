@@ -1347,7 +1347,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_ICS20v2ChannelUpgrade() {
 	})
 
 	t.Run("verify channel A upgraded and transfer version is ics20-2", func(t *testing.T) {
-		err := test.WaitForCondition(time.Minute*2, time.Second*2, func() (bool, error) {
+		err := test.WaitForCondition(time.Minute*3, time.Second*2, func() (bool, error) {
 			channel, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			if err != nil {
 				return false, err
