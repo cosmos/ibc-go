@@ -21,6 +21,11 @@ on:
         required: false
         type: string
         default: '' # empty string means don't skip any test.
+      chain-image:
+        description: 'The image to use for chains'
+        required: false
+        type: string
+        default: 'ghcr.io/cosmos/ibc-go-simd'
       chain-a-tag:
         description: 'The tag to use for chain A'
         required: true
@@ -70,6 +75,7 @@ jobs:
     steps:
       - name: Display Inputs
         run: |
+          echo "Chain Image:       ${{ inputs.chain-image }}"
           echo "Chain A Tag:       ${{ inputs.chain-a-tag }}"
           echo "Chain B Tag:       ${{ inputs.chain-b-tag }}"
           echo "Upgrade Plan Name: ${{ inputs.upgrade-plan-name }}"
@@ -195,6 +201,7 @@ jobs:
       - docker-build
       - docker-build-wasm
     env:
+      CHAIN_IMAGE: '${{ inputs.chain-image }}'
       CHAIN_UPGRADE_PLAN: '${{ inputs.upgrade-plan-name }}'
       CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
       CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
@@ -233,6 +240,7 @@ jobs:
       - docker-build
       - docker-build-wasm
     env:
+      CHAIN_IMAGE: '${{ inputs.chain-image }}'
       CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
       CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
       E2E_CONFIG_PATH: '${{ inputs.e2e-config-path }}'
