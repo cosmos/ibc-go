@@ -46,7 +46,7 @@ const (
 
 func TestUpgradeTestSuite(t *testing.T) {
 	testCfg := testsuite.LoadConfig()
-	if testCfg.UpgradeConfig.Tag == "" || testCfg.UpgradeConfig.PlanName == "" {
+	if testCfg.UpgradePlanName == "" {
 		t.Fatalf("%s and %s must be set when running an upgrade test", testsuite.ChainUpgradeTagEnv, testsuite.ChainUpgradePlanEnv)
 	}
 

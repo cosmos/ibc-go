@@ -102,6 +102,11 @@ type TestConfig struct {
 	CometBFTConfig CometBFTConfig `yaml:"cometbft"`
 	// DebugConfig holds configuration for miscellaneous options.
 	DebugConfig DebugConfig `yaml:"debug"`
+	// UpgradePlanName specifies which upgrade plan to use. It must match a plan name for an entry in the
+	// list of UpgradeConfigs.
+	UpgradePlanName string `yaml:"upgradePlanName"`
+	// UpgradeConfigs provides a list of all possible upgrades.
+	UpgradeConfigs []UpgradeConfig `yaml:"upgrades"`
 }
 
 // Validate validates the test configuration is valid for use within the tests.
@@ -118,6 +123,11 @@ func (tc TestConfig) Validate() error {
 	if err := tc.validateGenesisDebugConfig(); err != nil {
 		return fmt.Errorf("invalid Genesis debug configuration: %w", err)
 	}
+
+	if err := tc.validateUpgradeConfig(); err != nil {
+		return fmt.Errorf("invalid upgrade configuration: %w", err)
+	}
+
 	return nil
 }
 
@@ -173,6 +183,16 @@ func (tc TestConfig) validateRelayers() error {
 	return nil
 }
 
+// GetUpgradeConfig returns the upgrade configuration for the current test configuration.
+func (tc TestConfig) GetUpgradeConfig() UpgradeConfig {
+	for _, upgrade := range tc.UpgradeConfigs {
+		if upgrade.PlanName == tc.UpgradePlanName {
+			return upgrade
+		}
+	}
+	panic("upgrade plan not found in upgrade configs, this test config should not have passed validation")
+}
+
 // GetChainIndex returns the index of the chain with the given name, if it
 // exists.
 func (tc TestConfig) GetChainIndex(name string) (int, error) {
@@ -196,6 +216,35 @@ func (tc TestConfig) validateGenesisDebugConfig() error {
 	_, err := tc.GetChainIndex(tc.GetGenesisChainName())
 
 	return err
+}
+
+// validateUpgradeConfig ensures the upgrade configuration is valid.
+func (tc TestConfig) validateUpgradeConfig() error {
+	if strings.TrimSpace(tc.UpgradePlanName) == "" {
+		return nil
+	}
+
+	// the upgrade plan name specified must match one of the upgrade plans in the upgrade configs.
+	foundPlan := false
+	for _, upgrade := range tc.UpgradeConfigs {
+		if strings.TrimSpace(upgrade.Tag) == "" {
+			return fmt.Errorf("upgrade config missing tag: %+v", upgrade)
+		}
+
+		if strings.TrimSpace(upgrade.PlanName) == "" {
+			return fmt.Errorf("upgrade config missing plan name: %+v", upgrade)
+		}
+
+		if upgrade.PlanName == tc.UpgradePlanName {
+			foundPlan = true
+		}
+	}
+
+	if foundPlan {
+		return nil
+	}
+
+	return fmt.Errorf("upgrade plan %s not found in upgrade configs: %+v", tc.UpgradePlanName, tc.UpgradeConfigs)
 }
 
 // GetActiveRelayerConfig returns the currently specified relayer config.
@@ -418,7 +467,7 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 	}
 
 	if os.Getenv(ChainUpgradePlanEnv) != "" {
-		fromFile.UpgradeConfig.PlanName = envTc.UpgradeConfig.PlanName
+		fromFile.UpgradePlanName = envTc.UpgradeConfig.PlanName
 	}
 
 	if os.Getenv(ChainUpgradeTagEnv) != "" {
@@ -435,10 +484,10 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 // fromEnv returns a TestConfig constructed from environment variables.
 func fromEnv() TestConfig {
 	return TestConfig{
-		ChainConfigs:   getChainConfigsFromEnv(),
-		UpgradeConfig:  getUpgradePlanConfigFromEnv(),
-		ActiveRelayer:  os.Getenv(RelayerIDEnv),
-		CometBFTConfig: CometBFTConfig{LogLevel: "info"},
+		ChainConfigs:    getChainConfigsFromEnv(),
+		UpgradePlanName: os.Getenv(ChainUpgradePlanEnv),
+		ActiveRelayer:   os.Getenv(RelayerIDEnv),
+		CometBFTConfig:  CometBFTConfig{LogLevel: "info"},
 	}
 }
 
