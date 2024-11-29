@@ -107,7 +107,7 @@ jobs:
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-a-tag: v8.4.0
-      chain-b-tag: v8.4.0
+      chain-b-tag: v9.0.0
       upgrade-plan-name: "v9"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV8ToV9ChainUpgrade_ICS20v2ChannelUpgrade"
