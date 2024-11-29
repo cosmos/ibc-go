@@ -63,7 +63,6 @@ jobs:
           CHAIN_A_TAG: '${{ matrix.chain-a }}'
           CHAIN_B_TAG: '${{ matrix.chain-b }}'
           RELAYER_ID: '${{ matrix.relayer-type }}'
-          E2E_CONFIG_PATH: "ci-e2e-config.yaml"
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v4
         # we only want to upload logs on test failures.

@@ -76,6 +76,8 @@ const (
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
 	// e2e tests. See sample.config.yaml or sample.config.extended.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
+	// defaultCIConfigFileName is the default filename for the config file that should be used for CI.
+	defaultCIConfigFileName = "ci-e2e-config.yaml"
 )
 
 // defaultChainNames contains the default name for chainA and chainB.
@@ -551,6 +553,14 @@ func getConfigFilePath() string {
 		return path.Join(e2eDir, specifiedConfigPath)
 	}
 
+	if IsCI() {
+		if err := os.Setenv(E2EConfigFilePathEnv, defaultCIConfigFileName); err != nil {
+			panic(err)
+		}
+		return getConfigFilePath()
+	}
+
+	// running locally.
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)

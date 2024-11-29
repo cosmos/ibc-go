@@ -59,7 +59,6 @@ jobs:
       CHAIN_A_TAG: latest
       CHAIN_B_TAG: latest
       CHAIN_IMAGE: ibc-go-simd
-      E2E_CONFIG_PATH: "ci-e2e-config.yaml"
       FORK: "true"
     # run this job on forks and copies of ibc-go, for example: a public fork or a private copy of ibc-go.
     if: ${{ github.repository != 'cosmos/ibc-go' || github.event.pull_request.head.repo.fork || github.actor == 'dependabot[bot]' || github.event_name == 'workflow_dispatch' }}
