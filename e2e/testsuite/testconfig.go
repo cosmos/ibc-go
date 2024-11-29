@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -347,9 +347,15 @@ func fromFile() (TestConfig, bool) {
 // populateDefaults populates default values for the test config if
 // certain required fields are not specified.
 func populateDefaults(tc TestConfig) TestConfig {
+	chainIDs := []string{
+		"chainA-1",
+		"chainB-1",
+		"chainC-1",
+	}
+
 	for i := range tc.ChainConfigs {
 		if tc.ChainConfigs[i].ChainID == "" {
-			tc.ChainConfigs[i].ChainID = fmt.Sprintf("chain-%d", i+1)
+			tc.ChainConfigs[i].ChainID = chainIDs[i]
 		}
 		if tc.ChainConfigs[i].Binary == "" {
 			tc.ChainConfigs[i].Binary = defaultBinary
@@ -483,11 +489,16 @@ func getChainConfigsFromEnv() []ChainConfig {
 // getConfigFilePath returns the absolute path where the e2e config file should be.
 func getConfigFilePath() string {
 	if specifiedConfigPath := os.Getenv(E2EConfigFilePathEnv); specifiedConfigPath != "" {
-		absolutePath, err := filepath.Abs(specifiedConfigPath)
-		if err != nil {
-			panic(fmt.Errorf("failed to convert specified config path to absolute path: %w", err))
+		if path.IsAbs(specifiedConfigPath) {
+			return specifiedConfigPath
 		}
-		return absolutePath
+
+		e2eDir, err := directories.E2E()
+		if err != nil {
+			panic(err)
+		}
+
+		return path.Join(e2eDir, specifiedConfigPath)
 	}
 
 	homeDir, err := os.UserHomeDir()

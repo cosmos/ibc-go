@@ -125,7 +125,7 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 
 	// If no path is provided, use the default (e2e/diagnostics/genesis.json).
 	if exportPath == "" {
-		e2eDir, err := directories.E2E(t)
+		e2eDir, err := directories.E2E()
 		s.Require().NoError(err, "can't get e2edir")
 		exportPath = path.Join(e2eDir, directories.DefaultGenesisExportPath)
 	}
