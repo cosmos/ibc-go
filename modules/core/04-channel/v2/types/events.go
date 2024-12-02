@@ -12,6 +12,7 @@ const (
 	EventTypeRegisterCounterparty = "register_counterparty"
 	EventTypeSendPacket           = "send_packet"
 	EventTypeRecvPacket           = "recv_packet"
+	EventTypeTimeoutPacket        = "timeout_packet"
 
 	EventTypeSendPayload = "send_payload"
 	EventTypeRecvPayload = "recv_payload"
