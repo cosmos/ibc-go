@@ -564,7 +564,7 @@ func NewSimApp(
 	// since fee middleware will wrap the IBCKeeper for underlying application.
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
-		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), logger.With(log.ModuleKey, "x/transfer")),
+		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), logger.With(log.ModuleKey, "x/ibc-transfer")),
 		app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
 		app.IBCKeeper.ChannelKeeper,
@@ -587,7 +587,7 @@ func NewSimApp(
 	// Mock IBC app wrapped with a middleware which does not implement the UpgradeableModule interface.
 	// NOTE: this is used to test integration with apps which do not yet fulfill the UpgradeableModule interface and error when
 	// an upgrade is tried on the channel.
-	mockBlockUpgradeIBCModule := ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.MockBlockUpgrade))
+	mockBlockUpgradeIBCModulex/ibc - transferk.NewIBCModule(&mockModule, ibcmock.NewIBCApp(ibcmock.MockBlockUpgrade))
 	mockBlockUpgradeMw := ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockBlockUpgradeIBCModule.IBCApp)
 	ibcRouter.AddRoute(ibcmock.MockBlockUpgrade, mockBlockUpgradeMw)
 
