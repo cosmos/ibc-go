@@ -23,8 +23,8 @@ const (
 	AttributeKeyDstChannel            = "packet_dest_channel"
 	AttributeKeySequence              = "packet_sequence"
 	AttributeKeyTimeoutTimestamp      = "packet_timeout_timestamp"
-	AttributeKeyPacketData            = "packet_data"
-	AttributeKeyAckData               = "acknowledgement_data"
+	AttributeKeyPacketDataHex         = "packet_data_hex"
+	AttributeKeyAckDataHex            = "acknowledgement_data_hex"
 )
 
 // IBC channel events vars
