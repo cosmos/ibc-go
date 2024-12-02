@@ -81,7 +81,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	t.Run("query via interchain account", func(t *testing.T) {
 		// the host account need not be funded
 		t.Run("broadcast query packet", func(t *testing.T) {
-			balanceQuery := banktypes.NewQueryBalanceRequest(string(chainBAccount.Address()), chainB.Config().Denom) // TODO: address should be a bech32 address?
+			balanceQuery := banktypes.NewQueryBalanceRequest(chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			queryBz, err := balanceQuery.Marshal()
 			s.Require().NoError(err)
 
