@@ -62,8 +62,8 @@ func emitRecvPacketEvents(ctx context.Context, packet types.Packet) {
 	})
 }
 
-// EmitWriteAcknowledgementEvents emits events for WriteAcknowledgement.
-func EmitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ack types.Acknowledgement) {
+// emitWriteAcknowledgementEvents emits events for WriteAcknowledgement.
+func emitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ack types.Acknowledgement) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	encodedPacket, err := proto.Marshal(&packet)
@@ -93,8 +93,8 @@ func EmitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ac
 	})
 }
 
-// EmitAcknowledgePacketEvents emits events for the AcknowledgePacket handler.
-func EmitAcknowledgePacketEvents(ctx context.Context, packet types.Packet) {
+// emitAcknowledgePacketEvents emits events for the AcknowledgePacket handler.
+func emitAcknowledgePacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	encodedPacket, err := proto.Marshal(&packet)
@@ -118,8 +118,8 @@ func EmitAcknowledgePacketEvents(ctx context.Context, packet types.Packet) {
 	})
 }
 
-// EmitTimeoutPacketEvents emits events for the TimeoutPacket handler.
-func EmitTimeoutPacketEvents(ctx context.Context, packet types.Packet) {
+// emitTimeoutPacketEvents emits events for the TimeoutPacket handler.
+func emitTimeoutPacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	encodedPacket, err := proto.Marshal(&packet)
