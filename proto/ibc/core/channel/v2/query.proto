@@ -38,16 +38,22 @@ service Query {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_acks/{sequence}";
   }
 
+  // PacketAcknowledgements returns all packet acknowledgements associated with a channel.
+  rpc PacketAcknowledgements(QueryPacketAcknowledgementsRequest) returns (QueryPacketAcknowledgementsResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_acknowledgements";
+  }
+
   // PacketReceipt queries a stored packet receipt.
   rpc PacketReceipt(QueryPacketReceiptRequest) returns (QueryPacketReceiptResponse) {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_receipts/{sequence}";
   }
 
+  // UnreceivedPackets returns all the unreceived IBC packets associated with a channel and sequences.
   rpc UnreceivedPackets(QueryUnreceivedPacketsRequest) returns (QueryUnreceivedPacketsResponse) {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/"
                                    "{sequences}/unreceived_packets";
   }
-                               
+
   // UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a channel and sequences.
   rpc UnreceivedAcks(QueryUnreceivedAcksRequest) returns (QueryUnreceivedAcksResponse) {
     option (google.api.http).get =
@@ -134,6 +140,27 @@ message QueryPacketAcknowledgementResponse {
   bytes proof = 2;
   // height at which the proof was retrieved
   ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryPacketAcknowledgementsRequest is the request type for the
+// Query/QueryPacketCommitments RPC method
+message QueryPacketAcknowledgementsRequest {
+  // channel unique identifier
+  string channel_id = 1;
+  // pagination request
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+  // list of packet sequences
+  repeated uint64 packet_commitment_sequences = 3;
+}
+
+// QueryPacketAcknowledgemetsResponse is the request type for the
+// Query/QueryPacketAcknowledgements RPC method
+message QueryPacketAcknowledgementsResponse {
+  repeated ibc.core.channel.v2.PacketState acknowledgements = 1;
+  // pagination response
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  // query block height
+  ibc.core.client.v1.Height height = 3 [(gogoproto.nullable) = false];
 }
 
 // QueryPacketReceiptRequest is the request type for the Query/PacketReceipt RPC method.
