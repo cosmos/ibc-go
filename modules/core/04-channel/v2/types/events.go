@@ -23,11 +23,6 @@ const (
 	AttributeKeyDstChannel            = "packet_dest_channel"
 	AttributeKeySequence              = "packet_sequence"
 	AttributeKeyTimeoutTimestamp      = "packet_timeout_timestamp"
-	AttributeKeyPayloadLength         = "packet_payload_length"
-	AttributeKeyPayloadSequence       = "payload_sequence"
-	AttributeKeyVersion               = "payload_version"
-	AttributeKeyEncoding              = "payload_encoding"
-	AttributeKeyData                  = "payload_data"
 	AttributeKeyPacketData            = "packet_data"
 )
 
