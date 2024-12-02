@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
@@ -14,6 +16,11 @@ import (
 func emitSendPacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
+	encodedPacket, err := proto.Marshal(&packet)
+	if err != nil {
+		panic(err)
+	}
+
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendPacket,
@@ -21,40 +28,23 @@ func emitSendPacketEvents(ctx context.Context, packet types.Packet) {
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.TimeoutTimestamp)),
-			sdk.NewAttribute(types.AttributeKeyPayloadLength, fmt.Sprintf("%d", len(packet.Payloads))),
-			sdk.NewAttribute(types.AttributeKeyVersion, packet.Payloads[0].Version),
-			sdk.NewAttribute(types.AttributeKeyEncoding, packet.Payloads[0].Encoding),
-			sdk.NewAttribute(types.AttributeKeyData, hex.EncodeToString(packet.Payloads[0].Value)),
+			sdk.NewAttribute(types.AttributeKeyPacketData, hex.EncodeToString(encodedPacket)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		),
 	})
-
-	for i, payload := range packet.Payloads {
-		sdkCtx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeSendPayload,
-				sdk.NewAttribute(types.AttributeKeySrcChannel, packet.SourceChannel),
-				sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
-				sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
-				sdk.NewAttribute(types.AttributeKeyPayloadSequence, fmt.Sprintf("%d", i)),
-				sdk.NewAttribute(types.AttributeKeyVersion, payload.Version),
-				sdk.NewAttribute(types.AttributeKeyEncoding, payload.Encoding),
-				sdk.NewAttribute(types.AttributeKeyData, hex.EncodeToString(payload.Value)),
-			),
-			sdk.NewEvent(
-				sdk.EventTypeMessage,
-				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			),
-		})
-	}
 }
 
 // emitRecvPacketEvents emits events for the RecvPacket handler.
 func emitRecvPacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	encodedPacket, err := proto.Marshal(&packet)
+	if err != nil {
+		panic(err)
+	}
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -63,35 +53,13 @@ func emitRecvPacketEvents(ctx context.Context, packet types.Packet) {
 			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.TimeoutTimestamp)),
-			sdk.NewAttribute(types.AttributeKeyPayloadLength, fmt.Sprintf("%d", len(packet.Payloads))),
-			sdk.NewAttribute(types.AttributeKeyVersion, packet.Payloads[0].Version),
-			sdk.NewAttribute(types.AttributeKeyEncoding, packet.Payloads[0].Encoding),
-			sdk.NewAttribute(types.AttributeKeyData, hex.EncodeToString(packet.Payloads[0].Value)),
+			sdk.NewAttribute(types.AttributeKeyPacketData, hex.EncodeToString(encodedPacket)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		),
 	})
-
-	for i, payload := range packet.Payloads {
-		sdkCtx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(
-				types.EventTypeRecvPayload,
-				sdk.NewAttribute(types.AttributeKeySrcChannel, packet.SourceChannel),
-				sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
-				sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
-				sdk.NewAttribute(types.AttributeKeyPayloadSequence, fmt.Sprintf("%d", i)),
-				sdk.NewAttribute(types.AttributeKeyVersion, payload.Version),
-				sdk.NewAttribute(types.AttributeKeyEncoding, payload.Encoding),
-				sdk.NewAttribute(types.AttributeKeyData, hex.EncodeToString(payload.Value)),
-			),
-			sdk.NewEvent(
-				sdk.EventTypeMessage,
-				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			),
-		})
-	}
 }
 
 // EmitWriteAcknowledgementEvents emits events for WriteAcknowledgement.

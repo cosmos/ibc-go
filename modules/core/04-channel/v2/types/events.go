@@ -28,6 +28,7 @@ const (
 	AttributeKeyVersion               = "payload_version"
 	AttributeKeyEncoding              = "payload_encoding"
 	AttributeKeyData                  = "payload_data"
+	AttributeKeyPacketData            = "packet_data"
 )
 
 // IBC channel events vars
