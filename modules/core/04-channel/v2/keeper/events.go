@@ -64,7 +64,33 @@ func emitRecvPacketEvents(ctx context.Context, packet types.Packet) {
 
 // EmitWriteAcknowledgementEvents emits events for WriteAcknowledgement.
 func EmitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ack types.Acknowledgement) {
-	// TODO: https://github.com/cosmos/ibc-go/issues/7386
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	encodedPacket, err := proto.Marshal(&packet)
+	if err != nil {
+		panic(err)
+	}
+
+	encodedAck, err := proto.Marshal(&ack)
+	if err != nil {
+		panic(err)
+	}
+
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWriteAck,
+			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.SourceChannel),
+			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
+			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
+			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.TimeoutTimestamp)),
+			sdk.NewAttribute(types.AttributeKeyPacketData, hex.EncodeToString(encodedPacket)),
+			sdk.NewAttribute(types.AttributeKeyAckData, hex.EncodeToString(encodedAck)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 }
 
 // EmitAcknowledgePacketEvents emits events for the AcknowledgePacket handler.

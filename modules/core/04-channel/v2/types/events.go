@@ -14,9 +14,7 @@ const (
 	EventTypeRecvPacket           = "recv_packet"
 	EventTypeTimeoutPacket        = "timeout_packet"
 	EventTypeAcknowledgePacket    = "acknowledge_packet"
-
-	EventTypeSendPayload = "send_payload"
-	EventTypeRecvPayload = "recv_payload"
+	EventTypeWriteAck             = "write_acknowledgement"
 
 	AttributeKeyChannelID             = "channel_id"
 	AttributeKeyClientID              = "client_id"
@@ -26,6 +24,7 @@ const (
 	AttributeKeySequence              = "packet_sequence"
 	AttributeKeyTimeoutTimestamp      = "packet_timeout_timestamp"
 	AttributeKeyPacketData            = "packet_data"
+	AttributeKeyAckData               = "acknowledgement_data"
 )
 
 // IBC channel events vars
