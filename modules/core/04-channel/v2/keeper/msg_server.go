@@ -169,16 +169,19 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		return &types.MsgRecvPacketResponse{Result: types.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-channel %s invalid acknowledgement results", msg.Packet.SourceChannel)
 	}
 
-	if !isAsync {
+	if isAsync {
+		k.SetPacket(ctx, msg.Packet.DestinationChannel, msg.Packet.Sequence, msg.Packet)
+	} else {
+		if len(ack.AppAcknowledgements) != len(msg.Packet.Payloads) {
+			return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of acknowledgement results %d does not match length of payload %d", len(ack.AppAcknowledgements), len(msg.Packet.Payloads))
+		}
 		// Set packet acknowledgement only if the acknowledgement is not async.
 		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 		// acknowledgement is async.
-		if err := k.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
+		if err := k.WriteAcknowledgement(ctx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, msg.Packet.Sequence, ack); err != nil {
 			return nil, err
 		}
 	}
-
-	// TODO: store the packet for async applications to access if required.
 	defer telemetry.ReportRecvPacket(msg.Packet)
 
 	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceChannel, "dest-channel", msg.Packet.DestinationChannel, "result", types.SUCCESS.String())

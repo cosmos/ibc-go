@@ -3,31 +3,171 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/gogoproto/proto"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	transferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	typesv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/types"
+
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
+var _ typesv2.MsgServer = (*Keeper)(nil)
+
 type Keeper struct {
 	transferkeeper.Keeper
-	channelKeeperV2 *channelkeeperv2.Keeper
+	channelKeeperV2  *channelkeeperv2.Keeper
+	msgServiceRouter *baseapp.MsgServiceRouter
 }
 
-func NewKeeper(transferKeeper transferkeeper.Keeper, channelKeeperV2 *channelkeeperv2.Keeper) *Keeper {
+func NewKeeper(transferKeeper transferkeeper.Keeper, channelKeeperV2 *channelkeeperv2.Keeper, msgServiceRouter *baseapp.MsgServiceRouter) *Keeper {
 	return &Keeper{
-		Keeper:          transferKeeper,
-		channelKeeperV2: channelKeeperV2,
+		Keeper:           transferKeeper,
+		channelKeeperV2:  channelKeeperV2,
+		msgServiceRouter: msgServiceRouter,
 	}
+}
+
+func (k *Keeper) Transfer(goCtx context.Context, msg *typesv2.MsgTransfer) (*typesv2.MsgTransferResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.GetParams(ctx).SendEnabled {
+		return nil, types.ErrSendDisabled
+	}
+
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := k.BankKeeper.IsSendEnabledCoins(ctx, msg.Tokens...); err != nil {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, err.Error())
+	}
+
+	if k.IsBlockedAddr(sender) {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
+	}
+
+	if msg.Forwarding.GetUnwind() {
+		msg, err = k.unwindHops(ctx, msg)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	tokens := []types.Token{}
+	for _, c := range msg.Tokens {
+		t, err := k.Keeper.TokenFromCoin(ctx, c)
+		if err != nil {
+			return nil, err
+		}
+		tokens = append(tokens, t)
+	}
+	fowardingPacketData := types.NewForwardingPacketData(msg.Memo /* TODO is this correct? */, msg.Forwarding.Hops...)
+	data := types.NewFungibleTokenPacketDataV2(tokens, msg.Sender, msg.Receiver, msg.Memo, fowardingPacketData)
+	dataBz, err := data.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	//TODO bznein use msgtransfer instead of sendpacket
+	payload := channeltypesv2.NewPayload(msg.SourcePort, msg.DestinationPort, msg.Version, msg.Encoding, dataBz)
+	msgSendPacket := channeltypesv2.NewMsgSendPacket(msg.SourceChannel, msg.TimeoutTimestamp, msg.Sender, payload)
+
+	handler := k.msgServiceRouter.Handler(msgSendPacket)
+	res, err := handler(ctx, msgSendPacket)
+	if err != nil {
+		return nil, err
+	}
+
+	sequence, err := k.GetSequenceFromSendPacketResult(res)
+	if err != nil {
+		return nil, err
+	}
+
+	return &typesv2.MsgTransferResponse{Sequence: sequence}, nil
+}
+
+// TODO move somewhere else?
+func (k *Keeper) GetSequenceFromSendPacketResult(result *sdk.Result) (uint64, error) {
+	//var msgData sdk.TxMsgData
+	//err := proto.Unmarshal(result.MsgResponses[0].Value, &msgData)
+	//if err != nil {
+	//	return 0, err
+	//}
+	msgResponse := result.MsgResponses[0]
+	var resp channeltypesv2.MsgSendPacketResponse
+	err := proto.Unmarshal(msgResponse.Value, &resp)
+	if err != nil {
+		return 0, err
+	}
+	return resp.Sequence, nil
+}
+
+// unwindHops unwinds the hops present in the tokens denomination and returns the message modified to reflect
+// the unwound path to take. It assumes that only a single token is present (as this is verified in ValidateBasic)
+// in the tokens list and ensures that the token is not native to the chain.
+func (k Keeper) unwindHops(ctx sdk.Context, msg *typesv2.MsgTransfer) (*typesv2.MsgTransfer, error) {
+	unwindHops, err := k.getUnwindHops(ctx, msg.Tokens)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update message fields.
+	msg.SourceChannel, msg.SourcePort = unwindHops[0].ChannelId, unwindHops[0].PortId
+	msg.Forwarding.Hops = append(unwindHops[1:], msg.Forwarding.Hops...)
+	msg.Forwarding.Unwind = false
+
+	// TODO implement validation (create GH issue)
+	// // Message is validate again, this would only fail if hops now exceeds maximum allowed.
+	// if err := msg.ValidateBasic(); err != nil {
+	// 	return nil, err
+	// }
+	return msg, nil
+}
+
+// getUnwindHops returns the hops to be used during unwinding. If coins consists of more than
+// one coin, all coins must have the exact same trace, else an error is returned. getUnwindHops
+// also validates that the coins are not native to the chain.
+func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]types.Hop, error) {
+	// Sanity: validation for MsgTransfer ensures coins are not empty.
+	if len(coins) == 0 {
+		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "coins cannot be empty")
+	}
+
+	token, err := k.TokenFromCoin(ctx, coins[0])
+	if err != nil {
+		return nil, err
+	}
+
+	if token.Denom.IsNative() {
+		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind a native token")
+	}
+
+	unwindTrace := token.Denom.Trace
+	for _, coin := range coins[1:] {
+		token, err := k.TokenFromCoin(ctx, coin)
+		if err != nil {
+			return nil, err
+		}
+
+		// Implicitly ensures coin we're iterating over is not native.
+		if !slices.Equal(token.Denom.Trace, unwindTrace) {
+			return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "cannot unwind tokens with different traces.")
+		}
+	}
+
+	return unwindTrace, nil
 }
 
 func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload channeltypesv2.Payload, data types.FungibleTokenPacketDataV2, sender sdk.AccAddress) error {
@@ -169,20 +309,62 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 		}
 	}
 
-	_ = receivedCoins // TODO: remove this line when forwarding is implemented
-	// TODO: forwarding
-	// if data.HasForwarding() {
-	//	// we are now sending from the forward escrow address to the final receiver address.
-	// TODO: inside this version of the function, we should fetch the packet that was stored in IBC core in order to set it for forwarding.
-	//	if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
-	//		return err
-	//	}
-	// }
+	if data.HasForwarding() {
+		// we are now sending from the forward escrow address to the final receiver address.
+		if err := k.forwardPacket(ctx, destChannel, data, payload, receivedCoins); err != nil {
+			return err
+		}
+	}
 
 	// TODO: telemetry
-	// telemetry.ReportOnRecvPacket(packet, data.Tokens)
+	//telemetry.ReportOnRecvPacket(packet, data.Tokens)
 
 	// The ibc_module.go module will return the proper ack.
+	return nil
+}
+
+// TODO move to a different file
+// forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
+func (k Keeper) forwardPacket(ctx context.Context, destChannel string, data types.FungibleTokenPacketDataV2, payload channeltypesv2.Payload, receivedCoins sdk.Coins) error {
+	newForwardingPacketData := types.NewForwardingPacketData(data.Forwarding.DestinationMemo)
+	if len(data.Forwarding.Hops) > 1 {
+		// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver
+		newForwardingPacketData.Hops = data.Forwarding.Hops[1:]
+	}
+
+	memo := data.Memo
+	if len(newForwardingPacketData.Hops) > 0 {
+		memo = ""
+	}
+
+	// sending from module account (used as a temporary forward escrow) to the original receiver address.
+	sender := k.AuthKeeper.GetModuleAddress(types.ModuleName)
+
+	newPacketData := types.NewFungibleTokenPacketDataV2(data.Tokens, data.Sender, data.Receiver, memo, newForwardingPacketData)
+
+	pdBz, err := newPacketData.Marshal()
+	if err != nil {
+		return err
+	}
+	payload.Value = pdBz
+
+	msg := channeltypesv2.NewMsgSendPacket(
+		data.Forwarding.Hops[0].ChannelId,
+		data.Forwarding.TimeoutTimestamp,
+		sender.String(),
+		payload,
+	)
+
+	handler := k.msgServiceRouter.Handler(&channeltypesv2.MsgSendPacket{})
+	res, err := handler(sdk.UnwrapSDKContext(ctx), msg)
+	if err != nil {
+		return err
+	}
+	sequence, err := k.GetSequenceFromSendPacketResult(res)
+	if err != nil {
+		return err
+	}
+	k.SetForwardedPacketSequenceAndDestinationChannel(ctx, data.Forwarding.Hops[0].PortId, data.Forwarding.Hops[0].ChannelId, sequence, destChannel)
 	return nil
 }
 

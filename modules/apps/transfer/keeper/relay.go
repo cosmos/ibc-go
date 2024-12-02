@@ -99,7 +99,7 @@ func (k Keeper) sendTransfer(
 			coin.Amount = k.BankKeeper.GetBalance(ctx, sender, coin.Denom).Amount
 		}
 
-		token, err := k.tokenFromCoin(ctx, coin)
+		token, err := k.TokenFromCoin(ctx, coin)
 		if err != nil {
 			return 0, err
 		}
@@ -385,6 +385,7 @@ func (k Keeper) refundPacketTokens(ctx context.Context, packet channeltypes.Pack
 
 // EscrowCoin will send the given coin from the provided sender to the escrow address. It will also
 // update the total escrowed amount by adding the escrowed coin's amount to the current total escrow.
+
 func (k Keeper) EscrowCoin(ctx context.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
 	if err := k.BankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(coin)); err != nil {
 		// failure is expected for insufficient balances
@@ -419,7 +420,7 @@ func (k Keeper) UnescrowCoin(ctx context.Context, escrowAddress, receiver sdk.Ac
 }
 
 // tokenFromCoin constructs an IBC token given an SDK coin.
-func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
+func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
 	// if the coin does not have an IBC denom, return as is
 	if !strings.HasPrefix(coin.Denom, "ibc/") {
 		return types.Token{

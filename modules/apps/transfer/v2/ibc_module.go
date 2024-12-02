@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,6 +15,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
+
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
@@ -66,6 +68,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
 	}()
 
+
 	data, ackErr = transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
@@ -97,6 +100,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return recvResult
 }
+
 
 func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, relayer sdk.AccAddress) error {
 	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)

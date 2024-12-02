@@ -82,7 +82,7 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 	msg.Forwarding.Hops = append(unwindHops[1:], msg.Forwarding.Hops...)
 	msg.Forwarding.Unwind = false
 
-	// Message is validate again, this would only fail if hops now exceeds maximum allowed.
+	// Message is validated again, this would only fail if hops now exceeds maximum allowed.
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]types.Hop, er
 		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "coins cannot be empty")
 	}
 
-	token, err := k.tokenFromCoin(ctx, coins[0])
+	token, err := k.TokenFromCoin(ctx, coins[0])
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]types.Hop, er
 
 	unwindTrace := token.Denom.Trace
 	for _, coin := range coins[1:] {
-		token, err := k.tokenFromCoin(ctx, coin)
+		token, err := k.TokenFromCoin(ctx, coin)
 		if err != nil {
 			return nil, err
 		}

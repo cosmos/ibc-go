@@ -271,15 +271,16 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			},
 			types.ErrAcknowledgementExists,
 		},
-		{
-			"failure: empty ack",
-			func() {
-				ack = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{},
-				}
-			},
-			types.ErrInvalidAcknowledgement,
-		},
+		// TODO: Move somewhere else as the check has been moved.
+		//		{
+		//			"failure: empty ack",
+		//			func() {
+		//				ack = types.Acknowledgement{
+		//					AppAcknowledgements: [][]byte{},
+		//				}
+		//			},
+		//			types.ErrInvalidAcknowledgement,
+		//		},
 		{
 			"failure: receipt not found for packet",
 			func() {
@@ -314,7 +315,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 			tc.malleate()
 
-			err := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
+			err := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.WriteAcknowledgement(suite.chainB.GetContext(), packet.SourceChannel, packet.DestinationChannel, packet.Sequence, ack)
 
 			expPass := tc.expError == nil
 			if expPass {

@@ -20,6 +20,7 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	typesv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -344,6 +345,20 @@ func (k Keeper) getAllForwardedPackets(ctx context.Context) []types.ForwardedPac
 	})
 
 	return packets
+}
+
+// TODO This should go in keeperV2, bu there's no storeService there.
+// SetForwardedPacketSequenceAndDestinationChannel stores the sequence and the destinationChannel for a forwarded packet.
+func (k Keeper) SetForwardedPacketSequenceAndDestinationChannel(ctx context.Context, portID, channelID string, sequence uint64, destChannel string) {
+	store := k.storeService.OpenKVStore(ctx)
+	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
+	destChannelBz := []byte(destChannel)
+	if err := store.Set(typesv2.ForwardedPacketSequenceKey(portID, channelID), bigEndianBz); err != nil {
+		panic(err)
+	}
+	if err := store.Set(typesv2.ForwardedPacketDestinationChannelKey(portID, channelID), destChannelBz); err != nil {
+		panic(err)
+	}
 }
 
 // iterateForwardedPackets iterates over the forward packets in the store and performs a callback function.

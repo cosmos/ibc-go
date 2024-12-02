@@ -48,4 +48,6 @@ message ForwardingPacketData {
   string destination_memo = 1;
   // optional intermediate path through which packet will be forwarded.
   repeated ibc.applications.transfer.v1.Hop hops = 2 [(gogoproto.nullable) = false];
+  // timeout for the packet
+  uint64 timeout_timestamp = 3;
 }
