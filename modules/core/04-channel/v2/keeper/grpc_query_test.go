@@ -422,7 +422,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 		expError error
 	}{
 		{
-			"success",
+			"success: with PacketCommitmentSequences",
 			func() {
 				path := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path.SetupV2()
