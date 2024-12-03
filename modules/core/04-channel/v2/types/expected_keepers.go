@@ -19,4 +19,6 @@ type ClientKeeper interface {
 	// GetClientTimestampAtHeight returns the timestamp for a given height on the client
 	// given its client ID and height
 	GetClientTimestampAtHeight(ctx context.Context, clientID string, height exported.Height) (uint64, error)
+	// GetClientState gets a particular client from the store
+	GetClientState(ctx context.Context, clientID string) (exported.ClientState, bool)
 }

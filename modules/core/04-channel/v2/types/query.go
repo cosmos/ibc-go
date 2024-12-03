@@ -16,6 +16,22 @@ func NewQueryChannelResponse(channel Channel) *QueryChannelResponse {
 	}
 }
 
+// NewQueryChannelClientStateRequest creates and returns a new ChannelClientState query request.
+func NewQueryChannelClientStateRequest(channelID string) *QueryChannelClientStateRequest {
+	return &QueryChannelClientStateRequest{
+		ChannelId: channelID,
+	}
+}
+
+// NewQueryChannelClientStateResponse creates and returns a new ChannelClientState query response.
+func NewQueryChannelClientStateResponse(identifiedClientState clienttypes.IdentifiedClientState, proof []byte, height clienttypes.Height) *QueryChannelClientStateResponse {
+	return &QueryChannelClientStateResponse{
+		IdentifiedClientState: &identifiedClientState,
+		Proof:                 proof,
+		ProofHeight:           height,
+	}
+}
+
 // NewQueryNextSequenceSendRequest creates a new next sequence send query.
 func NewQueryNextSequenceSendRequest(channelID string) *QueryNextSequenceSendRequest {
 	return &QueryNextSequenceSendRequest{

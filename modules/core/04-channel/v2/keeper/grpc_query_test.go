@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -81,6 +82,106 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expChannel, res.Channel)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Nil(res)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryChannelClientState() {
+	var (
+		req                      *types.QueryChannelClientStateRequest
+		expIdentifiedClientState clienttypes.IdentifiedClientState
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				expClientState := suite.chainA.GetClientState(path.EndpointA.ClientID)
+				expIdentifiedClientState = clienttypes.NewIdentifiedClientState(path.EndpointA.ClientID, expClientState)
+
+				req = &types.QueryChannelClientStateRequest{
+					ChannelId: path.EndpointA.ChannelID,
+				}
+			},
+			nil,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"invalid channel ID",
+			func() {
+				req = &types.QueryChannelClientStateRequest{
+					ChannelId: "",
+				}
+			},
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryChannelClientStateRequest{
+					ChannelId: "test-channel-id",
+				}
+			},
+			status.Error(codes.NotFound, fmt.Sprintf("channel-id: %s: channel not found", "test-channel-id")),
+		},
+		{
+			"client state not found",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				channel, found := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeperV2.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelID)
+				suite.Require().True(found)
+				channel.ClientId = ibctesting.SecondClientID
+
+				path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeperV2.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelID, channel)
+
+				req = &types.QueryChannelClientStateRequest{
+					ChannelId: path.EndpointA.ChannelID,
+				}
+			},
+			status.Error(codes.NotFound, fmt.Sprintf("client-id: %s: light client not found", ibctesting.SecondClientID)),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+			ctx := suite.chainA.GetContext()
+
+			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ChannelKeeperV2)
+			res, err := queryServer.ChannelClientState(ctx, req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(&expIdentifiedClientState, res.IdentifiedClientState)
+
+				// ensure UnpackInterfaces is defined
+				cachedValue := res.IdentifiedClientState.ClientState.GetCachedValue()
+				suite.Require().NotNil(cachedValue)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Nil(res)

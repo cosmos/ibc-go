@@ -51,6 +51,32 @@ func (q *queryServer) Channel(ctx context.Context, req *types.QueryChannelReques
 	return types.NewQueryChannelResponse(channel), nil
 }
 
+// ChannelClientState implements the Query/ChannelClientState gRPC method
+func (q *queryServer) ChannelClientState(ctx context.Context, req *types.QueryChannelClientStateRequest) (*types.QueryChannelClientStateResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	channel, found := q.GetChannel(ctx, req.ChannelId)
+	if !found {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", req.ChannelId).Error())
+	}
+
+	clientState, found := q.ClientKeeper.GetClientState(ctx, channel.ClientId)
+	if !found {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrapf(clienttypes.ErrClientNotFound, "client-id: %s", channel.ClientId).Error())
+	}
+
+	identifiedClientState := clienttypes.NewIdentifiedClientState(channel.ClientId, clientState)
+	res := types.NewQueryChannelClientStateResponse(identifiedClientState, nil, clienttypes.GetSelfHeight(ctx))
+
+	return res, nil
+}
+
 // NextSequenceSend implements the Query/NextSequenceSend gRPC method
 func (q *queryServer) NextSequenceSend(ctx context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
 	if req == nil {
