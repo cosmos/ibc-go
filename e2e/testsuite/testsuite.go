@@ -125,7 +125,7 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 
 	// If no path is provided, use the default (e2e/diagnostics/genesis.json).
 	if exportPath == "" {
-		e2eDir, err := directories.E2E(t)
+		e2eDir, err := directories.E2E()
 		s.Require().NoError(err, "can't get e2edir")
 		exportPath = path.Join(e2eDir, directories.DefaultGenesisExportPath)
 	}
@@ -735,9 +735,6 @@ func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.
 // use less resources and allow the tests to run faster.
 // both the number of validators and full nodes can be overwritten in a config file.
 func getValidatorsAndFullNodes(chainIdx int) (int, int) {
-	if IsCI() {
-		return 4, 1
-	}
 	tc := LoadConfig()
 	return tc.GetChainNumValidators(chainIdx), tc.GetChainNumFullNodes(chainIdx)
 }
