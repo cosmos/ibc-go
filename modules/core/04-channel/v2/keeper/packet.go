@@ -205,8 +205,7 @@ func (k Keeper) WriteAcknowledgement(
 
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)
 
-	// TODO: decide how relayers will reconstruct the packet as it is not being passed.
-	// EmitWriteAcknowledgementEvents(ctx, packet, ack)
+	emitWriteAcknowledgementEvents(ctx, packet, ack)
 
 	// TODO: delete the packet that has been stored in ibc-core.
 
@@ -230,7 +229,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 	commitment := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
 		// TODO: signal noop in events?
-		EmitAcknowledgePacketEvents(ctx, packet)
+		emitAcknowledgePacketEvents(ctx, packet)
 
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
@@ -265,7 +264,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 
 	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "source_channel_id", packet.GetSourceChannel(), "destination_channel_id", packet.GetDestinationChannel())
 
-	EmitAcknowledgePacketEvents(ctx, packet)
+	emitAcknowledgePacketEvents(ctx, packet)
 
 	return nil
 }
@@ -308,7 +307,7 @@ func (k *Keeper) timeoutPacket(
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
 	commitment := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
-		EmitTimeoutPacketEvents(ctx, packet)
+		emitTimeoutPacketEvents(ctx, packet)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -342,7 +341,7 @@ func (k *Keeper) timeoutPacket(
 
 	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_channel_id", packet.SourceChannel, "dst_channel_id", packet.DestinationChannel)
 
-	EmitTimeoutPacketEvents(ctx, packet)
+	emitTimeoutPacketEvents(ctx, packet)
 
 	return nil
 }

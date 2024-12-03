@@ -17,6 +17,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
@@ -37,6 +38,7 @@ type Endpoint struct {
 	ConnectionConfig *ConnectionConfig
 	ChannelConfig    *ChannelConfig
 
+	MerklePathPrefix commitmenttypesv2.MerklePath
 	// disableUniqueChannelIDs is used to enforce, in a test,
 	// the old way to generate channel IDs (all channels are called channel-0)
 	// It is used only by one test suite and should not be used for new tests.
@@ -54,6 +56,7 @@ func NewEndpoint(
 		ClientConfig:     clientConfig,
 		ConnectionConfig: connectionConfig,
 		ChannelConfig:    channelConfig,
+		MerklePathPrefix: MerklePath,
 	}
 }
 
@@ -65,6 +68,7 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 		ClientConfig:     NewTendermintConfig(),
 		ConnectionConfig: NewConnectionConfig(),
 		ChannelConfig:    NewChannelConfig(),
+		MerklePathPrefix: MerklePath,
 	}
 }
 
@@ -526,7 +530,7 @@ func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []by
 	return endpoint.Chain.sendMsgs(ackMsg)
 }
 
-// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint and returns the result.
+// AcknowledgePacketWithResult sends a MsgAcknowledgement to the channel associated with the endpoint and returns the result.
 func (endpoint *Endpoint) AcknowledgePacketWithResult(packet channeltypes.Packet, ack []byte) (*abci.ExecTxResult, error) {
 	// get proof of acknowledgement on counterparty
 	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())

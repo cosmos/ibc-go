@@ -8,7 +8,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
-// CallbacksTestSuite defines the needed instances and methods to test callbacks
+// CallbacksTypesTestSuite defines the needed instances and methods to test callbacks
 type CallbacksTypesTestSuite struct {
 	suite.Suite
 

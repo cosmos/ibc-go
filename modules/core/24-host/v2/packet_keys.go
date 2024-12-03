@@ -11,11 +11,6 @@ func PacketCommitmentKey(channelID string, sequence uint64) []byte {
 	return append(append([]byte(channelID), byte(1)), sdk.Uint64ToBigEndian(sequence)...)
 }
 
-// PacketCommitmentPrefixKey returns the store key prefix under which packet commitments for a particular channel are stored.
-func PacketCommitmentPrefixKey(channelID string) []byte {
-	return append([]byte(channelID), byte(1))
-}
-
 // PacketReceiptKey returns the store key of under which a packet receipt is stored.
 func PacketReceiptKey(channelID string, sequence uint64) []byte {
 	return append(append([]byte(channelID), byte(2)), sdk.Uint64ToBigEndian(sequence)...)

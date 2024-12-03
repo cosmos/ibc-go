@@ -17,7 +17,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 )
 
 var _ types.QueryServer = (*queryServer)(nil)
@@ -113,7 +112,7 @@ func (q *queryServer) PacketCommitments(ctx context.Context, req *types.QueryPac
 	}
 
 	var commitments []*types.PacketState
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), hostv2.PacketCommitmentPrefixKey(req.ChannelId))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), types.PacketCommitmentPrefixKey(req.ChannelId))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		keySplit := strings.Split(string(key), "/")
@@ -163,6 +162,68 @@ func (q *queryServer) PacketAcknowledgement(ctx context.Context, req *types.Quer
 	}
 
 	return types.NewQueryPacketAcknowledgementResponse(acknowledgement, nil, clienttypes.GetSelfHeight(ctx)), nil
+}
+
+// PacketAcknowledgements implements the Query/PacketAcknowledgements gRPC method.
+func (q *queryServer) PacketAcknowledgements(ctx context.Context, req *types.QueryPacketAcknowledgementsRequest) (*types.QueryPacketAcknowledgementsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if !q.HasChannel(ctx, req.ChannelId) {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrapf(types.ErrChannelNotFound, req.ChannelId).Error())
+	}
+
+	var acks []*types.PacketState
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), types.PacketAcknowledgementPrefixKey(req.ChannelId))
+
+	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
+	// otherwise, maintain previous behaviour and perform paginated query
+	for _, seq := range req.PacketCommitmentSequences {
+		acknowledgement := q.GetPacketAcknowledgement(ctx, req.ChannelId, seq)
+		if len(acknowledgement) == 0 {
+			continue
+		}
+
+		ack := types.NewPacketState(req.ChannelId, seq, acknowledgement)
+		acks = append(acks, &ack)
+	}
+
+	if len(req.PacketCommitmentSequences) > 0 {
+		selfHeight := clienttypes.GetSelfHeight(ctx)
+		return &types.QueryPacketAcknowledgementsResponse{
+			Acknowledgements: acks,
+			Pagination:       nil,
+			Height:           selfHeight,
+		}, nil
+	}
+
+	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+		keySplit := strings.Split(string(key), "/")
+
+		sequence := sdk.BigEndianToUint64([]byte(keySplit[len(keySplit)-1]))
+		if sequence == 0 {
+			return types.ErrInvalidPacket
+		}
+
+		ack := types.NewPacketState(req.ChannelId, sequence, value)
+		acks = append(acks, &ack)
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryPacketAcknowledgementsResponse{
+		Acknowledgements: acks,
+		Pagination:       pageRes,
+		Height:           clienttypes.GetSelfHeight(ctx),
+	}, nil
 }
 
 // PacketReceipt implements the Query/PacketReceipt gRPC method.

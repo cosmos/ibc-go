@@ -12,9 +12,9 @@ const (
 	EventTypeRegisterCounterparty = "register_counterparty"
 	EventTypeSendPacket           = "send_packet"
 	EventTypeRecvPacket           = "recv_packet"
-
-	EventTypeSendPayload = "send_payload"
-	EventTypeRecvPayload = "recv_payload"
+	EventTypeTimeoutPacket        = "timeout_packet"
+	EventTypeAcknowledgePacket    = "acknowledge_packet"
+	EventTypeWriteAck             = "write_acknowledgement"
 
 	AttributeKeyChannelID             = "channel_id"
 	AttributeKeyClientID              = "client_id"
@@ -23,11 +23,8 @@ const (
 	AttributeKeyDstChannel            = "packet_dest_channel"
 	AttributeKeySequence              = "packet_sequence"
 	AttributeKeyTimeoutTimestamp      = "packet_timeout_timestamp"
-	AttributeKeyPayloadLength         = "packet_payload_length"
-	AttributeKeyPayloadSequence       = "payload_sequence"
-	AttributeKeyVersion               = "payload_version"
-	AttributeKeyEncoding              = "payload_encoding"
-	AttributeKeyData                  = "payload_data"
+	AttributeKeyPacketDataHex         = "packet_data_hex"
+	AttributeKeyAckDataHex            = "acknowledgement_data_hex"
 )
 
 // IBC channel events vars

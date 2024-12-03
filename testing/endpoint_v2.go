@@ -12,7 +12,7 @@ import (
 // CreateChannel will construct and execute a new MsgCreateChannel on the associated endpoint.
 func (endpoint *Endpoint) CreateChannel() (err error) {
 	endpoint.IncrementNextChannelSequence()
-	msg := channeltypesv2.NewMsgCreateChannel(endpoint.ClientID, MerklePath, endpoint.Chain.SenderAccount.GetAddress().String())
+	msg := channeltypesv2.NewMsgCreateChannel(endpoint.ClientID, endpoint.MerklePathPrefix, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	// create channel
 	res, err := endpoint.Chain.SendMsgs(msg)
