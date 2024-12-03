@@ -18,6 +18,11 @@ service Query {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}";
   }
 
+  // Channels queries all the IBC channels of a chain.
+  rpc Channels(QueryChannelsRequest) returns (QueryChannelsResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v2/channels";
+  }
+
   // NextSequenceSend returns the next send sequence for a given channel.
   rpc NextSequenceSend(QueryNextSequenceSendRequest) returns (QueryNextSequenceSendResponse) {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/next_sequence_send";
@@ -66,10 +71,26 @@ message QueryChannelRequest {
   string channel_id = 1;
 }
 
-// QueryChannelRequest is the response type for the Query/Channel RPC method
+// QueryChannelResponse is the response type for the Query/Channel RPC method
 message QueryChannelResponse {
   // the channel associated with the provided channel id
   Channel channel = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryChannelsRequest is the request type for the Query/Channels RPC method
+message QueryChannelsRequest {
+  // pagination request
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryChannelsResponse is the response type for the Query/Channels RPC method.
+message QueryChannelsResponse {
+  // list of stored channels of the chain.
+  repeated ibc.core.channel.v2.IdentifiedChannel channels = 1;
+  // pagination response
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  // query block height
+  ibc.core.client.v1.Height height = 3 [(gogoproto.nullable) = false];
 }
 
 // QueryNextSequenceSendRequest is the request type for the Query/QueryNextSequenceSend RPC method

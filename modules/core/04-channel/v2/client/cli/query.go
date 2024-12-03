@@ -49,6 +49,45 @@ func getCmdQueryChannel() *cobra.Command {
 	return cmd
 }
 
+// getCmdQueryChannels defines the command to query all the v2 channels that this chain maintains.
+func getCmdQueryChannels() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "channels",
+		Short:   "Query all channels",
+		Long:    "Query all channels from a chain",
+		Example: fmt.Sprintf("%s query %s %s channels", version.AppName, exported.ModuleName, types.SubModuleName),
+		Args:    cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			req := &types.QueryChannelsRequest{
+				Pagination: pageReq,
+			}
+
+			res, err := queryClient.Channels(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "channels")
+
+	return cmd
+}
+
 // getCmdQueryNextSequenceSend defines the command to query a next send sequence for a given channel
 func getCmdQueryNextSequenceSend() *cobra.Command {
 	cmd := &cobra.Command{
