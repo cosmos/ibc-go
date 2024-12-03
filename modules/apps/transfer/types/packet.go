@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/solidity-ibc-eureka/abigen/ics20lib"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -26,6 +27,7 @@ var (
 const (
 	EncodingJSON     = "application/json"
 	EncodingProtobuf = "application/x-protobuf"
+	EncodingABI      = "application/x-solidity-abi"
 )
 
 // NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
@@ -256,7 +258,15 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 		if err := proto.Unmarshal(bz, data); err != nil {
 			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
 		}
-
+	case EncodingABI:
+		if ics20Version != V1 {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "encoding %s is only supported for ICS20-V1", EncodingABI)
+		}
+		var err error
+		data, err = decodeABIFungibleTokenPacketData(bz)
+		if err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
+		}
 	default:
 		return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid encoding provided, must be either empty or one of [%q, %q], got %s", EncodingJSON, EncodingProtobuf, encoding)
 	}
@@ -306,5 +316,22 @@ func PacketDataV1ToV2(packetData FungibleTokenPacketData) (FungibleTokenPacketDa
 		Receiver:   packetData.Receiver,
 		Memo:       packetData.Memo,
 		Forwarding: ForwardingPacketData{},
+	}, nil
+}
+
+// decodeABIFungibleTokenPacketData decodes a solidity ABI encoded ics20lib.ICS20LibFungibleTokenPacketData
+// and converts it into an ibc-go FungibleTokenPacketData.
+func decodeABIFungibleTokenPacketData(data []byte) (*FungibleTokenPacketData, error) {
+	solidityFtpd, err := ics20lib.DecodeFungibleTokenPacketData(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &FungibleTokenPacketData{
+		Denom:    solidityFtpd.Denom,
+		Amount:   solidityFtpd.Amount.String(),
+		Sender:   solidityFtpd.Sender,
+		Receiver: solidityFtpd.Receiver,
+		Memo:     solidityFtpd.Memo,
 	}, nil
 }
