@@ -85,7 +85,7 @@ func (*Coordinator) SetupClients(path *Path) {
 	path.SetupClients()
 }
 
-// SetupClientConnections is a helper function to create clients and the appropriate
+// SetupConnections is a helper function to create clients and the appropriate
 // connections on both the source and counterparty chain. It assumes the caller does not
 // anticipate any errors.
 // Deprecated: please use path.SetupConnections(), this function will be removed in v10
@@ -93,7 +93,7 @@ func (*Coordinator) SetupConnections(path *Path) {
 	path.SetupConnections()
 }
 
-// CreateConnection constructs and executes connection handshake messages in order to create
+// CreateConnections constructs and executes connection handshake messages in order to create
 // OPEN channels on chainA and chainB. The connection information of for chainA and chainB
 // are returned within a TestConnection struct. The function expects the connections to be
 // successfully opened otherwise testing will fail.
@@ -123,7 +123,7 @@ func (*Coordinator) CreateTransferChannels(path *Path) {
 	path.CreateChannels()
 }
 
-// CreateChannel constructs and executes channel handshake messages in order to create
+// CreateChannels constructs and executes channel handshake messages in order to create
 // OPEN channels on chainA and chainB. The function expects the channels to be successfully
 // opened otherwise testing will fail.
 // Deprecated: please use path.CreateChannels(), this function will be removed in v10
