@@ -478,7 +478,5 @@ func (k *Keeper) ScheduleIBCSoftwareUpgrade(ctx context.Context, plan upgradetyp
 	}
 
 	// emitting an event for scheduling an upgrade plan
-	k.emitScheduleIBCSoftwareUpgradeEvent(ctx, plan.Name, plan.Height)
-
-	return nil
+	return k.emitScheduleIBCSoftwareUpgradeEvent(ctx, plan.Name, plan.Height)
 }

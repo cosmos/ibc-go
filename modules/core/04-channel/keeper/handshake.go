@@ -354,9 +354,8 @@ func (k *Keeper) ChanCloseInit(
 	channel.State = types.CLOSED
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.emitChannelCloseInitEvent(ctx, portID, channelID, channel)
+	return k.emitChannelCloseInitEvent(ctx, portID, channelID, channel)
 
-	return nil
 }
 
 // ChanCloseConfirm is called by the counterparty module to close their end of the
@@ -425,7 +424,5 @@ func (k *Keeper) ChanCloseConfirm(
 	channel.State = types.CLOSED
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	k.emitChannelCloseConfirmEvent(ctx, portID, channelID, channel)
-
-	return nil
+	return k.emitChannelCloseConfirmEvent(ctx, portID, channelID, channel)
 }

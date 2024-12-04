@@ -51,7 +51,9 @@ func (k *Keeper) ConnOpenInit(
 
 	defer telemetry.IncrCounter(1, "ibc", "connection", "open-init")
 
-	k.emitConnectionOpenInitEvent(ctx, connectionID, clientID, counterparty)
+	if err := k.emitConnectionOpenInitEvent(ctx, connectionID, clientID, counterparty); err != nil {
+		return "", err
+	}
 
 	return connectionID, nil
 }
@@ -110,7 +112,9 @@ func (k *Keeper) ConnOpenTry(
 
 	defer telemetry.IncrCounter(1, "ibc", "connection", "open-try")
 
-	k.emitConnectionOpenTryEvent(ctx, connectionID, clientID, counterparty)
+	if err := k.emitConnectionOpenTryEvent(ctx, connectionID, clientID, counterparty); err != nil {
+		return "", nil
+	}
 
 	return connectionID, nil
 }
@@ -171,9 +175,7 @@ func (k *Keeper) ConnOpenAck(
 	connection.Counterparty.ConnectionId = counterpartyConnectionID
 	k.SetConnection(ctx, connectionID, connection)
 
-	k.emitConnectionOpenAckEvent(ctx, connectionID, connection)
-
-	return nil
+	return k.emitConnectionOpenAckEvent(ctx, connectionID, connection)
 }
 
 // ConnOpenConfirm confirms opening of a connection on chain A to chain B, after
@@ -219,7 +221,5 @@ func (k *Keeper) ConnOpenConfirm(
 
 	defer telemetry.IncrCounter(1, "ibc", "connection", "open-confirm")
 
-	k.emitConnectionOpenConfirmEvent(ctx, connectionID, connection)
-
-	return nil
+	return k.emitConnectionOpenConfirmEvent(ctx, connectionID, connection)
 }

@@ -29,7 +29,9 @@ func BeginBlocker(ctx sdk.Context, k *keeper.Keeper) {
 			// SetUpgradedConsensusState always returns nil, hence the blank here.
 			_ = k.SetUpgradedConsensusState(ctx, plan.Height, bz)
 
-			k.EmitUpgradeChainEvent(ctx, plan.Height)
+			if err := k.EmitUpgradeChainEvent(ctx, plan.Height); err != nil {
+				k.Logger.Error("error in events emission", "error", err.Error())
+			}
 		}
 	}
 }

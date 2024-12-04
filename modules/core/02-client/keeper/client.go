@@ -39,7 +39,9 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 	k.Logger.Info("client created at height", "client-id", clientID, "height", initialHeight.String())
 
 	defer telemetry.ReportCreateClient(clientType)
-	k.emitCreateClientEvent(ctx, clientID, clientType, initialHeight)
+	if err := k.emitCreateClientEvent(ctx, clientID, clientType, initialHeight); err != nil {
+		return "", err
+	}
 
 	return clientID, nil
 }
@@ -67,9 +69,8 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 
 		clientType := types.MustParseClientIdentifier(clientID)
 		defer telemetry.ReportUpdateClient(foundMisbehaviour, clientType, clientID)
-		k.emitSubmitMisbehaviourEvent(ctx, clientID, clientType)
 
-		return nil
+		return k.emitSubmitMisbehaviourEvent(ctx, clientID, clientType)
 	}
 
 	consensusHeights := clientModule.UpdateState(ctx, clientID, clientMsg)
@@ -78,9 +79,8 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 
 	clientType := types.MustParseClientIdentifier(clientID)
 	defer telemetry.ReportUpdateClient(foundMisbehaviour, clientType, clientID)
-	k.emitUpdateClientEvent(ctx, clientID, clientType, consensusHeights, k.cdc, clientMsg)
 
-	return nil
+	return k.emitUpdateClientEvent(ctx, clientID, clientType, consensusHeights, k.cdc, clientMsg)
 }
 
 // UpgradeClient upgrades the client to a new client state if this new client was committed to
@@ -108,9 +108,8 @@ func (k *Keeper) UpgradeClient(
 
 	clientType := types.MustParseClientIdentifier(clientID)
 	defer telemetry.ReportUpgradeClient(clientType, clientID)
-	k.emitUpgradeClientEvent(ctx, clientID, clientType, latestHeight)
 
-	return nil
+	return k.emitUpgradeClientEvent(ctx, clientID, clientType, latestHeight)
 }
 
 // RecoverClient will invoke the light client module associated with the subject clientID requesting it to
@@ -146,7 +145,6 @@ func (k *Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClien
 
 	clientType := types.MustParseClientIdentifier(subjectClientID)
 	defer telemetry.ReportRecoverClient(clientType, subjectClientID)
-	k.emitRecoverClientEvent(ctx, subjectClientID, clientType)
 
-	return nil
+	return k.emitRecoverClientEvent(ctx, subjectClientID, clientType)
 }

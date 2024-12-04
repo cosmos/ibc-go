@@ -70,7 +70,9 @@ func (k *Keeper) TimeoutPacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		k.emitTimeoutPacketEvent(ctx, packet, channel)
+		if err := k.emitTimeoutPacketEvent(ctx, packet, channel); err != nil {
+			return "", err
+		}
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -155,7 +157,9 @@ func (k *Keeper) TimeoutExecuted(
 
 		channel.State = types.CLOSED
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-		k.emitChannelClosedEvent(ctx, packet, channel)
+		if err := k.emitChannelClosedEvent(ctx, packet, channel); err != nil {
+			return err
+		}
 	}
 
 	k.Logger.Info(
@@ -168,9 +172,7 @@ func (k *Keeper) TimeoutExecuted(
 	)
 
 	// emit an event marking that we have processed the timeout
-	k.emitTimeoutPacketEvent(ctx, packet, channel)
-
-	return nil
+	return k.emitTimeoutPacketEvent(ctx, packet, channel)
 }
 
 // TimeoutOnClose is called by a module in order to prove that the channel to
@@ -212,7 +214,9 @@ func (k *Keeper) TimeoutOnClose(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		k.emitTimeoutPacketEvent(ctx, packet, channel)
+		if err := k.emitTimeoutPacketEvent(ctx, packet, channel); err != nil {
+			return "", err
+		}
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to

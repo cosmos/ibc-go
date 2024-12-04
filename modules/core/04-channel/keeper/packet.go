@@ -85,7 +85,9 @@ func (k *Keeper) SendPacket(
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	k.emitSendPacketEvent(sdkCtx, packet, channel, timeoutHeight)
+	if err := k.emitSendPacketEvent(sdkCtx, packet, channel, timeoutHeight); err != nil {
+		return 0, err
+	}
 
 	k.Logger.Info(
 		"packet sent",
@@ -190,7 +192,9 @@ func (k *Keeper) RecvPacket(
 	)
 
 	// emit an event that the relayer can query for
-	k.emitRecvPacketEvent(sdkCtx, packet, channel)
+	if err := k.emitRecvPacketEvent(sdkCtx, packet, channel); err != nil {
+		return "", err
+	}
 
 	return channel.Version, nil
 }
@@ -207,7 +211,6 @@ func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet,
 		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	switch channel.Ordering {
 	case types.UNORDERED:
 		// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
@@ -215,7 +218,9 @@ func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet,
 		// by the increase of the recvStartSequence.
 		_, found := k.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		if found {
-			k.emitRecvPacketEvent(sdkCtx, packet, channel)
+			if err := k.emitRecvPacketEvent(ctx, packet, channel); err != nil {
+				return err
+			}
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -239,7 +244,9 @@ func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet,
 		}
 
 		if packet.GetSequence() < nextSequenceRecv {
-			k.emitRecvPacketEvent(sdkCtx, packet, channel)
+			if err := k.emitRecvPacketEvent(ctx, packet, channel); err != nil {
+				return err
+			}
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -334,10 +341,7 @@ func (k *Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	k.emitWriteAcknowledgementEvent(sdkCtx, packet.(types.Packet), channel, bz)
-
-	return nil
+	return k.emitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
 }
 
 // AcknowledgePacket is called by a module to process the acknowledgement of a
@@ -392,7 +396,9 @@ func (k *Keeper) AcknowledgePacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		k.emitAcknowledgePacketEvent(ctx, packet, channel)
+		if err := k.emitAcknowledgePacketEvent(ctx, packet, channel); err != nil {
+			return "", err
+		}
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -454,7 +460,9 @@ func (k *Keeper) AcknowledgePacket(
 	)
 
 	// emit an event marking that we have processed the acknowledgement
-	k.emitAcknowledgePacketEvent(ctx, packet, channel)
+	if err := k.emitAcknowledgePacketEvent(ctx, packet, channel); err != nil {
+		return "", err
+	}
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {
