@@ -25,6 +25,7 @@ import (
 
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 
+	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -47,11 +48,10 @@ const (
 	RelayerIDEnv = "RELAYER_ID"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
 	ChainBinaryEnv = "CHAIN_BINARY"
-	// ChainUpgradeTagEnv specifies the upgrade version tag
-	ChainUpgradeTagEnv = "CHAIN_UPGRADE_TAG"
 	// ChainUpgradePlanEnv specifies the upgrade plan name
 	ChainUpgradePlanEnv = "CHAIN_UPGRADE_PLAN"
-	// E2EConfigFilePathEnv allows you to specify a custom path for the config file to be used.
+	// E2EConfigFilePathEnv allows you to specify a custom path for the config file to be used. It can be relative
+	// or absolute.
 	E2EConfigFilePathEnv = "E2E_CONFIG_PATH"
 	// KeepContainersEnv instructs interchaintest to not delete the containers after a test has run.
 	// this ensures that chain containers are not deleted after a test suite is run if other tests
@@ -73,6 +73,8 @@ const (
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
 	// e2e tests. See sample.config.yaml or sample.config.extended.yaml as an example for what this should look like.
 	defaultConfigFileName = ".ibc-go-e2e-config.yaml"
+	// defaultCIConfigFileName is the default filename for the config file that should be used for CI.
+	defaultCIConfigFileName = "ci-e2e-config.yaml"
 )
 
 // defaultChainNames contains the default name for chainA and chainB.
@@ -93,12 +95,15 @@ type TestConfig struct {
 	RelayerConfigs []relayer.Config `yaml:"relayers"`
 	// ActiveRelayer specifies the relayer that will be used. It must match the ID of one of the entries in RelayerConfigs.
 	ActiveRelayer string `yaml:"activeRelayer"`
-	// UpgradeConfig holds values used only for the upgrade tests.
-	UpgradeConfig UpgradeConfig `yaml:"upgrade"`
 	// CometBFTConfig holds values for configuring CometBFT.
 	CometBFTConfig CometBFTConfig `yaml:"cometbft"`
 	// DebugConfig holds configuration for miscellaneous options.
 	DebugConfig DebugConfig `yaml:"debug"`
+	// UpgradePlanName specifies which upgrade plan to use. It must match a plan name for an entry in the
+	// list of UpgradeConfigs.
+	UpgradePlanName string `yaml:"upgradePlanName"`
+	// UpgradeConfigs provides a list of all possible upgrades.
+	UpgradeConfigs []UpgradeConfig `yaml:"upgrades"`
 }
 
 // Validate validates the test configuration is valid for use within the tests.
@@ -115,6 +120,11 @@ func (tc TestConfig) Validate() error {
 	if err := tc.validateGenesisDebugConfig(); err != nil {
 		return fmt.Errorf("invalid Genesis debug configuration: %w", err)
 	}
+
+	if err := tc.validateUpgradeConfig(); err != nil {
+		return fmt.Errorf("invalid upgrade configuration: %w", err)
+	}
+
 	return nil
 }
 
@@ -131,20 +141,8 @@ func (tc TestConfig) validateChains() error {
 			return fmt.Errorf("chain config missing tag: %+v", cfg)
 		}
 
-		// TODO: validate chainID in https://github.com/cosmos/ibc-go/issues/4697
-		// these are not passed in the CI at the moment. Defaults are used.
-		if !IsCI() {
-			if cfg.ChainID == "" {
-				return fmt.Errorf("chain config missing chainID: %+v", cfg)
-			}
-		}
-
-		// TODO: validate number of nodes in https://github.com/cosmos/ibc-go/issues/4697
-		// these are not passed in the CI at the moment.
-		if !IsCI() {
-			if cfg.NumValidators == 0 && cfg.NumFullNodes == 0 {
-				return fmt.Errorf("chain config missing number of validators or full nodes: %+v", cfg)
-			}
+		if cfg.NumValidators == 0 && cfg.NumFullNodes == 0 {
+			return fmt.Errorf("chain config missing number of validators or full nodes: %+v", cfg)
 		}
 	}
 
@@ -182,6 +180,16 @@ func (tc TestConfig) validateRelayers() error {
 	return nil
 }
 
+// GetUpgradeConfig returns the upgrade configuration for the current test configuration.
+func (tc TestConfig) GetUpgradeConfig() UpgradeConfig {
+	for _, upgrade := range tc.UpgradeConfigs {
+		if upgrade.PlanName == tc.UpgradePlanName {
+			return upgrade
+		}
+	}
+	panic("upgrade plan not found in upgrade configs, this test config should not have passed validation")
+}
+
 // GetChainIndex returns the index of the chain with the given name, if it
 // exists.
 func (tc TestConfig) GetChainIndex(name string) (int, error) {
@@ -205,6 +213,35 @@ func (tc TestConfig) validateGenesisDebugConfig() error {
 	_, err := tc.GetChainIndex(tc.GetGenesisChainName())
 
 	return err
+}
+
+// validateUpgradeConfig ensures the upgrade configuration is valid.
+func (tc TestConfig) validateUpgradeConfig() error {
+	if strings.TrimSpace(tc.UpgradePlanName) == "" {
+		return nil
+	}
+
+	// the upgrade plan name specified must match one of the upgrade plans in the upgrade configs.
+	foundPlan := false
+	for _, upgrade := range tc.UpgradeConfigs {
+		if strings.TrimSpace(upgrade.Tag) == "" {
+			return fmt.Errorf("upgrade config missing tag: %+v", upgrade)
+		}
+
+		if strings.TrimSpace(upgrade.PlanName) == "" {
+			return fmt.Errorf("upgrade config missing plan name: %+v", upgrade)
+		}
+
+		if upgrade.PlanName == tc.UpgradePlanName {
+			foundPlan = true
+		}
+	}
+
+	if foundPlan {
+		return nil
+	}
+
+	return fmt.Errorf("upgrade plan %s not found in upgrade configs: %+v", tc.UpgradePlanName, tc.UpgradeConfigs)
 }
 
 // GetActiveRelayerConfig returns the currently specified relayer config.
@@ -357,9 +394,15 @@ func fromFile() (TestConfig, bool) {
 // populateDefaults populates default values for the test config if
 // certain required fields are not specified.
 func populateDefaults(tc TestConfig) TestConfig {
+	chainIDs := []string{
+		"chainA-1",
+		"chainB-1",
+		"chainC-1",
+	}
+
 	for i := range tc.ChainConfigs {
 		if tc.ChainConfigs[i].ChainID == "" {
-			tc.ChainConfigs[i].ChainID = fmt.Sprintf("chain-%d", i+1)
+			tc.ChainConfigs[i].ChainID = chainIDs[i]
 		}
 		if tc.ChainConfigs[i].Binary == "" {
 			tc.ChainConfigs[i].Binary = defaultBinary
@@ -421,11 +464,7 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 	}
 
 	if os.Getenv(ChainUpgradePlanEnv) != "" {
-		fromFile.UpgradeConfig.PlanName = envTc.UpgradeConfig.PlanName
-	}
-
-	if os.Getenv(ChainUpgradeTagEnv) != "" {
-		fromFile.UpgradeConfig.Tag = envTc.UpgradeConfig.Tag
+		fromFile.UpgradePlanName = envTc.UpgradePlanName
 	}
 
 	if isEnvTrue(KeepContainersEnv) {
@@ -438,18 +477,10 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 // fromEnv returns a TestConfig constructed from environment variables.
 func fromEnv() TestConfig {
 	return TestConfig{
-		ChainConfigs:  getChainConfigsFromEnv(),
-		UpgradeConfig: getUpgradePlanConfigFromEnv(),
-		ActiveRelayer: os.Getenv(RelayerIDEnv),
-
-		// TODO: we can remove this, and specify these values in a config file for the CI
-		// in https://github.com/cosmos/ibc-go/issues/4697
-		RelayerConfigs: []relayer.Config{
-			getDefaultRlyRelayerConfig(),
-			getDefaultHermesRelayerConfig(),
-			getDefaultHyperspaceRelayerConfig(),
-		},
-		CometBFTConfig: CometBFTConfig{LogLevel: "info"},
+		ChainConfigs:    getChainConfigsFromEnv(),
+		UpgradePlanName: os.Getenv(ChainUpgradePlanEnv),
+		ActiveRelayer:   os.Getenv(RelayerIDEnv),
+		CometBFTConfig:  CometBFTConfig{LogLevel: "info"},
 	}
 }
 
@@ -500,10 +531,27 @@ func getChainConfigsFromEnv() []ChainConfig {
 
 // getConfigFilePath returns the absolute path where the e2e config file should be.
 func getConfigFilePath() string {
-	if absoluteConfigPath := os.Getenv(E2EConfigFilePathEnv); absoluteConfigPath != "" {
-		return absoluteConfigPath
+	if specifiedConfigPath := os.Getenv(E2EConfigFilePathEnv); specifiedConfigPath != "" {
+		if path.IsAbs(specifiedConfigPath) {
+			return specifiedConfigPath
+		}
+
+		e2eDir, err := directories.E2E()
+		if err != nil {
+			panic(err)
+		}
+
+		return path.Join(e2eDir, specifiedConfigPath)
 	}
 
+	if IsCI() {
+		if err := os.Setenv(E2EConfigFilePathEnv, defaultCIConfigFileName); err != nil {
+			panic(err)
+		}
+		return getConfigFilePath()
+	}
+
+	// running locally.
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
@@ -538,23 +586,6 @@ func getDefaultHyperspaceRelayerConfig() relayer.Config {
 		Tag:   defaultHyperspaceTag,
 		ID:    relayer.Hyperspace,
 		Image: relayer.HyperspaceRelayerRepository,
-	}
-}
-
-// getUpgradePlanConfigFromEnv returns the upgrade config from environment variables.
-func getUpgradePlanConfigFromEnv() UpgradeConfig {
-	upgradeTag, ok := os.LookupEnv(ChainUpgradeTagEnv)
-	if !ok {
-		upgradeTag = ""
-	}
-
-	upgradePlan, ok := os.LookupEnv(ChainUpgradePlanEnv)
-	if !ok {
-		upgradePlan = ""
-	}
-	return UpgradeConfig{
-		PlanName: upgradePlan,
-		Tag:      upgradeTag,
 	}
 }
 
