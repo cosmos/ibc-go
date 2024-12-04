@@ -274,5 +274,5 @@ replace (
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20241108061010-a0458127fccf
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1.0.20240908111210-ab0be101882f
 	// pseudo version lower than the latest tag
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-beta.2.0.20241204132818-61865a6bd8c0
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-beta.2.0.20241204154714-17fe120ba0b1
 )
