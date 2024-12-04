@@ -301,7 +301,8 @@ func (msg *MsgIBCSoftwareUpgrade) ValidateBasic() error {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (msg *MsgIBCSoftwareUpgrade) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
-	return unpacker.UnpackAny(msg.UpgradedClientState, new(exported.ClientState))
+	var clientState exported.ClientState
+	return unpacker.UnpackAny(msg.UpgradedClientState, &clientState)
 }
 
 // NewMsgUpdateParams creates a new instance of MsgUpdateParams.

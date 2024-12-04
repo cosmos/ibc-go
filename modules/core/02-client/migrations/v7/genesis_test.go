@@ -114,7 +114,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	expectedClientGenState, err := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 	suite.Require().NoError(err)
 
-	cdc, ok := suite.chainA.App.AppCodec().(codec.ProtoCodecMarshaler)
+	cdc, ok := suite.chainA.App.AppCodec().(codec.Codec)
 	suite.Require().True(ok)
 
 	migrated, err := v7.MigrateGenesis(&clientGenState, cdc)
