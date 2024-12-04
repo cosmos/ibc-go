@@ -78,19 +78,20 @@ We reserve the right to drop support for releases if they are deemed unused (for
 |`v7.8.x`|March 17, 2025|
 |`v8.4.x`|May 10, 2025|
 |`v8.5.x`|May 10, 2025|
+|`v9.0.x`|October 1, 2025|
 
 ### Callbacks middleware
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v0.1.x+ibc-go-v7.3.x`|September 17, 2024|
+|`v0.1.x+ibc-go-v7.3.x`|March 17, 2025|
 |`v0.1.x+ibc-go-v8.0.x`|May 10, 2025|
 
 ### `08-wasm` light client proxy module
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v0.3.x+ibc-go-v7.4.x-wasmvm-v1.5.x`|September 17, 2024|
+|`v0.3.x+ibc-go-v7.4.x-wasmvm-v1.5.x`|March 17, 2025|
 |`v0.4.x+ibc-go-v8.4.x-wasmvm-v2.0.x`|May 10, 2025|
 
 ### What pull requests will be included in stable patch-releases?
@@ -133,6 +134,7 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 | 1.19 | v7.8.0 | v0.47.13 | v0.37.5  |
 | 1.21 | v8.4.0 | v0.50.7  | v0.38.7  |
 | 1.21 | v8.5.0 | v0.50.9  | v0.38.11 |
+| 1.22 | v9.0.0 | v0.50.9  | v0.38.11 |
 
 ### Callbacks middleware
 

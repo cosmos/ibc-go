@@ -17,10 +17,10 @@ const (
 )
 
 func TestGetGithubActionMatrixForTests(t *testing.T) {
-	t.Run("empty dir does not fail", func(t *testing.T) {
+	t.Run("empty dir with no test cases fails", func(t *testing.T) {
 		testingDir := t.TempDir()
 		_, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
-		assert.NoError(t, err)
+		assert.Error(t, err)
 	})
 
 	t.Run("only test functions are picked up", func(t *testing.T) {
@@ -105,12 +105,12 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("non test files are not picked up", func(t *testing.T) {
+	t.Run("non test files are skipped", func(t *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
 
 		gh, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
-		assert.NoError(t, err)
+		assert.Error(t, err)
 		assert.Empty(t, gh.Include)
 	})
 
