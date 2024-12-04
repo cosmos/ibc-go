@@ -3,7 +3,6 @@ package v7_test
 import (
 	"encoding/json"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
@@ -69,8 +68,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 		// set in store for ease of determining expected genesis
 		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
 
-		cdc, ok := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
-		suite.Require().True(ok)
+		cdc := suite.chainA.App.AppCodec()
 		v7.RegisterInterfaces(cdc.InterfaceRegistry())
 
 		bz, err := cdc.MarshalInterface(legacyClientState)
@@ -114,8 +112,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	expectedClientGenState, err := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 	suite.Require().NoError(err)
 
-	cdc, ok := suite.chainA.App.AppCodec().(codec.Codec)
-	suite.Require().True(ok)
+	cdc := suite.chainA.App.AppCodec()
 
 	migrated, err := v7.MigrateGenesis(&clientGenState, cdc)
 	suite.Require().NoError(err)
