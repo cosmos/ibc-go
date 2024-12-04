@@ -78,6 +78,7 @@ func UnpackClientState(protoAny *gogoprotoany.Any) (exported.ClientState, error)
 
 	clientState, ok := protoAny.GetCachedValue().(exported.ClientState)
 	if !ok {
+		// TODO(damian): revert this extra err info
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnpackAny, "cannot unpack Any into ClientState %T, typeURL: %s, cachedValue: %v", protoAny, protoAny.TypeUrl, protoAny.GetCachedValue())
 	}
 
