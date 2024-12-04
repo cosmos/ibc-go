@@ -313,7 +313,10 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			tc.malleate()
 
 			// expectedAck is derived from the expected recv result.
-			expectedAck := types.Acknowledgement{AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement}}
+			expectedAck := types.Acknowledgement{
+				RecvSuccess:         expRecvRes.Status == types.PacketStatus_Success,
+				AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement},
+			}
 
 			// modify the callback to return the expected recv result.
 			path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, data types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
@@ -432,7 +435,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			suite.Require().NoError(err)
 
 			// Construct expected acknowledgement
-			ack = types.Acknowledgement{AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement}}
+			ack = types.Acknowledgement{RecvSuccess: true, AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement}}
 
 			tc.malleate()
 

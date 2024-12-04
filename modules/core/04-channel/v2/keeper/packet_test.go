@@ -307,6 +307,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 			// create standard ack that can be malleated
 			ack = types.Acknowledgement{
+				RecvSuccess:         true,
 				AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement},
 			}
 
@@ -335,6 +336,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		packet types.Packet
 		err    error
 		ack    = types.Acknowledgement{
+			RecvSuccess:         true,
 			AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement},
 		}
 		freezeClient bool
