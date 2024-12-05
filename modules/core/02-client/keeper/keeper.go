@@ -38,7 +38,7 @@ type Keeper struct {
 // NewKeeper creates a new NewKeeper instance
 func NewKeeper(cdc codec.BinaryCodec, env appmodule.Environment, legacySubspace types.ParamSubspace, uk types.UpgradeKeeper) *Keeper {
 	router := types.NewRouter()
-	localhostModule := localhost.NewLightClientModule(cdc, env.KVStoreService) // TODO: change to pass env
+	localhostModule := localhost.NewLightClientModule(cdc, env)
 	router.AddRoute(exported.Localhost, localhostModule)
 
 	return &Keeper{
