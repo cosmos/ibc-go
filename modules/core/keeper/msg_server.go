@@ -123,7 +123,7 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	// TODO: Make decision on this. Accessing GetCachedValue returns nil due to loss of data in internal sdk msg handler.
+	// TODO(sdk/v0.52): This should be reverted before release pending sdk fix. Accessing GetCachedValue returns nil due to loss of data in internal sdk msg handler.
 	// For now we can assume tendermint client state here as that's what we expect, but this may not always be the case for other msg handlers
 	// which use pb.Any encoding of msg types going through msg router service hybrid handler.
 	// upgradedClientState, err := clienttypes.UnpackClientState(msg.UpgradedClientState)
@@ -132,7 +132,7 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 	// }
 	var upgradedClientState ibctm.ClientState
 	if err := k.cdc.Unmarshal(msg.UpgradedClientState.Value, &upgradedClientState); err != nil {
-		return nil, err
+		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "cannot unmarshal tendermint client state: %s", err)
 	}
 
 	if err := k.ClientKeeper.ScheduleIBCSoftwareUpgrade(goCtx, msg.Plan, &upgradedClientState); err != nil {
