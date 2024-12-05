@@ -16,6 +16,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 var (
@@ -122,13 +123,19 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	upgradedClientState, err := clienttypes.UnpackClientState(msg.UpgradedClientState)
-	if err != nil {
-		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "cannot unpack client state: %s", err)
+	// TODO: Make decision on this. Accessing GetCachedValue returns nil due to loss of data in internal sdk msg handler.
+	// For now we can assume tendermint client state here as that's what we expect, but this may not always be the case for other msg handlers
+	// which use pb.Any encoding of msg types going through msg router service hybrid handler.
+	// upgradedClientState, err := clienttypes.UnpackClientState(msg.UpgradedClientState)
+	// if err != nil {
+	// 	return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "cannot unpack client state: %s", err)
+	// }
+	var upgradedClientState ibctm.ClientState
+	if err := k.cdc.Unmarshal(msg.UpgradedClientState.Value, &upgradedClientState); err != nil {
+		return nil, err
 	}
 
-	if err = k.ClientKeeper.ScheduleIBCSoftwareUpgrade(ctx, msg.Plan, upgradedClientState); err != nil {
+	if err := k.ClientKeeper.ScheduleIBCSoftwareUpgrade(goCtx, msg.Plan, &upgradedClientState); err != nil {
 		return nil, errorsmod.Wrap(err, "failed to schedule upgrade")
 	}
 
