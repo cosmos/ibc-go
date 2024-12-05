@@ -6,6 +6,8 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/log"
+
 	"github.com/cosmos/cosmos-sdk/runtime"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
@@ -142,39 +144,33 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"success", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().AuthKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().GRPCQueryRouter(),
 				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
 		}, ""},
 		{"failure: interchain accounts module account does not exist", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				authkeeper.AccountKeeper{}, // empty account keeper
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().GRPCQueryRouter(),
 				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
 		}, "the Interchain Accounts module account has not been set"},
 		{"failure: empty mock staking keeper", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
+				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().AuthKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().GRPCQueryRouter(),
 				"", // authority
 			)
 		}, "authority must be non-empty"},
