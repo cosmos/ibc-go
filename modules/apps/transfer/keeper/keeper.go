@@ -28,6 +28,7 @@ import (
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
 	appmodule.Environment
+
 	cdc            codec.BinaryCodec
 	legacySubspace types.ParamSubspace
 
