@@ -131,20 +131,20 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 
 	// build up the recv results for each application callback.
 	ack := types.Acknowledgement{
+		RecvSuccess:         true,
 		AppAcknowledgements: [][]byte{},
 	}
 
 	var isAsync bool
+	cacheCtx, writeFn = sdkCtx.CacheContext()
 	for _, pd := range msg.Packet.Payloads {
 		// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
-		cacheCtx, writeFn = sdkCtx.CacheContext()
 		cb := k.Router.Route(pd.DestinationPort)
 		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceChannel, msg.Packet.DestinationChannel, msg.Packet.Sequence, pd, signer)
 
-		if res.Status != types.PacketStatus_Failure {
-			// write application state changes for asynchronous and successful acknowledgements
-			writeFn()
-		} else {
+		if res.Status == types.PacketStatus_Failure {
+			// Set RecvSuccess to false
+			ack.RecvSuccess = false
 			// Modify events in cached context to reflect unsuccessful acknowledgement
 			sdkCtx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
 		}
@@ -161,6 +161,11 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 
 		// append app acknowledgement to the overall acknowledgement
 		ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
+	}
+
+	if ack.RecvSuccess {
+		// write application state changes for successful acknowledgements
+		writeFn()
 	}
 
 	// note this should never happen as the payload would have had to be empty.

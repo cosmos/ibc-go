@@ -39,7 +39,8 @@ message Payload {
 
 // Acknowledgement contains a list of all ack results associated with a single packet.
 message Acknowledgement {
-  repeated bytes app_acknowledgements = 1;
+  bool           recv_success         = 1;
+  repeated bytes app_acknowledgements = 2;
 }
 
 // PacketStatus specifies the status of a RecvPacketResult.

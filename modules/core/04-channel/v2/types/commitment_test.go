@@ -90,5 +90,5 @@ func TestCommitAcknowledgement(t *testing.T) {
 	}
 
 	commitment := types.CommitAcknowledgement(ack)
-	require.Equal(t, "f03b4667413e56aaf086663267913e525c442b56fa1af4fa3f3dab9f37044c5b", hex.EncodeToString(commitment))
+	require.Equal(t, "47a3b131712a356465258d5a9f50340f990a37b14e665b49ea5afa170f5e7aac", hex.EncodeToString(commitment))
 }

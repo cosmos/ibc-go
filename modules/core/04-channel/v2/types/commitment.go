@@ -59,6 +59,11 @@ func CommitAcknowledgement(acknowledgement Acknowledgement) []byte {
 		buf = append(buf, hash[:]...)
 	}
 
+	if acknowledgement.RecvSuccess {
+		buf = append([]byte{byte(1)}, buf...)
+	} else {
+		buf = append([]byte{byte(0)}, buf...)
+	}
 	buf = append([]byte{byte(2)}, buf...)
 
 	hash := sha256.Sum256(buf)

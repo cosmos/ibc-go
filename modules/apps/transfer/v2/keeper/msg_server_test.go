@@ -190,6 +190,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			"failure: receive is disabled",
 			func() {},
 			func() {
+				expectedAck.RecvSuccess = false
 				expectedAck.AppAcknowledgements[0] = channeltypes.NewErrorAcknowledgement(transfertypes.ErrReceiveDisabled).Acknowledgement()
 				suite.chainB.GetSimApp().TransferKeeperV2.SetParams(suite.chainB.GetContext(),
 					transfertypes.Params{
@@ -232,7 +233,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 
 			// by default, we assume a successful acknowledgement will be written.
 			ackBytes := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
-			expectedAck = channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{ackBytes}}
+			expectedAck = channeltypesv2.Acknowledgement{RecvSuccess: true, AppAcknowledgements: [][]byte{ackBytes}}
 			tc.malleate()
 
 			err = path.EndpointB.MsgRecvPacket(packet)
@@ -296,6 +297,7 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 		{
 			"failure: proof verification failure",
 			func() {
+				expectedAck.RecvSuccess = false
 				expectedAck.AppAcknowledgements[0] = mockv2.MockFailRecvPacketResult.Acknowledgement
 			},
 			commitmenttypes.ErrInvalidProof,
@@ -304,6 +306,7 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 		{
 			"failure: escrowed tokens are refunded",
 			func() {
+				expectedAck.RecvSuccess = false
 				expectedAck.AppAcknowledgements[0] = channeltypes.NewErrorAcknowledgement(transfertypes.ErrReceiveDisabled).Acknowledgement()
 			},
 			nil,
@@ -353,7 +356,7 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 			suite.Require().NoError(err)
 
 			ackBytes := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
-			expectedAck = channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{ackBytes}}
+			expectedAck = channeltypesv2.Acknowledgement{RecvSuccess: true, AppAcknowledgements: [][]byte{ackBytes}}
 			tc.malleate()
 
 			err = path.EndpointA.MsgAcknowledgePacket(packet, expectedAck)
@@ -505,7 +508,7 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 	}
 
 	ackBytes := channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
-	successfulAck := channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{ackBytes}}
+	successfulAck := channeltypesv2.Acknowledgement{RecvSuccess: true, AppAcknowledgements: [][]byte{ackBytes}}
 
 	originalAmount, ok := sdkmath.NewIntFromString(ibctesting.DefaultGenesisAccBalance)
 	suite.Require().True(ok)
