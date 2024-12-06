@@ -2,11 +2,11 @@ package keeper_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -21,6 +21,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
@@ -2464,7 +2465,10 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 		{
 			"failure: invalid clientState",
 			func() {
-				msg.UpgradedClientState = nil
+				clientAny, err := codectypes.NewAnyWithValue(&solomachine.ClientState{Sequence: 100})
+				suite.Require().NoError(err)
+
+				msg.UpgradedClientState = clientAny
 			},
 			clienttypes.ErrInvalidClientType,
 		},
@@ -2519,7 +2523,7 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(clientState.ZeroCustomFields(), upgradedClientState)
 			} else {
-				suite.Require().True(errors.Is(err, tc.expError))
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
