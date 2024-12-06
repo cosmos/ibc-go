@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 )
 
