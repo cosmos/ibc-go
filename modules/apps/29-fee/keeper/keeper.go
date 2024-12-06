@@ -23,6 +23,7 @@ var _ types.ChannelKeeper = (*Keeper)(nil)
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
 	appmodule.Environment
+
 	cdc codec.BinaryCodec
 
 	authKeeper    types.AccountKeeper
