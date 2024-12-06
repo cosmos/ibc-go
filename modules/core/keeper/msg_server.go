@@ -123,7 +123,7 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	// TODO(sdk/v0.52): This should be reverted before release pending sdk fix. Accessing GetCachedValue returns nil due to loss of data in internal sdk msg handler.
+	// TODO(https://github.com/cosmos/cosmos-sdk/issues/22779): This should be reverted before release pending sdk fix. Accessing GetCachedValue returns nil due to loss of data in internal sdk msg handler.
 	// For now we can assume tendermint client state here as that's what we expect, but this may not always be the case for other msg handlers
 	// which use pb.Any encoding of msg types going through msg router service hybrid handler.
 	// upgradedClientState, err := clienttypes.UnpackClientState(msg.UpgradedClientState)

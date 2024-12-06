@@ -644,6 +644,7 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 	}
 }
 
+// Added to reproduce test failure seen in e2e. This can be removed after https://github.com/cosmos/cosmos-sdk/issues/22779
 func (suite *KeeperTestSuite) TestIBCScheduledUpgradeProposal() {
 	suite.SetupTest()
 
