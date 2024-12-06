@@ -107,6 +107,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v9/modules/core"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
@@ -425,7 +426,7 @@ func NewSimApp(
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
 		appCodec,
-		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibcfeetypes.StoreKey]), logger.With(log.ModuleKey, "x/ibc-fee")),
+		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibcfeetypes.StoreKey]), logger.With(log.ModuleKey, fmt.Sprintf("x/%s-%s", exported.ModuleName, ibcfeetypes.ModuleName))),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
 		app.IBCKeeper.ChannelKeeper,
 		app.AuthKeeper, app.BankKeeper,
