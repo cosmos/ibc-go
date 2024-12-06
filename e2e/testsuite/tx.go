@@ -15,15 +15,13 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-
 	govtypesv1 "cosmossdk.io/x/gov/types/v1"
 	govtypesv1beta1 "cosmossdk.io/x/gov/types/v1beta1"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
@@ -53,7 +51,15 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 		// use a codec with all the types our tests care about registered.
 		// BroadcastTx will deserialize the response and will not be able to otherwise.
 		cdc := Codec()
-		return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
+
+		txConfig := SDKEncodingConfig().TxConfig
+		return clientContext.WithCodec(cdc).
+			WithTxConfig(txConfig).
+			WithAddressCodec(txConfig.SigningContext().AddressCodec()).
+			WithValidatorAddressCodec(txConfig.SigningContext().ValidatorAddressCodec()).
+			WithAddressPrefix(cosmosChain.Config().Bech32Prefix).
+			WithAddressCodec(txConfig.SigningContext().AddressCodec()).
+			WithValidatorAddressCodec(txConfig.SigningContext().ValidatorAddressCodec())
 	})
 
 	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
@@ -169,7 +175,7 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 		"",
 		fmt.Sprintf("e2e gov proposal: %d", proposalID),
 		fmt.Sprintf("executing gov proposal %d", proposalID),
-		false,
+		govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD,
 	)
 	s.Require().NoError(err)
 
@@ -273,7 +279,7 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
-	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
+	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender.String())
 	s.Require().NoError(err)
 
 	return s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)

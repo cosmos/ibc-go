@@ -9,6 +9,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
 	stakingtypes "cosmossdk.io/x/staking/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -641,4 +642,61 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 			}
 		})
 	}
+}
+
+// Added to reproduce test failure seen in e2e. This can be removed after https://github.com/cosmos/cosmos-sdk/issues/22779
+func (suite *KeeperTestSuite) TestIBCScheduledUpgradeProposal() {
+	suite.SetupTest()
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetupClients()
+
+	tmClientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
+	suite.Require().True(ok)
+
+	// bump the chain id revision number for the ibc client upgrade
+	chainID := tmClientState.ChainId
+	revisionNumber := types.ParseChainID(chainID)
+
+	newChainID, err := types.SetRevisionNumber(chainID, revisionNumber+1)
+	suite.Require().NoError(err)
+	suite.Require().NotEqual(chainID, newChainID)
+
+	tmClientState.ChainId = newChainID
+	upgradedClientState := tmClientState.ZeroCustomFields()
+
+	msg, err := types.NewMsgIBCSoftwareUpgrade(
+		suite.chainA.GetSimApp().IBCKeeper.GetAuthority(),
+		upgradetypes.Plan{
+			Name:   "upgrade-client",
+			Height: 1000,
+		},
+		upgradedClientState,
+	)
+	suite.Require().NoError(err)
+
+	proposal, err := govtypesv1.NewMsgSubmitProposal(
+		[]sdk.Msg{msg},
+		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, govtypesv1.DefaultMinDepositTokens)),
+		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
+		"metadata",
+		"ibc client upgrade",
+		"gov proposal for initialising ibc client upgrade",
+		govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD,
+	)
+	suite.Require().NoError(err)
+
+	res, err := suite.chainA.SendMsgs(proposal)
+	suite.Require().NoError(err)
+
+	proposalID, err := ibctesting.ParseProposalIDFromEvents(res.Events)
+	suite.Require().NoError(err)
+
+	// vote and pass proposal, trigger msg execution
+	err = ibctesting.VoteAndCheckProposalStatus(path.EndpointA, proposalID)
+	suite.Require().NoError(err)
+
+	storedPlan, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+	suite.Require().Equal(msg.Plan, storedPlan)
 }

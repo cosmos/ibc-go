@@ -8,8 +8,8 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v9/ibc"
 
 	"cosmossdk.io/math"
-
 	banktypes "cosmossdk.io/x/bank/types"
+
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"

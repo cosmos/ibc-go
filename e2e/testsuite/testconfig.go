@@ -18,6 +18,7 @@ import (
 	govtypes "cosmossdk.io/x/gov/types"
 	govv1 "cosmossdk.io/x/gov/types/v1"
 	govv1beta1 "cosmossdk.io/x/gov/types/v1beta1"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectestutil "github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -68,7 +69,7 @@ const (
 	// TODO: https://github.com/cosmos/ibc-go/issues/4965
 	defaultHyperspaceTag = "20231122v39"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "1.10.0"
+	defaultHermesTag = "1.10.4"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
@@ -582,6 +583,11 @@ func IsFork() bool {
 	return isEnvTrue("FORK")
 }
 
+// IsRunSuite returns true if the tests are running in suite mode, false is returned otherwise.
+func IsRunSuite() bool {
+	return isEnvTrue("RUN_SUITE")
+}
+
 func isEnvTrue(env string) bool {
 	return strings.ToLower(os.Getenv(env)) == "true"
 }
@@ -621,11 +627,17 @@ func DefaultChainOptions() ChainOptions {
 		NumValidators: &chainBVal,
 	}
 
-	return ChainOptions{
-		ChainSpecs: []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+	// if running a single test, only one relayer is needed.
+	numRelayers := 1
+	if IsRunSuite() {
 		// arbitrary number that will not be required if https://github.com/strangelove-ventures/interchaintest/issues/1153 is resolved.
 		// It can be overridden in individual test suites in SetupSuite if required.
-		RelayerCount: 10,
+		numRelayers = 10
+	}
+
+	return ChainOptions{
+		ChainSpecs:   []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+		RelayerCount: numRelayers,
 	}
 }
 
@@ -650,7 +662,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 		},
 		Bin:                 cc.Binary,
 		Bech32Prefix:        "cosmos",
-		CoinType:            fmt.Sprint(sdk.GetConfig().GetCoinType()),
+		CoinType:            fmt.Sprint(sdk.CoinType),
 		Denom:               denom,
 		EncodingConfig:      SDKEncodingConfig(),
 		GasPrices:           fmt.Sprintf("0.00%s", denom),

@@ -3,6 +3,7 @@ package sanitize
 import (
 	govtypesv1 "cosmossdk.io/x/gov/types/v1"
 	grouptypes "cosmossdk.io/x/group"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
