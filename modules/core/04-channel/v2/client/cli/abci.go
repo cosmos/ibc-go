@@ -1,45 +1,16 @@
 package cli
 
 import (
-	"context"
 	"encoding/binary"
 
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/client"
 
-	clientutils "github.com/cosmos/ibc-go/v9/modules/core/02-client/client/utils"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	ibcclient "github.com/cosmos/ibc-go/v9/modules/core/client"
 )
-
-func queryChannelClientStateABCI(clientCtx client.Context, channelID string) (*types.QueryChannelClientStateResponse, error) {
-	queryClient := types.NewQueryClient(clientCtx)
-	req := &types.QueryChannelClientStateRequest{
-		ChannelId: channelID,
-	}
-
-	res, err := queryClient.ChannelClientState(context.Background(), req)
-	if err != nil {
-		return nil, err
-	}
-
-	clientStateRes, err := clientutils.QueryClientStateABCI(clientCtx, res.IdentifiedClientState.ClientId)
-	if err != nil {
-		return nil, err
-	}
-
-	// use client state returned from ABCI query in case query height differs
-	identifiedClientState := clienttypes.IdentifiedClientState{
-		ClientId:    res.IdentifiedClientState.ClientId,
-		ClientState: clientStateRes.ClientState,
-	}
-	res = types.NewQueryChannelClientStateResponse(identifiedClientState, clientStateRes.Proof, clientStateRes.ProofHeight)
-
-	return res, nil
-}
 
 func queryNextSequenceSendABCI(clientCtx client.Context, channelID string) (*types.QueryNextSequenceSendResponse, error) {
 	key := hostv2.NextSequenceSendKey(channelID)

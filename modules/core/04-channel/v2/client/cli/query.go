@@ -64,21 +64,8 @@ func getCmdQueryChannelClientState() *cobra.Command {
 			}
 
 			channelID := args[0]
-			prove, err := cmd.Flags().GetBool(flags.FlagProve)
-			if err != nil {
-				return err
-			}
-
-			if prove {
-				res, err := queryChannelClientStateABCI(clientCtx, channelID)
-				if err != nil {
-					return err
-				}
-
-				return clientCtx.PrintProto(res)
-			}
-
 			queryClient := types.NewQueryClient(clientCtx)
+
 			res, err := queryClient.ChannelClientState(cmd.Context(), types.NewQueryChannelClientStateRequest(channelID))
 			if err != nil {
 				return err
@@ -88,7 +75,6 @@ func getCmdQueryChannelClientState() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Bool(flags.FlagProve, true, "show proofs for the query results")
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
