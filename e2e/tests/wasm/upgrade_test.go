@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -35,8 +36,8 @@ const (
 
 func TestIBCWasmUpgradeTestSuite(t *testing.T) {
 	testCfg := testsuite.LoadConfig()
-	if testCfg.UpgradeConfig.Tag == "" || testCfg.UpgradeConfig.PlanName == "" {
-		t.Fatalf("%s and %s must be set when running an upgrade test", testsuite.ChainUpgradeTagEnv, testsuite.ChainUpgradePlanEnv)
+	if strings.TrimSpace(testCfg.UpgradePlanName) == "" {
+		t.Fatalf("%s must be set when running an upgrade test", testsuite.ChainUpgradePlanEnv)
 	}
 
 	// wasm tests require a longer voting period to account for the time it takes to upload a contract.
@@ -70,7 +71,7 @@ func (s *IBCWasmUpgradeTestSuite) TestIBCWasmChainUpgrade() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		testCfg := testsuite.LoadConfig()
-		s.UpgradeChain(ctx, chain.(*cosmos.CosmosChain), userWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chain.(*cosmos.CosmosChain), userWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
 	t.Run("query wasm checksums", func(t *testing.T) {

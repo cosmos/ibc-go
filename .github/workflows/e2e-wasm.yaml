@@ -62,11 +62,9 @@ jobs:
       build-and-push-docker-image-wasm: true
       # if the test fails, we upload logs so that we can download them from the UI.
       upload-logs: true
-      chain-image: ghcr.io/cosmos/ibc-go-wasm-simd
       # with regular tests, both images are the same.
       chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-      chain-binary: 'simd'
       # only run the grandpa test suite for wasm tests.
       test-entry-point: 'TestGrandpaTestSuite'
       # exclude transfer tests which rely on removed packet event attributes: # https://github.com/cosmos/ibc-go/issues/6243

@@ -37,7 +37,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, suite
 	t.Logf("writing logs for test: %s", t.Name())
 
 	ctx := context.TODO()
-	e2eDir, err := directories.E2E(t)
+	e2eDir, err := directories.E2E()
 	if err != nil {
 		t.Logf("failed finding log directory: %s", err)
 		return
