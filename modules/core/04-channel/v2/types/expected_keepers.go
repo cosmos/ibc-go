@@ -19,4 +19,6 @@ type ClientKeeper interface {
 	// GetClientTimestampAtHeight returns the timestamp for a given height on the client
 	// given its client ID and height
 	GetClientTimestampAtHeight(ctx context.Context, clientID string, height exported.Height) (uint64, error)
+	// GetClientConsensusState gets the stored consensus state from a client at a given height.
+	GetClientConsensusState(ctx context.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 }
