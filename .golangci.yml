@@ -31,10 +31,10 @@ linters:
 
 issues:
   exclude-rules:
-    - text: 'differs only by capitalization to method'
+    - text: "differs only by capitalization to method"
       linters:
         - revive
-    - text: 'Use of weak random number generator'
+    - text: "Use of weak random number generator"
       linters:
         - gosec
     - linters:
@@ -61,6 +61,8 @@ linters-settings:
     # Do NOT whine about the following, full explanation found in:
     # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#description-of-available-rules
     rules:
+      - name: redundant-import-alias
+        disabled: true
       - name: use-any
         disabled: true
       - name: if-return
@@ -109,7 +111,7 @@ linters-settings:
       - name: unhandled-error
         disabled: false
         arguments:
-          - 'fmt.Printf'
-          - 'fmt.Print'
-          - 'fmt.Println'
-          - 'myFunction'
+          - "fmt.Printf"
+          - "fmt.Print"
+          - "fmt.Println"
+          - "myFunction"
