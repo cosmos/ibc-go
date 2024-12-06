@@ -33,7 +33,7 @@ func TotalEscrowPerDenomInvariants(k *Keeper) sdk.Invariant {
 		transferChannels := k.channelKeeper.GetAllChannelsWithPortPrefix(ctx, portID)
 		for _, channel := range transferChannels {
 			escrowAddress := types.GetEscrowAddress(portID, channel.ChannelId)
-			escrowBalances := k.bankKeeper.GetAllBalances(ctx, escrowAddress)
+			escrowBalances := k.BankKeeper.GetAllBalances(ctx, escrowAddress)
 
 			actualTotalEscrowed = actualTotalEscrowed.Add(escrowBalances...)
 		}
