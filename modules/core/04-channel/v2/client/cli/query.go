@@ -49,6 +49,37 @@ func getCmdQueryChannel() *cobra.Command {
 	return cmd
 }
 
+// getCmdQueryChannelClientState defines the command to query the channel client state for the given channel ID.
+func getCmdQueryChannelClientState() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "client-state [channel-id]",
+		Short:   "Query the client state associated with a channel.",
+		Long:    "Query the client state associated with a channel for the provided channel ID.",
+		Example: fmt.Sprintf("%s query %s %s client-state [channel-id]", version.AppName, exported.ModuleName, types.SubModuleName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			channelID := args[0]
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.ChannelClientState(cmd.Context(), types.NewQueryChannelClientStateRequest(channelID))
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // getCmdQueryNextSequenceSend defines the command to query a next send sequence for a given channel
 func getCmdQueryNextSequenceSend() *cobra.Command {
 	cmd := &cobra.Command{
