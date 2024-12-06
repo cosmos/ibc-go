@@ -6,12 +6,12 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
-	types1 "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	any "github.com/cosmos/gogoproto/types/any"
+	types "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -119,11 +119,11 @@ type MsgConnectionOpenTry struct {
 	// Deprecated: this field is unused. Crossing hellos are no longer supported in core IBC.
 	PreviousConnectionId string `protobuf:"bytes,2,opt,name=previous_connection_id,json=previousConnectionId,proto3" json:"previous_connection_id,omitempty"` // Deprecated: Do not use.
 	// Deprecated: this field is unused.
-	ClientState          *types.Any    `protobuf:"bytes,3,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"` // Deprecated: Do not use.
-	Counterparty         Counterparty  `protobuf:"bytes,4,opt,name=counterparty,proto3" json:"counterparty"`
-	DelayPeriod          uint64        `protobuf:"varint,5,opt,name=delay_period,json=delayPeriod,proto3" json:"delay_period,omitempty"`
-	CounterpartyVersions []*Version    `protobuf:"bytes,6,rep,name=counterparty_versions,json=counterpartyVersions,proto3" json:"counterparty_versions,omitempty"`
-	ProofHeight          types1.Height `protobuf:"bytes,7,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+	ClientState          *any.Any     `protobuf:"bytes,3,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"` // Deprecated: Do not use.
+	Counterparty         Counterparty `protobuf:"bytes,4,opt,name=counterparty,proto3" json:"counterparty"`
+	DelayPeriod          uint64       `protobuf:"varint,5,opt,name=delay_period,json=delayPeriod,proto3" json:"delay_period,omitempty"`
+	CounterpartyVersions []*Version   `protobuf:"bytes,6,rep,name=counterparty_versions,json=counterpartyVersions,proto3" json:"counterparty_versions,omitempty"`
+	ProofHeight          types.Height `protobuf:"bytes,7,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
 	// proof of the initialization the connection on Chain A: `UNINITIALIZED ->
 	// INIT`
 	ProofInit []byte `protobuf:"bytes,8,opt,name=proof_init,json=proofInit,proto3" json:"proof_init,omitempty"`
@@ -132,8 +132,8 @@ type MsgConnectionOpenTry struct {
 	// Deprecated: this field is unused.
 	ProofConsensus []byte `protobuf:"bytes,10,opt,name=proof_consensus,json=proofConsensus,proto3" json:"proof_consensus,omitempty"` // Deprecated: Do not use.
 	// Deprecated: this field is unused.
-	ConsensusHeight types1.Height `protobuf:"bytes,11,opt,name=consensus_height,json=consensusHeight,proto3" json:"consensus_height"` // Deprecated: Do not use.
-	Signer          string        `protobuf:"bytes,12,opt,name=signer,proto3" json:"signer,omitempty"`
+	ConsensusHeight types.Height `protobuf:"bytes,11,opt,name=consensus_height,json=consensusHeight,proto3" json:"consensus_height"` // Deprecated: Do not use.
+	Signer          string       `protobuf:"bytes,12,opt,name=signer,proto3" json:"signer,omitempty"`
 	// Deprecated: this field is unused.
 	HostConsensusStateProof []byte `protobuf:"bytes,13,opt,name=host_consensus_state_proof,json=hostConsensusStateProof,proto3" json:"host_consensus_state_proof,omitempty"` // Deprecated: Do not use.
 }
@@ -215,8 +215,8 @@ type MsgConnectionOpenAck struct {
 	CounterpartyConnectionId string   `protobuf:"bytes,2,opt,name=counterparty_connection_id,json=counterpartyConnectionId,proto3" json:"counterparty_connection_id,omitempty"`
 	Version                  *Version `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
 	// Deprecated: this field is unused.
-	ClientState *types.Any    `protobuf:"bytes,4,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"` // Deprecated: Do not use.
-	ProofHeight types1.Height `protobuf:"bytes,5,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+	ClientState *any.Any     `protobuf:"bytes,4,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"` // Deprecated: Do not use.
+	ProofHeight types.Height `protobuf:"bytes,5,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
 	// proof of the initialization the connection on Chain B: `UNINITIALIZED ->
 	// TRYOPEN`
 	ProofTry []byte `protobuf:"bytes,6,opt,name=proof_try,json=proofTry,proto3" json:"proof_try,omitempty"`
@@ -225,8 +225,8 @@ type MsgConnectionOpenAck struct {
 	// Deprecated: this field is unused.
 	ProofConsensus []byte `protobuf:"bytes,8,opt,name=proof_consensus,json=proofConsensus,proto3" json:"proof_consensus,omitempty"` // Deprecated: Do not use.
 	// Deprecated: this field is unused.
-	ConsensusHeight types1.Height `protobuf:"bytes,9,opt,name=consensus_height,json=consensusHeight,proto3" json:"consensus_height"` // Deprecated: Do not use.
-	Signer          string        `protobuf:"bytes,10,opt,name=signer,proto3" json:"signer,omitempty"`
+	ConsensusHeight types.Height `protobuf:"bytes,9,opt,name=consensus_height,json=consensusHeight,proto3" json:"consensus_height"` // Deprecated: Do not use.
+	Signer          string       `protobuf:"bytes,10,opt,name=signer,proto3" json:"signer,omitempty"`
 	// Deprecated: this field is unused.
 	HostConsensusStateProof []byte `protobuf:"bytes,11,opt,name=host_consensus_state_proof,json=hostConsensusStateProof,proto3" json:"host_consensus_state_proof,omitempty"` // Deprecated: Do not use.
 }
@@ -306,9 +306,9 @@ var xxx_messageInfo_MsgConnectionOpenAckResponse proto.InternalMessageInfo
 type MsgConnectionOpenConfirm struct {
 	ConnectionId string `protobuf:"bytes,1,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
 	// proof for the change of the connection state on Chain A: `INIT -> OPEN`
-	ProofAck    []byte        `protobuf:"bytes,2,opt,name=proof_ack,json=proofAck,proto3" json:"proof_ack,omitempty"`
-	ProofHeight types1.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
-	Signer      string        `protobuf:"bytes,4,opt,name=signer,proto3" json:"signer,omitempty"`
+	ProofAck    []byte       `protobuf:"bytes,2,opt,name=proof_ack,json=proofAck,proto3" json:"proof_ack,omitempty"`
+	ProofHeight types.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+	Signer      string       `protobuf:"bytes,4,opt,name=signer,proto3" json:"signer,omitempty"`
 }
 
 func (m *MsgConnectionOpenConfirm) Reset()         { *m = MsgConnectionOpenConfirm{} }
@@ -1906,7 +1906,7 @@ func (m *MsgConnectionOpenTry) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ClientState == nil {
-				m.ClientState = &types.Any{}
+				m.ClientState = &any.Any{}
 			}
 			if err := m.ClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2462,7 +2462,7 @@ func (m *MsgConnectionOpenAck) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ClientState == nil {
-				m.ClientState = &types.Any{}
+				m.ClientState = &any.Any{}
 			}
 			if err := m.ClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

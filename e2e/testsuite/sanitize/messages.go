@@ -1,9 +1,10 @@
 package sanitize
 
 import (
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
+	grouptypes "cosmossdk.io/x/group"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"

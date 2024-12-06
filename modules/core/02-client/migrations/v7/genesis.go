@@ -14,7 +14,7 @@ import (
 // - Update solo machine client state protobuf definition (v2 to v3)
 // - Remove all solo machine consensus states
 // - Remove localhost client
-func MigrateGenesis(clientGenState *clienttypes.GenesisState, cdc codec.ProtoCodecMarshaler) (*clienttypes.GenesisState, error) {
+func MigrateGenesis(clientGenState *clienttypes.GenesisState, cdc codec.Codec) (*clienttypes.GenesisState, error) {
 	// To prune the client and consensus states, we will create new slices to fill up
 	// with information we want to keep.
 	var (

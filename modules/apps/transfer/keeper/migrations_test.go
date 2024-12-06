@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
+	banktestutil "cosmossdk.io/x/bank/testutil"
+	banktypes "cosmossdk.io/x/bank/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	internaltransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	transferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
