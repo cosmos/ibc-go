@@ -16,6 +16,10 @@ const (
 	ModuleNameA = ModuleName + "A"
 	// ModuleNameB is a name that can be used for the second mock application.
 	ModuleNameB = ModuleName + "B"
+	// PortIDA is a port ID that can be used for the first mock application.
+	PortIDA = ModuleNameA
+	// PortIDB is a port ID that can be used for the second mock application.
+	PortIDB = ModuleNameB
 )
 
 // IBCModule is a mock implementation of the IBCModule interface.
