@@ -570,7 +570,7 @@ func NewSimApp(
 
 	// register the transfer v2 module.
 	app.TransferKeeperV2 = ibctransferkeeperv2.NewKeeper(app.TransferKeeper, app.IBCKeeper.ChannelKeeperV2)
-	ibcRouterV2.AddRoute(ibctransfertypes.ModuleName, transferv2.NewIBCModule(app.TransferKeeperV2))
+	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeperV2))
 
 	// Seal the IBC Routers.
 	app.IBCKeeper.SetRouter(ibcRouter)
