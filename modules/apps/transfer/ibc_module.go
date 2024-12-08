@@ -111,7 +111,7 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V2)
+		im.keeper.Logger.Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V2)
 		return types.V2, nil
 	}
 
@@ -187,17 +187,17 @@ func (im IBCModule) OnRecvPacket(
 	data, ackErr = types.UnmarshalPacketData(packet.GetData(), channelVersion)
 	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		return ack
 	}
 
 	if ackErr = im.keeper.OnRecvPacket(ctx, packet, data); ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		return ack
 	}
 
-	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
+	im.keeper.Logger.Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
 
 	if data.HasForwarding() {
 		// NOTE: acknowledgement will be written asynchronously
@@ -276,7 +276,7 @@ func (im IBCModule) OnChanUpgradeTry(ctx context.Context, portID, channelID stri
 	}
 
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V2)
+		im.keeper.Logger.Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V2)
 		return types.V2, nil
 	}
 

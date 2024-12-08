@@ -56,7 +56,7 @@ func (k Keeper) Denoms(ctx context.Context, req *types.QueryDenomsRequest) (*typ
 	}
 
 	var denoms types.Denoms
-	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomKey)
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx)), types.DenomKey)
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
 		var denom types.Denom
