@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -139,7 +140,7 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite stri
 	}
 
 	if len(gh.Include) == 0 {
-		return GithubActionTestMatrix{}, fmt.Errorf("no test cases found")
+		return GithubActionTestMatrix{}, errors.New("no test cases found")
 	}
 
 	// Sort the test cases by name so that the order is consistent.
