@@ -157,6 +157,9 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 			if len(msg.Packet.Payloads) > 1 {
 				return nil, errorsmod.Wrapf(types.ErrInvalidPacket, "packet with multiple payloads cannot have async acknowledgement")
 			}
+			// break out of the loop if the acknowledgement is async
+			// to prevent the addition of nil to the acknowledgement
+			break
 		}
 
 		// append app acknowledgement to the overall acknowledgement
@@ -168,13 +171,13 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		writeFn()
 	}
 
-	// note this should never happen as the payload would have had to be empty.
-	if len(ack.AppAcknowledgements) == 0 {
-		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
-		return &types.MsgRecvPacketResponse{Result: types.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-channel %s invalid acknowledgement results", msg.Packet.SourceChannel)
-	}
-
 	if !isAsync {
+		// note this should never happen as the payload would have had to be empty.
+		if len(ack.AppAcknowledgements) == 0 {
+			sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
+			return &types.MsgRecvPacketResponse{Result: types.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-channel %s invalid acknowledgement results", msg.Packet.SourceChannel)
+		}
+
 		// Set packet acknowledgement only if the acknowledgement is not async.
 		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 		// acknowledgement is async.

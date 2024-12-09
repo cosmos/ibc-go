@@ -322,12 +322,19 @@ func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
 			},
 			expError: types.ErrInvalidPacket,
 		},
+		{
+			name: "failure: invalid acknowledgement",
+			malleate: func() {
+				msg.Acknowledgement = types.Acknowledgement{}
+			},
+			expError: types.ErrInvalidAcknowledgement,
+		},
 	}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			msg = types.NewMsgAcknowledgement(
 				types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, s.chainA.GetTimeoutTimestamp(), mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)),
-				types.Acknowledgement{},
+				types.Acknowledgement{RecvSuccess: true, AppAcknowledgements: [][]byte{[]byte("ack")}},
 				testProof,
 				clienttypes.ZeroHeight(),
 				s.chainA.SenderAccount.GetAddress().String(),

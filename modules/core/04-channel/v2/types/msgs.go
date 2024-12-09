@@ -174,7 +174,11 @@ func (msg *MsgAcknowledgement) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	return msg.Packet.ValidateBasic()
+	if err := msg.Packet.ValidateBasic(); err != nil {
+		return err
+	}
+
+	return msg.Acknowledgement.ValidateBasic()
 }
 
 // NewMsgTimeout creates a new MsgTimeout instance
