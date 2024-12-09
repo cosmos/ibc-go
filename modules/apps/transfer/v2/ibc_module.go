@@ -115,7 +115,7 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 
 func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, recvSuccess bool, acknowledgement []byte, payload types.Payload, relayer sdk.AccAddress) error {
 	var ack channeltypes.Acknowledgement
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil && recvSuccess {
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
