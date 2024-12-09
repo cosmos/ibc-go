@@ -480,16 +480,16 @@ func NewSimApp(
 
 	// create two separate mock v2 applications so that it is possible to test multi packet data.
 	mockV2A := mockv2.NewIBCModule()
-	ibcRouterV2.AddRoute(mockv2.ModuleNameA, mockV2A)
+	ibcRouterV2.AddRoute(mockv2.PortIDA, mockV2A)
 	app.MockModuleV2A = mockV2A
 
 	mockV2B := mockv2.NewIBCModule()
-	ibcRouterV2.AddRoute(mockv2.ModuleNameB, mockV2B)
+	ibcRouterV2.AddRoute(mockv2.PortIDB, mockV2B)
 	app.MockModuleV2B = mockV2B
 
 	// register the transfer v2 module.
 	app.TransferKeeperV2 = ibctransferkeeperv2.NewKeeper(app.TransferKeeper, app.IBCKeeper.ChannelKeeperV2)
-	ibcRouterV2.AddRoute(ibctransfertypes.ModuleName, transferv2.NewIBCModule(app.TransferKeeperV2))
+	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeperV2))
 
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)

@@ -16,53 +16,42 @@ func (suite *APITestSuite) TestRouter() {
 		{
 			name: "success",
 			malleate: func() {
-				router.AddRoute("module01", &mockv2.IBCModule{})
+				router.AddRoute("port01", &mockv2.IBCModule{})
 			},
 			assertionFn: func() {
-				suite.Require().True(router.HasRoute("module01"))
+				suite.Require().True(router.HasRoute("port01"))
 			},
 		},
 		{
 			name: "success: multiple modules",
 			malleate: func() {
-				router.AddRoute("module01", &mockv2.IBCModule{})
-				router.AddRoute("module02", &mockv2.IBCModule{})
-				router.AddRoute("module03", &mockv2.IBCModule{})
+				router.AddRoute("port01", &mockv2.IBCModule{})
+				router.AddRoute("port02", &mockv2.IBCModule{})
+				router.AddRoute("port03", &mockv2.IBCModule{})
 			},
 			assertionFn: func() {
-				suite.Require().True(router.HasRoute("module01"))
-				suite.Require().True(router.HasRoute("module02"))
-				suite.Require().True(router.HasRoute("module03"))
-			},
-		},
-		{
-			name: "success: find by prefix",
-			malleate: func() {
-				router.AddRoute("module01", &mockv2.IBCModule{})
-			},
-			assertionFn: func() {
-				suite.Require().True(router.HasRoute("module01-foo"))
+				suite.Require().True(router.HasRoute("port01"))
+				suite.Require().True(router.HasRoute("port02"))
+				suite.Require().True(router.HasRoute("port03"))
 			},
 		},
 		{
 			name: "failure: panics on duplicate module",
 			malleate: func() {
-				router.AddRoute("module01", &mockv2.IBCModule{})
+				router.AddRoute("port01", &mockv2.IBCModule{})
 			},
 			assertionFn: func() {
-				suite.Require().PanicsWithError("route module01 has already been registered", func() {
-					router.AddRoute("module01", &mockv2.IBCModule{})
+				suite.Require().PanicsWithError("route port01 has already been registered", func() {
+					router.AddRoute("port01", &mockv2.IBCModule{})
 				})
 			},
 		},
 		{
-			name: "failure: panics invalid-name",
-			malleate: func() {
-				router.AddRoute("module01", &mockv2.IBCModule{})
-			},
+			name:     "failure: panics invalid-name",
+			malleate: func() {},
 			assertionFn: func() {
 				suite.Require().PanicsWithError("route expressions can only contain alphanumeric characters", func() {
-					router.AddRoute("module-02", &mockv2.IBCModule{})
+					router.AddRoute("port-02", &mockv2.IBCModule{})
 				})
 			},
 		},
