@@ -45,9 +45,9 @@ func (im IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, dest
 	return MockRecvPacketResult
 }
 
-func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
+func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, recvSuccess bool, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnAcknowledgementPacket != nil {
-		return im.IBCApp.OnAcknowledgementPacket(ctx, sourceChannel, destinationChannel, sequence, payload, acknowledgement, relayer)
+		return im.IBCApp.OnAcknowledgementPacket(ctx, sourceChannel, destinationChannel, sequence, payload, recvSuccess, acknowledgement, relayer)
 	}
 	return nil
 }

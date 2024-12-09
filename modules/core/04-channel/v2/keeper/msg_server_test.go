@@ -380,7 +380,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 
 				// Modify the callback to return an error.
 				// This way, we can verify that the callback is not executed in a No-op case.
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, types.Payload, []byte, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, types.Payload, bool, []byte, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -388,7 +388,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "failure: callback fails",
 			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, types.Payload, []byte, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, types.Payload, bool, []byte, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},

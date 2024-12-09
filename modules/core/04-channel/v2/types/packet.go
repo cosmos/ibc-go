@@ -9,6 +9,10 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
+var (
+	SentinelAcknowledgement = []byte{byte(1)}
+)
+
 // NewPacket constructs a new packet.
 func NewPacket(sequence uint64, sourceChannel, destinationChannel string, timeoutTimestamp uint64, payloads ...Payload) Packet {
 	return Packet{

@@ -84,11 +84,16 @@ func TestCommitPacket(t *testing.T) {
 // same commitment output. But it is also useful to catch any changes in the commitment.
 func TestCommitAcknowledgement(t *testing.T) {
 	ack := types.Acknowledgement{
+		RecvSuccess: true,
 		AppAcknowledgements: [][]byte{
 			[]byte("some bytes"),
 		},
 	}
 
 	commitment := types.CommitAcknowledgement(ack)
+	require.Equal(t, "fc02a4453c297c9b65189ec354f4fc7f0c1327b72f6044a20d4dd1fac8fda9f7", hex.EncodeToString(commitment))
+
+	ack.RecvSuccess = false
+	commitment = types.CommitAcknowledgement(ack)
 	require.Equal(t, "47a3b131712a356465258d5a9f50340f990a37b14e665b49ea5afa170f5e7aac", hex.EncodeToString(commitment))
 }

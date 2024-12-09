@@ -365,7 +365,7 @@ func (suite *KeeperTestSuite) TestMsgAckPacketTransfer() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				if bytes.Equal(expectedAck.AppAcknowledgements[0], ackBytes) {
+				if expectedAck.RecvSuccess {
 					// tokens remain escrowed
 					for _, t := range tokens {
 						escrowedAmount := suite.chainA.GetSimApp().TransferKeeperV2.GetTotalEscrowForDenom(suite.chainA.GetContext(), t.Denom.IBCDenom())
