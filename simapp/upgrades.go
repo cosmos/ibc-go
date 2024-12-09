@@ -1,12 +1,11 @@
 package simapp
 
 import (
-	storetypes "cosmossdk.io/store/types"
-	circuittypes "cosmossdk.io/x/circuit/types"
+	corestore "cosmossdk.io/core/store"
+	"cosmossdk.io/x/accounts"
+	consensusparamtypes "cosmossdk.io/x/consensus/types"
+	pooltypes "cosmossdk.io/x/protocolpool/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-
-	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
-	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 
 	"github.com/cosmos/ibc-go/simapp/upgrades"
 )
@@ -60,10 +59,9 @@ func (app *SimApp) registerUpgradeHandlers() {
 	}
 
 	if upgradeInfo.Name == upgrades.V7 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{
+		storeUpgrades := corestore.StoreUpgrades{
 			Added: []string{
 				consensusparamtypes.StoreKey,
-				crisistypes.StoreKey,
 			},
 		}
 
@@ -72,9 +70,16 @@ func (app *SimApp) registerUpgradeHandlers() {
 	}
 
 	if upgradeInfo.Name == upgrades.V8 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{
+		storeUpgrades := corestore.StoreUpgrades{}
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	if upgradeInfo.Name == upgrades.V10 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := corestore.StoreUpgrades{
 			Added: []string{
-				circuittypes.ModuleName,
+				pooltypes.StoreKey,
+				accounts.StoreKey,
 			},
 		}
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades

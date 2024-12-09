@@ -60,6 +60,7 @@ Next, we need to add `fee` module to the module basic manager and define its acc
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
+		pooltypes.ModuleName:           nil,
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		// plus-diff-line 
 +		ibcfeetypes.ModuleName:         nil,

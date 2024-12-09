@@ -6,6 +6,7 @@ deps:
   - buf.build/cosmos/gogo-proto:a14993478f40695898ed8a86931094b6656e8a5d
   - buf.build/googleapis/googleapis:8d7204855ec14631a499bd7393ce1970
   - buf.build/cosmos/ics23:b1abd8678aab07165efd453c96796a179eb3131f
+  - buf.build/cometbft/cometbft:4a62c99d422068a5165429b62a7eb824df46cca9 
 breaking:
   use:
     - FILE

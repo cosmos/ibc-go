@@ -5,9 +5,9 @@ package types
 
 import (
 	fmt "fmt"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
+	any "github.com/cosmos/gogoproto/types/any"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -116,7 +116,7 @@ func (m *InterchainAccountPacketData) GetMemo() string {
 
 // CosmosTx contains a list of sdk.Msg's. It should be used when sending transactions to an SDK host chain.
 type CosmosTx struct {
-	Messages []*types.Any `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
+	Messages []*any.Any `protobuf:"bytes,1,rep,name=messages,proto3" json:"messages,omitempty"`
 }
 
 func (m *CosmosTx) Reset()         { *m = CosmosTx{} }
@@ -152,7 +152,7 @@ func (m *CosmosTx) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CosmosTx proto.InternalMessageInfo
 
-func (m *CosmosTx) GetMessages() []*types.Any {
+func (m *CosmosTx) GetMessages() []*any.Any {
 	if m != nil {
 		return m.Messages
 	}
@@ -522,7 +522,7 @@ func (m *CosmosTx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Messages = append(m.Messages, &types.Any{})
+			m.Messages = append(m.Messages, &any.Any{})
 			if err := m.Messages[len(m.Messages)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

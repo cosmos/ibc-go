@@ -110,7 +110,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				// set the timeout fee to be greater than recv + ack fee so that the refund amount is non-zero
 				fee.TimeoutFee = fee.Total().Add(ibctesting.TestCoin)
 
-				refundAcc = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(mock.ModuleName)
+				refundAcc = suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(mock.ModuleName)
 
 				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees = []types.PacketFee{packetFee, packetFee}
@@ -168,7 +168,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees = []types.PacketFee{packetFee, packetFee}
 
-				forwardRelayer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
+				forwardRelayer = suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
 			},
 			func() {
 				// check if the refund acc has been refunded the timeoutFee & recvFee
@@ -183,7 +183,7 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees = []types.PacketFee{packetFee, packetFee}
 
-				reverseRelayer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				reverseRelayer = suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 			},
 			func() {
 				// check if the refund acc has been refunded the ackFee
@@ -201,8 +201,8 @@ func (suite *KeeperTestSuite) TestDistributeFee() {
 				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees = []types.PacketFee{packetFee, packetFee}
 
-				packetFees[0].RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
-				packetFees[1].RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
+				packetFees[0].RefundAddress = suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
+				packetFees[1].RefundAddress = suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
 			},
 			func() {
 				// check if the module acc contains the timeoutFee
@@ -328,7 +328,7 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 		{
 			"invalid timeout relayer address: timeout fee returned to sender",
 			func() {
-				timeoutRelayer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				timeoutRelayer = suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 			},
 			func() {
 				// check if the refund acc has been refunded the all the fees
@@ -345,8 +345,8 @@ func (suite *KeeperTestSuite) TestDistributePacketFeesOnTimeout() {
 				packetFee = types.NewPacketFee(fee, refundAcc.String(), []string{})
 				packetFees = []types.PacketFee{packetFee, packetFee}
 
-				packetFees[0].RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
-				packetFees[1].RefundAddress = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
+				packetFees[0].RefundAddress = suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
+				packetFees[1].RefundAddress = suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
 			},
 			func() {
 				// check if the module acc contains the correct amount of fees
@@ -531,7 +531,7 @@ func (suite *KeeperTestSuite) TestRefundFeesOnChannelClosure() {
 		},
 		{
 			"distributing to blocked address is skipped", func() {
-				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
+				blockedAddr := suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress().String()
 
 				// store the fee in state & update escrow account balance
 				packetID := channeltypes.NewPacketID(suite.path.EndpointA.ChannelConfig.PortID, suite.path.EndpointA.ChannelID, uint64(1))

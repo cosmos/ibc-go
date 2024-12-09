@@ -76,7 +76,7 @@ func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 			address := tc.address
 			msg := types.NewMsgStoreCode(address.String(), wasmtesting.Code)
 
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgSigners(msg)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(address.Bytes(), signers[0])
@@ -179,7 +179,7 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 			address := tc.address
 			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, checksum, []byte("{}"))
 
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgSigners(msg)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(address.Bytes(), signers[0])
@@ -256,7 +256,7 @@ func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 			address := tc.address
 			msg := types.NewMsgRemoveChecksum(address.String(), checksum)
 
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgSigners(msg)
 			if tc.expPass {
 				suite.Require().NoError(err)
 				suite.Require().Equal(address.Bytes(), signers[0])

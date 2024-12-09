@@ -48,7 +48,7 @@ func (cs *ClientState) verifyHeader(
 	header *Header,
 ) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	currentTimestamp := sdkCtx.BlockTime()
+	currentTimestamp := sdkCtx.HeaderInfo().Time
 
 	// Retrieve trusted consensus states for each Header in misbehaviour
 	consState, found := GetConsensusState(clientStore, cdc, header.TrustedHeight)
