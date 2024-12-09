@@ -163,6 +163,10 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
 	}
 
+	if len(ack.AppAcknowledgements) != len(msg.Packet.Payloads) {
+		return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(msg.Packet.Payloads))
+	}
+
 	// note this should never happen as the payload would have had to be empty.
 	if len(ack.AppAcknowledgements) == 0 {
 		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
@@ -170,6 +174,10 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 	}
 
 	if !isAsync {
+		// Validate ack before forwarding to WriteAcknowledgement.
+		if err := ack.Validate(); err != nil {
+			return nil, err
+		}
 		// Set packet acknowledgement only if the acknowledgement is not async.
 		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 		// acknowledgement is async.
