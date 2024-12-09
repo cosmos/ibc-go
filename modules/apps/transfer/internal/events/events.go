@@ -66,7 +66,7 @@ func EmitOnRecvPacketEvent(ctx context.Context, packetData types.FungibleTokenPa
 }
 
 // EmitOnAcknowledgementPacketEvent emits a fungible token packet event in the OnAcknowledgementPacket callback
-func EmitOnAcknowledgementPacketEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
+func EmitOnAcknowledgementPacketEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2, recvSuccess bool, ack channeltypes.Acknowledgement) {
 	tokensStr := mustMarshalJSON(packetData.Tokens)
 	forwardingHopsStr := mustMarshalJSON(packetData.Forwarding.Hops)
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
@@ -78,6 +78,7 @@ func EmitOnAcknowledgementPacketEvent(ctx context.Context, packetData types.Fung
 			sdk.NewAttribute(types.AttributeKeyTokens, tokensStr),
 			sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
 			sdk.NewAttribute(types.AttributeKeyForwardingHops, forwardingHopsStr),
+			sdk.NewAttribute(types.AttributeKeyRecvSuccess, strconv.FormatBool(recvSuccess)),
 			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
 		sdk.NewEvent(

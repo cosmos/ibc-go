@@ -16,6 +16,7 @@ const (
 	AttributeKeyRefundReceiver = "refund_receiver"
 	AttributeKeyRefundTokens   = "refund_tokens"
 	AttributeKeyAckSuccess     = "success"
+	AttributeKeyRecvSuccess    = "recv_success"
 	AttributeKeyAck            = "acknowledgement"
 	AttributeKeyAckError       = "error"
 	AttributeKeyMemo           = "memo"

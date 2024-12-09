@@ -128,7 +128,7 @@ func (suite *AnteTestSuite) createAcknowledgementMessageV2(isRedundant bool) *ch
 	err = suite.path.EndpointA.MsgRecvPacket(packet)
 	suite.Require().NoError(err)
 
-	ack := channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{mock.MockRecvPacketResult.Acknowledgement}}
+	ack := channeltypesv2.Acknowledgement{RecvSuccess: true, AppAcknowledgements: [][]byte{mock.MockRecvPacketResult.Acknowledgement}}
 	if isRedundant {
 		err = suite.path.EndpointB.MsgAcknowledgePacket(packet, ack)
 		suite.Require().NoError(err)

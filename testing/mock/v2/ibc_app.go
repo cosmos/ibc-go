@@ -12,5 +12,5 @@ type IBCApp struct {
 	OnSendPacket            func(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error
 	OnRecvPacket            func(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult
 	OnTimeoutPacket         func(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) error
-	OnAcknowledgementPacket func(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, acknowledgement []byte, relayer sdk.AccAddress) error
+	OnAcknowledgementPacket func(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, recvSuccess bool, acknowledgement []byte, relayer sdk.AccAddress) error
 }

@@ -230,7 +230,8 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
+	recvSuccess := ack.Success()
+	events.EmitOnAcknowledgementPacketEvent(ctx, data, recvSuccess, ack)
 
 	return nil
 }

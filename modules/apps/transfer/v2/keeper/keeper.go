@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	transferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -186,18 +185,12 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 	return nil
 }
 
-func (k *Keeper) OnAcknowledgementPacket(ctx context.Context, sourcePort, sourceChannel string, data types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) error {
-	switch ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Result:
-		// the acknowledgement succeeded on the receiving chain so nothing
-		// needs to be executed and no error needs to be returned
-		return nil
-	case *channeltypes.Acknowledgement_Error:
-		// We refund the tokens from the escrow address to the sender
+func (k *Keeper) OnAcknowledgementPacket(ctx context.Context, sourcePort, sourceChannel string, data types.FungibleTokenPacketDataV2, recvSuccess bool) error {
+	if !recvSuccess {
+		// refund the tokens back to the sender
 		return k.refundPacketTokens(ctx, sourcePort, sourceChannel, data)
-	default:
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 	}
+	return nil
 }
 
 func (k *Keeper) OnTimeoutPacket(ctx context.Context, sourcePort, sourceChannel string, data types.FungibleTokenPacketDataV2) error {

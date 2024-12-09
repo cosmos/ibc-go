@@ -48,6 +48,7 @@ type IBCModule interface {
 		sourceChannel string,
 		destinationChannel string,
 		sequence uint64,
+		recvSuccess bool,
 		acknowledgement []byte,
 		payload channeltypesv2.Payload,
 		relayer sdk.AccAddress,

@@ -313,7 +313,10 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			tc.malleate()
 
 			// expectedAck is derived from the expected recv result.
-			expectedAck := types.Acknowledgement{AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement}}
+			expectedAck := types.Acknowledgement{
+				RecvSuccess:         expRecvRes.Status == types.PacketStatus_Success,
+				AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement},
+			}
 
 			// modify the callback to return the expected recv result.
 			path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, data types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
@@ -377,7 +380,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 
 				// Modify the callback to return an error.
 				// This way, we can verify that the callback is not executed in a No-op case.
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, types.Payload, []byte, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, types.Payload, bool, []byte, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -385,7 +388,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "failure: callback fails",
 			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, types.Payload, []byte, sdk.AccAddress) error {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(context.Context, string, string, uint64, types.Payload, bool, []byte, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
 			},
@@ -432,7 +435,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			suite.Require().NoError(err)
 
 			// Construct expected acknowledgement
-			ack = types.Acknowledgement{AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement}}
+			ack = types.Acknowledgement{RecvSuccess: true, AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement}}
 
 			tc.malleate()
 
