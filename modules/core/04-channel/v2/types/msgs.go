@@ -167,7 +167,9 @@ func (msg *MsgAcknowledgement) ValidateBasic() error {
 		return errorsmod.Wrap(commitmenttypesv1.ErrInvalidProof, "cannot submit an empty acknowledgement proof")
 	}
 
-	// TODO: Add validation for ack object https://github.com/cosmos/ibc-go/issues/7472
+	if err := msg.Acknowledgement.Validate(); err != nil {
+		return err
+	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {

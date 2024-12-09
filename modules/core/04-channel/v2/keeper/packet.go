@@ -190,13 +190,6 @@ func (k Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(types.ErrInvalidPacket, "receipt not found for packet")
 	}
 
-	// TODO: Validate Acknowledgment more thoroughly here after Issue #7472: https://github.com/cosmos/ibc-go/issues/7472
-
-	// TODO: remove this check, maybe pull it up to the handler.
-	if len(ack.AppAcknowledgements) != len(packet.Payloads) {
-		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(packet.Payloads))
-	}
-
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
 		ctx, packet.DestinationChannel, packet.Sequence,
