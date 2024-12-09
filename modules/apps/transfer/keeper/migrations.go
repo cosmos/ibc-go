@@ -43,7 +43,7 @@ func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
 	m.keeper.iterateDenomTraces(ctx,
 		func(dt internaltypes.DenomTrace) (stop bool) {
 			// check if the metadata for the given denom trace does not already exist
-			if !m.keeper.bankKeeper.HasDenomMetaData(ctx, dt.IBCDenom()) {
+			if !m.keeper.BankKeeper.HasDenomMetaData(ctx, dt.IBCDenom()) {
 				m.keeper.setDenomMetadataWithDenomTrace(ctx, dt)
 			}
 			return false
@@ -61,7 +61,7 @@ func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
 	transferChannels := m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, portID)
 	for _, channel := range transferChannels {
 		escrowAddress := types.GetEscrowAddress(portID, channel.ChannelId)
-		escrowBalances := m.keeper.bankKeeper.GetAllBalances(ctx, escrowAddress)
+		escrowBalances := m.keeper.BankKeeper.GetAllBalances(ctx, escrowAddress)
 
 		totalEscrowed = totalEscrowed.Add(escrowBalances...)
 	}
@@ -164,5 +164,5 @@ func (k Keeper) setDenomMetadataWithDenomTrace(ctx sdk.Context, denomTrace inter
 		Symbol:  strings.ToUpper(denomTrace.BaseDenom),
 	}
 
-	k.bankKeeper.SetDenomMetaData(ctx, metadata)
+	k.BankKeeper.SetDenomMetaData(ctx, metadata)
 }

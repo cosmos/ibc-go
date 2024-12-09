@@ -96,7 +96,7 @@ func (k Keeper) sendTransfer(
 	for _, coin := range coins {
 		// Using types.UnboundedSpendLimit allows us to send the entire balance of a given denom.
 		if coin.Amount.Equal(types.UnboundedSpendLimit()) {
-			coin.Amount = k.bankKeeper.GetBalance(ctx, sender, coin.Denom).Amount
+			coin.Amount = k.BankKeeper.GetBalance(ctx, sender, coin.Denom).Amount
 		}
 
 		token, err := k.tokenFromCoin(ctx, coin)
@@ -112,13 +112,13 @@ func (k Keeper) sendTransfer(
 		// the token, then we must be returning the token back to the chain they originated from
 		if token.Denom.HasPrefix(sourcePort, sourceChannel) {
 			// transfer the coins to the module account and burn them
-			if err := k.bankKeeper.SendCoinsFromAccountToModule(
+			if err := k.BankKeeper.SendCoinsFromAccountToModule(
 				ctx, sender, types.ModuleName, sdk.NewCoins(coin),
 			); err != nil {
 				return 0, err
 			}
 
-			if err := k.bankKeeper.BurnCoins(
+			if err := k.BankKeeper.BurnCoins(
 				ctx, types.ModuleName, sdk.NewCoins(coin),
 			); err != nil {
 				// NOTE: should not happen as the module account was
@@ -129,7 +129,7 @@ func (k Keeper) sendTransfer(
 		} else {
 			// obtain the escrow address for the source channel end
 			escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-			if err := k.escrowCoin(ctx, sender, escrowAddress, coin); err != nil {
+			if err := k.EscrowCoin(ctx, sender, escrowAddress, coin); err != nil {
 				return 0, err
 			}
 		}
@@ -178,7 +178,7 @@ func (k Keeper) OnRecvPacket(ctx context.Context, packet channeltypes.Packet, da
 		return err
 	}
 
-	if k.isBlockedAddr(receiver) {
+	if k.IsBlockedAddr(receiver) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
 	}
 
@@ -206,7 +206,7 @@ func (k Keeper) OnRecvPacket(ctx context.Context, packet channeltypes.Packet, da
 			coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
 			escrowAddress := types.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
-			if err := k.unescrowCoin(ctx, escrowAddress, receiver, coin); err != nil {
+			if err := k.UnescrowCoin(ctx, escrowAddress, receiver, coin); err != nil {
 				return err
 			}
 
@@ -224,8 +224,8 @@ func (k Keeper) OnRecvPacket(ctx context.Context, packet channeltypes.Packet, da
 			}
 
 			voucherDenom := token.Denom.IBCDenom()
-			if !k.bankKeeper.HasDenomMetaData(ctx, voucherDenom) {
-				k.setDenomMetadata(ctx, token.Denom)
+			if !k.BankKeeper.HasDenomMetaData(ctx, voucherDenom) {
+				k.SetDenomMetadata(ctx, token.Denom)
 			}
 
 			events.EmitDenomEvent(ctx, token)
@@ -233,15 +233,15 @@ func (k Keeper) OnRecvPacket(ctx context.Context, packet channeltypes.Packet, da
 			voucher := sdk.NewCoin(voucherDenom, transferAmount)
 
 			// mint new tokens if the source of the transfer is the same chain
-			if err := k.bankKeeper.MintCoins(
+			if err := k.BankKeeper.MintCoins(
 				ctx, types.ModuleName, sdk.NewCoins(voucher),
 			); err != nil {
 				return errorsmod.Wrap(err, "failed to mint IBC tokens")
 			}
 
 			// send to receiver
-			moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
-			if err := k.bankKeeper.SendCoins(
+			moduleAddr := k.AuthKeeper.GetModuleAddress(types.ModuleName)
+			if err := k.BankKeeper.SendCoins(
 				ctx, moduleAddr, receiver, sdk.NewCoins(voucher),
 			); err != nil {
 				return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
@@ -346,14 +346,14 @@ func (k Keeper) refundPacketTokens(ctx context.Context, packet channeltypes.Pack
 	if err != nil {
 		return err
 	}
-	if k.isBlockedAddr(sender) {
+	if k.IsBlockedAddr(sender) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
 	}
 
 	// escrow address for unescrowing tokens back to sender
 	escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
 
-	moduleAccountAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+	moduleAccountAddr := k.AuthKeeper.GetModuleAddress(types.ModuleName)
 	for _, token := range data.Tokens {
 		coin, err := token.ToCoin()
 		if err != nil {
@@ -364,17 +364,17 @@ func (k Keeper) refundPacketTokens(ctx context.Context, packet channeltypes.Pack
 		// then the tokens were burnt when the packet was sent and we must mint new tokens
 		if token.Denom.HasPrefix(packet.GetSourcePort(), packet.GetSourceChannel()) {
 			// mint vouchers back to sender
-			if err := k.bankKeeper.MintCoins(
+			if err := k.BankKeeper.MintCoins(
 				ctx, types.ModuleName, sdk.NewCoins(coin),
 			); err != nil {
 				return err
 			}
 
-			if err := k.bankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
+			if err := k.BankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
 				panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 			}
 		} else {
-			if err := k.unescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
+			if err := k.UnescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
 				return err
 			}
 		}
@@ -383,10 +383,10 @@ func (k Keeper) refundPacketTokens(ctx context.Context, packet channeltypes.Pack
 	return nil
 }
 
-// escrowCoin will send the given coin from the provided sender to the escrow address. It will also
+// EscrowCoin will send the given coin from the provided sender to the escrow address. It will also
 // update the total escrowed amount by adding the escrowed coin's amount to the current total escrow.
-func (k Keeper) escrowCoin(ctx context.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
-	if err := k.bankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(coin)); err != nil {
+func (k Keeper) EscrowCoin(ctx context.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
+	if err := k.BankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(coin)); err != nil {
 		// failure is expected for insufficient balances
 		return err
 	}
@@ -399,10 +399,10 @@ func (k Keeper) escrowCoin(ctx context.Context, sender, escrowAddress sdk.AccAdd
 	return nil
 }
 
-// unescrowCoin will send the given coin from the escrow address to the provided receiver. It will also
+// UnescrowCoin will send the given coin from the escrow address to the provided receiver. It will also
 // update the total escrow by deducting the unescrowed coin's amount from the current total escrow.
-func (k Keeper) unescrowCoin(ctx context.Context, escrowAddress, receiver sdk.AccAddress, coin sdk.Coin) error {
-	if err := k.bankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(coin)); err != nil {
+func (k Keeper) UnescrowCoin(ctx context.Context, escrowAddress, receiver sdk.AccAddress, coin sdk.Coin) error {
+	if err := k.BankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(coin)); err != nil {
 		// NOTE: this error is only expected to occur given an unexpected bug or a malicious
 		// counterparty module. The bug may occur in bank or any part of the code that allows
 		// the escrow address to be drained. A malicious counterparty module could drain the

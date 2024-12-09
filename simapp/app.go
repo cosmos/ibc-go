@@ -452,7 +452,7 @@ func NewSimApp(
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack)
 
-	// Seal the IBC Router
+	// Set the IBC Routers
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	clientKeeper := app.IBCKeeper.ClientKeeper

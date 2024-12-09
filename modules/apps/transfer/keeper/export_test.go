@@ -54,11 +54,6 @@ func (k Keeper) GetAllForwardedPackets(ctx sdk.Context) []types.ForwardedPacket 
 	return k.getAllForwardedPackets(ctx)
 }
 
-// IsBlockedAddr is a wrapper around isBlockedAddr for testing purposes
-func (k Keeper) IsBlockedAddr(addr sdk.AccAddress) bool {
-	return k.isBlockedAddr(addr)
-}
-
 // CreatePacketDataBytesFromVersion is a wrapper around createPacketDataBytesFromVersion for testing purposes
 func CreatePacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, hops []types.Hop) ([]byte, error) {
 	return createPacketDataBytesFromVersion(appVersion, sender, receiver, memo, tokens, hops)

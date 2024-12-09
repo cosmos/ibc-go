@@ -342,7 +342,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
 
-				value = channeltypes.CommitPacket(suite.chainA.App.GetIBCKeeper().Codec(), packet)
+				value = channeltypes.CommitPacket(packet)
 			}, nil,
 		},
 		{

@@ -14,8 +14,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
-	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 var (
@@ -433,7 +433,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		writeFn()
 	} else {
 		// Modify events in cached context to reflect unsuccessful acknowledgement
-		ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
+		ctx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
 	}
 
 	// Set packet acknowledgement only if the acknowledgement is not nil.
@@ -488,11 +488,6 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
 	}
 
-	// Delete packet commitment
-	if err = k.ChannelKeeper.TimeoutExecuted(ctx, msg.Packet); err != nil {
-		return nil, err
-	}
-
 	// Perform application logic callback
 	err = cbs.OnTimeoutPacket(ctx, channelVersion, msg.Packet, relayer)
 	if err != nil {
@@ -542,11 +537,6 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 		return nil, errorsmod.Wrap(err, "timeout on close packet verification failed")
 	}
 
-	// Delete packet commitment
-	if err = k.ChannelKeeper.TimeoutExecuted(ctx, msg.Packet); err != nil {
-		return nil, err
-	}
-
 	// Perform application logic callback
 	//
 	// NOTE: MsgTimeout and MsgTimeoutOnClose use the same "OnTimeoutPacket"
@@ -574,6 +564,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
+	// Retrieve callbacks from router
 	cbs, ok := k.PortKeeper.Route(msg.Packet.SourcePort)
 	if !ok {
 		ctx.Logger().Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "error", errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.SourcePort))
@@ -983,24 +974,4 @@ func (k *Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.Ms
 	k.ChannelKeeper.SetParams(ctx, msg.Params)
 
 	return &channeltypes.MsgUpdateParamsResponse{}, nil
-}
-
-// convertToErrorEvents converts all events to error events by appending the
-// error attribute prefix to each event's attribute key.
-func convertToErrorEvents(events sdk.Events) sdk.Events {
-	if events == nil {
-		return nil
-	}
-
-	newEvents := make(sdk.Events, len(events))
-	for i, event := range events {
-		newAttributes := make([]sdk.Attribute, len(event.Attributes))
-		for j, attribute := range event.Attributes {
-			newAttributes[j] = sdk.NewAttribute(coretypes.ErrorAttributeKeyPrefix+attribute.Key, attribute.Value)
-		}
-
-		newEvents[i] = sdk.NewEvent(coretypes.ErrorAttributeKeyPrefix+event.Type, newAttributes...)
-	}
-
-	return newEvents
 }
