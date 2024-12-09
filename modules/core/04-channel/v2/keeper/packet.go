@@ -322,7 +322,7 @@ func (k *Keeper) timeoutPacket(
 	}
 
 	// verify packet receipt absence
-	path := hostv2.PacketReceiptKey(packet.SourceChannel, packet.Sequence)
+	path := hostv2.PacketReceiptKey(packet.DestinationChannel, packet.Sequence)
 	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
