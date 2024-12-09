@@ -504,7 +504,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 		{
 			name: "failure: unable to timeout if packet has been received",
 			malleate: func() {
-				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.SourceChannel, packet.Sequence)
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence)
 				suite.Require().NoError(path.EndpointB.UpdateClient())
 			},
 			expError: commitmenttypes.ErrInvalidProof,
