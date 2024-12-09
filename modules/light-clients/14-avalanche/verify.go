@@ -13,7 +13,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/ethdb/memorydb"
 	"github.com/ethereum/go-ethereum/trie"
 )
@@ -96,7 +95,7 @@ func ValidateValidatorSet(
 			continue
 		}
 
-		publicKey, err := bls.PublicKeyFromBytes(vdr.PublicKeyByte)
+		publicKey, err := bls.PublicKeyFromCompressedBytes(vdr.PublicKeyByte)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -158,35 +157,35 @@ func VerifyMembership(proof [][]byte, storageRoot []byte, value []byte, key *Mer
 	// TODO remove next line
 	return nil
 
-	var proofEx ethdb.Database
+	// var proofEx ethdb.Database
 	// Populate proof when ProofVals are present in the response. Its ok to pass it as nil to the trie.VerifyRangeProof
 	// function as it will assert that all the leaves belonging to the specified root are present.
-	if len(proof) > 0 {
-		proofEx = memorydb.New()
-		defer proofEx.Close()
-		for _, proofVal := range proof {
-			proofKey := crypto.Keccak256(proofVal)
-			if err := proofEx.Put(proofKey, proofVal); err != nil {
-				return err
-			}
-		}
-	} else {
-		return fmt.Errorf("client path is invalid")
-	}
-
-	verifyValue, err := trie.VerifyProof(
-		common.BytesToHash(storageRoot),
-		[]byte(key.Key),
-		proofEx,
-	)
-	if err != nil {
-		return err
-	}
-
-	if !bytes.Equal(verifyValue, value) {
-		return fmt.Errorf("key: %064x, value is not equal expected: %064x, but have: %064x", key.Key, value, verifyValue)
-	}
-	return nil
+	// if len(proof) > 0 {
+	// 	proofEx = memorydb.New()
+	// 	defer proofEx.Close()
+	// 	for _, proofVal := range proof {
+	// 		proofKey := crypto.Keccak256(proofVal)
+	// 		if err := proofEx.Put(proofKey, proofVal); err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	// } else {
+	// 	return fmt.Errorf("client path is invalid")
+	// }
+	//
+	// verifyValue, err := trie.VerifyProof(
+	// 	common.BytesToHash(storageRoot),
+	// 	[]byte(key.Key),
+	// 	proofEx,
+	// )
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// if !bytes.Equal(verifyValue, value) {
+	// 	return fmt.Errorf("key: %064x, value is not equal expected: %064x, but have: %064x", key.Key, value, verifyValue)
+	// }
+	// return nil
 }
 
 func VerifyNonMembership(proof [][]byte, storageRoot []byte, key *MerkleKey) error {

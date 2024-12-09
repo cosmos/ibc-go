@@ -17,17 +17,17 @@ func (suite *AvalancheTestSuite) TestMisbehaviourValidateBasic() {
 	vdrs := []*ibcava.Validator{
 		{
 			NodeIDs:       [][]byte{testVdrs[0].nodeID.Bytes()},
-			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[0].vdr.PublicKey),
+			PublicKeyByte: bls.PublicKeyToCompressedBytes(testVdrs[0].vdr.PublicKey),
 			Weight:        testVdrs[0].vdr.Weight,
 		},
 		{
 			NodeIDs:       [][]byte{testVdrs[1].nodeID.Bytes()},
-			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[1].vdr.PublicKey),
+			PublicKeyByte: bls.PublicKeyToCompressedBytes(testVdrs[1].vdr.PublicKey),
 			Weight:        testVdrs[1].vdr.Weight,
 		},
 		{
 			NodeIDs:       [][]byte{testVdrs[2].nodeID.Bytes()},
-			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[2].vdr.PublicKey),
+			PublicKeyByte: bls.PublicKeyToCompressedBytes(testVdrs[2].vdr.PublicKey),
 			Weight:        testVdrs[2].vdr.Weight,
 		},
 	}

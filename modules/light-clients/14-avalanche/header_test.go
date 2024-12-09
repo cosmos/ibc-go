@@ -16,17 +16,17 @@ func (suite *AvalancheTestSuite) TestHeaderValidateBasic() {
 	vdrs := []*ibcava.Validator{
 		{
 			NodeIDs:       [][]byte{testVdrs[0].nodeID.Bytes()},
-			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[0].vdr.PublicKey),
+			PublicKeyByte: bls.PublicKeyToCompressedBytes(testVdrs[0].vdr.PublicKey),
 			Weight:        testVdrs[0].vdr.Weight,
 		},
 		{
 			NodeIDs:       [][]byte{testVdrs[1].nodeID.Bytes()},
-			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[1].vdr.PublicKey),
+			PublicKeyByte: bls.PublicKeyToCompressedBytes(testVdrs[1].vdr.PublicKey),
 			Weight:        testVdrs[1].vdr.Weight,
 		},
 		{
 			NodeIDs:       [][]byte{testVdrs[2].nodeID.Bytes()},
-			PublicKeyByte: bls.PublicKeyToBytes(testVdrs[2].vdr.PublicKey),
+			PublicKeyByte: bls.PublicKeyToCompressedBytes(testVdrs[2].vdr.PublicKey),
 			Weight:        testVdrs[2].vdr.Weight,
 		},
 	}
@@ -85,11 +85,11 @@ func (suite *AvalancheTestSuite) TestHeaderValidateBasic() {
 					Timestamp: suite.chainA.GetContext().BlockTime(),
 					BlockHash: []byte("PchainHeaderBlockHash"),
 				},
-				Vdrs:              []*ibcava.Validator{vdrs[0], vdrs[1], vdrs[2]},
-				StorageRoot:       []byte("StorageRoot"),
-				SignedStorageRoot: []byte("SignedStorageRoot"),
+				Vdrs:               []*ibcava.Validator{vdrs[0], vdrs[1], vdrs[2]},
+				StorageRoot:        []byte("StorageRoot"),
+				SignedStorageRoot:  []byte("SignedStorageRoot"),
 				SignedValidatorSet: []byte("SignedValidatorSet"),
-				SignersInput: []byte("SignersInput"),
+				SignersInput:       []byte("SignersInput"),
 			}
 
 			tc.malleate()
