@@ -1,10 +1,10 @@
 package solomachine_test
 
 import (
+	"errors"
+
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-
-	"errors"
 
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 )
