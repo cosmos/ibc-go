@@ -100,7 +100,6 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *types.MsgSendPacket) (*typ
 }
 
 // RecvPacket implements the PacketMsgServer RecvPacket method.
-
 func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*types.MsgRecvPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
