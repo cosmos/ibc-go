@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
@@ -13,27 +15,27 @@ func (suite *MerkleTestSuite) TestCodecTypeRegistration() {
 	testCases := []struct {
 		name    string
 		typeURL string
-		expPass bool
+		expErr  error
 	}{
 		{
 			"success: MerkleRoot",
 			sdk.MsgTypeURL(&types.MerkleRoot{}),
-			true,
+			nil,
 		},
 		{
 			"success: MerklePrefix",
 			sdk.MsgTypeURL(&types.MerklePrefix{}),
-			true,
+			nil,
 		},
 		{
 			"success: MerklePath",
 			sdk.MsgTypeURL(&v2.MerklePath{}),
-			true,
+			nil,
 		},
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			false,
+			fmt.Errorf("unable to resolve type URL ibc.invalid.MsgTypeURL"),
 		},
 	}
 
@@ -44,12 +46,12 @@ func (suite *MerkleTestSuite) TestCodecTypeRegistration() {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
-			if tc.expPass {
-				suite.Require().NotNil(msg)
+			if tc.expErr == nil {
+				suite.NotNil(msg)
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Nil(msg)
-				suite.Require().Error(err)
+				suite.Nil(msg)
+				suite.Require().ErrorContains(err, tc.expErr.Error())
 			}
 		})
 	}
