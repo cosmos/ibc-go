@@ -87,7 +87,7 @@ func (m *Params) GetReceiveEnabled() bool {
 // through which a packet must be forwarded, and an unwind boolean indicating if
 // the coin should be unwinded to its native chain before forwarding.
 type Forwarding struct {
-	// optional unwinding for the token transfered
+	// optional unwinding for the token transferred
 	Unwind bool `protobuf:"varint,1,opt,name=unwind,proto3" json:"unwind,omitempty"`
 	// optional intermediate path through which packet will be forwarded
 	Hops []Hop `protobuf:"bytes,2,rep,name=hops,proto3" json:"hops"`
