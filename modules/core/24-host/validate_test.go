@@ -97,12 +97,12 @@ func TestPathValidator(t *testing.T) {
 		{"invalid id", "p/(clientid)", errors.New("the ID contains invalid characters, such as parentheses")},
 		{"empty string", "", errors.New("the ID cannot be empty")},
 		{"separators only", "////", errors.New("the ID contains only separators, which is invalid")},
-		{"just separator", "/", errors.New("the ID cannot be just a separato")},
+		{"just separator", "/", errors.New("the ID cannot be just a separator")},
 		{"begins with separator", "/id", errors.New("the ID should not begin with a separator")},
 		{"blank before separator", "    /id", errors.New("the ID cannot have leading spaces before the separator")},
 		{"ends with separator", "id/", errors.New("the ID cannot end with a separator")},
-		{"blank after separator", "id/       ", errors.New("the ID cannot have trailing spaces after the separato")},
-		{"blanks with separator", "  /  ", errors.New("the ID cannot have spaces before or after the separato")},
+		{"blank after separator", "id/       ", errors.New("the ID cannot have trailing spaces after the separator")},
+		{"blanks with separator", "  /  ", errors.New("the ID cannot have spaces before or after the separator")},
 	}
 
 	for _, tc := range testCases {
