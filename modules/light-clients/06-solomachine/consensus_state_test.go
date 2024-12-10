@@ -1,6 +1,8 @@
 package solomachine_test
 
 import (
+	"errors"
+
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -20,12 +22,12 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 		testCases := []struct {
 			name           string
 			consensusState *solomachine.ConsensusState
-			expPass        bool
+			expErr         error
 		}{
 			{
 				"valid consensus state",
 				sm.ConsensusState(),
-				true,
+				nil,
 			},
 			{
 				"timestamp is zero",
@@ -34,7 +36,7 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 					Timestamp:   0,
 					Diversifier: sm.Diversifier,
 				},
-				false,
+				errors.New("invalid timestamp, it must represent a valid time greater than zero"),
 			},
 			{
 				"diversifier is blank",
@@ -43,7 +45,7 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 					Timestamp:   sm.Time,
 					Diversifier: " ",
 				},
-				false,
+				errors.New("the diversifier is blank - contains only whitespace, which is invalid"),
 			},
 			{
 				"pubkey is nil",
@@ -52,7 +54,7 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 					Diversifier: sm.Diversifier,
 					PublicKey:   nil,
 				},
-				false,
+				errors.New("invalid pubkey, a valid public key must be provided"),
 			},
 		}
 
@@ -62,7 +64,7 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 			suite.Run(tc.name, func() {
 				err := tc.consensusState.ValidateBasic()
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)

@@ -1,6 +1,7 @@
 package solomachine_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,32 +16,32 @@ func TestCodecTypeRegistration(t *testing.T) {
 	testCases := []struct {
 		name    string
 		typeURL string
-		expPass bool
+		expErr  error
 	}{
 		{
 			"success: ClientState",
 			sdk.MsgTypeURL(&solomachine.ClientState{}),
-			true,
+			nil,
 		},
 		{
 			"success: ConsensusState",
 			sdk.MsgTypeURL(&solomachine.ConsensusState{}),
-			true,
+			nil,
 		},
 		{
 			"success: Header",
 			sdk.MsgTypeURL(&solomachine.Header{}),
-			true,
+			nil,
 		},
 		{
 			"success: Misbehaviour",
 			sdk.MsgTypeURL(&solomachine.Misbehaviour{}),
-			true,
+			nil,
 		},
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			false,
+			errors.New("the message type 'ibc.invalid.MsgTypeURL' is not registered on the codec"),
 		},
 	}
 
@@ -51,7 +52,7 @@ func TestCodecTypeRegistration(t *testing.T) {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(solomachine.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				require.NotNil(t, msg)
 				require.NoError(t, err)
 			} else {

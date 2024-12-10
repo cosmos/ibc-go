@@ -2,6 +2,7 @@ package solomachine_test
 
 import (
 	"bytes"
+	"errors"
 
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -21,37 +22,37 @@ func (suite *SoloMachineTestSuite) TestClientStateValidate() {
 		testCases := []struct {
 			name        string
 			clientState *solomachine.ClientState
-			expPass     bool
+			expErr      error
 		}{
 			{
 				"valid client state",
 				sm.ClientState(),
-				true,
+				nil,
 			},
 			{
 				"empty ClientState",
 				&solomachine.ClientState{},
-				false,
+				errors.New("the ClientState is empty, which is invalid"),
 			},
 			{
 				"sequence is zero",
 				solomachine.NewClientState(0, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, sm.Diversifier, sm.Time}),
-				false,
+				errors.New("the sequence number is zero, which is not valid for a new client state"),
 			},
 			{
 				"timestamp is zero",
 				solomachine.NewClientState(1, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, sm.Diversifier, 0}),
-				false,
+				errors.New("the timestamp must be a valid time greater than zero"),
 			},
 			{
 				"diversifier is blank",
 				solomachine.NewClientState(1, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, "  ", 1}),
-				false,
+				errors.New("the diversifier is blank - contains only whitespace, which is invalid"),
 			},
 			{
 				"pubkey is empty",
 				solomachine.NewClientState(1, &solomachine.ConsensusState{nil, sm.Diversifier, sm.Time}),
-				false,
+				errors.New("the public key cannot be empty"),
 			},
 		}
 
@@ -61,7 +62,7 @@ func (suite *SoloMachineTestSuite) TestClientStateValidate() {
 			suite.Run(tc.name, func() {
 				err := tc.clientState.Validate()
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)
