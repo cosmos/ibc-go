@@ -290,6 +290,16 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			},
 			expError: commitmenttypes.ErrInvalidProof,
 		},
+		{
+			name: "failure: invalid acknowledgement",
+			malleate: func() {
+				expRecvRes = types.RecvPacketResult{
+					Status:          types.PacketStatus_Success,
+					Acknowledgement: []byte(""),
+				}
+			},
+			expError: types.ErrInvalidAcknowledgement,
+		},
 	}
 
 	for _, tc := range testCases {

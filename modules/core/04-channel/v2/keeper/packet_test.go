@@ -272,15 +272,6 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			types.ErrAcknowledgementExists,
 		},
 		{
-			"failure: empty ack",
-			func() {
-				ack = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{},
-				}
-			},
-			types.ErrInvalidAcknowledgement,
-		},
-		{
 			"failure: receipt not found for packet",
 			func() {
 				packet.Sequence = 2
