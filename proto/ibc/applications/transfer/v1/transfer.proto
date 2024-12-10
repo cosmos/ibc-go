@@ -23,7 +23,7 @@ message Params {
 // through which a packet must be forwarded, and an unwind boolean indicating if
 // the coin should be unwinded to its native chain before forwarding.
 message Forwarding {
-  // optional unwinding for the token transfered
+  // optional unwinding for the token transferred
   bool unwind = 1;
   // optional intermediate path through which packet will be forwarded
   repeated Hop hops = 2 [(gogoproto.nullable) = false];
