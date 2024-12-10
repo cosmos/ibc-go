@@ -118,7 +118,7 @@ func (k *Keeper) GetPacketReceipt(ctx context.Context, channelID string, sequenc
 	return bz, true
 }
 
-// HasPacketRceipt returns true if the packet receipt exists, otherwise false.
+// HasPacketReceipt returns true if the packet receipt exists, otherwise false.
 func (k *Keeper) HasPacketReceipt(ctx context.Context, channelID string, sequence uint64) bool {
 	store := k.storeService.OpenKVStore(ctx)
 	has, err := store.Has(hostv2.PacketReceiptKey(channelID, sequence))
@@ -157,7 +157,7 @@ func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, channelID string,
 	}
 }
 
-// HasPacketAcknowledgement check if the packet ack hash is already on the store.
+// HasPacketAcknowledgement checks if the packet ack hash is already on the store.
 func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64) bool {
 	return len(k.GetPacketAcknowledgement(ctx, channelID, sequence)) > 0
 }
