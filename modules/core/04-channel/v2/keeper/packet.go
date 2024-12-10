@@ -126,7 +126,6 @@ func (k *Keeper) recvPacket(
 	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
 	// by the increase of the recvStartSequence.
 	if k.HasPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence) {
-		emitRecvPacketEvents(ctx, packet)
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
 		// from failing and consuming unnecessary fees.
@@ -221,9 +220,6 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 
 	commitment := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
-		// TODO: signal noop in events?
-		emitAcknowledgePacketEvents(ctx, packet)
-
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -300,7 +296,6 @@ func (k *Keeper) timeoutPacket(
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
 	commitment := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
 	if len(commitment) == 0 {
-		emitTimeoutPacketEvents(ctx, packet)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to

@@ -209,7 +209,6 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 	case nil:
 		writeFn()
 	case types.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
 		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", msg.Packet.SourceChannel)
 		return &types.MsgAcknowledgementResponse{Result: types.NOOP}, nil
 	default:
@@ -249,7 +248,6 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types
 	case nil:
 		writeFn()
 	case types.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
 		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", timeout.Packet.SourceChannel)
 		return &types.MsgTimeoutResponse{Result: types.NOOP}, nil
 	default:
