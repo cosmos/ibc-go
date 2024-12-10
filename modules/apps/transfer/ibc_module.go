@@ -184,7 +184,7 @@ func (im IBCModule) OnRecvPacket(
 		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
 	}()
 
-	data, ackErr = types.UnmarshalPacketData(packet.GetData(), channelVersion)
+	data, ackErr = types.UnmarshalPacketData(packet.GetData(), channelVersion, "")
 	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
@@ -221,7 +221,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	data, err := types.UnmarshalPacketData(packet.GetData(), channelVersion)
+	data, err := types.UnmarshalPacketData(packet.GetData(), channelVersion, "")
 	if err != nil {
 		return err
 	}
@@ -242,7 +242,7 @@ func (im IBCModule) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	data, err := types.UnmarshalPacketData(packet.GetData(), channelVersion)
+	data, err := types.UnmarshalPacketData(packet.GetData(), channelVersion, "")
 	if err != nil {
 		return err
 	}
@@ -305,6 +305,6 @@ func (im IBCModule) UnmarshalPacketData(ctx context.Context, portID string, chan
 		return types.FungibleTokenPacketDataV2{}, "", errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
 	}
 
-	ftpd, err := types.UnmarshalPacketData(bz, ics20Version)
+	ftpd, err := types.UnmarshalPacketData(bz, ics20Version, "")
 	return ftpd, ics20Version, err
 }
