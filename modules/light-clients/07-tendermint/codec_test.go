@@ -1,6 +1,7 @@
 package tendermint_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,32 +16,32 @@ func TestCodecTypeRegistration(t *testing.T) {
 	testCases := []struct {
 		name    string
 		typeURL string
-		expPass bool
+		expErr  error
 	}{
 		{
 			"success: ClientState",
 			sdk.MsgTypeURL(&tendermint.ClientState{}),
-			true,
+			nil,
 		},
 		{
 			"success: ConsensusState",
 			sdk.MsgTypeURL(&tendermint.ConsensusState{}),
-			true,
+			nil,
 		},
 		{
 			"success: Header",
 			sdk.MsgTypeURL(&tendermint.Header{}),
-			true,
+			nil,
 		},
 		{
 			"success: Misbehaviour",
 			sdk.MsgTypeURL(&tendermint.Misbehaviour{}),
-			true,
+			nil,
 		},
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			false,
+			errors.New("unable to resolve type URL ibc.invalid.MsgTypeURL"),
 		},
 	}
 
@@ -51,12 +52,13 @@ func TestCodecTypeRegistration(t *testing.T) {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(tendermint.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				require.NotNil(t, msg)
 				require.NoError(t, err)
 			} else {
 				require.Nil(t, msg)
 				require.Error(t, err)
+				require.Equal(t, err, tc.expErr)
 			}
 		})
 	}
