@@ -1,6 +1,7 @@
 package localhost_test
 
 import (
+	"errors"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -76,7 +77,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success: connection state verification",
@@ -97,7 +98,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				path = merklePath
 				value = suite.chain.Codec.MustMarshal(&connectionEnd)
 			},
-			true,
+			nil,
 		},
 		{
 			"success: channel state verification",
@@ -119,7 +120,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				path = merklePath
 				value = suite.chain.Codec.MustMarshal(&channel)
 			},
-			true,
+			nil,
 		},
 		{
 			"success: next sequence recv verification",
@@ -134,7 +135,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				path = merklePath
 				value = sdk.Uint64ToBigEndian(nextSeqRecv)
 			},
-			true,
+			nil,
 		},
 		{
 			"success: packet commitment verification",
@@ -160,7 +161,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				path = merklePath
 				value = commitmentBz
 			},
-			true,
+			nil,
 		},
 		{
 			"success: packet acknowledgement verification",
@@ -174,21 +175,21 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				path = merklePath
 				value = ibctesting.MockAcknowledgement
 			},
-			true,
+			nil,
 		},
 		{
 			"failure: invalid type for key path",
 			func() {
 				path = mock.KeyPath{}
 			},
-			false,
+			errors.New("expected v2.MerklePath, got mock.KeyPath: invalid type"),
 		},
 		{
 			"failure: key path has too many elements",
 			func() {
 				path = commitmenttypes.NewMerklePath([]byte("ibc"), []byte("test"), []byte("key"))
 			},
-			false,
+			errors.New("invalid path"),
 		},
 		{
 			"failure: no value found at provided key path",
@@ -200,7 +201,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				path = merklePath
 				value = ibctesting.MockAcknowledgement
 			},
-			false,
+			errors.New("value not found for path"),
 		},
 		{
 			"failure: invalid value, bytes are not equal",
@@ -225,7 +226,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				channel.State = channeltypes.CLOSED
 				value = suite.chain.Codec.MustMarshal(&channel)
 			},
-			false,
+			errors.New("value provided does not equal value stored at path"),
 		},
 	}
 
@@ -250,10 +251,11 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 				value,
 			)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.ErrorContains(err, tc.expErr.Error())
 			}
 		})
 	}
@@ -265,7 +267,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success: packet receipt absence verification",
@@ -276,7 +278,7 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 
 				path = merklePath
 			},
-			true,
+			nil,
 		},
 		{
 			"packet receipt absence verification fails",
@@ -289,21 +291,21 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 
 				path = merklePath
 			},
-			false,
+			errors.New("non-membership verification failed"),
 		},
 		{
 			"invalid type for key path",
 			func() {
 				path = mock.KeyPath{}
 			},
-			false,
+			errors.New("expected v2.MerklePath, got mock.KeyPath: invalid type"),
 		},
 		{
 			"key path has too many elements",
 			func() {
 				path = commitmenttypes.NewMerklePath([]byte("ibc"), []byte("test"), []byte("key"))
 			},
-			false,
+			errors.New("invalid path"),
 		},
 	}
 
@@ -327,10 +329,11 @@ func (suite *LocalhostTestSuite) TestVerifyNonMembership() {
 				path,
 			)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.ErrorContains(err, tc.expError.Error())
 			}
 		})
 	}

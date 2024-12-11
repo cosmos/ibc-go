@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/ibc-go/v9/internal/validate"
 )
@@ -18,35 +20,37 @@ func TestGRPCRequest(t *testing.T) {
 		msg       string
 		portID    string
 		channelID string
-		expPass   bool
+		expErr    error
 	}{
 		{
 			"success",
 			validID,
 			validID,
-			true,
+			nil,
 		},
 		{
 			"invalid portID",
 			invalidID,
 			validID,
-			false,
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"invalid channelID",
 			validID,
 			invalidID,
-			false,
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("Case %s", tc.msg), func(t *testing.T) {
 			err := validate.GRPCRequest(tc.portID, tc.channelID)
-			if tc.expPass {
+
+			if tc.expErr == nil {
 				require.NoError(t, err, tc.msg)
 			} else {
 				require.Error(t, err, tc.msg)
+				require.EqualError(t, err, tc.expErr.Error(), tc.msg)
 			}
 		})
 	}
