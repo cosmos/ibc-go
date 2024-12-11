@@ -1,6 +1,7 @@
 package validate_test
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -18,35 +19,36 @@ func TestGRPCRequest(t *testing.T) {
 		msg       string
 		portID    string
 		channelID string
-		expPass   bool
+		expErr    error
 	}{
 		{
 			"success",
 			validID,
 			validID,
-			true,
+			nil,
 		},
 		{
 			"invalid portID",
 			invalidID,
 			validID,
-			false,
+			errors.New("rpc error: code = InvalidArgument desc = identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"invalid channelID",
 			validID,
 			invalidID,
-			false,
+			errors.New("rpc error: code = InvalidArgument desc = identifier cannot be blank: invalid identifier"),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("Case %s", tc.msg), func(t *testing.T) {
 			err := validate.GRPCRequest(tc.portID, tc.channelID)
-			if tc.expPass {
+			if tc.expErr == nil {
 				require.NoError(t, err, tc.msg)
 			} else {
-				require.Error(t, err, tc.msg)
+				require.Error(t, err)
+				require.Equal(t, err.Error(), tc.expErr.Error())
 			}
 		})
 	}
