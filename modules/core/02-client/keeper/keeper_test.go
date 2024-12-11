@@ -479,14 +479,14 @@ func (suite *KeeperTestSuite) TestDefaultSetParams() {
 // TestParams tests that Param setting and retrieval works properly
 func (suite *KeeperTestSuite) TestParams() {
 	testCases := []struct {
-		name    string
-		input   types.Params
-		expPass bool
+		name   string
+		input  types.Params
+		expErr error
 	}{
-		{"success: set default params", types.DefaultParams(), true},
-		{"success: empty allowedClients", types.NewParams(), true},
-		{"success: subset of allowedClients", types.NewParams(exported.Tendermint, exported.Localhost), true},
-		{"failure: contains a single empty string value as allowedClient", types.NewParams(exported.Localhost, ""), false},
+		{"success: set default params", types.DefaultParams(), nil},
+		{"success: empty allowedClients", types.NewParams(), nil},
+		{"success: subset of allowedClients", types.NewParams(exported.Tendermint, exported.Localhost), nil},
+		{"failure: contains a single empty string value as allowedClient", types.NewParams(exported.Localhost, ""), fmt.Errorf("client type 1 cannot be blank")},
 	}
 
 	for _, tc := range testCases {
@@ -497,13 +497,14 @@ func (suite *KeeperTestSuite) TestParams() {
 			ctx := suite.chainA.GetContext()
 			err := tc.input.Validate()
 			suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.SetParams(ctx, tc.input)
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				expected := tc.input
 				p := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
 				suite.Require().Equal(expected, p)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
