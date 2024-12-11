@@ -315,8 +315,7 @@ func (suite *KeeperTestSuite) TestInitializedPinnedCodes() {
 
 			err := wasmClientKeeper.InitializePinnedCodes(ctx)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.ElementsMatch(checksumIDs, capturedChecksums)
 			} else {
@@ -432,8 +431,7 @@ func (suite *KeeperTestSuite) TestMigrateContract() {
 			clientState, ok = endpointA.GetClientState().(*types.ClientState)
 			suite.Require().True(ok)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expClientState, clientState)
 			} else {
