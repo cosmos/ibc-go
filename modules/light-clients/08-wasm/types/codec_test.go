@@ -15,9 +15,9 @@ import (
 
 func TestCodecTypeRegistration(t *testing.T) {
 	testCases := []struct {
-		name    string
-		typeURL string
-		expErr  error
+		name     string
+		typeURL  string
+		expError error
 	}{
 		{
 			"success: ClientState",
@@ -63,13 +63,12 @@ func TestCodecTypeRegistration(t *testing.T) {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(wasm.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
-			if tc.expErr == nil {
+			if tc.expError == nil {
 				require.NotNil(t, msg)
 				require.NoError(t, err)
 			} else {
 				require.Nil(t, msg)
-				require.Error(t, err)
-				require.Equal(t, err.Error(), tc.expErr.Error())
+				require.ErrorContains(t, err, tc.expError.Error())
 			}
 		})
 	}
