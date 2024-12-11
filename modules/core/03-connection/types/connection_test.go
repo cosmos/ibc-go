@@ -8,6 +8,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -24,32 +26,32 @@ func TestConnectionValidateBasic(t *testing.T) {
 	testCases := []struct {
 		name       string
 		connection types.ConnectionEnd
-		expPass    bool
+		expError   error
 	}{
 		{
 			"valid connection",
 			types.ConnectionEnd{clientID, []*types.Version{ibctesting.ConnectionVersion}, types.INIT, types.Counterparty{clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, 500},
-			true,
+			nil,
 		},
 		{
 			"invalid client id",
 			types.ConnectionEnd{"(clientID1)", []*types.Version{ibctesting.ConnectionVersion}, types.INIT, types.Counterparty{clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, 500},
-			false,
+			host.ErrInvalidID,
 		},
 		{
 			"empty versions",
 			types.ConnectionEnd{clientID, nil, types.INIT, types.Counterparty{clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, 500},
-			false,
+			ibcerrors.ErrInvalidVersion,
 		},
 		{
 			"invalid version",
 			types.ConnectionEnd{clientID, []*types.Version{{}}, types.INIT, types.Counterparty{clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, 500},
-			false,
+			types.ErrInvalidVersion,
 		},
 		{
 			"invalid counterparty",
 			types.ConnectionEnd{clientID, []*types.Version{ibctesting.ConnectionVersion}, types.INIT, types.Counterparty{clientID2, connectionID2, emptyPrefix}, 500},
-			false,
+			types.ErrInvalidCounterparty,
 		},
 	}
 
@@ -57,10 +59,10 @@ func TestConnectionValidateBasic(t *testing.T) {
 		tc := tc
 
 		err := tc.connection.ValidateBasic()
-		if tc.expPass {
+		if tc.expError == nil {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
 		} else {
-			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+			require.ErrorIs(t, err, tc.expError)
 		}
 	}
 }
@@ -69,22 +71,22 @@ func TestCounterpartyValidateBasic(t *testing.T) {
 	testCases := []struct {
 		name         string
 		counterparty types.Counterparty
-		expPass      bool
+		expError     error
 	}{
-		{"valid counterparty", types.Counterparty{clientID, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, true},
-		{"invalid client id", types.Counterparty{"(InvalidClient)", connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, false},
-		{"invalid connection id", types.Counterparty{clientID, "(InvalidConnection)", commitmenttypes.NewMerklePrefix([]byte("prefix"))}, false},
-		{"invalid prefix", types.Counterparty{clientID, connectionID2, emptyPrefix}, false},
+		{"valid counterparty", types.Counterparty{clientID, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, nil},
+		{"invalid client id", types.Counterparty{"(InvalidClient)", connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, host.ErrInvalidID},
+		{"invalid connection id", types.Counterparty{clientID, "(InvalidConnection)", commitmenttypes.NewMerklePrefix([]byte("prefix"))}, host.ErrInvalidID},
+		{"invalid prefix", types.Counterparty{clientID, connectionID2, emptyPrefix}, types.ErrInvalidCounterparty},
 	}
 
 	for i, tc := range testCases {
 		tc := tc
 
 		err := tc.counterparty.ValidateBasic()
-		if tc.expPass {
+		if tc.expError == nil {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
 		} else {
-			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+			require.ErrorIs(t, err, tc.expError)
 		}
 	}
 }
@@ -93,17 +95,17 @@ func TestIdentifiedConnectionValidateBasic(t *testing.T) {
 	testCases := []struct {
 		name       string
 		connection types.IdentifiedConnection
-		expPass    bool
+		expError   error
 	}{
 		{
 			"valid connection",
 			types.NewIdentifiedConnection(clientID, types.ConnectionEnd{clientID, []*types.Version{ibctesting.ConnectionVersion}, types.INIT, types.Counterparty{clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, 500}),
-			true,
+			nil,
 		},
 		{
 			"invalid connection id",
 			types.NewIdentifiedConnection("(connectionIDONE)", types.ConnectionEnd{clientID, []*types.Version{ibctesting.ConnectionVersion}, types.INIT, types.Counterparty{clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, 500}),
-			false,
+			host.ErrInvalidID,
 		},
 	}
 
@@ -111,10 +113,10 @@ func TestIdentifiedConnectionValidateBasic(t *testing.T) {
 		tc := tc
 
 		err := tc.connection.ValidateBasic()
-		if tc.expPass {
+		if tc.expError == nil {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
 		} else {
-			require.Error(t, err, "invalid test case %d passed: %s", i, tc.name)
+			require.ErrorIs(t, err, tc.expError)
 		}
 	}
 }
