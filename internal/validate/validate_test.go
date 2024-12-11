@@ -47,7 +47,7 @@ func TestGRPCRequest(t *testing.T) {
 			if tc.expErr == nil {
 				require.NoError(t, err, tc.msg)
 			} else {
-				require.Error(t, err)
+				require.Error(t, err, tc.msg)
 				require.Equal(t, err.Error(), tc.expErr.Error())
 			}
 		})
