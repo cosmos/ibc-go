@@ -61,11 +61,9 @@ jobs:
       build-and-push-docker-image: true
       # if the test fails, we upload logs so that we can download them from the UI.
       upload-logs: true
-      chain-image: ghcr.io/cosmos/ibc-go-simd
       # with regular tests, both images are the same.
       chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-      chain-binary: 'simd'
       # on regular PRs we won't run upgrade tests.
       # NOTE: we are exluding TestTransferTestSuite as we run this full suite instead of each individual test.
       test-exclusions: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmUpgradeTestSuite,TestTransferTestSuite,TestAuthzTransferTestSuite,TestTransferTestSuiteSendReceive,TestTransferTestSuiteSendEnabled,TestTransferLocalhostTestSuite,TestConnectionTestSuite,TestInterchainAccountsGovTestSuite,TestIncentivizedTransferTestSuite,TestTransferForwardingTestSuite'

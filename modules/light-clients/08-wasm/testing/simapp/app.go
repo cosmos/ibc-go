@@ -231,12 +231,6 @@ type SimApp struct {
 	configurator module.Configurator
 }
 
-func (app *SimApp) ValidatorKeyProvider() runtime.KeyGenF {
-	return func() (cmtcrypto.PrivKey, error) {
-		return cmted25519.GenPrivKey(), nil
-	}
-}
-
 func init() {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -881,7 +875,7 @@ func NewSimApp(
 
 		// Initialize pinned codes in wasmvm as they are not persisted there
 		if err := app.WasmClientKeeper.InitializePinnedCodes(ctx); err != nil {
-			fmt.Println(fmt.Sprintf("failed initialize pinned codes %s", err))
+			fmt.Printf("failed initialize pinned codes %s\n", err)
 			os.Exit(1)
 		}
 	}
@@ -1000,6 +994,12 @@ func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 // DefaultGenesis returns a default genesis from the registered AppModuleBasic's.
 func (app *SimApp) DefaultGenesis() map[string]json.RawMessage {
 	return app.ModuleManager.DefaultGenesis()
+}
+
+func (*SimApp) ValidatorKeyProvider() runtime.KeyGenF {
+	return func() (cmtcrypto.PrivKey, error) {
+		return cmted25519.GenPrivKey(), nil
+	}
 }
 
 // GetKey returns the KVStoreKey for the provided store key.

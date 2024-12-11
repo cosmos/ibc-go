@@ -22,7 +22,7 @@ import (
 	"cosmossdk.io/x/accounts"
 	"cosmossdk.io/x/accounts/accountstd"
 	baseaccount "cosmossdk.io/x/accounts/defaults/base"
-	lockup "cosmossdk.io/x/accounts/defaults/lockup"
+	"cosmossdk.io/x/accounts/defaults/lockup"
 	"cosmossdk.io/x/accounts/defaults/multisig"
 	"cosmossdk.io/x/authz"
 	authzkeeper "cosmossdk.io/x/authz/keeper"
@@ -95,7 +95,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/std"
-	testdata_pulsar "github.com/cosmos/cosmos-sdk/testutil/testdata/testpb"
+	"github.com/cosmos/cosmos-sdk/testutil/testdata/testpb"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
@@ -317,7 +317,7 @@ func NewSimApp(
 	// voteExtOp := func(bApp *baseapp.BaseApp) {
 	//	voteExtHandler := NewVoteExtensionHandler()
 	//	voteExtHandler.SetHandlers(bApp)
-	//}
+	// }
 	// baseAppOptions = append(baseAppOptions, voteExtOp, baseapp.SetOptimisticExecution(),
 	//	baseapp.SetIncludeNestedMsgsGas([]sdk.Msg{&govv1.MsgSubmitProposal{}}))
 
@@ -777,7 +777,7 @@ func NewSimApp(
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
 	// add test gRPC service for testing gRPC queries in isolation
-	testdata_pulsar.RegisterQueryServer(app.GRPCQueryRouter(), testdata_pulsar.QueryImpl{})
+	testpb.RegisterQueryServer(app.GRPCQueryRouter(), testpb.QueryImpl{})
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	//
@@ -927,8 +927,8 @@ func (app *SimApp) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
 	return app.ModuleManager.EndBlock(ctx)
 }
 
-func (a *SimApp) Configurator() module.Configurator { //nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
-	return a.configurator
+func (app *SimApp) Configurator() module.Configurator { //nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
+	return app.configurator
 }
 
 // InitChainer application update at chain initialization
@@ -985,8 +985,8 @@ func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 }
 
 // DefaultGenesis returns a default genesis from the registered AppModule's.
-func (a *SimApp) DefaultGenesis() map[string]json.RawMessage {
-	return a.ModuleManager.DefaultGenesis()
+func (app *SimApp) DefaultGenesis() map[string]json.RawMessage {
+	return app.ModuleManager.DefaultGenesis()
 }
 
 // GetKey returns the KVStoreKey for the provided store key.
@@ -1063,7 +1063,7 @@ func (app *SimApp) RegisterNodeService(clientCtx client.Context, cfg config.Conf
 
 // ValidatorKeyProvider returns a function that generates a validator key
 // Supported key types are those supported by Comet: ed25519, secp256k1, bls12-381
-func (app *SimApp) ValidatorKeyProvider() runtime.KeyGenF {
+func (*SimApp) ValidatorKeyProvider() runtime.KeyGenF {
 	return func() (cmtcrypto.PrivKey, error) {
 		return cmted25519.GenPrivKey(), nil
 	}

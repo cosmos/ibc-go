@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/core/registry"
+	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -41,11 +41,11 @@ func (AppModule) Name() string {
 }
 
 // RegisterLegacyAminoCodec performs a no-op. The Wasm client does not support amino.
-func (AppModule) RegisterLegacyAminoCodec(registry.AminoRegistrar) {}
+func (AppModule) RegisterLegacyAminoCodec(coreregistry.AminoRegistrar) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any. This allows core IBC
 // to unmarshal Wasm light client types.
-func (AppModule) RegisterInterfaces(reg registry.InterfaceRegistrar) {
+func (AppModule) RegisterInterfaces(reg coreregistry.InterfaceRegistrar) {
 	types.RegisterInterfaces(reg)
 }
 
