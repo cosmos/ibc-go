@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,114 +15,114 @@ import (
 
 func TestCodecTypeRegistration(t *testing.T) {
 	testCases := []struct {
-		name    string
-		typeURL string
-		expPass bool
+		name     string
+		typeURL  string
+		expError error
 	}{
 		{
 			"success: Packet",
 			sdk.MsgTypeURL(&types.Packet{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelOpenInit",
 			sdk.MsgTypeURL(&types.MsgChannelOpenInit{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelOpenTry",
 			sdk.MsgTypeURL(&types.MsgChannelOpenTry{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelOpenAck",
 			sdk.MsgTypeURL(&types.MsgChannelOpenAck{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelOpenConfirm",
 			sdk.MsgTypeURL(&types.MsgChannelOpenConfirm{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelCloseInit",
 			sdk.MsgTypeURL(&types.MsgChannelCloseInit{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelCloseConfirm",
 			sdk.MsgTypeURL(&types.MsgChannelCloseConfirm{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgRecvPacket",
 			sdk.MsgTypeURL(&types.MsgRecvPacket{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgAcknowledgement",
 			sdk.MsgTypeURL(&types.MsgAcknowledgement{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgTimeout",
 			sdk.MsgTypeURL(&types.MsgTimeout{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgTimeoutOnClose",
 			sdk.MsgTypeURL(&types.MsgTimeoutOnClose{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelUpgradeInit",
 			sdk.MsgTypeURL(&types.MsgChannelUpgradeInit{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelUpgradeTry",
 			sdk.MsgTypeURL(&types.MsgChannelUpgradeTry{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelUpgradeAck",
 			sdk.MsgTypeURL(&types.MsgChannelUpgradeAck{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelUpgradeConfirm",
 			sdk.MsgTypeURL(&types.MsgChannelUpgradeConfirm{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelUpgradeOpen",
 			sdk.MsgTypeURL(&types.MsgChannelUpgradeOpen{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelUpgradeTimeout",
 			sdk.MsgTypeURL(&types.MsgChannelUpgradeTimeout{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgChannelUpgradeCancel",
 			sdk.MsgTypeURL(&types.MsgChannelUpgradeCancel{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgPruneAcknowledgements",
 			sdk.MsgTypeURL(&types.MsgPruneAcknowledgements{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgUpdateParams",
 			sdk.MsgTypeURL(&types.MsgUpdateParams{}),
-			true,
+			nil,
 		},
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			false,
+			fmt.Errorf("unable to resolve type URL ibc.invalid.MsgTypeURL"),
 		},
 	}
 
@@ -132,12 +133,12 @@ func TestCodecTypeRegistration(t *testing.T) {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				require.NotNil(t, msg)
 				require.NoError(t, err)
 			} else {
 				require.Nil(t, msg)
-				require.Error(t, err)
+				require.ErrorContains(t, err, tc.expError.Error())
 			}
 		})
 	}
