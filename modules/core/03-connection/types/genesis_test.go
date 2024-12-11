@@ -1,12 +1,14 @@
 package types_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
@@ -15,12 +17,12 @@ func TestValidateGenesis(t *testing.T) {
 	testCases := []struct {
 		name     string
 		genState types.GenesisState
-		expPass  bool
+		expError error
 	}{
 		{
 			name:     "default",
 			genState: types.DefaultGenesisState(),
-			expPass:  true,
+			expError: nil,
 		},
 		{
 			name: "valid genesis",
@@ -34,7 +36,7 @@ func TestValidateGenesis(t *testing.T) {
 				0,
 				types.DefaultParams(),
 			),
-			expPass: true,
+			expError: nil,
 		},
 		{
 			name: "invalid connection",
@@ -48,7 +50,7 @@ func TestValidateGenesis(t *testing.T) {
 				0,
 				types.DefaultParams(),
 			),
-			expPass: false,
+			expError: host.ErrInvalidID,
 		},
 		{
 			name: "invalid client id",
@@ -62,7 +64,7 @@ func TestValidateGenesis(t *testing.T) {
 				0,
 				types.DefaultParams(),
 			),
-			expPass: false,
+			expError: host.ErrInvalidID,
 		},
 		{
 			name: "invalid path",
@@ -76,7 +78,7 @@ func TestValidateGenesis(t *testing.T) {
 				0,
 				types.DefaultParams(),
 			),
-			expPass: false,
+			expError: host.ErrInvalidID,
 		},
 		{
 			name: "invalid connection identifier",
@@ -90,7 +92,7 @@ func TestValidateGenesis(t *testing.T) {
 				0,
 				types.DefaultParams(),
 			),
-			expPass: false,
+			expError: host.ErrInvalidID,
 		},
 		{
 			name: "localhost connection identifier",
@@ -104,7 +106,7 @@ func TestValidateGenesis(t *testing.T) {
 				0,
 				types.DefaultParams(),
 			),
-			expPass: true,
+			expError: nil,
 		},
 		{
 			name: "next connection sequence is not greater than maximum connection identifier sequence provided",
@@ -118,7 +120,7 @@ func TestValidateGenesis(t *testing.T) {
 				0,
 				types.DefaultParams(),
 			),
-			expPass: false,
+			expError: errors.New("next connection sequence 0 must be greater than maximum sequence used in connection identifier 10"),
 		},
 		{
 			name: "invalid params",
@@ -132,17 +134,17 @@ func TestValidateGenesis(t *testing.T) {
 				0,
 				types.Params{},
 			),
-			expPass: false,
+			expError: errors.New("MaxExpectedTimePerBlock cannot be zero"),
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		err := tc.genState.Validate()
-		if tc.expPass {
+		if tc.expError == nil {
 			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, err, tc.name)
+			require.ErrorContains(t, err, tc.expError.Error())
 		}
 	}
 }
