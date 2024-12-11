@@ -1,6 +1,10 @@
 package types
 
-import clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+)
 
 // NewQueryChannelRequest creates and returns a new channel query request.
 func NewQueryChannelRequest(channelID string) *QueryChannelRequest {
@@ -29,6 +33,16 @@ func NewQueryChannelClientStateResponse(identifiedClientState clienttypes.Identi
 		IdentifiedClientState: &identifiedClientState,
 		Proof:                 proof,
 		ProofHeight:           height,
+	}
+}
+
+// NewQueryChannelConsensusStateResponse creates and returns a new ChannelConsensusState query response.
+func NewQueryChannelConsensusStateResponse(clientID string, anyConsensusState *codectypes.Any, proof []byte, height clienttypes.Height) *QueryChannelConsensusStateResponse {
+	return &QueryChannelConsensusStateResponse{
+		ConsensusState: anyConsensusState,
+		ClientId:       clientID,
+		Proof:          proof,
+		ProofHeight:    height,
 	}
 }
 

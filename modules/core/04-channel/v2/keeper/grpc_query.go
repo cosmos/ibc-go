@@ -78,6 +78,38 @@ func (q *queryServer) ChannelClientState(ctx context.Context, req *types.QueryCh
 	return res, nil
 }
 
+// ChannelConsensusState implements the Query/ChannelConsensusState gRPC method
+func (q *queryServer) ChannelConsensusState(ctx context.Context, req *types.QueryChannelConsensusStateRequest) (*types.QueryChannelConsensusStateResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	channel, found := q.GetChannel(ctx, req.ChannelId)
+	if !found {
+		return nil, status.Error(codes.NotFound, errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", req.ChannelId).Error())
+	}
+
+	consHeight := clienttypes.NewHeight(req.RevisionNumber, req.RevisionHeight)
+	consensusState, found := q.ClientKeeper.GetClientConsensusState(ctx, channel.ClientId, consHeight)
+	if !found {
+		return nil, status.Error(
+			codes.NotFound,
+			errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "client-id: %s", channel.ClientId).Error(),
+		)
+	}
+
+	anyConsensusState, err := clienttypes.PackConsensusState(consensusState)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return types.NewQueryChannelConsensusStateResponse(channel.ClientId, anyConsensusState, nil, clienttypes.GetSelfHeight(ctx)), nil
+}
+
 // NextSequenceSend implements the Query/NextSequenceSend gRPC method
 func (q *queryServer) NextSequenceSend(ctx context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
 	if req == nil {
