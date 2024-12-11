@@ -3,10 +3,11 @@ package types_test
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
