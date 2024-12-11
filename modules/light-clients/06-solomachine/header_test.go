@@ -1,6 +1,8 @@
 package solomachine_test
 
 import (
+	"errors"
+
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -13,14 +15,14 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 		header := sm.CreateHeader(sm.Diversifier)
 
 		cases := []struct {
-			name    string
-			header  *solomachine.Header
-			expPass bool
+			name   string
+			header *solomachine.Header
+			expErr error
 		}{
 			{
 				"valid header",
 				header,
-				true,
+				nil,
 			},
 			{
 				"timestamp is zero",
@@ -30,7 +32,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 					NewPublicKey:   header.NewPublicKey,
 					NewDiversifier: header.NewDiversifier,
 				},
-				false,
+				errors.New("timestamp cannot be zero: invalid client header"),
 			},
 			{
 				"signature is empty",
@@ -40,7 +42,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 					NewPublicKey:   header.NewPublicKey,
 					NewDiversifier: header.NewDiversifier,
 				},
-				false,
+				errors.New("signature cannot be empty: invalid client header"),
 			},
 			{
 				"diversifier contains only spaces",
@@ -50,7 +52,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 					NewPublicKey:   header.NewPublicKey,
 					NewDiversifier: " ",
 				},
-				false,
+				errors.New("diversifier cannot contain only spaces: invalid client header"),
 			},
 			{
 				"public key is nil",
@@ -60,7 +62,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 					NewPublicKey:   nil,
 					NewDiversifier: header.NewDiversifier,
 				},
-				false,
+				errors.New("new public key cannot be empty: invalid client header"),
 			},
 		}
 
@@ -72,10 +74,11 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 			suite.Run(tc.name, func() {
 				err := tc.header.ValidateBasic()
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}
