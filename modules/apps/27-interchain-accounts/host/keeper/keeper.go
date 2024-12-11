@@ -39,6 +39,8 @@ type Keeper struct {
 	channelKeeper icatypes.ChannelKeeper
 	accountKeeper icatypes.AccountKeeper
 
+	queryRouter icatypes.QueryRouter
+
 	// mqsAllowList is a list of all module safe query paths
 	mqsAllowList []string
 
@@ -51,7 +53,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.Codec, env appmodule.Environment, legacySubspace icatypes.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper,
-	accountKeeper icatypes.AccountKeeper, authority string,
+	accountKeeper icatypes.AccountKeeper, queryRouter icatypes.QueryRouter, authority string,
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
@@ -69,6 +71,7 @@ func NewKeeper(
 		ics4Wrapper:    ics4Wrapper,
 		channelKeeper:  channelKeeper,
 		accountKeeper:  accountKeeper,
+		queryRouter:    queryRouter,
 		mqsAllowList:   newModuleQuerySafeAllowList(),
 		authority:      authority,
 	}

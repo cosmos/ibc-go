@@ -10,7 +10,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	icahostkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	icahosttypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 )
 
@@ -34,11 +33,12 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 			func() {
 				suite.chainA.GetSimApp().ICAHostKeeper = icahostkeeper.NewKeeper(
 					suite.chainA.Codec,
-					runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
+					runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(icahosttypes.StoreKey)), log.NewNopLogger()),
 					nil, // assign a nil legacy param subspace
 					suite.chainA.GetSimApp().IBCFeeKeeper,
 					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 					suite.chainA.GetSimApp().AuthKeeper,
+					suite.chainA.GetSimApp().GRPCQueryRouter(),
 					authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 				)
 			},

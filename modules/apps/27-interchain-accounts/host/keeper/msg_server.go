@@ -3,13 +3,12 @@ package keeper
 import (
 	"context"
 	"slices"
-	"strings"
-
-	gogoproto "github.com/cosmos/gogoproto/proto"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	"google.golang.org/protobuf/types/dynamicpb"
 
 	errorsmod "cosmossdk.io/errors"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -37,34 +36,24 @@ func (m msgServer) ModuleQuerySafe(ctx context.Context, msg *types.MsgModuleQuer
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "not module query safe: %s", query.Path)
 		}
 
-		path := strings.TrimPrefix(query.Path, "/")
-		pathFullName := protoreflect.FullName(strings.ReplaceAll(path, "/", "."))
-
-		desc, err := gogoproto.GogoResolver.FindDescriptorByName(pathFullName)
-		if err != nil {
-			return nil, err
+		route := m.queryRouter.Route(query.Path)
+		if route == nil {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no route to query: %s", query.Path)
 		}
 
-		md, isGRPC := desc.(protoreflect.MethodDescriptor)
-		if !isGRPC {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no descriptor found for query path: %s", string(desc.FullName()))
-		}
-
-		msg := dynamicpb.NewMessage(md.Input())
-		if err := m.cdc.Unmarshal(query.Data, msg); err != nil {
-			return nil, err
-		}
-
-		res, err := m.QueryRouterService.Invoke(ctx, msg)
+		res, err := route(sdk.UnwrapSDKContext(ctx), &abci.QueryRequest{
+			Path: query.Path,
+			Data: query.Data,
+		})
 		if err != nil {
 			m.Logger.Debug("query failed", "path", query.Path, "error", err)
 			return nil, err
 		}
-		if res == nil {
+		if res == nil || res.Value == nil {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no response for query: %s", query.Path)
 		}
 
-		responses[i] = m.cdc.MustMarshal(res)
+		responses[i] = res.Value
 	}
 
 	height := m.HeaderService.HeaderInfo(ctx).Height

@@ -149,6 +149,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().AuthKeeper,
+				suite.chainA.GetSimApp().GRPCQueryRouter(),
 				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
 		}, ""},
@@ -160,6 +161,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				authkeeper.AccountKeeper{}, // empty account keeper
+				suite.chainA.GetSimApp().GRPCQueryRouter(),
 				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
 		}, "the Interchain Accounts module account has not been set"},
@@ -171,6 +173,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().AuthKeeper,
+				suite.chainA.GetSimApp().GRPCQueryRouter(),
 				"", // authority
 			)
 		}, "authority must be non-empty"},

@@ -554,6 +554,7 @@ func NewSimApp(
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper,
 		app.AuthKeeper,
+		app.GRPCQueryRouter(),
 		govModuleAddr,
 	)
 
