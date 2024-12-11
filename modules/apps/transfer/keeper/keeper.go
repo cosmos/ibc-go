@@ -365,7 +365,7 @@ func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet type
 		// Iterator key consists of types.ForwardedPacketKey/portID/channelID/sequence
 		parts := strings.Split(string(iterator.Key()), "/")
 		if len(parts) != 4 {
-			panic(fmt.Errorf("key path should always have 4 elements"))
+			panic(errors.New("key path should always have 4 elements"))
 		}
 		if parts[0] != string(types.ForwardedPacketKey) {
 			panic(fmt.Errorf("key path does not start with expected prefix: %s", types.ForwardedPacketKey))
@@ -373,10 +373,10 @@ func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet type
 
 		portID, channelID := parts[1], parts[2]
 		if err := host.PortIdentifierValidator(portID); err != nil {
-			panic(fmt.Errorf("port identifier validation failed while parsing forward key path"))
+			panic(errors.New("port identifier validation failed while parsing forward key path"))
 		}
 		if err := host.ChannelIdentifierValidator(channelID); err != nil {
-			panic(fmt.Errorf("channel identifier validation failed while parsing forward key path"))
+			panic(errors.New("channel identifier validation failed while parsing forward key path"))
 		}
 
 		forwardPacket.ForwardKey.Sequence = sdk.BigEndianToUint64([]byte(parts[3]))
