@@ -1,6 +1,7 @@
 package ibc_test
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -62,12 +63,12 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 	testCases := []struct {
 		name     string
 		genState *types.GenesisState
-		expPass  bool
+		expError error
 	}{
 		{
 			name:     "default",
 			genState: types.DefaultGenesisState(),
-			expPass:  true,
+			expError: nil,
 		},
 		{
 			name: "valid genesis",
@@ -145,7 +146,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					channeltypes.Params{UpgradeTimeout: channeltypes.DefaultTimeout},
 				),
 			},
-			expPass: true,
+			expError: nil,
 		},
 		{
 			name: "invalid client genesis",
@@ -172,7 +173,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 				),
 				ConnectionGenesis: connectiontypes.DefaultGenesisState(),
 			},
-			expPass: false,
+			expError: errors.New("genesis metadata key cannot be empty"),
 		},
 		{
 			name: "invalid connection genesis",
@@ -189,7 +190,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					connectiontypes.Params{},
 				),
 			},
-			expPass: false,
+			expError: errors.New("invalid connection"),
 		},
 		{
 			name: "invalid channel genesis",
@@ -202,17 +203,18 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					},
 				},
 			},
-			expPass: false,
+			expError: errors.New("invalid acknowledgement"),
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		err := tc.genState.Validate()
-		if tc.expPass {
+		if tc.expError == nil {
 			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err, tc.name)
+			suite.Require().Contains(err.Error(), tc.expError.Error())
 		}
 	}
 }
