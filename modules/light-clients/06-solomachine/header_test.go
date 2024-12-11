@@ -32,7 +32,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 					NewPublicKey:   header.NewPublicKey,
 					NewDiversifier: header.NewDiversifier,
 				},
-				errors.New("invalid timestamp, it must represent a valid time greater than zero"),
+				errors.New("timestamp cannot be zero: invalid client header"),
 			},
 			{
 				"signature is empty",
@@ -42,7 +42,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 					NewPublicKey:   header.NewPublicKey,
 					NewDiversifier: header.NewDiversifier,
 				},
-				errors.New("the signature is empty, which is invalid"),
+				errors.New("signature cannot be empty: invalid client header"),
 			},
 			{
 				"diversifier contains only spaces",
@@ -52,7 +52,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 					NewPublicKey:   header.NewPublicKey,
 					NewDiversifier: " ",
 				},
-				errors.New("the diversifier contains only whitespace, which is invalid"),
+				errors.New("diversifier cannot contain only spaces: invalid client header"),
 			},
 			{
 				"public key is nil",
@@ -62,7 +62,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 					NewPublicKey:   nil,
 					NewDiversifier: header.NewDiversifier,
 				},
-				errors.New("the public key is nil, which is invalid"),
+				errors.New("new public key cannot be empty: invalid client header"),
 			},
 		}
 
@@ -78,6 +78,7 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}

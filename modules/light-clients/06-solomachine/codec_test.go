@@ -41,7 +41,7 @@ func TestCodecTypeRegistration(t *testing.T) {
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			errors.New("the message type 'ibc.invalid.MsgTypeURL' is not registered on the codec"),
+			errors.New("unable to resolve type URL ibc.invalid.MsgTypeURL"),
 		},
 	}
 
@@ -58,6 +58,7 @@ func TestCodecTypeRegistration(t *testing.T) {
 			} else {
 				require.Nil(t, msg)
 				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.expErr.Error())
 			}
 		})
 	}

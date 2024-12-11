@@ -32,27 +32,27 @@ func (suite *SoloMachineTestSuite) TestClientStateValidate() {
 			{
 				"empty ClientState",
 				&solomachine.ClientState{},
-				errors.New("the ClientState is empty, which is invalid"),
+				errors.New("sequence cannot be 0: light client is invalid"),
 			},
 			{
 				"sequence is zero",
 				solomachine.NewClientState(0, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, sm.Diversifier, sm.Time}),
-				errors.New("the sequence number is zero, which is not valid for a new client state"),
+				errors.New("sequence cannot be 0: light client is invalid"),
 			},
 			{
 				"timestamp is zero",
 				solomachine.NewClientState(1, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, sm.Diversifier, 0}),
-				errors.New("the timestamp must be a valid time greater than zero"),
+				errors.New("timestamp cannot be 0: invalid consensus state"),
 			},
 			{
 				"diversifier is blank",
 				solomachine.NewClientState(1, &solomachine.ConsensusState{sm.ConsensusState().PublicKey, "  ", 1}),
-				errors.New("the diversifier is blank - contains only whitespace, which is invalid"),
+				errors.New("diversifier cannot contain only spaces: invalid consensus state"),
 			},
 			{
 				"pubkey is empty",
 				solomachine.NewClientState(1, &solomachine.ConsensusState{nil, sm.Diversifier, sm.Time}),
-				errors.New("the public key cannot be empty"),
+				errors.New("public key cannot be empty: invalid consensus state"),
 			},
 		}
 
@@ -66,6 +66,7 @@ func (suite *SoloMachineTestSuite) TestClientStateValidate() {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}

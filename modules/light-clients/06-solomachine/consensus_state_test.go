@@ -36,7 +36,7 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 					Timestamp:   0,
 					Diversifier: sm.Diversifier,
 				},
-				errors.New("invalid timestamp, it must represent a valid time greater than zero"),
+				errors.New("timestamp cannot be 0: invalid consensus state"),
 			},
 			{
 				"diversifier is blank",
@@ -45,7 +45,7 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 					Timestamp:   sm.Time,
 					Diversifier: " ",
 				},
-				errors.New("the diversifier is blank - contains only whitespace, which is invalid"),
+				errors.New("diversifier cannot contain only spaces: invalid consensus state"),
 			},
 			{
 				"pubkey is nil",
@@ -54,7 +54,7 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 					Diversifier: sm.Diversifier,
 					PublicKey:   nil,
 				},
-				errors.New("invalid pubkey, a valid public key must be provided"),
+				errors.New("public key cannot be empty: invalid consensus state"),
 			},
 		}
 
@@ -68,6 +68,7 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}

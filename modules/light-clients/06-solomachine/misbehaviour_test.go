@@ -33,42 +33,42 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.Sequence = 0
 				},
-				errors.New("the sequence number is zero, which is invalid"),
+				errors.New("sequence cannot be 0: invalid light client misbehaviour"),
 			},
 			{
 				"signature one sig is empty",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureOne.Signature = []byte{}
 				},
-				errors.New("the first signature is empty, which is invalid"),
+				errors.New("signature one failed basic validation: signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"signature two sig is empty",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Signature = []byte{}
 				},
-				errors.New("the second signature is empty, which is invalid"),
+				errors.New("signature two failed basic validation: signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"signature one data is empty",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureOne.Data = nil
 				},
-				errors.New("the data for the first signature is empty, which is invalid"),
+				errors.New("signature one failed basic validation: data for signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"signature two data is empty",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Data = []byte{}
 				},
-				errors.New("the data for the second signature cannot be empty"),
+				errors.New("signature two failed basic validation: data for signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"signatures are identical",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Signature = misbehaviour.SignatureOne.Signature
 				},
-				errors.New("the second signature is identical to the first signature, which is invalid"),
+				errors.New("misbehaviour signatures cannot be equal: invalid light client misbehaviour"),
 			},
 			{
 				"data signed is identical but path differs",
@@ -83,35 +83,35 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 					misbehaviour.SignatureTwo.Path = misbehaviour.SignatureOne.Path
 					misbehaviour.SignatureTwo.Data = misbehaviour.SignatureOne.Data
 				},
-				errors.New("the second signature's data and path are identical to the first, which is invalid"),
+				errors.New("misbehaviour signature data must be signed over different messages: invalid light client misbehaviour"),
 			},
 			{
 				"data path for SignatureOne is unspecified",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureOne.Path = []byte{}
 				},
-				errors.New("the data path for SignatureOne is empty, which is invalid"),
+				errors.New("signature one failed basic validation: path for signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"data path for SignatureTwo is unspecified",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Path = []byte{}
 				},
-				errors.New("the data path for SignatureTwo is empty, which is invalid"),
+				errors.New("signature two failed basic validation: path for signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"timestamp for SignatureOne is zero",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureOne.Timestamp = 0
 				},
-				errors.New("the timestamp for SignatureOne cannot be zero; it must be a valid, positive timestamp"),
+				errors.New("signature one failed basic validation: timestamp cannot be 0: invalid signature and data"),
 			},
 			{
 				"timestamp for SignatureTwo is zero",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Timestamp = 0
 				},
-				errors.New("the timestamp for SignatureTwo is zero, which is invalid"),
+				errors.New("signature two failed basic validation: timestamp cannot be 0: invalid signature and data"),
 			},
 		}
 
@@ -128,6 +128,7 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}

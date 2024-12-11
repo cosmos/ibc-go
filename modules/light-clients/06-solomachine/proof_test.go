@@ -43,13 +43,13 @@ func (suite *SoloMachineTestSuite) TestVerifySignature() {
 			"single signature with multisig public key",
 			suite.solomachineMulti.PublicKey,
 			singleSigData,
-			errors.New("a single signature cannot be used with a multisig public key; multisig keys require multiple signatures"),
+			errors.New("invalid signature data type, expected *signing.MultiSignatureData, got *signing.MultiSignatureData: signature verification failed"),
 		},
 		{
 			"multi signature with regular public key",
 			suite.solomachine.PublicKey,
 			multiSigData,
-			errors.New("multi-signature data cannot be used with a regular public key"),
+			errors.New("invalid signature data type, expected *signing.SingleSignatureData, got *signing.SingleSignatureData: signature verification failed"),
 		},
 	}
 
@@ -63,6 +63,7 @@ func (suite *SoloMachineTestSuite) TestVerifySignature() {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.expErr.Error())
 			}
 		})
 	}
