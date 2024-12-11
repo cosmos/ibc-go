@@ -150,11 +150,11 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
 }
 
-// initalizeRelayerPool pre-loads the relayer pool with n relayers.
+// initializeRelayerPool pre-loads the relayer pool with n relayers.
 // this is a workaround due to the restriction on relayer creation during the test
 // ref: https://github.com/strangelove-ventures/interchaintest/issues/1153
 // if the above issue is resolved, it should be possible to lazily create relayers in each test.
-func (s *E2ETestSuite) initalizeRelayerPool(n int) []ibc.Relayer {
+func (s *E2ETestSuite) initializeRelayerPool(n int) []ibc.Relayer {
 	var relayers []ibc.Relayer
 	for i := 0; i < n; i++ {
 		relayers = append(relayers, relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network))
@@ -181,7 +181,7 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 
 	s.chains = s.createChains(chainOptions)
 
-	s.relayerPool = s.initalizeRelayerPool(chainOptions.RelayerCount)
+	s.relayerPool = s.initializeRelayerPool(chainOptions.RelayerCount)
 
 	ic := s.newInterchain(s.relayerPool, s.chains, channelOptionsModifier)
 

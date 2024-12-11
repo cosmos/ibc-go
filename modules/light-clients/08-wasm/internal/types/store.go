@@ -151,7 +151,7 @@ func (s ClientRecoveryStore) CacheWrapWithTrace(w io.Writer, tc storetypes.Trace
 	return cachekv.NewStore(tracekv.NewStore(s, w, tc))
 }
 
-// getStore returns the types to be used for the given key and a boolean flag indicating if that types was found.
+// GetStore returns the types to be used for the given key and a boolean flag indicating if that type was found.
 // If the key is prefixed with "subject/", the subjectStore is returned. If the key is prefixed with "substitute/",
 // the substituteStore is returned.
 //
