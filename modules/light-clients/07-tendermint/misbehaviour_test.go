@@ -5,8 +5,8 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	cmttypes "github.com/cometbft/cometbft/types"
 
