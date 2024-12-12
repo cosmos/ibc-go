@@ -22,7 +22,7 @@ func TestParseChannelSequence(t *testing.T) {
 		{"valid large sequence", "channel-234568219356718293", 234568219356718293, nil},
 		// one above uint64 max
 		{"invalid uint64", "channel-18446744073709551616", 0, host.ErrInvalidID},
-		// // uint64 == 20 characters
+		// uint64 == 20 characters
 		{"invalid large sequence", "channel-2345682193567182931243", 0, host.ErrInvalidID},
 		{"capital prefix", "Channel-0", 0, host.ErrInvalidID},
 		{"missing dash", "channel0", 0, host.ErrInvalidID},
