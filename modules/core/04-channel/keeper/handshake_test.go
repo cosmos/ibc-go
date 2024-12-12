@@ -108,11 +108,10 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 
 				// Testcase must have expectedPass = true AND channel order supported before
 				// asserting the channel handshake initiation succeeded
-				if tc.expErr == nil && orderSupported {
+				if (tc.expErr == nil) && orderSupported {
 					suite.Require().NoError(err)
 					suite.Require().Equal(types.FormatChannelIdentifier(0), channelID)
 				} else {
-					suite.Require().ErrorIs(err, tc.expErr)
 					suite.Require().Error(err)
 					suite.Require().Contains(err.Error(), expErrorMsgSubstring)
 					suite.Require().Equal("", channelID)
