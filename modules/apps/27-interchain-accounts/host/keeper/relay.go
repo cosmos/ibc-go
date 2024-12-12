@@ -109,7 +109,7 @@ func (k Keeper) authenticateTx(ctx context.Context, msgs []sdk.Msg, connectionID
 		}
 
 		// obtain the message signers using the proto signer annotations
-		// the msgv2 return value is discarded as it is not used
+		// the protoreflect msg return value is discarded as it is not used
 		signers, _, err := k.cdc.GetMsgSigners(msg)
 		if err != nil {
 			return errorsmod.Wrapf(err, "failed to obtain message signers for message type %s", sdk.MsgTypeURL(msg))
@@ -130,7 +130,7 @@ func (k Keeper) authenticateTx(ctx context.Context, msgs []sdk.Msg, connectionID
 
 // Attempts to get the message handler from the router and if found will then execute the message.
 // If the message execution is successful, the proto marshaled message response will be returned.
-func (k Keeper) executeMsg(ctx context.Context, msg sdk.Msg) (*codectypes.Any, error) { // TODO: https://github.com/cosmos/ibc-go/issues/7223
+func (k Keeper) executeMsg(ctx context.Context, msg sdk.Msg) (*codectypes.Any, error) {
 	if err := k.MsgRouterService.CanInvoke(ctx, sdk.MsgTypeURL(msg)); err != nil {
 		return nil, errorsmod.Wrap(err, icatypes.ErrInvalidRoute.Error())
 	}
