@@ -188,7 +188,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			{
 				"connection not found",
 				func() {
-					channel.ConnectionHops = []string{"invalid-connnection-id"}
+					channel.ConnectionHops = []string{"invalid-connection-id"}
 					path.EndpointB.SetChannel(*channel)
 				},
 				connectiontypes.ErrConnectionNotFound,
@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			{
 				"invalid controller connection ID",
 				func() {
-					metadata.ControllerConnectionId = "invalid-connnection-id"
+					metadata.ControllerConnectionId = "invalid-connection-id"
 
 					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 					suite.Require().NoError(err)
