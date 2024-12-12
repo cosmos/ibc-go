@@ -27,7 +27,7 @@ func ParseIdentifier(identifier, prefix string) (uint64, error) {
 
 	sequence, err := strconv.ParseUint(splitStr[1], 10, 64)
 	if err != nil {
-		return 0, errorsmod.Wrap(err, "failed to parse identifier sequence")
+		return 0, errorsmod.Wrap(ErrInvalidID, err.Error())
 	}
 	return sequence, nil
 }
