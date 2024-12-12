@@ -3,7 +3,11 @@ package keeper_test
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
@@ -22,30 +26,30 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{"success", func() {
-		}, true},
+		}, nil},
 		{"success with empty counterparty identifier", func() {
 			emptyConnBID = true
-		}, true},
+		}, nil},
 		{"success with non empty version", func() {
 			version = types.GetCompatibleVersions()[0]
-		}, true},
+		}, nil},
 		{"success with non zero delayPeriod", func() {
 			delayPeriod = uint64(time.Hour.Nanoseconds())
-		}, true},
+		}, nil},
 
 		{"invalid version", func() {
 			version = &types.Version{}
-		}, false},
+		}, errorsmod.Wrap(types.ErrInvalidVersion, "version is not supported")},
 		{"couldn't add connection to client", func() {
 			// set path.EndpointA.ClientID to invalid client identifier
 			path.EndpointA.ClientID = "clientidentifier"
-		}, false},
+		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (clientidentifier) status is Unauthorized")},
 		{
-			msg:     "unauthorized client",
-			expPass: false,
+			msg:    "unauthorized client",
+			expErr: errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Unauthorized"),
 			malleate: func() {
 				expErrorMsgSubstring = "status is Unauthorized"
 				// remove client from allowed list
@@ -75,13 +79,14 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 
 			connectionID, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.ConnOpenInit(suite.chainA.GetContext(), path.EndpointA.ClientID, counterparty, version, delayPeriod)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(types.FormatConnectionIdentifier(0), connectionID)
 			} else {
 				suite.Require().Error(err)
 				suite.Contains(err.Error(), expErrorMsgSubstring)
 				suite.Require().Equal("", connectionID)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -99,12 +104,12 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{"success", func() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
-		}, true},
+		}, nil},
 		{"success with delay period", func() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
@@ -118,23 +123,23 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			suite.coordinator.CommitBlock(suite.chainA)
 			err = path.EndpointB.UpdateClient()
 			suite.Require().NoError(err)
-		}, true},
+		}, nil},
 		{"counterparty versions is empty", func() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
 
 			versions = nil
-		}, false},
+		}, errorsmod.Wrap(types.ErrVersionNegotiationFailed, "failed to find a matching counterparty version ([]) from the supported version list ([identifier:\"1\" features:\"ORDER_ORDERED\" features:\"ORDER_UNORDERED\" ])")},
 		{"counterparty versions don't have a match", func() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
 
 			version := types.NewVersion("0.0", nil)
 			versions = []*types.Version{version}
-		}, false},
+		}, errorsmod.Wrap(types.ErrVersionNegotiationFailed, "failed to find a matching counterparty version ([identifier:\"0.0\" ]) from the supported version list ([identifier:\"1\" features:\"ORDER_ORDERED\" features:\"ORDER_UNORDERED\" ])")},
 		{"connection state verification failed", func() {
 			// chainA connection not created
-		}, false},
+		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed connection state verification for client (07-tendermint-0): commitment proof must be existence proof. got: int at index &{1374402732384}")},
 	}
 
 	for _, tc := range testCases {
@@ -163,12 +168,13 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 				versions, initProof, proofHeight,
 			)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(types.FormatConnectionIdentifier(0), connectionID)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Equal("", connectionID)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -185,7 +191,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{"success", func() {
 			err := path.EndpointA.ConnOpenInit()
@@ -193,10 +199,10 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 
 			err = path.EndpointB.ConnOpenTry()
 			suite.Require().NoError(err)
-		}, true},
+		}, nil},
 		{"connection not found", func() {
 			// connections are never created
-		}, false},
+		}, errorsmod.Wrap(types.ErrConnectionNotFound, "")},
 		{"invalid counterparty connection ID", func() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
@@ -213,7 +219,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 
 			err = path.EndpointB.UpdateClient()
 			suite.Require().NoError(err)
-		}, false},
+		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed connection state verification for client (07-tendermint-0): commitment proof must be existence proof. got: int at index &{1374412614704}")},
 		{"connection state is not INIT", func() {
 			// connection state is already OPEN on chainA
 			err := path.EndpointA.ConnOpenInit()
@@ -224,7 +230,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 
 			err = path.EndpointA.ConnOpenAck()
 			suite.Require().NoError(err)
-		}, false},
+		}, errorsmod.Wrap(types.ErrInvalidConnectionState, "connection state is not INIT (got STATE_OPEN)")},
 		{"connection is in INIT but the proposed version is invalid", func() {
 			// chainA is in INIT, chainB is in TRYOPEN
 			err := path.EndpointA.ConnOpenInit()
@@ -234,7 +240,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			suite.Require().NoError(err)
 
 			version = types.NewVersion("2.0", nil)
-		}, false},
+		}, errorsmod.Wrap(types.ErrInvalidConnectionState, "the counterparty selected version identifier:\"2.0\"  is not supported by versions selected on INIT")},
 		{"incompatible IBC versions", func() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
@@ -244,7 +250,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 
 			// set version to a non-compatible version
 			version = types.NewVersion("2.0", nil)
-		}, false},
+		}, errorsmod.Wrap(types.ErrInvalidConnectionState, "the counterparty selected version identifier:\"2.0\"  is not supported by versions selected on INIT")},
 		{"empty version", func() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
@@ -253,7 +259,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			suite.Require().NoError(err)
 
 			version = &types.Version{}
-		}, false},
+		}, errorsmod.Wrap(types.ErrInvalidConnectionState, "the counterparty selected version  is not supported by versions selected on INIT")},
 		{"feature set verification failed - unsupported feature", func() {
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
@@ -262,12 +268,12 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 			suite.Require().NoError(err)
 
 			version = types.NewVersion(types.DefaultIBCVersionIdentifier, []string{"ORDER_ORDERED", "ORDER_UNORDERED", "ORDER_DAG"})
-		}, false},
+		}, errorsmod.Wrap(types.ErrInvalidConnectionState, "the counterparty selected version identifier:\"1\" features:\"ORDER_ORDERED\" features:\"ORDER_UNORDERED\" features:\"ORDER_DAG\"  is not supported by versions selected on INIT")},
 		{"connection state verification failed", func() {
 			// chainB connection is not in INIT
 			err := path.EndpointA.ConnOpenInit()
 			suite.Require().NoError(err)
-		}, false},
+		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed connection state verification for client (07-tendermint-0): commitment proof must be existence proof. got: int at index &{1374414228888}")},
 	}
 
 	for _, tc := range testCases {
@@ -292,10 +298,11 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 				path.EndpointB.ConnectionID, tryProof, proofHeight,
 			)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -308,7 +315,7 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{"success", func() {
 			err := path.EndpointA.ConnOpenInit()
@@ -319,14 +326,14 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 
 			err = path.EndpointA.ConnOpenAck()
 			suite.Require().NoError(err)
-		}, true},
+		}, nil},
 		{"connection not found", func() {
 			// connections are never created
-		}, false},
+		}, errorsmod.Wrap(types.ErrConnectionNotFound, "")},
 		{"chain B's connection state is not TRYOPEN", func() {
 			// connections are OPEN
 			path.CreateConnections()
-		}, false},
+		}, errorsmod.Wrap(types.ErrInvalidConnectionState, "connection state is not TRYOPEN (got STATE_OPEN)")},
 		{"connection state verification failed", func() {
 			// chainA is in INIT
 			err := path.EndpointA.ConnOpenInit()
@@ -334,7 +341,7 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 
 			err = path.EndpointB.ConnOpenTry()
 			suite.Require().NoError(err)
-		}, false},
+		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed connection state verification for client (07-tendermint-0): failed to verify membership proof at index 0: provided value doesn't match proof")},
 	}
 
 	for _, tc := range testCases {
@@ -358,10 +365,11 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 				suite.chainB.GetContext(), path.EndpointB.ConnectionID, ackProof, proofHeight,
 			)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
