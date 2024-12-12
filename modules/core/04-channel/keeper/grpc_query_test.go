@@ -2092,7 +2092,7 @@ func (suite *KeeperTestSuite) TestQueryUpgrade() {
 			},
 			status.Error(
 				codes.NotFound,
-				errorsmod.Wrapf(types.ErrUpgradeNotFound, "port-id: mock, channel-id channel-9").Error(),
+				errorsmod.Wrapf(types.ErrUpgradeNotFound, "port-id: mock, channel-id channel-420").Error(),
 			),
 		},
 		{
