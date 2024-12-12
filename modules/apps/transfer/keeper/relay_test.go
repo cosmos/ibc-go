@@ -4,11 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -124,6 +127,62 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			nil,
 		},
 		{
+			"successful transfer of entire spendable balance with vesting account",
+			func() {
+				// create vesting account
+				vestingAccPrivKey := secp256k1.GenPrivKey()
+				vestingAccAddress := sdk.AccAddress(vestingAccPrivKey.PubKey().Address())
+
+				vestingCoins := sdk.NewCoins(sdk.NewCoin(coins[0].Denom, ibctesting.DefaultCoinAmount))
+				_, err := suite.chainA.SendMsgs(vestingtypes.NewMsgCreateVestingAccount(
+					suite.chainA.SenderAccount.GetAddress(),
+					vestingAccAddress,
+					vestingCoins,
+					suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix(),
+					false,
+				))
+				suite.Require().NoError(err)
+				sender = vestingAccAddress
+
+				// transfer some spendable coins to vesting account
+				transferCoins := sdk.NewCoins(sdk.NewCoin(coins[0].Denom, sdkmath.NewInt(42)))
+				_, err = suite.chainA.SendMsgs(banktypes.NewMsgSend(suite.chainA.SenderAccount.GetAddress(), vestingAccAddress, transferCoins))
+				suite.Require().NoError(err)
+
+				coins = sdk.NewCoins(sdk.NewCoin(coins[0].Denom, types.UnboundedSpendLimit()))
+				expEscrowAmounts[0] = transferCoins[0].Amount
+			},
+			nil,
+		},
+		{
+			"failure: no spendable coins for vesting account",
+			func() {
+				// create vesting account
+				vestingAccPrivKey := secp256k1.GenPrivKey()
+				vestingAccAddress := sdk.AccAddress(vestingAccPrivKey.PubKey().Address())
+
+				vestingCoins := sdk.NewCoins(sdk.NewCoin(coins[0].Denom, ibctesting.DefaultCoinAmount))
+				_, err := suite.chainA.SendMsgs(vestingtypes.NewMsgCreateVestingAccount(
+					suite.chainA.SenderAccount.GetAddress(),
+					vestingAccAddress,
+					vestingCoins,
+					suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix(),
+					false,
+				))
+				suite.Require().NoError(err)
+				sender = vestingAccAddress
+
+				// just to prove that the vesting account has a balance (but not spendable)
+				vestingAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), vestingAccAddress, coins[0].Denom)
+				suite.Require().Equal(vestingCoins[0].Amount.Int64(), vestingAccBalance.Amount.Int64())
+				vestinSpendableBalance := suite.chainA.GetSimApp().BankKeeper.SpendableCoins(suite.chainA.GetContext(), vestingAccAddress)
+				suite.Require().Zero(vestinSpendableBalance.AmountOf(coins[0].Denom).Int64())
+
+				coins = sdk.NewCoins(sdk.NewCoin(coins[0].Denom, types.UnboundedSpendLimit()))
+			},
+			types.ErrInvalidAmount,
+		},
+		{
 			"failure: source channel not found",
 			func() {
 				// channel references wrong ID
@@ -233,8 +292,8 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			expPass := tc.expError == nil
 			if expPass {
-				suite.Require().NotNil(res)
 				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
 			} else {
 				suite.Require().Nil(res)
 				suite.Require().Error(err)
