@@ -254,8 +254,8 @@ cosmossdk.io/x/slashing v0.0.0-20241108061010-a0458127fccf h1:vaFB6CMx+qFjoZWq7f
 cosmossdk.io/x/slashing v0.0.0-20241108061010-a0458127fccf/go.mod h1:EQMZV9XM15sogrzz404akhvb9BNCpyyR/U5ZIyDnsio=
 cosmossdk.io/x/staking v0.0.0-20241108061010-a0458127fccf h1:q0r0DFzP4nDkArKEj8o5eJIbihgxIOJMranGyJv1iiw=
 cosmossdk.io/x/staking v0.0.0-20241108061010-a0458127fccf/go.mod h1:o5LKEyzicUjBF0Xzixb5yva9y9SBAFo6o752nE/QDAM=
-cosmossdk.io/x/tx v1.0.0-alpha.1 h1:5w61etWMQbdCSR7uveWXCnGnD5eQ/64B2vzIhqA80yo=
-cosmossdk.io/x/tx v1.0.0-alpha.1/go.mod h1:xlJjZV1wxZBTCP+ygZx9pNT/XxsfHDPf1H0VhHaUp5w=
+cosmossdk.io/x/tx v1.0.0-alpha.1.0.20241212002302-a6d28e384938 h1:kqbOiJpmSBE03Isw7KY27N4oCSaOcG28oaJgCLh9Rhk=
+cosmossdk.io/x/tx v1.0.0-alpha.1.0.20241212002302-a6d28e384938/go.mod h1:xlJjZV1wxZBTCP+ygZx9pNT/XxsfHDPf1H0VhHaUp5w=
 cosmossdk.io/x/upgrade v0.0.0-20241108061010-a0458127fccf h1:QmDmYiOWHkBoRdT2j76G6Gj42XVyxn5qUaiTYPcemcM=
 cosmossdk.io/x/upgrade v0.0.0-20241108061010-a0458127fccf/go.mod h1:izXYqFcs/+AgFnik31IQYIzYHPifj2ay6Eenv9UEzwI=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=

@@ -270,7 +270,7 @@ replace (
 	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20241108061010-a0458127fccf
-	cosmossdk.io/x/tx => cosmossdk.io/x/tx v1.0.0-alpha.1
+	cosmossdk.io/x/tx => cosmossdk.io/x/tx v1.0.0-alpha.1.0.20241212002302-a6d28e384938
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20241108061010-a0458127fccf
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1.0.20240908111210-ab0be101882f
 	// pseudo version lower than the latest tag
