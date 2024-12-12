@@ -1867,7 +1867,7 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 			},
 			status.Error(
 				codes.NotFound,
-				errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (test-port-id) channel ID (test-channel-id)").Error(),
+				errorsmod.Wrapf(types.ErrSequenceSendNotFound, "port-id: test-port-id, channel-id test-channel-id").Error(),
 			),
 		},
 		{
