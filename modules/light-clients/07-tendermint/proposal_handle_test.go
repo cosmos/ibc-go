@@ -70,17 +70,17 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 	testCases := []struct {
 		name         string
 		FreezeClient bool
-		expPass      bool
+		expError     error
 	}{
 		{
 			name:         "PASS: update checks are deprecated, client is not frozen",
 			FreezeClient: false,
-			expPass:      true,
+			expError:     nil,
 		},
 		{
 			name:         "PASS: update checks are deprecated, client is frozen",
 			FreezeClient: true,
-			expPass:      true,
+			expError:     nil,
 		},
 	}
 
@@ -138,7 +138,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 
 			err := subjectClientState.CheckSubstituteAndUpdateState(suite.chainA.GetContext(), suite.chainA.App.AppCodec(), subjectClientStore, substituteClientStore, substituteClientState)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 
 				updatedClient, ok := subjectPath.EndpointA.GetClientState().(*ibctm.ClientState)
@@ -165,6 +165,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 				suite.Require().Equal(time.Hour*24*7, updatedClient.TrustingPeriod)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.expError.Error())
 			}
 		})
 	}
@@ -179,7 +180,7 @@ func (suite *TendermintTestSuite) TestIsMatchingClientState() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		isMatch  bool
 	}{
 		{
 			"matching clients", func() {
@@ -235,7 +236,7 @@ func (suite *TendermintTestSuite) TestIsMatchingClientState() {
 
 			tc.malleate()
 
-			suite.Require().Equal(tc.expPass, ibctm.IsMatchingClientState(*subjectClientState, *substituteClientState))
+			suite.Require().Equal(tc.isMatch, ibctm.IsMatchingClientState(*subjectClientState, *substituteClientState))
 		})
 	}
 }

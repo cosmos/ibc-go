@@ -1,6 +1,7 @@
 package tendermint_test
 
 import (
+	"errors"
 	"time"
 
 	cmtprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
@@ -25,37 +26,37 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
-		{"valid header", func() {}, true},
+		{"valid header", func() {}, nil},
 		{"header is nil", func() {
 			header.Header = nil
-		}, false},
+		}, errors.New("tendermint header cannot be nil")},
 		{"signed header is nil", func() {
 			header.SignedHeader = nil
-		}, false},
+		}, errors.New("tendermint signed header cannot be nil")},
 		{"SignedHeaderFromProto failed", func() {
 			header.SignedHeader.Commit.Height = -1
-		}, false},
+		}, errors.New("header is not a tendermint header")},
 		{"signed header failed tendermint ValidateBasic", func() {
 			header = suite.chainA.LatestCommittedHeader
 			header.SignedHeader.Commit = nil
-		}, false},
+		}, errors.New("header failed basic validation")},
 		{"trusted height is equal to header height", func() {
 			var ok bool
 			header.TrustedHeight, ok = header.GetHeight().(clienttypes.Height)
 			suite.Require().True(ok)
-		}, false},
+		}, errors.New("invalid header height")},
 		{"validator set nil", func() {
 			header.ValidatorSet = nil
-		}, false},
+		}, errors.New("invalid client header")},
 		{"ValidatorSetFromProto failed", func() {
 			header.ValidatorSet.Validators[0].PubKey = cmtprotocrypto.PublicKey{}
-		}, false},
+		}, errors.New("validator set is not tendermint validator set")},
 		{"header validator hash does not equal hash of validator set", func() {
 			// use chainB's randomly generated validator set
 			header.ValidatorSet = suite.chainB.LatestCommittedHeader.ValidatorSet
-		}, false},
+		}, errors.New("validator set does not match hash")},
 	}
 
 	suite.Require().Equal(exported.Tendermint, suite.header.ClientType())
@@ -72,10 +73,11 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 
 			err := header.ValidateBasic()
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.expErr.Error())
 			}
 		})
 	}
