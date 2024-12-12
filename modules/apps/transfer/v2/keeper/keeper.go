@@ -38,7 +38,10 @@ func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload
 		}
 
 		if coin.Amount.Equal(types.UnboundedSpendLimit()) {
-			coin.Amount = k.BankKeeper.GetBalance(ctx, sender, coin.Denom).Amount
+			coin.Amount = k.BankKeeper.SpendableCoin(ctx, sender, coin.Denom).Amount
+			if coin.Amount.IsZero() {
+				return errorsmod.Wrapf(types.ErrInvalidAmount, "empty spendable balance for %s", coin.Denom)
+			}
 		}
 
 		// NOTE: SendTransfer simply sends the denomination as it exists on its own
