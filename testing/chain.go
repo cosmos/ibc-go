@@ -346,10 +346,19 @@ func (chain *TestChain) sendMsgs(msgs ...sdk.Msg) error {
 	return err
 }
 
+func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
+	senderAccount := SenderAccount{
+		SenderPrivKey: chain.SenderPrivKey,
+		SenderAccount: chain.SenderAccount,
+	}
+
+	return chain.SendMsgsWithSender(senderAccount, msgs...)
+}
+
 // SendMsgs delivers a transaction through the application. It updates the senders sequence
 // number and updates the TestChain's headers. It returns the result and error if one
 // occurred.
-func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
+func (chain *TestChain) SendMsgsWithSender(sender SenderAccount, msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 	if chain.SendMsgsOverride != nil {
 		return chain.SendMsgsOverride(msgs...)
 	}
@@ -359,7 +368,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 
 	// increment acc sequence regardless of success or failure tx execution
 	defer func() {
-		err := chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+		err := sender.SenderAccount.SetSequence(sender.SenderAccount.GetSequence() + 1)
 		if err != nil {
 			panic(err)
 		}
@@ -371,12 +380,12 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 		chain.App.GetBaseApp(),
 		msgs,
 		chain.ChainID,
-		[]uint64{chain.SenderAccount.GetAccountNumber()},
-		[]uint64{chain.SenderAccount.GetSequence()},
+		[]uint64{sender.SenderAccount.GetAccountNumber()},
+		[]uint64{sender.SenderAccount.GetSequence()},
 		true,
 		chain.ProposedHeader.GetTime(),
 		chain.NextVals.Hash(),
-		chain.SenderPrivKey,
+		sender.SenderPrivKey,
 	)
 	if err != nil {
 		return nil, err
@@ -592,4 +601,13 @@ func (chain *TestChain) IBCClientHeader(header *ibctm.Header, trustedHeight clie
 	header.TrustedValidators = trustedVals
 
 	return header, nil
+}
+
+func (chain *TestChain) GetSenderAccount(privKey cryptotypes.PrivKey) SenderAccount {
+	account := chain.GetSimApp().AccountKeeper.GetAccount(chain.GetContext(), sdk.AccAddress(privKey.PubKey().Address()))
+
+	return SenderAccount{
+		SenderPrivKey: privKey,
+		SenderAccount: account,
+	}
 }
