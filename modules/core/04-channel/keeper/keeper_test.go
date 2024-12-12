@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	errorsmod "cosmossdk.io/errors"
-
 	testifysuite "github.com/stretchr/testify/suite"
+
+	errorsmod "cosmossdk.io/errors"
 
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"

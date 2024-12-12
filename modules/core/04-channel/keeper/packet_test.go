@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"fmt"
 
-	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,7 +14,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-
 	// ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
@@ -750,7 +748,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		ack    = ibcmock.MockAcknowledgement
 	)
 
-	assertErr := func(errType *errors.Error) func(commitment []byte, channelVersion string, err error) {
+	assertErr := func(errType *errorsmod.Error) func(commitment []byte, channelVersion string, err error) {
 		return func(commitment []byte, channelVersion string, err error) {
 			suite.Require().Error(err)
 			suite.Require().ErrorIs(err, errType)
