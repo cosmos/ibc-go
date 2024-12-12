@@ -253,7 +253,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 					},
 				}
 
-				actualBalance := path.EndpointB.Chain.GetSimApp().TransferKeeperV2.BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
+				actualBalance := path.EndpointB.Chain.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
 
 				var expectedBalance sdk.Coin
 				// on a successful ack we expect the full amount to be transferred
