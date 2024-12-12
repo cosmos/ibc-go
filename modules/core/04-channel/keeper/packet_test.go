@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -14,6 +15,8 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+
+	// ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -45,12 +48,12 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		{"success: UNORDERED channel", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
-		}, true},
+		}, nil},
 		{"success: ORDERED channel", func() {
 			path.SetChannelOrdered()
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
-		}, true},
+		}, nil},
 		{"success with solomachine: UNORDERED channel", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
@@ -60,7 +63,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.EndpointA.ClientID = clienttypes.FormatClientIdentifier(exported.Solomachine, 10)
 			path.EndpointA.SetClientState(solomachine.ClientState())
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
-		}, true},
+		}, nil},
 		{"success with solomachine: ORDERED channel", func() {
 			path.SetChannelOrdered()
 			path.Setup()
@@ -72,50 +75,50 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path.EndpointA.SetClientState(solomachine.ClientState())
 
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
-		}, true},
+		}, nil},
 		{"packet basic validation failed, empty packet data", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
 			packetData = []byte{}
-		}, false},
+		}, types.ErrInvalidPacket},
 		{"channel not found", func() {
 			// use wrong channel naming
 			path.Setup()
 			sourceChannel = ibctesting.InvalidID
-		}, false},
+		}, types.ErrChannelNotFound},
 		{"channel is in CLOSED state", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
 			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
-		}, false},
+		}, types.ErrInvalidChannelState},
 		{"channel is in INIT state", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
 			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.INIT })
-		}, false},
+		}, types.ErrInvalidChannelState},
 		{"channel is in TRYOPEN stage", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
 			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.TRYOPEN })
-		}, false},
+		}, types.ErrInvalidChannelState},
 		{"connection not found", func() {
 			// pass channel check
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
 			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.ConnectionHops[0] = "invalid-connection" })
-		}, false},
+		}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, "")},
 		{"client state not found", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
 			// change connection client ID
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-		}, false},
+		}, clienttypes.ErrClientNotActive},
 		{"client state is frozen", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
@@ -128,7 +131,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			// freeze client
 			cs.FrozenHeight = clienttypes.NewHeight(0, 1)
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), connection.ClientId, cs)
-		}, false},
+		}, clienttypes.ErrClientNotActive},
 		{"client state zero height", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
@@ -144,7 +147,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			cs.LatestHeight = clienttypes.ZeroHeight()
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), connection.ClientId, cs)
-		}, false},
+		}, clienttypes.ErrInvalidHeight},
 		{"timeout height passed", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
@@ -152,7 +155,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			var ok bool
 			timeoutHeight, ok = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
 			suite.Require().True(ok)
-		}, false},
+		}, types.ErrTimeoutElapsed},
 		{"timeout timestamp passed", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
@@ -163,7 +166,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 			timeoutHeight = disabledTimeoutHeight
 			timeoutTimestamp = timestamp
-		}, false},
+		}, types.ErrTimeoutElapsed},
 		{"timeout timestamp passed with solomachine", func() {
 			path.Setup()
 			// swap client with solomachine
@@ -180,7 +183,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			sourceChannel = path.EndpointA.ChannelID
 			timeoutHeight = disabledTimeoutHeight
 			timeoutTimestamp = timestamp
-		}, false},
+		}, types.ErrTimeoutElapsed},
 		{"next sequence send not found", func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			sourceChannel = path.EndpointA.ChannelID
@@ -192,7 +195,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 				types.NewChannel(types.OPEN, types.ORDERED, types.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID), []string{path.EndpointA.ConnectionID}, path.EndpointA.ChannelConfig.Version),
 			)
-		}, false},
+		}, errorsmod.Wrap(types.ErrSequenceSendNotFound, "")},
 		{
 			"channel is in FLUSH_COMPLETE state",
 			func() {
@@ -201,7 +204,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 
 				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE })
 			},
-			false,
+			types.ErrInvalidChannelState,
 		},
 		{
 			"channel is in FLUSHING state",
@@ -217,7 +220,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				err = path.EndpointA.ChanUpgradeTry()
 				suite.Require().NoError(err)
 			},
-			false,
+			types.ErrChannelNotFound,
 		},
 	}
 
@@ -243,13 +246,14 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			sequence, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.SendPacket(suite.chainA.GetContext(),
 				sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, packetData)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				// verify that the returned sequence matches expected value
 				suite.Require().True(ok)
 				suite.Require().Equal(expectedSequence, sequence, "send packet did not return the expected sequence of the outgoing packet")
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -637,7 +641,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = ibcmock.MockAcknowledgement
 			},
-			true,
+			nil,
 		},
 		{
 			"success: channel flushing",
@@ -648,7 +652,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 				path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
 			},
-			true,
+			nil,
 		},
 		{
 			"success: channel flush complete",
@@ -659,21 +663,21 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 				path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHCOMPLETE })
 			},
-			true,
+			nil,
 		},
 		{"channel not found", func() {
 			// use wrong channel naming
 			path.Setup()
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ibctesting.InvalidID, ibctesting.InvalidID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			ack = ibcmock.MockAcknowledgement
-		}, false},
+		}, types.ErrChannelNotFound},
 		{"channel not open", func() {
 			path.Setup()
 			packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 			ack = ibcmock.MockAcknowledgement
 
 			path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
-		}, false},
+		}, types.ErrInvalidChannelState},
 		{
 			"no-op, already acked",
 			func() {
@@ -682,7 +686,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				ack = ibcmock.MockAcknowledgement
 				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ack.Acknowledgement())
 			},
-			false,
+			types.ErrAcknowledgementExists,
 		},
 		{
 			"empty acknowledgement",
@@ -691,7 +695,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = ibcmock.NewEmptyAcknowledgement()
 			},
-			false,
+			errorsmod.Wrap(types.ErrInvalidAcknowledgement, ""),
 		},
 		{
 			"acknowledgement is nil",
@@ -700,7 +704,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 				ack = nil
 			},
-			false,
+			errorsmod.Wrap(types.ErrInvalidAcknowledgement, ""),
 		},
 		{
 			"packet already received",
@@ -715,7 +719,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				// set recv seq start to indicate packet was processed in previous upgrade
 				suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetRecvStartSequence(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence+1)
 			},
-			false,
+			errorsmod.Wrap(types.ErrPacketReceived, ""),
 		},
 	}
 	for i, tc := range testCases {
@@ -728,10 +732,11 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
