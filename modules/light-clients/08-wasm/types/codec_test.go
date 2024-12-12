@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,44 +15,44 @@ import (
 
 func TestCodecTypeRegistration(t *testing.T) {
 	testCases := []struct {
-		name    string
-		typeURL string
-		expPass bool
+		name     string
+		typeURL  string
+		expError error
 	}{
 		{
 			"success: ClientState",
 			sdk.MsgTypeURL(&types.ClientState{}),
-			true,
+			nil,
 		},
 		{
 			"success: ConsensusState",
 			sdk.MsgTypeURL(&types.ConsensusState{}),
-			true,
+			nil,
 		},
 		{
 			"success: ClientMessage",
 			sdk.MsgTypeURL(&types.ClientMessage{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgStoreCode",
 			sdk.MsgTypeURL(&types.MsgStoreCode{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgMigrateContract",
 			sdk.MsgTypeURL(&types.MsgMigrateContract{}),
-			true,
+			nil,
 		},
 		{
 			"success: MsgRemoveChecksum",
 			sdk.MsgTypeURL(&types.MsgRemoveChecksum{}),
-			true,
+			nil,
 		},
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			false,
+			fmt.Errorf("unable to resolve type URL ibc.invalid.MsgTypeURL"),
 		},
 	}
 
@@ -62,12 +63,12 @@ func TestCodecTypeRegistration(t *testing.T) {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(wasm.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				require.NotNil(t, msg)
 				require.NoError(t, err)
 			} else {
 				require.Nil(t, msg)
-				require.Error(t, err)
+				require.ErrorContains(t, err, tc.expError.Error())
 			}
 		})
 	}

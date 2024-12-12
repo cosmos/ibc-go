@@ -918,7 +918,7 @@ func (suite *KeeperTestSuite) UpgradeChannel(path *ibctesting.Path, upgradeField
 	suite.Require().NoError(err)
 }
 
-// sendMockPacket sends a packet from source to dest and acknowledges it on the source (completing the packet lifecycle)
+// sendMockPackets sends a packet from source to dest and acknowledges it on the source (completing the packet lifecycle)
 // if acknowledge is true. If acknowledge is false, then the packet will be sent, but timed out.
 // Question(jim): find a nicer home for this?
 func (suite *KeeperTestSuite) sendMockPackets(path *ibctesting.Path, numPackets int, acknowledge bool) {

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -139,13 +140,13 @@ func (suite *KeeperTestSuite) TestDefaultSetParams() {
 // TestSetAndGetParams tests that param setting and retrieval works properly
 func (suite *KeeperTestSuite) TestSetAndGetParams() {
 	testCases := []struct {
-		name    string
-		input   types.Params
-		expPass bool
+		name   string
+		input  types.Params
+		expErr error
 	}{
-		{"success: set default params", types.DefaultParams(), true},
-		{"success: valid value for MaxExpectedTimePerBlock", types.NewParams(10), true},
-		{"failure: invalid value for MaxExpectedTimePerBlock", types.NewParams(0), false},
+		{"success: set default params", types.DefaultParams(), nil},
+		{"success: valid value for MaxExpectedTimePerBlock", types.NewParams(10), nil},
+		{"failure: invalid value for MaxExpectedTimePerBlock", types.NewParams(0), errors.New("MaxExpectedTimePerBlock cannot be zero")},
 	}
 
 	for _, tc := range testCases {
@@ -156,13 +157,14 @@ func (suite *KeeperTestSuite) TestSetAndGetParams() {
 			ctx := suite.chainA.GetContext()
 			err := tc.input.Validate()
 			suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.SetParams(ctx, tc.input)
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				expected := tc.input
 				p := suite.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.GetParams(ctx)
 				suite.Require().Equal(expected, p)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
