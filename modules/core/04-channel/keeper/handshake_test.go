@@ -3,10 +3,14 @@ package keeper_test
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
@@ -15,7 +19,7 @@ import (
 type testCase = struct {
 	msg      string
 	malleate func()
-	expPass  bool
+	expErr   error
 }
 
 // TestChanOpenInit tests the OpenInit handshake call for channels. It uses message passing
@@ -32,12 +36,12 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 		{"success", func() {
 			path.SetupConnections()
 			features = []string{"ORDER_ORDERED", "ORDER_UNORDERED"}
-		}, true},
+		}, nil},
 		{"connection doesn't exist", func() {
 			// any non-empty values
 			path.EndpointA.ConnectionID = "connection-0"
 			path.EndpointB.ConnectionID = "connection-0"
-		}, false},
+		}, connectiontypes.ErrConnectionNotFound},
 		{"connection version not negotiated", func() {
 			path.SetupConnections()
 
@@ -47,7 +51,7 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 			})
 
 			features = []string{"ORDER_ORDERED", "ORDER_UNORDERED"}
-		}, false},
+		}, connectiontypes.ErrInvalidVersion},
 		{"connection does not support ORDERED channels", func() {
 			path.SetupConnections()
 
@@ -58,10 +62,10 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 
 			// NOTE: Opening UNORDERED channels is still expected to pass but ORDERED channels should fail
 			features = []string{"ORDER_UNORDERED"}
-		}, true},
+		}, nil},
 		{
-			msg:     "unauthorized client",
-			expPass: false,
+			msg:    "unauthorized client",
+			expErr: clienttypes.ErrClientNotActive,
 			malleate: func() {
 				expErrorMsgSubstring = "status is Unauthorized"
 				path.SetupConnections()
@@ -104,7 +108,7 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 
 				// Testcase must have expectedPass = true AND channel order supported before
 				// asserting the channel handshake initiation succeeded
-				if tc.expPass && orderSupported {
+				if (tc.expErr == nil) && orderSupported {
 					suite.Require().NoError(err)
 					suite.Require().Equal(types.FormatChannelIdentifier(0), channelID)
 				} else {
@@ -132,17 +136,17 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			path.SetChannelOrdered()
 			err := path.EndpointA.ChanOpenInit()
 			suite.Require().NoError(err)
-		}, true},
+		}, nil},
 		{"connection doesn't exist", func() {
 			path.EndpointA.ConnectionID = ibctesting.FirstConnectionID
 			path.EndpointB.ConnectionID = ibctesting.FirstConnectionID
-		}, false},
+		}, connectiontypes.ErrConnectionNotFound},
 		{"connection is not OPEN", func() {
 			path.SetupClients()
 
 			err := path.EndpointB.ConnOpenInit()
 			suite.Require().NoError(err)
-		}, false},
+		}, connectiontypes.ErrInvalidConnectionState},
 		{"consensus state not found", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
@@ -150,11 +154,11 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			suite.Require().NoError(err)
 
 			heightDiff = 3 // consensus state doesn't exist at this height
-		}, false},
+		}, errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "")},
 		{"channel verification failed", func() {
 			// not creating a channel on chainA will result in an invalid proof of existence
 			path.SetupConnections()
-		}, false},
+		}, commitmenttypes.ErrInvalidProof},
 		{"connection version not negotiated", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
@@ -165,7 +169,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			path.EndpointB.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
 				c.Versions = append(c.Versions, connectiontypes.NewVersion("2", []string{"ORDER_ORDERED", "ORDER_UNORDERED"}))
 			})
-		}, false},
+		}, connectiontypes.ErrInvalidVersion},
 		{"connection does not support ORDERED channels", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
@@ -176,7 +180,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			path.EndpointB.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
 				c.Versions = []*connectiontypes.Version{connectiontypes.NewVersion("1", []string{"ORDER_UNORDERED"})}
 			})
-		}, false},
+		}, connectiontypes.ErrInvalidVersion},
 	}
 
 	for _, tc := range testCases {
@@ -205,11 +209,12 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(channelID)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -234,7 +239,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 
 			err = path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
-		}, true},
+		}, nil},
 		{"success with empty stored counterparty channel ID", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
@@ -253,12 +258,12 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			counterpartyChannelID = path.EndpointB.ChannelID
 
 			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
-		}, true},
-		{"channel doesn't exist", func() {}, false},
+		}, nil},
+		{"channel doesn't exist", func() {}, errorsmod.Wrap(types.ErrChannelNotFound, "")},
 		{"channel state is not INIT", func() {
 			// create fully open channels on both chains
 			path.Setup()
-		}, false},
+		}, types.ErrInvalidChannelState},
 		{"connection not found", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
@@ -272,7 +277,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			channel := path.EndpointA.GetChannel()
 			channel.ConnectionHops[0] = doesnotexist
 			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
-		}, false},
+		}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, "")},
 		{"connection is not OPEN", func() {
 			path.SetupClients()
 
@@ -284,7 +289,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 
 			err = path.EndpointA.ChanOpenInit()
 			suite.Require().NoError(err)
-		}, false},
+		}, connectiontypes.ErrInvalidConnectionState},
 		{"consensus state not found", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
@@ -296,7 +301,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			suite.Require().NoError(err)
 
 			heightDiff = 3 // consensus state doesn't exist at this height
-		}, false},
+		}, ibcerrors.ErrInvalidHeight},
 		{"invalid counterparty channel identifier", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
@@ -308,7 +313,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			suite.Require().NoError(err)
 
 			counterpartyChannelID = "otheridentifier"
-		}, false},
+		}, commitmenttypes.ErrInvalidProof},
 		{"channel verification failed", func() {
 			// chainB is INIT, chainA in TRYOPEN
 			path.SetupConnections()
@@ -319,7 +324,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 
 			err = path.EndpointA.ChanOpenTry()
 			suite.Require().NoError(err)
-		}, false},
+		}, types.ErrInvalidChannelState},
 	}
 
 	for _, tc := range testCases {
@@ -350,10 +355,11 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -380,12 +386,12 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 
 			err = path.EndpointA.ChanOpenAck()
 			suite.Require().NoError(err)
-		}, true},
-		{"channel doesn't exist", func() {}, false},
+		}, nil},
+		{"channel doesn't exist", func() {}, types.ErrChannelNotFound},
 		{"channel state is not TRYOPEN", func() {
 			// create fully open channels on both chains
 			path.Setup()
-		}, false},
+		}, types.ErrInvalidChannelState},
 		{"connection not found", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
@@ -403,13 +409,13 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 			channel := path.EndpointB.GetChannel()
 			channel.ConnectionHops[0] = doesnotexist
 			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
-		}, false},
+		}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, "")},
 		{"connection is not OPEN", func() {
 			path.SetupClients()
 
 			err := path.EndpointB.ConnOpenInit()
 			suite.Require().NoError(err)
-		}, false},
+		}, types.ErrChannelNotFound},
 		{"consensus state not found", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
@@ -424,7 +430,7 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 			suite.Require().NoError(err)
 
 			heightDiff = 3
-		}, false},
+		}, ibcerrors.ErrInvalidHeight},
 		{"channel verification failed", func() {
 			// chainA is INIT, chainB in TRYOPEN
 			path.SetupConnections()
@@ -435,7 +441,7 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 
 			err = path.EndpointB.ChanOpenTry()
 			suite.Require().NoError(err)
-		}, false},
+		}, commitmenttypes.ErrInvalidProof},
 	}
 
 	for _, tc := range testCases {
@@ -462,10 +468,11 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -482,7 +489,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 	testCases := []testCase{
 		{"success", func() {
 			path.Setup()
-		}, true},
+		}, nil},
 		{"channel doesn't exist", func() {
 			// any non-nil values work for connections
 			path.EndpointA.ConnectionID = ibctesting.FirstConnectionID
@@ -490,13 +497,13 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			path.EndpointB.ChannelID = ibctesting.FirstChannelID
-		}, false},
+		}, types.ErrChannelNotFound},
 		{"channel state is CLOSED", func() {
 			path.Setup()
 
 			// close channel
 			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
-		}, false},
+		}, types.ErrInvalidChannelState},
 		{"connection not found", func() {
 			path.Setup()
 
@@ -504,7 +511,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 			channel := path.EndpointA.GetChannel()
 			channel.ConnectionHops[0] = doesnotexist
 			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
-		}, false},
+		}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, "")},
 		{"connection is not OPEN", func() {
 			path.SetupClients()
 
@@ -515,10 +522,10 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 			path.SetChannelOrdered()
 			err = path.EndpointA.ChanOpenInit()
 			suite.Require().NoError(err)
-		}, false},
+		}, connectiontypes.ErrInvalidConnectionState},
 		{
-			msg:     "unauthorized client",
-			expPass: false,
+			msg:    "unauthorized client",
+			expErr: clienttypes.ErrClientNotActive,
 			malleate: func() {
 				path.Setup()
 
@@ -544,11 +551,12 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 			)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), expErrorMsgSubstring)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -568,7 +576,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 		{"success", func() {
 			path.Setup()
 			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
-		}, true},
+		}, nil},
 		{"success with upgrade info", func() {
 			path.Setup()
 
@@ -588,17 +596,17 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 
 			path.EndpointB.SetChannelUpgrade(upgrade)
 			path.EndpointB.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
-		}, true},
+		}, nil},
 		{"channel doesn't exist", func() {
 			// any non-nil values work for connections
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			path.EndpointB.ChannelID = ibctesting.FirstChannelID
-		}, false},
+		}, errorsmod.Wrap(types.ErrChannelNotFound, "")},
 		{"channel state is CLOSED", func() {
 			path.Setup()
 
 			path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
-		}, false},
+		}, types.ErrInvalidChannelState},
 		{"connection not found", func() {
 			path.Setup()
 
@@ -606,7 +614,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			channel := path.EndpointB.GetChannel()
 			channel.ConnectionHops[0] = doesnotexist
 			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
-		}, false},
+		}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, "")},
 		{"connection is not OPEN", func() {
 			path.SetupClients()
 
@@ -617,18 +625,18 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			path.SetChannelOrdered()
 			err = path.EndpointB.ChanOpenInit()
 			suite.Require().NoError(err)
-		}, false},
+		}, connectiontypes.ErrInvalidConnectionState},
 		{"consensus state not found", func() {
 			path.Setup()
 
 			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 
 			heightDiff = 3
-		}, false},
+		}, ibcerrors.ErrInvalidHeight},
 		{"channel verification failed", func() {
 			// channel not closed
 			path.Setup()
-		}, false},
+		}, ibcerrors.ErrInvalidHeight},
 		{
 			"failure: invalid counterparty upgrade sequence",
 			func() {
@@ -641,7 +649,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 
 				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			},
-			false,
+			commitmenttypes.ErrInvalidProof,
 		},
 	}
 
@@ -664,7 +672,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 				proof, malleateHeight(proofHeight, heightDiff), counterpartyUpgradeSequence,
 			)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 
 				// if the channel closed during an upgrade, there should not be any upgrade information
@@ -674,6 +682,7 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 				suite.Require().False(found)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
