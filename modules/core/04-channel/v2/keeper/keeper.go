@@ -221,8 +221,8 @@ func (k *Keeper) aliasV1Channel(ctx context.Context, portID, channelID string) (
 		return types.Channel{}, false
 	}
 	// Do not allow channel to be converted into a version 2 channel
-	// if the channel is not OPEN or if it is ORDERED
-	if channel.State != channeltypesv1.OPEN || channel.Ordering == channeltypesv1.ORDERED {
+	// if the channel is not OPEN or if it is not UNORDERED
+	if channel.State != channeltypesv1.OPEN || channel.Ordering != channeltypesv1.UNORDERED {
 		return types.Channel{}, false
 	}
 	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
