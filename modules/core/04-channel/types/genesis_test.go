@@ -213,7 +213,7 @@ func TestValidateGenesis(t *testing.T) {
 				0,
 				types.Params{UpgradeTimeout: types.DefaultTimeout},
 			),
-			expErr: host.ErrInvalidID,
+			expErr: types.ErrInvalidSequence,
 		},
 	}
 
