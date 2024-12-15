@@ -100,7 +100,7 @@ func (gs GenesisState) Validate() error {
 	}
 
 	if maxSequence != 0 && maxSequence >= gs.NextChannelSequence {
-		return errorsmod.Wrapf(host.ErrInvalidID, "next channel sequence %d must be greater than maximum sequence used in channel identifier %d", gs.NextChannelSequence, maxSequence)
+		return errorsmod.Wrapf(ErrInvalidSequence, "next channel sequence %d must be greater than maximum sequence used in channel identifier %d", gs.NextChannelSequence, maxSequence)
 	}
 
 	for i, ack := range gs.Acknowledgements {
@@ -129,7 +129,7 @@ func (gs GenesisState) Validate() error {
 
 	for i, ss := range gs.SendSequences {
 		if err := ss.Validate(); err != nil {
-			return errorsmod.Wrapf(ErrInvalidSend, "invalid send sequence %v index %d: %s", ss, i, err.Error())
+			return errorsmod.Wrapf(ErrInvalidSequence, "invalid send sequence %v index %d: %s", ss, i, err.Error())
 		}
 	}
 

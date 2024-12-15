@@ -110,7 +110,7 @@ func TestValidateGenesis(t *testing.T) {
 					types.NewPacketSequence(testPort1, testChannel1, 0),
 				},
 			},
-			expErr: types.ErrInvalidSend,
+			expErr: types.ErrInvalidSequence,
 		},
 		{
 			name: "invalid recv seq",

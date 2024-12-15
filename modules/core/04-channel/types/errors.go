@@ -59,5 +59,5 @@ var (
 	ErrPruningSequenceStartNotFound    = errorsmod.Register(SubModuleName, 41, "pruning sequence start not found")
 	ErrRecvStartSequenceNotFound       = errorsmod.Register(SubModuleName, 42, "recv start sequence not found")
 	ErrInvalidCommitment               = errorsmod.Register(SubModuleName, 43, "invalid commitment")
-	ErrInvalidSend                     = errorsmod.Register(SubModuleName, 44, "invalid send")
+	ErrInvalidSequence                 = errorsmod.Register(SubModuleName, 44, "invalid sequence")
 )
