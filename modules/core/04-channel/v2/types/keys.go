@@ -4,13 +4,13 @@ const (
 	// SubModuleName defines the channelv2 module name.
 	SubModuleName = "channelv2"
 
-	// ChannelKey is the key used to store channels in the channel store.
-	// the channel key is imported from types instead of host because
-	// the channel key is not a part of the ics-24 host specification
-	ChannelKey = "channel"
+	// ChannelPrefix is the prefix under which all v2 channels are stored.
+	// It is imported from types since it is not part of the ics-24 host
+	// specification.
+	ChannelPrefix = "channels"
 
-	// CreatorKey is the key used to store the channel creator in the channel store
-	// the creator key is imported from types instead of host because
-	// the creator key is not a part of the ics-24 host specification
-	CreatorKey = "creator"
+	// CreatorPrefix is the prefix under which all v2 channel creators are stored.
+	// It is imported from types since it is not part of the ics-24 host
+	// specification.
+	CreatorPrefix = "creators"
 )

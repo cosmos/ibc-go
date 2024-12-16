@@ -18,7 +18,6 @@ import (
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmentv2types "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -55,21 +54,28 @@ func (Keeper) Logger(ctx context.Context) log.Logger {
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
-func (k Keeper) ChannelStore(ctx context.Context, channelID string) storetypes.KVStore {
-	channelPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyChannelPrefix, channelID))
+// channelStore returns the KV store under which channels are stored.
+func (k Keeper) channelStore(ctx context.Context) storetypes.KVStore {
+	channelPrefix := []byte(fmt.Sprintf("%s/", types.ChannelPrefix))
 	return prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), channelPrefix)
+}
+
+// creatorStore returns the KV store under which creators are stored.
+func (k Keeper) creatorStore(ctx context.Context) storetypes.KVStore {
+	creatorPrefix := []byte(fmt.Sprintf("%s/", types.CreatorPrefix))
+	return prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), creatorPrefix)
 }
 
 // SetChannel sets the Channel for a given channel identifier.
 func (k *Keeper) SetChannel(ctx context.Context, channelID string, channel types.Channel) {
 	bz := k.cdc.MustMarshal(&channel)
-	k.ChannelStore(ctx, channelID).Set([]byte(types.ChannelKey), bz)
+	k.channelStore(ctx).Set([]byte(channelID), bz)
 }
 
 // GetChannel gets the Channel for a given channel identifier.
 func (k *Keeper) GetChannel(ctx context.Context, channelID string) (types.Channel, bool) {
-	store := k.ChannelStore(ctx, channelID)
-	bz := store.Get([]byte(types.ChannelKey))
+	store := k.channelStore(ctx)
+	bz := store.Get([]byte(channelID))
 	if len(bz) == 0 {
 		return types.Channel{}, false
 	}
@@ -81,13 +87,13 @@ func (k *Keeper) GetChannel(ctx context.Context, channelID string) (types.Channe
 
 // HasChannel returns true if a Channel exists for a given channel identifier, otherwise false.
 func (k *Keeper) HasChannel(ctx context.Context, channelID string) bool {
-	store := k.ChannelStore(ctx, channelID)
-	return store.Has([]byte(types.ChannelKey))
+	store := k.channelStore(ctx)
+	return store.Has([]byte(channelID))
 }
 
 // GetCreator returns the creator of the channel.
 func (k *Keeper) GetCreator(ctx context.Context, channelID string) (string, bool) {
-	bz := k.ChannelStore(ctx, channelID).Get([]byte(types.CreatorKey))
+	bz := k.creatorStore(ctx).Get([]byte(channelID))
 	if len(bz) == 0 {
 		return "", false
 	}
@@ -97,12 +103,12 @@ func (k *Keeper) GetCreator(ctx context.Context, channelID string) (string, bool
 
 // SetCreator sets the creator of the channel.
 func (k *Keeper) SetCreator(ctx context.Context, channelID, creator string) {
-	k.ChannelStore(ctx, channelID).Set([]byte(types.CreatorKey), []byte(creator))
+	k.creatorStore(ctx).Set([]byte(channelID), []byte(creator))
 }
 
 // DeleteCreator deletes the creator associated with the channel.
 func (k *Keeper) DeleteCreator(ctx context.Context, channelID string) {
-	k.ChannelStore(ctx, channelID).Delete([]byte(types.CreatorKey))
+	k.creatorStore(ctx).Delete([]byte(channelID))
 }
 
 // GetPacketReceipt returns the packet receipt from the packet receipt path based on the channelID and sequence.

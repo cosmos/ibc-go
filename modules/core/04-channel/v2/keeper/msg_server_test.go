@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 			"failure: channel must already exist",
 			func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeleteCreator(suite.chainA.GetContext(), path.EndpointA.ChannelID)
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.ChannelStore(suite.chainA.GetContext(), path.EndpointA.ChannelID).Delete([]byte(types.ChannelKey))
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.ChannelStore(suite.chainA.GetContext()).Delete([]byte(path.EndpointA.ChannelID))
 			},
 			types.ErrChannelNotFound,
 		},
