@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/mock"
@@ -2249,7 +2250,7 @@ func (suite *KeeperTestSuite) TestStartFlush() {
 			func() {
 				// Delete next sequence send key from store
 				store := suite.chainB.GetContext().KVStore(suite.chainB.GetSimApp().GetKey(exported.StoreKey))
-				store.Delete(host.NextSequenceSendKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+				store.Delete(hostv2.NextSequenceSendKey(path.EndpointB.ChannelID))
 			},
 			types.ErrSequenceSendNotFound,
 		},

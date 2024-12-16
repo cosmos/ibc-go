@@ -22,6 +22,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -138,9 +139,10 @@ func (k *Keeper) SetNextChannelSequence(ctx context.Context, sequence uint64) {
 }
 
 // GetNextSequenceSend gets a channel's next send sequence from the store
+// NOTE: portID is now ignored in key to use same key as v2. However this API remains unchanged
 func (k *Keeper) GetNextSequenceSend(ctx context.Context, portID, channelID string) (uint64, bool) {
 	store := k.storeService.OpenKVStore(ctx)
-	bz, err := store.Get(host.NextSequenceSendKey(portID, channelID))
+	bz, err := store.Get(hostv2.NextSequenceSendKey(channelID))
 	if err != nil {
 		panic(err)
 	}
@@ -152,10 +154,11 @@ func (k *Keeper) GetNextSequenceSend(ctx context.Context, portID, channelID stri
 }
 
 // SetNextSequenceSend sets a channel's next send sequence to the store
+// NOTE: portID is now ignored in key to use same key as v2. However this API remains unchanged
 func (k *Keeper) SetNextSequenceSend(ctx context.Context, portID, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(host.NextSequenceSendKey(portID, channelID), bz); err != nil {
+	if err := store.Set(hostv2.NextSequenceSendKey(channelID), bz); err != nil {
 		panic(err)
 	}
 }
@@ -336,7 +339,7 @@ func (k *Keeper) IteratePacketSequence(ctx context.Context, iterator db.Iterator
 }
 
 // GetAllPacketSendSeqs returns all stored next send sequences.
-func (k *Keeper) GetAllPacketSendSeqs(ctx context.Context) (seqs []types.PacketSequence) {
+func (k *Keeper) GetAllPacketSendSeqsV1(ctx context.Context) (seqs []types.PacketSequence) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyNextSeqSendPrefix))
 	k.IteratePacketSequence(ctx, iterator, func(portID, channelID string, nextSendSeq uint64) bool {
@@ -344,6 +347,21 @@ func (k *Keeper) GetAllPacketSendSeqs(ctx context.Context) (seqs []types.PacketS
 		seqs = append(seqs, ps)
 		return false
 	})
+	return seqs
+}
+
+func (k *Keeper) GetAllPacketSendSeqs(ctx context.Context) (seqs []types.PacketSequence) {
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(hostv2.NextSequenceSendKeyPrefix))
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	for ; iterator.Valid(); iterator.Next() {
+		channelID := string(iterator.Key()[len(hostv2.NextSequenceSendKeyPrefix):])
+
+		sequence := sdk.BigEndianToUint64(iterator.Value())
+
+		ps := types.NewPacketSequence("", channelID, sequence)
+		seqs = append(seqs, ps)
+	}
 	return seqs
 }
 

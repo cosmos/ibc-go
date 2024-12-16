@@ -274,9 +274,14 @@ func (suite *KeeperTestSuite) TestGetAllSequences() {
 	suite.Len(recvSeqs, 2)
 	suite.Len(ackSeqs, 2)
 
-	suite.Equal(expSeqs, sendSeqs)
 	suite.Equal(expSeqs, recvSeqs)
 	suite.Equal(expSeqs, ackSeqs)
+
+	expSendSeqs := []types.PacketSequence{}
+	for _, es := range expSeqs {
+		expSendSeqs = append(expSendSeqs, types.NewPacketSequence("", es.ChannelId, es.Sequence))
+	}
+	suite.Equal(expSendSeqs, sendSeqs)
 }
 
 // TestGetAllPacketState creates a set of acks, packet commitments, and receipts on two different
