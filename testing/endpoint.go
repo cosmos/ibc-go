@@ -17,6 +17,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
@@ -37,6 +38,7 @@ type Endpoint struct {
 	ConnectionConfig *ConnectionConfig
 	ChannelConfig    *ChannelConfig
 
+	MerklePathPrefix commitmenttypesv2.MerklePath
 	// disableUniqueChannelIDs is used to enforce, in a test,
 	// the old way to generate channel IDs (all channels are called channel-0)
 	// It is used only by one test suite and should not be used for new tests.
@@ -54,6 +56,7 @@ func NewEndpoint(
 		ClientConfig:     clientConfig,
 		ConnectionConfig: connectionConfig,
 		ChannelConfig:    channelConfig,
+		MerklePathPrefix: MerklePath,
 	}
 }
 
@@ -65,6 +68,7 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 		ClientConfig:     NewTendermintConfig(),
 		ConnectionConfig: NewConnectionConfig(),
 		ChannelConfig:    NewChannelConfig(),
+		MerklePathPrefix: MerklePath,
 	}
 }
 
@@ -163,6 +167,16 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 	require.NoError(endpoint.Chain.TB, err)
 
 	return endpoint.Chain.sendMsgs(msg)
+}
+
+// FreezeClient freezes the IBC client associated with the endpoint.
+func (endpoint *Endpoint) FreezeClient() {
+	clientState := endpoint.Chain.GetClientState(endpoint.ClientID)
+	tmClientState, ok := clientState.(*ibctm.ClientState)
+	require.True(endpoint.Chain.TB, ok)
+
+	tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(endpoint.Chain.GetContext(), endpoint.ClientID, tmClientState)
 }
 
 // UpgradeChain will upgrade a chain's chainID to the next revision number.
