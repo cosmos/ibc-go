@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -181,6 +182,113 @@ func (suite *KeeperTestSuite) TestQueryChannelClientState() {
 
 				// ensure UnpackInterfaces is defined
 				cachedValue := res.IdentifiedClientState.ClientState.GetCachedValue()
+				suite.Require().NotNil(cachedValue)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().Nil(res)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestQueryChannelConsensusState() {
+	var (
+		req               *types.QueryChannelConsensusStateRequest
+		expConsensusState exported.ConsensusState
+		expClientID       string
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				expConsensusState, _ = suite.chainA.GetConsensusState(path.EndpointA.ClientID, path.EndpointA.GetClientLatestHeight())
+				suite.Require().NotNil(expConsensusState)
+				expClientID = path.EndpointA.ClientID
+
+				req = &types.QueryChannelConsensusStateRequest{
+					ChannelId:      path.EndpointA.ChannelID,
+					RevisionNumber: path.EndpointA.GetClientLatestHeight().GetRevisionNumber(),
+					RevisionHeight: path.EndpointA.GetClientLatestHeight().GetRevisionHeight(),
+				}
+			},
+			nil,
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"invalid channel ID",
+			func() {
+				req = &types.QueryChannelConsensusStateRequest{
+					ChannelId:      "",
+					RevisionNumber: 0,
+					RevisionHeight: 1,
+				}
+			},
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
+		},
+		{
+			"channel not found",
+			func() {
+				req = &types.QueryChannelConsensusStateRequest{
+					ChannelId:      "test-channel-id",
+					RevisionNumber: 0,
+					RevisionHeight: 1,
+				}
+			},
+			status.Error(codes.NotFound, fmt.Sprintf("channel-id: %s: channel not found", "test-channel-id")),
+		},
+		{
+			"consensus state for channel's connection not found",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupV2()
+
+				req = &types.QueryChannelConsensusStateRequest{
+					ChannelId:      path.EndpointA.ChannelID,
+					RevisionNumber: 0,
+					RevisionHeight: uint64(suite.chainA.GetContext().BlockHeight()), // use current height
+				}
+			},
+			status.Error(codes.NotFound, fmt.Sprintf("client-id: %s: consensus state not found", "07-tendermint-0")),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+
+			tc.malleate()
+			ctx := suite.chainA.GetContext()
+
+			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ChannelKeeperV2)
+			res, err := queryServer.ChannelConsensusState(ctx, req)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				consensusState, err := clienttypes.UnpackConsensusState(res.ConsensusState)
+				suite.Require().NoError(err)
+				suite.Require().Equal(expConsensusState, consensusState)
+				suite.Require().Equal(expClientID, res.ClientId)
+
+				// ensure UnpackInterfaces is defined
+				cachedValue := res.ConsensusState.GetCachedValue()
 				suite.Require().NotNil(cachedValue)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
