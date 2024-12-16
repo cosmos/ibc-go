@@ -7,11 +7,11 @@ import (
 	"slices"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
-
+	gogoproto "github.com/cosmos/gogoproto/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	gogoproto "github.com/cosmos/gogoproto/proto"
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
