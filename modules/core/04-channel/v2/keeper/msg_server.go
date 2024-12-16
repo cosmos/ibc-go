@@ -226,6 +226,8 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 		}
 	}
 
+	defer telemetry.ReportAcknowledgePacket(msg.Packet)
+
 	return &types.MsgAcknowledgementResponse{Result: types.SUCCESS}, nil
 }
 
@@ -264,6 +266,8 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types
 			return nil, errorsmod.Wrapf(err, "failed OnTimeoutPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel)
 		}
 	}
+
+	defer telemetry.ReportTimeoutPacket(timeout.Packet)
 
 	return &types.MsgTimeoutResponse{Result: types.SUCCESS}, nil
 }
