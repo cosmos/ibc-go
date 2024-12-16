@@ -50,7 +50,7 @@ func TestCodecTypeRegistration(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, solomachine.AppModuleBasic{})
+			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, solomachine.AppModule{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
 			if tc.expError == nil {

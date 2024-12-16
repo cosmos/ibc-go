@@ -29,6 +29,20 @@ var (
 	_ appmodule.AppModule           = (*AppModule)(nil)
 )
 
+// AppModule represents the AppModule for this module
+type AppModule struct {
+	cdc    codec.Codec
+	keeper keeper.Keeper
+}
+
+// NewAppModule creates a new 08-wasm module
+func NewAppModule(cdc codec.Codec, k keeper.Keeper) AppModule {
+	return AppModule{
+		cdc:    cdc,
+		keeper: k,
+	}
+}
+
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (AppModule) IsOnePerModuleType() {}
 
@@ -82,20 +96,6 @@ func (AppModule) GetTxCmd() *cobra.Command {
 // GetQueryCmd implements AppModule interface
 func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
-}
-
-// AppModule represents the AppModule for this module
-type AppModule struct {
-	cdc    codec.Codec
-	keeper keeper.Keeper
-}
-
-// NewAppModule creates a new 08-wasm module
-func NewAppModule(cdc codec.Codec, k keeper.Keeper) AppModule {
-	return AppModule{
-		cdc:    cdc,
-		keeper: k,
-	}
 }
 
 // RegisterServices registers module services.
