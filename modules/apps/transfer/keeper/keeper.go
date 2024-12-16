@@ -35,7 +35,7 @@ type Keeper struct {
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
-	authKeeper    types.AccountKeeper
+	authKeeper    types.AuthKeeper
 	bankKeeper    types.BankKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
@@ -50,7 +50,7 @@ func NewKeeper(
 	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
-	authKeeper types.AccountKeeper,
+	authKeeper types.AuthKeeper,
 	bankKeeper types.BankKeeper,
 	authority string,
 ) Keeper {
