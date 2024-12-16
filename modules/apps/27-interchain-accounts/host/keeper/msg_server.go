@@ -2,14 +2,16 @@ package keeper
 
 import (
 	"context"
+	"fmt"
+	"reflect"
 	"slices"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-
+	gogoproto "github.com/cosmos/gogoproto/proto"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
@@ -36,28 +38,55 @@ func (m msgServer) ModuleQuerySafe(ctx context.Context, msg *types.MsgModuleQuer
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "not module query safe: %s", query.Path)
 		}
 
-		route := m.queryRouter.Route(query.Path)
-		if route == nil {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no route to query: %s", query.Path)
+		path := strings.TrimPrefix(query.Path, "/")
+		pathFullName := protoreflect.FullName(strings.ReplaceAll(path, "/", "."))
+
+		desc, err := gogoproto.GogoResolver.FindDescriptorByName(pathFullName)
+		if err != nil {
+			return nil, err
 		}
 
-		res, err := route(sdk.UnwrapSDKContext(ctx), &abci.QueryRequest{
-			Path: query.Path,
-			Data: query.Data,
-		})
+		md, isGRPC := desc.(protoreflect.MethodDescriptor)
+		if !isGRPC {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no descriptor found for query path: %s", string(desc.FullName()))
+		}
+
+		msg, err := forgeProtoTypeFromName(string(md.Input().FullName()))
+		if err != nil {
+			return nil, err
+		}
+
+		if err := m.cdc.Unmarshal(query.Data, msg); err != nil {
+			return nil, err
+		}
+
+		res, err := m.QueryRouterService.Invoke(ctx, msg)
 		if err != nil {
 			m.Logger.Debug("query failed", "path", query.Path, "error", err)
 			return nil, err
 		}
-		if res == nil || res.Value == nil {
+		if res == nil {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no response for query: %s", query.Path)
 		}
 
-		responses[i] = res.Value
+		responses[i] = m.cdc.MustMarshal(res)
 	}
 
 	height := m.HeaderService.HeaderInfo(ctx).Height
 	return &types.MsgModuleQuerySafeResponse{Responses: responses, Height: uint64(height)}, nil
+}
+
+func forgeProtoTypeFromName(msgName string) (gogoproto.Message, error) {
+	typ := gogoproto.MessageType(msgName)
+	if typ == nil {
+		return nil, fmt.Errorf("no message type found for %s", msgName)
+	}
+	msg, ok := reflect.New(typ.Elem()).Interface().(gogoproto.Message)
+	if !ok {
+		return nil, fmt.Errorf("could not create response message %s", msgName)
+	}
+
+	return msg, nil
 }
 
 // UpdateParams updates the host submodule's params.
