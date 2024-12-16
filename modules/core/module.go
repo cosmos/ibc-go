@@ -33,7 +33,7 @@ import (
 
 var (
 	_ module.AppModule              = (*AppModule)(nil)
-	_ module.AppModuleBasic         = (*AppModuleBasic)(nil)
+	_ module.AppModuleBasic         = (*AppModule)(nil)
 	_ module.AppModuleSimulation    = (*AppModule)(nil)
 	_ module.HasGenesis             = (*AppModule)(nil)
 	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
@@ -42,13 +42,22 @@ var (
 	_ appmodule.HasBeginBlocker     = (*AppModule)(nil)
 )
 
-// AppModuleBasic defines the basic application module used by the ibc module.
-type AppModuleBasic struct {
-	cdc codec.Codec
+// AppModule implements an application module for the ibc module.
+type AppModule struct {
+	cdc    codec.Codec
+	keeper *keeper.Keeper
+}
+
+// NewAppModule creates a new AppModule object
+func NewAppModule(cdc codec.Codec, k *keeper.Keeper) AppModule {
+	return AppModule{
+		cdc:    cdc,
+		keeper: k,
+	}
 }
 
 // Name returns the ibc module's name.
-func (AppModuleBasic) Name() string {
+func (AppModule) Name() string {
 	return exported.ModuleName
 }
 
@@ -59,16 +68,16 @@ func (AppModule) IsOnePerModuleType() {}
 func (AppModule) IsAppModule() {}
 
 // RegisterLegacyAminoCodec does nothing. IBC does not support amino.
-func (AppModuleBasic) RegisterLegacyAminoCodec(coreregistry.AminoRegistrar) {}
+func (AppModule) RegisterLegacyAminoCodec(coreregistry.AminoRegistrar) {}
 
 // DefaultGenesis returns default genesis state as raw bytes for the ibc
 // module.
-func (am AppModuleBasic) DefaultGenesis() json.RawMessage {
+func (am AppModule) DefaultGenesis() json.RawMessage {
 	return am.cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the ibc module.
-func (am AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
+func (am AppModule) ValidateGenesis(bz json.RawMessage) error {
 	var gs types.GenesisState
 	if err := am.cdc.UnmarshalJSON(bz, &gs); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", exported.ModuleName, err)
@@ -78,7 +87,7 @@ func (am AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the ibc module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+func (AppModule) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	err := clienttypes.RegisterQueryHandlerClient(context.Background(), mux, clienttypes.NewQueryClient(clientCtx))
 	if err != nil {
 		panic(err)
@@ -94,39 +103,18 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 }
 
 // GetTxCmd returns the root tx command for the ibc module.
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
+func (AppModule) GetTxCmd() *cobra.Command {
 	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the ibc module.
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
 // RegisterInterfaces registers module concrete types into protobuf Any.
-func (AppModuleBasic) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
+func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 	types.RegisterInterfaces(registry)
-}
-
-// AppModule implements an application module for the ibc module.
-type AppModule struct {
-	AppModuleBasic
-	keeper *keeper.Keeper
-}
-
-// NewAppModule creates a new AppModule object
-func NewAppModule(cdc codec.Codec, k *keeper.Keeper) AppModule {
-	return AppModule{
-		keeper: k,
-		AppModuleBasic: AppModuleBasic{
-			cdc: cdc,
-		},
-	}
-}
-
-// Name returns the ibc module's name.
-func (AppModule) Name() string {
-	return exported.ModuleName
 }
 
 // RegisterServices registers module services.

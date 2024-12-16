@@ -506,7 +506,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 			msg, err := govv1.NewMsgSubmitProposal(
 				[]sdk.Msg{testProposal},
 				sdk.NewCoins(sdk.NewCoin(chainB.Config().Denom, sdkmath.NewInt(10_000_000))),
-				hostAccount, "e2e", "e2e", "e2e", 1,
+				hostAccount, "e2e", "e2e", "e2e", govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD,
 			)
 			s.Require().NoError(err)
 

@@ -25,8 +25,8 @@ func (m Migrator) MigrateParams(ctx context.Context) error {
 	if m.keeper != nil {
 		params := types.DefaultParams()
 		if m.keeper.legacySubspace != nil {
-			sdkCtx := sdk.UnwrapSDKContext(ctx)
-			m.keeper.legacySubspace.GetParamSetIfExists(sdkCtx, &params)
+			// NOTE: legacy params still rely on sdk context
+			m.keeper.legacySubspace.GetParamSetIfExists(sdk.UnwrapSDKContext(ctx), &params)
 		}
 		if err := params.Validate(); err != nil {
 			return err

@@ -201,7 +201,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 func (chain *TestChain) GetContext() sdk.Context {
 	ctx := chain.App.GetBaseApp().NewUncachedContext(false, chain.ProposedHeader)
 
-	// when fetching time from context, the header info time is used, rather than the proposed header.
+	// since:cosmos-sdk/v0.52 when fetching time from context, it now returns from HeaderInfo
 	headerInfo := header.Info{
 		Time:    chain.ProposedHeader.Time,
 		ChainID: chain.ProposedHeader.ChainID,

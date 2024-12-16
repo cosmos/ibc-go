@@ -143,7 +143,6 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
-	ibctestingtypes "github.com/cosmos/ibc-go/v9/testing/types"
 )
 
 const appName = "SimApp"
@@ -201,7 +200,7 @@ type SimApp struct {
 	BankKeeper            bankkeeper.BaseKeeper
 	StakingKeeper         *stakingkeeper.Keeper
 	SlashingKeeper        slashingkeeper.Keeper
-	MintKeeper            mintkeeper.Keeper
+	MintKeeper            *mintkeeper.Keeper
 	DistrKeeper           distrkeeper.Keeper
 	GovKeeper             govkeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
@@ -441,9 +440,12 @@ func NewSimApp(
 		cometService,
 	)
 
-	app.MintKeeper = mintkeeper.NewKeeper(appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[minttypes.StoreKey]), logger.With(log.ModuleKey, "x/mint")), app.StakingKeeper, app.AuthKeeper, app.BankKeeper, authtypes.FeeCollectorName, govModuleAddr)
+	app.MintKeeper = mintkeeper.NewKeeper(appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[minttypes.StoreKey]), logger.With(log.ModuleKey, "x/mint")), app.AuthKeeper, app.BankKeeper, authtypes.FeeCollectorName, govModuleAddr)
+	if err := app.MintKeeper.SetMintFn(mintkeeper.DefaultMintFn(minttypes.DefaultInflationCalculationFn, app.StakingKeeper, app.MintKeeper)); err != nil {
+		panic(err)
+	}
 
-	app.PoolKeeper = poolkeeper.NewKeeper(appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[pooltypes.StoreKey]), logger.With(log.ModuleKey, "x/protocolpool")), app.AuthKeeper, app.BankKeeper, app.StakingKeeper, govModuleAddr)
+	app.PoolKeeper = poolkeeper.NewKeeper(appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[pooltypes.StoreKey]), logger.With(log.ModuleKey, "x/protocolpool")), app.AuthKeeper, app.BankKeeper, govModuleAddr)
 
 	app.DistrKeeper = distrkeeper.NewKeeper(appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[distrtypes.StoreKey]), logger.With(log.ModuleKey, "x/distribution")), app.AuthKeeper, app.BankKeeper, app.StakingKeeper, cometService, authtypes.FeeCollectorName, govModuleAddr)
 
@@ -451,7 +453,7 @@ func NewSimApp(
 		appCodec, legacyAmino, app.StakingKeeper, govModuleAddr,
 	)
 
-	app.FeeGrantKeeper = feegrantkeeper.NewKeeper(runtime.NewEnvironment(runtime.NewKVStoreService(keys[feegrant.StoreKey]), logger.With(log.ModuleKey, "x/feegrant")), appCodec, app.AuthKeeper)
+	app.FeeGrantKeeper = feegrantkeeper.NewKeeper(runtime.NewEnvironment(runtime.NewKVStoreService(keys[feegrant.StoreKey]), logger.With(log.ModuleKey, "x/feegrant")), appCodec, app.AuthKeeper.AddressCodec())
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -462,7 +464,7 @@ func NewSimApp(
 	app.CircuitKeeper = circuitkeeper.NewKeeper(runtime.NewEnvironment(runtime.NewKVStoreService(keys[circuittypes.StoreKey]), logger.With(log.ModuleKey, "x/circuit")), appCodec, govModuleAddr, app.AuthKeeper.AddressCodec())
 	app.BaseApp.SetCircuitBreaker(&app.CircuitKeeper)
 
-	app.AuthzKeeper = authzkeeper.NewKeeper(runtime.NewEnvironment(runtime.NewKVStoreService(keys[authzkeeper.StoreKey]), logger.With(log.ModuleKey, "x/authz"), runtime.EnvWithMsgRouterService(app.MsgServiceRouter()), runtime.EnvWithQueryRouterService(app.GRPCQueryRouter())), appCodec, app.AuthKeeper)
+	app.AuthzKeeper = authzkeeper.NewKeeper(runtime.NewEnvironment(runtime.NewKVStoreService(keys[authzkeeper.StoreKey]), logger.With(log.ModuleKey, "x/authz"), runtime.EnvWithMsgRouterService(app.MsgServiceRouter()), runtime.EnvWithQueryRouterService(app.GRPCQueryRouter())), appCodec, app.AuthKeeper.AddressCodec())
 
 	groupConfig := group.DefaultConfig()
 	/*
@@ -509,9 +511,14 @@ func NewSimApp(
 
 	app.NFTKeeper = nftkeeper.NewKeeper(runtime.NewEnvironment(runtime.NewKVStoreService(keys[nftkeeper.StoreKey]), logger.With(log.ModuleKey, "x/nft")), appCodec, app.AuthKeeper, app.BankKeeper)
 
-	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
-		appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[evidencetypes.StoreKey]), logger.With(log.ModuleKey, "x/evidence"), runtime.EnvWithMsgRouterService(app.MsgServiceRouter()), runtime.EnvWithQueryRouterService(app.GRPCQueryRouter())), app.StakingKeeper, app.SlashingKeeper, app.ConsensusParamsKeeper, app.AuthKeeper.AddressCodec(),
+		appCodec,
+		runtime.NewEnvironment(runtime.NewKVStoreService(keys[evidencetypes.StoreKey]), logger.With(log.ModuleKey, "x/evidence"), runtime.EnvWithMsgRouterService(app.MsgServiceRouter()), runtime.EnvWithQueryRouterService(app.GRPCQueryRouter())),
+		app.StakingKeeper,
+		app.SlashingKeeper,
+		app.ConsensusParamsKeeper,
+		app.AuthKeeper.AddressCodec(),
+		app.StakingKeeper.ConsensusAddressCodec(),
 	)
 
 	// If evidence needs to be handled for the app, set routes in router here and seal
@@ -679,7 +686,7 @@ func NewSimApp(
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AuthKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.FeeGrantKeeper, app.interfaceRegistry),
 		gov.NewAppModule(appCodec, &app.GovKeeper, app.AuthKeeper, app.BankKeeper, app.PoolKeeper),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AuthKeeper, nil),
+		mint.NewAppModule(appCodec, app.MintKeeper, app.AuthKeeper),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AuthKeeper, app.BankKeeper, app.StakingKeeper, app.interfaceRegistry, cometService),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.StakingKeeper),
 		staking.NewAppModule(appCodec, app.StakingKeeper),
@@ -1140,11 +1147,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 // GetBaseApp implements the TestingApp interface.
 func (app *SimApp) GetBaseApp() *baseapp.BaseApp {
 	return app.BaseApp
-}
-
-// GetStakingKeeper implements the TestingApp interface.
-func (app *SimApp) GetStakingKeeper() ibctestingtypes.StakingKeeper {
-	return app.StakingKeeper
 }
 
 // GetIBCKeeper implements the TestingApp interface.

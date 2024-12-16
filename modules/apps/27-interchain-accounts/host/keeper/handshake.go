@@ -74,7 +74,7 @@ func (k Keeper) OnChanOpenTry(
 		// reopening an interchain account
 		k.Logger.Info("reopening existing interchain account", "address", interchainAccAddr)
 		accAddress = sdk.MustAccAddressFromBech32(interchainAccAddr)
-		if _, ok := k.accountKeeper.GetAccount(ctx, accAddress).(*icatypes.InterchainAccount); !ok {
+		if _, ok := k.authKeeper.GetAccount(ctx, accAddress).(*icatypes.InterchainAccount); !ok {
 			return "", errorsmod.Wrapf(icatypes.ErrInvalidAccountReopening, "existing account address %s, does not have interchain account type", accAddress)
 		}
 

@@ -16,6 +16,18 @@ var (
 	_ appmodule.AppModule   = (*AppModule)(nil)
 )
 
+// AppModule is the application module for the Tendermint client module
+type AppModule struct {
+	lightClientModule LightClientModule
+}
+
+// NewAppModule creates a new Tendermint client module
+func NewAppModule(lightClientModule LightClientModule) AppModule {
+	return AppModule{
+		lightClientModule: lightClientModule,
+	}
+}
+
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (AppModule) IsOnePerModuleType() {}
 
@@ -47,16 +59,4 @@ func (AppModule) GetTxCmd() *cobra.Command {
 // GetQueryCmd performs a no-op. Please see the 02-client cli commands.
 func (AppModule) GetQueryCmd() *cobra.Command {
 	return nil
-}
-
-// AppModule is the application module for the Tendermint client module
-type AppModule struct {
-	lightClientModule LightClientModule
-}
-
-// NewAppModule creates a new Tendermint client module
-func NewAppModule(lightClientModule LightClientModule) AppModule {
-	return AppModule{
-		lightClientModule: lightClientModule,
-	}
 }

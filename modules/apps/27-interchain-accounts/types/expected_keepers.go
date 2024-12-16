@@ -11,8 +11,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
-// AccountKeeper defines the expected account keeper
-type AccountKeeper interface {
+// AuthKeeper defines the expected x/auth keeper
+type AuthKeeper interface {
 	NewAccount(ctx context.Context, acc sdk.AccountI) sdk.AccountI
 	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
 	SetAccount(ctx context.Context, acc sdk.AccountI)
