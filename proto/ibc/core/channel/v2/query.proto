@@ -9,6 +9,7 @@ import "ibc/core/channel/v2/channel.proto";
 import "ibc/core/channel/v2/genesis.proto";
 import "ibc/core/client/v1/client.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
 
 // Query provides defines the gRPC querier service
@@ -22,6 +23,12 @@ service Query {
   // with the provided channel identifiers.
   rpc ChannelClientState(QueryChannelClientStateRequest) returns (QueryChannelClientStateResponse) {
     option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/client_state";
+  }
+
+  // ChannelConsensusState queries for the consensus state for the channel associated
+  // with the provided channel identifiers.
+  rpc ChannelConsensusState(QueryChannelConsensusStateRequest) returns (QueryChannelConsensusStateResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/consensus_state";
   }
 
   // NextSequenceSend returns the next send sequence for a given channel.
@@ -94,6 +101,30 @@ message QueryChannelClientStateResponse {
   bytes proof = 2;
   // height at which the proof was retrieved
   ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryChannelConsensusStateRequest is the request type for the Query/ConsensusState
+// RPC method
+message QueryChannelConsensusStateRequest {
+  // channel unique identifier
+  string channel_id = 1;
+  // revision number of the consensus state
+  uint64 revision_number = 2;
+  // revision height of the consensus state
+  uint64 revision_height = 3;
+}
+
+// QueryChannelConsensusStateResponse is the Response type for the
+// Query/QueryChannelConsensusState RPC method
+message QueryChannelConsensusStateResponse {
+  // consensus state associated with the channel
+  google.protobuf.Any consensus_state = 1;
+  // client ID associated with the consensus state
+  string client_id = 2;
+  // merkle proof of existence
+  bytes proof = 3;
+  // height at which the proof was retrieved
+  ibc.core.client.v1.Height proof_height = 4 [(gogoproto.nullable) = false];
 }
 
 // QueryNextSequenceSendRequest is the request type for the Query/QueryNextSequenceSend RPC method
