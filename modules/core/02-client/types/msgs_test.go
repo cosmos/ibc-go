@@ -697,12 +697,12 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 // TestMsgRecoverClientGetSigners tests GetSigners for MsgRecoverClient
 func TestMsgRecoverClientGetSigners(t *testing.T) {
 	testCases := []struct {
-		name    string
-		address sdk.AccAddress
-		expPass bool
+		name     string
+		address  sdk.AccAddress
+		expError error
 	}{
-		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
-		{"failure: nil address", nil, false},
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
+		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
@@ -712,11 +712,12 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 		}
 		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
 		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
-		if tc.expPass {
+		if tc.expError == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
 			require.Error(t, err)
+			require.Equal(err.Error(), tc.expError.Error())
 		}
 	}
 }
