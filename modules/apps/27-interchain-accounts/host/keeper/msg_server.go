@@ -57,7 +57,7 @@ func (m msgServer) ModuleQuerySafe(ctx context.Context, msg *types.MsgModuleQuer
 		}
 
 		if err := m.cdc.Unmarshal(query.Data, msg); err != nil {
-			return nil, err
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal query request data to: %s", md.Input().FullName())
 		}
 
 		res, err := m.QueryRouterService.Invoke(ctx, msg)
@@ -76,11 +76,13 @@ func (m msgServer) ModuleQuerySafe(ctx context.Context, msg *types.MsgModuleQuer
 	return &types.MsgModuleQuerySafeResponse{Responses: responses, Height: uint64(height)}, nil
 }
 
+// see: https://github.com/cosmos/cosmos-sdk/issues/22833
 func forgeProtoTypeFromName(msgName string) (gogoproto.Message, error) {
 	typ := gogoproto.MessageType(msgName)
 	if typ == nil {
 		return nil, fmt.Errorf("no message type found for %s", msgName)
 	}
+
 	msg, ok := reflect.New(typ.Elem()).Interface().(gogoproto.Message)
 	if !ok {
 		return nil, fmt.Errorf("could not create response message %s", msgName)
