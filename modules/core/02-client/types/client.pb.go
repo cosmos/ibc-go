@@ -5,9 +5,9 @@ package types
 
 import (
 	fmt "fmt"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
+	any "github.com/cosmos/gogoproto/types/any"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -30,7 +30,7 @@ type IdentifiedClientState struct {
 	// client identifier
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// client state
-	ClientState *types.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
+	ClientState *any.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 }
 
 func (m *IdentifiedClientState) Reset()         { *m = IdentifiedClientState{} }
@@ -73,7 +73,7 @@ func (m *IdentifiedClientState) GetClientId() string {
 	return ""
 }
 
-func (m *IdentifiedClientState) GetClientState() *types.Any {
+func (m *IdentifiedClientState) GetClientState() *any.Any {
 	if m != nil {
 		return m.ClientState
 	}
@@ -86,7 +86,7 @@ type ConsensusStateWithHeight struct {
 	// consensus state height
 	Height Height `protobuf:"bytes,1,opt,name=height,proto3" json:"height"`
 	// consensus state
-	ConsensusState *types.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	ConsensusState *any.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 }
 
 func (m *ConsensusStateWithHeight) Reset()         { *m = ConsensusStateWithHeight{} }
@@ -129,7 +129,7 @@ func (m *ConsensusStateWithHeight) GetHeight() Height {
 	return Height{}
 }
 
-func (m *ConsensusStateWithHeight) GetConsensusState() *types.Any {
+func (m *ConsensusStateWithHeight) GetConsensusState() *any.Any {
 	if m != nil {
 		return m.ConsensusState
 	}
@@ -720,7 +720,7 @@ func (m *IdentifiedClientState) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ClientState == nil {
-				m.ClientState = &types.Any{}
+				m.ClientState = &any.Any{}
 			}
 			if err := m.ClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -839,7 +839,7 @@ func (m *ConsensusStateWithHeight) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ConsensusState == nil {
-				m.ConsensusState = &types.Any{}
+				m.ConsensusState = &any.Any{}
 			}
 			if err := m.ConsensusState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

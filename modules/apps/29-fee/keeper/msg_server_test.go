@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
+	banktypes "cosmossdk.io/x/bank/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -56,7 +56,7 @@ func (suite *KeeperTestSuite) TestRegisterPayee() {
 		{
 			"payee is a blocked address",
 			func() {
-				msg.Payee = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(transfertypes.ModuleName).String()
+				msg.Payee = suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(transfertypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -248,7 +248,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 			"refund account is module account",
 			func() {
 				suite.chainA.GetSimApp().BankKeeper.SendCoinsFromAccountToModule(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), ibcmock.ModuleName, fee.Total()) //nolint:errcheck // ignore error for testing
-				msg.Signer = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(ibcmock.ModuleName).String()
+				msg.Signer = suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(ibcmock.ModuleName).String()
 				expPacketFee := types.NewPacketFee(fee, msg.Signer, nil)
 				expFeesInEscrow = []types.PacketFee{expPacketFee}
 			},
@@ -298,7 +298,7 @@ func (suite *KeeperTestSuite) TestPayPacketFee() {
 		{
 			"refund account is a blocked address",
 			func() {
-				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				blockedAddr := suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 				msg.Signer = blockedAddr.String()
 			},
 			ibcerrors.ErrUnauthorized,
@@ -528,7 +528,7 @@ func (suite *KeeperTestSuite) TestPayPacketFeeAsync() {
 		{
 			"refund account is a blocked address",
 			func() {
-				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				blockedAddr := suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 				msg.PacketFee.RefundAddress = blockedAddr.String()
 			},
 			ibcerrors.ErrUnauthorized,

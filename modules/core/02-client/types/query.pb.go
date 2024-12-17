@@ -6,11 +6,11 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
+	any "github.com/cosmos/gogoproto/types/any"
 	v2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
@@ -84,7 +84,7 @@ func (m *QueryClientStateRequest) GetClientId() string {
 // which the proof was retrieved.
 type QueryClientStateResponse struct {
 	// client state associated with the request identifier
-	ClientState *types.Any `protobuf:"bytes,1,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
+	ClientState *any.Any `protobuf:"bytes,1,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 	// merkle proof of existence
 	Proof []byte `protobuf:"bytes,2,opt,name=proof,proto3" json:"proof,omitempty"`
 	// height at which the proof was retrieved
@@ -124,7 +124,7 @@ func (m *QueryClientStateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryClientStateResponse proto.InternalMessageInfo
 
-func (m *QueryClientStateResponse) GetClientState() *types.Any {
+func (m *QueryClientStateResponse) GetClientState() *any.Any {
 	if m != nil {
 		return m.ClientState
 	}
@@ -328,7 +328,7 @@ func (m *QueryConsensusStateRequest) GetLatestHeight() bool {
 // RPC method
 type QueryConsensusStateResponse struct {
 	// consensus state associated with the client identifier at the given height
-	ConsensusState *types.Any `protobuf:"bytes,1,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	ConsensusState *any.Any `protobuf:"bytes,1,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 	// merkle proof of existence
 	Proof []byte `protobuf:"bytes,2,opt,name=proof,proto3" json:"proof,omitempty"`
 	// height at which the proof was retrieved
@@ -368,7 +368,7 @@ func (m *QueryConsensusStateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryConsensusStateResponse proto.InternalMessageInfo
 
-func (m *QueryConsensusStateResponse) GetConsensusState() *types.Any {
+func (m *QueryConsensusStateResponse) GetConsensusState() *any.Any {
 	if m != nil {
 		return m.ConsensusState
 	}
@@ -833,7 +833,7 @@ var xxx_messageInfo_QueryUpgradedClientStateRequest proto.InternalMessageInfo
 // Query/UpgradedClientState RPC method.
 type QueryUpgradedClientStateResponse struct {
 	// client state associated with the request identifier
-	UpgradedClientState *types.Any `protobuf:"bytes,1,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
+	UpgradedClientState *any.Any `protobuf:"bytes,1,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
 }
 
 func (m *QueryUpgradedClientStateResponse) Reset()         { *m = QueryUpgradedClientStateResponse{} }
@@ -869,7 +869,7 @@ func (m *QueryUpgradedClientStateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryUpgradedClientStateResponse proto.InternalMessageInfo
 
-func (m *QueryUpgradedClientStateResponse) GetUpgradedClientState() *types.Any {
+func (m *QueryUpgradedClientStateResponse) GetUpgradedClientState() *any.Any {
 	if m != nil {
 		return m.UpgradedClientState
 	}
@@ -918,7 +918,7 @@ var xxx_messageInfo_QueryUpgradedConsensusStateRequest proto.InternalMessageInfo
 // Query/UpgradedConsensusState RPC method.
 type QueryUpgradedConsensusStateResponse struct {
 	// Consensus state associated with the request identifier
-	UpgradedConsensusState *types.Any `protobuf:"bytes,1,opt,name=upgraded_consensus_state,json=upgradedConsensusState,proto3" json:"upgraded_consensus_state,omitempty"`
+	UpgradedConsensusState *any.Any `protobuf:"bytes,1,opt,name=upgraded_consensus_state,json=upgradedConsensusState,proto3" json:"upgraded_consensus_state,omitempty"`
 }
 
 func (m *QueryUpgradedConsensusStateResponse) Reset()         { *m = QueryUpgradedConsensusStateResponse{} }
@@ -954,7 +954,7 @@ func (m *QueryUpgradedConsensusStateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryUpgradedConsensusStateResponse proto.InternalMessageInfo
 
-func (m *QueryUpgradedConsensusStateResponse) GetUpgradedConsensusState() *types.Any {
+func (m *QueryUpgradedConsensusStateResponse) GetUpgradedConsensusState() *any.Any {
 	if m != nil {
 		return m.UpgradedConsensusState
 	}
@@ -2904,7 +2904,7 @@ func (m *QueryClientStateResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ClientState == nil {
-				m.ClientState = &types.Any{}
+				m.ClientState = &any.Any{}
 			}
 			if err := m.ClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -3403,7 +3403,7 @@ func (m *QueryConsensusStateResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ConsensusState == nil {
-				m.ConsensusState = &types.Any{}
+				m.ConsensusState = &any.Any{}
 			}
 			if err := m.ConsensusState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -4382,7 +4382,7 @@ func (m *QueryUpgradedClientStateResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.UpgradedClientState == nil {
-				m.UpgradedClientState = &types.Any{}
+				m.UpgradedClientState = &any.Any{}
 			}
 			if err := m.UpgradedClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -4518,7 +4518,7 @@ func (m *QueryUpgradedConsensusStateResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.UpgradedConsensusState == nil {
-				m.UpgradedConsensusState = &types.Any{}
+				m.UpgradedConsensusState = &any.Any{}
 			}
 			if err := m.UpgradedConsensusState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
