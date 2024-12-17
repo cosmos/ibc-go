@@ -255,7 +255,7 @@ app.ModuleManager = module.NewManager(
 
 ### Application ABCI ordering
 
-One addition from IBC is the concept of `HistoricalInfo` which is stored in the Cosmos SDK `x/staking` module. The number of records stored by `x/staking` is controlled by the `HistoricalEntries` parameter which stores `HistoricalInfo` on a per height basis.
+One addition from IBC is the concept of `HistoricalInfo` which is stored in the Cosmos SDK `x/staking` module. The number of records stored by `x/staking` is controlled by the `HistoricalEntries` parameter which stores `HistoricalInfo` on a per-height basis.
 Each entry contains the historical information for the `Header` and `ValidatorSet` of this chain which is stored
 at each height during the `BeginBlock` call. The `HistoricalInfo` is required to introspect a blockchain's prior state at a given height in order to verify the light client `ConsensusState` during the
 connection handshake. 
