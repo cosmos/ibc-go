@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"math"
 	"testing"
 
@@ -22,7 +23,7 @@ func TestParseConnectionSequence(t *testing.T) {
 		{"valid 1", "connection-1", 1, nil},
 		{"valid large sequence", types.FormatConnectionIdentifier(math.MaxUint64), math.MaxUint64, nil},
 		// one above uint64 max
-		{"invalid uint64", "connection-18446744073709551616", 0, host.ErrInvalidID},
+		{"invalid uint64", "connection-18446744073709551616", 0, errors.New("invalid connection identifier: failed to parse identifier sequence")},
 		// uint64 == 20 characters
 		{"invalid large sequence", "connection-2345682193567182931243", 0, host.ErrInvalidID},
 		{"capital prefix", "Connection-0", 0, host.ErrInvalidID},

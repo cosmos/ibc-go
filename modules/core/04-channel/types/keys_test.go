@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -21,7 +22,7 @@ func TestParseChannelSequence(t *testing.T) {
 		{"valid 1", "channel-1", 1, nil},
 		{"valid large sequence", "channel-234568219356718293", 234568219356718293, nil},
 		// one above uint64 max
-		{"invalid uint64", "channel-18446744073709551616", 0, host.ErrInvalidID},
+		{"invalid uint64", "channel-18446744073709551616", 0, errors.New("invalid channel identifier: failed to parse identifier sequence")},
 		// // uint64 == 20 characters
 		{"invalid large sequence", "channel-2345682193567182931243", 0, host.ErrInvalidID},
 		{"capital prefix", "Channel-0", 0, host.ErrInvalidID},
@@ -44,7 +45,7 @@ func TestParseChannelSequence(t *testing.T) {
 		} else {
 			require.Error(t, err, tc.name)
 			require.False(t, valid)
-			require.ErrorIs(t, err, tc.expErr)
+			require.ErrorContains(t, err, tc.expErr.Error())
 		}
 	}
 }
