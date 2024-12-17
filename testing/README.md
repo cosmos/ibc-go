@@ -51,7 +51,6 @@ type TestingApp interface {
 
   // ibc-go additions
   GetBaseApp() *baseapp.BaseApp
-  GetStakingKeeper() ibctestingtypes.StakingKeeper
   GetIBCKeeper() *keeper.Keeper
   GetTxConfig() client.TxConfig
 
