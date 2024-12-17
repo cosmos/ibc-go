@@ -40,13 +40,8 @@ func NewIdentifiedClientState(clientID string, clientState exported.ClientState)
 	}
 }
 
-<<<<<<< HEAD
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (ics IdentifiedClientState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-=======
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
 func (ics IdentifiedClientState) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
->>>>>>> main
 	return unpacker.UnpackAny(ics.ClientState, new(exported.ClientState))
 }
 
@@ -88,13 +83,8 @@ func NewConsensusStateWithHeight(height Height, consensusState exported.Consensu
 	}
 }
 
-<<<<<<< HEAD
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (cswh ConsensusStateWithHeight) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-=======
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
 func (cswh ConsensusStateWithHeight) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
->>>>>>> main
 	return unpacker.UnpackAny(cswh.ConsensusState, new(exported.ConsensusState))
 }
 

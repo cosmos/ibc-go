@@ -50,13 +50,8 @@ func NewQueryConnectionClientStateResponse(identifiedClientState clienttypes.Ide
 	}
 }
 
-<<<<<<< HEAD
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (qccsr QueryConnectionClientStateResponse) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-=======
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
 func (qccsr QueryConnectionClientStateResponse) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
->>>>>>> main
 	return qccsr.IdentifiedClientState.UnpackInterfaces(unpacker)
 }
 
@@ -70,12 +65,7 @@ func NewQueryConnectionConsensusStateResponse(clientID string, anyConsensusState
 	}
 }
 
-<<<<<<< HEAD
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (qccsr QueryConnectionConsensusStateResponse) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-=======
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
 func (qccsr QueryConnectionConsensusStateResponse) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
->>>>>>> main
 	return unpacker.UnpackAny(qccsr.ConsensusState, new(exported.ConsensusState))
 }
