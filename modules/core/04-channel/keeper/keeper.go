@@ -338,18 +338,6 @@ func (k *Keeper) IteratePacketSequence(ctx context.Context, iterator db.Iterator
 	}
 }
 
-// GetAllPacketSendSeqs returns all stored next send sequences.
-func (k *Keeper) GetAllPacketSendSeqsV1(ctx context.Context) (seqs []types.PacketSequence) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyNextSeqSendPrefix))
-	k.IteratePacketSequence(ctx, iterator, func(portID, channelID string, nextSendSeq uint64) bool {
-		ps := types.NewPacketSequence(portID, channelID, nextSendSeq)
-		seqs = append(seqs, ps)
-		return false
-	})
-	return seqs
-}
-
 func (k *Keeper) GetAllPacketSendSeqs(ctx context.Context) (seqs []types.PacketSequence) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(hostv2.NextSequenceSendKeyPrefix))
