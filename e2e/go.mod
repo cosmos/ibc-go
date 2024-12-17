@@ -37,12 +37,12 @@ require (
 	cloud.google.com/go/iam v1.1.13 // indirect
 	cloud.google.com/go/storage v1.43.0 // indirect
 	cosmossdk.io/api v0.8.0 // indirect
-	cosmossdk.io/collections v0.4.1-0.20241209183624-332d0b106d1b // indirect
+	cosmossdk.io/collections v1.0.0-rc.1 // indirect
 	cosmossdk.io/core v1.0.0 // indirect
 	cosmossdk.io/depinject v1.1.0 // indirect
 	cosmossdk.io/log v1.5.0 // indirect
-	cosmossdk.io/schema v0.4.0 // indirect
-	cosmossdk.io/store v1.1.1 // indirect
+	cosmossdk.io/schema v1.0.0 // indirect
+	cosmossdk.io/store v1.10.0-rc.1 // indirect
 	cosmossdk.io/x/authz v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/bank v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/consensus v0.0.0-20241108061010-a0458127fccf // indirect
@@ -86,7 +86,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
-	github.com/cosmos/iavl v1.3.2 // indirect
+	github.com/cosmos/iavl v1.3.3 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
@@ -245,7 +245,7 @@ require cosmossdk.io/x/group v0.0.0-00010101000000-000000000000
 
 require (
 	cosmossdk.io/client/v2 v2.0.0-beta.6 // indirect
-	cosmossdk.io/core/testing v0.0.0-20241108153815-606544c7be7e // indirect
+	cosmossdk.io/core/testing v0.0.1 // indirect
 	cosmossdk.io/x/accounts v0.0.0-20240913065641-0064ccbce64e // indirect
 	cosmossdk.io/x/accounts/defaults/base v0.0.0-20241108095921-406f977be0b9 // indirect
 	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20240417181816-5e7aae0db1f5 // indirect
@@ -318,5 +318,5 @@ replace (
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20241213081318-957e24171608
 	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1.0.20240908111210-ab0be101882f
 	// pseudo version lower than the latest tag
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-beta.2.0.20241213155709-f1e881e81b1b
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-beta.2.0.20241217103751-1d8408826e26
 )

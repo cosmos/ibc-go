@@ -86,7 +86,4 @@ jobs:
       chain-image: "${{ github.event.inputs.chain-image }}"
       chain-a-tag: "${{ github.event.inputs.chain-a-tag-override || github.event.inputs.chain-a-tag }}"
       chain-b-tag: "${{ github.event.inputs.chain-b-tag-override || github.event.inputs.chain-b-tag }}"
-      relayer-tag: "${{ github.event.inputs.relayer-tag }}"
-      relayer-type: "${{ github.event.inputs.relayer-type }}"
       test-entry-point:  "${{ github.event.inputs.test-entry-point }}"
-      chain-binary: "${{ github.event.inputs.chain-binary }}"
