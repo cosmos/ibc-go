@@ -14,7 +14,7 @@ require (
 	cosmossdk.io/store v1.1.1
 	cosmossdk.io/tools/confix v0.1.2
 	cosmossdk.io/x/accounts v0.0.0-20240913065641-0064ccbce64e
-	cosmossdk.io/x/accounts/defaults/base v0.0.0-20241211143114-899099f1d6ed
+	cosmossdk.io/x/accounts/defaults/base v0.0.0-20241108095921-406f977be0b9
 	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/accounts/defaults/multisig v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/authz v0.0.0-00010101000000-000000000000
@@ -23,8 +23,8 @@ require (
 	cosmossdk.io/x/consensus v0.0.0-20240911130545-9e7848985491
 	cosmossdk.io/x/distribution v0.0.0-20240906090851-36d9b25e8981
 	cosmossdk.io/x/epochs v0.0.0-20240522060652-a1ae4c3e0337
-	cosmossdk.io/x/evidence v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/feegrant v0.0.0-00010101000000-000000000000
+	cosmossdk.io/x/evidence v0.1.1
+	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/gov v0.0.0-20231113122742-912390d5fc4a
 	cosmossdk.io/x/group v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/mint v0.0.0-20240909082436-01c0e9ba3581

@@ -216,8 +216,8 @@ cosmossdk.io/store v1.0.0-rc.0.0.20241213081318-957e24171608 h1:NaFVgzmO3YFX+l76
 cosmossdk.io/store v1.0.0-rc.0.0.20241213081318-957e24171608/go.mod h1:eZNgZKvZRlDUk8CE3LTDVMAcSM7zLOet2S8fByQkF3s=
 cosmossdk.io/x/accounts v0.0.0-20241213081318-957e24171608 h1:No84LXBp0kEzJfAqorxrgqzmzqOpHhbs8IK2nBpVQJY=
 cosmossdk.io/x/accounts v0.0.0-20241213081318-957e24171608/go.mod h1:wADXnci9qeFwOQ09qiyf1uLdI4n/RSSTG8mSM9hmxys=
-cosmossdk.io/x/accounts/defaults/base v0.0.0-20241211143114-899099f1d6ed h1:RWxJh225JZE6sJktD+pYK5T+OzGXuEI1cu8y0DU03oM=
-cosmossdk.io/x/accounts/defaults/base v0.0.0-20241211143114-899099f1d6ed/go.mod h1:b14TNbXem3UVgKGOcsouG+SdeN+4twSzTB3jzFv97Ag=
+cosmossdk.io/x/accounts/defaults/base v0.0.0-20241108095921-406f977be0b9 h1:bCBkUT3caCwOf5U9Os96dUETHPs6Cdv9oF5LCjt1tJs=
+cosmossdk.io/x/accounts/defaults/base v0.0.0-20241108095921-406f977be0b9/go.mod h1:h+11hiXPTGV6hl8ifSaJLMXoVhCsSKoF+l0/baqRGAU=
 cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20241213081318-957e24171608 h1:nMu0DD9qutZ7dzIySxTRnLYvZtockBghVkwBHyuwBLI=
 cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20241213081318-957e24171608/go.mod h1:m0eg/A4J5fmXFNGEldQpeTrMr9PFWaVIFjbDYes0j9I=
 cosmossdk.io/x/accounts/defaults/multisig v0.0.0-20241213081318-957e24171608 h1:JL+VXHmb8xqwU7ToR2RG0V2BTmE+t1PkJ880xKi46Tc=
