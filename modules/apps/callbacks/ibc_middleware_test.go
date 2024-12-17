@@ -263,7 +263,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			nil,
 		},
 		{
-			"failure: underlying app OnAcknolwedgePacket fails",
+			"failure: underlying app OnAcknowledgePacket fails",
 			func() {
 				ack = []byte("invalid ack")
 			},

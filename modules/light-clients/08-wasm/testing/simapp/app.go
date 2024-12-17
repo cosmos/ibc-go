@@ -533,7 +533,7 @@ func NewSimApp(
 	// you can use NewKeeperWithConfig constructor function and provide
 	// the Wasm VM configuration parameters of your choice.
 	// Check out the WasmConfig type definition for more information on
-	// each parameter. Some parameters allow node-leve configurations.
+	// each parameter. Some parameters allow node-level configurations.
 	// Function DefaultWasmConfig can also be used to use default values.
 	//
 	// In the code below we use the second method because we are not using x/wasm in this app.go.

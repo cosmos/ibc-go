@@ -92,7 +92,7 @@ func (suite *TypesTestSuite) TestAcknowledgement() {
 }
 
 // The safety of including ABCI error codes in the acknowledgement rests
-// on the inclusion of these ABCI error codes in the abcitypes.ResposneDeliverTx
+// on the inclusion of these ABCI error codes in the abcitypes.ResponseDeliverTx
 // hash. If the ABCI codes get removed from consensus they must no longer be used
 // in the packet acknowledgement.
 //

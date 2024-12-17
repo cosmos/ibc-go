@@ -15,7 +15,7 @@ var (
 	_ gogoprotoany.UnpackInterfacesMessage = (*QueryConsensusStatesResponse)(nil)
 )
 
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (qcsr QueryClientStatesResponse) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	for _, cs := range qcsr.ClientStates {
 		if err := cs.UnpackInterfaces(unpacker); err != nil {
@@ -36,12 +36,12 @@ func NewQueryClientStateResponse(
 	}
 }
 
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (qcsr QueryClientStateResponse) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	return unpacker.UnpackAny(qcsr.ClientState, new(exported.ClientState))
 }
 
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (qcsr QueryConsensusStatesResponse) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	for _, cs := range qcsr.ConsensusStates {
 		if err := cs.UnpackInterfaces(unpacker); err != nil {
@@ -62,7 +62,7 @@ func NewQueryConsensusStateResponse(
 	}
 }
 
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (qcsr QueryConsensusStateResponse) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	return unpacker.UnpackAny(qcsr.ConsensusState, new(exported.ConsensusState))
 }
