@@ -346,6 +346,9 @@ func (chain *TestChain) sendMsgs(msgs ...sdk.Msg) error {
 	return err
 }
 
+// SendMsgs delivers a transaction through the application using a predefined sender.
+// It updates the senders sequence number and updates the TestChain's headers.
+// It returns the result and error if one occurred.
 func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 	senderAccount := SenderAccount{
 		SenderPrivKey: chain.SenderPrivKey,
@@ -355,9 +358,7 @@ func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 	return chain.SendMsgsWithSender(senderAccount, msgs...)
 }
 
-// SendMsgs delivers a transaction through the application. It updates the senders sequence
-// number and updates the TestChain's headers. It returns the result and error if one
-// occurred.
+// SendMsgsWithSender delivers a transaction through the application using the provided sender.
 func (chain *TestChain) SendMsgsWithSender(sender SenderAccount, msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 	if chain.SendMsgsOverride != nil {
 		return chain.SendMsgsOverride(msgs...)
@@ -603,6 +604,7 @@ func (chain *TestChain) IBCClientHeader(header *ibctm.Header, trustedHeight clie
 	return header, nil
 }
 
+// GetSenderAccount returns the sender account associated with the provided private key.
 func (chain *TestChain) GetSenderAccount(privKey cryptotypes.PrivKey) SenderAccount {
 	account := chain.GetSimApp().AccountKeeper.GetAccount(chain.GetContext(), sdk.AccAddress(privKey.PubKey().Address()))
 

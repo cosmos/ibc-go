@@ -38,6 +38,7 @@ func (endpoint *Endpoint) RegisterCounterparty() (err error) {
 	return err
 }
 
+// MsgSendPacket sends a packet on the associated endpoint using a predefined sender. The constructed packet is returned.
 func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, payload channeltypesv2.Payload) (channeltypesv2.Packet, error) {
 	senderAccount := SenderAccount{
 		SenderPrivKey: endpoint.Chain.SenderPrivKey,
@@ -47,7 +48,7 @@ func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, payload channel
 	return endpoint.MsgSendPacketWithSender(timeoutTimestamp, payload, senderAccount)
 }
 
-// MsgSendPacket sends a packet on the associated endpoint. The constructed packet is returned.
+// MsgSendPacketWithSender sends a packet on the associated endpoint using the provided sender. The constructed packet is returned.
 func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, payload channeltypesv2.Payload, sender SenderAccount) (channeltypesv2.Packet, error) {
 	msgSendPacket := channeltypesv2.NewMsgSendPacket(endpoint.ChannelID, timeoutTimestamp, sender.SenderAccount.GetAddress().String(), payload)
 
