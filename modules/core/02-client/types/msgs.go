@@ -162,7 +162,7 @@ func (msg MsgUpgradeClient) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	// will not validate consensus state here since the trusted kernel may not form a valid consenus state.
+	// will not validate consensus state here since the trusted kernel may not form a valid consensus state.
 	// client implementations are responsible for ensuring client can submit new headers against this consensus state.
 	consensusState, err := UnpackConsensusState(msg.ConsensusState)
 	if err != nil {

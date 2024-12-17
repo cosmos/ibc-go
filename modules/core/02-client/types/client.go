@@ -39,7 +39,7 @@ func NewIdentifiedClientState(clientID string, clientState exported.ClientState)
 	}
 }
 
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (ics IdentifiedClientState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return unpacker.UnpackAny(ics.ClientState, new(exported.ClientState))
 }
@@ -82,7 +82,7 @@ func NewConsensusStateWithHeight(height Height, consensusState exported.Consensu
 	}
 }
 
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (cswh ConsensusStateWithHeight) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return unpacker.UnpackAny(cswh.ConsensusState, new(exported.ConsensusState))
 }

@@ -390,7 +390,7 @@ func (k *Keeper) GetAllPacketCommitments(ctx context.Context) (commitments []typ
 	return commitments
 }
 
-// IteratePacketCommitmentAtChannel provides an iterator over all PacketCommmitment objects
+// IteratePacketCommitmentAtChannel provides an iterator over all PacketCommitment objects
 // at a specified channel. For each packet commitment, cb will be called. If the cb returns
 // true, the iterator will close and stop.
 func (k *Keeper) IteratePacketCommitmentAtChannel(ctx context.Context, portID, channelID string, cb func(_, _ string, sequence uint64, hash []byte) bool) {
