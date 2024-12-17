@@ -3,7 +3,8 @@ package simapp
 import (
 	"context"
 
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/core/appmodule"
+	corestore "cosmossdk.io/core/store"
 	circuittypes "cosmossdk.io/x/circuit/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -27,7 +28,7 @@ func (app *SimApp) registerUpgradeHandlers() {
 	}
 
 	if upgradeInfo.Name == IBCWasmUpgrade && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{
+		storeUpgrades := corestore.StoreUpgrades{
 			Added: []string{
 				circuittypes.ModuleName,
 			},
@@ -39,7 +40,7 @@ func (app *SimApp) registerUpgradeHandlers() {
 
 // createWasmStoreUpgradeHandler creates an upgrade handler for the 08-wasm ibc-go/v9 SimApp upgrade.
 func createWasmStoreUpgradeHandler(mm *module.Manager, configurator module.Configurator) upgradetypes.UpgradeHandler {
-	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+	return func(ctx context.Context, _ upgradetypes.Plan, vm appmodule.VersionMap) (appmodule.VersionMap, error) {
 		return mm.RunMigrations(ctx, configurator, vm)
 	}
 }

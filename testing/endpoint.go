@@ -7,11 +7,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
@@ -619,7 +620,7 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 		endpoint.ChannelID,
 		"upgrade-init",
 		fmt.Sprintf("gov proposal for initialising channel upgrade: %s", endpoint.ChannelID),
-		false,
+		govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD,
 	)
 	require.NoError(endpoint.Chain.TB, err)
 

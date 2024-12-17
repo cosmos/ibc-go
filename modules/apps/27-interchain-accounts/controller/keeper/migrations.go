@@ -25,11 +25,11 @@ func (m Migrator) MigrateParams(ctx context.Context) error {
 	if m.keeper != nil {
 		params := controllertypes.DefaultParams()
 		if m.keeper.legacySubspace != nil {
-			sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-			m.keeper.legacySubspace.GetParamSetIfExists(sdkCtx, &params)
+			// NOTE: legacy params still rely on sdk context
+			m.keeper.legacySubspace.GetParamSetIfExists(sdk.UnwrapSDKContext(ctx), &params)
 		}
 		m.keeper.SetParams(ctx, params)
-		m.keeper.Logger(ctx).Info("successfully migrated ica/controller submodule to self-manage params")
+		m.keeper.Logger.Info("successfully migrated ica/controller submodule to self-manage params")
 	}
 	return nil
 }
