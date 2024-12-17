@@ -8,7 +8,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
@@ -18,23 +21,9 @@ var _ types.MsgServer = (*Keeper)(nil)
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.GetParams(ctx).SendEnabled {
-		return nil, types.ErrSendDisabled
-	}
-
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return nil, err
-	}
-
-	coins := msg.GetCoins()
-
-	if err := k.BankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
-		return nil, errorsmod.Wrap(types.ErrSendDisabled, err.Error())
-	}
-
-	if k.IsBlockedAddr(sender) {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", sender)
 	}
 
 	if msg.Forwarding.GetUnwind() {
@@ -44,12 +33,60 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		}
 	}
 
-	sequence, err := k.sendTransfer(
-		ctx, msg.SourcePort, msg.SourceChannel, coins, sender, msg.Receiver, msg.TimeoutHeight, msg.TimeoutTimestamp,
-		msg.Memo, msg.Forwarding.GetHops())
+	channel, found := k.channelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel)
+	if !found {
+		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.SourcePort, msg.SourceChannel)
+	}
+
+	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, msg.SourcePort, msg.SourceChannel)
+	if !found {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "application version not found for source port: %s and source channel: %s", msg.SourcePort, msg.SourceChannel)
+	}
+
+	coins := msg.GetCoins()
+	hops := msg.Forwarding.GetHops()
+	if appVersion == types.V1 {
+		// ics20-1 only supports a single coin, so if that is the current version, we must only process a single coin.
+		if len(coins) > 1 {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot transfer multiple coins with %s", types.V1)
+		}
+
+		// ics20-1 does not support forwarding, so if that is the current version, we must reject the transfer.
+		if len(hops) > 0 {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot forward coins with %s", types.V1)
+		}
+	}
+
+	tokens := make([]types.Token, len(coins))
+
+	for i, coin := range coins {
+		tokens[i], err = k.tokenFromCoin(ctx, coin)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err := k.SendTransfer(ctx, tokens, sender, msg.SourcePort, msg.SourceChannel); err != nil {
+		return nil, err
+	}
+
+	packetDataBytes, err := createPacketDataBytesFromVersion(
+		appVersion, sender.String(), msg.Receiver, msg.Memo, tokens, hops,
+	)
 	if err != nil {
 		return nil, err
 	}
+
+	sequence, err := k.ics4Wrapper.SendPacket(ctx, msg.SourcePort, msg.SourceChannel, msg.TimeoutHeight, msg.TimeoutTimestamp, packetDataBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	events.EmitTransferEvent(ctx, sender.String(), msg.Receiver, tokens, msg.Memo, hops)
+
+	destinationPort := channel.Counterparty.PortId
+	destinationChannel := channel.Counterparty.ChannelId
+	telemetry.ReportTransfer(msg.SourcePort, msg.SourceChannel, destinationPort, destinationChannel, tokens)
 
 	k.Logger(ctx).Info("IBC fungible token transfer", "tokens", coins, "sender", msg.Sender, "receiver", msg.Receiver)
 

@@ -31,22 +31,24 @@ type IBCModule struct {
 }
 
 func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, signer sdk.AccAddress) error {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	if !im.keeper.GetParams(ctx).SendEnabled {
-		return transfertypes.ErrSendDisabled
-	}
-
-	if im.keeper.IsBlockedAddr(signer) {
-		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to send funds", signer)
-	}
-
 	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {
 		return err
 	}
 
-	return im.keeper.OnSendPacket(ctx, sourceChannel, payload, data, signer)
+	// TODO: Do we need to check signer is the same as data.Sender?
+
+	if err := im.keeper.SendTransfer(goCtx, data.Tokens, signer, payload.SourcePort, sourceChannel); err != nil {
+		return err
+	}
+
+	// TODO: events
+	// events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
+
+	// TODO: telemetry
+	// telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
+
+	return nil
 }
 
 func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
@@ -76,7 +78,14 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 		}
 	}
 
-	if ackErr = im.keeper.OnRecvPacket(ctx, sourceChannel, destinationChannel, payload, data); ackErr != nil {
+	if _, ackErr = im.keeper.OnRecvPacket(
+		ctx,
+		data,
+		payload.SourcePort,
+		sourceChannel,
+		payload.DestinationPort,
+		destinationChannel,
+	); ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
 		return types.RecvPacketResult{
@@ -86,6 +95,18 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	}
 
 	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", sequence)
+
+	// TODO: forwarding
+	// if data.HasForwarding() {
+	//	// we are now sending from the forward escrow address to the final receiver address.
+	// TODO: inside this version of the function, we should fetch the packet that was stored in IBC core in order to set it for forwarding.
+	//	if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
+	//		return err
+	//	}
+	// }
+
+	// TODO: telemetry
+	// telemetry.ReportOnRecvPacket(packet, data.Tokens)
 
 	if data.HasForwarding() {
 		// NOTE: acknowledgement will be written asynchronously

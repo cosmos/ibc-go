@@ -95,24 +95,15 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"successful transfer of native token with ics20-1",
 			func() {
-				coins = sdk.NewCoins(coins[0])
+				denom := types.NewDenom(ibctesting.TestCoin.Denom)
+				coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
 
 				// Set version to isc20-1.
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
 					channel.Version = types.V1
 				})
-			},
-			nil,
-		},
-		{
-			"successful transfer with empty forwarding hops and ics20-1",
-			func() {
-				coins = sdk.NewCoins(coins[0])
 
-				// Set version to isc20-1.
-				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) {
-					channel.Version = types.V1
-				})
+				expEscrowAmounts = []sdkmath.Int{defaultAmount}
 			},
 			nil,
 		},
@@ -278,6 +269,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				forwarding,
 			)
 
+			fmt.Printf("msg: %+v", msg)
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(suite.chainA.GetContext(), msg)
 
 			expPass := tc.expError == nil
@@ -465,7 +457,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 				denoms = append(denoms, types.NewDenom(token.Denom.Base, types.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)))
 			}
 
-			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, packetData)
+			_, err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(
+				suite.chainB.GetContext(),
+				packetData,
+				packet.SourcePort,
+				packet.SourceChannel,
+				packet.DestinationPort,
+				packet.DestinationChannel,
+			)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -592,7 +591,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 			tc.malleate()
 
 			packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(1), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
-			err = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packet, packetData)
+			_, err = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(
+				suite.chainA.GetContext(),
+				packetData,
+				packet.SourcePort,
+				packet.SourceChannel,
+				packet.DestinationPort,
+				packet.DestinationChannel,
+			)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -703,7 +709,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	suite.Require().Equal(defaultAmount, totalEscrowChainB.Amount)
 
 	// execute onRecvPacket, when chaninB receives the source token the escrow amount should decrease
-	err := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, data)
+	_, err := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(
+		suite.chainB.GetContext(),
+		data,
+		packet.SourcePort,
+		packet.SourceChannel,
+		packet.DestinationPort,
+		packet.DestinationChannel,
+	)
 	suite.Require().NoError(err)
 
 	// check total amount in escrow of sent token on receiving chain

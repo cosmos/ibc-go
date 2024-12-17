@@ -365,7 +365,14 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 
 					}
 				case "OnRecvPacket":
-					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+					_, err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(
+						suite.chainB.GetContext(),
+						tc.packet.Data,
+						packet.SourcePort,
+						packet.SourceChannel,
+						packet.DestinationPort,
+						packet.DestinationChannel,
+					)
 
 				case "OnTimeoutPacket":
 					registerDenomFn()

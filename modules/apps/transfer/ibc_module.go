@@ -12,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -172,11 +173,10 @@ func (im IBCModule) OnRecvPacket(
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	var (
+		ack    ibcexported.Acknowledgement
 		ackErr error
 		data   types.FungibleTokenPacketDataV2
 	)
-
-	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
 	// we are explicitly wrapping this emit event call in an anonymous function so that
 	// the packet data is evaluated after it has been assigned a value.
@@ -191,11 +191,35 @@ func (im IBCModule) OnRecvPacket(
 		return ack
 	}
 
-	if ackErr = im.keeper.OnRecvPacket(ctx, packet, data); ackErr != nil {
+	receivedCoins, ackErr := im.keeper.OnRecvPacket(
+		ctx,
+		data,
+		packet.SourcePort,
+		packet.SourceChannel,
+		packet.DestinationPort,
+		packet.DestinationChannel,
+	)
+	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		return ack
 	}
+
+	if data.HasForwarding() {
+		// we are now sending from the forward escrow address to the final receiver address.
+		if ackErr = im.keeper.ForwardPacket(ctx, data, packet, receivedCoins); ackErr != nil {
+			ack = channeltypes.NewErrorAcknowledgement(ackErr)
+			im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+			return ack
+
+		}
+
+		ack = nil
+	}
+
+	ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+
+	telemetry.ReportOnRecvPacket(packet, data.Tokens)
 
 	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
 
