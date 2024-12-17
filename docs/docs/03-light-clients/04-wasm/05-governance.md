@@ -19,7 +19,7 @@ import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
   authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-  govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+  govtypes "cosmossdk.io/x/gov/types"
 
   ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
   ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"

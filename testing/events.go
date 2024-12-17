@@ -9,7 +9,7 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
@@ -216,17 +216,7 @@ func AssertEvents(
 
 // shouldProcessEvent returns true if the given expected event should be processed based on event type.
 func shouldProcessEvent(expectedEvent abci.Event, actualEvent abci.Event) bool {
-	if expectedEvent.Type != actualEvent.Type {
-		return false
-	}
-	// the actual event will have an extra attribute added automatically
-	// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
-	// with the number of attributes in the expected event.
-	if containsAttributeKey(actualEvent.Attributes, "msg_index") {
-		return len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1
-	}
-
-	return len(expectedEvent.Attributes) == len(actualEvent.Attributes)
+	return expectedEvent.Type == actualEvent.Type
 }
 
 // containsAttribute returns true if the given key/value pair is contained in the given attributes.
@@ -235,12 +225,6 @@ func containsAttribute(attrs []abci.EventAttribute, key, value string) bool {
 	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
 		return attr.Key == key && attr.Value == value
 	})
-}
-
-// containsAttributeKey returns true if the given key is contained in the given attributes.
-func containsAttributeKey(attrs []abci.EventAttribute, key string) bool {
-	_, found := attributeByKey(attrs, key)
-	return found
 }
 
 // attributeByKey returns the event attribute's value keyed by the given key and a boolean indicating its presence in the given attributes.
