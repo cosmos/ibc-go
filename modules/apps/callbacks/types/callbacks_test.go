@@ -720,7 +720,6 @@ func (s *CallbacksTypesTestSuite) TestGetDestSourceCallbackDataTransfer() {
 			var packet channeltypes.Packet
 			if tc.getSrc {
 				packet = channeltypes.NewPacket(packetData.GetBytes(), 0, transfertypes.PortID, s.path.EndpointA.ChannelID, transfertypes.PortID, s.path.EndpointB.ChannelID, clienttypes.ZeroHeight(), 0)
-
 			} else {
 				packet = channeltypes.NewPacket(packetData.GetBytes(), 0, transfertypes.PortID, s.path.EndpointB.ChannelID, transfertypes.PortID, s.path.EndpointA.ChannelID, clienttypes.ZeroHeight(), 0)
 			}
