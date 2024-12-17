@@ -53,34 +53,34 @@ func (suite *TypesTestSuite) TestGenerateAddress() {
 
 func (suite *TypesTestSuite) TestValidateAccountAddress() {
 	testCases := []struct {
-		name    string
-		address string
-		expPass bool
+		name     string
+		address  string
+		expError error
 	}{
 		{
 			"success",
 			TestOwnerAddress,
-			true,
+			nil,
 		},
 		{
 			"success with single character",
 			"a",
-			true,
+			nil,
 		},
 		{
 			"empty string",
 			"",
-			false,
+			types.ErrInvalidAccountAddress,
 		},
 		{
 			"only spaces",
 			"     ",
-			false,
+			types.ErrInvalidAccountAddress,
 		},
 		{
 			"address is too long",
 			ibctesting.GenerateString(uint(types.DefaultMaxAddrLength) + 1),
-			false,
+			types.ErrInvalidAccountAddress,
 		},
 	}
 
@@ -90,10 +90,10 @@ func (suite *TypesTestSuite) TestValidateAccountAddress() {
 		suite.Run(tc.name, func() {
 			err := types.ValidateAccountAddress(tc.address)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
+				suite.Require().ErrorIs(err, tc.expError, tc.name)
 			}
 		})
 	}
