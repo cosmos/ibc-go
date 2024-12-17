@@ -593,7 +593,9 @@ paths:
         - Query
   /ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/incentivized_packets:
     get:
-      summary: Gets all incentivized packets for a specific channel
+      summary: >-
+        IncentivizedPacketsForChannel retrieves all incentivized packets for a
+        specific channel
       operationId: IncentivizedPacketsForChannel
       responses:
         '200':
