@@ -58,6 +58,7 @@ func (k Keeper) DistributePacketFeesOnAcknowledgement(ctx context.Context, forwa
 
 		for _, packetFee := range packetFees {
 			if !k.EscrowAccountHasBalance(ctx, packetFee.Fee.Total()) {
+				// NOTE: we lock the fee module on error return so that the state changes are persisted
 				return ibcerrors.ErrInsufficientFunds
 			}
 
@@ -77,7 +78,6 @@ func (k Keeper) DistributePacketFeesOnAcknowledgement(ctx context.Context, forwa
 			// the fee module should be locked until manual intervention fixes the issue
 			// a locked fee module will simply skip fee logic, all channels will temporarily function as
 			// fee disabled channels
-			// NOTE: we lock the fee module on error return so that the state changes from are persisted
 			k.lockFeeModule(ctx)
 			return
 		}
