@@ -5,11 +5,11 @@ package v7
 
 import (
 	fmt "fmt"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	types1 "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
-	types2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	any "github.com/cosmos/gogoproto/types/any"
+	types "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	types1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -138,7 +138,7 @@ var xxx_messageInfo_ClientState proto.InternalMessageInfo
 // consensus state.
 type ConsensusState struct {
 	// public key of the solo machine
-	PublicKey *types.Any `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	PublicKey *any.Any `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
 	// diversifier allows the same public key to be re-used across different solo
 	// machine clients (potentially on different chains) without being considered
 	// misbehaviour.
@@ -182,11 +182,11 @@ var xxx_messageInfo_ConsensusState proto.InternalMessageInfo
 // Header defines a solo machine consensus header
 type Header struct {
 	// sequence to update solo machine public key at
-	Sequence       uint64     `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
-	Timestamp      uint64     `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Signature      []byte     `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
-	NewPublicKey   *types.Any `protobuf:"bytes,4,opt,name=new_public_key,json=newPublicKey,proto3" json:"new_public_key,omitempty"`
-	NewDiversifier string     `protobuf:"bytes,5,opt,name=new_diversifier,json=newDiversifier,proto3" json:"new_diversifier,omitempty"`
+	Sequence       uint64   `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	Timestamp      uint64   `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Signature      []byte   `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
+	NewPublicKey   *any.Any `protobuf:"bytes,4,opt,name=new_public_key,json=newPublicKey,proto3" json:"new_public_key,omitempty"`
+	NewDiversifier string   `protobuf:"bytes,5,opt,name=new_diversifier,json=newDiversifier,proto3" json:"new_diversifier,omitempty"`
 }
 
 func (m *Header) Reset()         { *m = Header{} }
@@ -393,7 +393,7 @@ var xxx_messageInfo_SignBytes proto.InternalMessageInfo
 // HeaderData returns the SignBytes data for update verification.
 type HeaderData struct {
 	// header public key
-	NewPubKey *types.Any `protobuf:"bytes,1,opt,name=new_pub_key,json=newPubKey,proto3" json:"new_pub_key,omitempty"`
+	NewPubKey *any.Any `protobuf:"bytes,1,opt,name=new_pub_key,json=newPubKey,proto3" json:"new_pub_key,omitempty"`
 	// header diversifier
 	NewDiversifier string `protobuf:"bytes,2,opt,name=new_diversifier,json=newDiversifier,proto3" json:"new_diversifier,omitempty"`
 }
@@ -433,8 +433,8 @@ var xxx_messageInfo_HeaderData proto.InternalMessageInfo
 
 // ClientStateData returns the SignBytes data for client state verification.
 type ClientStateData struct {
-	Path        []byte     `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	ClientState *types.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
+	Path        []byte   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	ClientState *any.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 }
 
 func (m *ClientStateData) Reset()         { *m = ClientStateData{} }
@@ -473,8 +473,8 @@ var xxx_messageInfo_ClientStateData proto.InternalMessageInfo
 // ConsensusStateData returns the SignBytes data for consensus state
 // verification.
 type ConsensusStateData struct {
-	Path           []byte     `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	ConsensusState *types.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	Path           []byte   `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	ConsensusState *any.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 }
 
 func (m *ConsensusStateData) Reset()         { *m = ConsensusStateData{} }
@@ -513,8 +513,8 @@ var xxx_messageInfo_ConsensusStateData proto.InternalMessageInfo
 // ConnectionStateData returns the SignBytes data for connection state
 // verification.
 type ConnectionStateData struct {
-	Path       []byte                `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	Connection *types1.ConnectionEnd `protobuf:"bytes,2,opt,name=connection,proto3" json:"connection,omitempty"`
+	Path       []byte               `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Connection *types.ConnectionEnd `protobuf:"bytes,2,opt,name=connection,proto3" json:"connection,omitempty"`
 }
 
 func (m *ConnectionStateData) Reset()         { *m = ConnectionStateData{} }
@@ -554,7 +554,7 @@ var xxx_messageInfo_ConnectionStateData proto.InternalMessageInfo
 // verification.
 type ChannelStateData struct {
 	Path    []byte          `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	Channel *types2.Channel `protobuf:"bytes,2,opt,name=channel,proto3" json:"channel,omitempty"`
+	Channel *types1.Channel `protobuf:"bytes,2,opt,name=channel,proto3" json:"channel,omitempty"`
 }
 
 func (m *ChannelStateData) Reset()         { *m = ChannelStateData{} }
@@ -2139,7 +2139,7 @@ func (m *ConsensusState) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.PublicKey == nil {
-				m.PublicKey = &types.Any{}
+				m.PublicKey = &any.Any{}
 			}
 			if err := m.PublicKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2348,7 +2348,7 @@ func (m *Header) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.NewPublicKey == nil {
-				m.NewPublicKey = &types.Any{}
+				m.NewPublicKey = &any.Any{}
 			}
 			if err := m.NewPublicKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -3071,7 +3071,7 @@ func (m *HeaderData) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.NewPubKey == nil {
-				m.NewPubKey = &types.Any{}
+				m.NewPubKey = &any.Any{}
 			}
 			if err := m.NewPubKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -3223,7 +3223,7 @@ func (m *ClientStateData) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ClientState == nil {
-				m.ClientState = &types.Any{}
+				m.ClientState = &any.Any{}
 			}
 			if err := m.ClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -3343,7 +3343,7 @@ func (m *ConsensusStateData) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ConsensusState == nil {
-				m.ConsensusState = &types.Any{}
+				m.ConsensusState = &any.Any{}
 			}
 			if err := m.ConsensusState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -3463,7 +3463,7 @@ func (m *ConnectionStateData) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Connection == nil {
-				m.Connection = &types1.ConnectionEnd{}
+				m.Connection = &types.ConnectionEnd{}
 			}
 			if err := m.Connection.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -3583,7 +3583,7 @@ func (m *ChannelStateData) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Channel == nil {
-				m.Channel = &types2.Channel{}
+				m.Channel = &types1.Channel{}
 			}
 			if err := m.Channel.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

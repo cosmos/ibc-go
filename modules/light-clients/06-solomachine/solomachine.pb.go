@@ -5,9 +5,9 @@ package solomachine
 
 import (
 	fmt "fmt"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
+	any "github.com/cosmos/gogoproto/types/any"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -72,7 +72,7 @@ var xxx_messageInfo_ClientState proto.InternalMessageInfo
 // consensus state.
 type ConsensusState struct {
 	// public key of the solo machine
-	PublicKey *types.Any `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	PublicKey *any.Any `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
 	// diversifier allows the same public key to be re-used across different solo
 	// machine clients (potentially on different chains) without being considered
 	// misbehaviour.
@@ -115,10 +115,10 @@ var xxx_messageInfo_ConsensusState proto.InternalMessageInfo
 
 // Header defines a solo machine consensus header
 type Header struct {
-	Timestamp      uint64     `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Signature      []byte     `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
-	NewPublicKey   *types.Any `protobuf:"bytes,3,opt,name=new_public_key,json=newPublicKey,proto3" json:"new_public_key,omitempty"`
-	NewDiversifier string     `protobuf:"bytes,4,opt,name=new_diversifier,json=newDiversifier,proto3" json:"new_diversifier,omitempty"`
+	Timestamp      uint64   `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Signature      []byte   `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature,omitempty"`
+	NewPublicKey   *any.Any `protobuf:"bytes,3,opt,name=new_public_key,json=newPublicKey,proto3" json:"new_public_key,omitempty"`
+	NewDiversifier string   `protobuf:"bytes,4,opt,name=new_diversifier,json=newDiversifier,proto3" json:"new_diversifier,omitempty"`
 }
 
 func (m *Header) Reset()         { *m = Header{} }
@@ -327,7 +327,7 @@ var xxx_messageInfo_SignBytes proto.InternalMessageInfo
 // HeaderData returns the SignBytes data for update verification.
 type HeaderData struct {
 	// header public key
-	NewPubKey *types.Any `protobuf:"bytes,1,opt,name=new_pub_key,json=newPubKey,proto3" json:"new_pub_key,omitempty"`
+	NewPubKey *any.Any `protobuf:"bytes,1,opt,name=new_pub_key,json=newPubKey,proto3" json:"new_pub_key,omitempty"`
 	// header diversifier
 	NewDiversifier string `protobuf:"bytes,2,opt,name=new_diversifier,json=newDiversifier,proto3" json:"new_diversifier,omitempty"`
 }
@@ -1174,7 +1174,7 @@ func (m *ConsensusState) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.PublicKey == nil {
-				m.PublicKey = &types.Any{}
+				m.PublicKey = &any.Any{}
 			}
 			if err := m.PublicKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1364,7 +1364,7 @@ func (m *Header) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.NewPublicKey == nil {
-				m.NewPublicKey = &types.Any{}
+				m.NewPublicKey = &any.Any{}
 			}
 			if err := m.NewPublicKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2085,7 +2085,7 @@ func (m *HeaderData) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.NewPubKey == nil {
-				m.NewPubKey = &types.Any{}
+				m.NewPubKey = &any.Any{}
 			}
 			if err := m.NewPubKey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

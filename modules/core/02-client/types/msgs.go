@@ -1,10 +1,11 @@
 package types
 
 import (
+	gogoprotoany "github.com/cosmos/gogoproto/types/any"
+
 	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -29,11 +30,11 @@ var (
 	_ sdk.HasValidateBasic = (*MsgIBCSoftwareUpgrade)(nil)
 	_ sdk.HasValidateBasic = (*MsgRecoverClient)(nil)
 
-	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
-	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
-	_ codectypes.UnpackInterfacesMessage = (*MsgSubmitMisbehaviour)(nil)
-	_ codectypes.UnpackInterfacesMessage = (*MsgUpgradeClient)(nil)
-	_ codectypes.UnpackInterfacesMessage = (*MsgIBCSoftwareUpgrade)(nil)
+	_ gogoprotoany.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
+	_ gogoprotoany.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
+	_ gogoprotoany.UnpackInterfacesMessage = (*MsgSubmitMisbehaviour)(nil)
+	_ gogoprotoany.UnpackInterfacesMessage = (*MsgUpgradeClient)(nil)
+	_ gogoprotoany.UnpackInterfacesMessage = (*MsgIBCSoftwareUpgrade)(nil)
 )
 
 // NewMsgCreateClient creates a new MsgCreateClient instance
@@ -84,7 +85,7 @@ func (msg MsgCreateClient) ValidateBasic() error {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgCreateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (msg MsgCreateClient) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	var clientState exported.ClientState
 	err := unpacker.UnpackAny(msg.ClientState, &clientState)
 	if err != nil {
@@ -126,7 +127,7 @@ func (msg MsgUpdateClient) ValidateBasic() error {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgUpdateClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (msg MsgUpdateClient) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	var clientMsg exported.ClientMessage
 	return unpacker.UnpackAny(msg.ClientMessage, &clientMsg)
 }
@@ -162,7 +163,7 @@ func (msg MsgUpgradeClient) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	// will not validate consensus state here since the trusted kernel may not form a valid consenus state.
+	// will not validate consensus state here since the trusted kernel may not form a valid consensus state.
 	// client implementations are responsible for ensuring client can submit new headers against this consensus state.
 	consensusState, err := UnpackConsensusState(msg.ConsensusState)
 	if err != nil {
@@ -187,7 +188,7 @@ func (msg MsgUpgradeClient) ValidateBasic() error {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgUpgradeClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (msg MsgUpgradeClient) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	var (
 		clientState exported.ClientState
 		consState   exported.ConsensusState
@@ -230,7 +231,7 @@ func (msg MsgSubmitMisbehaviour) ValidateBasic() error {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgSubmitMisbehaviour) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (msg MsgSubmitMisbehaviour) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	var misbehaviour exported.ClientMessage
 	return unpacker.UnpackAny(msg.Misbehaviour, &misbehaviour)
 }
@@ -299,8 +300,9 @@ func (msg *MsgIBCSoftwareUpgrade) ValidateBasic() error {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg *MsgIBCSoftwareUpgrade) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	return unpacker.UnpackAny(msg.UpgradedClientState, new(exported.ClientState))
+func (msg *MsgIBCSoftwareUpgrade) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
+	var clientState exported.ClientState
+	return unpacker.UnpackAny(msg.UpgradedClientState, &clientState)
 }
 
 // NewMsgUpdateParams creates a new instance of MsgUpdateParams.

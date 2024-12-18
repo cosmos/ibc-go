@@ -16,25 +16,26 @@ linters:
     - ineffassign
     - misspell
     - nakedret
+    - revive
     - staticcheck
+    - stylecheck
+    - tenv
     - thelper
     - typecheck
-    - stylecheck
-    - revive
-    - typecheck
-    - tenv
     - unconvert
     # Prefer unparam over revive's unused param. It is more thorough in its checking.
     - unparam
     - unused
-    - misspell
 
 issues:
   exclude-rules:
-    - text: 'differs only by capitalization to method'
+    - text: "differs only by capitalization to method"
       linters:
         - revive
-    - text: 'Use of weak random number generator'
+    - text: "Use of weak random number generator"
+      linters:
+        - gosec
+    - text: "G115: integer overflow conversion"
       linters:
         - gosec
     - linters:
@@ -56,11 +57,25 @@ linters-settings:
       - prefix(github.com/cometbft/cometbft)
       - prefix(github.com/cosmos/ibc-go)
     custom-order: true
+  gocritic:
+    disabled-checks:
+      - appendAssign
+  gosec:
+    # Available rules: https://github.com/securego/gosec#available-rules
+    excludes:
+      - G101 # Potential hardcoded credentials
+      - G107 # Potential HTTP request made with variable url
+      - G115 # Integer overflow conversion (used everywhere with int64 -> uint64 block height)
+      - G404 # Use of weak random number generator (math/rand instead of crypto/rand)
+    exclude-generated: true
+    confidence: medium
   revive:
     enable-all-rules: true
     # Do NOT whine about the following, full explanation found in:
     # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#description-of-available-rules
     rules:
+      - name: redundant-import-alias
+        disabled: true
       - name: use-any
         disabled: true
       - name: if-return
@@ -109,7 +124,7 @@ linters-settings:
       - name: unhandled-error
         disabled: false
         arguments:
-          - 'fmt.Printf'
-          - 'fmt.Print'
-          - 'fmt.Println'
-          - 'myFunction'
+          - "fmt.Printf"
+          - "fmt.Print"
+          - "fmt.Println"
+          - "myFunction"

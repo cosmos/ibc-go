@@ -1195,7 +1195,7 @@ type QueryClient interface {
 	IncentivizedPackets(ctx context.Context, in *QueryIncentivizedPacketsRequest, opts ...grpc.CallOption) (*QueryIncentivizedPacketsResponse, error)
 	// IncentivizedPacket returns all packet fees for a packet given its identifier
 	IncentivizedPacket(ctx context.Context, in *QueryIncentivizedPacketRequest, opts ...grpc.CallOption) (*QueryIncentivizedPacketResponse, error)
-	// Gets all incentivized packets for a specific channel
+	// IncentivizedPacketsForChannel retrieves all incentivized packets for a specific channel
 	IncentivizedPacketsForChannel(ctx context.Context, in *QueryIncentivizedPacketsForChannelRequest, opts ...grpc.CallOption) (*QueryIncentivizedPacketsForChannelResponse, error)
 	// TotalRecvFees returns the total receive fees for a packet given its identifier
 	TotalRecvFees(ctx context.Context, in *QueryTotalRecvFeesRequest, opts ...grpc.CallOption) (*QueryTotalRecvFeesResponse, error)
@@ -1317,7 +1317,7 @@ type QueryServer interface {
 	IncentivizedPackets(context.Context, *QueryIncentivizedPacketsRequest) (*QueryIncentivizedPacketsResponse, error)
 	// IncentivizedPacket returns all packet fees for a packet given its identifier
 	IncentivizedPacket(context.Context, *QueryIncentivizedPacketRequest) (*QueryIncentivizedPacketResponse, error)
-	// Gets all incentivized packets for a specific channel
+	// IncentivizedPacketsForChannel retrieves all incentivized packets for a specific channel
 	IncentivizedPacketsForChannel(context.Context, *QueryIncentivizedPacketsForChannelRequest) (*QueryIncentivizedPacketsForChannelResponse, error)
 	// TotalRecvFees returns the total receive fees for a packet given its identifier
 	TotalRecvFees(context.Context, *QueryTotalRecvFeesRequest) (*QueryTotalRecvFeesResponse, error)
