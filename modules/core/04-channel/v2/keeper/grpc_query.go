@@ -52,6 +52,42 @@ func (q *queryServer) Channel(ctx context.Context, req *types.QueryChannelReques
 	return types.NewQueryChannelResponse(channel), nil
 }
 
+// Channels implements the Query/Channels gRPC method
+func (q *queryServer) Channels(ctx context.Context, req *types.QueryChannelsRequest) (*types.QueryChannelsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	var channels []*types.IdentifiedChannel
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), []byte(types.ChannelPrefix))
+
+	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
+		var channel types.Channel
+		if err := q.cdc.Unmarshal(value, &channel); err != nil {
+			return err
+		}
+
+		_, channelID, err := host.ParseChannelPath(string(key))
+		if err != nil {
+			return err
+		}
+
+		identifiedChannel := types.NewIdentifiedChannel(channelID, channel)
+		channels = append(channels, &identifiedChannel)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	selfHeight := clienttypes.GetSelfHeight(ctx)
+	return &types.QueryChannelsResponse{
+		Channels:   channels,
+		Pagination: pageRes,
+		Height:     selfHeight,
+	}, nil
+}
+
 // ChannelClientState implements the Query/ChannelClientState gRPC method
 func (q *queryServer) ChannelClientState(ctx context.Context, req *types.QueryChannelClientStateRequest) (*types.QueryChannelClientStateResponse, error) {
 	if req == nil {
