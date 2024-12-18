@@ -10,7 +10,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestInitGenesis() {
-	interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+	interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext().HeaderInfo(), ibctesting.FirstConnectionID, TestPortID)
 	genesisState := genesistypes.HostGenesisState{
 		ActiveChannels: []genesistypes.ActiveChannel{
 			{
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestGenesisParams() {
 
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-			interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+			interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext().HeaderInfo(), ibctesting.FirstConnectionID, TestPortID)
 			genesisState := genesistypes.HostGenesisState{
 				ActiveChannels: []genesistypes.ActiveChannel{
 					{
