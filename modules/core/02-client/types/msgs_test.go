@@ -717,7 +717,7 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
 			require.Error(t, err)
-			require.Equal(err.Error(), tc.expError.Error())
+			require.Equal(t, err.Error(), tc.expError.Error())
 		}
 	}
 }
