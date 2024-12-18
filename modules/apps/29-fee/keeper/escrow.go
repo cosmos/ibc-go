@@ -43,9 +43,7 @@ func (k Keeper) escrowPacketFee(ctx context.Context, packetID channeltypes.Packe
 	packetFees := types.NewPacketFees(fees)
 	k.SetFeesInEscrow(ctx, packetID, packetFees)
 
-	emitIncentivizedPacketEvent(ctx, packetID, packetFees)
-
-	return nil
+	return k.emitIncentivizedPacketEvent(ctx, packetID, packetFees)
 }
 
 // DistributePacketFeesOnAcknowledgement pays all the acknowledgement & receive fees for a given packetID while refunding the timeout fees to the refund account.
@@ -174,7 +172,9 @@ func (k Keeper) distributeFee(ctx context.Context, receiver, refundAccAddress sd
 				return errorsmod.Wrapf(types.ErrRefundDistributionFailed, "receiver address: %s", refundAccAddress)
 			}
 
-			emitDistributeFeeEvent(ctx, refundAccAddress.String(), fee)
+			if err := k.emitDistributeFeeEvent(ctx, refundAccAddress.String(), fee); err != nil {
+				panic(err)
+			}
 		}
 
 		return nil
@@ -182,7 +182,9 @@ func (k Keeper) distributeFee(ctx context.Context, receiver, refundAccAddress sd
 		k.Logger.Error("error distributing fee", "error", err.Error())
 	}
 
-	emitDistributeFeeEvent(ctx, receiver.String(), fee)
+	if err := k.emitDistributeFeeEvent(ctx, receiver.String(), fee); err != nil {
+		panic(err)
+	}
 }
 
 // RefundFeesOnChannelClosure will refund all fees associated with the given port and channel identifiers.
