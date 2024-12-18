@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 // escrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
@@ -48,37 +50,38 @@ func (k Keeper) escrowPacketFee(ctx context.Context, packetID channeltypes.Packe
 
 // DistributePacketFeesOnAcknowledgement pays all the acknowledgement & receive fees for a given packetID while refunding the timeout fees to the refund account.
 func (k Keeper) DistributePacketFeesOnAcknowledgement(ctx context.Context, forwardRelayer string, reverseRelayer sdk.AccAddress, packetFees []types.PacketFee, packetID channeltypes.PacketId) {
-	// cache context before trying to distribute fees
+	// use branched multistore for distribution of fees.
 	// if the escrow account has insufficient balance then we want to avoid partially distributing fees
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	cacheCtx, writeFn := sdkCtx.CacheContext()
+	if err := k.BranchService.Execute(ctx, func(ctx context.Context) error {
+		// forward relayer address will be empty if conversion fails
+		forwardAddr, _ := sdk.AccAddressFromBech32(forwardRelayer)
 
-	// forward relayer address will be empty if conversion fails
-	forwardAddr, _ := sdk.AccAddressFromBech32(forwardRelayer)
+		for _, packetFee := range packetFees {
+			if !k.EscrowAccountHasBalance(ctx, packetFee.Fee.Total()) {
+				return ibcerrors.ErrInsufficientFunds
+			}
 
-	for _, packetFee := range packetFees {
-		if !k.EscrowAccountHasBalance(cacheCtx, packetFee.Fee.Total()) {
+			// check if refundAcc address works
+			refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
+			if err != nil {
+				panic(fmt.Errorf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
+			}
+
+			k.distributePacketFeeOnAcknowledgement(ctx, refundAddr, forwardAddr, reverseRelayer, packetFee)
+		}
+
+		return nil
+	}); err != nil {
+		if errors.Is(err, ibcerrors.ErrInsufficientFunds) {
 			// if the escrow account does not have sufficient funds then there must exist a severe bug
 			// the fee module should be locked until manual intervention fixes the issue
 			// a locked fee module will simply skip fee logic, all channels will temporarily function as
 			// fee disabled channels
-			// NOTE: we use the uncached context to lock the fee module so that the state changes from
-			// locking the fee module are persisted
+			// NOTE: we lock the fee module on error return so that the state changes from are persisted
 			k.lockFeeModule(ctx)
 			return
 		}
-
-		// check if refundAcc address works
-		refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
-		if err != nil {
-			panic(fmt.Errorf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
-		}
-
-		k.distributePacketFeeOnAcknowledgement(cacheCtx, refundAddr, forwardAddr, reverseRelayer, packetFee)
 	}
-
-	// write the cache
-	writeFn()
 
 	// removes the fees from the store as fees are now paid
 	k.DeleteFeesInEscrow(ctx, packetID)
