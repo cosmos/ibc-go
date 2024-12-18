@@ -30,7 +30,7 @@ simd q ibc-fee counterparty-payee channel-0 $RLY_CHAIN2 --node http://localhost:
 counterparty_payee: cosmos1vdy5fp0jy2l2ees870a7mls357v7uad6ufzcyz
 ```
 
-We see that the counterparty payee address matches what we expected (i.e. the `RLY_CHAIN1` address). In this tutorial we are going to send only one packet from chain `chain1` to chain `chain2`, so we only need to register the counterparty payee on chain `chain2`. In real life circumstances relayers relay packets on both directions (i.e. from chain `chain1` to `chain2` and also viceversa), and thus relayers should register as well on chain `chain1` the counterparty payee address to be compensated for delivering the `MsgRecvPacket` on chain `chain1`.
+We see that the counterparty payee address matches what we expected (i.e. the `RLY_CHAIN1` address). In this tutorial we are going to send only one packet from chain `chain1` to chain `chain2`, so we only need to register the counterparty payee on chain `chain2`. In real life circumstances relayers relay packets on both directions (i.e. from chain `chain1` to `chain2` and also vice-versa), and thus relayers should register as well on chain `chain1` the counterparty payee address to be compensated for delivering the `MsgRecvPacket` on chain `chain1`.
 
 ## Multi-message transaction with single `MsgPayPacketFee` message
 
