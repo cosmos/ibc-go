@@ -874,7 +874,7 @@ func (app *SimApp) setAnteHandler(txConfig client.TxConfig) {
 				SigGasConsumer:           ante.DefaultSigVerificationGasConsumer,
 				UnorderedTxManager:       app.UnorderedTxManager,
 			},
-			IBCKeeper:     app.IBCKeeper,
+			IBCKeeper: app.IBCKeeper,
 		},
 	)
 	if err != nil {
