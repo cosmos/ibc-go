@@ -109,34 +109,35 @@ func (k Keeper) distributePacketFeeOnAcknowledgement(ctx context.Context, refund
 
 // DistributePacketFeesOnTimeout pays all the timeout fees for a given packetID while refunding the acknowledgement & receive fees to the refund account.
 func (k Keeper) DistributePacketFeesOnTimeout(ctx context.Context, timeoutRelayer sdk.AccAddress, packetFees []types.PacketFee, packetID channeltypes.PacketId) {
-	// cache context before trying to distribute fees
+	// use branched multistore for distribution of fees.
 	// if the escrow account has insufficient balance then we want to avoid partially distributing fees
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	cacheCtx, writeFn := sdkCtx.CacheContext()
+	if err := k.BranchService.Execute(ctx, func(ctx context.Context) error {
+		for _, packetFee := range packetFees {
+			if !k.EscrowAccountHasBalance(ctx, packetFee.Fee.Total()) {
+				// NOTE: we lock the fee module on error return so that the state changes are persisted
+				return ibcerrors.ErrInsufficientFunds
+			}
 
-	for _, packetFee := range packetFees {
-		if !k.EscrowAccountHasBalance(cacheCtx, packetFee.Fee.Total()) {
+			// check if refundAcc address works
+			refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
+			if err != nil {
+				panic(fmt.Errorf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
+			}
+
+			k.distributePacketFeeOnTimeout(ctx, refundAddr, timeoutRelayer, packetFee)
+		}
+
+		return nil
+	}); err != nil {
+		if errors.Is(err, ibcerrors.ErrInsufficientFunds) {
 			// if the escrow account does not have sufficient funds then there must exist a severe bug
 			// the fee module should be locked until manual intervention fixes the issue
 			// a locked fee module will simply skip fee logic, all channels will temporarily function as
 			// fee disabled channels
-			// NOTE: we use the uncached context to lock the fee module so that the state changes from
-			// locking the fee module are persisted
 			k.lockFeeModule(ctx)
 			return
 		}
-
-		// check if refundAcc address works
-		refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
-		if err != nil {
-			panic(fmt.Errorf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
-		}
-
-		k.distributePacketFeeOnTimeout(cacheCtx, refundAddr, timeoutRelayer, packetFee)
 	}
-
-	// write the cache
-	writeFn()
 
 	// removing the fee from the store as the fee is now paid
 	k.DeleteFeesInEscrow(ctx, packetID)
