@@ -84,7 +84,7 @@ No neutral consequences.
 
 ## References
 
-- [Prior discussion](https://github.com/cosmos/ics/issues/421)
-- [Epoch number discussion](https://github.com/cosmos/ics/issues/439)
-- [Upgrade plan discussion](https://github.com/cosmos/ics/issues/445)
+- [Prior discussion](https://github.com/cosmos/ibc/issues/421)
+- [Epoch number discussion](https://github.com/cosmos/ibc/issues/439)
+- [Upgrade plan discussion](https://github.com/cosmos/ibc/issues/445)
 - [Migration from gov v1beta1 to gov v1](https://github.com/cosmos/ibc-go/issues/3672)
