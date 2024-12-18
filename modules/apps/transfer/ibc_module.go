@@ -11,7 +11,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -181,7 +180,9 @@ func (im IBCModule) OnRecvPacket(
 	// we are explicitly wrapping this emit event call in an anonymous function so that
 	// the packet data is evaluated after it has been assigned a value.
 	defer func() {
-		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
+		if err := im.keeper.EmitOnRecvPacketEvent(ctx, data, ack, ackErr); err != nil {
+			ack = channeltypes.NewErrorAcknowledgement(err)
+		}
 	}()
 
 	data, ackErr = types.UnmarshalPacketData(packet.GetData(), channelVersion)
@@ -230,9 +231,7 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
-
-	return nil
+	return im.keeper.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 }
 
 // OnTimeoutPacket implements the IBCModule interface
@@ -252,8 +251,7 @@ func (im IBCModule) OnTimeoutPacket(
 		return err
 	}
 
-	events.EmitOnTimeoutEvent(ctx, data)
-	return nil
+	return im.keeper.EmitOnTimeoutEvent(ctx, data)
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
