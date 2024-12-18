@@ -16,7 +16,6 @@ require (
 	cosmossdk.io/x/accounts/defaults/multisig v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/authz v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91
-	cosmossdk.io/x/circuit v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/distribution v0.0.0-20240906090851-36d9b25e8981
 	cosmossdk.io/x/epochs v0.0.0-20240522060652-a1ae4c3e0337
@@ -33,7 +32,7 @@ require (
 	cosmossdk.io/x/tx v1.0.0-alpha.3
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/cometbft/cometbft v1.0.0-rc2.0.20241127125717-4ce33b646ac9
-	github.com/cometbft/cometbft/api v1.0.0-rc2
+	github.com/cometbft/cometbft/api v1.0.0
 	github.com/cosmos/cosmos-db v1.1.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.53.0
