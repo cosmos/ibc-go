@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"time"
 
 	cmttypes "github.com/cometbft/cometbft/types"
