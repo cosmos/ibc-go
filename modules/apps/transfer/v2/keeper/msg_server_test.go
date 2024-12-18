@@ -9,7 +9,10 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -22,8 +25,12 @@ import (
 
 // TestMsgSendPacketTransfer tests the MsgSendPacket rpc handler for the transfer v2 application.
 func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
-	var payload channeltypesv2.Payload
-	var path *ibctesting.Path
+	var (
+		payload          channeltypesv2.Payload
+		path             *ibctesting.Path
+		expEscrowAmounts []transfertypes.Token // total amounts in escrow for each token
+		sender           ibctesting.SenderAccount
+	)
 
 	testCases := []struct {
 		name     string
@@ -61,6 +68,94 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 			nil,
 		},
 		{
+			"successful transfer of entire spendable balance with vesting account",
+			func() {
+				// create vesting account
+				vestingAccPrivKey := secp256k1.GenPrivKey()
+				vestingAccAddress := sdk.AccAddress(vestingAccPrivKey.PubKey().Address())
+
+				vestingCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, ibctesting.DefaultCoinAmount))
+				_, err := suite.chainA.SendMsgs(vestingtypes.NewMsgCreateVestingAccount(
+					suite.chainA.SenderAccount.GetAddress(),
+					vestingAccAddress,
+					vestingCoins,
+					suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix(),
+					false,
+				))
+				suite.Require().NoError(err)
+
+				// transfer some spendable coins to vesting account
+				spendableAmount := sdkmath.NewInt(42)
+				transferCoins := sdk.NewCoins(sdk.NewCoin(vestingCoins[0].Denom, spendableAmount))
+				_, err = suite.chainA.SendMsgs(banktypes.NewMsgSend(suite.chainA.SenderAccount.GetAddress(), vestingAccAddress, transferCoins))
+				suite.Require().NoError(err)
+
+				// just to prove that the vesting account has a balance (but only spendableAmount is spendable)
+				vestingAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), vestingAccAddress, vestingCoins[0].Denom)
+				suite.Require().Equal(vestingCoins[0].Amount.Uint64()+spendableAmount.Uint64(), vestingAccBalance.Amount.Uint64())
+				vestinSpendableBalance := suite.chainA.GetSimApp().BankKeeper.SpendableCoins(suite.chainA.GetContext(), vestingAccAddress)
+				suite.Require().Equal(spendableAmount.Uint64(), vestinSpendableBalance.AmountOf(vestingCoins[0].Denom).Uint64())
+
+				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketData{
+					Denom:    sdk.DefaultBondDenom,
+					Amount:   transfertypes.UnboundedSpendLimit().BigInt(),
+					Sender:   vestingAccAddress.String(),
+					Receiver: suite.chainB.SenderAccount.GetAddress().String(),
+					Memo:     "",
+				})
+				suite.Require().NoError(err)
+				payload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V1, transfertypes.EncodingABI, bz)
+
+				sender = suite.chainA.GetSenderAccount(vestingAccPrivKey)
+
+				expEscrowAmounts = []transfertypes.Token{
+					{
+						Denom:  transfertypes.NewDenom(sdk.DefaultBondDenom),
+						Amount: spendableAmount.String(), // The only spendable amount
+					},
+				}
+			},
+			nil,
+		},
+		{
+			"failure: no spendable coins for vesting account",
+			func() {
+				// create vesting account
+				vestingAccPrivKey := secp256k1.GenPrivKey()
+				vestingAccAddress := sdk.AccAddress(vestingAccPrivKey.PubKey().Address())
+
+				vestingCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, ibctesting.DefaultCoinAmount))
+				_, err := suite.chainA.SendMsgs(vestingtypes.NewMsgCreateVestingAccount(
+					suite.chainA.SenderAccount.GetAddress(),
+					vestingAccAddress,
+					vestingCoins,
+					suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix(),
+					false,
+				))
+				suite.Require().NoError(err)
+
+				// just to prove that the vesting account has a balance (but not spendable)
+				vestingAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), vestingAccAddress, vestingCoins[0].Denom)
+				suite.Require().Equal(vestingCoins[0].Amount.Uint64(), vestingAccBalance.Amount.Uint64())
+				vestinSpendableBalance := suite.chainA.GetSimApp().BankKeeper.SpendableCoins(suite.chainA.GetContext(), vestingAccAddress)
+				suite.Require().Zero(vestinSpendableBalance.AmountOf(vestingCoins[0].Denom).Uint64())
+
+				// try to transfer the entire spendable balance (which is zero)
+				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketData{
+					Denom:    sdk.DefaultBondDenom,
+					Amount:   transfertypes.UnboundedSpendLimit().BigInt(),
+					Sender:   vestingAccAddress.String(),
+					Receiver: suite.chainB.SenderAccount.GetAddress().String(),
+					Memo:     "",
+				})
+				suite.Require().NoError(err)
+				payload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V1, transfertypes.EncodingABI, bz)
+
+				sender = suite.chainA.GetSenderAccount(vestingAccPrivKey)
+			},
+			transfertypes.ErrInvalidAmount,
+		},
+		{
 			"failure: send transfers disabled",
 			func() {
 				suite.chainA.GetSimApp().TransferKeeperV2.SetParams(suite.chainA.GetContext(),
@@ -91,6 +186,8 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 					Amount: ibctesting.DefaultCoinAmount.String(),
 				},
 			}
+			expEscrowAmounts = tokens
+			sender = suite.chainA.SenderAccounts[0]
 
 			ftpd := transfertypes.NewFungibleTokenPacketDataV2(tokens, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "", transfertypes.ForwardingPacketData{})
 			bz := suite.chainA.Codec.MustMarshal(&ftpd)
@@ -99,8 +196,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 			payload = channeltypesv2.NewPayload(transfertypes.ModuleName, transfertypes.ModuleName, transfertypes.V2, transfertypes.EncodingProtobuf, bz)
 
 			tc.malleate()
-
-			packet, err := path.EndpointA.MsgSendPacket(timestamp, payload)
+			packet, err := path.EndpointA.MsgSendPacketWithSender(timestamp, payload, sender)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -108,9 +204,9 @@ func (suite *KeeperTestSuite) TestMsgSendPacketTransfer() {
 				suite.Require().NotEmpty(packet)
 
 				// ensure every token sent is escrowed.
-				for _, t := range tokens {
+				for i, t := range tokens {
 					escrowedAmount := suite.chainA.GetSimApp().TransferKeeperV2.GetTotalEscrowForDenom(suite.chainA.GetContext(), t.Denom.IBCDenom())
-					expected, err := t.ToCoin()
+					expected, err := expEscrowAmounts[i].ToCoin()
 					suite.Require().NoError(err)
 					suite.Require().Equal(expected, escrowedAmount, "escrowed amount is not equal to expected amount")
 				}

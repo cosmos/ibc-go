@@ -209,7 +209,6 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 	case nil:
 		writeFn()
 	case types.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
 		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", msg.Packet.SourceChannel)
 		return &types.MsgAcknowledgementResponse{Result: types.NOOP}, nil
 	default:
@@ -225,6 +224,8 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, msg.Packet.SourceChannel, msg.Packet.DestinationChannel)
 		}
 	}
+
+	defer telemetry.ReportAcknowledgePacket(msg.Packet)
 
 	return &types.MsgAcknowledgementResponse{Result: types.SUCCESS}, nil
 }
@@ -249,7 +250,6 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types
 	case nil:
 		writeFn()
 	case types.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
 		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", timeout.Packet.SourceChannel)
 		return &types.MsgTimeoutResponse{Result: types.NOOP}, nil
 	default:
@@ -264,6 +264,8 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types
 			return nil, errorsmod.Wrapf(err, "failed OnTimeoutPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, timeout.Packet.SourceChannel, timeout.Packet.DestinationChannel)
 		}
 	}
+
+	defer telemetry.ReportTimeoutPacket(timeout.Packet)
 
 	return &types.MsgTimeoutResponse{Result: types.SUCCESS}, nil
 }

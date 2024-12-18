@@ -1,14 +1,56 @@
 package telemetry
 
 import (
-	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	metrics "github.com/hashicorp/go-metrics"
+
+	"github.com/cosmos/cosmos-sdk/telemetry"
+
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	ibcmetrics "github.com/cosmos/ibc-go/v9/modules/core/metrics"
 )
 
-// ReportRecvPacket TODO: https://github.com/cosmos/ibc-go/issues/7437
-func ReportRecvPacket(packet channeltypesv2.Packet) {}
+func ReportRecvPacket(packet types.Packet) {
+	for _, payload := range packet.Payloads {
+		telemetry.IncrCounterWithLabels(
+			[]string{"tx", "msg", "ibc", types.EventTypeRecvPacket},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel(ibcmetrics.LabelSourcePort, payload.SourcePort),
+				telemetry.NewLabel(ibcmetrics.LabelSourceChannel, packet.SourceChannel),
+				telemetry.NewLabel(ibcmetrics.LabelDestinationPort, payload.DestinationPort),
+				telemetry.NewLabel(ibcmetrics.LabelDestinationChannel, packet.DestinationChannel),
+			},
+		)
+	}
+}
 
-// ReportTimeoutPacket TODO: https://github.com/cosmos/ibc-go/issues/7437
-func ReportTimeoutPacket(packet channeltypesv2.Packet, timeoutType string) {}
+func ReportTimeoutPacket(packet types.Packet) {
+	for _, payload := range packet.Payloads {
+		telemetry.IncrCounterWithLabels(
+			[]string{"ibc", "timeout", "packet"},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel(ibcmetrics.LabelSourcePort, payload.SourcePort),
+				telemetry.NewLabel(ibcmetrics.LabelSourceChannel, packet.SourceChannel),
+				telemetry.NewLabel(ibcmetrics.LabelDestinationPort, payload.DestinationPort),
+				telemetry.NewLabel(ibcmetrics.LabelDestinationChannel, packet.DestinationChannel),
+				telemetry.NewLabel(ibcmetrics.LabelTimeoutType, "height"),
+			},
+		)
+	}
+}
 
-// ReportAcknowledgePacket TODO: https://github.com/cosmos/ibc-go/issues/7437
-func ReportAcknowledgePacket(packet channeltypesv2.Packet) {}
+func ReportAcknowledgePacket(packet types.Packet) {
+	for _, payload := range packet.Payloads {
+		telemetry.IncrCounterWithLabels(
+			[]string{"tx", "msg", "ibc", types.EventTypeAcknowledgePacket},
+			1,
+			[]metrics.Label{
+				telemetry.NewLabel(ibcmetrics.LabelSourcePort, payload.SourcePort),
+				telemetry.NewLabel(ibcmetrics.LabelSourceChannel, packet.SourceChannel),
+				telemetry.NewLabel(ibcmetrics.LabelDestinationPort, payload.DestinationPort),
+				telemetry.NewLabel(ibcmetrics.LabelDestinationChannel, packet.DestinationChannel),
+			},
+		)
+	}
+}
