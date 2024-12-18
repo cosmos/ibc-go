@@ -1,6 +1,7 @@
 package solomachine_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,34 +15,34 @@ import (
 
 func TestCodecTypeRegistration(t *testing.T) {
 	testCases := []struct {
-		name    string
-		typeURL string
-		expPass bool
+		name     string
+		typeURL  string
+		expError error
 	}{
 		{
 			"success: ClientState",
 			sdk.MsgTypeURL(&solomachine.ClientState{}),
-			true,
+			nil,
 		},
 		{
 			"success: ConsensusState",
 			sdk.MsgTypeURL(&solomachine.ConsensusState{}),
-			true,
+			nil,
 		},
 		{
 			"success: Header",
 			sdk.MsgTypeURL(&solomachine.Header{}),
-			true,
+			nil,
 		},
 		{
 			"success: Misbehaviour",
 			sdk.MsgTypeURL(&solomachine.Misbehaviour{}),
-			true,
+			nil,
 		},
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			false,
+			fmt.Errorf("unable to resolve type URL ibc.invalid.MsgTypeURL"),
 		},
 	}
 
@@ -49,15 +50,15 @@ func TestCodecTypeRegistration(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, solomachine.AppModuleBasic{})
+			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, solomachine.AppModule{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				require.NotNil(t, msg)
 				require.NoError(t, err)
 			} else {
 				require.Nil(t, msg)
-				require.Error(t, err)
+				require.ErrorContains(t, err, tc.expError.Error())
 			}
 		})
 	}

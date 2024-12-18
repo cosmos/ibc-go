@@ -21,7 +21,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		},
 	}
 
-	interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, TestPortID)
+	interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext().HeaderInfo(), ibctesting.FirstConnectionID, TestPortID)
 	genesisState := genesistypes.ControllerGenesisState{
 		ActiveChannels: []genesistypes.ActiveChannel{
 			{

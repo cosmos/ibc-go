@@ -26,7 +26,7 @@ type Keeper struct {
 
 	cdc codec.BinaryCodec
 
-	authKeeper    types.AccountKeeper
+	authKeeper    types.AuthKeeper
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	bankKeeper    types.BankKeeper
@@ -36,7 +36,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec, env appmodule.Environment,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper,
-	authKeeper types.AccountKeeper, bankKeeper types.BankKeeper,
+	authKeeper types.AuthKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 	return Keeper{
 		cdc:           cdc,

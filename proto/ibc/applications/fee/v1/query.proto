@@ -26,7 +26,7 @@ service Query {
         "{packet_id.sequence}/incentivized_packet";
   }
 
-  // Gets all incentivized packets for a specific channel
+  // IncentivizedPacketsForChannel retrieves all incentivized packets for a specific channel
   rpc IncentivizedPacketsForChannel(QueryIncentivizedPacketsForChannelRequest)
       returns (QueryIncentivizedPacketsForChannelResponse) {
     option (google.api.http).get = "/ibc/apps/fee/v1/channels/{channel_id}/ports/{port_id}/incentivized_packets";

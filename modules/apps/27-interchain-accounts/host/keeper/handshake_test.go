@@ -171,7 +171,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			{
 				"account already exists",
 				func() {
-					interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+					interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext().HeaderInfo(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 					interchainAcc := icatypes.NewInterchainAccount(authtypes.NewBaseAccountWithAddress(interchainAccAddr), path.EndpointA.ChannelConfig.PortID)
 					suite.chainB.GetSimApp().AuthKeeper.NewAccount(suite.chainB.GetContext(), interchainAcc)
 					suite.chainB.GetSimApp().AuthKeeper.SetAccount(suite.chainB.GetContext(), interchainAcc)
@@ -188,7 +188,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			{
 				"connection not found",
 				func() {
-					channel.ConnectionHops = []string{"invalid-connnection-id"}
+					channel.ConnectionHops = []string{ibctesting.InvalidID}
 					path.EndpointB.SetChannel(*channel)
 				},
 				connectiontypes.ErrConnectionNotFound,
@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenTry() {
 			{
 				"invalid controller connection ID",
 				func() {
-					metadata.ControllerConnectionId = "invalid-connnection-id"
+					metadata.ControllerConnectionId = ibctesting.InvalidID
 
 					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 					suite.Require().NoError(err)

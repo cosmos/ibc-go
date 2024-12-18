@@ -20,7 +20,6 @@ chains:
     numValidators: 4
     numFullNodes: 1
     image: ghcr.io/cosmos/ibc-go-simd # override with CHAIN_IMAGE
-    tag: main # override with CHAIN_A_TAG
     binary: simd # override with CHAIN_BINARY
 
     # the entry at index 1 corresponds to CHAIN_B
@@ -28,25 +27,21 @@ chains:
     numValidators: 4
     numFullNodes: 1
     image: ghcr.io/cosmos/ibc-go-simd # override with CHAIN_IMAGE
-    tag: main # override with CHAIN_B_TAG
     binary: simd # override with CHAIN_BINARY
 
 # activeRelayer must match the id of a relayer specified in the relayers list below.
 activeRelayer: hermes # override with RELAYER_ID
 
-# relayers provides a list all possible relayers that will be usable within a test
-# NOTE: the activeRelayer field, must match the id specified in one of the relayers in this list.
-# if that is not the case, validation will fail.
 relayers:
   - id: hermes
     image: ghcr.io/informalsystems/hermes
-    tag: "1.10.4" # override with RELAYER_TAG
+    tag: "1.10.4"
   - id: rly
     image: ghcr.io/cosmos/relayer
-    tag: "latest" # override with RELAYER_TAG
+    tag: "latest"
   - id: hyperspace
     image: ghcr.io/misko9/hyperspace
-    tag: "20231122v39" # override with RELAYER_TAG
+    tag: "20231122v39"
 
 cometbft:
   logLevel: info
@@ -57,7 +52,7 @@ debug:
   # settings this value to true will keep the containers running after the test finishes.
   keepContainers: true
 
-upgradePlanName: "" # specify a value that matches a planName in the upgrades list below.
+upgradePlanName: ""
 upgrades:
   - planName: "v7"
     tag: "v7.0.0"

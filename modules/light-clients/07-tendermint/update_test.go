@@ -1,6 +1,7 @@
 package tendermint_test
 
 import (
+	"errors"
 	"time"
 
 	storetypes "cosmossdk.io/store/types"
@@ -39,12 +40,12 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			name:     "success",
 			malleate: func() {},
-			expPass:  true,
+			expErr:   nil,
 		},
 		{
 			name: "successful verify header for header with a previous height",
@@ -64,7 +65,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 			},
-			expPass: true,
+			expErr: nil,
 		},
 		{
 			name: "successful verify header: header with future height and different validator set",
@@ -82,7 +83,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+5, trustedHeight, suite.chainB.ProposedHeader.Time, bothValSet, suite.chainB.NextVals, trustedVals, bothSigners)
 			},
-			expPass: true,
+			expErr: nil,
 		},
 		{
 			name: "successful verify header: header with next height and different validator set",
@@ -100,7 +101,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height, trustedHeight, suite.chainB.ProposedHeader.Time, bothValSet, suite.chainB.NextVals, trustedVals, bothSigners)
 			},
-			expPass: true,
+			expErr: nil,
 		},
 		{
 			name: "unsuccessful updates, passed in incorrect trusted validators for given consensus state",
@@ -115,7 +116,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time, bothValSet, bothValSet, bothValSet, bothSigners)
 			},
-			expPass: false,
+			expErr: errors.New("invalid validator set"),
 		},
 		{
 			name: "unsuccessful verify header with next height: update header mismatches nextValSetHash",
@@ -129,7 +130,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				// this will err as altValSet.Hash() != consState.NextValidatorsHash
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time, altValSet, altValSet, trustedVals, altSigners)
 			},
-			expPass: false,
+			expErr: errors.New("failed to verify header"),
 		},
 		{
 			name: "unsuccessful update with future height: too much change in validator set",
@@ -142,7 +143,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time, altValSet, altValSet, trustedVals, altSigners)
 			},
-			expPass: false,
+			expErr: errors.New("failed to verify header: can't trust new val set"),
 		},
 		{
 			name: "unsuccessful verify header: header height revision and trusted height revision mismatch",
@@ -154,7 +155,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				header = suite.chainB.CreateTMClientHeader(chainIDRevision1, 3, trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
-			expPass: false,
+			expErr: errors.New("invalid client header"),
 		},
 		{
 			name: "unsuccessful verify header: header height < consensus height",
@@ -170,7 +171,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				// Make new header at height less than latest client state
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, int64(heightMinus1.RevisionHeight), trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
-			expPass: false,
+			expErr: errors.New("invalid client header"),
 		},
 		{
 			name: "unsuccessful verify header: header basic validation failed",
@@ -178,7 +179,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				// cause header to fail validatebasic by changing commit height to mismatch header height
 				header.SignedHeader.Commit.Height = revisionHeight - 1
 			},
-			expPass: false,
+			expErr: errors.New("header and commit height mismatch"),
 		},
 		{
 			name: "unsuccessful verify header: header timestamp is not past last client timestamp",
@@ -191,7 +192,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time.Add(-time.Minute), suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
-			expPass: false,
+			expErr: errors.New("failed to verify header"),
 		},
 		{
 			name: "unsuccessful verify header: header with incorrect header chain-id",
@@ -204,7 +205,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				header = suite.chainB.CreateTMClientHeader(chainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
-			expPass: false,
+			expErr: errors.New("header height revision 0 does not match trusted header revision 1"),
 		},
 		{
 			name: "unsuccessful update: trusting period has passed since last client timestamp",
@@ -219,7 +220,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				suite.chainB.ExpireClient(ibctesting.TrustingPeriod)
 			},
-			expPass: false,
+			expErr: errors.New("failed to verify header"),
 		},
 		{
 			name: "unsuccessful update for a previous revision",
@@ -237,7 +238,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				err = path.EndpointB.UpgradeChain()
 				suite.Require().NoError(err)
 			},
-			expPass: false,
+			expErr: errors.New("failed to verify header"),
 		},
 		{
 			name: "successful update with identical header to a previous update",
@@ -255,7 +256,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 				err = path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 			},
-			expPass: true,
+			expErr: nil,
 		},
 
 		{
@@ -269,7 +270,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID+"-1", suite.chainB.ProposedHeader.Height+5, trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
-			expPass: false,
+			expErr: errors.New("failed to verify header"),
 		},
 
 		{
@@ -287,7 +288,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height, trustedHeight, suite.chainB.ProposedHeader.Time, suite.chainB.Vals, suite.chainB.NextVals, trustedVals, suite.chainB.Signers)
 			},
-			expPass: false,
+			expErr: errors.New("header height revision 2 does not match trusted header revision 1"),
 		},
 	}
 
@@ -314,10 +315,11 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 			err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, tc.name)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.expErr.Error())
 			}
 		})
 	}
