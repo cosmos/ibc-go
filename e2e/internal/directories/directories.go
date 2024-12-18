@@ -5,7 +5,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"testing"
 )
 
 const (
@@ -16,9 +15,7 @@ const (
 )
 
 // E2E finds the e2e directory above the test.
-func E2E(t *testing.T) (string, error) {
-	t.Helper()
-
+func E2E() (string, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return "", err
@@ -32,7 +29,7 @@ func E2E(t *testing.T) (string, error) {
 
 	// arbitrary value to avoid getting stuck in an infinite loop if this is called
 	// in a context where the e2e directory does not exist.
-	if count > maxAttempts {
+	if count == maxAttempts {
 		return "", fmt.Errorf("unable to find e2e directory after %d tries", maxAttempts)
 	}
 

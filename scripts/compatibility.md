@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The generate-compatibility-json.py script is used to generate matricies that can be fed into github workflows
+The generate-compatibility-json.py script is used to generate matrices that can be fed into github workflows
 as the matrix for the compatibility job.
 
 This is done by generating a matrix of all possible combinations based on a provided release branch

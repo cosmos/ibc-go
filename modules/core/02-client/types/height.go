@@ -162,7 +162,7 @@ func SetRevisionNumber(chainID string, revision uint64) (string, error) {
 
 	splitStr := strings.Split(chainID, "-")
 	// swap out revision number with given revision
-	splitStr[len(splitStr)-1] = strconv.Itoa(int(revision))
+	splitStr[len(splitStr)-1] = strconv.FormatUint(revision, 10)
 	return strings.Join(splitStr, "-"), nil
 }
 

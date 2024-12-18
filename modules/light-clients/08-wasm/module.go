@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/core/registry"
+	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -29,6 +29,20 @@ var (
 	_ appmodule.AppModule           = (*AppModule)(nil)
 )
 
+// AppModule represents the AppModule for this module
+type AppModule struct {
+	cdc    codec.Codec
+	keeper keeper.Keeper
+}
+
+// NewAppModule creates a new 08-wasm module
+func NewAppModule(cdc codec.Codec, k keeper.Keeper) AppModule {
+	return AppModule{
+		cdc:    cdc,
+		keeper: k,
+	}
+}
+
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
 func (AppModule) IsOnePerModuleType() {}
 
@@ -41,11 +55,11 @@ func (AppModule) Name() string {
 }
 
 // RegisterLegacyAminoCodec performs a no-op. The Wasm client does not support amino.
-func (AppModule) RegisterLegacyAminoCodec(registry.AminoRegistrar) {}
+func (AppModule) RegisterLegacyAminoCodec(coreregistry.AminoRegistrar) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any. This allows core IBC
 // to unmarshal Wasm light client types.
-func (AppModule) RegisterInterfaces(reg registry.InterfaceRegistrar) {
+func (AppModule) RegisterInterfaces(reg coreregistry.InterfaceRegistrar) {
 	types.RegisterInterfaces(reg)
 }
 
@@ -82,20 +96,6 @@ func (AppModule) GetTxCmd() *cobra.Command {
 // GetQueryCmd implements AppModule interface
 func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
-}
-
-// AppModule represents the AppModule for this module
-type AppModule struct {
-	cdc    codec.Codec
-	keeper keeper.Keeper
-}
-
-// NewAppModule creates a new 08-wasm module
-func NewAppModule(cdc codec.Codec, k keeper.Keeper) AppModule {
-	return AppModule{
-		cdc:    cdc,
-		keeper: k,
-	}
 }
 
 // RegisterServices registers module services.

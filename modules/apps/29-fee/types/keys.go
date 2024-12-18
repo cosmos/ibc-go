@@ -97,7 +97,7 @@ func KeyCounterpartyPayee(address, channelID string) []byte {
 }
 
 // ParseKeyCounterpartyPayee returns the registered relayer address and channelID used to store the counterparty payee address
-func ParseKeyCounterpartyPayee(key string) (address string, channelID string, error error) {
+func ParseKeyCounterpartyPayee(key string) (address string, channelID string, err error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 3 {
 		return "", "", errorsmod.Wrapf(

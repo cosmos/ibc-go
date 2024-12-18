@@ -72,7 +72,7 @@ func (k Keeper) getQueryPlugins() QueryPlugins {
 	return k.queryPlugins
 }
 
-// SetQueryPlugins sets the plugins.
+// setQueryPlugins sets the plugins.
 func (k *Keeper) setQueryPlugins(plugins QueryPlugins) {
 	k.queryPlugins = plugins
 }

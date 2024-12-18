@@ -15,7 +15,7 @@ import (
 
 // EmitAcknowledgementEvent emits an event signalling a successful or failed acknowledgement and including the error
 // details if any.
-func (k *Keeper) EmitAcknowledgementEvent(ctx context.Context, packet channeltypes.Packet, ack exported.Acknowledgement, err error) {
+func (k *Keeper) EmitAcknowledgementEvent(ctx context.Context, packet channeltypes.Packet, ack exported.Acknowledgement, err error) error {
 	attributes := []event.Attribute{
 		event.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 		event.NewAttribute(icatypes.AttributeKeyControllerChannelID, packet.GetDestChannel()),
@@ -26,7 +26,5 @@ func (k *Keeper) EmitAcknowledgementEvent(ctx context.Context, packet channeltyp
 		attributes = append(attributes, event.NewAttribute(icatypes.AttributeKeyAckError, err.Error()))
 	}
 
-	if err := k.EventService.EventManager(ctx).EmitKV(icatypes.EventTypePacket, attributes...); err != nil {
-		panic(err)
-	}
+	return k.EventService.EventManager(ctx).EmitKV(icatypes.EventTypePacket, attributes...)
 }

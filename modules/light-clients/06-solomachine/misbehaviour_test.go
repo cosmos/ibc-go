@@ -1,6 +1,8 @@
 package solomachine_test
 
 import (
+	"errors"
+
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -19,61 +21,61 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 		testCases := []struct {
 			name                 string
 			malleateMisbehaviour func(misbehaviour *solomachine.Misbehaviour)
-			expPass              bool
+			expErr               error
 		}{
 			{
 				"valid misbehaviour",
 				func(*solomachine.Misbehaviour) {},
-				true,
+				nil,
 			},
 			{
 				"sequence is zero",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.Sequence = 0
 				},
-				false,
+				errors.New("sequence cannot be 0: invalid light client misbehaviour"),
 			},
 			{
 				"signature one sig is empty",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureOne.Signature = []byte{}
 				},
-				false,
+				errors.New("signature one failed basic validation: signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"signature two sig is empty",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Signature = []byte{}
 				},
-				false,
+				errors.New("signature two failed basic validation: signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"signature one data is empty",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureOne.Data = nil
 				},
-				false,
+				errors.New("signature one failed basic validation: data for signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"signature two data is empty",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Data = []byte{}
 				},
-				false,
+				errors.New("signature two failed basic validation: data for signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"signatures are identical",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Signature = misbehaviour.SignatureOne.Signature
 				},
-				false,
+				errors.New("misbehaviour signatures cannot be equal: invalid light client misbehaviour"),
 			},
 			{
 				"data signed is identical but path differs",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Data = misbehaviour.SignatureOne.Data
 				},
-				true,
+				nil,
 			},
 			{
 				"data signed and path are identical",
@@ -81,31 +83,35 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 					misbehaviour.SignatureTwo.Path = misbehaviour.SignatureOne.Path
 					misbehaviour.SignatureTwo.Data = misbehaviour.SignatureOne.Data
 				},
-				false,
+				errors.New("misbehaviour signature data must be signed over different messages: invalid light client misbehaviour"),
 			},
 			{
 				"data path for SignatureOne is unspecified",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureOne.Path = []byte{}
-				}, false,
+				},
+				errors.New("signature one failed basic validation: path for signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"data path for SignatureTwo is unspecified",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Path = []byte{}
-				}, false,
+				},
+				errors.New("signature two failed basic validation: path for signature cannot be empty: invalid signature and data"),
 			},
 			{
 				"timestamp for SignatureOne is zero",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureOne.Timestamp = 0
-				}, false,
+				},
+				errors.New("signature one failed basic validation: timestamp cannot be 0: invalid signature and data"),
 			},
 			{
 				"timestamp for SignatureTwo is zero",
 				func(misbehaviour *solomachine.Misbehaviour) {
 					misbehaviour.SignatureTwo.Timestamp = 0
-				}, false,
+				},
+				errors.New("signature two failed basic validation: timestamp cannot be 0: invalid signature and data"),
 			},
 		}
 
@@ -118,10 +124,11 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 
 				err := misbehaviour.ValidateBasic()
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}

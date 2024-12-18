@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec/testutil"
@@ -110,7 +112,7 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 	cases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"valid - tendermint client",
@@ -119,7 +121,7 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 				msg, err = types.NewMsgCreateClient(tendermintClient, suite.chainA.CurrentTMClientHeader().ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
 		},
 		{
 			"invalid tendermint client",
@@ -127,14 +129,14 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 				msg, err = types.NewMsgCreateClient(&ibctm.ClientState{}, suite.chainA.CurrentTMClientHeader().ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			false,
+			errorsmod.Wrap(ibctm.ErrInvalidChainID, "chain id cannot be empty string"),
 		},
 		{
 			"failed to unpack client",
 			func() {
 				msg.ClientState = nil
 			},
-			false,
+			errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil"),
 		},
 		{
 			"failed to unpack consensus state",
@@ -144,14 +146,14 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 				suite.Require().NoError(err)
 				msg.ConsensusState = nil
 			},
-			false,
+			errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil"),
 		},
 		{
 			"invalid signer",
 			func() {
 				msg.Signer = ""
 			},
-			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: empty address string is not allowed"),
 		},
 		{
 			"valid - solomachine client",
@@ -160,7 +162,7 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 				msg, err = types.NewMsgCreateClient(soloMachine.ClientState(), soloMachine.ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
 		},
 		{
 			"invalid solomachine client",
@@ -169,7 +171,7 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 				msg, err = types.NewMsgCreateClient(&solomachine.ClientState{}, soloMachine.ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			false,
+			errorsmod.Wrap(types.ErrInvalidClient, "sequence cannot be 0"),
 		},
 		{
 			"invalid solomachine consensus state",
@@ -178,7 +180,7 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 				msg, err = types.NewMsgCreateClient(soloMachine.ClientState(), &solomachine.ConsensusState{}, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			false,
+			errorsmod.Wrap(types.ErrInvalidConsensus, "timestamp cannot be 0"),
 		},
 		{
 			"invalid - client state and consensus state client types do not match",
@@ -188,17 +190,18 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 				msg, err = types.NewMsgCreateClient(tendermintClient, soloMachine.ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			false,
+			errorsmod.Wrap(types.ErrInvalidClientType, "client type for client state and consensus state do not match"),
 		},
 	}
 
 	for _, tc := range cases {
 		tc.malleate()
 		err = msg.ValidateBasic()
-		if tc.expPass {
+		if tc.expErr == nil {
 			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err, tc.name)
+			suite.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
@@ -263,14 +266,14 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 	cases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"invalid client-id",
 			func() {
 				msg.ClientId = ""
 			},
-			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address:  empty address string is not allowed"),
 		},
 		{
 			"valid - tendermint header",
@@ -278,7 +281,7 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 				msg, err = types.NewMsgUpdateClient("tendermint", suite.chainA.CurrentTMClientHeader(), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
 		},
 		{
 			"invalid tendermint header",
@@ -286,21 +289,21 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 				msg, err = types.NewMsgUpdateClient("tendermint", &ibctm.Header{}, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			false,
+			errorsmod.Wrap(types.ErrInvalidHeader, "tendermint signed header cannot be nil"),
 		},
 		{
 			"failed to unpack header",
 			func() {
 				msg.ClientMessage = nil
 			},
-			false,
+			errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil"),
 		},
 		{
 			"invalid signer",
 			func() {
 				msg.Signer = ""
 			},
-			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address:  empty address string is not allowed"),
 		},
 		{
 			"valid - solomachine header",
@@ -310,7 +313,7 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
 		},
 		{
 			"invalid solomachine header",
@@ -318,17 +321,18 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 				msg, err = types.NewMsgUpdateClient("solomachine", &solomachine.Header{}, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			false,
+			errorsmod.Wrap(types.ErrInvalidHeader, "timestamp cannot be zero"),
 		},
 	}
 
 	for _, tc := range cases {
 		tc.malleate()
 		err = msg.ValidateBasic()
-		if tc.expPass {
+		if tc.expErr == nil {
 			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err, tc.name)
+			suite.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
@@ -388,40 +392,40 @@ func (suite *TypesTestSuite) TestMsgUpgradeClient_ValidateBasic() {
 	cases := []struct {
 		name     string
 		malleate func(*types.MsgUpgradeClient)
-		expPass  bool
+		expErr   error
 	}{
 		{
 			name:     "success",
 			malleate: func(msg *types.MsgUpgradeClient) {},
-			expPass:  true,
+			expErr:   nil,
 		},
 		{
 			name: "client id empty",
 			malleate: func(msg *types.MsgUpgradeClient) {
 				msg.ClientId = ""
 			},
-			expPass: false,
+			expErr: errorsmod.Wrap(host.ErrInvalidID, "protobuf Any message cannot be nil"),
 		},
 		{
 			name: "invalid client id",
 			malleate: func(msg *types.MsgUpgradeClient) {
 				msg.ClientId = "invalid~chain/id"
 			},
-			expPass: false,
+			expErr: errorsmod.Wrap(host.ErrInvalidID, "identifier invalid~chain/id cannot contain separator '/'"),
 		},
 		{
 			name: "unpacking clientstate fails",
 			malleate: func(msg *types.MsgUpgradeClient) {
 				msg.ClientState = nil
 			},
-			expPass: false,
+			expErr: errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil"),
 		},
 		{
 			name: "unpacking consensus state fails",
 			malleate: func(msg *types.MsgUpgradeClient) {
 				msg.ConsensusState = nil
 			},
-			expPass: false,
+			expErr: errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil"),
 		},
 		{
 			name: "client and consensus type does not match",
@@ -431,28 +435,28 @@ func (suite *TypesTestSuite) TestMsgUpgradeClient_ValidateBasic() {
 				suite.Require().NoError(err)
 				msg.ConsensusState = soloConsensus
 			},
-			expPass: false,
+			expErr: errorsmod.Wrap(types.ErrInvalidUpgradeClient, "consensus state's client-type does not match client. expected: 07-tendermint, got: 06-solomachine"),
 		},
 		{
 			name: "empty client proof",
 			malleate: func(msg *types.MsgUpgradeClient) {
 				msg.ProofUpgradeClient = nil
 			},
-			expPass: false,
+			expErr: errorsmod.Wrap(types.ErrInvalidUpgradeClient, "proof of upgrade client cannot be empty"),
 		},
 		{
 			name: "empty consensus state proof",
 			malleate: func(msg *types.MsgUpgradeClient) {
 				msg.ProofUpgradeConsensusState = nil
 			},
-			expPass: false,
+			expErr: errorsmod.Wrap(types.ErrInvalidUpgradeClient, "proof of upgrade consensus state cannot be empty"),
 		},
 		{
 			name: "empty signer",
 			malleate: func(msg *types.MsgUpgradeClient) {
 				msg.Signer = "  "
 			},
-			expPass: false,
+			expErr: errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: empty address string is not allowed"),
 		},
 	}
 
@@ -466,10 +470,11 @@ func (suite *TypesTestSuite) TestMsgUpgradeClient_ValidateBasic() {
 
 		tc.malleate(msg)
 		err = msg.ValidateBasic()
-		if tc.expPass {
+		if tc.expErr == nil {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
 			suite.Require().Error(err, "invalid case %s passed", tc.name)
+			suite.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
@@ -540,14 +545,14 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 	cases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"invalid client-id",
 			func() {
 				msg.ClientId = ""
 			},
-			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: empty address string is not allowed"),
 		},
 		{
 			"valid - tendermint misbehaviour",
@@ -561,7 +566,7 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 				msg, err = types.NewMsgSubmitMisbehaviour("tendermint", misbehaviour, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
 		},
 		{
 			"invalid tendermint misbehaviour",
@@ -569,21 +574,21 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 				msg, err = types.NewMsgSubmitMisbehaviour("tendermint", &ibctm.Misbehaviour{}, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			false,
+			errorsmod.Wrap(ibctm.ErrInvalidHeader, "misbehaviour Header1 cannot be nil"),
 		},
 		{
 			"failed to unpack misbehaviourt",
 			func() {
 				msg.Misbehaviour = nil
 			},
-			false,
+			errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil"),
 		},
 		{
 			"invalid signer",
 			func() {
 				msg.Signer = ""
 			},
-			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address:  empty address string is not allowed"),
 		},
 		{
 			"valid - solomachine misbehaviour",
@@ -592,7 +597,7 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 				msg, err = types.NewMsgSubmitMisbehaviour(soloMachine.ClientID, soloMachine.CreateMisbehaviour(), suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
 		},
 		{
 			"invalid solomachine misbehaviour",
@@ -600,7 +605,7 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 				msg, err = types.NewMsgSubmitMisbehaviour("solomachine", &solomachine.Misbehaviour{}, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			false,
+			errorsmod.Wrapf(types.ErrInvalidMisbehaviour, "sequence cannot be 0"),
 		},
 		{
 			"client-id mismatch",
@@ -609,17 +614,18 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 				msg, err = types.NewMsgSubmitMisbehaviour("external", soloMachineMisbehaviour, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			false,
+			errorsmod.Wrapf(host.ErrInvalidID, "identifier external has invalid length: 8, must be between 9-64 characters"),
 		},
 	}
 
 	for _, tc := range cases {
 		tc.malleate()
 		err = msg.ValidateBasic()
-		if tc.expPass {
+		if tc.expErr == nil {
 			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err, tc.name)
+			suite.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
@@ -691,12 +697,12 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 // TestMsgRecoverClientGetSigners tests GetSigners for MsgRecoverClient
 func TestMsgRecoverClientGetSigners(t *testing.T) {
 	testCases := []struct {
-		name    string
-		address sdk.AccAddress
-		expPass bool
+		name     string
+		address  sdk.AccAddress
+		expError error
 	}{
-		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
-		{"failure: nil address", nil, false},
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
+		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
@@ -706,11 +712,12 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 		}
 		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
 		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
-		if tc.expPass {
+		if tc.expError == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
 			require.Error(t, err)
+			require.Equal(t, err.Error(), tc.expError.Error())
 		}
 	}
 }
@@ -720,17 +727,17 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade(
 	testCases := []struct {
 		name                string
 		upgradedClientState exported.ClientState
-		expPass             bool
+		expErr              error
 	}{
 		{
 			"success",
 			ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
-			true,
+			nil,
 		},
 		{
 			"fail: failed to pack ClientState",
 			nil,
-			false,
+			errorsmod.Wrap(ibcerrors.ErrPackAny, "cannot proto marshal <nil>"),
 		},
 	}
 
@@ -745,7 +752,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade(
 			tc.upgradedClientState,
 		)
 
-		if tc.expPass {
+		if tc.expErr == nil {
 			suite.Require().NoError(err)
 			suite.Assert().Equal(ibctesting.TestAccAddress, msg.Signer)
 			suite.Assert().Equal(plan, msg.Plan)
@@ -754,6 +761,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade(
 			suite.Assert().Equal(tc.upgradedClientState, unpackedClientState)
 		} else {
 			suite.Require().True(errors.Is(err, ibcerrors.ErrPackAny))
+			suite.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
@@ -763,17 +771,17 @@ func TestMsgIBCSoftwareUpgrade_GetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
-		expPass bool
+		expErr  error
 	}{
 		{
 			"success: valid address",
 			sdk.AccAddress(ibctesting.TestAccAddress),
-			true,
+			nil,
 		},
 		{
 			"failure: nil address",
 			nil,
-			false,
+			fmt.Errorf("empty address string is not allowed"),
 		},
 	}
 
@@ -792,11 +800,14 @@ func TestMsgIBCSoftwareUpgrade_GetSigners(t *testing.T) {
 
 		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
 		signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
-		if tc.expPass {
+
+		expPass := tc.expErr == nil
+		if expPass {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
 			require.Error(t, err)
+			require.Equal(t, err.Error(), tc.expErr.Error())
 		}
 	}
 }
@@ -904,29 +915,29 @@ func (suite *TypesTestSuite) TestMarshalMsgIBCSoftwareUpgrade() {
 func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
+		name   string
+		msg    *types.MsgUpdateParams
+		expErr error
 	}{
 		{
 			"success: valid signer and params",
 			types.NewMsgUpdateParams(signer, types.DefaultParams()),
-			true,
+			nil,
 		},
 		{
 			"success: valid signer empty params",
 			types.NewMsgUpdateParams(signer, types.Params{}),
-			true,
+			nil,
 		},
 		{
 			"failure: invalid signer address",
 			types.NewMsgUpdateParams("invalid", types.DefaultParams()),
-			false,
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: decoding bech32 failed: invalid bech32 string length 7"),
 		},
 		{
 			"failure: invalid allowed client",
 			types.NewMsgUpdateParams(signer, types.NewParams("")),
-			false,
+			fmt.Errorf("client type 0 cannot be blank"),
 		},
 	}
 
@@ -934,10 +945,11 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, "valid case %s failed", tc.name)
 			} else {
 				suite.Require().Error(err, "invalid case %s passed", tc.name)
+				suite.Require().Equal(tc.expErr.Error(), err.Error())
 			}
 		})
 	}
@@ -948,10 +960,10 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
-		expPass bool
+		expErr  error
 	}{
-		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
-		{"failure: nil address", nil, false},
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
+		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
@@ -963,11 +975,14 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 		}
 		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
 		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
-		if tc.expPass {
+
+		expPass := tc.expErr == nil
+		if expPass {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
 			require.Error(t, err)
+			require.Equal(t, err.Error(), tc.expErr.Error())
 		}
 	}
 }

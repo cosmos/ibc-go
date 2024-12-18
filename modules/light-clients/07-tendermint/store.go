@@ -220,7 +220,7 @@ func IterateConsensusStateAscending(clientStore storetypes.KVStore, cb func(heig
 
 // GetNextConsensusState returns the lowest consensus state that is larger than the given height.
 // The Iterator returns a storetypes.Iterator which iterates from start (inclusive) to end (exclusive).
-// If the starting height exists in store, we need to call iterator.Next() to get the next consenus state.
+// If the starting height exists in store, we need to call iterator.Next() to get the next consensus state.
 // Otherwise, the iterator is already at the next consensus state so we can call iterator.Value() immediately.
 func GetNextConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryCodec, height exported.Height) (*ConsensusState, bool) {
 	iterateStore := prefix.NewStore(clientStore, []byte(KeyIterateConsensusStatePrefix))

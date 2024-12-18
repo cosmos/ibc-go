@@ -3,11 +3,17 @@ package keeper_test
 import (
 	"fmt"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
@@ -21,21 +27,21 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
 			"invalid connectionID",
 			func() {
 				req = &types.QueryConnectionRequest{}
 			},
-			false,
+			status.Error(codes.InvalidArgument, errorsmod.Wrap(host.ErrInvalidID, "identifier cannot be blank").Error()),
 		},
 		{
 			"connection not found",
@@ -44,7 +50,10 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 					ConnectionId: ibctesting.InvalidID,
 				}
 			},
-			false,
+			status.Error(
+				codes.NotFound,
+				errorsmod.Wrap(types.ErrConnectionNotFound, "IDisInvalid").Error(),
+			),
 		},
 		{
 			"success",
@@ -62,7 +71,7 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 					ConnectionId: path.EndpointA.ConnectionID,
 				}
 			},
-			true,
+			nil,
 		},
 	}
 
@@ -78,12 +87,13 @@ func (suite *KeeperTestSuite) TestQueryConnection() {
 			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ConnectionKeeper)
 			res, err := queryServer.Connection(ctx, req)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(&expConnection, res.Connection)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -104,21 +114,21 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
 			"empty pagination",
 			func() {
 				req = &types.QueryConnectionsRequest{}
 			},
-			true,
+			nil,
 		},
 		{
 			"success",
@@ -155,7 +165,7 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 					},
 				}
 			},
-			true,
+			nil,
 		},
 	}
 
@@ -171,12 +181,13 @@ func (suite *KeeperTestSuite) TestQueryConnections() {
 			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ConnectionKeeper)
 			res, err := queryServer.Connections(ctx, req)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expConnections, res.Connections)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -191,21 +202,21 @@ func (suite *KeeperTestSuite) TestQueryClientConnections() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
 			"invalid connectionID",
 			func() {
 				req = &types.QueryClientConnectionsRequest{}
 			},
-			false,
+			status.Error(codes.InvalidArgument, errorsmod.Wrap(host.ErrInvalidID, "identifier cannot be blank").Error()),
 		},
 		{
 			"connection not found",
@@ -214,7 +225,10 @@ func (suite *KeeperTestSuite) TestQueryClientConnections() {
 					ClientId: ibctesting.InvalidID,
 				}
 			},
-			false,
+			status.Error(
+				codes.NotFound,
+				errorsmod.Wrap(types.ErrClientConnectionPathsNotFound, "IDisInvalid").Error(),
+			),
 		},
 		{
 			"success",
@@ -236,7 +250,7 @@ func (suite *KeeperTestSuite) TestQueryClientConnections() {
 					ClientId: path1.EndpointA.ClientID,
 				}
 			},
-			true,
+			nil,
 		},
 	}
 
@@ -252,12 +266,13 @@ func (suite *KeeperTestSuite) TestQueryClientConnections() {
 			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ConnectionKeeper)
 			res, err := queryServer.ClientConnections(ctx, req)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expPaths, res.ConnectionPaths)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -272,14 +287,14 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
 			"invalid connection ID",
@@ -288,7 +303,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 					ConnectionId: "",
 				}
 			},
-			false,
+			status.Error(codes.InvalidArgument, errorsmod.Wrap(host.ErrInvalidID, "identifier cannot be blank").Error()),
 		},
 		{
 			"connection not found",
@@ -297,7 +312,10 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 					ConnectionId: "test-connection-id",
 				}
 			},
-			false,
+			status.Error(
+				codes.NotFound,
+				errorsmod.Wrap(types.ErrConnectionNotFound, "connection-id: test-connection-id").Error(),
+			),
 		},
 		{
 			"client state not found",
@@ -311,7 +329,10 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 				req = &types.QueryConnectionClientStateRequest{
 					ConnectionId: path.EndpointA.ConnectionID,
 				}
-			}, false,
+			}, status.Error(
+				codes.NotFound,
+				errorsmod.Wrap(clienttypes.ErrClientNotFound, "client-id: ").Error(),
+			),
 		},
 		{
 			"success",
@@ -326,7 +347,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 					ConnectionId: path.EndpointA.ConnectionID,
 				}
 			},
-			true,
+			nil,
 		},
 	}
 
@@ -342,7 +363,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ConnectionKeeper)
 			res, err := queryServer.ConnectionClientState(ctx, req)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(&expIdentifiedClientState, res.IdentifiedClientState)
@@ -352,6 +373,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionClientState() {
 				suite.Require().NotNil(cachedValue)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -367,14 +389,14 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
 			"invalid connection ID",
@@ -385,7 +407,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 					RevisionHeight: 1,
 				}
 			},
-			false,
+			status.Error(codes.InvalidArgument, errorsmod.Wrap(host.ErrInvalidID, "identifier cannot be blank").Error()),
 		},
 		{
 			"connection not found",
@@ -396,7 +418,10 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 					RevisionHeight: 1,
 				}
 			},
-			false,
+			status.Error(
+				codes.NotFound,
+				errorsmod.Wrap(types.ErrConnectionNotFound, "connection-id: test-connection-id").Error(),
+			),
 		},
 		{
 			"consensus state not found",
@@ -409,7 +434,10 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 					RevisionNumber: 0,
 					RevisionHeight: uint64(suite.chainA.GetContext().BlockHeight()), // use current height
 				}
-			}, false,
+			}, status.Error(
+				codes.NotFound,
+				errorsmod.Wrap(clienttypes.ErrConsensusStateNotFound, "client-id: 07-tendermint-0").Error(),
+			),
 		},
 		{
 			"success",
@@ -429,7 +457,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 					RevisionHeight: clientHeight.GetRevisionHeight(),
 				}
 			},
-			true,
+			nil,
 		},
 	}
 
@@ -445,7 +473,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 			queryServer := keeper.NewQueryServer(suite.chainA.App.GetIBCKeeper().ConnectionKeeper)
 			res, err := queryServer.ConnectionConsensusState(ctx, req)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				consensusState, err := clienttypes.UnpackConsensusState(res.ConsensusState)
@@ -458,6 +486,7 @@ func (suite *KeeperTestSuite) TestQueryConnectionConsensusState() {
 				suite.Require().NotNil(cachedValue)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

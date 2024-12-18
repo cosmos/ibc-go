@@ -8,6 +8,8 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	errorsmod "cosmossdk.io/errors"
+
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -502,14 +504,14 @@ func (suite *KeeperTestSuite) TestDefaultSetParams() {
 // TestParams tests that Param setting and retrieval works properly
 func (suite *KeeperTestSuite) TestParams() {
 	testCases := []struct {
-		name    string
-		input   types.Params
-		expPass bool
+		name   string
+		input  types.Params
+		expErr error
 	}{
-		{"success: set default params", types.DefaultParams(), true},
-		{"success: zero timeout height", types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), 10000)), true},
-		{"fail: zero timeout timestamp", types.NewParams(types.NewTimeout(clienttypes.NewHeight(1, 1000), 0)), false},
-		{"fail: zero timeout", types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), 0)), false},
+		{"success: set default params", types.DefaultParams(), nil},
+		{"success: zero timeout height", types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), 10000)), nil},
+		{"fail: zero timeout timestamp", types.NewParams(types.NewTimeout(clienttypes.NewHeight(1, 1000), 0)), errorsmod.Wrapf(types.ErrInvalidUpgradeTimeout, "upgrade timeout height must be zero. ")},
+		{"fail: zero timeout", types.NewParams(types.NewTimeout(clienttypes.ZeroHeight(), 0)), errorsmod.Wrapf(types.ErrInvalidUpgradeTimeout, "upgrade timeout height must be zero.")},
 	}
 
 	for _, tc := range testCases {
@@ -520,13 +522,14 @@ func (suite *KeeperTestSuite) TestParams() {
 			ctx := suite.chainA.GetContext()
 			err := tc.input.Validate()
 			suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetParams(ctx, tc.input)
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				expected := tc.input
 				p := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetParams(ctx)
 				suite.Require().Equal(expected, p)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -915,7 +918,7 @@ func (suite *KeeperTestSuite) UpgradeChannel(path *ibctesting.Path, upgradeField
 	suite.Require().NoError(err)
 }
 
-// sendMockPacket sends a packet from source to dest and acknowledges it on the source (completing the packet lifecycle)
+// sendMockPackets sends a packet from source to dest and acknowledges it on the source (completing the packet lifecycle)
 // if acknowledge is true. If acknowledge is false, then the packet will be sent, but timed out.
 // Question(jim): find a nicer home for this?
 func (suite *KeeperTestSuite) sendMockPackets(path *ibctesting.Path, numPackets int, acknowledge bool) {

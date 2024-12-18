@@ -1,6 +1,7 @@
 package solomachine_test
 
 import (
+	"errors"
 	"fmt"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -164,7 +165,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 				"failure: invalid consensus state: Tendermint consensus state",
 				&ibctm.ConsensusState{},
 				sm.ClientState(),
-				fmt.Errorf("proto: wrong wireType = 0 for field TypeUrl"),
+				errors.New("proto: wrong wireType = 0 for field TypeUrl"),
 			},
 			{
 				"failure: invalid consensus state: consensus state does not match consensus state in client",
@@ -182,7 +183,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 				"failure: invalid client state: Tendermint client state",
 				sm.ConsensusState(),
 				&ibctm.ClientState{},
-				fmt.Errorf("proto: wrong wireType = 2 for field IsFrozen"),
+				errors.New("proto: wrong wireType = 2 for field IsFrozen"),
 			},
 		}
 
@@ -551,7 +552,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
 				},
-				fmt.Errorf("failed to unmarshal proof into type"),
+				errors.New("failed to unmarshal proof into type"),
 			},
 			{
 				"failure: consensus state timestamp is greater than signature",
@@ -598,7 +599,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 					suite.Require().NoError(err)
 				},
-				fmt.Errorf("failed to unmarshal proof into type"),
+				errors.New("failed to unmarshal proof into type"),
 			},
 			{
 				"failure: proof is nil",
@@ -771,7 +772,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
 				},
-				fmt.Errorf("failed to unmarshal proof into type"),
+				errors.New("failed to unmarshal proof into type"),
 			},
 			{
 				"failure: consensus state timestamp is greater than signature",
@@ -818,7 +819,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 					suite.Require().NoError(err)
 				},
-				fmt.Errorf("failed to unmarshal proof into type"),
+				errors.New("failed to unmarshal proof into type"),
 			},
 			{
 				"failure: proof is nil",
@@ -1297,7 +1298,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 					h := sm.CreateHeader(sm.Diversifier)
 					h.Signature = suite.GetInvalidProof()
 					clientMsg = h
-				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
+				}, errors.New("proto: wrong wireType = 0 for field Multi"),
 			},
 			{
 				"failure: invalid timestamp in header",
@@ -1469,7 +1470,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 
 					m.SignatureOne.Signature = suite.GetInvalidProof()
 					clientMsg = m
-				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
+				}, errors.New("proto: wrong wireType = 0 for field Multi"),
 			},
 			{
 				"failure: invalid SignatureTwo SignatureData",
@@ -1478,7 +1479,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 
 					m.SignatureTwo.Signature = suite.GetInvalidProof()
 					clientMsg = m
-				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
+				}, errors.New("proto: wrong wireType = 0 for field Multi"),
 			},
 			{
 				"failure: invalid SignatureOne timestamp",

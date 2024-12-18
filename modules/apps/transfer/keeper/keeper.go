@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	corestore "cosmossdk.io/core/store"
-	"cosmossdk.io/log"
-	"cosmossdk.io/math"
+	"cosmossdk.io/core/appmodule"
+	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	banktypes "cosmossdk.io/x/bank/types"
@@ -23,19 +22,19 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
-	storeService   corestore.KVStoreService
+	appmodule.Environment
+
 	cdc            codec.BinaryCodec
 	legacySubspace types.ParamSubspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
-	authKeeper    types.AccountKeeper
+	authKeeper    types.AuthKeeper
 	bankKeeper    types.BankKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
@@ -46,11 +45,11 @@ type Keeper struct {
 // NewKeeper creates a new IBC transfer Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeService corestore.KVStoreService,
+	env appmodule.Environment,
 	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
-	authKeeper types.AccountKeeper,
+	authKeeper types.AuthKeeper,
 	bankKeeper types.BankKeeper,
 	authority string,
 ) Keeper {
@@ -65,7 +64,7 @@ func NewKeeper(
 
 	return Keeper{
 		cdc:            cdc,
-		storeService:   storeService,
+		Environment:    env,
 		legacySubspace: legacySubspace,
 		ics4Wrapper:    ics4Wrapper,
 		channelKeeper:  channelKeeper,
@@ -92,15 +91,9 @@ func (k Keeper) GetAuthority() string {
 	return k.authority
 }
 
-// Logger returns a module-specific logger.
-func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
-}
-
 // GetPort returns the portID for the transfer module. Used in ExportGenesis
 func (k Keeper) GetPort(ctx context.Context) string {
-	store := k.storeService.OpenKVStore(ctx)
+	store := k.KVStoreService.OpenKVStore(ctx)
 	bz, err := store.Get(types.PortKey)
 	if err != nil {
 		panic(err)
@@ -110,7 +103,7 @@ func (k Keeper) GetPort(ctx context.Context) string {
 
 // SetPort sets the portID for the transfer module. Used in InitGenesis
 func (k Keeper) SetPort(ctx context.Context, portID string) {
-	store := k.storeService.OpenKVStore(ctx)
+	store := k.KVStoreService.OpenKVStore(ctx)
 	if err := store.Set(types.PortKey, []byte(portID)); err != nil {
 		panic(err)
 	}
@@ -118,7 +111,7 @@ func (k Keeper) SetPort(ctx context.Context, portID string) {
 
 // GetParams returns the current transfer module parameters.
 func (k Keeper) GetParams(ctx context.Context) types.Params {
-	store := k.storeService.OpenKVStore(ctx)
+	store := k.KVStoreService.OpenKVStore(ctx)
 	bz, err := store.Get([]byte(types.ParamsKey))
 	if err != nil {
 		panic(err)
@@ -134,7 +127,7 @@ func (k Keeper) GetParams(ctx context.Context) types.Params {
 
 // SetParams sets the transfer module parameters.
 func (k Keeper) SetParams(ctx context.Context, params types.Params) {
-	store := k.storeService.OpenKVStore(ctx)
+	store := k.KVStoreService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
 	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
 		panic(err)
@@ -143,7 +136,7 @@ func (k Keeper) SetParams(ctx context.Context, params types.Params) {
 
 // GetDenom retrieves the denom from store given the hash of the denom.
 func (k Keeper) GetDenom(ctx context.Context, denomHash cmtbytes.HexBytes) (types.Denom, bool) {
-	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomKey)
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx)), types.DenomKey)
 	bz := store.Get(denomHash)
 	if len(bz) == 0 {
 		return types.Denom{}, false
@@ -157,14 +150,14 @@ func (k Keeper) GetDenom(ctx context.Context, denomHash cmtbytes.HexBytes) (type
 
 // HasDenom checks if a the key with the given denomination hash exists on the store.
 func (k Keeper) HasDenom(ctx context.Context, denomHash cmtbytes.HexBytes) bool {
-	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomKey)
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx)), types.DenomKey)
 	return store.Has(denomHash)
 }
 
 // SetDenom sets a new {denom hash -> denom } pair to the store.
 // This allows for reverse lookup of the denom given the hash.
 func (k Keeper) SetDenom(ctx context.Context, denom types.Denom) {
-	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomKey)
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx)), types.DenomKey)
 	bz := k.cdc.MustMarshal(&denom)
 	store.Set(denom.Hash(), bz)
 }
@@ -182,10 +175,10 @@ func (k Keeper) GetAllDenoms(ctx context.Context) types.Denoms {
 
 // IterateDenoms iterates over the denominations in the store and performs a callback function.
 func (k Keeper) IterateDenoms(ctx context.Context, cb func(denom types.Denom) bool) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, types.DenomKey)
 
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer coretypes.LogDeferred(k.Logger, func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var denom types.Denom
 		k.cdc.MustUnmarshal(iterator.Value(), &denom)
@@ -224,16 +217,16 @@ func (k Keeper) setDenomMetadata(ctx context.Context, denom types.Denom) {
 // NOTE: if there is no value stored in state for the provided denom then a new Coin is returned for the denom with an initial value of zero.
 // This accommodates callers to simply call `Add()` on the returned Coin as an empty Coin literal (e.g. sdk.Coin{}) will trigger a panic due to the absence of a denom.
 func (k Keeper) GetTotalEscrowForDenom(ctx context.Context, denom string) sdk.Coin {
-	store := k.storeService.OpenKVStore(ctx)
+	store := k.KVStoreService.OpenKVStore(ctx)
 	bz, err := store.Get(types.TotalEscrowForDenomKey(denom))
 	if err != nil {
 		panic(err)
 	}
 	if len(bz) == 0 {
-		return sdk.NewCoin(denom, math.ZeroInt())
+		return sdk.NewCoin(denom, sdkmath.ZeroInt())
 	}
 
-	amount := math.Int{}
+	amount := sdkmath.Int{}
 	if err := amount.Unmarshal(bz); err != nil {
 		panic(err)
 	}
@@ -249,7 +242,7 @@ func (k Keeper) SetTotalEscrowForDenom(ctx context.Context, coin sdk.Coin) {
 		panic(fmt.Errorf("amount cannot be negative: %s", coin.Amount))
 	}
 
-	store := k.storeService.OpenKVStore(ctx)
+	store := k.KVStoreService.OpenKVStore(ctx)
 	key := types.TotalEscrowForDenomKey(coin.Denom)
 
 	if coin.Amount.IsZero() {
@@ -283,17 +276,17 @@ func (k Keeper) GetAllTotalEscrowed(ctx context.Context) sdk.Coins {
 // and performs a callback function. Denominations for which an invalid value
 // (i.e. not integer) is stored, will be skipped.
 func (k Keeper) IterateTokensInEscrow(ctx context.Context, storeprefix []byte, cb func(denomEscrow sdk.Coin) bool) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, storeprefix)
 
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer coretypes.LogDeferred(k.Logger, func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		denom := strings.TrimPrefix(string(iterator.Key()), fmt.Sprintf("%s/", types.KeyTotalEscrowPrefix))
 		if strings.TrimSpace(denom) == "" {
 			continue // denom is empty
 		}
 
-		amount := math.Int{}
+		amount := sdkmath.Int{}
 		if err := amount.Unmarshal(iterator.Value()); err != nil {
 			continue // total escrow amount cannot be unmarshalled to integer
 		}
@@ -307,7 +300,7 @@ func (k Keeper) IterateTokensInEscrow(ctx context.Context, storeprefix []byte, c
 
 // setForwardedPacket sets the forwarded packet in the store.
 func (k Keeper) setForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
-	store := k.storeService.OpenKVStore(ctx)
+	store := k.KVStoreService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&packet)
 	if err := store.Set(types.PacketForwardKey(portID, channelID, sequence), bz); err != nil {
 		panic(err)
@@ -316,7 +309,7 @@ func (k Keeper) setForwardedPacket(ctx context.Context, portID, channelID string
 
 // getForwardedPacket gets the forwarded packet from the store.
 func (k Keeper) getForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
-	store := k.storeService.OpenKVStore(ctx)
+	store := k.KVStoreService.OpenKVStore(ctx)
 	bz, err := store.Get(types.PacketForwardKey(portID, channelID, sequence))
 	if err != nil {
 		panic(err)
@@ -333,7 +326,7 @@ func (k Keeper) getForwardedPacket(ctx context.Context, portID, channelID string
 
 // deleteForwardedPacket deletes the forwarded packet from the store.
 func (k Keeper) deleteForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64) {
-	store := k.storeService.OpenKVStore(ctx)
+	store := k.KVStoreService.OpenKVStore(ctx)
 	packetKey := types.PacketForwardKey(portID, channelID, sequence)
 
 	if err := store.Delete(packetKey); err != nil {
@@ -354,10 +347,10 @@ func (k Keeper) getAllForwardedPackets(ctx context.Context) []types.ForwardedPac
 
 // iterateForwardedPackets iterates over the forward packets in the store and performs a callback function.
 func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet types.ForwardedPacket) bool) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, types.ForwardedPacketKey)
 
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer coretypes.LogDeferred(k.Logger, func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var forwardPacket types.ForwardedPacket
 		k.cdc.MustUnmarshal(iterator.Value(), &forwardPacket.Packet)
@@ -365,7 +358,7 @@ func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet type
 		// Iterator key consists of types.ForwardedPacketKey/portID/channelID/sequence
 		parts := strings.Split(string(iterator.Key()), "/")
 		if len(parts) != 4 {
-			panic(fmt.Errorf("key path should always have 4 elements"))
+			panic(errors.New("key path should always have 4 elements"))
 		}
 		if parts[0] != string(types.ForwardedPacketKey) {
 			panic(fmt.Errorf("key path does not start with expected prefix: %s", types.ForwardedPacketKey))
@@ -373,10 +366,10 @@ func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet type
 
 		portID, channelID := parts[1], parts[2]
 		if err := host.PortIdentifierValidator(portID); err != nil {
-			panic(fmt.Errorf("port identifier validation failed while parsing forward key path"))
+			panic(errors.New("port identifier validation failed while parsing forward key path"))
 		}
 		if err := host.ChannelIdentifierValidator(channelID); err != nil {
-			panic(fmt.Errorf("channel identifier validation failed while parsing forward key path"))
+			panic(errors.New("channel identifier validation failed while parsing forward key path"))
 		}
 
 		forwardPacket.ForwardKey.Sequence = sdk.BigEndianToUint64([]byte(parts[3]))

@@ -112,7 +112,6 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
-	ibctestingtypes "github.com/cosmos/ibc-go/v9/testing/types"
 )
 
 const appName = "SimApp"
@@ -168,7 +167,7 @@ type SimApp struct {
 	FeeGrantKeeper feegrantkeeper.Keeper
 	StakingKeeper  *stakingkeeper.Keeper
 	SlashingKeeper slashingkeeper.Keeper
-	MintKeeper     mintkeeper.Keeper
+	MintKeeper     *mintkeeper.Keeper
 	DistrKeeper    distrkeeper.Keeper
 	PoolKeeper     poolkeeper.Keeper
 	GovKeeper      govkeeper.Keeper
@@ -374,13 +373,16 @@ func NewSimApp(
 		cometService,
 	)
 
-	app.MintKeeper = mintkeeper.NewKeeper(appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[minttypes.StoreKey]), logger.With(log.ModuleKey, "x/mint")), app.StakingKeeper, app.AuthKeeper, app.BankKeeper, authtypes.FeeCollectorName, govModuleAddr)
+	app.MintKeeper = mintkeeper.NewKeeper(appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[minttypes.StoreKey]), logger.With(log.ModuleKey, "x/mint")), app.AuthKeeper, app.BankKeeper, authtypes.FeeCollectorName, govModuleAddr)
+	if err := app.MintKeeper.SetMintFn(mintkeeper.DefaultMintFn(minttypes.DefaultInflationCalculationFn, app.StakingKeeper, app.MintKeeper)); err != nil {
+		panic(err)
+	}
 
-	app.PoolKeeper = poolkeeper.NewKeeper(appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[pooltypes.StoreKey]), logger.With(log.ModuleKey, "x/protocolpool")), app.AuthKeeper, app.BankKeeper, app.StakingKeeper, govModuleAddr)
+	app.PoolKeeper = poolkeeper.NewKeeper(appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[pooltypes.StoreKey]), logger.With(log.ModuleKey, "x/protocolpool")), app.AuthKeeper, app.BankKeeper, govModuleAddr)
 
 	app.DistrKeeper = distrkeeper.NewKeeper(appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[distrtypes.StoreKey]), logger.With(log.ModuleKey, "x/distribution")), app.AuthKeeper, app.BankKeeper, app.StakingKeeper, cometService, authtypes.FeeCollectorName, govModuleAddr)
 
-	app.FeeGrantKeeper = feegrantkeeper.NewKeeper(runtime.NewEnvironment(runtime.NewKVStoreService(keys[feegrant.StoreKey]), logger.With(log.ModuleKey, "x/feegrant")), appCodec, app.AuthKeeper)
+	app.FeeGrantKeeper = feegrantkeeper.NewKeeper(runtime.NewEnvironment(runtime.NewKVStoreService(keys[feegrant.StoreKey]), logger.With(log.ModuleKey, "x/feegrant")), appCodec, app.AuthKeeper.AddressCodec())
 
 	app.SlashingKeeper = slashingkeeper.NewKeeper(runtime.NewEnvironment(runtime.NewKVStoreService(keys[slashingtypes.StoreKey]), logger.With(log.ModuleKey, "x/slashing")),
 		appCodec, legacyAmino, app.StakingKeeper, govModuleAddr,
@@ -428,7 +430,8 @@ func NewSimApp(
 
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[ibcfeetypes.StoreKey]),
+		appCodec,
+		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibcfeetypes.StoreKey]), logger.With(log.ModuleKey, fmt.Sprintf("x/%s-%s", ibcexported.ModuleName, ibcfeetypes.ModuleName))),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
 		app.IBCKeeper.ChannelKeeper,
 		app.AuthKeeper, app.BankKeeper,
@@ -446,11 +449,13 @@ func NewSimApp(
 
 	// ICA Host keeper
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[icahosttypes.StoreKey]), app.GetSubspace(icahosttypes.SubModuleName),
+		appCodec,
+		runtime.NewEnvironment(runtime.NewKVStoreService(keys[icahosttypes.StoreKey]), logger.With(log.ModuleKey, "x/icahost"), runtime.EnvWithMsgRouterService(app.MsgServiceRouter()), runtime.EnvWithQueryRouterService(app.GRPCQueryRouter())),
+		app.GetSubspace(icahosttypes.SubModuleName),
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper,
-		app.AuthKeeper, app.MsgServiceRouter(),
-		app.GRPCQueryRouter(), authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.AuthKeeper,
+		govModuleAddr,
 	)
 
 	// Create IBC Router
@@ -463,7 +468,9 @@ func NewSimApp(
 	// since fee middleware will wrap the IBCKeeper for underlying application.
 	// NOTE: the Transfer Keeper's ICS4Wrapper can later be replaced.
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.GetSubspace(ibctransfertypes.ModuleName),
+		appCodec,
+		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), logger.With(log.ModuleKey, fmt.Sprintf("x/%s-%s", ibcexported.ModuleName, ibctransfertypes.ModuleName))),
+		app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
 		app.IBCKeeper.ChannelKeeper,
 		app.AuthKeeper, app.BankKeeper,
@@ -585,7 +592,7 @@ func NewSimApp(
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AuthKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.FeeGrantKeeper, app.interfaceRegistry),
 		gov.NewAppModule(appCodec, &app.GovKeeper, app.AuthKeeper, app.BankKeeper, app.PoolKeeper),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AuthKeeper, nil),
+		mint.NewAppModule(appCodec, app.MintKeeper, app.AuthKeeper),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AuthKeeper, app.BankKeeper, app.StakingKeeper, app.interfaceRegistry, cometService),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.StakingKeeper),
 		staking.NewAppModule(appCodec, app.StakingKeeper),
@@ -932,7 +939,7 @@ func (app *SimApp) RegisterNodeService(clientCtx client.Context, cfg config.Conf
 
 // ValidatorKeyProvider returns a function that generates a validator key
 // Supported key types are those supported by Comet: ed25519, secp256k1, bls12-381
-func (app *SimApp) ValidatorKeyProvider() runtime.KeyGenF {
+func (*SimApp) ValidatorKeyProvider() runtime.KeyGenF {
 	return func() (cmtcrypto.PrivKey, error) {
 		return cmted25519.GenPrivKey(), nil
 	}
@@ -997,11 +1004,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 // GetBaseApp implements the TestingApp interface.
 func (app *SimApp) GetBaseApp() *baseapp.BaseApp {
 	return app.BaseApp
-}
-
-// GetStakingKeeper implements the TestingApp interface.
-func (app *SimApp) GetStakingKeeper() ibctestingtypes.StakingKeeper {
-	return app.StakingKeeper
 }
 
 // GetIBCKeeper implements the TestingApp interface.

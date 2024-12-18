@@ -45,7 +45,7 @@ Note, relative timeout height is not supported. Relative timeout timestamp is ad
 using the {packet-timeout-timestamp} flag. If no timeout value is set then a default relative timeout value of 10 minutes is used. IBC tokens
 can be automatically unwound to their native chain using the {unwind} flag. Please note that if the {unwind} flag is used, then all coins must
 be IBC vouchers and share exactly the same denomination trace path, and the src-port and src-channel arguments must not be specified. Tokens can also be 
-automatically forwarded through multiple chains using the {fowarding} flag and specifying a comma-separated list of source portID/channelID pairs for 
+automatically forwarded through multiple chains using the {forwarding} flag and specifying a comma-separated list of source portID/channelID pairs for 
 each intermediary chain. {unwind} and {forwarding} flags can be used together to first unwind IBC tokens to their native chain and then forward them to the final destination.`),
 		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [coins]", version.AppName),
 		Args:    cobra.RangeArgs(2, 4),

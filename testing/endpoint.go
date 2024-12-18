@@ -517,7 +517,7 @@ func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []by
 	return endpoint.Chain.sendMsgs(ackMsg)
 }
 
-// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint and returns the result.
+// AcknowledgePacketWithResult sends a MsgAcknowledgement to the channel associated with the endpoint and returns the result.
 func (endpoint *Endpoint) AcknowledgePacketWithResult(packet channeltypes.Packet, ack []byte) (*abci.ExecTxResult, error) {
 	// get proof of acknowledgement on counterparty
 	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
