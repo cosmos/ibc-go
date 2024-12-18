@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+    ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
@@ -110,7 +111,7 @@ func TestValidateGenesis(t *testing.T) {
 					types.NewPacketSequence(testPort1, testChannel1, 0),
 				},
 			},
-			expErr: types.ErrInvalidSequence,
+			expErr: ibcerrors.ErrInvalidSequence,
 		},
 		{
 			name: "invalid recv seq",
@@ -213,7 +214,7 @@ func TestValidateGenesis(t *testing.T) {
 				0,
 				types.Params{UpgradeTimeout: types.DefaultTimeout},
 			),
-			expErr: types.ErrInvalidSequence,
+			expErr: ibcerrors.ErrInvalidSequence,
 		},
 	}
 
