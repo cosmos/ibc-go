@@ -39,11 +39,9 @@ updates:
       - dependencies
 
   - package-ecosystem: gomod
-    directory: "/modules/capability"
+    directory: "/simapp"
     schedule:
       interval: daily
     open-pull-requests-limit: 10
     labels:
       - dependencies
-
-

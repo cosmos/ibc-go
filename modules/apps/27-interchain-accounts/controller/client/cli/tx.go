@@ -14,10 +14,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 const (
@@ -43,8 +43,7 @@ func newRegisterInterchainAccountCmd() *cobra.Command {
 connection id from the source chain. Connection identifier should be for the source chain 
 and the interchain account will be created on the counterparty chain. Callers are expected to 
 provide the appropriate application version string via {version} flag and the desired ordering
-via the {ordering} flag. Generates a new port identifier using the provided owner string, binds to the port identifier and claims 
-the associated capability.`),
+via the {ordering} flag. Generates a new port identifier using the provided owner string.`),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

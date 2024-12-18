@@ -2,6 +2,7 @@ package wasm
 
 import (
 	"bytes"
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -13,10 +14,10 @@ import (
 	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)
@@ -24,29 +25,21 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 // LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
 	keeper        wasmkeeper.Keeper
-	storeProvider exported.ClientStoreProvider
+	storeProvider clienttypes.StoreProvider
 }
 
 // NewLightClientModule creates and returns a new 08-wasm LightClientModule.
-func NewLightClientModule(keeper wasmkeeper.Keeper) LightClientModule {
+func NewLightClientModule(keeper wasmkeeper.Keeper, storeProvider clienttypes.StoreProvider) LightClientModule {
 	return LightClientModule{
-		keeper: keeper,
+		keeper:        keeper,
+		storeProvider: storeProvider,
 	}
-}
-
-// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
-// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
-// to IBC light client instances.
-func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	l.storeProvider = storeProvider
 }
 
 // Initialize unmarshals the provided client and consensus states and performs basic validation. It sets the client
 // state and consensus state in the client store.
 // It also initializes the wasm contract for the client.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
+func (l LightClientModule) Initialize(ctx context.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState types.ClientState
 	if err := l.keeper.Codec().Unmarshal(clientStateBz, &clientState); err != nil {
 		return err
@@ -78,7 +71,8 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 		Checksum:       clientState.Checksum,
 	}
 
-	return l.keeper.WasmInstantiate(ctx, clientID, clientStore, &clientState, payload)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	return l.keeper.WasmInstantiate(sdkCtx, clientID, clientStore, &clientState, payload)
 }
 
 // VerifyClientMessage obtains the client state associated with the client identifier, it then must verify the ClientMessage.
@@ -86,9 +80,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 // It must handle each type of ClientMessage appropriately. Calls to CheckForMisbehaviour, UpdateState, and UpdateStateOnMisbehaviour
 // will assume that the content of the ClientMessage has been verified and can be trusted. An error should be returned
 // if the ClientMessage fails to verify.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (l LightClientModule) VerifyClientMessage(ctx context.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
@@ -105,15 +97,14 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 	payload := types.QueryMsg{
 		VerifyClientMessage: &types.VerifyClientMessageMsg{ClientMessage: clientMessage.Data},
 	}
-	_, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	_, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
 	return err
 }
 
 // CheckForMisbehaviour obtains the client state associated with the client identifier, it detects misbehaviour in a submitted Header
 // message and verifies the correctness of a submitted Misbehaviour ClientMessage.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+func (l LightClientModule) CheckForMisbehaviour(ctx context.Context, clientID string, clientMsg exported.ClientMessage) bool {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
@@ -131,7 +122,8 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 		CheckForMisbehaviour: &types.CheckForMisbehaviourMsg{ClientMessage: clientMessage.Data},
 	}
 
-	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	res, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		return false
 	}
@@ -147,9 +139,7 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 // UpdateStateOnMisbehaviour obtains the client state associated with the client identifier performs appropriate state changes on
 // a client state given that misbehaviour has been detected and verified.
 // Client state is updated in the store by the contract.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+func (l LightClientModule) UpdateStateOnMisbehaviour(ctx context.Context, clientID string, clientMsg exported.ClientMessage) {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
@@ -167,7 +157,8 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 		UpdateStateOnMisbehaviour: &types.UpdateStateOnMisbehaviourMsg{ClientMessage: clientMessage.Data},
 	}
 
-	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		panic(err)
 	}
@@ -175,9 +166,7 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 
 // UpdateState obtains the client state associated with the client identifier and calls into the appropriate
 // contract endpoint. Client state and new consensus states are updated in the store by the contract.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+func (l LightClientModule) UpdateState(ctx context.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
@@ -195,7 +184,8 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 		UpdateState: &types.UpdateStateMsg{ClientMessage: clientMessage.Data},
 	}
 
-	res, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	res, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		panic(err)
 	}
@@ -217,10 +207,8 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 // VerifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) VerifyMembership(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientID string,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -265,7 +253,8 @@ func (l LightClientModule) VerifyMembership(
 		},
 	}
 
-	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
 	return err
 }
 
@@ -273,10 +262,8 @@ func (l LightClientModule) VerifyMembership(
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) VerifyNonMembership(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientID string,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -319,7 +306,8 @@ func (l LightClientModule) VerifyNonMembership(
 		},
 	}
 
-	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
 	return err
 }
 
@@ -333,9 +321,7 @@ func (l LightClientModule) VerifyNonMembership(
 //
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
+func (l LightClientModule) Status(ctx context.Context, clientID string) exported.Status {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
@@ -350,7 +336,8 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 	}
 
 	payload := types.QueryMsg{Status: &types.StatusMsg{}}
-	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	res, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		return exported.Unknown
 	}
@@ -365,9 +352,7 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 
 // LatestHeight returns the latest height for the client state for the given client identifier.
 // If no client is present for the provided client identifier a zero value height is returned.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
+func (l LightClientModule) LatestHeight(ctx context.Context, clientID string) exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
@@ -381,9 +366,7 @@ func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) export
 
 // TimestampAtHeight obtains the client state associated with the client identifier and calls into the appropriate contract endpoint.
 // It returns the timestamp in nanoseconds of the consensus state at the given height.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
+func (l LightClientModule) TimestampAtHeight(ctx context.Context, clientID string, height exported.Height) (uint64, error) {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	cdc := l.keeper.Codec()
 
@@ -403,7 +386,8 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 		},
 	}
 
-	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	res, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		return 0, errorsmod.Wrapf(err, "height (%s)", height)
 	}
@@ -420,9 +404,7 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 // subject client and calls into the appropriate contract endpoint.
 // It will verify that a substitute client state is valid and update the subject client state.
 // Note that this method is used only for recovery and will not allow changes to the checksum.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
-func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
+func (l LightClientModule) RecoverClient(ctx context.Context, clientID, substituteClientID string) error {
 	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
 	if err != nil {
 		return err
@@ -458,17 +440,16 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 		MigrateClientStore: &types.MigrateClientStoreMsg{},
 	}
 
-	_, err = l.keeper.WasmSudo(ctx, clientID, store, subjectClientState, payload)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	_, err = l.keeper.WasmSudo(sdkCtx, clientID, store, subjectClientState, payload)
 	return err
 }
 
 // VerifyUpgradeAndUpdateState obtains the client state associated with the client identifier and calls into the appropriate contract endpoint.
 // The new client and consensus states will be unmarshaled and an error is returned if the new client state is not at a height greater
 // than the existing client. On a successful verification, it expects the contract to update the new client state, consensus state, and any other client metadata.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to have the format 08-wasm-{n}.
 func (l LightClientModule) VerifyUpgradeAndUpdateState(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientID string,
 	newClient []byte,
 	newConsState []byte,
@@ -508,6 +489,7 @@ func (l LightClientModule) VerifyUpgradeAndUpdateState(
 		},
 	}
 
-	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
 	return err
 }

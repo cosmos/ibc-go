@@ -3,12 +3,12 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	internaltypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/internal/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
-// SetDenomTraces is a wrapper around iterateDenomTraces for testing purposes.
+// SetDenomTrace is a wrapper around setDenomTrace for testing purposes.
 func (k Keeper) SetDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
 	k.setDenomTrace(ctx, denomTrace)
 }
@@ -34,14 +34,24 @@ func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 	return k.tokenFromCoin(ctx, coin)
 }
 
-// UnwindHops is a wrapper around unwindToken for testing purposes.
+// UnwindHops is a wrapper around unwindHops for testing purposes.
 func (k Keeper) UnwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
 	return k.unwindHops(ctx, msg)
 }
 
-// UnwindHops is a wrapper around unwindToken for testing purposes.
+// GetForwardedPacket is a wrapper around getForwardedPacket for testing purposes.
 func (k Keeper) GetForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
 	return k.getForwardedPacket(ctx, portID, channelID, sequence)
+}
+
+// SetForwardedPacket is a wrapper around setForwardedPacket for testing purposes.
+func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
+	k.setForwardedPacket(ctx, portID, channelID, sequence, packet)
+}
+
+// GetAllForwardedPackets is a wrapper around getAllForwardedPackets for testing purposes.
+func (k Keeper) GetAllForwardedPackets(ctx sdk.Context) []types.ForwardedPacket {
+	return k.getAllForwardedPackets(ctx)
 }
 
 // IsBlockedAddr is a wrapper around isBlockedAddr for testing purposes

@@ -14,8 +14,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 )
 
 const (
@@ -43,18 +43,24 @@ packet if the coins list is a comma-separated string (e.g. 100uatom,100uosmo). T
 Timeout height can be set by passing in the height string in the form {revision}-{height} using the {packet-timeout-height} flag. 
 Note, relative timeout height is not supported. Relative timeout timestamp is added to the value of the user's local system clock time 
 using the {packet-timeout-timestamp} flag. If no timeout value is set then a default relative timeout value of 10 minutes is used. IBC tokens
-can be automatically unwound to their native chain using the {unwind} flag. Please note that if the {unwind} flag is used, then the transfer should contain only
-a single token. Tokens can also be automatically forwarded through multiple chains using the {fowarding} flag and specifying
-a comma-separated list of source portID/channelID pairs for each intermediary chain. {unwind} and {forwarding} flags can be used together
-to first unwind IBC tokens to their native chain and then forward them to the final destination.`),
+can be automatically unwound to their native chain using the {unwind} flag. Please note that if the {unwind} flag is used, then all coins must
+be IBC vouchers and share exactly the same denomination trace path, and the src-port and src-channel arguments must not be specified. Tokens can also be 
+automatically forwarded through multiple chains using the {forwarding} flag and specifying a comma-separated list of source portID/channelID pairs for 
+each intermediary chain. {unwind} and {forwarding} flags can be used together to first unwind IBC tokens to their native chain and then forward them to the final destination.`),
 		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [coins]", version.AppName),
-		Args:    cobra.ExactArgs(4),
+		Args:    cobra.RangeArgs(2, 4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 			sender := clientCtx.GetFromAddress().String()
+
+			args, err = normalizeArgs(cmd, args)
+			if err != nil {
+				return err
+			}
+
 			srcPort := args[0]
 			srcChannel := args[1]
 			receiver := args[2]
@@ -146,12 +152,20 @@ to first unwind IBC tokens to their native chain and then forward them to the fi
 func parseForwarding(cmd *cobra.Command) (*types.Forwarding, error) {
 	var hops []types.Hop
 
+	unwind, err := cmd.Flags().GetBool(flagUnwind)
+	if err != nil {
+		return nil, err
+	}
+	forwarding := types.NewForwarding(unwind)
+
 	forwardingString, err := cmd.Flags().GetString(flagForwarding)
 	if err != nil {
 		return nil, err
 	}
+
 	if strings.TrimSpace(forwardingString) == "" {
-		return nil, nil
+		// If forwarding not specified, we might have unwind set
+		return forwarding, nil
 	}
 
 	pairs := strings.Split(forwardingString, ",")
@@ -165,10 +179,34 @@ func parseForwarding(cmd *cobra.Command) (*types.Forwarding, error) {
 		hops = append(hops, hop)
 	}
 
+	forwarding.Hops = hops
+	return forwarding, nil
+}
+
+// normalizeArgs takes the positional arguments specified and if the unwind flag
+// is false and the args array is of length 4, returns them as-is or, if unwind is true and the
+// args array has a length of 2, inserts two empty strings at the beginning signifying the
+// portID and channelID.
+func normalizeArgs(cmd *cobra.Command, args []string) ([]string, error) {
 	unwind, err := cmd.Flags().GetBool(flagUnwind)
 	if err != nil {
 		return nil, err
 	}
 
-	return types.NewForwarding(unwind, hops...), nil
+	if unwind {
+		if len(args) != 2 {
+			return nil, fmt.Errorf("expected only 2 arguments, got %d", len(args))
+		}
+
+		// Inject empty source portID/channelID.
+		args = append([]string{"", ""}, args...)
+		return args, nil
+	}
+
+	// Unwind false, just ensure we have 4 args.
+	if len(args) != 4 {
+		return nil, fmt.Errorf("expected 4 args, got %d", len(args))
+	}
+
+	return args, nil
 }

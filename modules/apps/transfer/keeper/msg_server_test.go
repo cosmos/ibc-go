@@ -5,17 +5,18 @@ import (
 	"errors"
 	"strings"
 
+	banktypes "cosmossdk.io/x/bank/types"
+	minttypes "cosmossdk.io/x/mint/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 // TestMsgTransfer tests Transfer rpc handler
@@ -78,7 +79,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"failure: sender is a blocked address",
 			func() {
-				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
+				msg.Sender = suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -201,34 +202,34 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 func (suite *KeeperTestSuite) TestUpdateParams() {
 	signer := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
+		name   string
+		msg    *types.MsgUpdateParams
+		expErr error
 	}{
 		{
 			"success: valid signer and default params",
 			types.NewMsgUpdateParams(signer, types.DefaultParams()),
-			true,
+			nil,
 		},
 		{
 			"failure: malformed signer address",
 			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: empty signer address",
 			types.NewMsgUpdateParams("", types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: whitespace signer address",
 			types.NewMsgUpdateParams("    ", types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 		{
 			"failure: unauthorized signer address",
 			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
-			false,
+			ibcerrors.ErrUnauthorized,
 		},
 	}
 
@@ -237,10 +238,10 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			_, err := suite.chainA.GetSimApp().TransferKeeper.UpdateParams(suite.chainA.GetContext(), tc.msg)
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -307,6 +308,27 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 			},
 		},
 		{
+			"success: multiple denoms with equal traces",
+			func() {
+				coins = []sdk.Coin{}
+				for _, base := range []string{sdk.DefaultBondDenom, ibctesting.SecondaryDenom} {
+					denom := types.NewDenom(base, types.NewHop(ibctesting.MockPort, "channel-1"))
+					suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+
+					coins = append(coins, sdk.NewCoin(denom.IBCDenom(), defaultAmount))
+				}
+				msg.Tokens = coins
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().NoError(err)
+
+				msg.SourceChannel = denom.Trace[0].PortId
+				msg.SourcePort = denom.Trace[0].ChannelId
+				msg.Forwarding = types.NewForwarding(false)
+				suite.Require().Equal(*msg, *modified, "expected msg and modified msg are different")
+			},
+		},
+		{
 			"failure: no denom set on keeper",
 			func() {},
 			func(modified *types.MsgTransfer, err error) {
@@ -335,6 +357,24 @@ func (suite *KeeperTestSuite) TestUnwindHops() {
 			},
 			func(modified *types.MsgTransfer, err error) {
 				suite.Require().ErrorIs(err, types.ErrInvalidForwarding)
+			},
+		},
+		{
+			"failure: multiple coins with unwind, trace path does not match",
+			func() {
+				denom.Trace = append(denom.Trace, types.NewHop(ibctesting.MockPort, "channel-1"))
+				coins = sdk.NewCoins(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+
+				denom.Trace = append(denom.Trace, types.NewHop(ibctesting.MockPort, "channel-2"), types.NewHop(ibctesting.MockPort, "channel-3"))
+				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+				coins = append(coins, sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
+
+				msg.Tokens = coins
+			},
+			func(modified *types.MsgTransfer, err error) {
+				suite.Require().ErrorIs(err, types.ErrInvalidForwarding)
+				suite.Require().ErrorContains(err, "cannot unwind tokens with different traces")
 			},
 		},
 	}

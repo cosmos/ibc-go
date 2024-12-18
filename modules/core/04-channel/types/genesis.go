@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
 // NewPacketState creates a new PacketState instance.
@@ -50,6 +50,7 @@ func NewGenesisState(
 	return GenesisState{
 		Channels:            channels,
 		Acknowledgements:    acks,
+		Receipts:            receipts,
 		Commitments:         commitments,
 		SendSequences:       sendSeqs,
 		RecvSequences:       recvSeqs,

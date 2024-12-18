@@ -9,18 +9,19 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v9/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v9/ibc"
+	"github.com/strangelove-ventures/interchaintest/v9/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	govtypes "cosmossdk.io/x/gov/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
@@ -35,8 +36,8 @@ const (
 
 func TestIBCWasmUpgradeTestSuite(t *testing.T) {
 	testCfg := testsuite.LoadConfig()
-	if testCfg.UpgradeConfig.Tag == "" || testCfg.UpgradeConfig.PlanName == "" {
-		t.Fatalf("%s and %s must be set when running an upgrade test", testsuite.ChainUpgradeTagEnv, testsuite.ChainUpgradePlanEnv)
+	if strings.TrimSpace(testCfg.UpgradePlanName) == "" {
+		t.Fatalf("%s must be set when running an upgrade test", testsuite.ChainUpgradePlanEnv)
 	}
 
 	// wasm tests require a longer voting period to account for the time it takes to upload a contract.
@@ -53,7 +54,6 @@ func (s *IBCWasmUpgradeTestSuite) TestIBCWasmChainUpgrade() {
 	t := s.T()
 
 	ctx := context.Background()
-	// TODO(chatton): this test is still creating a relayer and a channel, but it is not using them.
 	chain := s.GetAllChains()[0]
 	checksum := ""
 
@@ -70,7 +70,7 @@ func (s *IBCWasmUpgradeTestSuite) TestIBCWasmChainUpgrade() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		testCfg := testsuite.LoadConfig()
-		s.UpgradeChain(ctx, chain.(*cosmos.CosmosChain), userWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chain.(*cosmos.CosmosChain), userWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
 	t.Run("query wasm checksums", func(t *testing.T) {
@@ -89,8 +89,13 @@ func (s *IBCWasmUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmo
 		Info:   fmt.Sprintf("upgrade version test from %s to %s", currentVersion, upgradeVersion),
 	}
 
-	upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal(fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion), "upgrade chain E2E test", plan)
-	s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
+	upgradeProposal := upgradetypes.SoftwareUpgradeProposal{
+		Title:       fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion),
+		Description: "upgrade chain E2E test",
+		Plan:        plan,
+	}
+
+	s.ExecuteAndPassGovV1Proposal(ctx, &upgradeProposal, chain, wallet)
 
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err, "error fetching height before upgrade")

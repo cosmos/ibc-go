@@ -3,10 +3,10 @@ package fee_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 // Integration test to ensure ics29 works with ics20
@@ -162,7 +162,7 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 				res, err := suite.chainA.SendMsgs(msgs...)
 				suite.Require().NoError(err) // message committed
 
-				feeEscrowAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
+				feeEscrowAddr := suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(types.ModuleName)
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), feeEscrowAddr, sdk.DefaultBondDenom)
 				suite.Require().Equal(escrowBalance.Amount, fee.Total().AmountOf(sdk.DefaultBondDenom))
 

@@ -1,21 +1,23 @@
 package events
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 // EmitTransferEvent emits a ibc transfer event on successful transfers.
-func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.Tokens, memo string, forwardingHops []types.Hop) {
+func EmitTransferEvent(ctx context.Context, sender, receiver string, tokens types.Tokens, memo string, forwardingHops []types.Hop) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	tokensStr := mustMarshalJSON(tokens)
 	forwardingHopsStr := mustMarshalJSON(forwardingHops)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTransfer,
 			sdk.NewAttribute(types.AttributeKeySender, sender),
@@ -32,7 +34,7 @@ func EmitTransferEvent(ctx sdk.Context, sender, receiver string, tokens types.To
 }
 
 // EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback
-func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement, ackErr error) {
+func EmitOnRecvPacketEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement, ackErr error) {
 	tokensStr := mustMarshalJSON(packetData.Tokens)
 	forwardingHopStr := mustMarshalJSON(packetData.Forwarding.Hops)
 
@@ -49,7 +51,9 @@ func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacket
 		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePacket,
 			eventAttributes...,
@@ -62,11 +66,11 @@ func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacket
 }
 
 // EmitOnAcknowledgementPacketEvent emits a fungible token packet event in the OnAcknowledgementPacket callback
-func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
+func EmitOnAcknowledgementPacketEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
 	tokensStr := mustMarshalJSON(packetData.Tokens)
 	forwardingHopsStr := mustMarshalJSON(packetData.Forwarding.Hops)
-
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeySender, packetData.Sender),
@@ -84,14 +88,14 @@ func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.Fungible
 
 	switch resp := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
-		ctx.EventManager().EmitEvent(
+		sdkCtx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypePacket,
 				sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
 			),
 		)
 	case *channeltypes.Acknowledgement_Error:
-		ctx.EventManager().EmitEvent(
+		sdkCtx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypePacket,
 				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
@@ -101,11 +105,12 @@ func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.Fungible
 }
 
 // EmitOnTimeoutEvent emits a fungible token packet event in the OnTimeoutPacket callback
-func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2) {
+func EmitOnTimeoutEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	tokensStr := mustMarshalJSON(packetData.Tokens)
 	forwardingHopsStr := mustMarshalJSON(packetData.Forwarding.Hops)
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeout,
 			sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Sender),
@@ -121,10 +126,11 @@ func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDat
 }
 
 // EmitDenomEvent emits a denomination event in the OnRecv callback.
-func EmitDenomEvent(ctx sdk.Context, token types.Token) {
+func EmitDenomEvent(ctx context.Context, token types.Token) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	denomStr := mustMarshalJSON(token.Denom)
 
-	ctx.EventManager().EmitEvent(
+	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDenom,
 			sdk.NewAttribute(types.AttributeKeyDenomHash, token.Denom.Hash().String()),
@@ -133,7 +139,7 @@ func EmitDenomEvent(ctx sdk.Context, token types.Token) {
 	)
 }
 
-// mustMarshalType json marshals the given type and panics on failure.
+// mustMarshalJSON json marshals the given type and panics on failure.
 func mustMarshalJSON(v any) string {
 	bz, err := json.Marshal(v)
 	if err != nil {

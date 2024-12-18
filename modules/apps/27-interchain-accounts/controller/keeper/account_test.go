@@ -1,10 +1,9 @@
 package keeper_test
 
 import (
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
@@ -18,32 +17,26 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 		testCases := []struct {
 			name     string
 			malleate func()
-			expPass  bool
+			expErr   error
 		}{
 			{
-				"success", func() {}, true,
-			},
-			{
-				"port is already bound for owner but capability is claimed by another module",
-				func() {
-					capability := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), TestPortID)
-					err := suite.chainA.GetSimApp().TransferKeeper.ClaimCapability(suite.chainA.GetContext(), capability, host.PortPath(TestPortID))
-					suite.Require().NoError(err)
-				},
-				false,
+				"success", func() {}, nil,
 			},
 			{
 				"fails to generate port-id",
 				func() {
 					owner = ""
 				},
-				false,
+				icatypes.ErrInvalidAccountAddress,
 			},
 			{
 				"MsgChanOpenInit fails - channel is already active & in state OPEN",
 				func() {
 					portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
 					suite.Require().NoError(err)
+
+					channelID := channeltypes.FormatChannelIdentifier(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext()))
+					path.EndpointA.ChannelID = channelID
 
 					suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, portID, path.EndpointA.ChannelID)
 
@@ -57,7 +50,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 					}
 					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portID, path.EndpointA.ChannelID, channel)
 				},
-				false,
+				icatypes.ErrActiveChannelAlreadySet,
 			},
 		}
 
@@ -76,10 +69,10 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 
 				err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), path.EndpointA.ConnectionID, owner, TestVersion, ordering)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}

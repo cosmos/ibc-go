@@ -1,16 +1,17 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // QueryTendermintProof performs an ABCI query with the given key and returns
@@ -30,7 +31,7 @@ func QueryTendermintProof(clientCtx client.Context, key []byte) ([]byte, []byte,
 	// Therefore, a query at height 2 would be equivalent to a query at height 3.
 	// A height of 0 will query with the latest state.
 	if height != 0 && height <= 2 {
-		return nil, nil, clienttypes.Height{}, fmt.Errorf("proof queries at height <= 2 are not supported")
+		return nil, nil, clienttypes.Height{}, errors.New("proof queries at height <= 2 are not supported")
 	}
 
 	// Use the IAVL height if a valid tendermint height is passed in.
@@ -39,7 +40,7 @@ func QueryTendermintProof(clientCtx client.Context, key []byte) ([]byte, []byte,
 		height--
 	}
 
-	req := abci.RequestQuery{
+	req := abci.QueryRequest{
 		Path:   fmt.Sprintf("store/%s/key", ibcexported.StoreKey),
 		Height: height,
 		Data:   key,

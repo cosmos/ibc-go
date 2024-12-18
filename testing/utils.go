@@ -1,17 +1,20 @@
 package ibctesting
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
@@ -80,4 +83,14 @@ func UnmarshalMsgResponses(cdc codec.Codec, data []byte, msgs ...codec.ProtoMars
 	}
 
 	return nil
+}
+
+// RequireErrorIsOrContains verifies that the passed error is either a target error or contains its error message.
+func RequireErrorIsOrContains(t *testing.T, err, targetError error, msgAndArgs ...interface{}) {
+	t.Helper()
+	require.True(
+		t,
+		errors.Is(err, targetError) ||
+			strings.Contains(err.Error(), targetError.Error()),
+		msgAndArgs...)
 }

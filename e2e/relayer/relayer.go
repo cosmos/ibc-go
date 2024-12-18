@@ -2,15 +2,16 @@ package relayer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
 	dockerclient "github.com/docker/docker/client"
 	"github.com/pelletier/go-toml"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/relayer"
-	"github.com/strangelove-ventures/interchaintest/v8/relayer/hermes"
+	"github.com/strangelove-ventures/interchaintest/v9"
+	"github.com/strangelove-ventures/interchaintest/v9/ibc"
+	"github.com/strangelove-ventures/interchaintest/v9/relayer"
+	"github.com/strangelove-ventures/interchaintest/v9/relayer/hermes"
 	"go.uber.org/zap"
 )
 
@@ -71,7 +72,7 @@ func ApplyPacketFilter(ctx context.Context, t *testing.T, r ibc.Relayer, chainID
 	return modifyHermesConfigFile(ctx, h, func(config map[string]interface{}) error {
 		chains, ok := config["chains"].([]map[string]interface{})
 		if !ok {
-			return fmt.Errorf("failed to get chains from hermes config")
+			return errors.New("failed to get chains from hermes config")
 		}
 		var chain map[string]interface{}
 		for _, c := range chains {
@@ -121,7 +122,7 @@ func modifyHermesConfigFile(ctx context.Context, h *hermes.Relayer, modification
 
 	var config map[string]interface{}
 	if err := toml.Unmarshal(bz, &config); err != nil {
-		return fmt.Errorf("failed to unmarshal hermes config bytes")
+		return errors.New("failed to unmarshal hermes config bytes")
 	}
 
 	if modificationFn != nil {
@@ -132,7 +133,7 @@ func modifyHermesConfigFile(ctx context.Context, h *hermes.Relayer, modification
 
 	bz, err = toml.Marshal(config)
 	if err != nil {
-		return fmt.Errorf("failed to marshal hermes config bytes")
+		return errors.New("failed to marshal hermes config bytes")
 	}
 
 	return h.WriteFileToHomeDir(ctx, relativeHermesConfigFilePath, bz)
@@ -188,7 +189,7 @@ func (r Map) AddRelayer(testName string, ibcrelayer ibc.Wallet) {
 	r[testName][ibcrelayer] = true
 }
 
-// containsRelayer returns true if the given relayer is in the relayer set for the given test name.
+// ContainsRelayer returns true if the given relayer is in the relayer set for the given test name.
 func (r Map) ContainsRelayer(testName string, wallet ibc.Wallet) bool {
 	if relayerSet, ok := r[testName]; ok {
 		return relayerSet[wallet]

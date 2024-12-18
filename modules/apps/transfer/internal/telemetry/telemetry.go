@@ -9,14 +9,15 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	coretypes "github.com/cosmos/ibc-go/v8/modules/core/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	coremetrics "github.com/cosmos/ibc-go/v9/modules/core/metrics"
 )
 
 func ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel string, tokens types.Tokens) {
 	labels := []metrics.Label{
-		telemetry.NewLabel(coretypes.LabelDestinationPort, destinationPort),
-		telemetry.NewLabel(coretypes.LabelDestinationChannel, destinationChannel),
+		telemetry.NewLabel(coremetrics.LabelDestinationPort, destinationPort),
+		telemetry.NewLabel(coremetrics.LabelDestinationChannel, destinationChannel),
 	}
 
 	for _, token := range tokens {
@@ -25,11 +26,11 @@ func ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChann
 			telemetry.SetGaugeWithLabels(
 				[]string{"tx", "msg", "ibc", "transfer"},
 				float32(amount.Int64()),
-				[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, token.Denom.Path())},
+				[]metrics.Label{telemetry.NewLabel(coremetrics.LabelDenom, token.Denom.Path())},
 			)
 		}
 
-		labels = append(labels, telemetry.NewLabel(coretypes.LabelSource, fmt.Sprintf("%t", !token.Denom.HasPrefix(sourcePort, sourceChannel))))
+		labels = append(labels, telemetry.NewLabel(coremetrics.LabelSource, fmt.Sprintf("%t", !token.Denom.HasPrefix(sourcePort, sourceChannel))))
 	}
 
 	telemetry.IncrCounterWithLabels(
@@ -39,22 +40,32 @@ func ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChann
 	)
 }
 
-func ReportOnRecvPacket(sourcePort, sourceChannel string, token types.Token) {
+func ReportOnRecvPacket(packet channeltypes.Packet, tokens types.Tokens) {
 	labels := []metrics.Label{
-		telemetry.NewLabel(coretypes.LabelSourcePort, sourcePort),
-		telemetry.NewLabel(coretypes.LabelSourceChannel, sourceChannel),
-		telemetry.NewLabel(coretypes.LabelSource, fmt.Sprintf("%t", token.Denom.HasPrefix(sourcePort, sourceChannel))),
+		telemetry.NewLabel(coremetrics.LabelSourcePort, packet.SourcePort),
+		telemetry.NewLabel(coremetrics.LabelSourceChannel, packet.SourceChannel),
 	}
-	// Transfer amount has already been parsed in caller.
-	transferAmount, _ := sdkmath.NewIntFromString(token.Amount)
-	denomPath := token.Denom.Path()
 
-	if transferAmount.IsInt64() {
-		telemetry.SetGaugeWithLabels(
-			[]string{"ibc", types.ModuleName, "packet", "receive"},
-			float32(transferAmount.Int64()),
-			[]metrics.Label{telemetry.NewLabel(coretypes.LabelDenom, denomPath)},
-		)
+	for _, token := range tokens {
+		// Modify trace as Recv does.
+		if token.Denom.HasPrefix(packet.SourcePort, packet.SourceChannel) {
+			token.Denom.Trace = token.Denom.Trace[1:]
+		} else {
+			trace := []types.Hop{types.NewHop(packet.DestinationPort, packet.DestinationChannel)}
+			token.Denom.Trace = append(trace, token.Denom.Trace...)
+		}
+
+		// Transfer amount has already been parsed in caller.
+		transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
+		if ok && transferAmount.IsInt64() {
+			telemetry.SetGaugeWithLabels(
+				[]string{"ibc", types.ModuleName, "packet", "receive"},
+				float32(transferAmount.Int64()),
+				[]metrics.Label{telemetry.NewLabel(coremetrics.LabelDenom, token.Denom.Path())},
+			)
+		}
+
+		labels = append(labels, telemetry.NewLabel(coremetrics.LabelSource, fmt.Sprintf("%t", token.Denom.HasPrefix(packet.SourcePort, packet.SourceChannel))))
 	}
 
 	telemetry.IncrCounterWithLabels(

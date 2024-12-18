@@ -10,13 +10,17 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/cosmos-sdk/codec/unknownproto"
+
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
 	_ ibcexported.PacketData         = (*FungibleTokenPacketData)(nil)
 	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
+	_ ibcexported.PacketData         = (*FungibleTokenPacketDataV2)(nil)
+	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketDataV2)(nil)
 )
 
 // NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
@@ -201,4 +205,57 @@ func (ftpd FungibleTokenPacketDataV2) GetPacketSender(sourcePortID string) strin
 // HasForwarding determines if the packet should be forwarded to the next hop.
 func (ftpd FungibleTokenPacketDataV2) HasForwarding() bool {
 	return len(ftpd.Forwarding.Hops) > 0
+}
+
+// UnmarshalPacketData attempts to unmarshal the provided packet data bytes into a FungibleTokenPacketDataV2.
+// The version of ics20 should be provided and should be either ics20-1 or ics20-2.
+func UnmarshalPacketData(bz []byte, ics20Version string) (FungibleTokenPacketDataV2, error) {
+	switch ics20Version {
+	case V1:
+		var datav1 FungibleTokenPacketData
+		if err := json.Unmarshal(bz, &datav1); err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V1 transfer packet data: %s", err.Error())
+		}
+
+		return PacketDataV1ToV2(datav1)
+	case V2:
+		var datav2 FungibleTokenPacketDataV2
+		if err := unknownproto.RejectUnknownFieldsStrict(bz, &datav2, unknownproto.DefaultAnyResolver{}); err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
+		}
+
+		if err := proto.Unmarshal(bz, &datav2); err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
+		}
+
+		if err := datav2.ValidateBasic(); err != nil {
+			return FungibleTokenPacketDataV2{}, err
+		}
+
+		return datav2, nil
+	default:
+		return FungibleTokenPacketDataV2{}, errorsmod.Wrap(ErrInvalidVersion, ics20Version)
+	}
+}
+
+// PacketDataV1ToV2 converts a v1 packet data to a v2 packet data. The packet data is validated
+// before conversion.
+func PacketDataV1ToV2(packetData FungibleTokenPacketData) (FungibleTokenPacketDataV2, error) {
+	if err := packetData.ValidateBasic(); err != nil {
+		return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(err, "invalid packet data")
+	}
+
+	denom := ExtractDenomFromPath(packetData.Denom)
+	return FungibleTokenPacketDataV2{
+		Tokens: []Token{
+			{
+				Denom:  denom,
+				Amount: packetData.Amount,
+			},
+		},
+		Sender:     packetData.Sender,
+		Receiver:   packetData.Receiver,
+		Memo:       packetData.Memo,
+		Forwarding: ForwardingPacketData{},
+	}, nil
 }

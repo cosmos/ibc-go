@@ -2,21 +2,20 @@ package types
 
 import (
 	"context"
-	"math/big"
 	"slices"
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
-	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/x/authz"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
+	authztypes "github.com/cosmos/cosmos-sdk/types/authz"
 
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 var _ authz.Authorization = (*TransferAuthorization)(nil)
@@ -24,9 +23,6 @@ var _ authz.Authorization = (*TransferAuthorization)(nil)
 const (
 	allocationNotFound = -1
 )
-
-// maxUint256 is the maximum value for a 256 bit unsigned integer.
-var maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
 
 // NewTransferAuthorization creates a new TransferAuthorization object.
 func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization {
@@ -41,29 +37,29 @@ func (TransferAuthorization) MsgTypeURL() string {
 }
 
 // Accept implements Authorization.Accept.
-func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) (authz.AcceptResponse, error) {
+func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) (authztypes.AcceptResponse, error) {
 	msgTransfer, ok := msg.(*MsgTransfer)
 	if !ok {
-		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
+		return authztypes.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
 	}
 
 	index := getAllocationIndex(*msgTransfer, a.Allocations)
 	if index == allocationNotFound {
-		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
+		return authztypes.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 	}
 
 	if err := validateForwarding(msgTransfer.Forwarding, a.Allocations[index].AllowedForwarding); err != nil {
-		return authz.AcceptResponse{}, err
+		return authztypes.AcceptResponse{}, err
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !isAllowedAddress(ctx, msgTransfer.Receiver, a.Allocations[index].AllowList) {
-		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
+		return authztypes.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 	}
 
 	if err := validateMemo(ctx, msgTransfer.Memo, a.Allocations[index].AllowedPacketData); err != nil {
-		return authz.AcceptResponse{}, err
+		return authztypes.AcceptResponse{}, err
 	}
 
 	// bool flag to see if we have updated any of the allocations
@@ -79,7 +75,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 
 		limitLeft, isNegative := a.Allocations[index].SpendLimit.SafeSub(coin)
 		if isNegative {
-			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", coin.Denom)
+			return authztypes.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", coin.Denom)
 		}
 
 		allocationModified = true
@@ -96,14 +92,14 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 	}
 
 	if len(a.Allocations) == 0 {
-		return authz.AcceptResponse{Accept: true, Delete: true}, nil
+		return authztypes.AcceptResponse{Accept: true, Delete: true}, nil
 	}
 
 	if !allocationModified {
-		return authz.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
+		return authztypes.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
 	}
 
-	return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
+	return authztypes.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
 		Allocations: a.Allocations,
 	}}, nil
 }
@@ -128,7 +124,7 @@ func (a TransferAuthorization) ValidateBasic() error {
 		}
 
 		if err := allocation.SpendLimit.Validate(); err != nil {
-			return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, err.Error())
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, "invalid spend limit: %s", err.Error())
 		}
 
 		if err := host.PortIdentifierValidator(allocation.SourcePort); err != nil {
@@ -183,11 +179,11 @@ func validateForwarding(forwarding *Forwarding, allowedForwarding []AllowedForwa
 		return nil
 	}
 
-	if forwarding.Unwind {
+	if forwarding.GetUnwind() {
 		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed automatic unwind")
 	}
 
-	if !isAllowedForwarding(forwarding.Hops, allowedForwarding) {
+	if !isAllowedForwarding(forwarding.GetHops(), allowedForwarding) {
 		return errorsmod.Wrapf(ErrInvalidForwarding, "not allowed hops %s", forwarding.Hops)
 	}
 
@@ -242,15 +238,6 @@ func validateMemo(ctx sdk.Context, memo string, allowedMemos []string) error {
 	}
 
 	return nil
-}
-
-// UnboundedSpendLimit returns the sentinel value that can be used
-// as the amount for a denomination's spend limit for which spend limit updating
-// should be disabled. Please note that using this sentinel value means that a grantee
-// will be granted the privilege to do ICS20 token transfers for the total amount
-// of the denomination available at the granter's account.
-func UnboundedSpendLimit() sdkmath.Int {
-	return sdkmath.NewIntFromBigInt(maxUint256)
 }
 
 // getAllocationIndex ranges through a set of allocations, and returns the index of the allocation if found. If not, returns -1.

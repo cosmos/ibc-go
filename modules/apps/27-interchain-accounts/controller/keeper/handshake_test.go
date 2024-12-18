@@ -1,13 +1,11 @@
 package keeper_test
 
 import (
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 const (
@@ -19,7 +17,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 		var (
 			channel         *channeltypes.Channel
 			path            *ibctesting.Path
-			chanCap         *capabilitytypes.Capability
 			metadata        icatypes.Metadata
 			expectedVersion string
 		)
@@ -142,7 +139,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 					path.EndpointA.SetChannel(*channel)
 					channel.Version = "invalid-metadata-bytestring"
 				},
-				icatypes.ErrUnknownDataType,
+				ibcerrors.ErrInvalidType,
 			},
 			{
 				"unsupported encoding format",
@@ -173,7 +170,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			{
 				"connection not found",
 				func() {
-					channel.ConnectionHops = []string{"invalid-connnection-id"}
+					channel.ConnectionHops = []string{ibctesting.InvalidID}
 					path.EndpointA.SetChannel(*channel)
 				},
 				connectiontypes.ErrConnectionNotFound,
@@ -189,7 +186,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			{
 				"invalid controller connection ID",
 				func() {
-					metadata.ControllerConnectionId = "invalid-connnection-id"
+					metadata.ControllerConnectionId = ibctesting.InvalidID
 
 					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 					suite.Require().NoError(err)
@@ -202,7 +199,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			{
 				"invalid host connection ID",
 				func() {
-					metadata.HostConnectionId = "invalid-connnection-id"
+					metadata.HostConnectionId = ibctesting.InvalidID
 
 					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 					suite.Require().NoError(err)
@@ -274,8 +271,6 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
 				suite.Require().NoError(err)
 
-				portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-				suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID)) //nolint:errcheck // this error check isn't needed for tests
 				path.EndpointA.ChannelConfig.PortID = portID
 
 				// default values
@@ -294,13 +289,13 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 					Version:        string(versionBytes),
 				}
 
-				chanCap, err = suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
+				channelID := channeltypes.FormatChannelIdentifier(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext()))
+				path.EndpointA.ChannelID = channelID
 
 				tc.malleate() // malleate mutates test data
 
 				version, err := suite.chainA.GetSimApp().ICAControllerKeeper.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
+					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel.Counterparty, channel.Version,
 				)
 
 				expPass := tc.expError == nil
@@ -325,31 +320,31 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"invalid port ID - host chain",
 			func() {
 				path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
 			},
-			false,
+			icatypes.ErrInvalidControllerPort,
 		},
 		{
 			"invalid port ID - unexpected prefix",
 			func() {
 				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
 			},
-			false,
+			icatypes.ErrInvalidControllerPort,
 		},
 		{
 			"invalid metadata bytestring",
 			func() {
 				path.EndpointA.Counterparty.ChannelConfig.Version = "invalid-metadata-bytestring"
 			},
-			false,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"unsupported encoding format",
@@ -361,7 +356,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 
 				path.EndpointA.Counterparty.ChannelConfig.Version = string(versionBytes)
 			},
-			false,
+			icatypes.ErrInvalidCodec,
 		},
 		{
 			"unsupported transaction type",
@@ -373,7 +368,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 
 				path.EndpointA.Counterparty.ChannelConfig.Version = string(versionBytes)
 			},
-			false,
+			icatypes.ErrUnknownDataType,
 		},
 		{
 			"invalid account address",
@@ -385,7 +380,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 
 				path.EndpointA.Counterparty.ChannelConfig.Version = string(versionBytes)
 			},
-			false,
+			icatypes.ErrInvalidAccountAddress,
 		},
 		{
 			"empty account address",
@@ -397,7 +392,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 
 				path.EndpointA.Counterparty.ChannelConfig.Version = string(versionBytes)
 			},
-			false,
+			icatypes.ErrInvalidAccountAddress,
 		},
 		{
 			"invalid counterparty version",
@@ -409,7 +404,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 
 				path.EndpointA.Counterparty.ChannelConfig.Version = string(versionBytes)
 			},
-			false,
+			icatypes.ErrInvalidVersion,
 		},
 		{
 			"active channel already set",
@@ -420,7 +415,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 
 				// set the active channelID in state
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			}, false,
+			}, icatypes.ErrActiveChannelAlreadySet,
 		},
 	}
 
@@ -455,7 +450,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelConfig.Version,
 				)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 
 					activeChannelID, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
@@ -468,7 +463,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 
 					suite.Require().Equal(metadata.Address, interchainAccAddress)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}
@@ -481,10 +476,10 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 	}
 
@@ -508,7 +503,7 @@ func (suite *KeeperTestSuite) TestOnChanCloseConfirm() {
 
 				activeChannelID, found := suite.chainB.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointB.ChannelConfig.PortID)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 					suite.Require().False(found)
 					suite.Require().Empty(activeChannelID)
@@ -586,14 +581,14 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 			malleate: func() {
 				version = invalidVersion
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: ibcerrors.ErrInvalidType,
 		},
 		{
 			name: "failure: cannot decode self version string",
 			malleate: func() {
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = invalidVersion })
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: ibcerrors.ErrInvalidType,
 		},
 		{
 			name: "failure: failed controller metadata validation, invalid encoding",
@@ -746,14 +741,14 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 			malleate: func() {
 				counterpartyVersion = invalidVersion
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: ibcerrors.ErrInvalidType,
 		},
 		{
 			name: "failure: cannot decode self version string",
 			malleate: func() {
 				path.EndpointA.UpdateChannel(func(channel *channeltypes.Channel) { channel.Version = invalidVersion })
 			},
-			expError: icatypes.ErrUnknownDataType,
+			expError: ibcerrors.ErrInvalidType,
 		},
 		{
 			name: "failure: channel not found",

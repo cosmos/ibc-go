@@ -295,5 +295,5 @@ Proposed
 
 ## References
 
-- Relevant comment: [cosmos/ics#289](https://github.com/cosmos/ics/issues/289#issuecomment-544533583)
+- Relevant comment: [cosmos/ics#289](https://github.com/cosmos/ibc/issues/289#issuecomment-544533583)
 - [ICS26 - Routing Module](https://github.com/cosmos/ibc/tree/master/spec/core/ics-026-routing-module)

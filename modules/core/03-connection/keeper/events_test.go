@@ -3,9 +3,9 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *KeeperTestSuite) TestMsgConnectionOpenInitEvents() {
@@ -48,13 +48,12 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
 
 	suite.Require().NoError(path.EndpointB.UpdateClient())
 
-	counterpartyClient, clientProof, consensusProof, consensusHeight, initProof, proofHeight := path.EndpointB.QueryConnectionHandshakeProof()
+	initProof, proofHeight := path.EndpointB.QueryConnectionHandshakeProof()
 
 	msg := types.NewMsgConnectionOpenTry(
 		path.EndpointB.ClientID, path.EndpointB.Counterparty.ConnectionID, path.EndpointB.Counterparty.ClientID,
-		counterpartyClient, path.EndpointB.Counterparty.Chain.GetPrefix(), []*types.Version{ibctesting.ConnectionVersion}, path.EndpointB.ConnectionConfig.DelayPeriod,
-		initProof, clientProof, consensusProof,
-		proofHeight, consensusHeight,
+		path.EndpointB.Counterparty.Chain.GetPrefix(), []*types.Version{ibctesting.ConnectionVersion},
+		path.EndpointB.ConnectionConfig.DelayPeriod, initProof, proofHeight,
 		path.EndpointB.Chain.SenderAccount.GetAddress().String(),
 	)
 
@@ -88,13 +87,11 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenAckEvents() {
 
 	suite.Require().NoError(path.EndpointA.UpdateClient())
 
-	counterpartyClient, clientProof, consensusProof, consensusHeight, tryProof, proofHeight := path.EndpointA.QueryConnectionHandshakeProof()
+	tryProof, proofHeight := path.EndpointA.QueryConnectionHandshakeProof()
 
 	msg := types.NewMsgConnectionOpenAck(
-		path.EndpointA.ConnectionID, path.EndpointA.Counterparty.ConnectionID, counterpartyClient,
-		tryProof, clientProof, consensusProof,
-		proofHeight, consensusHeight,
-		ibctesting.ConnectionVersion,
+		path.EndpointA.ConnectionID, path.EndpointA.Counterparty.ConnectionID,
+		tryProof, proofHeight, ibctesting.ConnectionVersion,
 		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
 	)
 

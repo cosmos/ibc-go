@@ -6,17 +6,20 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/log"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
-	genesistypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	ibcfeekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
-	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	genesistypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	ibcfeekeeper "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
+	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 var (
@@ -136,53 +139,41 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	testCases := []struct {
 		name          string
 		instantiateFn func()
-		expPass       bool
+		panicMsg      string
 	}{
 		{"success", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
-				suite.chainA.GetSimApp().AccountKeeper,
-				suite.chainA.GetSimApp().ScopedICAHostKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().GRPCQueryRouter(),
+				suite.chainA.GetSimApp().AuthKeeper,
 				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
-		}, true},
+		}, ""},
 		{"failure: interchain accounts module account does not exist", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
 				authkeeper.AccountKeeper{}, // empty account keeper
-				suite.chainA.GetSimApp().ScopedICAHostKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().GRPCQueryRouter(),
 				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
-		}, false},
+		}, "the Interchain Accounts module account has not been set"},
 		{"failure: empty mock staking keeper", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				suite.chainA.GetSimApp().GetKey(types.StoreKey),
+				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
 				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.PortKeeper,
-				suite.chainA.GetSimApp().AccountKeeper,
-				suite.chainA.GetSimApp().ScopedICAHostKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().GRPCQueryRouter(),
+				suite.chainA.GetSimApp().AuthKeeper,
 				"", // authority
 			)
-		}, false},
+		}, "authority must be non-empty"},
 	}
 
 	for _, tc := range testCases {
@@ -190,12 +181,13 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
-			if tc.expPass {
+			if tc.panicMsg == "" {
 				suite.Require().NotPanics(
 					tc.instantiateFn,
 				)
 			} else {
-				suite.Require().Panics(
+				suite.Require().PanicsWithError(
+					tc.panicMsg,
 					tc.instantiateFn,
 				)
 			}
@@ -217,8 +209,6 @@ func (suite *KeeperTestSuite) TestNewModuleQuerySafeAllowList() {
 	suite.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/AllBalances")
 	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validator")
 	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validators")
-	suite.Require().Contains(allowList, "/cosmos.circuit.v1.Query/Account")
-	suite.Require().Contains(allowList, "/cosmos.circuit.v1.Query/DisabledList")
 	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/Accounts")
 	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/ModuleAccountByName")
 	suite.Require().Contains(allowList, "/ibc.core.client.v1.Query/VerifyMembership")
@@ -371,15 +361,15 @@ func (suite *KeeperTestSuite) TestParams() {
 	suite.Require().Equal(expParams, params)
 
 	testCases := []struct {
-		name    string
-		input   types.Params
-		expPass bool
+		name   string
+		input  types.Params
+		errMsg string
 	}{
-		{"success: set default params", types.DefaultParams(), true},
-		{"success: non-default params", types.NewParams(!types.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), true},
-		{"success: set empty byte for allow messages", types.NewParams(true, nil), true},
-		{"failure: set empty string for allow messages", types.NewParams(true, []string{""}), false},
-		{"failure: set space string for allow messages", types.NewParams(true, []string{" "}), false},
+		{"success: set default params", types.DefaultParams(), ""},
+		{"success: non-default params", types.NewParams(!types.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), ""},
+		{"success: set empty byte for allow messages", types.NewParams(true, nil), ""},
+		{"failure: set empty string for allow messages", types.NewParams(true, []string{""}), "parameter must not contain empty strings"},
+		{"failure: set space string for allow messages", types.NewParams(true, []string{" "}), "parameter must not contain empty strings"},
 	}
 
 	for _, tc := range testCases {
@@ -390,13 +380,13 @@ func (suite *KeeperTestSuite) TestParams() {
 			ctx := suite.chainA.GetContext()
 			err := tc.input.Validate()
 			suite.chainA.GetSimApp().ICAHostKeeper.SetParams(ctx, tc.input)
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				expected := tc.input
 				p := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(ctx)
 				suite.Require().Equal(expected, p)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}

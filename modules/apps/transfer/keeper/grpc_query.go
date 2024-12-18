@@ -11,12 +11,13 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v8/internal/validate"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v9/internal/validate"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 var (
@@ -25,7 +26,7 @@ var (
 )
 
 // Denom implements the Query/Denom gRPC method
-func (k Keeper) Denom(c context.Context, req *types.QueryDenomRequest) (*types.QueryDenomResponse, error) {
+func (k Keeper) Denom(ctx context.Context, req *types.QueryDenomRequest) (*types.QueryDenomResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -35,7 +36,6 @@ func (k Keeper) Denom(c context.Context, req *types.QueryDenomRequest) (*types.Q
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom trace hash: %s, error: %s", hash.String(), err))
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
 	denom, found := k.GetDenom(ctx, hash)
 	if !found {
 		return nil, status.Error(
@@ -50,15 +50,13 @@ func (k Keeper) Denom(c context.Context, req *types.QueryDenomRequest) (*types.Q
 }
 
 // Denoms implements the Query/Denoms gRPC method
-func (k Keeper) Denoms(c context.Context, req *types.QueryDenomsRequest) (*types.QueryDenomsResponse, error) {
+func (k Keeper) Denoms(ctx context.Context, req *types.QueryDenomsRequest) (*types.QueryDenomsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-
 	var denoms types.Denoms
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DenomKey)
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomKey)
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
 		var denom types.Denom
@@ -80,8 +78,7 @@ func (k Keeper) Denoms(c context.Context, req *types.QueryDenomsRequest) (*types
 }
 
 // Params implements the Query/Params gRPC method
-func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
+func (k Keeper) Params(ctx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	params := k.GetParams(ctx)
 
 	return &types.QueryParamsResponse{
@@ -90,7 +87,7 @@ func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.Q
 }
 
 // DenomHash implements the Query/DenomHash gRPC method
-func (k Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (*types.QueryDenomHashResponse, error) {
+func (k Keeper) DenomHash(ctx context.Context, req *types.QueryDenomHashRequest) (*types.QueryDenomHashResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -101,7 +98,6 @@ func (k Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
 	denomHash := denom.Hash()
 	found := k.HasDenom(ctx, denomHash)
 	if !found {
@@ -117,7 +113,7 @@ func (k Keeper) DenomHash(c context.Context, req *types.QueryDenomHashRequest) (
 }
 
 // EscrowAddress implements the EscrowAddress gRPC method
-func (k Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
+func (k Keeper) EscrowAddress(ctx context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -128,7 +124,6 @@ func (k Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRe
 		return nil, err
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
 	if !k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
 			codes.NotFound,
@@ -142,12 +137,10 @@ func (k Keeper) EscrowAddress(c context.Context, req *types.QueryEscrowAddressRe
 }
 
 // TotalEscrowForDenom implements the TotalEscrowForDenom gRPC method.
-func (k Keeper) TotalEscrowForDenom(c context.Context, req *types.QueryTotalEscrowForDenomRequest) (*types.QueryTotalEscrowForDenomResponse, error) {
+func (k Keeper) TotalEscrowForDenom(ctx context.Context, req *types.QueryTotalEscrowForDenomRequest) (*types.QueryTotalEscrowForDenomResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-
-	ctx := sdk.UnwrapSDKContext(c)
 
 	if err := sdk.ValidateDenom(req.Denom); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())

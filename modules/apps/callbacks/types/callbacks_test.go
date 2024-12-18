@@ -10,12 +10,12 @@ import (
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
@@ -25,6 +25,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 		packetData   interface{}
 		remainingGas uint64
 		callbackKey  string
+		version      string
 	)
 
 	// max gas is 1_000_000
@@ -38,6 +39,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			"success: source callback",
 			func() {
 				remainingGas = 2_000_000
+				version = transfertypes.V1
 				packetData = transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -47,10 +49,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 		},
@@ -58,6 +61,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			"success: destination callback",
 			func() {
 				callbackKey = types.DestinationCallbackKey
+				version = transfertypes.V1
 
 				remainingGas = 2_000_000
 				packetData = transfertypes.FungibleTokenPacketData{
@@ -69,10 +73,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     "",
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      "",
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 		},
@@ -80,6 +85,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			"success: destination callback with 0 user defined gas limit",
 			func() {
 				callbackKey = types.DestinationCallbackKey
+				version = transfertypes.V1
 
 				remainingGas = 2_000_000
 				packetData = transfertypes.FungibleTokenPacketData{
@@ -91,16 +97,18 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     "",
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      "",
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 		},
 		{
 			"success: source callback with gas limit < remaining gas < max gas",
 			func() {
+				version = transfertypes.V1
 				packetData = transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -112,10 +120,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				remainingGas = 100_000
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 50_000,
-				CommitGasLimit:    50_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  50_000,
+				CommitGasLimit:     50_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 		},
@@ -123,6 +132,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			"success: source callback with remaining gas < gas limit < max gas",
 			func() {
 				remainingGas = 100_000
+				version = transfertypes.V1
 				packetData = transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -132,10 +142,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    200_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     200_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 		},
@@ -143,6 +154,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			"success: source callback with remaining gas < max gas < gas limit",
 			func() {
 				remainingGas = 100_000
+				version = transfertypes.V1
 				packetData = transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -152,10 +164,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 		},
@@ -163,6 +176,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			"success: destination callback with remaining gas < max gas < gas limit",
 			func() {
 				callbackKey = types.DestinationCallbackKey
+				version = transfertypes.V1
 
 				remainingGas = 100_000
 				packetData = transfertypes.FungibleTokenPacketData{
@@ -174,10 +188,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     "",
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      "",
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 		},
@@ -185,6 +200,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			"success: source callback with max gas < remaining gas < gas limit",
 			func() {
 				remainingGas = 2_000_000
+				version = transfertypes.V1
 				packetData = transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -194,10 +210,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 		},
@@ -212,6 +229,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 		{
 			"failure: empty memo",
 			func() {
+				version = transfertypes.V1
 				packetData = transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -226,6 +244,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 		{
 			"failure: empty address",
 			func() {
+				version = transfertypes.V1
 				packetData = transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -240,6 +259,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 		{
 			"failure: space address",
 			func() {
+				version = transfertypes.V1
 				packetData = transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -256,6 +276,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			"success: source callback",
 			func() {
 				remainingGas = 2_000_000
+				version = transfertypes.V1
 				packetData = transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -265,10 +286,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 		},
@@ -278,6 +300,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				callbackKey = types.DestinationCallbackKey
 
 				remainingGas = 2_000_000
+				version = transfertypes.V1
 				packetData = transfertypes.FungibleTokenPacketData{
 					Denom:    ibctesting.TestCoin.Denom,
 					Amount:   ibctesting.TestCoin.Amount.String(),
@@ -287,10 +310,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     "",
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      "",
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			nil,
 		},
@@ -313,10 +337,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     "",
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      "",
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V2,
 			},
 			nil,
 		},
@@ -338,10 +363,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				remainingGas = 100_000
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 50_000,
-				CommitGasLimit:    50_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  50_000,
+				CommitGasLimit:     50_000,
+				ApplicationVersion: transfertypes.V2,
 			},
 			nil,
 		},
@@ -362,10 +388,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    200_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     200_000,
+				ApplicationVersion: transfertypes.V2,
 			},
 			nil,
 		},
@@ -386,10 +413,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V2,
 			},
 			nil,
 		},
@@ -412,10 +440,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     "",
-				ExecutionGasLimit: 100_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      "",
+				ExecutionGasLimit:  100_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V2,
 			},
 			nil,
 		},
@@ -436,10 +465,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V2,
 			},
 			nil,
 		},
@@ -513,10 +543,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			s.SetupTest()
 
 			callbackKey = types.SourceCallbackKey
+			version = transfertypes.V2
 
 			tc.malleate()
 
-			callbackData, err := types.GetCallbackData(packetData, transfertypes.PortID, remainingGas, uint64(1_000_000), callbackKey)
+			callbackData, err := types.GetCallbackData(packetData, version, transfertypes.PortID, remainingGas, uint64(1_000_000), callbackKey)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -557,10 +588,11 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, sender),
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			func() {
 				s.path.EndpointA.ChannelConfig.Version = transfertypes.V1
@@ -583,10 +615,11 @@ func (s *CallbacksTypesTestSuite) TestGetSourceCallbackDataTransfer() {
 				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, sender),
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     sender,
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V2,
 			},
 			func() {
 				s.path.EndpointA.ChannelConfig.Version = transfertypes.V2
@@ -644,10 +677,11 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, sender),
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     "",
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      "",
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
 			},
 			func() {
 				s.path.EndpointA.ChannelConfig.Version = transfertypes.V1
@@ -670,10 +704,11 @@ func (s *CallbacksTypesTestSuite) TestGetDestCallbackDataTransfer() {
 				Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s"}}`, sender),
 			},
 			types.CallbackData{
-				CallbackAddress:   sender,
-				SenderAddress:     "",
-				ExecutionGasLimit: 1_000_000,
-				CommitGasLimit:    1_000_000,
+				CallbackAddress:    sender,
+				SenderAddress:      "",
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V2,
 			},
 			func() {
 				s.path.EndpointA.ChannelConfig.Version = transfertypes.V2

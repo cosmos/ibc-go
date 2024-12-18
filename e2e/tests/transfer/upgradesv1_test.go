@@ -6,8 +6,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v9/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -17,11 +17,12 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
+// compatibility:from_version: v9.0.0
 func TestTransferChannelUpgradesV1TestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TransferChannelUpgradesV1TestSuite))
 }
@@ -30,10 +31,10 @@ type TransferChannelUpgradesV1TestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *TransferChannelUpgradesV1TestSuite) SetupTest() {
+func (s *TransferChannelUpgradesV1TestSuite) SetupChannelUpgradesV1Test(testName string) {
 	opts := s.TransferChannelOptions()
 	opts.Version = transfertypes.V1
-	s.SetupPaths(ibc.DefaultClientOpts(), opts)
+	s.CreatePaths(ibc.DefaultClientOpts(), opts, testName)
 }
 
 // TestChannelUpgrade_WithICS20v2_Succeeds tests upgrading a transfer channel to ICS20 v2.
@@ -41,7 +42,10 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithICS20v2_Succ
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	s.SetupChannelUpgradesV1Test(testName)
+
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
@@ -94,7 +98,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithICS20v2_Succ
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("packets are relayed", func(t *testing.T) {
@@ -136,7 +140,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithICS20v2_Succ
 	}
 
 	t.Run("native token from chain B and non-native IBC token from chainA, both to chainA", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, transferCoins, chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
+		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, transferCoins, chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "", nil)
 		s.AssertTxSuccess(transferTxResp)
 	})
 
@@ -182,7 +186,10 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithFeeMiddlewar
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	s.SetupChannelUpgradesV1Test(testName)
+
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
@@ -222,7 +229,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithFeeMiddlewar
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
@@ -261,7 +268,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithFeeMiddlewar
 	)
 
 	t.Run("recover relayer wallets", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
+		_, _, err := s.RecoverRelayerWallets(ctx, relayer, testName)
 		s.Require().NoError(err)
 
 		chainARelayerWallet, chainBRelayerWallet, err = s.GetRelayerWallets(relayer)
@@ -273,7 +280,7 @@ func (s *TransferChannelUpgradesV1TestSuite) TestChannelUpgrade_WithFeeMiddlewar
 	})
 
 	t.Run("register and verify counterparty payee", func(t *testing.T) {
-		_, chainBRelayerUser := s.GetRelayerUsers(ctx)
+		_, chainBRelayerUser := s.GetRelayerUsers(ctx, testName)
 		resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 		s.AssertTxSuccess(resp)
 

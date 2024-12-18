@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
@@ -11,17 +12,17 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller"
-	controllerkeeper "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller"
+	controllerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 const invalidVersion = "invalid|version"
@@ -121,68 +122,54 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
-		},
-		{
-			"ICA auth module does not claim channel capability", func() {
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
-					counterparty channeltypes.Counterparty, version string,
-				) (string, error) {
-					if chanCap != nil {
-						return "", fmt.Errorf("channel capability should be nil")
-					}
-
-					return version, nil
-				}
-			}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"ICA auth module modification of channel version is ignored", func() {
 				// NOTE: explicitly modify the channel version via the auth module callback,
 				// ensuring the expected JSON encoded metadata is not modified upon return
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx context.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
 					return "invalid-version", nil
 				}
-			}, true,
+			}, nil,
 		},
 		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
-			}, false,
+			}, types.ErrControllerSubModuleDisabled,
 		},
 		{
 			"ICA auth module callback fails", func() {
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx context.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
 					return "", fmt.Errorf("mock ica auth fails")
 				}
-			}, false,
+			}, fmt.Errorf("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
 				isNilApp = true
-			}, true,
+			}, nil,
 		},
 		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
-					portID, channelID string, chanCap *capabilitytypes.Capability,
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenInit = func(ctx context.Context, order channeltypes.Order, connectionHops []string,
+					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
 					return "", fmt.Errorf("error should be unreachable")
 				}
-			}, true,
+			}, nil,
 		},
 	}
 
@@ -200,9 +187,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				// mock init interchain account
 				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
 				suite.Require().NoError(err)
-
-				portCap := suite.chainA.GetSimApp().IBCKeeper.PortKeeper.BindPort(suite.chainA.GetContext(), portID)
-				suite.chainA.GetSimApp().ICAControllerKeeper.ClaimCapability(suite.chainA.GetContext(), portCap, host.PortPath(portID)) //nolint:errcheck // checking this error isn't needed for the test
 
 				path.EndpointA.ChannelConfig.PortID = portID
 				path.EndpointA.ChannelID = ibctesting.FirstChannelID
@@ -224,13 +208,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				// ensure channel on chainA is set in state
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, *channel)
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				chanCap, err := suite.chainA.App.GetScopedIBCKeeper().NewCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
 				if isNilApp {
@@ -238,14 +216,14 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 				}
 
 				version, err := cbs.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
-					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap, channel.Counterparty, channel.Version,
+					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel.Counterparty, channel.Version,
 				)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().Equal(TestVersion, version)
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}
@@ -284,20 +262,14 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 
 		suite.Require().Error(err)
 
-		// call application callback directly
-		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointB.ChannelConfig.PortID)
-		suite.Require().NoError(err)
-
-		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointB.ChannelConfig.PortID)
 		suite.Require().True(ok)
 
 		counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-		chanCap, found := suite.chainA.App.GetScopedIBCKeeper().GetCapability(suite.chainA.GetContext(), host.ChannelCapabilityPath(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
-		suite.Require().True(found)
 
 		version, err := cbs.OnChanOpenTry(
 			suite.chainA.GetContext(), path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID},
-			path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, chanCap,
+			path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 			counterparty, path.EndpointB.ChannelConfig.Version,
 		)
 		suite.Require().Error(err)
@@ -314,45 +286,45 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
-			}, false,
+			}, types.ErrControllerSubModuleDisabled,
 		},
 		{
 			"ICA OnChanOpenACK fails - invalid version", func() {
 				path.EndpointB.ChannelConfig.Version = invalidVersion
-			}, false,
+			}, ibcerrors.ErrInvalidType,
 		},
 		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenAck = func(
-					ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
+					ctx context.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
-			}, false,
+			}, fmt.Errorf("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
 				isNilApp = true
-			}, true,
+			}, nil,
 		},
 		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenAck = func(
-					ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
+					ctx context.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}
-			}, true,
+			}, nil,
 		},
 	}
 
@@ -375,10 +347,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
 				err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelID, path.EndpointB.ChannelConfig.Version)
@@ -387,10 +356,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}
@@ -435,11 +404,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenConfirm() {
 
 		suite.Require().Error(err)
 
-		// call application callback directly
-		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-		suite.Require().NoError(err)
-
-		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 		suite.Require().True(ok)
 
 		err = cbs.OnChanOpenConfirm(
@@ -460,10 +425,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseInit() {
 		err := SetupICAPath(path, TestOwnerAddress)
 		suite.Require().NoError(err)
 
-		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-		suite.Require().NoError(err)
-
-		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 		suite.Require().True(ok)
 
 		err = cbs.OnChanCloseInit(
@@ -483,15 +445,15 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
-			"success", func() {}, true,
+			"success", func() {}, nil,
 		},
 		{
 			"nil underlying app", func() {
 				isNilApp = true
-			}, true,
+			}, nil,
 		},
 	}
 
@@ -510,10 +472,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 				suite.Require().NoError(err)
 
 				tc.malleate() // malleate mutates test data
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
 
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
 				if isNilApp {
@@ -523,10 +483,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 				err = cbs.OnChanCloseConfirm(
 					suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}
@@ -535,9 +495,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 
 func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name       string
+		malleate   func()
+		expSuccess bool
 	}{
 		{
 			"ICA OnRecvPacket fails with ErrInvalidChannelFlow", func() {}, false,
@@ -559,10 +519,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
 				packet := channeltypes.NewPacket(
@@ -577,8 +534,8 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				)
 
 				ctx := suite.chainA.GetContext()
-				ack := cbs.OnRecvPacket(ctx, packet, nil)
-				suite.Require().Equal(tc.expPass, ack.Success())
+				ack := cbs.OnRecvPacket(ctx, path.EndpointA.GetChannel().Version, packet, nil)
+				suite.Require().Equal(tc.expSuccess, ack.Success())
 
 				expectedEvents := sdk.Events{
 					sdk.NewEvent(
@@ -606,42 +563,42 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
-			}, false,
+			}, types.ErrControllerSubModuleDisabled,
 		},
 		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
+					ctx context.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
-			}, false,
+			}, fmt.Errorf("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
 				isNilApp = true
-			}, true,
+			}, nil,
 		},
 		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
+					ctx context.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}
-			}, true,
+			}, nil,
 		},
 	}
 
@@ -672,22 +629,19 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
 				if isNilApp {
 					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
-				err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, []byte("ack"), nil)
+				err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, []byte("ack"), nil)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}
@@ -703,42 +657,42 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"controller submodule disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(false))
-			}, false,
+			}, types.ErrControllerSubModuleDisabled,
 		},
 		{
 			"ICA auth module callback fails", func() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("mock ica auth fails")
 				}
-			}, false,
+			}, fmt.Errorf("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
 				isNilApp = true
-			}, true,
+			}, nil,
 		},
 		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
 					return fmt.Errorf("error should be unreachable")
 				}
-			}, true,
+			}, nil,
 		},
 	}
 
@@ -769,22 +723,19 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 
 				if isNilApp {
 					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
 				}
 
-				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), packet, nil)
+				err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, nil)
 
-				if tc.expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
+					suite.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}
@@ -821,11 +772,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 		{
 			"ICA OnChanUpgradeInit fails - invalid version", func() {
 				version = invalidVersion
-			}, icatypes.ErrUnknownDataType,
+			}, ibcerrors.ErrInvalidType,
 		},
 		{
 			"ICA auth module callback fails", func() {
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeInit = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeInit = func(ctx context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
 					return "", ibcmock.MockApplicationCallbackError
 				}
 			}, ibcmock.MockApplicationCallbackError,
@@ -833,7 +784,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeInit = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeInit = func(ctx context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
 					return "", ibcmock.MockApplicationCallbackError
 				}
 			}, nil,
@@ -858,10 +809,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 				cbs, ok := app.(porttypes.UpgradableModule)
 				suite.Require().True(ok)
@@ -901,10 +849,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
 		suite.Require().NoError(err)
 
 		// call application callback directly
-		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-		suite.Require().NoError(err)
-
-		app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 		suite.Require().True(ok)
 		cbs, ok := app.(porttypes.UpgradableModule)
 		suite.Require().True(ok)
@@ -949,11 +894,11 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 		{
 			"ICA OnChanUpgradeAck fails - invalid version", func() {
 				counterpartyVersion = invalidVersion
-			}, icatypes.ErrUnknownDataType,
+			}, ibcerrors.ErrInvalidType,
 		},
 		{
 			"ICA auth module callback fails", func() {
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID string, counterpartyVersion string) error {
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx context.Context, portID, channelID string, counterpartyVersion string) error {
 					return ibcmock.MockApplicationCallbackError
 				}
 			}, ibcmock.MockApplicationCallbackError,
@@ -961,7 +906,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID string, counterpartyVersion string) error {
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx context.Context, portID, channelID string, counterpartyVersion string) error {
 					return ibcmock.MockApplicationCallbackError
 				}
 			}, nil,
@@ -986,10 +931,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 				cbs, ok := app.(porttypes.UpgradableModule)
 				suite.Require().True(ok)
@@ -1038,7 +980,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
-				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID string, counterpartyVersion string) error {
+				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanUpgradeAck = func(ctx context.Context, portID, channelID string, counterpartyVersion string) error {
 					return ibcmock.MockApplicationCallbackError
 				}
 			},
@@ -1076,10 +1018,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 
 				tc.malleate() // malleate mutates test data
 
-				module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-				suite.Require().NoError(err)
-
-				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+				app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 				suite.Require().True(ok)
 				cbs, ok := app.(porttypes.UpgradableModule)
 				suite.Require().True(ok)
@@ -1096,8 +1035,8 @@ func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeOpen() {
 				}
 
 				if tc.expPanic != nil {
-					mockModule := ibcmock.NewAppModule(suite.chainA.App.GetIBCKeeper().PortKeeper)
-					mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID, suite.chainA.App.GetScopedIBCKeeper())
+					mockModule := ibcmock.NewAppModule()
+					mockApp := ibcmock.NewIBCApp(path.EndpointA.ChannelConfig.PortID)
 					cbs = controller.NewIBCMiddlewareWithAuth(ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockApp), suite.chainA.GetSimApp().ICAControllerKeeper)
 
 					suite.Require().PanicsWithError(tc.expPanic.Error(), func() { upgradeOpenCb(cbs) })
@@ -1122,12 +1061,10 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
 	}{
 		{
 			"success",
 			func() {},
-			true,
 		},
 	}
 
@@ -1196,10 +1133,7 @@ func (suite *InterchainAccountsTestSuite) TestGetAppVersion() {
 		err := SetupICAPath(path, TestOwnerAddress)
 		suite.Require().NoError(err)
 
-		module, _, err := suite.chainA.App.GetIBCKeeper().PortKeeper.LookupModuleByPort(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID)
-		suite.Require().NoError(err)
-
-		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(module)
+		cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(path.EndpointA.ChannelConfig.PortID)
 		suite.Require().True(ok)
 
 		controllerStack, ok := cbs.(porttypes.ICS4Wrapper)
@@ -1313,16 +1247,18 @@ func (suite *InterchainAccountsTestSuite) TestPacketDataUnmarshalerInterface() {
 			Memo: "",
 		}
 
-		// Context, port identifier and channel identifier are unused for controller.
-		packetData, err := controller.IBCMiddleware{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", expPacketData.GetBytes())
+		controllerMiddleware := controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
+		packetData, version, err := controllerMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, expPacketData.GetBytes())
 		suite.Require().NoError(err)
+		suite.Require().Equal(version, path.EndpointA.ChannelConfig.Version)
 		suite.Require().Equal(expPacketData, packetData)
 
 		// test invalid packet data
 		invalidPacketData := []byte("invalid packet data")
 		// Context, port identifier and channel identifier are not used for controller.
-		packetData, err = controller.IBCMiddleware{}.UnmarshalPacketData(suite.chainA.GetContext(), "", "", invalidPacketData)
+		packetData, version, err = controllerMiddleware.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, invalidPacketData)
 		suite.Require().Error(err)
+		suite.Require().Empty(version)
 		suite.Require().Nil(packetData)
 	}
 }

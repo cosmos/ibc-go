@@ -1,38 +1,37 @@
 package types
 
 import (
+	"context"
 	"fmt"
 
+	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
-var _ exported.ClientStoreProvider = (*storeProvider)(nil)
-
-// storeProvider implements the api.ClientStoreProvider interface and encapsulates the IBC core store key.
-type storeProvider struct {
-	storeKey storetypes.StoreKey
+// StoreProvider encapsulates the IBC core store service and offers convenience methods for LightClientModules.
+type StoreProvider struct {
+	storeService corestore.KVStoreService
 }
 
-// NewStoreProvider creates and returns a new ClientStoreProvider.
-func NewStoreProvider(storeKey storetypes.StoreKey) exported.ClientStoreProvider {
-	return storeProvider{
-		storeKey: storeKey,
+// NewStoreProvider creates and returns a new client StoreProvider.
+func NewStoreProvider(storeService corestore.KVStoreService) StoreProvider {
+	return StoreProvider{
+		storeService: storeService,
 	}
 }
 
 // ClientStore returns isolated prefix store for each client so they can read/write in separate namespaces.
-func (s storeProvider) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
+func (s StoreProvider) ClientStore(ctx context.Context, clientID string) storetypes.KVStore {
 	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
-	return prefix.NewStore(ctx.KVStore(s.storeKey), clientPrefix)
+	return prefix.NewStore(runtime.KVStoreAdapter(s.storeService.OpenKVStore(ctx)), clientPrefix)
 }
 
 // ClientModuleStore returns the module store for a provided client type.
-func (s storeProvider) ClientModuleStore(ctx sdk.Context, clientType string) storetypes.KVStore {
-	return prefix.NewStore(ctx.KVStore(s.storeKey), host.PrefixedClientStoreKey([]byte(clientType)))
+func (s StoreProvider) ClientModuleStore(ctx context.Context, clientType string) storetypes.KVStore {
+	return prefix.NewStore(runtime.KVStoreAdapter(s.storeService.OpenKVStore(ctx)), host.PrefixedClientStoreKey([]byte(clientType)))
 }

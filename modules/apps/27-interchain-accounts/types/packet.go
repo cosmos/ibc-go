@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"strings"
 
+	gogoprotoany "github.com/cosmos/gogoproto/types/any"
+
 	errorsmod "cosmossdk.io/errors"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
@@ -49,7 +50,7 @@ func (iapd *InterchainAccountPacketData) UnmarshalJSON(bz []byte) error {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (ct CosmosTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (ct CosmosTx) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	for _, protoAny := range ct.Messages {
 		err := unpacker.UnpackAny(protoAny, new(sdk.Msg))
 		if err != nil {

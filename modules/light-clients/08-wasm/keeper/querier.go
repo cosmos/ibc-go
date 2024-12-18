@@ -12,9 +12,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 /*
@@ -23,7 +23,7 @@ to handle queries. The global `ibcwasm.QueryPluginsI` points to a `types.QueryPl
 contains two sub-queriers: `types.CustomQuerier` and `types.StargateQuerier`. These sub-queriers
 can be replaced by the user through the options api in the keeper.
 
-In addition, the `types.StargateQuerier` references a global `ibcwasm.QueryRouter` which points
+In addition, the `types.StargateQuerier` references a global `types.QueryRouter` which points
 to `baseapp.GRPCQueryRouter`.
 
 This design is based on wasmd's (v0.50.0) querier plugin design.
@@ -122,7 +122,7 @@ func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvm
 }
 
 // NewDefaultQueryPlugins returns the default set of query plugins
-func NewDefaultQueryPlugins(queryRouter ibcwasm.QueryRouter) QueryPlugins {
+func NewDefaultQueryPlugins(queryRouter types.QueryRouter) QueryPlugins {
 	return QueryPlugins{
 		Custom:   RejectCustomQuerier(),
 		Stargate: AcceptListStargateQuerier([]string{}, queryRouter),
@@ -131,7 +131,7 @@ func NewDefaultQueryPlugins(queryRouter ibcwasm.QueryRouter) QueryPlugins {
 
 // AcceptListStargateQuerier allows all queries that are in the provided accept list.
 // This function returns protobuf encoded responses in bytes.
-func AcceptListStargateQuerier(acceptedQueries []string, queryRouter ibcwasm.QueryRouter) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
+func AcceptListStargateQuerier(acceptedQueries []string, queryRouter types.QueryRouter) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
 	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 		// append user defined accepted queries to default list defined above.
 		acceptedQueries = append(defaultAcceptList, acceptedQueries...)
@@ -146,7 +146,7 @@ func AcceptListStargateQuerier(acceptedQueries []string, queryRouter ibcwasm.Que
 			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("No route to query '%s'", request.Path)}
 		}
 
-		res, err := route(ctx, &abci.RequestQuery{
+		res, err := route(ctx, &abci.QueryRequest{
 			Data: request.Data,
 			Path: request.Path,
 		})

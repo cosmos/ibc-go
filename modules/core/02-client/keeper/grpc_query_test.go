@@ -7,18 +7,20 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestQueryClientState() {
@@ -30,21 +32,21 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"req is nil",
 			func() {
 				req = nil
 			},
-			false,
+			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
 			"invalid clientID",
 			func() {
 				req = &types.QueryClientStateRequest{}
 			},
-			false,
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"client not found",
@@ -53,7 +55,10 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 					ClientId: testClientID,
 				}
 			},
-			false,
+			status.Error(
+				codes.NotFound,
+				errorsmod.Wrap(types.ErrClientNotFound, "tendermint-0").Error(),
+			),
 		},
 		{
 			"success",
@@ -69,7 +74,7 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 					ClientId: path.EndpointA.ClientID,
 				}
 			},
-			true,
+			nil,
 		},
 	}
 
@@ -81,9 +86,11 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ClientState(ctx, req)
 
-			if tc.expPass {
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ClientState(ctx, req)
+
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expClientState, res.ClientState)
@@ -93,6 +100,7 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 				suite.Require().NotNil(cachedValue)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -107,14 +115,14 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"req is nil",
 			func() {
 				req = nil
 			},
-			false,
+			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
 			"empty pagination",
@@ -122,7 +130,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				expClientStates = nil
 				req = &types.QueryClientStatesRequest{}
 			},
-			true,
+			nil,
 		},
 		{
 			"success",
@@ -148,7 +156,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 					},
 				}
 			},
-			true,
+			nil,
 		},
 	}
 
@@ -160,14 +168,16 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			tc.malleate()
 
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ClientStates(ctx, req)
-			if tc.expPass {
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ClientStates(ctx, req)
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expClientStates.Sort(), res.ClientStates)
 				suite.Require().Equal(len(expClientStates), int(res.Pagination.Total))
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -182,21 +192,21 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"req is nil",
 			func() {
 				req = nil
 			},
-			false,
+			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
 			"invalid clientID",
 			func() {
 				req = &types.QueryConsensusStateRequest{}
 			},
-			false,
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"invalid height",
@@ -208,7 +218,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 					LatestHeight:   false,
 				}
 			},
-			false,
+			status.Error(codes.InvalidArgument, "consensus state height cannot be 0"),
 		},
 		{
 			"consensus state not found",
@@ -218,7 +228,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 					LatestHeight: true,
 				}
 			},
-			false,
+			status.Error(codes.NotFound, "client-id: 07-tendermint-0, height: 0-0: consensus state not found"),
 		},
 		{
 			"success latest height",
@@ -236,7 +246,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 					LatestHeight: true,
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success with height",
@@ -260,7 +270,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 					RevisionHeight: height.GetRevisionHeight(),
 				}
 			},
-			true,
+			nil,
 		},
 	}
 
@@ -272,9 +282,10 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ConsensusState(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ConsensusState(ctx, req)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expConsensusState, res.ConsensusState)
@@ -284,6 +295,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 				suite.Require().NotNil(cachedValue)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -298,7 +310,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success: without pagination",
@@ -307,7 +319,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 					ClientId: testClientID,
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success, no results",
@@ -320,7 +332,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 					},
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success",
@@ -356,14 +368,14 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 					},
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"invalid client identifier",
 			func() {
 				req = &types.QueryConsensusStatesRequest{}
 			},
-			false,
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
 		},
 	}
 
@@ -375,9 +387,10 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ConsensusStates(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ConsensusStates(ctx, req)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(len(expConsensusStates), len(res.ConsensusStates))
@@ -390,6 +403,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 				}
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -404,7 +418,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success: without pagination",
@@ -413,7 +427,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 					ClientId: testClientID,
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success: response contains no results",
@@ -426,7 +440,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 					},
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success: returns consensus heights",
@@ -449,14 +463,14 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 					},
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"invalid client identifier",
 			func() {
 				req = &types.QueryConsensusStateHeightsRequest{}
 			},
-			false,
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
 		},
 	}
 
@@ -468,9 +482,10 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ConsensusStateHeights(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ConsensusStateHeights(ctx, req)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(len(expConsensusStateHeights), len(res.ConsensusStateHeights))
@@ -480,6 +495,7 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 				}
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -491,7 +507,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 	testCases := []struct {
 		msg       string
 		malleate  func()
-		expPass   bool
+		expErr    error
 		expStatus string
 	}{
 		{
@@ -499,14 +515,14 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 			func() {
 				req = nil
 			},
-			false, "",
+			status.Error(codes.InvalidArgument, "empty request"), "",
 		},
 		{
 			"invalid clientID",
 			func() {
 				req = &types.QueryClientStatusRequest{}
 			},
-			false, "",
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"), "",
 		},
 		{
 			"client not found",
@@ -515,7 +531,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 					ClientId: ibctesting.InvalidID,
 				}
 			},
-			true, exported.Unauthorized.String(),
+			nil, exported.Unauthorized.String(),
 		},
 		{
 			"Active client status",
@@ -526,7 +542,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 					ClientId: path.EndpointA.ClientID,
 				}
 			},
-			true, exported.Active.String(),
+			nil, exported.Active.String(),
 		},
 		{
 			"Unknown client status",
@@ -545,7 +561,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 					ClientId: path.EndpointA.ClientID,
 				}
 			},
-			true, exported.Expired.String(),
+			nil, exported.Expired.String(),
 		},
 		{
 			"Frozen client status",
@@ -562,7 +578,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 					ClientId: path.EndpointA.ClientID,
 				}
 			},
-			true, exported.Frozen.String(),
+			nil, exported.Frozen.String(),
 		},
 	}
 
@@ -574,14 +590,16 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 
 			tc.malleate()
 			ctx := suite.chainA.GetContext()
-			res, err := suite.chainA.QueryServer.ClientStatus(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ClientStatus(ctx, req)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(tc.expStatus, res.Status)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -677,10 +695,10 @@ func (suite *KeeperTestSuite) TestQueryUpgradedClientState() {
 
 			tc.malleate()
 
-			res, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.UpgradedClientState(suite.chainA.GetContext(), req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.UpgradedClientState(suite.chainA.GetContext(), req)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 
 				upgradedClientState, err := types.UnpackClientState(res.UpgradedClientState)
@@ -706,36 +724,38 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"req is nil",
 			func() {
 				req = nil
 			},
-			false,
+			status.Error(codes.InvalidArgument, "empty request"),
 		},
 		{
 			"no plan",
 			func() {
 				req = &types.QueryUpgradedConsensusStateRequest{}
 			},
-			false,
+			status.Error(codes.NotFound, "upgraded consensus state not found, height 2"),
 		},
 		{
 			"valid consensus state",
 			func() {
 				req = &types.QueryUpgradedConsensusStateRequest{}
-				lastHeight := types.NewHeight(0, uint64(suite.ctx.BlockHeight()))
+
+				ctx := suite.chainA.GetContext()
+				lastHeight := types.NewHeight(0, uint64(ctx.BlockHeight()))
 				height = int64(lastHeight.GetRevisionHeight())
-				suite.ctx = suite.ctx.WithBlockHeight(height)
+				ctx = ctx.WithBlockHeight(height)
 
 				expConsensusState = types.MustPackConsensusState(suite.consensusState)
 				bz := types.MustMarshalConsensusState(suite.cdc, suite.consensusState)
-				err := suite.keeper.SetUpgradedConsensusState(suite.ctx, height, bz)
+				err := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetUpgradedConsensusState(ctx, height, bz)
 				suite.Require().NoError(err)
 			},
-			true,
+			nil,
 		},
 	}
 
@@ -747,12 +767,14 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 
 			tc.malleate()
 
-			res, err := suite.keeper.UpgradedConsensusState(suite.ctx, req)
-			if tc.expPass {
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.UpgradedConsensusState(suite.chainA.GetContext(), req)
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().True(expConsensusState.Equal(res.UpgradedConsensusState))
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -761,7 +783,8 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 func (suite *KeeperTestSuite) TestQueryClientParams() {
 	ctx := suite.chainA.GetContext()
 	expParams := types.DefaultParams()
-	res, _ := suite.chainA.QueryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
+	queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	res, _ := queryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
 	suite.Require().Equal(&expParams, res.Params)
 }
 
@@ -893,7 +916,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			errors.New(wasmClientID),
 		},
 		{
-			"client not active",
+			"client type not allowed",
 			func() {
 				params := types.NewParams("") // disable all clients
 				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
@@ -906,7 +929,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 					Value:       []byte{0x01},
 				}
 			},
-			types.ErrClientNotActive,
+			types.ErrInvalidClientType,
 		},
 	}
 
@@ -922,7 +945,8 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 
 			ctx := suite.chainA.GetContext()
 			initialGas := ctx.GasMeter().GasConsumed()
-			res, err := suite.chainA.QueryServer.VerifyMembership(ctx, req)
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.VerifyMembership(ctx, req)
 
 			expPass := tc.expError == nil
 			if expPass {

@@ -6,10 +6,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
@@ -18,33 +18,33 @@ func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"invalid ordering",
 			func() {
 				upgrade.Fields.Ordering = types.NONE
 			},
-			false,
+			types.ErrInvalidChannelOrdering,
 		},
 		{
 			"connection hops length not equal to 1",
 			func() {
 				upgrade.Fields.ConnectionHops = []string{"connection-0", "connection-1"}
 			},
-			false,
+			types.ErrTooManyConnectionHops,
 		},
 		{
 			"empty version",
 			func() {
 				upgrade.Fields.Version = "  "
 			},
-			false,
+			types.ErrInvalidChannelVersion,
 		},
 		{
 			"invalid timeout",
@@ -52,7 +52,7 @@ func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 				upgrade.Timeout.Height = clienttypes.ZeroHeight()
 				upgrade.Timeout.Timestamp = 0
 			},
-			false,
+			types.ErrInvalidUpgrade,
 		},
 	}
 
@@ -69,10 +69,11 @@ func (suite *TypesTestSuite) TestUpgradeValidateBasic() {
 
 			err := upgrade.ValidateBasic()
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

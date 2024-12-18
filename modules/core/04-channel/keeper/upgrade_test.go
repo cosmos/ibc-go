@@ -7,15 +7,15 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 func (suite *KeeperTestSuite) TestChanUpgradeInit() {
@@ -28,12 +28,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"success with later upgrade sequence",
@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 4 })
 				expSequence = 5
 			},
-			true,
+			nil,
 		},
 		{
 			"upgrade fields are identical to channel end",
@@ -49,7 +49,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				channel := path.EndpointA.GetChannel()
 				upgradeFields = types.NewUpgradeFields(channel.Ordering, channel.ConnectionHops, channel.Version)
 			},
-			false,
+			errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got {ORDER_UNORDERED [connection-0] mock-version}"),
 		},
 		{
 			"channel not found",
@@ -57,21 +57,21 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				path.EndpointA.ChannelID = "invalid-channel"
 				path.EndpointA.ChannelConfig.PortID = "invalid-port"
 			},
-			false,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (invalid-port) channel ID (invalid-channel)"),
 		},
 		{
 			"channel state is not in OPEN state",
 			func() {
 				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			},
-			false,
+			errorsmod.Wrapf(types.ErrInvalidChannelState, "expected STATE_OPEN, got STATE_CLOSED"),
 		},
 		{
 			"proposed channel connection not found",
 			func() {
 				upgradeFields.ConnectionHops = []string{"connection-100"}
 			},
-			false,
+			errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: connection-100"),
 		},
 		{
 			"invalid proposed channel connection state",
@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.UNINITIALIZED })
 				upgradeFields.ConnectionHops = []string{"connection-100"}
 			},
-			false,
+			errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: connection-100"),
 		},
 	}
 
@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeFields,
 			)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				ctx := suite.chainA.GetContext()
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade, upgrade.Fields.Version)
 				channel := path.EndpointA.GetChannel()
@@ -112,6 +112,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.Require().Equal(types.OPEN, channel.State)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -1072,6 +1073,27 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 				suite.Require().NoError(err)
 			},
 			types.NewUpgradeError(1, types.ErrTimeoutElapsed),
+		},
+		{
+			"upgrade not found",
+			func() {
+				path.EndpointB.Chain.DeleteKey(host.ChannelUpgradeKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
+			},
+			types.ErrUpgradeNotFound,
+		},
+		{
+			"upgrades are not compatible",
+			func() {
+				// the expected upgrade version is mock-version-v2
+				counterpartyUpgrade.Fields.Version = fmt.Sprintf("%s-v3", mock.Version)
+				path.EndpointA.SetChannelUpgrade(counterpartyUpgrade)
+
+				suite.coordinator.CommitBlock(suite.chainA)
+
+				err := path.EndpointB.UpdateClient()
+				suite.Require().NoError(err)
+			},
+			types.NewUpgradeError(1, types.ErrIncompatibleCounterpartyUpgrade),
 		},
 	}
 
@@ -2288,14 +2310,14 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 	tests := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			name: "change channel version",
 			malleate: func() {
 				proposedUpgrade.Version = mock.UpgradeVersion
 			},
-			expPass: true,
+			expErr: nil,
 		},
 		{
 			name: "change connection hops",
@@ -2304,12 +2326,12 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 				path.Setup()
 				proposedUpgrade.ConnectionHops = []string{path.EndpointA.ConnectionID}
 			},
-			expPass: true,
+			expErr: nil,
 		},
 		{
 			name:     "fails with unmodified fields",
 			malleate: func() {},
-			expPass:  false,
+			expErr:   errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got {ORDER_UNORDERED [connection-0] mock-version}"),
 		},
 		{
 			name: "fails when connection is not set",
@@ -2318,14 +2340,14 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 				kvStore := suite.chainA.GetContext().KVStore(storeKey)
 				kvStore.Delete(host.ConnectionKey(ibctesting.FirstConnectionID))
 			},
-			expPass: false,
+			expErr: errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got {ORDER_UNORDERED [connection-0] mock-version}"),
 		},
 		{
 			name: "fails when connection is not open",
 			malleate: func() {
 				path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.UNINITIALIZED })
 			},
-			expPass: false,
+			expErr: errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got {ORDER_UNORDERED [connection-0] mock-version}"),
 		},
 		{
 			name: "fails when connection versions do not exist",
@@ -2337,7 +2359,7 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 					c.Versions = []*connectiontypes.Version{}
 				})
 			},
-			expPass: false,
+			expErr: errorsmod.Wrapf(connectiontypes.ErrInvalidVersion, "single version must be negotiated on connection before opening channel, got: []"),
 		},
 		{
 			name: "fails when connection version does not support the new ordering",
@@ -2349,7 +2371,7 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 					c.Versions = []*connectiontypes.Version{connectiontypes.NewVersion("1", []string{"ORDER_ORDERED"})}
 				})
 			},
-			expPass: false,
+			expErr: errorsmod.Wrapf(connectiontypes.ErrInvalidVersion, "connection version identifier:\"1\" features:\"ORDER_ORDERED\"  does not support channel ordering: ORDER_UNORDERED"),
 		},
 	}
 
@@ -2370,10 +2392,11 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 			tc.malleate()
 
 			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateSelfUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -2403,12 +2426,12 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 	tests := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			name:     "success",
 			malleate: func() {},
-			expPass:  true,
+			expErr:   nil,
 		},
 		{
 			name: "regular error",
@@ -2417,21 +2440,21 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 				// i.e. not an instance of `types.UpgradeError`
 				upgradeError = types.ErrInvalidUpgrade
 			},
-			expPass: true,
+			expErr: nil,
 		},
 		{
 			name: "channel does not exist",
 			malleate: func() {
 				suite.chainA.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			expPass: false,
+			expErr: types.ErrChannelNotFound,
 		},
 		{
 			name: "fails with nil upgrade error",
 			malleate: func() {
 				upgradeError = nil
 			},
-			expPass: false,
+			expErr: types.ErrInvalidUpgradeError,
 		},
 	}
 
@@ -2455,7 +2478,7 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 
 			tc.malleate()
 
-			if tc.expPass {
+			if tc.expErr == nil {
 
 				ctx := suite.chainA.GetContext()
 

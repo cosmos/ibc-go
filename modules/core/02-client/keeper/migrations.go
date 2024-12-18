@@ -3,10 +3,10 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -26,7 +26,7 @@ func NewMigrator(keeper *Keeper) Migrator {
 // - removes the localhost client
 // - asserts that existing tendermint clients are properly registered on the chain codec
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
-	return v7.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc, m.keeper)
+	return v7.MigrateStore(ctx, m.keeper.storeService, m.keeper.cdc, m.keeper)
 }
 
 // MigrateParams migrates from consensus version 4 to 5.

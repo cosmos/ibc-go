@@ -1,0 +1,16 @@
+name: proto breaking check
+# proto breaking check workflow checks if Protobuf file contains breaking changes.
+# This workflow runs when a PR that targets Protobuf is opened.
+on:
+  merge_group:
+  pull_request:
+    paths:
+      - "proto/**/*.proto"
+
+jobs:
+  proto-breaking-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run proto-breaking check
+        run: make proto-check-breaking

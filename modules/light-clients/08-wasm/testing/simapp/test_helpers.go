@@ -12,6 +12,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/snapshots"
 	snapshottypes "cosmossdk.io/store/snapshots/types"
+	banktypes "cosmossdk.io/x/bank/types"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -20,15 +21,14 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/ibcwasm"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
-func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint, mockVM ibcwasm.WasmEngine) (*SimApp, GenesisState) {
+func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint, mockVM wasmtypes.WasmEngine) (*SimApp, GenesisState) {
 	tb.Helper()
 
 	db := dbm.NewMemDB()
@@ -54,7 +54,7 @@ func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint,
 }
 
 // SetupWithEmptyStore set up a simapp instance with empty DB
-func SetupWithEmptyStore(tb testing.TB, mockVM ibcwasm.WasmEngine) *SimApp {
+func SetupWithEmptyStore(tb testing.TB, mockVM wasmtypes.WasmEngine) *SimApp {
 	tb.Helper()
 
 	app, _ := setup(tb, "", false, 0, mockVM)
@@ -65,7 +65,7 @@ func SetupWithEmptyStore(tb testing.TB, mockVM ibcwasm.WasmEngine) *SimApp {
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
-func SetupWithGenesisValSetSnapshotter(t *testing.T, mockVM ibcwasm.WasmEngine, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *SimApp {
+func SetupWithGenesisValSetSnapshotter(t *testing.T, mockVM wasmtypes.WasmEngine, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *SimApp {
 	t.Helper()
 
 	app, genesisState := setup(t, "", true, 5, mockVM)
@@ -76,7 +76,7 @@ func SetupWithGenesisValSetSnapshotter(t *testing.T, mockVM ibcwasm.WasmEngine, 
 	require.NoError(t, err)
 
 	// init chain will set the validator set and initialize the genesis accounts
-	_, err = app.InitChain(&abci.RequestInitChain{
+	_, err = app.InitChain(&abci.InitChainRequest{
 		Validators:      []abci.ValidatorUpdate{},
 		ConsensusParams: simtestutil.DefaultConsensusParams,
 		AppStateBytes:   stateBytes,
@@ -87,7 +87,7 @@ func SetupWithGenesisValSetSnapshotter(t *testing.T, mockVM ibcwasm.WasmEngine, 
 }
 
 // SetupWithSnapshotter initializes a new SimApp with a configured snapshot db. A Nop logger is set in SimApp.
-func SetupWithSnapshotter(t *testing.T, mockVM ibcwasm.WasmEngine) *SimApp {
+func SetupWithSnapshotter(t *testing.T, mockVM wasmtypes.WasmEngine) *SimApp {
 	t.Helper()
 
 	privVal := cmttypes.NewMockPV()

@@ -1,6 +1,7 @@
 package ante_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -10,15 +11,14 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/ante"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/ante"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 type AnteTestSuite struct {
@@ -342,7 +342,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				}
 
 				// append non packet and update message to msgs to ensure multimsg tx should pass
-				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{}) //nolint:staticcheck // we're using the deprecated message for testing
+				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{Signer: ibctesting.TestAccAddress}) //nolint:staticcheck // we're using the deprecated message for testing
 				return msgs
 			},
 			nil,
@@ -351,7 +351,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 			"success on app callback error, app callbacks are skipped for performance",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) exported.Acknowledgement {
 					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}
@@ -412,7 +412,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
 				suite.Require().NoError(err)
 
-				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: ibctesting.InvalidID, ClientMessage: clientMsg}}
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: ibctesting.InvalidID, ClientMessage: clientMsg, Signer: ibctesting.TestAccAddress}}
 				return msgs
 			},
 			clienttypes.ErrClientNotActive,
@@ -423,7 +423,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
 				suite.Require().NoError(err)
 
-				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: clienttypes.FormatClientIdentifier("08-wasm", 1), ClientMessage: clientMsg}}
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: clienttypes.FormatClientIdentifier("08-wasm", 1), ClientMessage: clientMsg, Signer: ibctesting.TestAccAddress}}
 				return msgs
 			},
 			clienttypes.ErrClientNotActive,
@@ -434,7 +434,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{TrustedHeight: clienttypes.NewHeight(1, 10000)})
 				suite.Require().NoError(err)
 
-				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: suite.path.EndpointA.ClientID, ClientMessage: clientMsg}}
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: suite.path.EndpointA.ClientID, ClientMessage: clientMsg, Signer: ibctesting.TestAccAddress}}
 				return msgs
 			},
 			clienttypes.ErrConsensusStateNotFound,
@@ -474,7 +474,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 
 				return []sdk.Msg{
 					suite.createRecvPacketMessage(false),
-					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
+					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), ibctesting.TestAccAddress),
 				}
 			},
 			commitmenttypes.ErrInvalidProof,
@@ -502,15 +502,6 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				return []sdk.Msg{msg}
 			},
 			channeltypes.ErrRedundantTx,
-		},
-		{
-			"no success on recvPacket checkTx, no capability found",
-			func(suite *AnteTestSuite) []sdk.Msg {
-				msg := suite.createRecvPacketMessage(false)
-				msg.Packet.DestinationPort = "invalid-port"
-				return []sdk.Msg{msg}
-			},
-			capabilitytypes.ErrCapabilityNotFound,
 		},
 	}
 
@@ -587,7 +578,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 			"success on app callback error, app callbacks are skipped for performance",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
-					ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress,
+					ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) exported.Acknowledgement {
 					panic(fmt.Errorf("failed OnRecvPacket mock callback"))
 				}

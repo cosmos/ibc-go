@@ -6,7 +6,7 @@ import (
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 )
 
 // Hash returns the hex bytes of the SHA256 hash of the DenomTrace fields using the following formula:

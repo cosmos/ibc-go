@@ -11,8 +11,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 var (
@@ -44,7 +44,7 @@ func TestTypesTestSuite(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) TestGenerateAddress() {
-	addr := types.GenerateAddress(suite.chainA.GetContext(), "test-connection-id", "test-port-id")
+	addr := types.GenerateAddress(suite.chainA.GetContext().HeaderInfo(), "test-connection-id", "test-port-id")
 	accAddr, err := sdk.AccAddressFromBech32(addr.String())
 
 	suite.Require().NoError(err, "TestGenerateAddress failed")
@@ -53,34 +53,34 @@ func (suite *TypesTestSuite) TestGenerateAddress() {
 
 func (suite *TypesTestSuite) TestValidateAccountAddress() {
 	testCases := []struct {
-		name    string
-		address string
-		expPass bool
+		name     string
+		address  string
+		expError error
 	}{
 		{
 			"success",
 			TestOwnerAddress,
-			true,
+			nil,
 		},
 		{
 			"success with single character",
 			"a",
-			true,
+			nil,
 		},
 		{
 			"empty string",
 			"",
-			false,
+			types.ErrInvalidAccountAddress,
 		},
 		{
 			"only spaces",
 			"     ",
-			false,
+			types.ErrInvalidAccountAddress,
 		},
 		{
 			"address is too long",
 			ibctesting.GenerateString(uint(types.DefaultMaxAddrLength) + 1),
-			false,
+			types.ErrInvalidAccountAddress,
 		},
 	}
 
@@ -90,10 +90,10 @@ func (suite *TypesTestSuite) TestValidateAccountAddress() {
 		suite.Run(tc.name, func() {
 			err := types.ValidateAccountAddress(tc.address)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
+				suite.Require().ErrorIs(err, tc.expError, tc.name)
 			}
 		})
 	}

@@ -2,19 +2,20 @@ package localhost
 
 import (
 	"bytes"
+	"context"
 
+	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types/v2"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 const (
@@ -32,64 +33,48 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 
 // LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
-	cdc           codec.BinaryCodec
-	key           storetypes.StoreKey
-	storeProvider exported.ClientStoreProvider
+	cdc          codec.BinaryCodec
+	storeService corestore.KVStoreService
 }
 
 // NewLightClientModule creates and returns a new 09-localhost LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec, key storetypes.StoreKey) *LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeService corestore.KVStoreService) *LightClientModule {
 	return &LightClientModule{
-		cdc: cdc,
-		key: key,
+		cdc:          cdc,
+		storeService: storeService,
 	}
 }
 
-// RegisterStoreProvider is called by core IBC when a LightClientModule is added to the router.
-// It allows the LightClientModule to set a ClientStoreProvider which supplies isolated prefix client stores
-// to IBC light client instances.
-func (l *LightClientModule) RegisterStoreProvider(storeProvider exported.ClientStoreProvider) {
-	l.storeProvider = storeProvider
-}
-
 // Initialize returns an error because it is stateless.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (LightClientModule) Initialize(_ sdk.Context, _ string, _, _ []byte) error {
+func (LightClientModule) Initialize(_ context.Context, _ string, _, _ []byte) error {
 	return errorsmod.Wrap(clienttypes.ErrClientExists, "localhost is stateless and cannot be initialized")
 }
 
 // VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (LightClientModule) VerifyClientMessage(_ sdk.Context, _ string, _ exported.ClientMessage) error {
+func (LightClientModule) VerifyClientMessage(_ context.Context, _ string, _ exported.ClientMessage) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
 }
 
 // CheckForMisbehaviour is unsupported by the 09-localhost client type and performs a no-op, returning false.
-func (LightClientModule) CheckForMisbehaviour(_ sdk.Context, _ string, _ exported.ClientMessage) bool {
+func (LightClientModule) CheckForMisbehaviour(_ context.Context, _ string, _ exported.ClientMessage) bool {
 	return false
 }
 
 // UpdateStateOnMisbehaviour is unsupported by the 09-localhost client type and performs a no-op.
-func (LightClientModule) UpdateStateOnMisbehaviour(_ sdk.Context, _ string, _ exported.ClientMessage) {
+func (LightClientModule) UpdateStateOnMisbehaviour(_ context.Context, _ string, _ exported.ClientMessage) {
 	// no-op
 }
 
 // UpdateState performs a no-op and returns the context height in the updated heights return value.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (LightClientModule) UpdateState(ctx sdk.Context, _ string, _ exported.ClientMessage) []exported.Height {
+func (LightClientModule) UpdateState(ctx context.Context, _ string, _ exported.ClientMessage) []exported.Height {
 	return []exported.Height{clienttypes.GetSelfHeight(ctx)}
 }
 
 // VerifyMembership is a generic proof verification method which verifies the existence of a given key and value within the IBC store.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // The caller must provide the full IBC store.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (l LightClientModule) VerifyMembership(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientID string,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -98,7 +83,7 @@ func (l LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	ibcStore := ctx.KVStore(l.key)
+	ibcStore := l.storeService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
@@ -107,7 +92,7 @@ func (l LightClientModule) VerifyMembership(
 
 	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
@@ -115,7 +100,10 @@ func (l LightClientModule) VerifyMembership(
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
-	bz := ibcStore.Get(merklePath.KeyPath[1])
+	bz, err := ibcStore.Get(merklePath.KeyPath[1])
+	if err != nil {
+		panic(err)
+	}
 	if bz == nil {
 		return errorsmod.Wrapf(clienttypes.ErrFailedMembershipVerification, "value not found for path %s", path)
 	}
@@ -130,10 +118,8 @@ func (l LightClientModule) VerifyMembership(
 // VerifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath within the IBC store.
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // The caller must provide the full IBC store.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
 func (l LightClientModule) VerifyNonMembership(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientID string,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -141,7 +127,7 @@ func (l LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	ibcStore := ctx.KVStore(l.key)
+	ibcStore := l.storeService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
@@ -150,7 +136,7 @@ func (l LightClientModule) VerifyNonMembership(
 
 	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypes.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	if len(merklePath.GetKeyPath()) != 2 {
@@ -158,7 +144,11 @@ func (l LightClientModule) VerifyNonMembership(
 	}
 
 	// The commitment prefix (eg: "ibc") is omitted when operating on the core IBC store
-	if ibcStore.Has(merklePath.KeyPath[1]) {
+	has, err := ibcStore.Has(merklePath.KeyPath[1])
+	if err != nil {
+		return errorsmod.Wrapf(err, "error checking for value for path %s", path)
+	}
+	if has {
 		return errorsmod.Wrapf(clienttypes.ErrFailedNonMembershipVerification, "value found for path %s", path)
 	}
 
@@ -166,29 +156,28 @@ func (l LightClientModule) VerifyNonMembership(
 }
 
 // Status always returns Active. The 09-localhost status cannot be changed.
-func (LightClientModule) Status(_ sdk.Context, _ string) exported.Status {
+func (LightClientModule) Status(_ context.Context, _ string) exported.Status {
 	return exported.Active
 }
 
 // LatestHeight returns the context height.
-//
-// CONTRACT: clientID is validated in 02-client router, thus clientID is assumed here to be 09-localhost.
-func (LightClientModule) LatestHeight(ctx sdk.Context, _ string) exported.Height {
+func (LightClientModule) LatestHeight(ctx context.Context, _ string) exported.Height {
 	return clienttypes.GetSelfHeight(ctx)
 }
 
 // TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
 // cannot provide a timestamp for the provided height.
-func (LightClientModule) TimestampAtHeight(ctx sdk.Context, _ string, _ exported.Height) (uint64, error) {
-	return uint64(ctx.BlockTime().UnixNano()), nil
+func (LightClientModule) TimestampAtHeight(ctx context.Context, _ string, _ exported.Height) (uint64, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	return uint64(sdkCtx.BlockTime().UnixNano()), nil
 }
 
 // RecoverClient returns an error. The localhost cannot be modified by proposals.
-func (LightClientModule) RecoverClient(_ sdk.Context, _, _ string) error {
+func (LightClientModule) RecoverClient(_ context.Context, _, _ string) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
 }
 
 // VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded.
-func (LightClientModule) VerifyUpgradeAndUpdateState(_ sdk.Context, _ string, _, _, _, _ []byte) error {
+func (LightClientModule) VerifyUpgradeAndUpdateState(_ context.Context, _ string, _, _, _, _ []byte) error {
 	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }

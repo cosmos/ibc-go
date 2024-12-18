@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v9/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -18,11 +18,12 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
+// compatibility:from_version: v8.4.0
 func TestTransferChannelUpgradesTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TransferChannelUpgradesTestSuite))
 }
@@ -31,8 +32,8 @@ type TransferChannelUpgradesTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func (s *TransferChannelUpgradesTestSuite) SetupTest() {
-	s.SetupPaths(ibc.DefaultClientOpts(), s.TransferChannelOptions())
+func (s *TransferChannelUpgradesTestSuite) SetupChannelUpgradesPath(testName string) {
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 }
 
 // TestChannelUpgrade_WithFeeMiddleware_Succeeds tests upgrading a transfer channel to wire up fee middleware
@@ -40,7 +41,10 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	channelB := channelA.Counterparty
 
@@ -95,10 +99,10 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 20, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
 		// packet from chain A to chain B
@@ -167,7 +171,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 
 	t.Run("recover relayer wallets", func(t *testing.T) {
-		err := s.RecoverRelayerWallets(ctx, relayer)
+		_, _, err := s.RecoverRelayerWallets(ctx, relayer, testName)
 		s.Require().NoError(err)
 
 		chainARelayerWallet, chainBRelayerWallet, err = s.GetRelayerWallets(relayer)
@@ -181,7 +185,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("register and verify counterparty payee", func(t *testing.T) {
-		_, chainBRelayerUser := s.GetRelayerUsers(ctx)
+		_, chainBRelayerUser := s.GetRelayerUsers(ctx, testName)
 		resp := s.RegisterCounterPartyPayee(ctx, chainB, chainBRelayerUser, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, chainBRelayerWallet.FormattedAddress(), chainARelayerWallet.FormattedAddress())
 		s.AssertTxSuccess(resp)
 
@@ -191,7 +195,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("send incentivized transfer packet", func(t *testing.T) {
@@ -253,12 +257,172 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_
 	})
 }
 
+// TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds tests upgrading a transfer channel to wire up fee middleware under crossing hello
+func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds() {
+	t := s.T()
+	ctx := context.TODO()
+
+	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
+
+	channelB := channelA.Counterparty
+
+	chainA, chainB := s.GetChains()
+	chainADenom := chainA.Config().Denom
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.FormattedAddress()
+
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.FormattedAddress()
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	// trying to create some inflight packets, although they might get relayed before the upgrade starts
+	t.Run("create inflight transfer packets between chain A and chain B", func(t *testing.T) {
+		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", nil)
+		s.AssertTxSuccess(transferTxResp)
+	})
+
+	t.Run("execute gov proposals to initiate channel upgrade on chain A and chain B", func(t *testing.T) {
+		var wg sync.WaitGroup
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			chA, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+			s.Require().NoError(err)
+			s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			chB, err := query.Channel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+			s.Require().NoError(err)
+			s.InitiateChannelUpgrade(ctx, chainB, chainBWallet, channelB.PortID, channelB.ChannelID, s.CreateUpgradeFields(chB))
+		}()
+
+		wg.Wait()
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer, testName)
+	})
+
+	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
+		// packet from chain A to chain B
+		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+	})
+
+	t.Run("verify channel A upgraded and is fee enabled", func(t *testing.T) {
+		channel, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+
+		// check the channel version include the fee version
+		version, err := feetypes.MetadataFromVersion(channel.Version)
+		s.Require().NoError(err)
+		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
+
+		// extra check
+		feeEnabled, err := query.FeeEnabledChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(true, feeEnabled)
+	})
+
+	t.Run("verify channel B upgraded and is fee enabled", func(t *testing.T) {
+		channel, err := query.Channel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		s.Require().NoError(err)
+
+		// check the channel version include the fee version
+		version, err := feetypes.MetadataFromVersion(channel.Version)
+		s.Require().NoError(err)
+		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
+
+		// extra check
+		feeEnabled, err := query.FeeEnabledChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(true, feeEnabled)
+	})
+}
+
+// TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck tests upgrading a transfer channel to wire up fee middleware but fails on ACK because of timeout
+func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck() {
+	t := s.T()
+	ctx := context.TODO()
+
+	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
+
+	chainA, chainB := s.GetChains()
+
+	channelB := channelA.Counterparty
+
+	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("execute gov proposal to set upgrade timeout", func(t *testing.T) {
+		s.SetUpgradeTimeoutParam(ctx, chainB, chainBWallet)
+	})
+
+	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
+		chA, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+
+		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
+	})
+
+	t.Run("start relayer", func(t *testing.T) {
+		s.StartRelayer(relayer, testName)
+	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
+
+	t.Run("verify channel A did not upgrade", func(t *testing.T) {
+		channel, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+
+		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
+		s.Require().Equal(channelA.Version, channel.Version, "the channel version is not "+channelA.Version)
+
+		errorReceipt, err := query.UpgradeError(ctx, chainA, channelA.PortID, channelA.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(uint64(1), errorReceipt.Sequence)
+		s.Require().Contains(errorReceipt.Message, "restored channel to pre-upgrade state")
+	})
+
+	t.Run("verify channel B did not upgrade", func(t *testing.T) {
+		channel, err := query.Channel(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		s.Require().NoError(err)
+
+		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
+		s.Require().Equal(channelA.Version, channel.Version, "the channel version is not "+channelA.Version)
+
+		errorReceipt, err := query.UpgradeError(ctx, chainB, channelB.PortID, channelB.ChannelID)
+		s.Require().NoError(err)
+		s.Require().Equal(uint64(1), errorReceipt.Sequence)
+		s.Require().Contains(errorReceipt.Message, "restored channel to pre-upgrade state")
+	})
+}
+
 // TestChannelDowngrade_WithICS20v1_Succeeds tests downgrading a transfer channel from ICS20 v2 to ICS20 v1.
+// compatibility:TestChannelDowngrade_WithICS20v1_Succeeds:from_versions: v9.0.0
 func (s *TransferChannelUpgradesTestSuite) TestChannelDowngrade_WithICS20v1_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
+	testName := t.Name()
+	s.SetupChannelUpgradesPath(testName)
+
+	relayer, channelA := s.GetRelayerForTest(testName), s.GetChainAChannelForTest(testName)
 
 	channelB := channelA.Counterparty
 	chainA, chainB := s.GetChains()
@@ -284,7 +448,7 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelDowngrade_WithICS20v1_Succ
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
+		s.StartRelayer(relayer, testName)
 	})
 
 	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
@@ -342,154 +506,5 @@ func (s *TransferChannelUpgradesTestSuite) TestChannelDowngrade_WithICS20v1_Succ
 
 		expected := testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance.Int64())
-	})
-}
-
-// TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds tests upgrading a transfer channel to wire up fee middleware under crossing hello
-func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_CrossingHello_Succeeds() {
-	t := s.T()
-	ctx := context.TODO()
-
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
-
-	channelB := channelA.Counterparty
-
-	chainA, chainB := s.GetChains()
-	chainADenom := chainA.Config().Denom
-
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainAAddress := chainAWallet.FormattedAddress()
-
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	chainBAddress := chainBWallet.FormattedAddress()
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-
-	// trying to create some inflight packets, although they might get relayed before the upgrade starts
-	t.Run("create inflight transfer packets between chain A and chain B", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
-		s.AssertTxSuccess(transferTxResp)
-	})
-
-	t.Run("execute gov proposals to initiate channel upgrade on chain A and chain B", func(t *testing.T) {
-		var wg sync.WaitGroup
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			chA, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
-			s.Require().NoError(err)
-			s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
-		}()
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			chB, err := query.Channel(ctx, chainB, channelB.PortID, channelB.ChannelID)
-			s.Require().NoError(err)
-			s.InitiateChannelUpgrade(ctx, chainB, chainBWallet, channelB.PortID, channelB.ChannelID, s.CreateUpgradeFields(chB))
-		}()
-
-		wg.Wait()
-	})
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
-
-	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
-	})
-
-	t.Run("packets are relayed between chain A and chain B", func(t *testing.T) {
-		// packet from chain A to chain B
-		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
-	})
-
-	t.Run("verify channel A upgraded and is fee enabled", func(t *testing.T) {
-		channel, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
-		s.Require().NoError(err)
-
-		// check the channel version include the fee version
-		version, err := feetypes.MetadataFromVersion(channel.Version)
-		s.Require().NoError(err)
-		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
-
-		// extra check
-		feeEnabled, err := query.FeeEnabledChannel(ctx, chainA, channelA.PortID, channelA.ChannelID)
-		s.Require().NoError(err)
-		s.Require().Equal(true, feeEnabled)
-	})
-
-	t.Run("verify channel B upgraded and is fee enabled", func(t *testing.T) {
-		channel, err := query.Channel(ctx, chainB, channelB.PortID, channelB.ChannelID)
-		s.Require().NoError(err)
-
-		// check the channel version include the fee version
-		version, err := feetypes.MetadataFromVersion(channel.Version)
-		s.Require().NoError(err)
-		s.Require().Equal(feetypes.Version, version.FeeVersion, "the channel version did not include ics29")
-
-		// extra check
-		feeEnabled, err := query.FeeEnabledChannel(ctx, chainB, channelB.PortID, channelB.ChannelID)
-		s.Require().NoError(err)
-		s.Require().Equal(true, feeEnabled)
-	})
-}
-
-// TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck tests upgrading a transfer channel to wire up fee middleware but fails on ACK because of timeout
-func (s *TransferChannelUpgradesTestSuite) TestChannelUpgrade_WithFeeMiddleware_FailsWithTimeoutOnAck() {
-	t := s.T()
-	ctx := context.TODO()
-
-	relayer, channelA := s.GetRelayer(), s.GetChainAChannel()
-	chainA, chainB := s.GetChains()
-
-	channelB := channelA.Counterparty
-
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-
-	t.Run("execute gov proposal to set upgrade timeout", func(t *testing.T) {
-		s.SetUpgradeTimeoutParam(ctx, chainB, chainBWallet)
-	})
-
-	t.Run("execute gov proposal to initiate channel upgrade", func(t *testing.T) {
-		chA, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
-		s.Require().NoError(err)
-
-		s.InitiateChannelUpgrade(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, s.CreateUpgradeFields(chA))
-	})
-
-	t.Run("start relayer", func(t *testing.T) {
-		s.StartRelayer(relayer)
-	})
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
-
-	t.Run("verify channel A did not upgrade", func(t *testing.T) {
-		channel, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
-		s.Require().NoError(err)
-
-		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
-		s.Require().Equal(channelA.Version, channel.Version, "the channel version is not "+channelA.Version)
-
-		errorReceipt, err := query.UpgradeError(ctx, chainA, channelA.PortID, channelA.ChannelID)
-		s.Require().NoError(err)
-		s.Require().Equal(uint64(1), errorReceipt.Sequence)
-		s.Require().Contains(errorReceipt.Message, "restored channel to pre-upgrade state")
-	})
-
-	t.Run("verify channel B did not upgrade", func(t *testing.T) {
-		channel, err := query.Channel(ctx, chainB, channelB.PortID, channelB.ChannelID)
-		s.Require().NoError(err)
-
-		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel state is not OPEN")
-		s.Require().Equal(channelA.Version, channel.Version, "the channel version is not "+channelA.Version)
-
-		errorReceipt, err := query.UpgradeError(ctx, chainB, channelB.PortID, channelB.ChannelID)
-		s.Require().NoError(err)
-		s.Require().Equal(uint64(1), errorReceipt.Sequence)
-		s.Require().Contains(errorReceipt.Message, "restored channel to pre-upgrade state")
 	})
 }

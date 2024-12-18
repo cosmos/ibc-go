@@ -2,40 +2,40 @@ package testsuite
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v9/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v9/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
+	govtypesv1beta1 "cosmossdk.io/x/gov/types/v1beta1"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
-// Once the broadcast response is returned, we wait for a few blocks to be created on both chain A and chain B.
+// Once the broadcast response is returned, we wait for a few blocks to be created on the chain the message was broadcast to.
 func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgs ...sdk.Msg) sdk.TxResponse {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
@@ -51,7 +51,15 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 		// use a codec with all the types our tests care about registered.
 		// BroadcastTx will deserialize the response and will not be able to otherwise.
 		cdc := Codec()
-		return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
+
+		txConfig := SDKEncodingConfig().TxConfig
+		return clientContext.WithCodec(cdc).
+			WithTxConfig(txConfig).
+			WithAddressCodec(txConfig.SigningContext().AddressCodec()).
+			WithValidatorAddressCodec(txConfig.SigningContext().ValidatorAddressCodec()).
+			WithAddressPrefix(cosmosChain.Config().Bech32Prefix).
+			WithAddressCodec(txConfig.SigningContext().AddressCodec()).
+			WithValidatorAddressCodec(txConfig.SigningContext().ValidatorAddressCodec())
 	})
 
 	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
@@ -64,7 +72,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 	broadcastFunc := func() (sdk.TxResponse, error) {
 		return cosmos.BroadcastTx(ctx, broadcaster, user, msgs...)
 	}
-	if s.relayers.ContainsRelayer(s.T().Name(), user) {
+	if s.relayerWallets.ContainsRelayer(s.T().Name(), user) {
 		// Retry five times, the value of 5 chosen is arbitrary.
 		resp, err = s.retryNtimes(broadcastFunc, 5)
 	} else {
@@ -167,7 +175,7 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 		"",
 		fmt.Sprintf("e2e gov proposal: %d", proposalID),
 		fmt.Sprintf("executing gov proposal %d", proposalID),
-		false,
+		govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD,
 	)
 	s.Require().NoError(err)
 
@@ -271,7 +279,7 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.
 	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
 	s.Require().NoError(err)
 
-	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
+	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender.String())
 	s.Require().NoError(err)
 
 	return s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
@@ -279,7 +287,9 @@ func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.
 
 // Transfer broadcasts a MsgTransfer message.
 func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.Wallet,
-	portID, channelID string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string,
+	portID, channelID string, tokens sdk.Coins, sender, receiver string,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+	memo string, forwarding *transfertypes.Forwarding,
 ) sdk.TxResponse {
 	channel, err := query.Channel(ctx, chain, portID, channelID)
 	s.Require().NoError(err)
@@ -299,7 +309,7 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 		transferVersion = version.AppVersion
 	}
 
-	msg := GetMsgTransfer(portID, channelID, transferVersion, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo, nil)
+	msg := GetMsgTransfer(portID, channelID, transferVersion, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo, forwarding)
 
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
@@ -344,7 +354,7 @@ func (*E2ETestSuite) QueryTxsByEvents(
 ) (*sdk.SearchTxsResult, error) {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
-		return nil, fmt.Errorf("QueryTxsByEvents must be passed a cosmos.CosmosChain")
+		return nil, errors.New("QueryTxsByEvents must be passed a cosmos.CosmosChain")
 	}
 
 	cmd := []string{"txs"}

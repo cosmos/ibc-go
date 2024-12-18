@@ -49,18 +49,22 @@ const config = {
           // Exclude template markdown files from the docs
           exclude: ["**/*.template.md"],
           // Select the latest version
-          lastVersion: "v8.3.x",
+          lastVersion: "v9.0.x",
           // Assign banners to specific versions
           versions: {
             current: {
               path: "main",
               banner: "unreleased",
             },
-            "v8.3.x": {
+            "v9.0.x": {
+              path: "v9",
+              banner: "none",
+            },
+            "v8.5.x": {
               path: "v8",
               banner: "none",
             },
-            "v7.6.x": {
+            "v7.8.x": {
               path: "v7",
               banner: "none",
             },
@@ -234,7 +238,7 @@ const config = {
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
-        additionalLanguages: ["protobuf", "go-module", "yaml", "toml"],
+        additionalLanguages: ["protobuf", "go", "go-module", "yaml", "toml", "diff"],
         magicComments: [
           // Remember to extend the default highlight class name as well!
           {

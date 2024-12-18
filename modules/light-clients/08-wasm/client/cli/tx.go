@@ -1,10 +1,14 @@
 package cli
 
 import (
+	"encoding/hex"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+
+	govcli "cosmossdk.io/x/gov/client/cli"
+	govtypes "cosmossdk.io/x/gov/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -12,11 +16,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/version"
-	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 const FlagAuthority = "authority"
@@ -97,14 +99,19 @@ func newMigrateContractCmd() *cobra.Command {
 			}
 
 			clientID := args[0]
-			checksum := args[1]
+			checksumHex := args[1]
 			migrateMsg := args[2]
+
+			checksum, err := hex.DecodeString(checksumHex)
+			if err != nil {
+				return fmt.Errorf("invalid checksum format: %w", err)
+			}
 
 			// Construct the message
 			msg := &types.MsgMigrateContract{
 				Signer:   clientCtx.GetFromAddress().String(),
 				ClientId: clientID,
-				Checksum: []byte(checksum),
+				Checksum: checksum,
 				Msg:      []byte(migrateMsg),
 			}
 

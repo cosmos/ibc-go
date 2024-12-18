@@ -3,14 +3,13 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
@@ -25,9 +24,6 @@ var (
 	_ sdk.HasValidateBasic = (*MsgConnectionOpenAck)(nil)
 	_ sdk.HasValidateBasic = (*MsgConnectionOpenTry)(nil)
 	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
-
-	_ codectypes.UnpackInterfacesMessage = (*MsgConnectionOpenTry)(nil)
-	_ codectypes.UnpackInterfacesMessage = (*MsgConnectionOpenAck)(nil)
 )
 
 // NewMsgConnectionOpenInit creates a new MsgConnectionOpenInit instance. It sets the
@@ -77,25 +73,18 @@ func (msg MsgConnectionOpenInit) ValidateBasic() error {
 // NewMsgConnectionOpenTry creates a new MsgConnectionOpenTry instance
 func NewMsgConnectionOpenTry(
 	clientID, counterpartyConnectionID, counterpartyClientID string,
-	counterpartyClient exported.ClientState,
 	counterpartyPrefix commitmenttypes.MerklePrefix,
 	counterpartyVersions []*Version, delayPeriod uint64,
-	initProof, clientProof, consensusProof []byte,
-	proofHeight, consensusHeight clienttypes.Height, signer string,
+	initProof []byte, proofHeight clienttypes.Height, signer string,
 ) *MsgConnectionOpenTry {
 	counterparty := NewCounterparty(counterpartyClientID, counterpartyConnectionID, counterpartyPrefix)
-	protoAny, _ := clienttypes.PackClientState(counterpartyClient)
 	return &MsgConnectionOpenTry{
 		ClientId:             clientID,
-		ClientState:          protoAny,
 		Counterparty:         counterparty,
 		CounterpartyVersions: counterpartyVersions,
 		DelayPeriod:          delayPeriod,
 		ProofInit:            initProof,
-		ProofClient:          clientProof,
-		ProofConsensus:       consensusProof,
 		ProofHeight:          proofHeight,
-		ConsensusHeight:      consensusHeight,
 		Signer:               signer,
 	}
 }
@@ -106,25 +95,12 @@ func (msg MsgConnectionOpenTry) ValidateBasic() error {
 		return errorsmod.Wrap(clienttypes.ErrInvalidClientType, "localhost connection handshakes are disallowed")
 	}
 
-	if msg.PreviousConnectionId != "" {
-		return errorsmod.Wrap(ErrInvalidConnectionIdentifier, "previous connection identifier must be empty, this field has been deprecated as crossing hellos are no longer supported")
-	}
 	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
 		return errorsmod.Wrap(err, "invalid client ID")
 	}
 	// counterparty validate basic allows empty counterparty connection identifiers
 	if err := host.ConnectionIdentifierValidator(msg.Counterparty.ConnectionId); err != nil {
 		return errorsmod.Wrap(err, "invalid counterparty connection ID")
-	}
-	if msg.ClientState == nil {
-		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "counterparty client is nil")
-	}
-	clientState, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "unpack err: %v", err)
-	}
-	if err := clientState.Validate(); err != nil {
-		return errorsmod.Wrap(err, "counterparty client is invalid")
 	}
 	if len(msg.CounterpartyVersions) == 0 {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidVersion, "empty counterparty versions")
@@ -140,53 +116,26 @@ func (msg MsgConnectionOpenTry) ValidateBasic() error {
 	if len(msg.ProofInit) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof init")
 	}
-	if len(msg.ProofClient) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit empty proof client")
-	}
-	if len(msg.ProofConsensus) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of consensus state")
-	}
-	if msg.ConsensusHeight.IsZero() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "consensus height must be non-zero")
-	}
-	_, err = sdk.AccAddressFromBech32(msg.Signer)
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Counterparty.ValidateBasic()
 }
 
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgConnectionOpenTry) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	return unpacker.UnpackAny(msg.ClientState, new(exported.ClientState))
-}
-
 // NewMsgConnectionOpenAck creates a new MsgConnectionOpenAck instance
 func NewMsgConnectionOpenAck(
-	connectionID, counterpartyConnectionID string, counterpartyClient exported.ClientState,
-	tryProof, clientProof, consensusProof []byte,
-	proofHeight, consensusHeight clienttypes.Height,
-	version *Version,
-	signer string,
+	connectionID, counterpartyConnectionID string, tryProof []byte,
+	proofHeight clienttypes.Height, version *Version, signer string,
 ) *MsgConnectionOpenAck {
-	protoAny, _ := clienttypes.PackClientState(counterpartyClient)
 	return &MsgConnectionOpenAck{
 		ConnectionId:             connectionID,
 		CounterpartyConnectionId: counterpartyConnectionID,
-		ClientState:              protoAny,
 		ProofTry:                 tryProof,
-		ProofClient:              clientProof,
-		ProofConsensus:           consensusProof,
 		ProofHeight:              proofHeight,
-		ConsensusHeight:          consensusHeight,
 		Version:                  version,
 		Signer:                   signer,
 	}
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgConnectionOpenAck) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	return unpacker.UnpackAny(msg.ClientState, new(exported.ClientState))
 }
 
 // ValidateBasic implements sdk.Msg
@@ -200,29 +149,10 @@ func (msg MsgConnectionOpenAck) ValidateBasic() error {
 	if err := ValidateVersion(msg.Version); err != nil {
 		return err
 	}
-	if msg.ClientState == nil {
-		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "counterparty client is nil")
-	}
-	clientState, err := clienttypes.UnpackClientState(msg.ClientState)
-	if err != nil {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "unpack err: %v", err)
-	}
-	if err := clientState.Validate(); err != nil {
-		return errorsmod.Wrap(err, "counterparty client is invalid")
-	}
 	if len(msg.ProofTry) == 0 {
 		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof try")
 	}
-	if len(msg.ProofClient) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit empty proof client")
-	}
-	if len(msg.ProofConsensus) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of consensus state")
-	}
-	if msg.ConsensusHeight.IsZero() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "consensus height must be non-zero")
-	}
-	_, err = sdk.AccAddressFromBech32(msg.Signer)
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}

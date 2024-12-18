@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 var validHop = types.NewHop(types.PortID, ibctesting.FirstChannelID)
@@ -85,6 +85,11 @@ func TestForwarding_Validate(t *testing.T) {
 				types.NewHop(types.PortID, invalidChannel),
 			),
 			types.ErrInvalidForwarding,
+		},
+		{
+			"unwind with hop forwarding back to itself",
+			types.NewForwarding(true, types.NewHop(types.PortID, types.PortID)),
+			nil,
 		},
 	}
 	for _, tc := range tests {
