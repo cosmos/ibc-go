@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 		{
 			"invalid connection, account address not found",
 			func() {
-				req.ConnectionId = "invalid-connection-id"
+				req.ConnectionId = ibctesting.InvalidID
 			},
 			"failed to retrieve account address",
 		},
