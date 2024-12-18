@@ -22,10 +22,10 @@ func NewDecodeStore(cdc codec.BinaryCodec, kvA, kvB kv.Pair) (string, bool) {
 		return fmt.Sprintf("ClientPaths A: %v\nClientPaths B: %v", clientConnectionsA, clientConnectionsB), true
 
 	case bytes.HasPrefix(kvA.Key, []byte(host.KeyConnectionPrefix)):
-		var connectionA, connectionB types.ConnectionEnd
-		cdc.MustUnmarshal(kvA.Value, &connectionA)
+		var connection, connectionB types.ConnectionEnd
+		cdc.MustUnmarshal(kvA.Value, &connection)
 		cdc.MustUnmarshal(kvB.Value, &connectionB)
-		return fmt.Sprintf("ConnectionEnd A: %v\nConnectionEnd B: %v", connectionA, connectionB), true
+		return fmt.Sprintf("ConnectionEnd A: %v\nConnectionEnd B: %v", connection, connectionB), true
 
 	default:
 		return "", false

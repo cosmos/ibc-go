@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestSetAndGetClientConnectionPaths() {
 	_, existed := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetClientConnectionPaths(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	suite.False(existed)
 
-	connections := []string{"connectionA", "connectionB"}
+	connections := []string{"connection", "connectionB"}
 	suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetClientConnectionPaths(suite.chainA.GetContext(), path.EndpointA.ClientID, connections)
 	paths, existed := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.GetClientConnectionPaths(suite.chainA.GetContext(), path.EndpointA.ClientID)
 	suite.True(existed)
