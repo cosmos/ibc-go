@@ -40,6 +40,22 @@ var (
 	_ porttypes.IBCModule = (*host.IBCModule)(nil)
 )
 
+// AppModule is the application module for the IBC interchain accounts module
+type AppModule struct {
+	cdc              codec.Codec
+	controllerKeeper *controllerkeeper.Keeper
+	hostKeeper       *hostkeeper.Keeper
+}
+
+// NewAppModule creates a new IBC interchain accounts module
+func NewAppModule(cdc codec.Codec, controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) AppModule {
+	return AppModule{
+		cdc:              cdc,
+		controllerKeeper: controllerKeeper,
+		hostKeeper:       hostKeeper,
+	}
+}
+
 // Name implements AppModuleBasic interface
 func (AppModule) Name() string {
 	return types.ModuleName
@@ -98,22 +114,6 @@ func (AppModule) GetTxCmd() *cobra.Command {
 // GetQueryCmd implements AppModule interface
 func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
-}
-
-// AppModule is the application module for the IBC interchain accounts module
-type AppModule struct {
-	cdc              codec.Codec
-	controllerKeeper *controllerkeeper.Keeper
-	hostKeeper       *hostkeeper.Keeper
-}
-
-// NewAppModule creates a new IBC interchain accounts module
-func NewAppModule(cdc codec.Codec, controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) AppModule {
-	return AppModule{
-		cdc:              cdc,
-		controllerKeeper: controllerKeeper,
-		hostKeeper:       hostKeeper,
-	}
 }
 
 // RegisterServices registers module services

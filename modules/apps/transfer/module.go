@@ -37,6 +37,20 @@ var (
 	_ porttypes.IBCModule = (*IBCModule)(nil)
 )
 
+// AppModule represents the AppModule for this module
+type AppModule struct {
+	cdc    codec.Codec
+	keeper keeper.Keeper
+}
+
+// NewAppModule creates a new 20-transfer module
+func NewAppModule(cdc codec.Codec, k keeper.Keeper) AppModule {
+	return AppModule{
+		cdc:    cdc,
+		keeper: k,
+	}
+}
+
 // Name implements AppModuleBasic interface
 func (AppModule) Name() string {
 	return types.ModuleName
@@ -93,20 +107,6 @@ func (AppModule) GetTxCmd() *cobra.Command {
 // GetQueryCmd implements AppModule interface
 func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
-}
-
-// AppModule represents the AppModule for this module
-type AppModule struct {
-	cdc    codec.Codec
-	keeper keeper.Keeper
-}
-
-// NewAppModule creates a new 20-transfer module
-func NewAppModule(cdc codec.Codec, k keeper.Keeper) AppModule {
-	return AppModule{
-		cdc:    cdc,
-		keeper: k,
-	}
 }
 
 // RegisterInvariants implements the AppModule interface

@@ -56,17 +56,18 @@ var (
 	_ porttypes.IBCModule = (*IBCModule)(nil)
 )
 
-// AppModuleBasic is the mock AppModuleBasic.
-type AppModuleBasic struct{}
+// AppModule represents the AppModule for the mock module.
+type AppModule struct {
+	ibcApps []*IBCApp
+}
 
-// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (AppModuleBasic) IsOnePerModuleType() {}
+// NewAppModule returns a mock AppModule instance.
+func NewAppModule() AppModule {
+	return AppModule{}
+}
 
-// IsAppModule implements the appmodule.AppModule interface.
-func (AppModuleBasic) IsAppModule() {}
-
-// Name implements AppModuleBasic interface.
-func (AppModuleBasic) Name() string {
+// Name implements AppModule interface.
+func (AppModule) Name() string {
 	return ModuleName
 }
 
@@ -77,43 +78,32 @@ func (AppModule) IsOnePerModuleType() {}
 func (AppModule) IsAppModule() {}
 
 // RegisterLegacyAminoCodec implements AppModuleBasic interface.
-func (AppModuleBasic) RegisterLegacyAminoCodec(coreregistry.AminoRegistrar) {}
+func (AppModule) RegisterLegacyAminoCodec(coreregistry.AminoRegistrar) {}
 
 // RegisterInterfaces implements AppModuleBasic interface.
-func (AppModuleBasic) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {}
+func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {}
 
 // DefaultGenesis implements AppModuleBasic interface.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
+func (AppModule) DefaultGenesis() json.RawMessage {
 	return nil
 }
 
 // ValidateGenesis implements the AppModuleBasic interface.
-func (AppModuleBasic) ValidateGenesis(json.RawMessage) error {
+func (AppModule) ValidateGenesis(json.RawMessage) error {
 	return nil
 }
 
 // RegisterGRPCGatewayRoutes implements AppModuleBasic interface.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
+func (AppModule) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // GetTxCmd implements AppModuleBasic interface.
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
+func (AppModule) GetTxCmd() *cobra.Command {
 	return nil
 }
 
 // GetQueryCmd implements AppModuleBasic interface.
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+func (AppModule) GetQueryCmd() *cobra.Command {
 	return nil
-}
-
-// AppModule represents the AppModule for the mock module.
-type AppModule struct {
-	AppModuleBasic
-	ibcApps []*IBCApp
-}
-
-// NewAppModule returns a mock AppModule instance.
-func NewAppModule() AppModule {
-	return AppModule{}
 }
 
 // RegisterInvariants implements the AppModule interface.

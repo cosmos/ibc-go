@@ -30,7 +30,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	coins := msg.GetCoins()
 
 	if err := k.bankKeeper.IsSendEnabledCoins(ctx, coins...); err != nil {
-		return nil, errorsmod.Wrapf(types.ErrSendDisabled, err.Error())
+		return nil, errorsmod.Wrap(types.ErrSendDisabled, err.Error())
 	}
 
 	if k.isBlockedAddr(sender) {

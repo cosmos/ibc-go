@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	banktypes "cosmossdk.io/x/bank/types"
@@ -34,7 +34,7 @@ type Keeper struct {
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
-	authKeeper    types.AccountKeeper
+	authKeeper    types.AuthKeeper
 	bankKeeper    types.BankKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
@@ -49,7 +49,7 @@ func NewKeeper(
 	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
-	authKeeper types.AccountKeeper,
+	authKeeper types.AuthKeeper,
 	bankKeeper types.BankKeeper,
 	authority string,
 ) Keeper {
@@ -223,10 +223,10 @@ func (k Keeper) GetTotalEscrowForDenom(ctx context.Context, denom string) sdk.Co
 		panic(err)
 	}
 	if len(bz) == 0 {
-		return sdk.NewCoin(denom, math.ZeroInt())
+		return sdk.NewCoin(denom, sdkmath.ZeroInt())
 	}
 
-	amount := math.Int{}
+	amount := sdkmath.Int{}
 	if err := amount.Unmarshal(bz); err != nil {
 		panic(err)
 	}
@@ -286,7 +286,7 @@ func (k Keeper) IterateTokensInEscrow(ctx context.Context, storeprefix []byte, c
 			continue // denom is empty
 		}
 
-		amount := math.Int{}
+		amount := sdkmath.Int{}
 		if err := amount.Unmarshal(iterator.Value()); err != nil {
 			continue // total escrow amount cannot be unmarshalled to integer
 		}
@@ -358,7 +358,7 @@ func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet type
 		// Iterator key consists of types.ForwardedPacketKey/portID/channelID/sequence
 		parts := strings.Split(string(iterator.Key()), "/")
 		if len(parts) != 4 {
-			panic(fmt.Errorf("key path should always have 4 elements"))
+			panic(errors.New("key path should always have 4 elements"))
 		}
 		if parts[0] != string(types.ForwardedPacketKey) {
 			panic(fmt.Errorf("key path does not start with expected prefix: %s", types.ForwardedPacketKey))
@@ -366,10 +366,10 @@ func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet type
 
 		portID, channelID := parts[1], parts[2]
 		if err := host.PortIdentifierValidator(portID); err != nil {
-			panic(fmt.Errorf("port identifier validation failed while parsing forward key path"))
+			panic(errors.New("port identifier validation failed while parsing forward key path"))
 		}
 		if err := host.ChannelIdentifierValidator(channelID); err != nil {
-			panic(fmt.Errorf("channel identifier validation failed while parsing forward key path"))
+			panic(errors.New("channel identifier validation failed while parsing forward key path"))
 		}
 
 		forwardPacket.ForwardKey.Sequence = sdk.BigEndianToUint64([]byte(parts[3]))
