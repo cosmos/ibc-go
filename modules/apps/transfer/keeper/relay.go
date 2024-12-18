@@ -52,7 +52,7 @@ import (
 // 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
 func (k Keeper) sendTransfer(
-	ctx sdk.Context,
+	ctx context.Context,
 	sourcePort,
 	sourceChannel string,
 	coins sdk.Coins,
@@ -422,7 +422,7 @@ func (k Keeper) unescrowCoin(ctx context.Context, escrowAddress, receiver sdk.Ac
 }
 
 // tokenFromCoin constructs an IBC token given an SDK coin.
-func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
+func (k Keeper) tokenFromCoin(ctx context.Context, coin sdk.Coin) (types.Token, error) {
 	// if the coin does not have an IBC denom, return as is
 	if !strings.HasPrefix(coin.Denom, "ibc/") {
 		return types.Token{
