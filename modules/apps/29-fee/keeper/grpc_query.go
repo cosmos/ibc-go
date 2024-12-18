@@ -50,12 +50,10 @@ func (k Keeper) IncentivizedPackets(ctx context.Context, req *types.QueryIncenti
 }
 
 // IncentivizedPacket implements the Query/IncentivizedPacket gRPC method
-func (k Keeper) IncentivizedPacket(goCtx context.Context, req *types.QueryIncentivizedPacketRequest) (*types.QueryIncentivizedPacketResponse, error) {
+func (k Keeper) IncentivizedPacket(ctx context.Context, req *types.QueryIncentivizedPacketRequest) (*types.QueryIncentivizedPacketResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 
 	feesInEscrow, exists := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !exists {
@@ -70,7 +68,7 @@ func (k Keeper) IncentivizedPacket(goCtx context.Context, req *types.QueryIncent
 }
 
 // IncentivizedPacketsForChannel implements the Query/IncentivizedPacketsForChannel gRPC method
-func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.QueryIncentivizedPacketsForChannelRequest) (*types.QueryIncentivizedPacketsForChannelResponse, error) {
+func (k Keeper) IncentivizedPacketsForChannel(ctx context.Context, req *types.QueryIncentivizedPacketsForChannelRequest) (*types.QueryIncentivizedPacketsForChannelResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -78,8 +76,6 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx).WithBlockHeight(int64(req.QueryHeight))
 
 	if !k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
@@ -115,12 +111,10 @@ func (k Keeper) IncentivizedPacketsForChannel(goCtx context.Context, req *types.
 }
 
 // TotalRecvFees implements the Query/TotalRecvFees gRPC method
-func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFeesRequest) (*types.QueryTotalRecvFeesResponse, error) {
+func (k Keeper) TotalRecvFees(ctx context.Context, req *types.QueryTotalRecvFeesRequest) (*types.QueryTotalRecvFeesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
@@ -141,12 +135,10 @@ func (k Keeper) TotalRecvFees(goCtx context.Context, req *types.QueryTotalRecvFe
 }
 
 // TotalAckFees implements the Query/TotalAckFees gRPC method
-func (k Keeper) TotalAckFees(goCtx context.Context, req *types.QueryTotalAckFeesRequest) (*types.QueryTotalAckFeesResponse, error) {
+func (k Keeper) TotalAckFees(ctx context.Context, req *types.QueryTotalAckFeesRequest) (*types.QueryTotalAckFeesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
@@ -167,12 +159,10 @@ func (k Keeper) TotalAckFees(goCtx context.Context, req *types.QueryTotalAckFees
 }
 
 // TotalTimeoutFees implements the Query/TotalTimeoutFees gRPC method
-func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTimeoutFeesRequest) (*types.QueryTotalTimeoutFeesResponse, error) {
+func (k Keeper) TotalTimeoutFees(ctx context.Context, req *types.QueryTotalTimeoutFeesRequest) (*types.QueryTotalTimeoutFeesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
@@ -193,12 +183,10 @@ func (k Keeper) TotalTimeoutFees(goCtx context.Context, req *types.QueryTotalTim
 }
 
 // Payee implements the Query/Payee gRPC method and returns the registered payee address to which packet fees are paid out
-func (k Keeper) Payee(goCtx context.Context, req *types.QueryPayeeRequest) (*types.QueryPayeeResponse, error) {
+func (k Keeper) Payee(ctx context.Context, req *types.QueryPayeeRequest) (*types.QueryPayeeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	payeeAddr, found := k.GetPayeeAddress(ctx, req.Relayer, req.ChannelId)
 	if !found {
@@ -211,12 +199,10 @@ func (k Keeper) Payee(goCtx context.Context, req *types.QueryPayeeRequest) (*typ
 }
 
 // CounterpartyPayee implements the Query/CounterpartyPayee gRPC method and returns the registered counterparty payee address for forward relaying
-func (k Keeper) CounterpartyPayee(goCtx context.Context, req *types.QueryCounterpartyPayeeRequest) (*types.QueryCounterpartyPayeeResponse, error) {
+func (k Keeper) CounterpartyPayee(ctx context.Context, req *types.QueryCounterpartyPayeeRequest) (*types.QueryCounterpartyPayeeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	counterpartyPayeeAddr, found := k.GetCounterpartyPayeeAddress(ctx, req.Relayer, req.ChannelId)
 	if !found {
@@ -263,7 +249,7 @@ func (k Keeper) FeeEnabledChannels(ctx context.Context, req *types.QueryFeeEnabl
 
 // FeeEnabledChannel implements the Query/FeeEnabledChannel gRPC method and returns true if the provided
 // port and channel identifiers belong to a fee enabled channel
-func (k Keeper) FeeEnabledChannel(goCtx context.Context, req *types.QueryFeeEnabledChannelRequest) (*types.QueryFeeEnabledChannelResponse, error) {
+func (k Keeper) FeeEnabledChannel(ctx context.Context, req *types.QueryFeeEnabledChannelRequest) (*types.QueryFeeEnabledChannelResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -271,8 +257,6 @@ func (k Keeper) FeeEnabledChannel(goCtx context.Context, req *types.QueryFeeEnab
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.HasChannel(ctx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
