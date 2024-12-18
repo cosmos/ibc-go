@@ -149,7 +149,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		},
 		{
 			"account address generation is block dependent", func() {
-				interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+				interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext().HeaderInfo(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 				interchainAcc := icatypes.NewInterchainAccount(authtypes.NewBaseAccountWithAddress(interchainAccAddr), path.EndpointA.ChannelConfig.PortID)
 				suite.chainB.GetSimApp().AuthKeeper.NewAccount(suite.chainB.GetContext(), interchainAcc)
 				suite.chainB.GetSimApp().AuthKeeper.SetAccount(suite.chainB.GetContext(), interchainAcc)
