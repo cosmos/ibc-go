@@ -10,7 +10,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -150,7 +149,9 @@ func (k Keeper) sendTransfer(
 		return 0, err
 	}
 
-	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
+	if err := k.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops); err != nil {
+		return 0, err
+	}
 
 	telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
 
@@ -231,7 +232,9 @@ func (k Keeper) OnRecvPacket(ctx context.Context, packet channeltypes.Packet, da
 				k.setDenomMetadata(ctx, token.Denom)
 			}
 
-			events.EmitDenomEvent(ctx, token)
+			if err := k.EmitDenomEvent(ctx, token); err != nil {
+				return err
+			}
 
 			voucher := sdk.NewCoin(voucherDenom, transferAmount)
 
