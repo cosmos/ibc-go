@@ -242,12 +242,12 @@ func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 	suite.Require().NoError(err)
 
 	testCases := []struct {
-		name    string
-		address sdk.AccAddress
-		expPass bool
+		name     string
+		address  sdk.AccAddress
+		expError error
 	}{
-		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
-		{"failure: nil address", nil, false},
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
+		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
@@ -259,11 +259,12 @@ func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 			msg := types.NewMsgRemoveChecksum(address.String(), checksum)
 
 			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgSigners(msg)
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(address.Bytes(), signers[0])
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expError.Error())
 			}
 		})
 	}
