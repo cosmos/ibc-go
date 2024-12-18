@@ -30,4 +30,4 @@ jobs:
           body: |
             This PR fixes typos in the codebase.
             Please review it, and merge if everything is fine.
-            If there are proto changes, run `make proto-gen` and commit the changes.
+            If there are proto changes, run `make proto-all` and commit the changes.
