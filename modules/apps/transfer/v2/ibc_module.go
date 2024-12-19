@@ -9,8 +9,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
@@ -20,14 +20,14 @@ import (
 var _ api.IBCModule = (*IBCModule)(nil)
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k *keeper.Keeper) *IBCModule {
+func NewIBCModule(k keeper.Keeper) *IBCModule {
 	return &IBCModule{
 		keeper: k,
 	}
 }
 
 type IBCModule struct {
-	keeper *keeper.Keeper
+	keeper keeper.Keeper
 }
 
 func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, signer sdk.AccAddress) error {
@@ -36,7 +36,14 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 		return err
 	}
 
-	// TODO: Do we need to check signer is the same as data.Sender?
+	sender, err := sdk.AccAddressFromBech32(data.Sender)
+	if err != nil {
+		return err
+	}
+
+	if !signer.Equals(sender) {
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "sender %s is different from signer %s", sender, signer)
+	}
 
 	if err := im.keeper.SendTransfer(goCtx, data.Tokens, signer, payload.SourcePort, sourceChannel); err != nil {
 		return err
@@ -130,6 +137,8 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 		return err
 	}
 
+	// TODO: handle forwarding
+
 	events.EmitOnTimeoutEvent(ctx, data)
 	return nil
 }
@@ -148,6 +157,8 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 	if err := im.keeper.OnAcknowledgementPacket(ctx, payload.SourcePort, sourceChannel, data, ack); err != nil {
 		return err
 	}
+
+	// TODO: handle forwarding
 
 	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 	return nil

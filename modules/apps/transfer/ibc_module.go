@@ -250,8 +250,14 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	if err := im.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
+	if err := im.keeper.OnAcknowledgementPacket(ctx, packet.SourcePort, packet.SourceChannel, data, ack); err != nil {
 		return err
+	}
+
+	if forwardedPacket, isForwarded := im.keeper.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); isForwarded {
+		if err := im.keeper.HandleForwardedPacketAcknowledgement(ctx, packet, forwardedPacket, data, ack); err != nil {
+			return err
+		}
 	}
 
 	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
@@ -272,8 +278,14 @@ func (im IBCModule) OnTimeoutPacket(
 	}
 
 	// refund tokens
-	if err := im.keeper.OnTimeoutPacket(ctx, packet, data); err != nil {
+	if err := im.keeper.OnTimeoutPacket(ctx, packet.SourcePort, packet.SourceChannel, data); err != nil {
 		return err
+	}
+
+	if forwardedPacket, isForwarded := im.keeper.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); isForwarded {
+		if err := im.keeper.HandleForwardedPacketTimeout(ctx, packet, forwardedPacket, data); err != nil {
+			return err
+		}
 	}
 
 	events.EmitOnTimeoutEvent(ctx, data)
