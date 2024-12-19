@@ -103,23 +103,26 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 
 	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", sequence)
 
-	// TODO: forwarding
-	// if data.HasForwarding() {
-	//	// we are now sending from the forward escrow address to the final receiver address.
-	// TODO: inside this version of the function, we should fetch the packet that was stored in IBC core in order to set it for forwarding.
-	//	if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
-	//		return err
-	//	}
-	// }
-
 	// TODO: telemetry
 	// telemetry.ReportOnRecvPacket(packet, data.Tokens)
 
 	if data.HasForwarding() {
-		// NOTE: acknowledgement will be written asynchronously
+		// we are now sending from the forward escrow address to the final receiver address.
+		ack = channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarding not yet supported"))
 		return types.RecvPacketResult{
-			Status: types.PacketStatus_Async,
+			Status:          types.PacketStatus_Failure,
+			Acknowledgement: ack.Acknowledgement(),
 		}
+		// TODO: handle forwarding
+		// TODO: inside this version of the function, we should fetch the packet that was stored in IBC core in order to set it for forwarding.
+		//	if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
+		//		return err
+		//	}
+
+		// NOTE: acknowledgement will be written asynchronously
+		// return types.RecvPacketResult{
+		// 	Status: types.PacketStatus_Async,
+		// }
 	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
