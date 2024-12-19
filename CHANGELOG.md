@@ -34,6 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v9.0.2](https://github.com/cosmos/ibc-go/releases/tag/v9.0.2) - 2024-12-19
+
+### Features
+
+* (apps/transfer) [\#7650](https://github.com/cosmos/ibc-go/pull/7650) Add support for transfer of entire balance for vesting accounts
+
 ## [v9.0.1](https://github.com/cosmos/ibc-go/releases/tag/v9.0.1) - 2024-11-05
 
 ### Testing
