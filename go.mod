@@ -1,5 +1,4 @@
 go 1.23.3
-
 module github.com/cosmos/ibc-go/v9
 
 require (
@@ -9,13 +8,13 @@ require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.5.0
 	cosmossdk.io/math v1.4.0
-	cosmossdk.io/store v1.10.0-rc.1
-	cosmossdk.io/x/accounts v0.0.0-20240913065641-0064ccbce64e
-	cosmossdk.io/x/accounts/defaults/base v0.0.0-20241218104812-cb56c6e47f76
+	cosmossdk.io/store v1.10.0-rc.1.0.20241218084712-ca559989da43
+	cosmossdk.io/x/accounts v0.0.0-20241218110910-47409028a73d
+	cosmossdk.io/x/accounts/defaults/base v0.2.0-rc.1
 	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/accounts/defaults/multisig v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/authz v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/bank v0.0.0-20240226161501-23359a0b6d91
+	cosmossdk.io/x/bank v0.0.0-20241218110910-47409028a73d
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/distribution v0.0.0-20240906090851-36d9b25e8981
 	cosmossdk.io/x/epochs v0.0.0-20240522060652-a1ae4c3e0337
@@ -28,7 +27,7 @@ require (
 	cosmossdk.io/x/params v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190
 	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/staking v0.0.0-00010101000000-000000000000
+	cosmossdk.io/x/staking v0.0.0-20241218110910-47409028a73d
 	cosmossdk.io/x/tx v1.0.0-alpha.3
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/cometbft/cometbft v1.0.0
