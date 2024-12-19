@@ -439,21 +439,25 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.SourcePort)
 	}
 
-	// Perform TAO verification
-	//
-	// If the timeout was already received, perform a no-op
-	// Use a cached context to prevent accidental state changes
-	cacheCtx, writeFn := ctx.CacheContext()
-	channelVersion, err := k.ChannelKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
+	var channelVersion string
+	if err := k.BranchService.Execute(ctx, func(ctx context.Context) error {
+		// Perform TAO verification
+		//
+		// If the timeout was already received, perform a no-op
+		// Use a branched multistore to prevent accidental state changes
+		channelVersion, err = k.ChannelKeeper.TimeoutPacket(ctx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
+		if err != nil {
+			return err
+		}
 
-	switch err {
-	case nil:
-		writeFn()
-	case channeltypes.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
-		k.Logger.Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
-		return &channeltypes.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil
-	default:
+		return nil
+	}); err != nil {
+		if errors.Is(err, channeltypes.ErrNoOpMsg) {
+			// no-ops do not need event emission as they will be ignored
+			k.Logger.Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
+			return &channeltypes.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil
+		}
+
 		k.Logger.Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet verification failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
 	}
@@ -463,9 +467,10 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 		return nil, err
 	}
 
-	// Perform application logic callback
-	err = cbs.OnTimeoutPacket(ctx, channelVersion, msg.Packet, relayer)
-	if err != nil {
+	if err := k.BranchService.Execute(ctx, func(ctx context.Context) error {
+		// Perform application logic callback
+		return cbs.OnTimeoutPacket(ctx, channelVersion, msg.Packet, relayer)
+	}); err != nil {
 		k.Logger.Error("timeout failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout packet callback failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet callback failed")
 	}
