@@ -36,16 +36,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-### Testing
-
-* [\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update the block proposer in test chains for each block.
-
 ### Dependencies
 
-* [\#7540](https://github.com/cosmos/ibc-go/pull/7540) Bump CometBFT to v0.38.15.
+* [\#7261](https://github.com/cosmos/ibc-go/pull/7261) Bump CometBFT to v1.0.0.
+* [\#7261](https://github.com/cosmos/ibc-go/pull/7261) Bump Cosmos SDK to v0.52.0.
 
 ### API Breaking
 
+* (apps/27-interchain-accounts) [\#7713](https://github.com/cosmos/ibc-go/pull/7713) Update interchain accounts `GenerateAddress` func to now accept `header.Info` in favour of `sdk.Context`. This function now uses `AppHash` and `Hash` (merkle root of block) instead of `AppHash` and `DataHash` as pre-image data for address generation.
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7213) Remove capabilities from `SendPacket`.
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
 * (core, apps) [\#7232](https://github.com/cosmos/ibc-go/pull/7232) Remove capabilities from channel handshake methods. TODO list all changes 
@@ -63,7 +61,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (testing)[\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update the block proposer in test chains for each block.
+
 ### Features
+
+* (apps/transfer) [\#7650](https://github.com/cosmos/ibc-go/pull/7650) Add support for transfer of entire balance for vesting accounts
 
 ### Bug Fixes
 
@@ -181,7 +183,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* (apps/27-interchain-accounts, apps/tranfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
+* (apps/27-interchain-accounts, apps/transfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
 * (apps/27-interchain-accounts) [\#6251](https://github.com/cosmos/ibc-go/pull/6251) Use `UNORDERED` as the default ordering for new ICA channels.
 * (apps/transfer) [\#6268](https://github.com/cosmos/ibc-go/pull/6268) Use memo strings instead of JSON keys in `AllowedPacketData` of transfer authorization.
 * (core/ante) [\#6278](https://github.com/cosmos/ibc-go/pull/6278) Performance: Exclude pruning from tendermint client updates in ante handler executions.
@@ -395,7 +397,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/27-interchain-accounts) [\#6147](https://github.com/cosmos/ibc-go/pull/6147) Emit an event signalling that the host submodule is disabled.
 * (testing) [\#6180](https://github.com/cosmos/ibc-go/pull/6180) Add version to tm abci headers in ibctesting.
-* (apps/27-interchain-accounts, apps/tranfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
+* (apps/27-interchain-accounts, apps/transfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
 * (apps/transfer) [\#6268](https://github.com/cosmos/ibc-go/pull/6268) Use memo strings instead of JSON keys in `AllowedPacketData` of transfer authorization.
 
 ### Features

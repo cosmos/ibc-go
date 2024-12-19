@@ -138,7 +138,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 	app := SetupWithGenesisValSet(tb, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
 
 	// create current header and call begin block
-	header := cmtproto.Header{
+	cmtHeader := cmtproto.Header{
 		ChainID: chainID,
 		Height:  1,
 		Time:    coord.CurrentTime.UTC(),
@@ -152,7 +152,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		Coordinator:       coord,
 		ChainID:           chainID,
 		App:               app,
-		ProposedHeader:    header,
+		ProposedHeader:    cmtHeader,
 		TxConfig:          txConfig,
 		Codec:             app.AppCodec(),
 		Vals:              valSet,
@@ -201,8 +201,13 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 func (chain *TestChain) GetContext() sdk.Context {
 	ctx := chain.App.GetBaseApp().NewUncachedContext(false, chain.ProposedHeader)
 
+	cmtHeader, err := cmttypes.HeaderFromProto(&chain.ProposedHeader)
+	require.NoError(chain.TB, err)
+
 	// since:cosmos-sdk/v0.52 when fetching time from context, it now returns from HeaderInfo
 	headerInfo := header.Info{
+		AppHash: chain.ProposedHeader.AppHash,
+		Hash:    cmtHeader.Hash(),
 		Time:    chain.ProposedHeader.Time,
 		ChainID: chain.ProposedHeader.ChainID,
 	}
@@ -337,6 +342,7 @@ func (chain *TestChain) commitBlock(res *abci.FinalizeBlockResponse) {
 
 	// increment the current header
 	chain.ProposedHeader = cmtproto.Header{
+		Version: cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 1},
 		ChainID: chain.ChainID,
 		Height:  chain.App.LastBlockHeight() + 1,
 		AppHash: chain.App.LastCommitID().Hash,
@@ -573,7 +579,7 @@ func (chain *TestChain) DeleteKey(key []byte) {
 
 // IBCClientHeader will construct a 07-tendermint Header to update the light client
 // on the counterparty chain. The trustedHeight must be passed in as a non-zero height.
-func (chain *TestChain) IBCClientHeader(header *ibctm.Header, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
+func (chain *TestChain) IBCClientHeader(ibcHeader *ibctm.Header, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
 	if trustedHeight.IsZero() {
 		return nil, errorsmod.Wrap(ibctm.ErrInvalidHeaderHeight, "trustedHeight must be a non-zero height")
 	}
@@ -588,9 +594,9 @@ func (chain *TestChain) IBCClientHeader(header *ibctm.Header, trustedHeight clie
 		return nil, err
 	}
 
-	header.TrustedHeight = trustedHeight
+	ibcHeader.TrustedHeight = trustedHeight
 	trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
-	header.TrustedValidators = trustedVals
+	ibcHeader.TrustedValidators = trustedVals
 
-	return header, nil
+	return ibcHeader, nil
 }

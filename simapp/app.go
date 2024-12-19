@@ -320,7 +320,7 @@ func NewSimApp(
 	// voteExtOp := func(bApp *baseapp.BaseApp) {
 	//	voteExtHandler := NewVoteExtensionHandler()
 	//	voteExtHandler.SetHandlers(bApp)
-	//}
+	// }
 	// baseAppOptions = append(baseAppOptions, voteExtOp, baseapp.SetOptimisticExecution(),
 	//	baseapp.SetIncludeNestedMsgsGas([]sdk.Msg{&govv1.MsgSubmitProposal{}}))
 
@@ -537,7 +537,8 @@ func NewSimApp(
 
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[ibcfeetypes.StoreKey]),
+		appCodec,
+		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibcfeetypes.StoreKey]), logger.With(log.ModuleKey, fmt.Sprintf("x/%s-%s", ibcexported.ModuleName, ibcfeetypes.ModuleName))),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
 		app.IBCKeeper.ChannelKeeper,
 		app.AuthKeeper, app.BankKeeper,
@@ -573,7 +574,8 @@ func NewSimApp(
 	// since fee middleware will wrap the IBCKeeper for underlying application.
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
-		runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.GetSubspace(ibctransfertypes.ModuleName),
+		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), logger.With(log.ModuleKey, fmt.Sprintf("x/%s-%s", ibcexported.ModuleName, ibctransfertypes.ModuleName))),
+		app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
 		app.IBCKeeper.ChannelKeeper,
 		app.AuthKeeper, app.BankKeeper,
@@ -956,8 +958,8 @@ func (app *SimApp) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
 	return app.ModuleManager.EndBlock(ctx)
 }
 
-func (a *SimApp) Configurator() module.Configurator { //nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
-	return a.configurator
+func (app *SimApp) Configurator() module.Configurator { //nolint:staticcheck // SA1019: Configurator is deprecated but still used in runtime v1.
+	return app.configurator
 }
 
 // InitChainer application update at chain initialization
@@ -1014,8 +1016,8 @@ func (app *SimApp) AutoCliOpts() autocli.AppOptions {
 }
 
 // DefaultGenesis returns a default genesis from the registered AppModule's.
-func (a *SimApp) DefaultGenesis() map[string]json.RawMessage {
-	return a.ModuleManager.DefaultGenesis()
+func (app *SimApp) DefaultGenesis() map[string]json.RawMessage {
+	return app.ModuleManager.DefaultGenesis()
 }
 
 // GetKey returns the KVStoreKey for the provided store key.
@@ -1092,7 +1094,7 @@ func (app *SimApp) RegisterNodeService(clientCtx client.Context, cfg config.Conf
 
 // ValidatorKeyProvider returns a function that generates a validator key
 // Supported key types are those supported by Comet: ed25519, secp256k1, bls12-381
-func (app *SimApp) ValidatorKeyProvider() runtime.KeyGenF {
+func (*SimApp) ValidatorKeyProvider() runtime.KeyGenF {
 	return func() (cmtcrypto.PrivKey, error) {
 		return cmted25519.GenPrivKey(), nil
 	}

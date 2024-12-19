@@ -1,4 +1,4 @@
-FROM golang:1.23.3-alpine as builder
+FROM golang:1.23.4-alpine as builder
 
 ARG LIBWASM_VERSION
 ARG LIBWASM_CHECKSUM

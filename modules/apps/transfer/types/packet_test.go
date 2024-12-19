@@ -33,7 +33,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		{"valid packet with memo", types.NewFungibleTokenPacketData(denom, amount, sender, receiver, "memo"), nil},
 		{"valid packet with large amount", types.NewFungibleTokenPacketData(denom, largeAmount, sender, receiver, ""), nil},
 		{"invalid denom", types.NewFungibleTokenPacketData("", amount, sender, receiver, ""), types.ErrInvalidDenomForTransfer},
-		{"invalid denom, invalid portID", types.NewFungibleTokenPacketData("(tranfer)/channel-1/uatom", amount, sender, receiver, ""), host.ErrInvalidID},
+		{"invalid denom, invalid portID", types.NewFungibleTokenPacketData("(transfer)/channel-1/uatom", amount, sender, receiver, ""), host.ErrInvalidID},
 		{"invalid empty amount", types.NewFungibleTokenPacketData(denom, "", sender, receiver, ""), types.ErrInvalidAmount},
 		{"invalid zero amount", types.NewFungibleTokenPacketData(denom, "0", sender, receiver, ""), types.ErrInvalidAmount},
 		{"invalid negative amount", types.NewFungibleTokenPacketData(denom, "-1", sender, receiver, ""), types.ErrInvalidAmount},

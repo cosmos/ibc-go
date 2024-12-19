@@ -10,7 +10,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -52,7 +51,7 @@ import (
 // 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
 func (k Keeper) sendTransfer(
-	ctx sdk.Context,
+	ctx context.Context,
 	sourcePort,
 	sourceChannel string,
 	coins sdk.Coins,
@@ -150,7 +149,9 @@ func (k Keeper) sendTransfer(
 		return 0, err
 	}
 
-	events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
+	if err := k.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops); err != nil {
+		return 0, err
+	}
 
 	telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
 
@@ -231,7 +232,9 @@ func (k Keeper) OnRecvPacket(ctx context.Context, packet channeltypes.Packet, da
 				k.setDenomMetadata(ctx, token.Denom)
 			}
 
-			events.EmitDenomEvent(ctx, token)
+			if err := k.EmitDenomEvent(ctx, token); err != nil {
+				return err
+			}
 
 			voucher := sdk.NewCoin(voucherDenom, transferAmount)
 
@@ -422,7 +425,7 @@ func (k Keeper) unescrowCoin(ctx context.Context, escrowAddress, receiver sdk.Ac
 }
 
 // tokenFromCoin constructs an IBC token given an SDK coin.
-func (k Keeper) tokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
+func (k Keeper) tokenFromCoin(ctx context.Context, coin sdk.Coin) (types.Token, error) {
 	// if the coin does not have an IBC denom, return as is
 	if !strings.HasPrefix(coin.Denom, "ibc/") {
 		return types.Token{
