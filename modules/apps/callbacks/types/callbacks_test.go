@@ -549,8 +549,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 
 			callbackData, err := types.GetCallbackData(packetData, version, transfertypes.PortID, remainingGas, uint64(1_000_000), callbackKey)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				s.Require().NoError(err, tc.name)
 				s.Require().Equal(tc.expCallbackData, callbackData, tc.name)
 

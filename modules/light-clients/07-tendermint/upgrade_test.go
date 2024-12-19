@@ -583,8 +583,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 				upgradedConsensusStateProof,
 			)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
 
 				clientState, ok := suite.chainA.GetClientState(path.EndpointA.ClientID).(*ibctm.ClientState)

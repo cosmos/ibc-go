@@ -452,8 +452,7 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 
 			actualTimestamp, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientTimestampAtHeight(suite.chainA.GetContext(), path.EndpointA.ClientID, height)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(uint64(suite.chainB.LatestCommittedHeader.GetTime().UnixNano()), actualTimestamp)
 			} else {

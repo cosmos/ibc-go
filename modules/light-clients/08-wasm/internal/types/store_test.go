@@ -417,8 +417,7 @@ func (suite *TypesTestSuite) TestNewClientRecoveryStore() {
 		suite.Run(tc.name, func() {
 			tc.malleate()
 
-			expPass := !tc.expPanic
-			if expPass {
+			if !tc.expPanic {
 				suite.Require().NotPanics(func() {
 					internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 				})

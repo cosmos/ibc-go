@@ -277,8 +277,7 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 
 			_, err = suite.chainA.App.GetIBCKeeper().RecoverClient(suite.chainA.GetContext(), msg)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 
 				// Assert that client status is now Active
@@ -2675,8 +2674,7 @@ func (suite *KeeperTestSuite) TestUpdateChannelParams() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			resp, err := suite.chainA.App.GetIBCKeeper().UpdateChannelParams(suite.chainA.GetContext(), tc.msg)
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(resp)
 				p := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetParams(suite.chainA.GetContext())

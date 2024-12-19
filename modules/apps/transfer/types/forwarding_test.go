@@ -98,8 +98,7 @@ func TestForwarding_Validate(t *testing.T) {
 
 			err := tc.forwarding.Validate()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				require.NoError(t, err)
 			} else {
 				require.ErrorIs(t, err, tc.expError)
@@ -209,8 +208,7 @@ func TestForwardingPacketData_Validate(t *testing.T) {
 
 			err := tc.forwarding.Validate()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				require.NoError(t, err)
 			} else {
 				require.ErrorIs(t, err, tc.expError)
@@ -267,8 +265,7 @@ func TestValidateHop(t *testing.T) {
 
 			err := tc.hop.Validate()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				require.NoError(t, err)
 			} else {
 				require.ErrorIs(t, err, tc.expError)

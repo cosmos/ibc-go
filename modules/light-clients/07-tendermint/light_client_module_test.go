@@ -103,8 +103,7 @@ func (suite *TendermintTestSuite) TestInitialize() {
 
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, "valid case returned an error")
 				suite.Require().True(store.Has(host.ClientStateKey()))
 				suite.Require().True(store.Has(host.ConsensusStateKey(suite.chainB.LatestCommittedHeader.GetHeight())))
@@ -162,8 +161,7 @@ func (suite *TendermintTestSuite) TestVerifyClientMessage() {
 
 			err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorIs(err, tc.expErr)
@@ -515,8 +513,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				suite.chainA.GetContext(), testingpath.EndpointA.ClientID, proofHeight, delayTimePeriod, delayBlockPeriod,
 				proof, path, value,
 			)
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorContains(err, tc.expErr.Error())
@@ -741,8 +738,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 				proof, path,
 			)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorContains(err, tc.expErr.Error())
@@ -934,8 +930,7 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 
 			timestamp, err := lightClientModule.TimestampAtHeight(suite.chainA.GetContext(), path.EndpointA.ClientID, height)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 
 				expectedTimestamp := uint64(expectedTimestamp.UnixNano())
@@ -1021,8 +1016,7 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 
 			err = lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 
 				// assert that status of subject client is now Active
@@ -1184,8 +1178,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 				upgradedConsensusStateProof,
 			)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 
 				expClientState := path.EndpointA.GetClientState()
