@@ -560,7 +560,7 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypes.MsgAckno
 		// Perform TAO verification
 		//
 		// If the acknowledgement was already received, perform a no-op
-		// Use a cached context to prevent accidental state changes
+		// Use a branched multistore to prevent accidental state changes
 		channelVersion, err = k.ChannelKeeper.AcknowledgePacket(ctx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 		return nil
 	}); err != nil {
