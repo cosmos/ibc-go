@@ -1053,5 +1053,7 @@ func (k *Keeper) WriteErrorReceipt(ctx context.Context, portID, channelID string
 	}
 
 	k.setUpgradeErrorReceipt(ctx, portID, channelID, errorReceiptToWrite)
-	k.EmitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeError)
+	if err := k.EmitErrorReceiptEvent(ctx, portID, channelID, channel, upgradeError); err != nil {
+		panic(err)
+	}
 }

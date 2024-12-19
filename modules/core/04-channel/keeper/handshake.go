@@ -80,7 +80,9 @@ func (k *Keeper) WriteOpenInitChannel(
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-init")
 
-	k.emitChannelOpenInitEvent(ctx, portID, channelID, channel)
+	if err := k.emitChannelOpenInitEvent(ctx, portID, channelID, channel); err != nil {
+		panic(err)
+	}
 }
 
 // ChanOpenTry is called by a module to accept the first step of a channel opening
@@ -173,7 +175,9 @@ func (k *Keeper) WriteOpenTryChannel(
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-try")
 
-	k.emitChannelOpenTryEvent(ctx, portID, channelID, channel)
+	if err := k.emitChannelOpenTryEvent(ctx, portID, channelID, channel); err != nil {
+		panic(err)
+	}
 }
 
 // ChanOpenAck is called by the handshake-originating module to acknowledge the
@@ -243,7 +247,9 @@ func (k *Keeper) WriteOpenAckChannel(
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
 
-	k.emitChannelOpenAckEvent(ctx, portID, channelID, channel)
+	if err := k.emitChannelOpenAckEvent(ctx, portID, channelID, channel); err != nil {
+		panic(err)
+	}
 }
 
 // ChanOpenConfirm is called by the handshake-accepting module to confirm the acknowledgement
@@ -310,7 +316,9 @@ func (k *Keeper) WriteOpenConfirmChannel(
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
 
-	k.emitChannelOpenConfirmEvent(ctx, portID, channelID, channel)
+	if err := k.emitChannelOpenConfirmEvent(ctx, portID, channelID, channel); err != nil {
+		panic(err)
+	}
 }
 
 // Closing Handshake
