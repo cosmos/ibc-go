@@ -1,9 +1,11 @@
 package v2
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+const (
+	NextSequenceSendKeyPrefix = "nextSequenceSendV2/"
 )
 
 // PacketCommitmentPrefixKey returns the store key prefix under which packet commitments for a particular channel are stored.
@@ -44,5 +46,5 @@ func PacketAcknowledgementKey(channelID string, sequence uint64) []byte {
 
 // NextSequenceSendKey returns the store key for the next sequence send of a given channelID.
 func NextSequenceSendKey(channelID string) []byte {
-	return []byte(fmt.Sprintf("nextSequenceSend/%s", channelID))
+	return append([]byte(NextSequenceSendKeyPrefix), []byte(channelID)...)
 }
