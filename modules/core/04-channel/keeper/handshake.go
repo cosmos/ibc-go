@@ -355,7 +355,6 @@ func (k *Keeper) ChanCloseInit(
 	k.SetChannel(ctx, portID, channelID, channel)
 
 	return k.emitChannelCloseInitEvent(ctx, portID, channelID, channel)
-
 }
 
 // ChanCloseConfirm is called by the counterparty module to close their end of the
