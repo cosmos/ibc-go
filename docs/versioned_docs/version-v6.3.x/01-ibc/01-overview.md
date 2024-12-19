@@ -12,7 +12,7 @@ slug: /ibc/overview
 Learn about IBC, its components, and IBC use cases. 
 :::
 
-## What is the Interblockchain Communication Protocol (IBC)?
+## What is the Inter-Blockchain Communication Protocol (IBC)?
 
 This document serves as a guide for developers who want to write their own Inter-Blockchain
 Communication protocol (IBC) applications for custom use cases.
@@ -137,7 +137,7 @@ under the path and a proof to the counterparty chain.
 Proofs are passed from core IBC to light-clients as bytes. It is up to light client implementation to interpret these bytes appropriately.
 
 - The paths that all IBC implementations must use for committing IBC messages is defined in
-[ICS-24 Host State Machine Requirements](https://github.com/cosmos/ics/tree/master/spec/core/ics-024-host-requirements). 
+[ICS-24 Host State Machine Requirements](https://github.com/cosmos/ibc/tree/master/spec/core/ics-024-host-requirements). 
 - The proof format that all implementations must be able to produce and verify is defined in [ICS-23 Proofs](https://github.com/confio/ics23) implementation.
 
 ### [Capabilities](https://github.com/cosmos/cosmos-sdk/blob/main/docs/learn/advanced/10-ocap.md)

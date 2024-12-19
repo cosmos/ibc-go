@@ -2,12 +2,12 @@ syntax = "proto3";
 
 package ibc.core.client.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/core/02-client/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/02-client/types";
 
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos/query/v1/query.proto";
 import "ibc/core/client/v1/client.proto";
-import "ibc/core/commitment/v1/commitment.proto";
+import "ibc/core/commitment/v2/commitment.proto";
 import "google/protobuf/any.proto";
 import "google/api/annotations.proto";
 import "gogoproto/gogo.proto";
@@ -225,14 +225,16 @@ message QueryVerifyMembershipRequest {
   bytes proof = 2;
   // the height of the commitment root at which the proof is verified.
   ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
-  // the commitment key path.
-  ibc.core.commitment.v1.MerklePath merkle_path = 4 [(gogoproto.nullable) = false];
+  // reserved: deprecated field.
+  reserved 4;
   // the value which is proven.
   bytes value = 5;
   // optional time delay
   uint64 time_delay = 6;
   // optional block delay
   uint64 block_delay = 7;
+  // the commitment key path.
+  ibc.core.commitment.v2.MerklePath merkle_path = 8 [(gogoproto.nullable) = false];
 }
 
 // QueryVerifyMembershipResponse is the response type for the Query/VerifyMembership RPC method

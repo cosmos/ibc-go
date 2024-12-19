@@ -3,8 +3,8 @@ package types_test
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 func (suite *TypesTestSuite) TestIsValid() {
@@ -13,7 +13,7 @@ func (suite *TypesTestSuite) TestIsValid() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		isValid  bool
 	}{
 		{
 			"success: valid timeout with height and timestamp",
@@ -51,11 +51,7 @@ func (suite *TypesTestSuite) TestIsValid() {
 			tc.malleate()
 
 			isValid := timeout.IsValid()
-			if tc.expPass {
-				suite.Require().True(isValid)
-			} else {
-				suite.Require().False(isValid)
-			}
+			suite.Require().Equal(tc.isValid, isValid)
 		})
 	}
 }

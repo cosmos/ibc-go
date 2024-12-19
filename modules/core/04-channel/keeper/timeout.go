@@ -2,18 +2,15 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // TimeoutPacket is called by a module which originally attempted to send a
@@ -23,32 +20,29 @@ import (
 // perform appropriate state transitions. Its intended usage is within the
 // ante handler.
 func (k *Keeper) TimeoutPacket(
-	ctx sdk.Context,
+	ctx context.Context,
 	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 	nextSequenceRecv uint64,
-) error {
+) (string, error) {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
-		return errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			types.ErrChannelNotFound,
 			"port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel(),
 		)
 	}
 
-	// NOTE: TimeoutPacket is called by the AnteHandler which acts upon the packet.Route(),
-	// so the capability authentication can be omitted here
-
 	if packet.GetDestPort() != channel.Counterparty.PortId {
-		return errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			types.ErrInvalidPacket,
 			"packet destination port doesn't match the counterparty's port (%s ≠ %s)", packet.GetDestPort(), channel.Counterparty.PortId,
 		)
 	}
 
 	if packet.GetDestChannel() != channel.Counterparty.ChannelId {
-		return errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			types.ErrInvalidPacket,
 			"packet destination channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetDestChannel(), channel.Counterparty.ChannelId,
 		)
@@ -56,7 +50,7 @@ func (k *Keeper) TimeoutPacket(
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
-		return errorsmod.Wrap(
+		return "", errorsmod.Wrap(
 			connectiontypes.ErrConnectionNotFound,
 			channel.ConnectionHops[0],
 		)
@@ -65,12 +59,12 @@ func (k *Keeper) TimeoutPacket(
 	// check that timeout height or timeout timestamp has passed on the other end
 	proofTimestamp, err := k.clientKeeper.GetClientTimestampAtHeight(ctx, connectionEnd.ClientId, proofHeight)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
 	if !timeout.Elapsed(proofHeight.(clienttypes.Height), proofTimestamp) {
-		return errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
+		return "", errorsmod.Wrap(timeout.ErrTimeoutNotReached(proofHeight.(clienttypes.Height), proofTimestamp), "packet timeout not reached")
 	}
 
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
@@ -81,21 +75,21 @@ func (k *Keeper) TimeoutPacket(
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return types.ErrNoOpMsg
+		return "", types.ErrNoOpMsg
 	}
 
 	packetCommitment := types.CommitPacket(k.cdc, packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
-		return errorsmod.Wrapf(types.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
+		return "", errorsmod.Wrapf(types.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
 	switch channel.Ordering {
 	case types.ORDERED:
 		// check that packet has not been received
 		if nextSequenceRecv > packet.GetSequence() {
-			return errorsmod.Wrapf(
+			return "", errorsmod.Wrapf(
 				types.ErrPacketReceived,
 				"packet already received, next sequence receive > packet sequence (%d > %d)", nextSequenceRecv, packet.GetSequence(),
 			)
@@ -112,15 +106,15 @@ func (k *Keeper) TimeoutPacket(
 			packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		)
 	default:
-		panic(errorsmod.Wrapf(types.ErrInvalidChannelOrdering, channel.Ordering.String()))
+		panic(errorsmod.Wrap(types.ErrInvalidChannelOrdering, channel.Ordering.String()))
 	}
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// NOTE: the remaining code is located in the TimeoutExecuted function
-	return nil
+	return channel.Version, nil
 }
 
 // TimeoutExecuted deletes the commitment send from this chain after it verifies timeout.
@@ -131,8 +125,7 @@ func (k *Keeper) TimeoutPacket(
 //
 // CONTRACT: this function must be called in the IBC handler
 func (k *Keeper) TimeoutExecuted(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
+	ctx context.Context,
 	packet types.Packet,
 ) error {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
@@ -140,36 +133,11 @@ func (k *Keeper) TimeoutExecuted(
 		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
 	}
 
-	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrChannelCapabilityNotFound,
-			"caller does not own capability for channel with capability name %s", capName,
-		)
-	}
-
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING && channel.Ordering == types.UNORDERED {
-		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-		// once we have received the counterparty timeout in the channel UpgradeAck or UpgradeConfirm handshake steps
-		// then we can move to flushing complete if the timeout has not passed and there are no in-flight packets
-		if found {
-			timeout := counterpartyUpgrade.Timeout
-			selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
-
-			if timeout.Elapsed(selfHeight, selfTimestamp) {
-				// packet flushing timeout has expired, abort the upgrade and return nil,
-				// committing an error receipt to state, restoring the channel and successfully timing out the packet.
-				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp))
-			} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
-				// set the channel state to flush complete if all packets have been flushed.
-				channel.State = types.FLUSHCOMPLETE
-				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-				emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-			}
-		}
+		k.handleFlushState(ctx, packet, channel)
 	}
 
 	if channel.Ordering == types.ORDERED {
@@ -209,37 +177,28 @@ func (k *Keeper) TimeoutExecuted(
 // which an unreceived packet was addressed has been closed, so the packet will
 // never be received (even if the timeoutHeight has not yet been reached).
 func (k *Keeper) TimeoutOnClose(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
+	ctx context.Context,
 	packet types.Packet,
 	proof,
 	closedProof []byte,
 	proofHeight exported.Height,
 	nextSequenceRecv uint64,
 	counterpartyUpgradeSequence uint64,
-) error {
+) (string, error) {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
-	}
-
-	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication with capability name %s", capName,
-		)
+		return "", errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
 	}
 
 	if packet.GetDestPort() != channel.Counterparty.PortId {
-		return errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			types.ErrInvalidPacket,
 			"packet destination port doesn't match the counterparty's port (%s ≠ %s)", packet.GetDestPort(), channel.Counterparty.PortId,
 		)
 	}
 
 	if packet.GetDestChannel() != channel.Counterparty.ChannelId {
-		return errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			types.ErrInvalidPacket,
 			"packet destination channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetDestChannel(), channel.Counterparty.ChannelId,
 		)
@@ -247,7 +206,7 @@ func (k *Keeper) TimeoutOnClose(
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
-		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+		return "", errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
@@ -258,14 +217,14 @@ func (k *Keeper) TimeoutOnClose(
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return types.ErrNoOpMsg
+		return "", types.ErrNoOpMsg
 	}
 
 	packetCommitment := types.CommitPacket(k.cdc, packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
-		return errorsmod.Wrapf(types.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
+		return "", errorsmod.Wrapf(types.ErrInvalidPacket, "packet commitment bytes are not equal: got (%v), expected (%v)", commitment, packetCommitment)
 	}
 
 	counterpartyHops := []string{connectionEnd.Counterparty.ConnectionId}
@@ -286,7 +245,7 @@ func (k *Keeper) TimeoutOnClose(
 		channel.Counterparty.PortId, channel.Counterparty.ChannelId,
 		expectedChannel,
 	); err != nil {
-		return err
+		return "", err
 	}
 
 	var err error
@@ -294,7 +253,7 @@ func (k *Keeper) TimeoutOnClose(
 	case types.ORDERED:
 		// check that packet has not been received
 		if nextSequenceRecv > packet.GetSequence() {
-			return errorsmod.Wrapf(types.ErrInvalidPacket, "packet already received, next sequence receive > packet sequence (%d > %d", nextSequenceRecv, packet.GetSequence())
+			return "", errorsmod.Wrapf(types.ErrInvalidPacket, "packet already received, next sequence receive > packet sequence (%d > %d", nextSequenceRecv, packet.GetSequence())
 		}
 
 		// check that the recv sequence is as claimed
@@ -308,13 +267,13 @@ func (k *Keeper) TimeoutOnClose(
 			packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		)
 	default:
-		panic(errorsmod.Wrapf(types.ErrInvalidChannelOrdering, channel.Ordering.String()))
+		panic(errorsmod.Wrap(types.ErrInvalidChannelOrdering, channel.Ordering.String()))
 	}
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// NOTE: the remaining code is located in the TimeoutExecuted function
-	return nil
+	return channel.Version, nil
 }

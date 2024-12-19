@@ -8,7 +8,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 )
 
 // NewUpgrade creates a new Upgrade instance.
@@ -114,7 +114,7 @@ func (u *UpgradeError) GetErrorReceipt() ErrorReceipt {
 	// NOTE: Changing this const is state machine breaking as it is written into state.
 	const restoreErrorString = "restored channel to pre-upgrade state"
 
-	_, code, _ := errorsmod.ABCIInfo(u, false) // discard non-determinstic codespace and log values
+	_, code, _ := errorsmod.ABCIInfo(u, false) // discard non-deterministic codespace and log values
 	return ErrorReceipt{
 		Sequence: u.sequence,
 		Message:  fmt.Sprintf("ABCI code: %d: %s", code, restoreErrorString),

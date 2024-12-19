@@ -8,17 +8,17 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
+	govtypes "cosmossdk.io/x/gov/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *KeeperTestSuite) TestMsgStoreCode() {
@@ -62,7 +62,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
 			},
-			errors.New("Wasm bytes do not not start with Wasm magic number"),
+			errors.New("Wasm bytes do not start with Wasm magic number"),
 		},
 		{
 			"fails with wasm code too large",
@@ -249,9 +249,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 
 				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					// the checksum written in here will be overwritten
-					newClientState := localhost.NewClientState(clienttypes.NewHeight(1, 1))
-
-					store.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), newClientState))
+					store.Set(host.ClientStateKey(), []byte("changed client state"))
 
 					data, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -8,12 +9,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
+	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 )
 
 // OnChanOpenTry performs basic validation of the ICA channel
@@ -21,12 +20,11 @@ import (
 // The version returned will include the registered interchain
 // account address.
 func (k Keeper) OnChanOpenTry(
-	ctx sdk.Context,
+	ctx context.Context,
 	order channeltypes.Order,
 	connectionHops []string,
 	portID,
 	channelID string,
-	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
@@ -42,7 +40,7 @@ func (k Keeper) OnChanOpenTry(
 			return "", errorsmod.Wrapf(err, "failed to retrieve connection %s", connectionHops[0])
 		}
 
-		k.Logger(ctx).Debug("counterparty version is invalid, proposing default metadata")
+		k.Logger.Debug("counterparty version is invalid, proposing default metadata")
 		metadata = icatypes.NewDefaultMetadata(connection.Counterparty.ConnectionId, connectionHops[0])
 	}
 
@@ -69,20 +67,14 @@ func (k Keeper) OnChanOpenTry(
 		// be overwritten with the correct one before the metadata is returned.
 	}
 
-	// On the host chain the capability may only be claimed during the OnChanOpenTry
-	// The capability being claimed in OpenInit is for a controller chain (the port is different)
-	if err = k.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return "", errorsmod.Wrapf(err, "failed to claim capability for channel %s on port %s", channelID, portID)
-	}
-
 	var accAddress sdk.AccAddress
 
 	interchainAccAddr, found := k.GetInterchainAccountAddress(ctx, metadata.HostConnectionId, counterparty.PortId)
 	if found {
 		// reopening an interchain account
-		k.Logger(ctx).Info("reopening existing interchain account", "address", interchainAccAddr)
+		k.Logger.Info("reopening existing interchain account", "address", interchainAccAddr)
 		accAddress = sdk.MustAccAddressFromBech32(interchainAccAddr)
-		if _, ok := k.accountKeeper.GetAccount(ctx, accAddress).(*icatypes.InterchainAccount); !ok {
+		if _, ok := k.authKeeper.GetAccount(ctx, accAddress).(*icatypes.InterchainAccount); !ok {
 			return "", errorsmod.Wrapf(icatypes.ErrInvalidAccountReopening, "existing account address %s, does not have interchain account type", accAddress)
 		}
 
@@ -91,7 +83,7 @@ func (k Keeper) OnChanOpenTry(
 		if err != nil {
 			return "", err
 		}
-		k.Logger(ctx).Info("successfully created new interchain account", "host-connection-id", metadata.HostConnectionId, "port-id", counterparty.PortId, "address", accAddress)
+		k.Logger.Info("successfully created new interchain account", "host-connection-id", metadata.HostConnectionId, "port-id", counterparty.PortId, "address", accAddress)
 	}
 
 	metadata.Address = accAddress.String()
@@ -105,7 +97,7 @@ func (k Keeper) OnChanOpenTry(
 
 // OnChanOpenConfirm completes the handshake process by setting the active channel in state on the host chain
 func (k Keeper) OnChanOpenConfirm(
-	ctx sdk.Context,
+	ctx context.Context,
 	portID,
 	channelID string,
 ) error {
@@ -125,7 +117,7 @@ func (k Keeper) OnChanOpenConfirm(
 
 // OnChanCloseConfirm removes the active channel stored in state
 func (Keeper) OnChanCloseConfirm(
-	ctx sdk.Context,
+	ctx context.Context,
 	portID,
 	channelID string,
 ) error {
@@ -146,7 +138,7 @@ func (Keeper) OnChanCloseConfirm(
 // - connectionHops (and subsequently host/controller connectionIDs)
 // - interchain account address
 // - ICS27 protocol version
-func (k Keeper) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
+func (k Keeper) OnChanUpgradeTry(ctx context.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	if portID != icatypes.HostPortID {
 		return "", errorsmod.Wrapf(porttypes.ErrInvalidPort, "expected %s, got %s", icatypes.HostPortID, portID)
 	}

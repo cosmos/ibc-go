@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 var (
@@ -35,7 +35,7 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 }
 
 // NewMsgModuleQuerySafe creates a new MsgModuleQuerySafe instance
-func NewMsgModuleQuerySafe(signer string, requests []*QueryRequest) *MsgModuleQuerySafe {
+func NewMsgModuleQuerySafe(signer string, requests []QueryRequest) *MsgModuleQuerySafe {
 	return &MsgModuleQuerySafe{
 		Signer:   signer,
 		Requests: requests,

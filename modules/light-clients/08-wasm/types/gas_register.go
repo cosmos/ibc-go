@@ -110,7 +110,7 @@ type WasmGasRegisterConfig struct {
 	// See also https://github.com/CosmWasm/wasmd/issues/1798 for more thinking around
 	// discount cases.
 	InstanceCostDiscount storetypes.Gas
-	// CompileCosts costs to persist and "compile" a new wasm contract
+	// CompileCost costs to persist and "compile" a new wasm contract
 	CompileCost storetypes.Gas
 	// UncompressCost costs per byte to unpack a contract
 	UncompressCost wasmvmtypes.UFraction
@@ -178,7 +178,7 @@ func (g WasmGasRegister) UncompressCosts(byteLength int) storetypes.Gas {
 
 // SetupContractCost costs when interacting with a wasm contract.
 // Set discount to true in cases where you can reasonably assume the contract
-// is loaded from an in-memory cache (e.g. pinned contracts or replys).
+// is loaded from an in-memory cache (e.g. pinned contracts or replies).
 func (g WasmGasRegister) SetupContractCost(discount bool, msgLen int) storetypes.Gas {
 	if msgLen < 0 {
 		panic(errorsmod.Wrap(ErrInvalid, "negative length"))
@@ -192,7 +192,7 @@ func (g WasmGasRegister) SetupContractCost(discount bool, msgLen int) storetypes
 
 // ReplyCosts costs to handle a message reply.
 // Set discount to true in cases where you can reasonably assume the contract
-// is loaded from an in-memory cache (e.g. pinned contracts or replys).
+// is loaded from an in-memory cache (e.g. pinned contracts or replies).
 func (g WasmGasRegister) ReplyCosts(discount bool, reply wasmvmtypes.Reply) storetypes.Gas {
 	var eventGas storetypes.Gas
 	msgLen := len(reply.Result.Err)

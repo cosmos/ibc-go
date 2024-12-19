@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.applications.fee.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types";
+option go_package = "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types";
 
 // IncentivizedAcknowledgement is the acknowledgement format to be used by applications wrapped in the fee middleware
 message IncentivizedAcknowledgement {

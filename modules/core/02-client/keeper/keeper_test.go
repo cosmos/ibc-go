@@ -9,26 +9,26 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
+	stakingtypes "cosmossdk.io/x/staking/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	localhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/simapp"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/simapp"
 )
 
 const (
@@ -109,9 +109,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 		val.Tokens = sdkmath.NewInt(rand.Int63())
 		validators.Validators = append(validators.Validators, val)
 
-		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
-		err = app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
-		suite.Require().NoError(err)
 	}
 
 	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
@@ -143,10 +140,9 @@ func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 
 func (suite *KeeperTestSuite) TestGetAllGenesisClients() {
 	clientIDs := []string{
-		exported.LocalhostClientID, testClientID2, testClientID3, testClientID,
+		testClientID2, testClientID3, testClientID,
 	}
 	expClients := []exported.ClientState{
-		localhost.NewClientState(types.GetSelfHeight(suite.chainA.GetContext())),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 		ibctm.NewClientState(testChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, types.ZeroHeight(), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
@@ -305,10 +301,7 @@ func (suite *KeeperTestSuite) TestIterateClientStates() {
 			"all clientIDs",
 			nil,
 			func() []string {
-				allClientIDs := []string{exported.LocalhostClientID}
-				allClientIDs = append(allClientIDs, expSMClientIDs...)
-				allClientIDs = append(allClientIDs, expTMClientIDs...)
-				return allClientIDs
+				return append(expSMClientIDs, expTMClientIDs...)
 			},
 		},
 		{
@@ -484,14 +477,14 @@ func (suite *KeeperTestSuite) TestDefaultSetParams() {
 // TestParams tests that Param setting and retrieval works properly
 func (suite *KeeperTestSuite) TestParams() {
 	testCases := []struct {
-		name    string
-		input   types.Params
-		expPass bool
+		name   string
+		input  types.Params
+		expErr error
 	}{
-		{"success: set default params", types.DefaultParams(), true},
-		{"success: empty allowedClients", types.NewParams(), true},
-		{"success: subset of allowedClients", types.NewParams(exported.Tendermint, exported.Localhost), true},
-		{"failure: contains a single empty string value as allowedClient", types.NewParams(exported.Localhost, ""), false},
+		{"success: set default params", types.DefaultParams(), nil},
+		{"success: empty allowedClients", types.NewParams(), nil},
+		{"success: subset of allowedClients", types.NewParams(exported.Tendermint, exported.Localhost), nil},
+		{"failure: contains a single empty string value as allowedClient", types.NewParams(exported.Localhost, ""), fmt.Errorf("client type 1 cannot be blank")},
 	}
 
 	for _, tc := range testCases {
@@ -502,13 +495,14 @@ func (suite *KeeperTestSuite) TestParams() {
 			ctx := suite.chainA.GetContext()
 			err := tc.input.Validate()
 			suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.SetParams(ctx, tc.input)
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				expected := tc.input
 				p := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetParams(ctx)
 				suite.Require().Equal(expected, p)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
@@ -570,7 +564,9 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
-			upgradedClientState = path.EndpointA.GetClientState().(*ibctm.ClientState).ZeroCustomFields()
+			tmClientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
+			upgradedClientState = tmClientState.ZeroCustomFields()
 
 			// use height 1000 to distinguish from old plan
 			plan = upgradetypes.Plan{
@@ -647,4 +643,60 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestIBCScheduleUpgradeProposal() {
+	suite.SetupTest()
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetupClients()
+
+	tmClientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
+	suite.Require().True(ok)
+
+	// bump the chain id revision number for the ibc client upgrade
+	chainID := tmClientState.ChainId
+	revisionNumber := types.ParseChainID(chainID)
+
+	newChainID, err := types.SetRevisionNumber(chainID, revisionNumber+1)
+	suite.Require().NoError(err)
+	suite.Require().NotEqual(chainID, newChainID)
+
+	tmClientState.ChainId = newChainID
+	upgradedClientState := tmClientState.ZeroCustomFields()
+
+	msg, err := types.NewMsgIBCSoftwareUpgrade(
+		suite.chainA.GetSimApp().IBCKeeper.GetAuthority(),
+		upgradetypes.Plan{
+			Name:   "upgrade-client",
+			Height: 1000,
+		},
+		upgradedClientState,
+	)
+	suite.Require().NoError(err)
+
+	proposal, err := govtypesv1.NewMsgSubmitProposal(
+		[]sdk.Msg{msg},
+		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, govtypesv1.DefaultMinDepositTokens)),
+		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
+		"metadata",
+		"ibc client upgrade",
+		"gov proposal for initialising ibc client upgrade",
+		govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD,
+	)
+	suite.Require().NoError(err)
+
+	res, err := suite.chainA.SendMsgs(proposal)
+	suite.Require().NoError(err)
+
+	proposalID, err := ibctesting.ParseProposalIDFromEvents(res.Events)
+	suite.Require().NoError(err)
+
+	// vote and pass proposal, trigger msg execution
+	err = ibctesting.VoteAndCheckProposalStatus(path.EndpointA, proposalID)
+	suite.Require().NoError(err)
+
+	storedPlan, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
+	suite.Require().NoError(err)
+	suite.Require().Equal(msg.Plan, storedPlan)
 }

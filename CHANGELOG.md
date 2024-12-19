@@ -38,9 +38,48 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump Cosmos SDK to v0.50.6.
+* [\#7261](https://github.com/cosmos/ibc-go/pull/7261) Bump CometBFT to v1.0.0.
+* [\#7261](https://github.com/cosmos/ibc-go/pull/7261) Bump Cosmos SDK to v0.52.0.
+
+### API Breaking
+
+* (apps/27-interchain-accounts) [\#7713](https://github.com/cosmos/ibc-go/pull/7713) Update interchain accounts `GenerateAddress` func to now accept `header.Info` in favour of `sdk.Context`. This function now uses `AppHash` and `Hash` (merkle root of block) instead of `AppHash` and `DataHash` as pre-image data for address generation.
+* (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7213) Remove capabilities from `SendPacket`.
+* (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
+* (core, apps) [\#7232](https://github.com/cosmos/ibc-go/pull/7232) Remove capabilities from channel handshake methods. TODO list all changes 
+* (core, apps) [\#7270](https://github.com/cosmos/ibc-go/pull/7270) Remove remaining dependencies on capability module.
+* (core/04-channel) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `LookupModuleByChannel`
+* (core/05-port) [\#7252](https://github.com/cosmos/ibc-go/pull/7252) Removed function `LookupModuleByPort`
+* (core/24-host) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `ChannelCapabilityPath`
+* (apps/27-interchain-accounts) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) The following functions have been removed: `AuthenticateCapability`, `ClaimCapability`
+* (apps/transfer) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) The following functions have been removed: `BindPort`, `AuthenticateCapability`, `ClaimCapability`
+* (capability) [\#7279](https://github.com/cosmos/ibc-go/pull/7279) The module `capability` has been removed.
+* (testing) [\#7305](https://github.com/cosmos/ibc-go/pull/7305) Added `TrustedValidators` map to `TestChain`. This removes the dependency on the `x/staking` module for retrieving trusted validator sets at a given height, and removes the `GetTrustedValidators` method from the `TestChain` struct.
+* (23-commitment) [\#7486](https://github.com/cosmos/ibc-go/pull/7486) Remove unimplemented `BatchVerifyMembership` and `BatchVerifyNonMembership` functions
+
+### State Machine Breaking
+
+### Improvements
+
+* (testing)[\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update the block proposer in test chains for each block.
+
+### Features
+
+### Bug Fixes
+
+* (apps/27-interchain-accounts) [\#7277](https://github.com/cosmos/ibc-go/pull/7277) Use `GogoResolver` when populating module query safe allow list to avoid panics from unresolvable protobuf dependencies.
+* (core/04-channel) [\#7342](https://github.com/cosmos/ibc-go/pull/7342) Read Tx cmd flags including from address to avoid Address cannot be empty error when upgrade-channels via cli.
+* (core/03-connection) [\#7397](https://github.com/cosmos/ibc-go/pull/7397) Skip the genesis validation connectionID for localhost client.
+
+## [v9.0.0](https://github.com/cosmos/ibc-go/releases/tag/v9.0.0) - 2024-10-01
+
+### Dependencies
+
+* [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump Cosmos SDK to v0.50.9.
 * [\#6193](https://github.com/cosmos/ibc-go/pull/6193) Bump `cosmossdk.io/store` to v1.1.0.
-* [\#6239](https://github.com/cosmos/ibc-go/pull/6239) Bump CometBFT to v0.38.7.
+* [\#7126](https://github.com/cosmos/ibc-go/pull/7126) Bump CometBFT to v0.38.11.
+* [\#6380](https://github.com/cosmos/ibc-go/pull/6380) Bump go to v1.22.
+* [\#7223](https://github.com/cosmos/ibc-go/pull/7223) Update ics23 to v0.11.0.
 
 ### API Breaking
 
@@ -52,19 +91,109 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (testing) [\#6070](https://github.com/cosmos/ibc-go/pull/6070) Remove `AssertEventsLegacy` function.
 * (core) [\#6138](https://github.com/cosmos/ibc-go/pull/6138) Remove `Router` reference from IBC core keeper and use instead the router on the existing `PortKeeper` reference.
 * (core/04-channel) [\#6023](https://github.com/cosmos/ibc-go/pull/6023) Remove emission of non-hexlified event attributes `packet_data` and `packet_ack`.
+* (core) [\#6320](https://github.com/cosmos/ibc-go/pull/6320) Remove unnecessary `Proof` interface from `exported` package.
+* (core/05-port) [\#6341](https://github.com/cosmos/ibc-go/pull/6341) Modify `UnmarshalPacketData` interface to take in the context, portID, and channelID. This allows for packet data's to be unmarshaled based on the channel version.
+* (apps/27-interchain-accounts) [\#6433](https://github.com/cosmos/ibc-go/pull/6433) Use UNORDERED as the default ordering for new ICA channels.
+* (apps/transfer) [\#6440](https://github.com/cosmos/ibc-go/pull/6440) Remove `GetPrefixedDenom`.
+* (apps/transfer) [\#6508](https://github.com/cosmos/ibc-go/pull/6508) Remove the `DenomTrace` type.
+* (apps/27-interchain-accounts) [\#6598](https://github.com/cosmos/ibc-go/pull/6598) Mark the `requests` repeated field of `MsgModuleQuerySafe` non-nullable.
+* (23-commmitment) [\#6644](https://github.com/cosmos/ibc-go/pull/6644) Introduce `commitment.v2.MerklePath` to include `repeated bytes` in favour of `repeated string`. This supports using merkle path keys which include non UTF-8 encoded runes.
+* (23-commmitment) [\#6870](https://github.com/cosmos/ibc-go/pull/6870) Remove `commitment.v1.MerklePath` in favour of `commitment.v2.MerklePath`.
+* (apps/27-interchain-accounts) [\#6749](https://github.com/cosmos/ibc-go/pull/6749) The ICA controller `NewIBCMiddleware` constructor function sets by default the auth module to nil.
+* (core, core/02-client) [\#6763](https://github.com/cosmos/ibc-go/pull/6763) Move prometheus metric labels for 02-client and core into a separate `metrics` package on core.
+* (core/02-client) [\#6777](https://github.com/cosmos/ibc-go/pull/6777) The `NewClientProposalHandler` of `02-client` has been removed.
+* (core/types) [\#6794](https://github.com/cosmos/ibc-go/pull/6794) The composite interface `QueryServer` has been removed from package `core/types`. Please use the granular `QueryServer` interfaces provided by each core submodule.
+* (light-clients/06-solomachine) [\#6888](https://github.com/cosmos/ibc-go/pull/6888) Remove `TypeClientMisbehaviour` constant and the `Type` method on `Misbehaviour`.
+* (light-clients/06-solomachine, light-clients/07-tendermint) [\#6891](https://github.com/cosmos/ibc-go/pull/6891) The `VerifyMembership` and `VerifyNonMembership` functions of solomachine's `ClientState` have been made private. The `VerifyMembership`, `VerifyNonMembership`, `GetTimestampAtHeight`, `Status` and `Initialize` functions of tendermint's `ClientState` have been made private.
+* (core/04-channel) [\#6902](https://github.com/cosmos/ibc-go/pull/6902) Add channel version to core application callbacks.
+* (core/03-connection, core/02-client) [\#6937](https://github.com/cosmos/ibc-go/pull/6937) Remove 'ConsensusHost' interface, also removing self client and consensus state validation in the connection handshake.
+* (core/24-host) [\#6882](https://github.com/cosmos/ibc-go/issues/6882) All functions ending in `Path` have been removed from 24-host in favour of their sybling functions ending in `Key`.
 
 ### State Machine Breaking
+
+* (light-clients/06-solomachine) [\#6313](https://github.com/cosmos/ibc-go/pull/6313) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
 
 ### Improvements
 
 * (apps/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) ICA host sets the host connection ID on `OnChanOpenTry`, so that ICA controller implementations are not obliged to set the value on `OnChanOpenInit` if they are not able.
 * (core/02-client, core/03-connection, apps/27-interchain-accounts) [\#6256](https://github.com/cosmos/ibc-go/pull/6256) Add length checking of array fields in messages.
-* (apps/27-interchain-accounts, apps/tranfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
 
 ### Features
 
-* (apps/27-interchain-accounts) [\#5785](https://github.com/cosmos/ibc-go/pull/5785) Introduce a new tx message that ICA host submodule can use to query the chain (only those marked with `module_query_safe`) and write the responses to the acknowledgement.
+* (apps/transfer) [\#6492](https://github.com/cosmos/ibc-go/pull/6492) Added new `Tokens` field to `MsgTransfer` to enable sending of multiple denoms, and deprecated the `Token` field.
+* (apps/transfer) [\#6693](https://github.com/cosmos/ibc-go/pull/6693) Added new `Forwarding` field to `MsgTransfer` to enable forwarding tokens through multiple intermediary chains with a single transaction. This also enables automatic unwinding of tokens to their native chain. `x/authz` support for transfer allows granters to specify a set of possible forwarding hops that are allowed for grantees.
+
+### Bug Fixes
+
+* (apps/27-interchain-accounts) [\#6377](https://github.com/cosmos/ibc-go/pull/6377) Generate ICA simtest proposals only for provided keepers.
+
+## [v8.5.0](https://github.com/cosmos/ibc-go/releases/tag/v8.5.0) - 2024-08-30
+
+### Dependencies
+
+* [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump Cosmos SDK to v0.50.9.
+* [\#7222](https://github.com/cosmos/ibc-go/pull/7221) Update ics23 to v0.11.0.
+
+### State Machine Breaking
+
+* (core/03-connection) [\#7129](https://github.com/cosmos/ibc-go/pull/7129) Remove verification of self client and consensus state from connection handshake. 
+
+## [v8.4.0](https://github.com/cosmos/ibc-go/releases/tag/v8.4.0) - 2024-07-29
+
+### Improvements
+
+* (core/04-channel) [\#6871](https://github.com/cosmos/ibc-go/pull/6871) Add channel ordering to write acknowledgement event.
+
+### Features
+
+* (apps/transfer) [\#6877](https://github.com/cosmos/ibc-go/pull/6877) Added the possibility to transfer the entire user balance of a particular denomination by using [`UnboundedSpendLimit`](https://github.com/cosmos/ibc-go/blob/beb2d93b58835ddb9ed8e7624988f1e66b849251/modules/apps/transfer/types/token.go#L56-L58) as the token amount.
+
+### Bug Fixes
+
+* (core/04-channel) [\#6935](https://github.com/cosmos/ibc-go/pull/6935) Check upgrade compatibility in `ChanUpgradeConfirm`.
+
+## [v8.3.2](https://github.com/cosmos/ibc-go/releases/tag/v8.3.2) - 2024-06-20
+
+### Dependencies
+
+* [\#6614](https://github.com/cosmos/ibc-go/pull/6614) Bump Cosmos SDK to v0.50.7.
+
+### Improvements
+
+* (apps/27-interchain-accounts) [\#6436](https://github.com/cosmos/ibc-go/pull/6436) Refactor ICA host keeper instantiation method to avoid panic related to proto files.
+
+## [v8.3.1](https://github.com/cosmos/ibc-go/releases/tag/v8.3.1) - 2024-05-22
+
+### Improvements
+* (core/ante) [\#6302](https://github.com/cosmos/ibc-go/pull/6302) Performance: Skip app callbacks during RecvPacket execution in checkTx within the redundant relay ante handler.
+* (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
+* (core/ante) [\#6306](https://github.com/cosmos/ibc-go/pull/6306) Performance: Skip misbehaviour checks in UpdateClient flow and skip signature checks in reCheckTx mode.
+
+## [v8.3.0](https://github.com/cosmos/ibc-go/releases/tag/v8.3.0) - 2024-05-16
+
+### Dependencies
+
+* [\#6300](https://github.com/cosmos/ibc-go/pull/6300) Bump Cosmos SDK to v0.50.6 and CometBFT to v0.38.7.
+
+### State Machine Breaking
+
+* (light-clients/07-tendermint) [\#6276](https://github.com/cosmos/ibc-go/pull/6276) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
+
+### Improvements
+
+* (apps/27-interchain-accounts, apps/transfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
+* (apps/27-interchain-accounts) [\#6251](https://github.com/cosmos/ibc-go/pull/6251) Use `UNORDERED` as the default ordering for new ICA channels.
+* (apps/transfer) [\#6268](https://github.com/cosmos/ibc-go/pull/6268) Use memo strings instead of JSON keys in `AllowedPacketData` of transfer authorization.
+* (core/ante) [\#6278](https://github.com/cosmos/ibc-go/pull/6278) Performance: Exclude pruning from tendermint client updates in ante handler executions.
+* (core/ante) [\#6302](https://github.com/cosmos/ibc-go/pull/6302) Performance: Skip app callbacks during RecvPacket execution in checkTx within the redundant relay ante handler.
+* (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
+
+### Features
+
 * (core) [\#6055](https://github.com/cosmos/ibc-go/pull/6055) Introduce a new interface `ConsensusHost` used to validate an IBC `ClientState` and `ConsensusState` against the host chain's underlying consensus parameters.
+* (core/02-client) [\#5821](https://github.com/cosmos/ibc-go/pull/5821) Add rpc `VerifyMembershipProof` (querier approach for conditional clients).
+* (core/04-channel) [\#5788](https://github.com/cosmos/ibc-go/pull/5788) Add `NewErrorAcknowledgementWithCodespace` to allow codespaces in ack errors.
+* (apps/27-interchain-accounts) [\#5785](https://github.com/cosmos/ibc-go/pull/5785) Introduce a new tx message that ICA host submodule can use to query the chain (only those marked with `module_query_safe`) and write the responses to the acknowledgement.
 
 ### Bug Fixes
 
@@ -209,6 +338,74 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core) [\#3893](https://github.com/cosmos/ibc-go/pull/3893) Add deprecated option to `MsgSubmitMisbehaviour`.
 * (apps/transfer, apps/29-fee) [\#4570](https://github.com/cosmos/ibc-go/pull/4570) Remove `GetSignBytes` from 29-fee and transfer msgs.
 * [\#3630](https://github.com/cosmos/ibc-go/pull/3630) Add annotation to Msg service.
+
+## [v7.8.0](https://github.com/cosmos/ibc-go/releases/tag/v7.8.0) - 2024-08-30
+
+### State Machine Breaking
+
+* (core/03-connection) [\#7128](https://github.com/cosmos/ibc-go/pull/7128) Remove verification of self client and consensus state from connection handshake. 
+
+## [v7.7.0](https://github.com/cosmos/ibc-go/releases/tag/v7.7.0) - 2024-07-29
+
+### Dependencies
+
+* [\#6943](https://github.com/cosmos/ibc-go/pull/6943) Update Cosmos SDK to v0.47.13.
+
+### Features
+
+* (apps/transfer) [\#6877](https://github.com/cosmos/ibc-go/pull/6877) Added the possibility to transfer the entire user balance of a particular denomination by using [`UnboundedSpendLimit`](https://github.com/cosmos/ibc-go/blob/715f00eef8727da41db25fdd4763b709bdbba07e/modules/apps/transfer/types/transfer_authorization.go#L253-L255) as the token amount.
+
+### Bug Fixes
+
+## [v7.6.0](https://github.com/cosmos/ibc-go/releases/tag/v7.6.0) - 2024-06-20
+
+### State Machine Breaking
+
+* (apps/transfer, apps/27-interchain-accounts, app/29-fee) [\#4992](https://github.com/cosmos/ibc-go/pull/4992) Set validation for length of string fields.
+
+## [v7.5.2](https://github.com/cosmos/ibc-go/releases/tag/v7.5.2) - 2024-06-20
+
+### Dependencies
+
+* [\#6613](https://github.com/cosmos/ibc-go/pull/6613) Update Cosmos SDK to v0.47.12.
+
+### Improvements
+
+* (apps/27-interchain-accounts) [\#6436](https://github.com/cosmos/ibc-go/pull/6436) Refactor ICA host keeper instantiation method to avoid panic related to proto files.
+
+## [v7.5.1](https://github.com/cosmos/ibc-go/releases/tag/v7.5.1) - 2024-05-22
+
+### Improvements
+
+* (core/ante) [\#6302](https://github.com/cosmos/ibc-go/pull/6302) Performance: Skip app callbacks during RecvPacket execution in checkTx within the redundant relay ante handler.
+* (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
+* (core/ante) [\#6306](https://github.com/cosmos/ibc-go/pull/6306) Performance: Skip misbehaviour checks in UpdateClient flow and skip signature checks in reCheckTx mode.
+
+## [v7.5.0](https://github.com/cosmos/ibc-go/releases/tag/v7.5.0) - 2024-05-14
+
+### Dependencies
+
+* [\#6254](https://github.com/cosmos/ibc-go/pull/6254) Update Cosmos SDK to v0.47.11 and CometBFT to v0.37.5.
+
+### State Machine Breaking
+
+* (light-clients/07-tendermint) [\#6276](https://github.com/cosmos/ibc-go/pull/6276) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
+
+### Improvements
+
+* (apps/27-interchain-accounts) [\#6147](https://github.com/cosmos/ibc-go/pull/6147) Emit an event signalling that the host submodule is disabled.
+* (testing) [\#6180](https://github.com/cosmos/ibc-go/pull/6180) Add version to tm abci headers in ibctesting.
+* (apps/27-interchain-accounts, apps/transfer, apps/29-fee) [\#6253](https://github.com/cosmos/ibc-go/pull/6253) Allow channel handshake to succeed if fee middleware is wired up on one side, but not the other.
+* (apps/transfer) [\#6268](https://github.com/cosmos/ibc-go/pull/6268) Use memo strings instead of JSON keys in `AllowedPacketData` of transfer authorization.
+
+### Features
+
+* (apps/27-interchain-accounts) [\#5633](https://github.com/cosmos/ibc-go/pull/5633) Allow new ICA channels to use unordered ordering.
+* (apps/27-interchain-accounts) [\#5785](https://github.com/cosmos/ibc-go/pull/5785) Introduce a new tx message that ICA host submodule can use to query the chain (only those marked with `module_query_safe`) and write the responses to the acknowledgement.
+
+### Bug Fixes
+
+* (apps/29-fee) [\#6255](https://github.com/cosmos/ibc-go/pull/6255) Delete already refunded fees from state if some fee(s) cannot be refunded on channel closure. 
 
 ## [v7.4.0](https://github.com/cosmos/ibc-go/releases/tag/v7.4.0) - 2024-04-05
 

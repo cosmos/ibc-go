@@ -1,16 +1,18 @@
 package v7
 
 import (
+	"context"
 	"errors"
 
+	gogoprotoany "github.com/cosmos/gogoproto/types/any"
+
+	coreregistry "cosmossdk.io/core/registry"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // NOTE: this is a mock implementation for exported.ClientState. This implementation
@@ -25,13 +27,13 @@ import (
 
 // Interface implementation checks.
 var (
-	_, _ codectypes.UnpackInterfacesMessage = (*ClientState)(nil), (*ConsensusState)(nil)
-	_    exported.ClientState               = (*ClientState)(nil)
-	_    exported.ConsensusState            = (*ConsensusState)(nil)
+	_, _ gogoprotoany.UnpackInterfacesMessage = (*ClientState)(nil), (*ConsensusState)(nil)
+	_    exported.ClientState                 = (*ClientState)(nil)
+	_    exported.ConsensusState              = (*ConsensusState)(nil)
 )
 
 // RegisterInterfaces registers the solomachine v2 ClientState and ConsensusState types in the interface registry.
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 	registry.RegisterImplementations(
 		(*exported.ClientState)(nil),
 		&ClientState{},
@@ -43,12 +45,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 }
 
 // UnpackInterfaces implements the UnpackInterfaceMessages.UnpackInterfaces method
-func (cs ClientState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (cs ClientState) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	return cs.ConsensusState.UnpackInterfaces(unpacker)
 }
 
 // UnpackInterfaces implements the UnpackInterfaceMessages.UnpackInterfaces method
-func (cs ConsensusState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (cs ConsensusState) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
 	return unpacker.UnpackAny(cs.PublicKey, new(cryptotypes.PubKey))
 }
 
@@ -63,7 +65,7 @@ func (ClientState) GetLatestHeight() exported.Height {
 }
 
 // Status panics!
-func (ClientState) Status(_ sdk.Context, _ storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
+func (ClientState) Status(_ context.Context, _ storetypes.KVStore, _ codec.BinaryCodec) exported.Status {
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
@@ -73,51 +75,51 @@ func (ClientState) Validate() error {
 }
 
 // Initialize panics!
-func (ClientState) Initialize(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ConsensusState) error {
+func (ClientState) Initialize(_ context.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ConsensusState) error {
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // CheckForMisbehaviour panics!
-func (ClientState) CheckForMisbehaviour(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage) bool {
+func (ClientState) CheckForMisbehaviour(_ context.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage) bool {
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // UpdateStateOnMisbehaviour panics!
 func (*ClientState) UpdateStateOnMisbehaviour(
-	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
+	_ context.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) {
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyClientMessage panics!
 func (*ClientState) VerifyClientMessage(
-	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
+	_ context.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) error {
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // UpdateState panis!
-func (*ClientState) UpdateState(_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage) []exported.Height {
+func (*ClientState) UpdateState(_ context.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage) []exported.Height {
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // CheckHeaderAndUpdateState panics!
 func (*ClientState) CheckHeaderAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
+	_ context.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) (exported.ClientState, exported.ConsensusState, error) {
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // CheckMisbehaviourAndUpdateState panics!
 func (ClientState) CheckMisbehaviourAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
+	_ context.Context, _ codec.BinaryCodec, _ storetypes.KVStore, _ exported.ClientMessage,
 ) (exported.ClientState, error) {
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // CheckSubstituteAndUpdateState panics!
 func (ClientState) CheckSubstituteAndUpdateState(
-	ctx sdk.Context, _ codec.BinaryCodec, _, _ storetypes.KVStore,
+	ctx context.Context, _ codec.BinaryCodec, _, _ storetypes.KVStore,
 	_ exported.ClientState,
 ) error {
 	panic(errors.New("legacy solo machine is deprecated"))
@@ -125,7 +127,7 @@ func (ClientState) CheckSubstituteAndUpdateState(
 
 // VerifyUpgradeAndUpdateState panics!
 func (ClientState) VerifyUpgradeAndUpdateState(
-	_ sdk.Context, _ codec.BinaryCodec, _ storetypes.KVStore,
+	_ context.Context, _ codec.BinaryCodec, _ storetypes.KVStore,
 	_ exported.ClientState, _ exported.ConsensusState, _, _ []byte,
 ) error {
 	panic(errors.New("legacy solo machine is deprecated"))
@@ -150,7 +152,7 @@ func (ClientState) VerifyClientConsensusState(
 
 // VerifyPacketCommitment panics!
 func (ClientState) VerifyPacketCommitment(
-	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
+	context.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64, []byte,
 ) error {
@@ -159,7 +161,7 @@ func (ClientState) VerifyPacketCommitment(
 
 // VerifyPacketAcknowledgement panics!
 func (ClientState) VerifyPacketAcknowledgement(
-	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
+	context.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64, []byte,
 ) error {
@@ -168,7 +170,7 @@ func (ClientState) VerifyPacketAcknowledgement(
 
 // VerifyPacketReceiptAbsence panics!
 func (ClientState) VerifyPacketReceiptAbsence(
-	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
+	context.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64,
 ) error {
@@ -177,7 +179,7 @@ func (ClientState) VerifyPacketReceiptAbsence(
 
 // VerifyNextSequenceRecv panics!
 func (ClientState) VerifyNextSequenceRecv(
-	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
+	context.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
 	uint64, uint64, exported.Prefix, []byte,
 	string, string, uint64,
 ) error {
@@ -186,14 +188,14 @@ func (ClientState) VerifyNextSequenceRecv(
 
 // GetTimestampAtHeight panics!
 func (ClientState) GetTimestampAtHeight(
-	sdk.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
+	context.Context, storetypes.KVStore, codec.BinaryCodec, exported.Height,
 ) (uint64, error) {
 	panic(errors.New("legacy solo machine is deprecated"))
 }
 
 // VerifyMembership panics!
 func (*ClientState) VerifyMembership(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
@@ -208,7 +210,7 @@ func (*ClientState) VerifyMembership(
 
 // VerifyNonMembership panics!
 func (*ClientState) VerifyNonMembership(
-	ctx sdk.Context,
+	ctx context.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,

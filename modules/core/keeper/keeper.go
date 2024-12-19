@@ -2,68 +2,52 @@ package keeper
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 	"strings"
 
-	storetypes "cosmossdk.io/store/types"
+	corestore "cosmossdk.io/core/store"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	clientkeeper "github.com/cosmos/ibc-go/v8/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectionkeeper "github.com/cosmos/ibc-go/v8/modules/core/03-connection/keeper"
-	channelkeeper "github.com/cosmos/ibc-go/v8/modules/core/04-channel/keeper"
-	portkeeper "github.com/cosmos/ibc-go/v8/modules/core/05-port/keeper"
-	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/types"
+	clientkeeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
+	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
+	portkeeper "github.com/cosmos/ibc-go/v9/modules/core/05-port/keeper"
+	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/types"
 )
-
-var _ types.QueryServer = (*Keeper)(nil)
 
 // Keeper defines each ICS keeper for IBC
 type Keeper struct {
-	// implements gRPC QueryServer interface
-	types.QueryServer
-
-	cdc codec.BinaryCodec
-
 	ClientKeeper     *clientkeeper.Keeper
 	ConnectionKeeper *connectionkeeper.Keeper
 	ChannelKeeper    *channelkeeper.Keeper
 	PortKeeper       *portkeeper.Keeper
+
+	cdc codec.BinaryCodec
 
 	authority string
 }
 
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
-	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace,
-	consensusHost clienttypes.ConsensusHost, upgradeKeeper clienttypes.UpgradeKeeper,
-	scopedKeeper capabilitykeeper.ScopedKeeper, authority string,
+	cdc codec.BinaryCodec, storeService corestore.KVStoreService, paramSpace types.ParamSubspace,
+	upgradeKeeper clienttypes.UpgradeKeeper, authority string,
 ) *Keeper {
 	// panic if any of the keepers passed in is empty
-	if isEmpty(consensusHost) {
-		panic(errors.New("cannot initialize IBC keeper: empty consensus host"))
-	}
-
 	if isEmpty(upgradeKeeper) {
 		panic(errors.New("cannot initialize IBC keeper: empty upgrade keeper"))
-	}
-
-	if reflect.DeepEqual(capabilitykeeper.ScopedKeeper{}, scopedKeeper) {
-		panic(errors.New("cannot initialize IBC keeper: empty scoped keeper"))
 	}
 
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	clientKeeper := clientkeeper.NewKeeper(cdc, key, paramSpace, consensusHost, upgradeKeeper)
-	connectionKeeper := connectionkeeper.NewKeeper(cdc, key, paramSpace, clientKeeper)
-	portKeeper := portkeeper.NewKeeper(scopedKeeper)
-	channelKeeper := channelkeeper.NewKeeper(cdc, key, clientKeeper, connectionKeeper, portKeeper, scopedKeeper)
+	clientKeeper := clientkeeper.NewKeeper(cdc, storeService, paramSpace, upgradeKeeper)
+	connectionKeeper := connectionkeeper.NewKeeper(cdc, storeService, paramSpace, clientKeeper)
+	portKeeper := portkeeper.NewKeeper()
+	channelKeeper := channelkeeper.NewKeeper(cdc, storeService, clientKeeper, connectionKeeper)
 
 	return &Keeper{
 		cdc:              cdc,
@@ -78,15 +62,6 @@ func NewKeeper(
 // Codec returns the IBC module codec.
 func (k *Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
-}
-
-// SetConsensusHost sets a custom ConsensusHost for self client state and consensus state validation.
-func (k *Keeper) SetConsensusHost(consensusHost clienttypes.ConsensusHost) {
-	if consensusHost == nil {
-		panic(fmt.Errorf("cannot set a nil self consensus host"))
-	}
-
-	k.ClientKeeper.SetConsensusHost(consensusHost)
 }
 
 // SetRouter sets the Router in IBC Keeper and seals it. The method panics if

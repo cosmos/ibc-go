@@ -4,13 +4,13 @@ import (
 	"math"
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	tendermint "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
+	tendermint "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *TendermintTestSuite) TestGetConsensusState() {
@@ -38,7 +38,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 			"not a consensus state interface", func() {
 				// marshal an empty client state and set as consensus state
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				clientStateBz := suite.chainA.App.GetIBCKeeper().ClientKeeper.MustMarshalClientState(&tendermint.ClientState{})
+				clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), &tendermint.ClientState{})
 				store.Set(host.ConsensusStateKey(height), clientStateBz)
 			}, false, true,
 		},
@@ -46,7 +46,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 			"invalid consensus state (solomachine)", func() {
 				// marshal and set solomachine consensus state
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				consensusStateBz := suite.chainA.App.GetIBCKeeper().ClientKeeper.MustMarshalConsensusState(&solomachine.ConsensusState{})
+				consensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), &solomachine.ConsensusState{})
 				store.Set(host.ConsensusStateKey(height), consensusStateBz)
 			}, false, true,
 		},

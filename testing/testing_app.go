@@ -11,6 +11,8 @@ import (
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
+	banktypes "cosmossdk.io/x/bank/types"
+	stakingtypes "cosmossdk.io/x/staking/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -21,16 +23,12 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-	"github.com/cosmos/ibc-go/v8/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v8/testing/simapp"
-	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v9/testing/simapp"
 )
 
 var DefaultTestingAppInit = SetupTestingApp
@@ -40,9 +38,7 @@ type TestingApp interface {
 
 	// ibc-go additions
 	GetBaseApp() *baseapp.BaseApp
-	GetStakingKeeper() ibctestingtypes.StakingKeeper
 	GetIBCKeeper() *keeper.Keeper
-	GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper
 	GetTxConfig() client.TxConfig
 
 	// Implemented by SimApp
@@ -55,7 +51,7 @@ type TestingApp interface {
 
 func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, make(simtestutil.AppOptionsMap))
 	return app, app.DefaultGenesis()
 }
 
@@ -127,7 +123,7 @@ func SetupWithGenesisValSet(tb testing.TB, valSet *cmttypes.ValidatorSet, genAcc
 
 	// init chain will set the validator set and initialize the genesis accounts
 	_, err = app.InitChain(
-		&abci.RequestInitChain{
+		&abci.InitChainRequest{
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
 			AppStateBytes:   stateBytes,

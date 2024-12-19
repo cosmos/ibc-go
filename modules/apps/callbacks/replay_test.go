@@ -6,12 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (s *CallbacksTestSuite) TestTransferTimeoutReplayProtection() {
@@ -37,7 +37,7 @@ func (s *CallbacksTestSuite) TestTransferTimeoutReplayProtection() {
 				cachedCtx sdk.Context,
 				packet channeltypes.Packet,
 				_ sdk.AccAddress,
-				_, _ string,
+				_, _, _ string,
 			) error {
 				// only replay the timeout packet twice. We could replay it more times
 				callbackCount++
@@ -119,7 +119,7 @@ func (s *CallbacksTestSuite) TestTransferErrorAcknowledgementReplayProtection() 
 				packet channeltypes.Packet,
 				ack []byte,
 				_ sdk.AccAddress,
-				_, _ string,
+				_, _, _ string,
 			) error {
 				// only replay the ack packet twice. We could replay it more times
 				callbackCount++
@@ -197,7 +197,7 @@ func (s *CallbacksTestSuite) TestTransferSuccessAcknowledgementReplayProtection(
 				packet channeltypes.Packet,
 				ack []byte,
 				_ sdk.AccAddress,
-				_, _ string,
+				_, _, _ string,
 			) error {
 				// only replay the ack packet twice. We could replay it more times
 				callbackCount++
@@ -265,7 +265,7 @@ func (s *CallbacksTestSuite) TestTransferRecvPacketReplayProtection() {
 				cachedCtx sdk.Context,
 				packet ibcexported.PacketI,
 				_ ibcexported.Acknowledgement,
-				_ string,
+				_, _ string,
 			) error {
 				callbackCount++
 				if callbackCount == 2 {
@@ -286,8 +286,8 @@ func (s *CallbacksTestSuite) TestTransferRecvPacketReplayProtection() {
 			}
 
 			// save initial balance of receiver
-			voucherDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, sdk.DefaultBondDenom))
-			initialBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
+			denom := transfertypes.NewDenom(sdk.DefaultBondDenom, transfertypes.NewHop(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID))
+			initialBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
 
 			// execute the transfer
 			s.ExecuteTransfer(tc.transferMemo)
@@ -296,9 +296,9 @@ func (s *CallbacksTestSuite) TestTransferRecvPacketReplayProtection() {
 			s.Require().Equal(1, callbackCount)
 
 			// expected is not a malicious amount
-			expBalance := initialBalance.Add(sdk.NewCoin(voucherDenomTrace.IBCDenom(), ibctesting.TestCoin.Amount))
+			expBalance := initialBalance.Add(sdk.NewCoin(denom.IBCDenom(), ibctesting.TestCoin.Amount))
 
-			afterBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
+			afterBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
 
 			s.Require().Equal(expBalance.Amount, afterBalance.Amount)
 		})
@@ -319,17 +319,18 @@ func (s *CallbacksTestSuite) ExecuteFailedTransfer(memo string) {
 	// record the balance of the escrow address before the transfer
 	escrowBalance := GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
 	// record the balance of the receiving address before the transfer
-	voucherDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, sdk.DefaultBondDenom))
-	receiverBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
+	denom := transfertypes.NewDenom(sdk.DefaultBondDenom, transfertypes.NewHop(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID))
+	receiverBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
 
 	amount := ibctesting.TestCoin
 	msg := transfertypes.NewMsgTransfer(
 		s.path.EndpointA.ChannelConfig.PortID,
 		s.path.EndpointA.ChannelID,
-		amount,
+		sdk.NewCoins(amount),
 		s.chainA.SenderAccount.GetAddress().String(),
 		s.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, memo,
+		nil,
 	)
 
 	res, err := s.chainA.SendMsgs(msg)
@@ -347,5 +348,5 @@ func (s *CallbacksTestSuite) ExecuteFailedTransfer(memo string) {
 	// check that the escrow address balance hasn't changed
 	s.Require().Equal(escrowBalance, GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom))
 	// check that the receiving address balance hasn't changed
-	s.Require().Equal(receiverBalance, GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom()))
+	s.Require().Equal(receiverBalance, GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom()))
 }

@@ -7,8 +7,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 const (
@@ -97,7 +97,7 @@ func KeyCounterpartyPayee(address, channelID string) []byte {
 }
 
 // ParseKeyCounterpartyPayee returns the registered relayer address and channelID used to store the counterparty payee address
-func ParseKeyCounterpartyPayee(key string) (address string, channelID string, error error) {
+func ParseKeyCounterpartyPayee(key string) (address string, channelID string, err error) {
 	keySplit := strings.Split(key, "/")
 	if len(keySplit) != 3 {
 		return "", "", errorsmod.Wrapf(

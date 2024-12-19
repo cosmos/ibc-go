@@ -6,18 +6,16 @@ import (
 
 // IBC channel sentinel errors
 var (
-	ErrChannelExists             = errorsmod.Register(SubModuleName, 2, "channel already exists")
-	ErrChannelNotFound           = errorsmod.Register(SubModuleName, 3, "channel not found")
-	ErrInvalidChannel            = errorsmod.Register(SubModuleName, 4, "invalid channel")
-	ErrInvalidChannelState       = errorsmod.Register(SubModuleName, 5, "invalid channel state")
-	ErrInvalidChannelOrdering    = errorsmod.Register(SubModuleName, 6, "invalid channel ordering")
-	ErrInvalidCounterparty       = errorsmod.Register(SubModuleName, 7, "invalid counterparty channel")
-	ErrInvalidChannelCapability  = errorsmod.Register(SubModuleName, 8, "invalid channel capability")
-	ErrChannelCapabilityNotFound = errorsmod.Register(SubModuleName, 9, "channel capability not found")
-	ErrSequenceSendNotFound      = errorsmod.Register(SubModuleName, 10, "sequence send not found")
-	ErrSequenceReceiveNotFound   = errorsmod.Register(SubModuleName, 11, "sequence receive not found")
-	ErrSequenceAckNotFound       = errorsmod.Register(SubModuleName, 12, "sequence acknowledgement not found")
-	ErrInvalidPacket             = errorsmod.Register(SubModuleName, 13, "invalid packet")
+	ErrChannelExists           = errorsmod.Register(SubModuleName, 2, "channel already exists")
+	ErrChannelNotFound         = errorsmod.Register(SubModuleName, 3, "channel not found")
+	ErrInvalidChannel          = errorsmod.Register(SubModuleName, 4, "invalid channel")
+	ErrInvalidChannelState     = errorsmod.Register(SubModuleName, 5, "invalid channel state")
+	ErrInvalidChannelOrdering  = errorsmod.Register(SubModuleName, 6, "invalid channel ordering")
+	ErrInvalidCounterparty     = errorsmod.Register(SubModuleName, 7, "invalid counterparty channel")
+	ErrSequenceSendNotFound    = errorsmod.Register(SubModuleName, 10, "sequence send not found")
+	ErrSequenceReceiveNotFound = errorsmod.Register(SubModuleName, 11, "sequence receive not found")
+	ErrSequenceAckNotFound     = errorsmod.Register(SubModuleName, 12, "sequence acknowledgement not found")
+	ErrInvalidPacket           = errorsmod.Register(SubModuleName, 13, "invalid packet")
 
 	// Deprecated: ErrPacketTimeout is deprecated and will be removed in a future release.
 	// Please use ErrTimeoutElapsed instead.
@@ -60,4 +58,5 @@ var (
 	ErrTimeoutElapsed                  = errorsmod.Register(SubModuleName, 40, "timeout elapsed")
 	ErrPruningSequenceStartNotFound    = errorsmod.Register(SubModuleName, 41, "pruning sequence start not found")
 	ErrRecvStartSequenceNotFound       = errorsmod.Register(SubModuleName, 42, "recv start sequence not found")
+	ErrInvalidCommitment               = errorsmod.Register(SubModuleName, 43, "invalid commitment")
 )

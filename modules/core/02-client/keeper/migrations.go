@@ -3,8 +3,10 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/migrations/v7"
-	"github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -24,13 +26,7 @@ func NewMigrator(keeper *Keeper) Migrator {
 // - removes the localhost client
 // - asserts that existing tendermint clients are properly registered on the chain codec
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
-	return v7.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc, m.keeper)
-}
-
-// Migrate3to4 migrates from consensus version 3 to 4.
-// This migration enables the localhost client.
-func (m Migrator) Migrate3to4(ctx sdk.Context) error {
-	return v7.MigrateLocalhostClient(ctx, m.keeper)
+	return v7.MigrateStore(ctx, m.keeper.storeService, m.keeper.cdc, m.keeper)
 }
 
 // MigrateParams migrates from consensus version 4 to 5.
@@ -45,5 +41,15 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 
 	m.keeper.SetParams(ctx, params)
 	m.keeper.Logger(ctx).Info("successfully migrated client to self-manage params")
+	return nil
+}
+
+// MigrateToStatelessLocalhost deletes the localhost client state. The localhost
+// implementation is now stateless.
+func (m Migrator) MigrateToStatelessLocalhost(ctx sdk.Context) error {
+	clientStore := m.keeper.ClientStore(ctx, exported.LocalhostClientID)
+
+	// delete the client state
+	clientStore.Delete(host.ClientStateKey())
 	return nil
 }

@@ -1,6 +1,7 @@
 package tendermint
 
 import (
+	"context"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -8,11 +9,11 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // VerifyUpgradeAndUpdateState checks if the upgraded client has been committed by the current client
@@ -27,7 +28,7 @@ import (
 //   - any Tendermint chain specified parameter in upgraded client such as ChainID, UnbondingPeriod,
 //     and ProofSpecs do not match parameters set by committed client
 func (cs ClientState) VerifyUpgradeAndUpdateState(
-	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
+	ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
 	upgradedClient exported.ClientState, upgradedConsState exported.ConsensusState,
 	upgradeClientProof, upgradeConsStateProof []byte,
 ) error {
@@ -124,7 +125,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 }
 
 // construct MerklePath for the committed client from upgradePath
-func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypes.MerklePath {
+func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypesv2.MerklePath {
 	// copy all elements from upgradePath except final element
 	clientPath := make([]string, len(upgradePath)-1)
 	copy(clientPath, upgradePath)
@@ -135,11 +136,17 @@ func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.
 	appendedKey := fmt.Sprintf("%s/%d/%s", lastKey, lastHeight.GetRevisionHeight(), upgradetypes.KeyUpgradedClient)
 
 	clientPath = append(clientPath, appendedKey)
-	return commitmenttypes.NewMerklePath(clientPath...)
+
+	var clientKey [][]byte
+	for _, part := range clientPath {
+		clientKey = append(clientKey, []byte(part))
+	}
+
+	return commitmenttypes.NewMerklePath(clientKey...)
 }
 
 // construct MerklePath for the committed consensus state from upgradePath
-func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypes.MerklePath {
+func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypesv2.MerklePath {
 	// copy all elements from upgradePath except final element
 	consPath := make([]string, len(upgradePath)-1)
 	copy(consPath, upgradePath)
@@ -150,5 +157,11 @@ func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight export
 	appendedKey := fmt.Sprintf("%s/%d/%s", lastKey, lastHeight.GetRevisionHeight(), upgradetypes.KeyUpgradedConsState)
 
 	consPath = append(consPath, appendedKey)
-	return commitmenttypes.NewMerklePath(consPath...)
+
+	var consStateKey [][]byte
+	for _, part := range consPath {
+		consStateKey = append(consStateKey, []byte(part))
+	}
+
+	return commitmenttypes.NewMerklePath(consStateKey...)
 }

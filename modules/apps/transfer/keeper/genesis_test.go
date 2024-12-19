@@ -7,56 +7,71 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *KeeperTestSuite) TestGenesis() {
-	getTrace := func(index uint) string {
-		return fmt.Sprintf("transfer/channelToChain%d", index)
+	getHop := func(index uint) types.Hop {
+		return types.NewHop("transfer", fmt.Sprintf("channelToChain%d", index))
 	}
 
 	var (
-		denomTraces           types.Traces
+		denoms                types.Denoms
 		escrows               sdk.Coins
-		pathsAndEscrowAmounts = []struct {
-			path   string
+		traceAndEscrowAmounts = []struct {
+			trace  []types.Hop
 			escrow string
 		}{
-			{getTrace(0), "10"},
-			{fmt.Sprintf("%s/%s", getTrace(1), getTrace(0)), "100000"},
-			{fmt.Sprintf("%s/%s/%s", getTrace(2), getTrace(1), getTrace(0)), "10000000000"},
-			{fmt.Sprintf("%s/%s/%s/%s", getTrace(3), getTrace(2), getTrace(1), getTrace(0)), "1000000000000000"},
-			{fmt.Sprintf("%s/%s/%s/%s/%s", getTrace(4), getTrace(3), getTrace(2), getTrace(1), getTrace(0)), "100000000000000000000"},
+			{[]types.Hop{getHop(0)}, "10"},
+			{[]types.Hop{getHop(1), getHop(0)}, "100000"},
+			{[]types.Hop{getHop(2), getHop(1), getHop(0)}, "10000000000"},
+			{[]types.Hop{getHop(3), getHop(2), getHop(1), getHop(0)}, "1000000000000000"},
+			{[]types.Hop{getHop(4), getHop(3), getHop(2), getHop(1), getHop(0)}, "100000000000000000000"},
 		}
+		forwardPackets []types.ForwardedPacket
 	)
 
-	for _, pathAndEscrowAmount := range pathsAndEscrowAmounts {
-		denomTrace := types.DenomTrace{
-			BaseDenom: "uatom",
-			Path:      pathAndEscrowAmount.path,
-		}
-		denomTraces = append(types.Traces{denomTrace}, denomTraces...)
-		suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), denomTrace)
+	for _, traceAndEscrowAmount := range traceAndEscrowAmounts {
+		denom := types.NewDenom("uatom", traceAndEscrowAmount.trace...)
+		denoms = append(denoms, denom)
+		suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
 
-		denom := denomTrace.IBCDenom()
-		amount, ok := sdkmath.NewIntFromString(pathAndEscrowAmount.escrow)
+		amount, ok := sdkmath.NewIntFromString(traceAndEscrowAmount.escrow)
 		suite.Require().True(ok)
-		escrows = append(sdk.NewCoins(sdk.NewCoin(denom, amount)), escrows...)
-		suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), sdk.NewCoin(denom, amount))
+		escrow := sdk.NewCoin(denom.IBCDenom(), amount)
+		escrows = append(escrows, escrow)
+		suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), escrow)
+	}
+
+	// Store forward packets on transfer/channel-1 and transfer/channel-2
+	for _, channelID := range []string{"channel-1", "channel-2"} {
+		// go across '10' to test numerical order
+		for sequence := uint64(5); sequence <= 15; sequence++ {
+			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, ibctesting.TransferPort, channelID, "", "", clienttypes.ZeroHeight(), 0)
+			forwardPackets = append(forwardPackets, types.ForwardedPacket{ForwardKey: channeltypes.NewPacketID(ibctesting.TransferPort, channelID, sequence), Packet: packet})
+
+			suite.chainA.GetSimApp().TransferKeeper.SetForwardedPacket(suite.chainA.GetContext(), ibctesting.TransferPort, channelID, sequence, packet)
+		}
 	}
 
 	genesis := suite.chainA.GetSimApp().TransferKeeper.ExportGenesis(suite.chainA.GetContext())
 
 	suite.Require().Equal(types.PortID, genesis.PortId)
-	suite.Require().Equal(denomTraces.Sort(), genesis.DenomTraces)
+	suite.Require().Equal(denoms.Sort(), genesis.Denoms)
 	suite.Require().Equal(escrows.Sort(), genesis.TotalEscrowed)
 
 	suite.Require().NotPanics(func() {
 		suite.chainA.GetSimApp().TransferKeeper.InitGenesis(suite.chainA.GetContext(), *genesis)
 	})
 
-	for _, denomTrace := range denomTraces {
-		_, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainA.GetContext(), denomTrace.IBCDenom())
+	for _, denom := range denoms {
+		_, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainA.GetContext(), denom.IBCDenom())
 		suite.Require().True(found)
 	}
+
+	storedForwardedPackets := suite.chainA.GetSimApp().TransferKeeper.GetAllForwardedPackets(suite.chainA.GetContext())
+	suite.Require().Equal(storedForwardedPackets, forwardPackets)
 }

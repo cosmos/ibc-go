@@ -2,17 +2,18 @@ package ibctesting
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"slices"
 	"strconv"
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 // ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
@@ -20,14 +21,12 @@ import (
 func ParseClientIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == clienttypes.EventTypeCreateClient {
-			for _, attr := range ev.Attributes {
-				if attr.Key == clienttypes.AttributeKeyClientID {
-					return attr.Value, nil
-				}
+			if attribute, found := attributeByKey(ev.Attributes, clienttypes.AttributeKeyClientID); found {
+				return attribute.Value, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("client identifier event attribute not found")
+	return "", errors.New("client identifier event attribute not found")
 }
 
 // ParseConnectionIDFromEvents parses events emitted from a MsgConnectionOpenInit or
@@ -36,14 +35,12 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == connectiontypes.EventTypeConnectionOpenInit ||
 			ev.Type == connectiontypes.EventTypeConnectionOpenTry {
-			for _, attr := range ev.Attributes {
-				if attr.Key == connectiontypes.AttributeKeyConnectionID {
-					return attr.Value, nil
-				}
+			if attribute, found := attributeByKey(ev.Attributes, connectiontypes.AttributeKeyConnectionID); found {
+				return attribute.Value, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("connection identifier event attribute not found")
+	return "", errors.New("connection identifier event attribute not found")
 }
 
 // ParseChannelIDFromEvents parses events emitted from a MsgChannelOpenInit or
@@ -51,21 +48,30 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
-			for _, attr := range ev.Attributes {
-				if attr.Key == channeltypes.AttributeKeyChannelID {
-					return attr.Value, nil
-				}
+			if attribute, found := attributeByKey(ev.Attributes, channeltypes.AttributeKeyChannelID); found {
+				return attribute.Value, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("channel identifier event attribute not found")
+	return "", errors.New("channel identifier event attribute not found")
 }
 
-// ParsePacketFromEvents parses events emitted from a MsgRecvPacket and returns
-// the first packet found.
+// ParsePacketFromEvents parses events emitted from a send packet and returns
+// the first EventTypeSendPacket packet found.
 // Returns an error if no packet is found.
 func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
-	packets, err := ParsePacketsFromEvents(events)
+	packets, err := ParsePacketsFromEvents(channeltypes.EventTypeSendPacket, events)
+	if err != nil {
+		return channeltypes.Packet{}, err
+	}
+	return packets[0], nil
+}
+
+// ParseRecvPacketFromEvents parses events emitted from a MsgRecvPacket and returns
+// the first EventTypeRecvPacket packet found.
+// Returns an error if no packet is found.
+func ParseRecvPacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
+	packets, err := ParsePacketsFromEvents(channeltypes.EventTypeRecvPacket, events)
 	if err != nil {
 		return channeltypes.Packet{}, err
 	}
@@ -75,13 +81,13 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 // ParsePacketsFromEvents parses events emitted from a MsgRecvPacket and returns
 // all the packets found.
 // Returns an error if no packet is found.
-func ParsePacketsFromEvents(events []abci.Event) ([]channeltypes.Packet, error) {
+func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltypes.Packet, error) {
 	ferr := func(err error) ([]channeltypes.Packet, error) {
 		return nil, fmt.Errorf("ibctesting.ParsePacketsFromEvents: %w", err)
 	}
 	var packets []channeltypes.Packet
 	for _, ev := range events {
-		if ev.Type == channeltypes.EventTypeSendPacket {
+		if ev.Type == eventType {
 			var packet channeltypes.Packet
 			for _, attr := range ev.Attributes {
 				switch attr.Key {
@@ -136,7 +142,7 @@ func ParsePacketsFromEvents(events []abci.Event) ([]channeltypes.Packet, error) 
 		}
 	}
 	if len(packets) == 0 {
-		return ferr(fmt.Errorf("acknowledgement event attribute not found"))
+		return ferr(errors.New("acknowledgement event attribute not found"))
 	}
 	return packets, nil
 }
@@ -146,32 +152,36 @@ func ParsePacketsFromEvents(events []abci.Event) ([]channeltypes.Packet, error) 
 func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeWriteAck {
-			for _, attr := range ev.Attributes {
-				if attr.Key == channeltypes.AttributeKeyAckHex {
-					value, err := hex.DecodeString(attr.Value)
-					if err != nil {
-						return nil, err
-					}
-
-					return value, nil
+			if attribute, found := attributeByKey(ev.Attributes, channeltypes.AttributeKeyAckHex); found {
+				value, err := hex.DecodeString(attribute.Value)
+				if err != nil {
+					return nil, err
 				}
+				return value, nil
 			}
 		}
 	}
-	return nil, fmt.Errorf("acknowledgement event attribute not found")
+	return nil, errors.New("acknowledgement event attribute not found")
 }
 
 // ParseProposalIDFromEvents parses events emitted from MsgSubmitProposal and returns proposalID
 func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 	for _, event := range events {
-		for _, attribute := range event.Attributes {
-			if attribute.Key == "proposal_id" {
-				return strconv.ParseUint(attribute.Value, 10, 64)
-			}
+		if attribute, found := attributeByKey(event.Attributes, "proposal_id"); found {
+			return strconv.ParseUint(attribute.Value, 10, 64)
 		}
 	}
+	return 0, errors.New("proposalID event attribute not found")
+}
 
-	return 0, fmt.Errorf("proposalID event attribute not found")
+// ParsePacketSequenceFromEvents parses events emitted from MsgRecvPacket and returns the packet sequence
+func ParsePacketSequenceFromEvents(events []abci.Event) (uint64, error) {
+	for _, event := range events {
+		if attribute, found := attributeByKey(event.Attributes, "packet_sequence"); found {
+			return strconv.ParseUint(attribute.Value, 10, 64)
+		}
+	}
+	return 0, errors.New("packet sequence event attribute not found")
 }
 
 // AssertEvents asserts that expected events are present in the actual events.
@@ -206,17 +216,7 @@ func AssertEvents(
 
 // shouldProcessEvent returns true if the given expected event should be processed based on event type.
 func shouldProcessEvent(expectedEvent abci.Event, actualEvent abci.Event) bool {
-	if expectedEvent.Type != actualEvent.Type {
-		return false
-	}
-	// the actual event will have an extra attribute added automatically
-	// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
-	// with the number of attributes in the expected event.
-	if containsAttributeKey(actualEvent.Attributes, "msg_index") {
-		return len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1
-	}
-
-	return len(expectedEvent.Attributes) == len(actualEvent.Attributes)
+	return expectedEvent.Type == actualEvent.Type
 }
 
 // containsAttribute returns true if the given key/value pair is contained in the given attributes.
@@ -227,9 +227,11 @@ func containsAttribute(attrs []abci.EventAttribute, key, value string) bool {
 	})
 }
 
-// containsAttributeKey returns true if the given key is contained in the given attributes.
-func containsAttributeKey(attrs []abci.EventAttribute, key string) bool {
-	return slices.ContainsFunc(attrs, func(attr abci.EventAttribute) bool {
-		return attr.Key == key
-	})
+// attributeByKey returns the event attribute's value keyed by the given key and a boolean indicating its presence in the given attributes.
+func attributeByKey(attributes []abci.EventAttribute, key string) (abci.EventAttribute, bool) {
+	idx := slices.IndexFunc(attributes, func(a abci.EventAttribute) bool { return a.Key == key })
+	if idx == -1 {
+		return abci.EventAttribute{}, false
+	}
+	return attributes[idx], true
 }

@@ -7,14 +7,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
 const (
 	MaximumReceiverLength = 2048  // maximum length of the receiver address in bytes (value chosen arbitrarily)
 	MaximumMemoLength     = 32768 // maximum length of the memo in bytes (value chosen arbitrarily)
+	MaximumTokensLength   = 100   // maximum number of tokens that can be transferred in a single message (value chosen arbitrarily)
 )
 
 var (
@@ -45,19 +46,21 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 // NewMsgTransfer creates a new MsgTransfer instance
 func NewMsgTransfer(
 	sourcePort, sourceChannel string,
-	token sdk.Coin, sender, receiver string,
+	tokens sdk.Coins, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
 	memo string,
+	forwarding *Forwarding,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
 		SourceChannel:    sourceChannel,
-		Token:            token,
 		Sender:           sender,
 		Receiver:         receiver,
 		TimeoutHeight:    timeoutHeight,
 		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             memo,
+		Tokens:           tokens,
+		Forwarding:       forwarding,
 	}
 }
 
@@ -66,17 +69,24 @@ func NewMsgTransfer(
 // NOTE: The recipient addresses format is not validated as the format defined by
 // the chain is not known to IBC.
 func (msg MsgTransfer) ValidateBasic() error {
-	if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
-		return errorsmod.Wrap(err, "invalid source port ID")
+	if err := msg.validateForwarding(); err != nil {
+		return err
 	}
-	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
-		return errorsmod.Wrap(err, "invalid source channel ID")
+
+	if err := msg.validateIdentifiers(); err != nil {
+		return err
 	}
-	if !msg.Token.IsValid() {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, msg.Token.String())
+
+	if len(msg.Tokens) == 0 && !isValidIBCCoin(msg.Token) {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "either token or token array must be filled")
 	}
-	if !msg.Token.IsPositive() {
-		return errorsmod.Wrap(ibcerrors.ErrInsufficientFunds, msg.Token.String())
+
+	if len(msg.Tokens) != 0 && isValidIBCCoin(msg.Token) {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, "cannot fill both token and token array")
+	}
+
+	if len(msg.Tokens) > MaximumTokensLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, "number of tokens must not exceed %d", MaximumTokensLength)
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
@@ -92,5 +102,100 @@ func (msg MsgTransfer) ValidateBasic() error {
 	if len(msg.Memo) > MaximumMemoLength {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}
-	return ValidateIBCDenom(msg.Token.Denom)
+
+	for _, coin := range msg.GetCoins() {
+		if err := validateIBCCoin(coin); err != nil {
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidCoins, "%s: %s", err.Error(), coin.String())
+		}
+	}
+
+	return nil
+}
+
+// validateForwarding ensures that forwarding is set up correctly.
+func (msg MsgTransfer) validateForwarding() error {
+	if !msg.HasForwarding() {
+		return nil
+	}
+
+	if err := msg.Forwarding.Validate(); err != nil {
+		return err
+	}
+
+	if !msg.TimeoutHeight.IsZero() {
+		// when forwarding, the timeout height must not be set
+		return errorsmod.Wrapf(ErrInvalidPacketTimeout, "timeout height must be zero if forwarding path hops is not empty: %s, %s", msg.TimeoutHeight, msg.Forwarding.GetHops())
+	}
+
+	return nil
+}
+
+// GetCoins returns the tokens which will be transferred.
+// If MsgTransfer is populated in the Token field, only that field
+// will be returned in the coin array.
+func (msg MsgTransfer) GetCoins() sdk.Coins {
+	coins := msg.Tokens
+	if isValidIBCCoin(msg.Token) {
+		coins = []sdk.Coin{msg.Token}
+	}
+	return coins
+}
+
+// HasForwarding determines if the transfer should be forwarded to the next hop.
+func (msg MsgTransfer) HasForwarding() bool {
+	if msg.Forwarding == nil {
+		return false
+	}
+
+	return len(msg.Forwarding.GetHops()) > 0 || msg.Forwarding.GetUnwind()
+}
+
+// validateIdentifiers validates the source port and channel identifiers based on the
+// forwarding information present in the message. If forwarding information is missing
+// or unwinding isn't performed, we do normal validation, else, we assert that both
+// fields must be empty.
+func (msg MsgTransfer) validateIdentifiers() error {
+	if msg.Forwarding.GetUnwind() {
+		if msg.SourcePort != "" {
+			return errorsmod.Wrapf(ErrInvalidForwarding, "source port must be empty when unwind is set, got %s instead", msg.SourcePort)
+		}
+		if msg.SourceChannel != "" {
+			return errorsmod.Wrapf(ErrInvalidForwarding, "source channel must be empty when unwind is set, got %s instead", msg.SourceChannel)
+		}
+
+		return nil
+	}
+
+	// If forwarding is nil or if no unwinding occurs, validate port, channel.
+	if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
+		return errorsmod.Wrapf(err, "invalid source port ID %s", msg.SourcePort)
+	}
+	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
+		return errorsmod.Wrapf(err, "invalid source channel ID %s", msg.SourceChannel)
+	}
+
+	return nil
+}
+
+// isValidIBCCoin returns true if the token provided is valid,
+// and should be used to transfer tokens.
+func isValidIBCCoin(coin sdk.Coin) bool {
+	return validateIBCCoin(coin) == nil
+}
+
+// validateIBCCoin returns true if the token provided is valid,
+// and should be used to transfer tokens. The token must
+// have a positive amount.
+func validateIBCCoin(coin sdk.Coin) error {
+	if err := coin.Validate(); err != nil {
+		return err
+	}
+	if !coin.IsPositive() {
+		return errorsmod.Wrap(ErrInvalidAmount, "amount must be positive")
+	}
+	if err := validateIBCDenom(coin.GetDenom()); err != nil {
+		return errorsmod.Wrap(ErrInvalidDenomForTransfer, err.Error())
+	}
+
+	return nil
 }

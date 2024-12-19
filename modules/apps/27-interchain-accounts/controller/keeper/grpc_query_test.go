@@ -1,8 +1,9 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
@@ -11,67 +12,69 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			"",
 		},
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			"empty request",
 		},
 		{
 			"empty owner address",
 			func() {
 				req.Owner = ""
 			},
-			false,
+			"failed to generate portID from owner address: owner address cannot be empty: invalid account address",
 		},
 		{
 			"invalid connection, account address not found",
 			func() {
-				req.ConnectionId = "invalid-connection-id"
+				req.ConnectionId = ibctesting.InvalidID
 			},
-			false,
+			"failed to retrieve account address",
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
+	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
+		for _, tc := range testCases {
+			tc := tc
 
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+			suite.Run(tc.name, func() {
+				suite.SetupTest()
 
-			path := NewICAPath(suite.chainA, suite.chainB)
-			path.SetupConnections()
+				path := NewICAPath(suite.chainA, suite.chainB, ordering)
+				path.SetupConnections()
 
-			err := SetupICAPath(path, ibctesting.TestAccAddress)
-			suite.Require().NoError(err)
-
-			req = &types.QueryInterchainAccountRequest{
-				ConnectionId: ibctesting.FirstConnectionID,
-				Owner:        ibctesting.TestAccAddress,
-			}
-
-			tc.malleate()
-
-			res, err := suite.chainA.GetSimApp().ICAControllerKeeper.InterchainAccount(suite.chainA.GetContext(), req)
-
-			if tc.expPass {
-				expAddress, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(exists)
-
+				err := SetupICAPath(path, ibctesting.TestAccAddress)
 				suite.Require().NoError(err)
-				suite.Require().Equal(expAddress, res.Address)
-			} else {
-				suite.Require().Error(err)
-			}
-		})
+
+				req = &types.QueryInterchainAccountRequest{
+					ConnectionId: ibctesting.FirstConnectionID,
+					Owner:        ibctesting.TestAccAddress,
+				}
+
+				tc.malleate()
+
+				res, err := suite.chainA.GetSimApp().ICAControllerKeeper.InterchainAccount(suite.chainA.GetContext(), req)
+
+				if tc.errMsg == "" {
+					expAddress, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+					suite.Require().True(exists)
+
+					suite.Require().NoError(err)
+					suite.Require().Equal(expAddress, res.Address)
+				} else {
+					suite.Require().ErrorContains(err, tc.errMsg)
+				}
+			})
+		}
 	}
 }
 

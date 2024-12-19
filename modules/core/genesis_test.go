@@ -1,6 +1,7 @@
 package ibc_test
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -8,16 +9,16 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	"github.com/cosmos/ibc-go/v8/modules/core/types"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	"github.com/cosmos/ibc-go/v8/testing/simapp"
+	ibc "github.com/cosmos/ibc-go/v9/modules/core"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v9/modules/core/types"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/simapp"
 )
 
 const (
@@ -62,12 +63,12 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 	testCases := []struct {
 		name     string
 		genState *types.GenesisState
-		expPass  bool
+		expError error
 	}{
 		{
 			name:     "default",
 			genState: types.DefaultGenesisState(),
-			expPass:  true,
+			expError: nil,
 		},
 		{
 			name: "valid genesis",
@@ -145,7 +146,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					channeltypes.Params{UpgradeTimeout: channeltypes.DefaultTimeout},
 				),
 			},
-			expPass: true,
+			expError: nil,
 		},
 		{
 			name: "invalid client genesis",
@@ -172,7 +173,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 				),
 				ConnectionGenesis: connectiontypes.DefaultGenesisState(),
 			},
-			expPass: false,
+			expError: errors.New("genesis metadata key cannot be empty"),
 		},
 		{
 			name: "invalid connection genesis",
@@ -189,7 +190,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					connectiontypes.Params{},
 				),
 			},
-			expPass: false,
+			expError: errors.New("invalid connection"),
 		},
 		{
 			name: "invalid channel genesis",
@@ -202,17 +203,18 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					},
 				},
 			},
-			expPass: false,
+			expError: errors.New("invalid acknowledgement"),
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		err := tc.genState.Validate()
-		if tc.expPass {
+		if tc.expError == nil {
 			suite.Require().NoError(err, tc.name)
 		} else {
 			suite.Require().Error(err, tc.name)
+			suite.Require().Contains(err.Error(), tc.expError.Error())
 		}
 	}
 }
@@ -312,9 +314,9 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 
 		app := simapp.Setup(suite.T(), false)
 
-		suite.NotPanics(func() {
-			ibc.InitGenesis(app.BaseApp.NewContext(false), *app.IBCKeeper, tc.genState)
-		})
+		err := ibc.InitGenesis(app.BaseApp.NewContext(false), *app.IBCKeeper, tc.genState)
+		suite.Require().NoError(err)
+
 	}
 }
 
@@ -344,14 +346,14 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 			tc.malleate()
 
 			var gs *types.GenesisState
-			suite.NotPanics(func() {
-				gs = ibc.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper())
-			})
+
+			gs, err := ibc.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper())
+			suite.NoError(err)
 
 			// init genesis based on export
-			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
-			})
+
+			err = ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
+			suite.Require().NoError(err)
 
 			suite.NotPanics(func() {
 				cdc := codec.NewProtoCodec(suite.chainA.GetSimApp().InterfaceRegistry())
@@ -360,9 +362,9 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 			})
 
 			// init genesis based on marshal and unmarshal
-			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
-			})
+
+			err = ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
+			suite.Require().NoError(err)
 		})
 	}
 }

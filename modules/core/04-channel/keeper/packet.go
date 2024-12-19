@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"context"
 	"slices"
 	"strconv"
 
@@ -9,20 +10,17 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // SendPacket is called by a module in order to send an IBC packet on a channel.
 // The packet sequence generated for the packet to be sent is returned. An error
 // is returned if one occurs.
 func (k *Keeper) SendPacket(
-	ctx sdk.Context,
-	channelCap *capabilitytypes.Capability,
+	ctx context.Context,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -38,9 +36,7 @@ func (k *Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
-	if !k.scopedKeeper.AuthenticateCapability(ctx, channelCap, host.ChannelCapabilityPath(sourcePort, sourceChannel)) {
-		return 0, errorsmod.Wrapf(types.ErrChannelCapabilityNotFound, "caller does not own capability for channel, port ID (%s) channel ID (%s)", sourcePort, sourceChannel)
-	}
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 
 	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -89,7 +85,7 @@ func (k *Keeper) SendPacket(
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	emitSendPacketEvent(ctx, packet, channel, timeoutHeight)
+	emitSendPacketEvent(sdkCtx, packet, channel, timeoutHeight)
 
 	k.Logger(ctx).Info(
 		"packet sent",
@@ -106,23 +102,22 @@ func (k *Keeper) SendPacket(
 // RecvPacket is called by a module in order to receive & process an IBC packet
 // sent on the corresponding channel end on the counterparty chain.
 func (k *Keeper) RecvPacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
+	ctx context.Context,
 	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
-) error {
+) (string, error) {
 	channel, found := k.GetChannel(ctx, packet.GetDestPort(), packet.GetDestChannel())
 	if !found {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
+		return "", errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
 	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s, %s], but got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
+		return "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s, %s], but got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
 	}
 
 	// If counterpartyUpgrade is stored we need to ensure that the
-	// packet sequence is < counterparty next sequence send. If the
+	// packet sequence is counterparty next sequence send. If the
 	// counterparty is implemented correctly, this may only occur
 	// when we are in FLUSHCOMPLETE and the counterparty has already
 	// completed the channel upgrade.
@@ -130,29 +125,20 @@ func (k *Keeper) RecvPacket(
 	if found {
 		counterpartyNextSequenceSend := counterpartyUpgrade.NextSequenceSend
 		if packet.GetSequence() >= counterpartyNextSequenceSend {
-			return errorsmod.Wrapf(types.ErrInvalidPacket, "cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d).", packet.GetSequence(), counterpartyNextSequenceSend)
+			return "", errorsmod.Wrapf(types.ErrInvalidPacket, "cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d).", packet.GetSequence(), counterpartyNextSequenceSend)
 		}
-	}
-
-	// Authenticate capability to ensure caller has authority to receive packet on this channel
-	capName := host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication for capability name %s", capName,
-		)
 	}
 
 	// packet must come from the channel's counterparty
 	if packet.GetSourcePort() != channel.Counterparty.PortId {
-		return errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			types.ErrInvalidPacket,
 			"packet source port doesn't match the counterparty's port (%s ≠ %s)", packet.GetSourcePort(), channel.Counterparty.PortId,
 		)
 	}
 
 	if packet.GetSourceChannel() != channel.Counterparty.ChannelId {
-		return errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			types.ErrInvalidPacket,
 			"packet source channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetSourceChannel(), channel.Counterparty.ChannelId,
 		)
@@ -163,18 +149,19 @@ func (k *Keeper) RecvPacket(
 	// connection and channel must both be open
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
-		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+		return "", errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
 	if connectionEnd.State != connectiontypes.OPEN {
-		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
+		return "", errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
 	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
-		return errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
+		return "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
 	}
 
 	commitment := types.CommitPacket(k.cdc, packet)
@@ -185,9 +172,32 @@ func (k *Keeper) RecvPacket(
 		packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
 		commitment,
 	); err != nil {
-		return errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
+		return "", errorsmod.Wrap(err, "couldn't verify counterparty packet commitment")
 	}
 
+	if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
+		return "", err
+	}
+
+	// log that a packet has been received & executed
+	k.Logger(ctx).Info(
+		"packet received",
+		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
+		"src_port", packet.GetSourcePort(),
+		"src_channel", packet.GetSourceChannel(),
+		"dst_port", packet.GetDestPort(),
+		"dst_channel", packet.GetDestChannel(),
+	)
+
+	// emit an event that the relayer can query for
+	emitRecvPacketEvent(sdkCtx, packet, channel)
+
+	return channel.Version, nil
+}
+
+// applyReplayProtection ensures a packet has not already been received
+// and performs the necessary state changes to ensure it cannot be received again.
+func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet, channel types.Channel) error {
 	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
 	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
 	// upgrade all packets under the recvStartSequence will have been processed and thus should be
@@ -197,6 +207,7 @@ func (k *Keeper) RecvPacket(
 		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	switch channel.Ordering {
 	case types.UNORDERED:
 		// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
@@ -204,7 +215,7 @@ func (k *Keeper) RecvPacket(
 		// by the increase of the recvStartSequence.
 		_, found := k.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		if found {
-			emitRecvPacketEvent(ctx, packet, channel)
+			emitRecvPacketEvent(sdkCtx, packet, channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -228,7 +239,7 @@ func (k *Keeper) RecvPacket(
 		}
 
 		if packet.GetSequence() < nextSequenceRecv {
-			emitRecvPacketEvent(ctx, packet, channel)
+			emitRecvPacketEvent(sdkCtx, packet, channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -253,19 +264,6 @@ func (k *Keeper) RecvPacket(
 		k.SetNextSequenceRecv(ctx, packet.GetDestPort(), packet.GetDestChannel(), nextSequenceRecv)
 	}
 
-	// log that a packet has been received & executed
-	k.Logger(ctx).Info(
-		"packet received",
-		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
-		"src_port", packet.GetSourcePort(),
-		"src_channel", packet.GetSourceChannel(),
-		"dst_port", packet.GetDestPort(),
-		"dst_channel", packet.GetDestChannel(),
-	)
-
-	// emit an event that the relayer can query for
-	emitRecvPacketEvent(ctx, packet, channel)
-
 	return nil
 }
 
@@ -281,8 +279,7 @@ func (k *Keeper) RecvPacket(
 // 2) Assumes that packet receipt has been written (unordered), or nextSeqRecv was incremented (ordered)
 // previously by RecvPacket.
 func (k *Keeper) WriteAcknowledgement(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
+	ctx context.Context,
 	packet exported.PacketI,
 	acknowledgement exported.Acknowledgement,
 ) error {
@@ -293,15 +290,6 @@ func (k *Keeper) WriteAcknowledgement(
 
 	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
 		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s, %s], got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
-	}
-
-	// Authenticate capability to ensure caller has authority to receive packet on this channel
-	capName := host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication for capability name %s", capName,
-		)
 	}
 
 	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
@@ -346,7 +334,8 @@ func (k *Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	emitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	emitWriteAcknowledgementEvent(sdkCtx, packet.(types.Packet), channel, bz)
 
 	return nil
 }
@@ -358,44 +347,34 @@ func (k *Keeper) WriteAcknowledgement(
 // which is no longer necessary since the packet has been received and acted upon.
 // It will also increment NextSequenceAck in case of ORDERED channels.
 func (k *Keeper) AcknowledgePacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
+	ctx context.Context,
 	packet types.Packet,
 	acknowledgement []byte,
 	proof []byte,
 	proofHeight exported.Height,
-) error {
+) (string, error) {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
-		return errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			types.ErrChannelNotFound,
 			"port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel(),
 		)
 	}
 
 	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING}, channel.State) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "packets cannot be acknowledged on channel with state (%s)", channel.State)
-	}
-
-	// Authenticate capability to ensure caller has authority to receive packet on this channel
-	capName := host.ChannelCapabilityPath(packet.GetSourcePort(), packet.GetSourceChannel())
-	if !k.scopedKeeper.AuthenticateCapability(ctx, chanCap, capName) {
-		return errorsmod.Wrapf(
-			types.ErrInvalidChannelCapability,
-			"channel capability failed authentication for capability name %s", capName,
-		)
+		return "", errorsmod.Wrapf(types.ErrInvalidChannelState, "packets cannot be acknowledged on channel with state (%s)", channel.State)
 	}
 
 	// packet must have been sent to the channel's counterparty
 	if packet.GetDestPort() != channel.Counterparty.PortId {
-		return errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			types.ErrInvalidPacket,
 			"packet destination port doesn't match the counterparty's port (%s ≠ %s)", packet.GetDestPort(), channel.Counterparty.PortId,
 		)
 	}
 
 	if packet.GetDestChannel() != channel.Counterparty.ChannelId {
-		return errorsmod.Wrapf(
+		return "", errorsmod.Wrapf(
 			types.ErrInvalidPacket,
 			"packet destination channel doesn't match the counterparty's channel (%s ≠ %s)", packet.GetDestChannel(), channel.Counterparty.ChannelId,
 		)
@@ -403,11 +382,11 @@ func (k *Keeper) AcknowledgePacket(
 
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 	if !found {
-		return errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+		return "", errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 
 	if connectionEnd.State != connectiontypes.OPEN {
-		return errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
+		return "", errorsmod.Wrapf(connectiontypes.ErrInvalidConnectionState, "connection state is not OPEN (got %s)", connectionEnd.State)
 	}
 
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
@@ -418,35 +397,35 @@ func (k *Keeper) AcknowledgePacket(
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
 		// prevent an entire relay transaction from failing and consuming unnecessary fees.
-		return types.ErrNoOpMsg
+		return "", types.ErrNoOpMsg
 	}
 
 	packetCommitment := types.CommitPacket(k.cdc, packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
-		return errorsmod.Wrapf(types.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
+		return "", errorsmod.Wrapf(types.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
 	if err := k.connectionKeeper.VerifyPacketAcknowledgement(
 		ctx, connectionEnd, proofHeight, proof, packet.GetDestPort(), packet.GetDestChannel(),
 		packet.GetSequence(), acknowledgement,
 	); err != nil {
-		return err
+		return "", err
 	}
 
 	// assert packets acknowledged in order
 	if channel.Ordering == types.ORDERED {
 		nextSequenceAck, found := k.GetNextSequenceAck(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 		if !found {
-			return errorsmod.Wrapf(
+			return "", errorsmod.Wrapf(
 				types.ErrSequenceAckNotFound,
 				"source port: %s, source channel: %s", packet.GetSourcePort(), packet.GetSourceChannel(),
 			)
 		}
 
 		if packet.GetSequence() != nextSequenceAck {
-			return errorsmod.Wrapf(
+			return "", errorsmod.Wrapf(
 				types.ErrPacketSequenceOutOfOrder,
 				"packet sequence ≠ next ack sequence (%d ≠ %d)", packet.GetSequence(), nextSequenceAck,
 			)
@@ -479,27 +458,32 @@ func (k *Keeper) AcknowledgePacket(
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {
-		// counterparty upgrade is written in the OnChanUpgradeAck step.
-		counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-		if found {
-			timeout := counterpartyUpgrade.Timeout
-			selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
-
-			if timeout.Elapsed(selfHeight, selfTimestamp) {
-				// packet flushing timeout has expired, abort the upgrade and return nil,
-				// committing an error receipt to state, restoring the channel and successfully acknowledging the packet.
-				k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp))
-				return nil
-			}
-
-			// set the channel state to flush complete if all packets have been acknowledged/flushed.
-			if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
-				channel.State = types.FLUSHCOMPLETE
-				k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-				emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-			}
-		}
+		k.handleFlushState(ctx, packet, channel)
 	}
 
-	return nil
+	return channel.Version, nil
+}
+
+// handleFlushState is called when a packet is acknowledged or timed out and the channel is in
+// FLUSHING state. It checks if the upgrade has timed out and if so, aborts the upgrade. If all
+// packets have completed their lifecycle, it sets the channel state to FLUSHCOMPLETE and
+// emits a channel_flush_complete event. Returns true if the upgrade was aborted, false otherwise.
+func (k *Keeper) handleFlushState(ctx context.Context, packet types.Packet, channel types.Channel) {
+	if counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel()); found {
+		timeout := counterpartyUpgrade.Timeout
+		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+		selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
+
+		if timeout.Elapsed(selfHeight, selfTimestamp) {
+			// packet flushing timeout has expired, abort the upgrade
+			// committing an error receipt to state, deleting upgrade information and restoring the channel.
+			k.Logger(ctx).Info("upgrade aborted", "port_id", packet.GetSourcePort(), "channel_id", packet.GetSourceChannel(), "upgrade_sequence", channel.UpgradeSequence)
+			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp))
+		} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
+			// set the channel state to flush complete if all packets have been acknowledged/flushed.
+			channel.State = types.FLUSHCOMPLETE
+			k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+			emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+		}
+	}
 }

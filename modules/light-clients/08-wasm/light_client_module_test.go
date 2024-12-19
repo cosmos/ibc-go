@@ -14,15 +14,15 @@ import (
 	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v8/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v8/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
-	"github.com/cosmos/ibc-go/v8/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
-	ibcmock "github.com/cosmos/ibc-go/v8/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 const (
@@ -114,8 +114,8 @@ func (suite *WasmTestSuite) TestStatus() {
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -216,8 +216,8 @@ func (suite *WasmTestSuite) TestTimestampAtHeight() {
 
 			height = clientState.LatestHeight
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -340,8 +340,8 @@ func (suite *WasmTestSuite) TestInitialize() {
 
 			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -349,7 +349,7 @@ func (suite *WasmTestSuite) TestInitialize() {
 			clientStateBz := suite.chainA.Codec.MustMarshal(clientState)
 			consensusStateBz := suite.chainA.Codec.MustMarshal(consensusState)
 
-			err := lightClientModule.Initialize(suite.chainA.GetContext(), clientID, clientStateBz, consensusStateBz)
+			err = lightClientModule.Initialize(suite.chainA.GetContext(), clientID, clientStateBz, consensusStateBz)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -380,7 +380,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 		{
 			"success",
 			func() {
-				expClientStateBz = GetSimApp(suite.chainA).GetIBCKeeper().ClientKeeper.MustMarshalClientState(clientState)
+				expClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 				suite.mockVM.RegisterSudoCallback(types.VerifyMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.ContractResult, uint64, error) {
@@ -412,8 +412,8 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 					suite.Require().Nil(payload.VerifyNonMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyMembership.Height)
-					suite.Require().Equal(path, payload.VerifyMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyMembership.Proof)
+					suite.Require().Equal(path, payload.VerifyMembership.Path)
 					suite.Require().Equal(value, payload.VerifyMembership.Value)
 
 					bz, err := json.Marshal(types.EmptyResult{})
@@ -480,7 +480,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
 
-			path = commitmenttypes.NewMerklePath("/ibc/key/path")
+			path = commitmenttypes.NewMerklePath([]byte("/ibc/key/path"))
 			proof = wasmtesting.MockValidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 			value = []byte("value")
@@ -488,8 +488,8 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 			clientState, ok = endpoint.GetClientState().(*types.ClientState)
 			suite.Require().True(ok)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -526,7 +526,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 		{
 			"success",
 			func() {
-				expClientStateBz = GetSimApp(suite.chainA).GetIBCKeeper().ClientKeeper.MustMarshalClientState(clientState)
+				expClientStateBz = clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
 				suite.mockVM.RegisterSudoCallback(types.VerifyNonMembershipMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, _ wasmvm.KVStore,
 					_ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction,
 				) (*wasmvmtypes.ContractResult, uint64, error) {
@@ -540,8 +540,8 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
-					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
+					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -567,8 +567,8 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 					suite.Require().Nil(payload.VerifyMembership)
 					suite.Require().Nil(payload.VerifyUpgradeAndUpdateState)
 					suite.Require().Equal(proofHeight, payload.VerifyNonMembership.Height)
-					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 					suite.Require().Equal(proof, payload.VerifyNonMembership.Proof)
+					suite.Require().Equal(path, payload.VerifyNonMembership.Path)
 
 					bz, err := json.Marshal(types.EmptyResult{})
 					suite.Require().NoError(err)
@@ -647,15 +647,15 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 			suite.Require().NoError(err)
 			clientID = endpoint.ClientID
 
-			path = commitmenttypes.NewMerklePath("/ibc/key/path")
+			path = commitmenttypes.NewMerklePath([]byte("/ibc/key/path"))
 			proof = wasmtesting.MockInvalidProofBz
 			proofHeight = clienttypes.NewHeight(0, 1)
 
 			clientState, ok = endpoint.GetClientState().(*types.ClientState)
 			suite.Require().True(ok)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -765,8 +765,8 @@ func (suite *WasmTestSuite) TestVerifyClientMessage() {
 				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader),
 			}
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -911,8 +911,8 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 			wrappedUpgradedConsensusBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), wrappedUpgradedConsensus)
 			upgradedConsState = types.NewConsensusState(wrappedUpgradedConsensusBz)
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -1058,8 +1058,8 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientMisbehaviour),
 			}
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -1221,8 +1221,8 @@ func (suite *WasmTestSuite) TestUpdateState() {
 				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientHeader),
 			}
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -1374,8 +1374,8 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 				Data: clienttypes.MustMarshalClientMessage(suite.chainA.App.AppCodec(), wasmtesting.MockTendermintClientMisbehaviour),
 			}
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -1523,8 +1523,8 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 
 			expectedClientStateBz = nil
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(subjectClientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), subjectClientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 
@@ -1576,8 +1576,8 @@ func (suite *WasmTestSuite) TestLatestHeight() {
 			suite.Require().NoError(err)
 			clientID = subjectEndpoint.ClientID
 
-			lightClientModule, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(clientID)
-			suite.Require().True(found)
+			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
+			suite.Require().NoError(err)
 
 			tc.malleate()
 

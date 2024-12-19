@@ -18,7 +18,7 @@
 
 ### Summary
 
-At launch, IBC will be a novel protocol, without an experienced user-base. At the protocol layer, it is not possible to distinguish between client expiry or misbehaviour due to genuine faults (Byzantine behavior) and client expiry or misbehaviour due to user mistakes (failing to update a client, or accidentally double-signing). In the base IBC protocol and ICS 20 fungible token transfer implementation, if a client can no longer be updated, funds in that channel will be permanently locked and can no longer be transferred. To the degree that it is safe to do so, it would be preferable to provide users with a recovery mechanism which can be utilised in these exceptional cases.
+At launch, IBC will be a novel protocol, without an experienced user-base. At the protocol layer, it is not possible to distinguish between client expiry or misbehaviour due to genuine faults (Byzantine behaviour) and client expiry or misbehaviour due to user mistakes (failing to update a client, or accidentally double-signing). In the base IBC protocol and ICS 20 fungible token transfer implementation, if a client can no longer be updated, funds in that channel will be permanently locked and can no longer be transferred. To the degree that it is safe to do so, it would be preferable to provide users with a recovery mechanism which can be utilised in these exceptional cases.
 
 ### Exceptional cases
 
@@ -84,7 +84,7 @@ No neutral consequences.
 
 ## References
 
-- [Prior discussion](https://github.com/cosmos/ics/issues/421)
-- [Epoch number discussion](https://github.com/cosmos/ics/issues/439)
-- [Upgrade plan discussion](https://github.com/cosmos/ics/issues/445)
+- [Prior discussion](https://github.com/cosmos/ibc/issues/421)
+- [Epoch number discussion](https://github.com/cosmos/ibc/issues/439)
+- [Upgrade plan discussion](https://github.com/cosmos/ibc/issues/445)
 - [Migration from gov v1beta1 to gov v1](https://github.com/cosmos/ibc-go/issues/3672)

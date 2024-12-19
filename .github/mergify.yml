@@ -1,31 +1,19 @@
 queue_rules:
   - name: default
-    conditions:
+    queue_conditions:
       - "#approved-reviews-by>=1"
       - base=main
       - label=automerge
+    commit_message_template: |
+      {{ title }} (#{{ number }})
+      {{ body }}
+    merge_conditions:
+      - "#approved-reviews-by>=1"
+      - base=main
+      - label=automerge
+    merge_method: squash
 
 pull_request_rules:
-  - name: automerge to main with label automerge and branch protection passing
-    conditions:
-      - "#approved-reviews-by>=1"
-      - base=main
-      - label=automerge
-    actions:
-      queue:
-        name: default
-        method: squash
-        commit_message_template: |
-          {{ title }} (#{{ number }})
-          {{ body }}
-  - name: backport patches to v1.0.x capability branch
-    conditions:
-      - base=main
-      - label=backport-capability-to-v1.0.x
-    actions:
-      backport:
-        branches:
-          - capability/release/v1.0.x
   - name: backport patches to v0.1.x callbacks ibc-go v7.3.x branch
     conditions:
       - base=main
@@ -50,30 +38,30 @@ pull_request_rules:
       backport:
         branches:
           - callbacks/release/v0.2.x+ibc-go-v8.0.x
-  - name: backport patches to v0.1.x wasm ibc-go v7.3.x & wasmvm 1.5.x branch
+  - name: backport patches to v0.3.x wasm ibc-go v7.4.x & wasmvm 1.5.x branch
     conditions:
       - base=main
-      - label=backport-wasm-v0.1.x+ibc-go-v7.3.x-wasmvm-v1.5.x
+      - label=backport-wasm-v0.3.x+ibc-go-v7.4.x-wasmvm-v1.5.x
     actions:
       backport:
         branches:
-          - 08-wasm/release/v0.1.x+ibc-go-v7.3.x-wasmvm-v1.5.x
-  - name: backport patches to v0.1.x wasm ibc-go v8.0.x & wasmvm 1.5.x branch
+          - 08-wasm/release/v0.3.x+ibc-go-v7.4.x-wasmvm-v1.5.x
+  - name: backport patches to v0.4.x wasm ibc-go v8.4.x & wasmvm 2.0.x branch
     conditions:
       - base=main
-      - label=backport-wasm-v0.1.x+ibc-go-v8.0.x-wasmvm-v1.5.x
+      - label=backport-wasm-v0.4.x+ibc-go-v8.4.x-wasmvm-v2.0.x
     actions:
       backport:
         branches:
-          - 08-wasm/release/v0.1.x+ibc-go-v8.0.x-wasmvm-v1.5.x
-  - name: backport patches to v0.2.x wasm ibc-go v8.3.x & wasmvm 2.0.x branch
+          - 08-wasm/release/v0.4.x+ibc-go-v8.4.x-wasmvm-v2.0.x
+  - name: backport patches to v0.5.x wasm ibc-go v9.0.x & wasmvm 2.1.x branch
     conditions:
       - base=main
-      - label=backport-wasm-v0.2.x+ibc-go-v8.3.x-wasmvm-v2.0.x
+      - label=backport-wasm-v0.5.x+ibc-go-v9.0.x-wasmvm-v2.1.x
     actions:
       backport:
         branches:
-          - 08-wasm/release/v0.2.x+ibc-go-v8.3.x-wasmvm-v2.0.x
+          - 08-wasm/release/v0.5.x+ibc-go-v9.0.x-wasmvm-v2.1.x
   - name: backport patches to v7.4.x branch
     conditions:
       - base=main
@@ -89,20 +77,56 @@ pull_request_rules:
     actions:
       backport:
         branches:
-          - release/v7.5.x         
-  - name: backport patches to v8.2.x branch
+          - release/v7.5.x
+  - name: backport patches to v7.6.x branch
     conditions:
       - base=main
-      - label=backport-to-v8.2.x
+      - label=backport-to-v7.6.x
     actions:
       backport:
         branches:
-          - release/v8.2.x
-  - name: backport patches to v8.3.x branch
+          - release/v7.6.x
+  - name: backport patches to v7.7.x branch
     conditions:
       - base=main
-      - label=backport-to-v8.3.x
+      - label=backport-to-v7.7.x
     actions:
       backport:
         branches:
-          - release/v8.3.x
+          - release/v7.7.x
+  - name: backport patches to v7.8.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v7.8.x
+    actions:
+      backport:
+        branches:
+          - release/v7.8.x
+  - name: backport patches to v8.4.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v8.4.x
+    actions:
+      backport:
+        branches:
+          - release/v8.4.x
+  - name: backport patches to v8.5.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v8.5.x
+    actions:
+      backport:
+        branches:
+          - release/v8.5.x
+  - name: backport patches to v9.0.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v9.0.x
+    actions:
+      backport:
+        branches:
+          - release/v9.0.x
+  - name: automerge to main with label automerge and branch protection passing
+    conditions: []
+    actions:
+      queue:

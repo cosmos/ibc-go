@@ -16,12 +16,16 @@ on:
       - 'docs/**'
       - '**.md'
       - 'LICENSE'
+# cancel workflows if a new one is triggered on the same branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   # determine-image-tag will either output the PR number e.g. pr-1234 or the string main.
   # this will be used to tag the images that are built during the workflow.
   determine-image-tag:
-    if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+    if: ${{ !github.event.pull_request.draft && github.repository == 'cosmos/ibc-go' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     outputs:
       simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
@@ -29,7 +33,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.23'
       - id: get-tag
         run: |
           if [ -z "${{ github.event.pull_request.number }}" ]
@@ -46,7 +50,7 @@ jobs:
   e2e:
     # we will be running this job if the PR has not yet been marked for review, and we push additional changes.
     # we skip the job in this case.
-    if: ${{ !github.event.pull_request.draft && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+    if: ${{ !github.event.pull_request.draft && github.repository == 'cosmos/ibc-go' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
     needs: determine-image-tag # we are required to have a docker tag before we can build any images.
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     # unless we explicitly tell the workflow to inherit secrets, required secrets such as GITHUB_TOKEN will not be
@@ -57,10 +61,10 @@ jobs:
       build-and-push-docker-image: true
       # if the test fails, we upload logs so that we can download them from the UI.
       upload-logs: true
-      chain-image: ghcr.io/cosmos/ibc-go-simd
       # with regular tests, both images are the same.
       chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-      chain-binary: 'simd'
       # on regular PRs we won't run upgrade tests.
-      test-exclusions: 'TestUpgradeTestSuite,TestGrandpaTestSuite,TestIBCWasmUpgradeTestSuite'
+      # NOTE: we are exluding TestTransferTestSuite as we run this full suite instead of each individual test.
+      test-exclusions: 'TestUpgradeTestSuite,TestIBCWasmUpgradeTestSuite,TestTransferTestSuite,TestAuthzTransferTestSuite,TestTransferTestSuiteSendReceive,TestTransferTestSuiteSendEnabled,TestTransferLocalhostTestSuite,TestConnectionTestSuite,TestInterchainAccountsGovTestSuite,TestIncentivizedTransferTestSuite,TestTransferForwardingTestSuite'
+      temp-run-full-suite: true

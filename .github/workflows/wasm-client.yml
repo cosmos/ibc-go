@@ -1,12 +1,14 @@
 name: Wasm Light-Client
 # This workflow runs when a PR is opened that targets code that is part of the wasm light-client.
 on:
+  merge_group:
   pull_request:
   push:
     branches:
       - main
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   lint:
@@ -14,11 +16,14 @@ jobs:
     steps:
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.23'
       - uses: actions/checkout@v4
-      - uses: golangci/golangci-lint-action@v6.0.0
         with:
-          version: v1.57.2
+          fetch-depth: 0
+      - uses: golangci/golangci-lint-action@v6.1.1
+        with:
+          version: v1.60
+          only-new-issues: true
           args: --timeout 10m
           working-directory: modules/light-clients/08-wasm
 
@@ -28,10 +33,10 @@ jobs:
       matrix:
         go-arch: ['amd64', 'arm64']
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.23'
       # Install cross compiler for ARM64. Export CC env variable.
       - name: Install compiler for arm64.
         run: |
@@ -47,10 +52,10 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.23'
       - name: Go Test
         run: |
           cd modules/light-clients/08-wasm
@@ -59,10 +64,11 @@ jobs:
   code-analysis:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
+    needs: [tests]
     steps:
       - name: sonarcloud
         if: ${{ env.GIT_DIFF && !github.event.pull_request.draft && env.SONAR_TOKEN != null }}
-        uses: SonarSource/sonarcloud-github-action@v2.1.1
+        uses: SonarSource/sonarcloud-github-action@v4.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

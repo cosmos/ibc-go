@@ -23,7 +23,7 @@
 </div>
 <div align="center">
   <a href="https://github.com/cosmos/ibc-go">
-    <img alt="Lines Of Code" src="https://tokei.rs/b1/github/cosmos/ibc-go" />
+    <img alt="Lines Of Code" src="https://sonarcloud.io/api/project_badges/measure?project=cosmos_ibc-go&metric=ncloc" />
   </a>
   <a href="https://discord.com/invite/interchain">
     <img alt="Discord" src="https://img.shields.io/discord/669268347736686612.svg" />
@@ -37,7 +37,7 @@
 
 The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) allows blockchains to talk to each other. This end-to-end, connection-oriented, stateful protocol provides reliable, ordered, and authenticated communication between heterogeneous blockchains. For a high-level explanation of what IBC is and how it works, please read [this blog post](https://medium.com/the-interchain-foundation/eli5-what-is-ibc-def44d7b5b4c).
 
-This IBC implementation in Golang is built as a Cosmos SDK module. To understand more about how to use the `ibc-go` module as well as about the IBC protocol, please check out the Interchain Developer Academy [section on IBC](https://tutorials.cosmos.network/academy/3-ibc/), or [our docs](https://ibc.cosmos.network/main/ibc/overview.html).
+This IBC implementation in Golang is built as a Cosmos SDK module. To understand more about how to use the `ibc-go` module as well as about the IBC protocol, please check out the Interchain Developer Academy [section on IBC](https://tutorials.cosmos.network/academy/3-ibc/), or [our docs](./docs/docs/01-ibc/01-overview.md).
 
 ## Roadmap
 
@@ -49,7 +49,7 @@ For the latest expected release timelines, please check [here](https://github.co
 
 ## Releases
 
-The release lines currently supported are v7 and v8.
+The release lines currently supported are v7, v8 and v9.
 
 Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
 
@@ -93,6 +93,7 @@ To report a security vulnerability, see our [Coordinated Vulnerability Disclosur
 The following audits have been performed on the `ibc-go` source code:
 
 - [ICS20 Fungible Token Transfer](https://github.com/informalsystems/audits/tree/dc8b503727adcbb8e29c3d3a25a9070e0bf1ec87/IBC-GO) by Informal Systems.
+- [ICS20 Fungible Token Transfer V2](https://github.com/cosmos/ibc-go/blob/main/docs/audits/20-token-transfer/Atredis%20Partners%20-%20Interchain%20ICS20%20v2%20New%20Features%20Assessment%20-%20Report%20v1.0.pdf) by Atredis Partners.
 - ICS27 Interchain Accounts by [Trail of Bits](https://github.com/cosmos/ibc-go/blob/main/docs/audits/27-interchain-accounts/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) and [Informal Systems](https://github.com/cosmos/ibc-go/issues/631).
 - [ICS08 Wasm Clients](https://github.com/cosmos/ibc-go/blob/main/docs/audits/08-wasm/Ethan%20Frey%20-%20Wasm%20Client%20Review.pdf) by Ethan Frey/Confio.
 - [ICS04 Channel upgradability](https://github.com/cosmos/ibc-go/blob/main/docs/audits/04-channel-upgrades/Atredis%20Partners%20-%20Interchain%20Foundation%20IBC-Go%20Channel%20Upgrade%20Feature%20Assessment%20-%20Report%20v1.1.pdf) by Atredis Partners.
@@ -139,7 +140,7 @@ The following audits have been performed on the `ibc-go` source code:
 
 - [IBC Website](https://ibcprotocol.dev/)
 - [IBC Protocol Specification](https://github.com/cosmos/ibc)
-- [Documentation](https://ibc.cosmos.network/main/ibc/overview.html)
+- [Documentation](./docs/docs/01-ibc/01-overview.md)
 - [Interchain Developer Academy](https://tutorials.cosmos.network/academy/3-ibc/)
 
 ---

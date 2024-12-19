@@ -10,9 +10,9 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/v8/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v8/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v8/testing"
+	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"success",
@@ -50,14 +50,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 					QueryHeight: 0,
 				}
 			},
-			true,
-		},
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+			"",
 		},
 		{
 			"empty pagination",
@@ -65,7 +58,14 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 				expectedPackets = nil
 				req = &types.QueryIncentivizedPacketsRequest{}
 			},
-			true,
+			"",
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			"InvalidArgument",
 		},
 	}
 
@@ -81,12 +81,12 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPackets() {
 
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPackets(ctx, req)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expectedPackets, res.IncentivizedPackets)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}
@@ -98,19 +98,19 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			"",
 		},
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			"InvalidArgument",
 		},
 		{
 			"fees not found for packet id",
@@ -120,7 +120,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 					QueryHeight: 0,
 				}
 			},
-			false,
+			"NotFound",
 		},
 	}
 
@@ -149,12 +149,12 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacket() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPacket(ctx, req)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(types.NewIdentifiedPacketFees(packetID, []types.PacketFee{packetFee, packetFee, packetFee}), res.IncentivizedPacket)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}
@@ -164,6 +164,8 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 	var (
 		req                     *types.QueryIncentivizedPacketsForChannelRequest
 		expIdentifiedPacketFees []*types.IdentifiedPacketFees
+		packetFees              types.PacketFees
+		path                    *ibctesting.Path
 	)
 
 	fee := types.Fee{
@@ -175,7 +177,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 	testCases := []struct {
 		msg      string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"empty pagination",
@@ -190,7 +192,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 					QueryHeight: 0,
 				}
 			},
-			true,
+			"",
 		},
 		{
 			"success",
@@ -201,18 +203,19 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 						CountTotal: false,
 					},
 					PortId:      ibctesting.MockFeePort,
-					ChannelId:   ibctesting.FirstChannelID,
+					ChannelId:   path.EndpointA.ChannelID,
 					QueryHeight: 0,
 				}
+
+				expIdentifiedPacketFees = []*types.IdentifiedPacketFees{}
+				for i := 0; i < 3; i++ {
+					packetID := channeltypes.NewPacketID(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, uint64(i))
+					identifiedPacketFees := types.NewIdentifiedPacketFees(packetID, packetFees.PacketFees)
+					expIdentifiedPacketFees = append(expIdentifiedPacketFees, &identifiedPacketFees)
+					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFees.PacketId, types.NewPacketFees(identifiedPacketFees.PacketFees))
+				}
 			},
-			true,
-		},
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+			"",
 		},
 		{
 			"no packets for specified channel",
@@ -230,7 +233,14 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 					QueryHeight: 0,
 				}
 			},
-			true,
+			"",
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+			},
+			"InvalidArgument",
 		},
 		{
 			"channel not found",
@@ -240,7 +250,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 					ChannelId: ibctesting.InvalidID,
 				}
 			},
-			false,
+			"NotFound",
 		},
 		{
 			"invalid ID",
@@ -250,7 +260,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 					ChannelId: "test-channel-id",
 				}
 			},
-			false,
+			"InvalidArgument",
 		},
 	}
 
@@ -263,7 +273,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 			// setup
 			refundAcc := suite.chainA.SenderAccount.GetAddress()
 			packetFee := types.NewPacketFee(fee, refundAcc.String(), nil)
-			packetFees := types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
+			packetFees = types.NewPacketFees([]types.PacketFee{packetFee, packetFee, packetFee})
 
 			identifiedFees1 := types.NewIdentifiedPacketFees(channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 1), packetFees.PacketFees)
 			identifiedFees2 := types.NewIdentifiedPacketFees(channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 2), packetFees.PacketFees)
@@ -276,7 +286,7 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 				suite.chainA.GetSimApp().IBCFeeKeeper.SetFeesInEscrow(suite.chainA.GetContext(), identifiedPacketFees.PacketId, types.NewPacketFees(identifiedPacketFees.PacketFees))
 			}
 
-			path := ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPathWithFeeEnabled(suite.chainA, suite.chainB)
 			path.Setup()
 
 			tc.malleate()
@@ -284,12 +294,12 @@ func (suite *KeeperTestSuite) TestQueryIncentivizedPacketsForChannel() {
 
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.IncentivizedPacketsForChannel(ctx, req)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expIdentifiedPacketFees, res.IncentivizedPackets)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}
@@ -301,26 +311,26 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			"",
 		},
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			"InvalidArgument",
 		},
 		{
 			"packet not found",
 			func() {
 				req.PacketId = channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 100)
 			},
-			false,
+			"NotFound",
 		},
 	}
 
@@ -349,7 +359,7 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.TotalRecvFees(ctx, req)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
@@ -357,7 +367,7 @@ func (suite *KeeperTestSuite) TestQueryTotalRecvFees() {
 				expectedFees := defaultRecvFee.Add(defaultRecvFee...).Add(defaultRecvFee...)
 				suite.Require().Equal(expectedFees, res.RecvFees)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}
@@ -369,26 +379,26 @@ func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			"",
 		},
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			"InvalidArgument",
 		},
 		{
 			"packet not found",
 			func() {
 				req.PacketId = channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 100)
 			},
-			false,
+			"NotFound",
 		},
 	}
 
@@ -417,7 +427,7 @@ func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.TotalAckFees(ctx, req)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
@@ -425,7 +435,7 @@ func (suite *KeeperTestSuite) TestQueryTotalAckFees() {
 				expectedFees := defaultAckFee.Add(defaultAckFee...).Add(defaultAckFee...)
 				suite.Require().Equal(expectedFees, res.AckFees)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}
@@ -437,26 +447,26 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			"",
 		},
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			"InvalidArgument",
 		},
 		{
 			"packet not found",
 			func() {
 				req.PacketId = channeltypes.NewPacketID(ibctesting.MockFeePort, ibctesting.FirstChannelID, 100)
 			},
-			false,
+			"NotFound",
 		},
 	}
 
@@ -485,7 +495,7 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.TotalTimeoutFees(ctx, req)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 
@@ -493,7 +503,7 @@ func (suite *KeeperTestSuite) TestQueryTotalTimeoutFees() {
 				expectedFees := defaultTimeoutFee.Add(defaultTimeoutFee...).Add(defaultTimeoutFee...)
 				suite.Require().Equal(expectedFees, res.TimeoutFees)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}
@@ -505,33 +515,33 @@ func (suite *KeeperTestSuite) TestQueryPayee() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			"",
 		},
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			"InvalidArgument",
 		},
 		{
 			"payee address not found: invalid channel",
 			func() {
 				req.ChannelId = "invalid-channel-id" //nolint:goconst
 			},
-			false,
+			"NotFound",
 		},
 		{
 			"payee address not found: invalid relayer address",
 			func() {
 				req.Relayer = "invalid-addr" //nolint:goconst
 			},
-			false,
+			"NotFound",
 		},
 	}
 
@@ -561,11 +571,11 @@ func (suite *KeeperTestSuite) TestQueryPayee() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.Payee(ctx, req)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expPayeeAddr.String(), res.PayeeAddress)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}
@@ -577,33 +587,33 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyPayee() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			"",
 		},
 		{
 			"empty request",
 			func() {
 				req = nil
 			},
-			false,
+			"InvalidArgument",
 		},
 		{
 			"counterparty address not found: invalid channel",
 			func() {
 				req.ChannelId = "invalid-channel-id"
 			},
-			false,
+			"NotFound",
 		},
 		{
 			"counterparty address not found: invalid address",
 			func() {
 				req.Relayer = "invalid-addr"
 			},
-			false,
+			"NotFound",
 		},
 	}
 
@@ -633,14 +643,59 @@ func (suite *KeeperTestSuite) TestQueryCounterpartyPayee() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.CounterpartyPayee(ctx, req)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expCounterpartyPayeeAddr.String(), res.CounterpartyPayee)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}
+}
+
+func (suite *KeeperTestSuite) TestQueryFeeEnabledChannelsWithPagination() {
+	suite.SetupTest() // reset
+
+	suite.path.Setup()
+
+	expChannel := types.FeeEnabledChannel{
+		PortId:    suite.path.EndpointA.ChannelConfig.PortID,
+		ChannelId: suite.path.EndpointA.ChannelID,
+	}
+
+	expFeeEnabledChannels := []types.FeeEnabledChannel{expChannel}
+
+	req := &types.QueryFeeEnabledChannelsRequest{
+		Pagination: &query.PageRequest{
+			Limit:      5,
+			CountTotal: false,
+		},
+		QueryHeight: 0,
+	}
+
+	// Extract the next available sequence number for channel IDs.
+	nextSeq := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
+	for i := 0; i < 8; i++ {
+		channelID := channeltypes.FormatChannelIdentifier(uint64(i + int(nextSeq)))
+		suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, channelID)
+
+		expChannel := types.FeeEnabledChannel{
+			PortId:    ibctesting.MockFeePort,
+			ChannelId: channelID,
+		}
+
+		if i < 4 { // add only the first 5 channels, as our default pagination limit is 5
+			expFeeEnabledChannels = append(expFeeEnabledChannels, expChannel)
+		}
+	}
+
+	suite.chainA.NextBlock()
+
+	ctx := suite.chainA.GetContext()
+	res, err := suite.chainA.GetSimApp().IBCFeeKeeper.FeeEnabledChannels(ctx, req)
+
+	suite.Require().NoError(err)
+	suite.Require().Equal(expFeeEnabledChannels, res.FeeEnabledChannels)
 }
 
 func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
@@ -652,26 +707,19 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"success",
 			func() {},
-			true,
-		},
-		{
-			"empty request",
-			func() {
-				req = nil
-			},
-			false,
+			"",
 		},
 		{
 			"success: empty pagination",
 			func() {
 				req = &types.QueryFeeEnabledChannelsRequest{}
 			},
-			true,
+			"",
 		},
 		{
 			"success: with multiple fee enabled channels",
@@ -685,29 +733,14 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 
 				expFeeEnabledChannels = append(expFeeEnabledChannels, expChannel)
 			},
-			true,
+			"",
 		},
 		{
-			"success: pagination with multiple fee enabled channels",
+			"failure: empty request",
 			func() {
-				// start at index 1, as channel-0 is already added to expFeeEnabledChannels below
-				for i := 1; i < 10; i++ {
-					channelID := channeltypes.FormatChannelIdentifier(uint64(i))
-					suite.chainA.GetSimApp().IBCFeeKeeper.SetFeeEnabled(suite.chainA.GetContext(), ibctesting.MockFeePort, channelID)
-
-					expChannel := types.FeeEnabledChannel{
-						PortId:    ibctesting.MockFeePort,
-						ChannelId: channelID,
-					}
-
-					if i < 5 { // add only the first 5 channels, as our default pagination limit is 5
-						expFeeEnabledChannels = append(expFeeEnabledChannels, expChannel)
-					}
-				}
-
-				suite.chainA.NextBlock()
+				req = nil
 			},
-			true,
+			"InvalidArgument",
 		},
 		{
 			"empty response",
@@ -717,7 +750,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 
 				suite.chainA.NextBlock()
 			},
-			true,
+			"",
 		},
 	}
 
@@ -749,11 +782,11 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannels() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.FeeEnabledChannels(ctx, req)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expFeeEnabledChannels, res.FeeEnabledChannels)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}
@@ -769,20 +802,12 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		errMsg   string
 	}{
 		{
 			"success",
 			func() {},
-			true,
-		},
-		{
-			"empty request",
-			func() {
-				req = nil
-				expEnabled = false
-			},
-			false,
+			"",
 		},
 		{
 			"fee not enabled on channel",
@@ -796,14 +821,22 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 					ChannelId: path.EndpointA.ChannelID,
 				}
 			},
-			true,
+			"",
+		},
+		{
+			"empty request",
+			func() {
+				req = nil
+				expEnabled = false
+			},
+			"InvalidArgument",
 		},
 		{
 			"channel not found",
 			func() {
 				req.ChannelId = ibctesting.InvalidID
 			},
-			false,
+			"NotFound",
 		},
 		{
 			"invalid ID",
@@ -813,7 +846,7 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 					ChannelId: "test-channel-id",
 				}
 			},
-			false,
+			"InvalidArgument",
 		},
 	}
 
@@ -837,11 +870,11 @@ func (suite *KeeperTestSuite) TestQueryFeeEnabledChannel() {
 			ctx := suite.chainA.GetContext()
 			res, err := suite.chainA.GetSimApp().IBCFeeKeeper.FeeEnabledChannel(ctx, req)
 
-			if tc.expPass {
+			if tc.errMsg == "" {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expEnabled, res.FeeEnabled)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}
