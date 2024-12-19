@@ -30,8 +30,6 @@ var _ porttypes.ICS4Wrapper = (*Keeper)(nil)
 // Keeper defines the IBC channel keeper
 type Keeper struct {
 	appmodule.Environment
-	// implements gRPC QueryServer interface
-	types.QueryServer
 
 	cdc              codec.BinaryCodec
 	clientKeeper     types.ClientKeeper

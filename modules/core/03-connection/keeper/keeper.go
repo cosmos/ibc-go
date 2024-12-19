@@ -23,12 +23,10 @@ import (
 // Keeper defines the IBC connection keeper
 type Keeper struct {
 	appmodule.Environment
-	// implements gRPC QueryServer interface
-	types.QueryServer
 
-	legacySubspace types.ParamSubspace
 	cdc            codec.BinaryCodec
 	clientKeeper   types.ClientKeeper
+	legacySubspace types.ParamSubspace
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
