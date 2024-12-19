@@ -91,12 +91,12 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"failed to validate active channel - invalid port identifier",
@@ -110,7 +110,7 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 
 				genesisState = genesistypes.NewControllerGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, []string{}, controllertypes.DefaultParams())
 			},
-			false,
+			host.ErrInvalidID,
 		},
 		{
 			"failed to validate active channel - invalid channel identifier",
@@ -124,7 +124,7 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 
 				genesisState = genesistypes.NewControllerGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, []string{}, controllertypes.DefaultParams())
 			},
-			false,
+			host.ErrInvalidID,
 		},
 		{
 			"failed to validate registered account - invalid port identifier",
@@ -145,7 +145,7 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 
 				genesisState = genesistypes.NewControllerGenesisState(activeChannels, registeredAccounts, []string{}, controllertypes.DefaultParams())
 			},
-			false,
+			host.ErrInvalidID,
 		},
 		{
 			"failed to validate registered account - invalid owner address",
@@ -166,7 +166,7 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 
 				genesisState = genesistypes.NewControllerGenesisState(activeChannels, registeredAccounts, []string{}, controllertypes.DefaultParams())
 			},
-			false,
+			icatypes.ErrInvalidAccountAddress,
 		},
 		{
 			"failed to validate controller ports - invalid port identifier",
@@ -187,7 +187,7 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 
 				genesisState = genesistypes.NewControllerGenesisState(activeChannels, registeredAccounts, []string{"invalid|port"}, controllertypes.DefaultParams())
 			},
-			false,
+			host.ErrInvalidID,
 		},
 	}
 
@@ -201,10 +201,11 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 
 			err := genesisState.Validate()
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, tc.name)
 			} else {
 				suite.Require().Error(err, tc.name)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

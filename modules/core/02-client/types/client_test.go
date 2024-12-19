@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -63,15 +64,15 @@ func TestValidateClientType(t *testing.T) {
 	testCases := []struct {
 		name       string
 		clientType string
-		expPass    bool
+		expError   error
 	}{
-		{"valid", "tendermint", true},
-		{"valid solomachine", "solomachine-v1", true},
-		{"too large", "tenderminttenderminttenderminttenderminttendermintt", false},
-		{"too short", "t", false},
-		{"blank id", "               ", false},
-		{"empty id", "", false},
-		{"ends with dash", "tendermint-", false},
+		{"valid", "tendermint", nil},
+		{"valid solomachine", "solomachine-v1", nil},
+		{"too large", "tenderminttenderminttenderminttenderminttendermintt", errors.New("client type results in largest client identifier being invalid")},
+		{"too short", "t", errors.New("client type results in smallest client identifier being invalid")},
+		{"blank id", "               ", errors.New("client type cannot be blank")},
+		{"empty id", "", errors.New("client type cannot be blank")},
+		{"ends with dash", "tendermint-", errors.New("invalid client type")},
 	}
 
 	for _, tc := range testCases {
@@ -79,10 +80,10 @@ func TestValidateClientType(t *testing.T) {
 
 		err := types.ValidateClientType(tc.clientType)
 
-		if tc.expPass {
+		if tc.expError == nil {
 			require.NoError(t, err, tc.name)
 		} else {
-			require.Error(t, err, tc.name)
+			require.ErrorContains(t, err, tc.expError.Error())
 		}
 	}
 }
