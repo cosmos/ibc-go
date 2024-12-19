@@ -314,9 +314,9 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 
 		app := simapp.Setup(suite.T(), false)
 
-		suite.NotPanics(func() {
-			ibc.InitGenesis(app.BaseApp.NewContext(false), *app.IBCKeeper, tc.genState)
-		})
+		err := ibc.InitGenesis(app.BaseApp.NewContext(false), *app.IBCKeeper, tc.genState)
+		suite.Require().NoError(err)
+
 	}
 }
 
@@ -346,14 +346,14 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 			tc.malleate()
 
 			var gs *types.GenesisState
-			suite.NotPanics(func() {
-				gs = ibc.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper())
-			})
+
+			gs, err := ibc.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper())
+			suite.NoError(err)
 
 			// init genesis based on export
-			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
-			})
+
+			err = ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
+			suite.Require().NoError(err)
 
 			suite.NotPanics(func() {
 				cdc := codec.NewProtoCodec(suite.chainA.GetSimApp().InterfaceRegistry())
@@ -362,9 +362,9 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 			})
 
 			// init genesis based on marshal and unmarshal
-			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
-			})
+
+			err = ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
+			suite.Require().NoError(err)
 		})
 	}
 }

@@ -13,6 +13,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -696,12 +697,12 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 // TestMsgRecoverClientGetSigners tests GetSigners for MsgRecoverClient
 func TestMsgRecoverClientGetSigners(t *testing.T) {
 	testCases := []struct {
-		name    string
-		address sdk.AccAddress
-		expPass bool
+		name     string
+		address  sdk.AccAddress
+		expError error
 	}{
-		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
-		{"failure: nil address", nil, false},
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
+		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
@@ -709,13 +710,14 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 		msg := types.MsgRecoverClient{
 			Signer: tc.address.String(),
 		}
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
-		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
-		if tc.expPass {
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
+		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
+		if tc.expError == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
 			require.Error(t, err)
+			require.Equal(t, err.Error(), tc.expError.Error())
 		}
 	}
 }
@@ -796,9 +798,11 @@ func TestMsgIBCSoftwareUpgrade_GetSigners(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
-		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
-		if tc.expErr == nil {
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
+		signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
+
+		expPass := tc.expErr == nil
+		if expPass {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
@@ -969,9 +973,11 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),
 		}
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
-		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
-		if tc.expErr == nil {
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
+		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
+
+		expPass := tc.expErr == nil
+		if expPass {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {

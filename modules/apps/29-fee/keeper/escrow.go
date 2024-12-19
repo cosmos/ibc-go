@@ -41,9 +41,7 @@ func (k Keeper) escrowPacketFee(ctx context.Context, packetID channeltypes.Packe
 	packetFees := types.NewPacketFees(fees)
 	k.SetFeesInEscrow(ctx, packetID, packetFees)
 
-	emitIncentivizedPacketEvent(ctx, packetID, packetFees)
-
-	return nil
+	return k.emitIncentivizedPacketEvent(ctx, packetID, packetFees)
 }
 
 // DistributePacketFeesOnAcknowledgement pays all the acknowledgement & receive fees for a given packetID while refunding the timeout fees to the refund account.
@@ -160,7 +158,7 @@ func (k Keeper) distributeFee(ctx context.Context, receiver, refundAccAddress sd
 	err := k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, receiver, fee)
 	if err != nil {
 		if bytes.Equal(receiver, refundAccAddress) {
-			k.Logger(ctx).Error("error distributing fee", "receiver address", receiver, "fee", fee)
+			k.Logger.Error("error distributing fee", "receiver address", receiver, "fee", fee)
 			return // if sending to the refund address already failed, then return (no-op)
 		}
 
@@ -168,13 +166,17 @@ func (k Keeper) distributeFee(ctx context.Context, receiver, refundAccAddress sd
 		// then attempt to refund the fee to the original sender
 		err := k.bankKeeper.SendCoinsFromModuleToAccount(cacheCtx, types.ModuleName, refundAccAddress, fee)
 		if err != nil {
-			k.Logger(ctx).Error("error refunding fee to the original sender", "refund address", refundAccAddress, "fee", fee)
+			k.Logger.Error("error refunding fee to the original sender", "refund address", refundAccAddress, "fee", fee)
 			return // if sending to the refund address fails, no-op
 		}
 
-		emitDistributeFeeEvent(ctx, refundAccAddress.String(), fee)
+		if err := k.emitDistributeFeeEvent(ctx, refundAccAddress.String(), fee); err != nil {
+			panic(err)
+		}
 	} else {
-		emitDistributeFeeEvent(ctx, receiver.String(), fee)
+		if err := k.emitDistributeFeeEvent(ctx, receiver.String(), fee); err != nil {
+			panic(err)
+		}
 	}
 
 	// write the cache

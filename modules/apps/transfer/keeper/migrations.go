@@ -7,13 +7,14 @@ import (
 
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
+	banktypes "cosmossdk.io/x/bank/types"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -34,7 +35,7 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	m.keeper.legacySubspace.GetParamSet(ctx, &params)
 
 	m.keeper.SetParams(ctx, params)
-	m.keeper.Logger(ctx).Info("successfully migrated transfer app self-manage params")
+	m.keeper.Logger.Info("successfully migrated transfer app self-manage params")
 	return nil
 }
 
@@ -49,7 +50,7 @@ func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
 			return false
 		})
 
-	m.keeper.Logger(ctx).Info("successfully added metadata to IBC voucher denominations")
+	m.keeper.Logger.Info("successfully added metadata to IBC voucher denominations")
 	return nil
 }
 
@@ -70,7 +71,7 @@ func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
 		m.keeper.SetTotalEscrowForDenom(ctx, totalEscrow)
 	}
 
-	m.keeper.Logger(ctx).Info("successfully set total escrow", "number of denominations", totalEscrowed.Len())
+	m.keeper.Logger.Info("successfully set total escrow", "number of denominations", totalEscrowed.Len())
 	return nil
 }
 
@@ -116,7 +117,7 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 
 // setDenomTrace sets a new {trace hash -> denom trace} pair to the store.
 func (k Keeper) setDenomTrace(ctx context.Context, denomTrace internaltypes.DenomTrace) {
-	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomTraceKey)
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx)), types.DenomTraceKey)
 	bz := k.cdc.MustMarshal(&denomTrace)
 
 	store.Set(denomTrace.Hash(), bz)
@@ -124,17 +125,17 @@ func (k Keeper) setDenomTrace(ctx context.Context, denomTrace internaltypes.Deno
 
 // deleteDenomTrace deletes the denom trace
 func (k Keeper) deleteDenomTrace(ctx context.Context, denomTrace internaltypes.DenomTrace) {
-	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomTraceKey)
+	store := prefix.NewStore(runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx)), types.DenomTraceKey)
 	store.Delete(denomTrace.Hash())
 }
 
 // iterateDenomTraces iterates over the denomination traces in the store
 // and performs a callback function.
 func (k Keeper) iterateDenomTraces(ctx context.Context, cb func(denomTrace internaltypes.DenomTrace) bool) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, types.DenomTraceKey)
 
-	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer coretypes.LogDeferred(k.Logger, func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var denomTrace internaltypes.DenomTrace
 		k.cdc.MustUnmarshal(iterator.Value(), &denomTrace)
