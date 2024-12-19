@@ -93,7 +93,7 @@ func getChainImage(binary string) string {
 type TestConfig struct {
 	// ChainConfigs holds configuration values related to the chains used in the tests.
 	ChainConfigs []ChainConfig `yaml:"chains"`
-	// RelayerConfig holds all known relayer configurations that can be used in the tests.
+	// RelayerConfigs holds all known relayer configurations that can be used in the tests.
 	RelayerConfigs []relayer.Config `yaml:"relayers"`
 	// ActiveRelayer specifies the relayer that will be used. It must match the ID of one of the entries in RelayerConfigs.
 	ActiveRelayer string `yaml:"activeRelayer"`

@@ -110,7 +110,7 @@ type WasmGasRegisterConfig struct {
 	// See also https://github.com/CosmWasm/wasmd/issues/1798 for more thinking around
 	// discount cases.
 	InstanceCostDiscount storetypes.Gas
-	// CompileCosts costs to persist and "compile" a new wasm contract
+	// CompileCost costs to persist and "compile" a new wasm contract
 	CompileCost storetypes.Gas
 	// UncompressCost costs per byte to unpack a contract
 	UncompressCost wasmvmtypes.UFraction
