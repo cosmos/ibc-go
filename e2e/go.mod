@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/e2e
 
-go 1.23.3
+go 1.23.4
 
 // needed temporarily for v9.
 replace (
@@ -36,15 +36,15 @@ require (
 	cosmossdk.io/depinject v1.1.0 // indirect
 	cosmossdk.io/log v1.5.0 // indirect
 	cosmossdk.io/schema v1.0.0 // indirect
-	cosmossdk.io/store v1.10.0-rc.1 // indirect
+	cosmossdk.io/store v1.10.0-rc.1.0.20241218084712-ca559989da43 // indirect
 	cosmossdk.io/x/authz v0.0.0-20241108061010-a0458127fccf
-	cosmossdk.io/x/bank v0.0.0-20241108061010-a0458127fccf
+	cosmossdk.io/x/bank v0.0.0-20241218110910-47409028a73d
 	cosmossdk.io/x/distribution v0.0.0-20241108061010-a0458127fccf // indirect
 	cosmossdk.io/x/feegrant v0.1.1 // indirect
 	cosmossdk.io/x/gov v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/params v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/slashing v0.0.0-20241108061010-a0458127fccf // indirect
-	cosmossdk.io/x/staking v0.0.0-20241108061010-a0458127fccf // indirect
+	cosmossdk.io/x/staking v0.0.0-20241218110910-47409028a73d // indirect
 	cosmossdk.io/x/tx v1.0.0-alpha.3 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -223,8 +223,8 @@ require (
 	cloud.google.com/go/storage v1.43.0 // indirect
 	cosmossdk.io/client/v2 v2.0.0-beta.6 // indirect
 	cosmossdk.io/core/testing v0.0.1 // indirect
-	cosmossdk.io/x/accounts v0.0.0-20240913065641-0064ccbce64e // indirect
-	cosmossdk.io/x/accounts/defaults/base v0.0.0-20241218104812-cb56c6e47f76 // indirect
+	cosmossdk.io/x/accounts v0.0.0-20241218110910-47409028a73d // indirect
+	cosmossdk.io/x/accounts/defaults/base v0.2.0-rc.1 // indirect
 	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/accounts/defaults/multisig v0.0.0-00010101000000-000000000000 // indirect
 	cosmossdk.io/x/consensus v0.0.0-20241108061010-a0458127fccf // indirect
