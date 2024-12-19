@@ -483,9 +483,7 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 }
 
 // TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose.
-func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeoutOnClose) (*channeltypes.MsgTimeoutOnCloseResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
+func (k *Keeper) TimeoutOnClose(ctx context.Context, msg *channeltypes.MsgTimeoutOnClose) (*channeltypes.MsgTimeoutOnCloseResponse, error) {
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		k.Logger.Error("timeout on close failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
@@ -498,21 +496,25 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.SourcePort)
 	}
 
-	// Perform TAO verification
-	//
-	// If the timeout was already received, perform a no-op
-	// Use a cached context to prevent accidental state changes
-	cacheCtx, writeFn := ctx.CacheContext()
-	channelVersion, err := k.ChannelKeeper.TimeoutOnClose(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv, msg.CounterpartyUpgradeSequence)
+	var channelVersion string
+	if err := k.BranchService.Execute(ctx, func(ctx context.Context) error {
+		// Perform TAO verification
+		//
+		// If the timeout was already received, perform a no-op
+		// Use a branched multistore to prevent accidental state changes
+		channelVersion, err = k.ChannelKeeper.TimeoutOnClose(ctx, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv, msg.CounterpartyUpgradeSequence)
+		if err != nil {
+			return err
+		}
 
-	switch err {
-	case nil:
-		writeFn()
-	case channeltypes.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
-		k.Logger.Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
-		return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.NOOP}, nil
-	default:
+		return nil
+	}); err != nil {
+		if errors.Is(err, channeltypes.ErrNoOpMsg) {
+			// no-ops do not need event emission as they will be ignored
+			k.Logger.Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
+			return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.NOOP}, nil
+		}
+
 		k.Logger.Error("timeout on close failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "timeout on close packet verification failed"))
 		return nil, errorsmod.Wrap(err, "timeout on close packet verification failed")
 	}
@@ -540,9 +542,7 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 }
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
-func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
+func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		k.Logger.Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
@@ -555,21 +555,21 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.SourcePort)
 	}
 
-	// Perform TAO verification
-	//
-	// If the acknowledgement was already received, perform a no-op
-	// Use a cached context to prevent accidental state changes
-	cacheCtx, writeFn := ctx.CacheContext()
-	channelVersion, err := k.ChannelKeeper.AcknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
+	var channelVersion string
+	if err := k.BranchService.Execute(ctx, func(ctx context.Context) error {
+		// Perform TAO verification
+		//
+		// If the acknowledgement was already received, perform a no-op
+		// Use a cached context to prevent accidental state changes
+		channelVersion, err = k.ChannelKeeper.AcknowledgePacket(ctx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
+		return nil
+	}); err != nil {
+		if errors.Is(err, channeltypes.ErrNoOpMsg) {
+			// no-ops do not need event emission as they will be ignored
+			k.Logger.Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
+			return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
+		}
 
-	switch err {
-	case nil:
-		writeFn()
-	case channeltypes.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
-		k.Logger.Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
-		return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
-	default:
 		k.Logger.Error("acknowledgement failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
 		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
 	}
