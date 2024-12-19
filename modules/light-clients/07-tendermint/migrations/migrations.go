@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -41,7 +42,7 @@ func PruneExpiredConsensusStates(ctx context.Context, cdc codec.BinaryCodec, cli
 		totalPruned += ibctm.PruneAllExpiredConsensusStates(ctx, clientStore, cdc, tmClientState)
 	}
 
-	clientKeeper.Logger(ctx).Info("pruned expired tendermint consensus states", "total", totalPruned)
+	sdk.UnwrapSDKContext(ctx).Logger().Info("pruned expired tendermint consensus states", "total", totalPruned)
 
 	return totalPruned, nil
 }
