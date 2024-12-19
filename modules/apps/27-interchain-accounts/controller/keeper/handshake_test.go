@@ -298,8 +298,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel.Counterparty, channel.Version,
 				)
 
-				expPass := tc.expError == nil
-				if expPass {
+				if tc.expError == nil {
 					suite.Require().NoError(err)
 					suite.Require().Equal(expectedVersion, version)
 				} else {
@@ -686,9 +685,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 					version,
 				)
 
-				expPass := tc.expError == nil
-
-				if expPass {
+				if tc.expError == nil {
 					suite.Require().NoError(err)
 					suite.Require().Equal(upgradeVersion, version)
 				} else {
@@ -857,8 +854,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 					counterpartyVersion,
 				)
 
-				expPass := tc.expError == nil
-				if expPass {
+				if tc.expError == nil {
 					suite.Require().NoError(err)
 					suite.Require().Equal(path.EndpointA.GetChannel().Version, counterpartyVersion)
 				} else {

@@ -295,7 +295,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			expPass := tc.expError == nil
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
@@ -330,7 +329,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				proofHeight,
 			)
 
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(upgrade)
 				suite.Require().Equal(proposedUpgrade.Fields, upgrade.Fields)
@@ -782,8 +781,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				channelProof, upgradeProof, proofHeight,
 			)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 
 				channel := path.EndpointA.GetChannel()
@@ -1132,8 +1130,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 				channelProof, upgradeProof, proofHeight,
 			)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
@@ -1843,8 +1840,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
@@ -2174,7 +2170,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			expPass := tc.expError == nil
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
@@ -2200,7 +2195,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				proofHeight,
 			)
 
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
@@ -2686,8 +2681,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCrossingHelloWithHistoricalProofs()
 				proofHeight,
 			)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(upgrade)
 			} else {

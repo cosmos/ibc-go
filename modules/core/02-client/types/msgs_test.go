@@ -684,8 +684,7 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 		tc.malleate()
 
 		err := msg.ValidateBasic()
-		expPass := tc.expError == nil
-		if expPass {
+		if tc.expError == nil {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
 			suite.Require().Error(err, "invalid case %s passed", tc.name)
@@ -800,8 +799,7 @@ func TestMsgIBCSoftwareUpgrade_GetSigners(t *testing.T) {
 		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
 		signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
 
-		expPass := tc.expErr == nil
-		if expPass {
+		if tc.expErr == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {
@@ -871,9 +869,8 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 		}
 
 		err = msg.ValidateBasic()
-		expPass := tc.expError == nil
 
-		if expPass {
+		if tc.expError == nil {
 			suite.Require().NoError(err)
 		}
 		if tc.expError != nil {
@@ -975,8 +972,7 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
 		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
 
-		expPass := tc.expErr == nil
-		if expPass {
+		if tc.expErr == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
 		} else {

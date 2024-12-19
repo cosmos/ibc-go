@@ -249,8 +249,7 @@ func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -421,8 +420,7 @@ func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -532,8 +530,7 @@ func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -627,8 +624,7 @@ func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -717,8 +713,7 @@ func (suite *TypesTestSuite) TestMsgChannelCloseInitValidateBasic() {
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -817,8 +812,7 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -874,8 +868,7 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.NoError(err)
 			} else {
 				suite.Error(err)
@@ -936,8 +929,7 @@ func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1008,8 +1000,7 @@ func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1070,8 +1061,7 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1154,8 +1144,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeInitValidateBasic() {
 			tc.malleate()
 			err := msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1278,8 +1267,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTryValidateBasic() {
 			tc.malleate()
 			err := msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1385,8 +1373,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeAckValidateBasic() {
 			tc.malleate()
 			err := msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1506,8 +1493,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeConfirmValidateBasic() {
 			tc.malleate()
 			err := msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1613,8 +1599,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeOpenValidateBasic() {
 			tc.malleate()
 			err := msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1693,8 +1678,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeTimeoutValidateBasic() {
 			tc.malleate()
 			err := msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1778,8 +1762,7 @@ func (suite *TypesTestSuite) TestMsgChannelUpgradeCancelValidateBasic() {
 			tc.malleate()
 			err := msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1852,8 +1835,7 @@ func (suite *TypesTestSuite) TestMsgPruneAcknowledgementsValidateBasic() {
 			tc.malleate()
 			err := msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorIs(err, tc.expErr)
@@ -1907,8 +1889,7 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 			tc.malleate()
 			err := msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorIs(err, tc.expErr)
