@@ -1,4 +1,5 @@
-go 1.23.3
+go 1.23.4
+
 module github.com/cosmos/ibc-go/v9
 
 require (
