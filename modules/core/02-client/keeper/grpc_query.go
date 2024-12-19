@@ -294,16 +294,15 @@ func (q *queryServer) UpgradedClientState(ctx context.Context, req *types.QueryU
 }
 
 // UpgradedConsensusState implements the Query/UpgradedConsensusState gRPC method
-func (q *queryServer) UpgradedConsensusState(c context.Context, req *types.QueryUpgradedConsensusStateRequest) (*types.QueryUpgradedConsensusStateResponse, error) {
+func (q *queryServer) UpgradedConsensusState(ctx context.Context, req *types.QueryUpgradedConsensusStateRequest) (*types.QueryUpgradedConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-
-	bz, err := q.GetUpgradedConsensusState(ctx, ctx.BlockHeight())
+	height := q.HeaderService.HeaderInfo(ctx).Height
+	bz, err := q.GetUpgradedConsensusState(ctx, height)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "%s, height %d", err.Error(), ctx.BlockHeight())
+		return nil, status.Errorf(codes.NotFound, "%s, height %d", err.Error(), height)
 	}
 
 	consensusState, err := types.UnmarshalConsensusState(q.cdc, bz)

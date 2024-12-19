@@ -152,8 +152,7 @@ func (k *Keeper) SetNextConnectionSequence(ctx context.Context, sequence uint64)
 // no paths are stored.
 func (k *Keeper) GetAllClientConnectionPaths(ctx context.Context) []types.ConnectionPaths {
 	var allConnectionPaths []types.ConnectionPaths
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	k.clientKeeper.IterateClientStates(sdkCtx, nil, func(clientID string, cs exported.ClientState) bool {
+	k.clientKeeper.IterateClientStates(ctx, nil, func(clientID string, cs exported.ClientState) bool {
 		paths, found := k.GetClientConnectionPaths(ctx, clientID)
 		if !found {
 			// continue when connection handshake is not initialized

@@ -36,8 +36,6 @@ func (k *Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-
 	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
 		return 0, errorsmod.Wrapf(
@@ -85,7 +83,7 @@ func (k *Keeper) SendPacket(
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	if err := k.emitSendPacketEvent(sdkCtx, packet, channel, timeoutHeight); err != nil {
+	if err := k.emitSendPacketEvent(ctx, packet, channel, timeoutHeight); err != nil {
 		return 0, err
 	}
 
@@ -192,7 +190,7 @@ func (k *Keeper) RecvPacket(
 	)
 
 	// emit an event that the relayer can query for
-	if err := k.emitRecvPacketEvent(sdkCtx, packet, channel); err != nil {
+	if err := k.emitRecvPacketEvent(ctx, packet, channel); err != nil {
 		return "", err
 	}
 
@@ -491,7 +489,9 @@ func (k *Keeper) handleFlushState(ctx context.Context, packet types.Packet, chan
 			// set the channel state to flush complete if all packets have been acknowledged/flushed.
 			channel.State = types.FLUSHCOMPLETE
 			k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-			k.emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+			if err := k.emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel); err != nil {
+				panic(err)
+			}
 		}
 	}
 }

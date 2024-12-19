@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
+	"context"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -15,7 +15,7 @@ import (
 // client identifier. The light client module is responsible for setting any client-specific data in the store
 // via the Initialize method. This includes the client state, initial consensus state and any associated
 // metadata. The generated client identifier will be returned if a client was successfully initialized.
-func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, consensusState []byte) (string, error) {
+func (k *Keeper) CreateClient(ctx context.Context, clientType string, clientState, consensusState []byte) (string, error) {
 	if clientType == exported.Localhost {
 		return "", errorsmod.Wrapf(types.ErrInvalidClientType, "cannot create client of type: %s", clientType)
 	}
@@ -47,7 +47,7 @@ func (k *Keeper) CreateClient(ctx sdk.Context, clientType string, clientState, c
 }
 
 // UpdateClient updates the consensus state and the state root from a provided header.
-func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (k *Keeper) UpdateClient(ctx context.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return err
@@ -85,11 +85,7 @@ func (k *Keeper) UpdateClient(ctx sdk.Context, clientID string, clientMsg export
 
 // UpgradeClient upgrades the client to a new client state if this new client was committed to
 // by the old client at the specified upgrade height
-func (k *Keeper) UpgradeClient(
-	ctx sdk.Context,
-	clientID string,
-	upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof []byte,
-) error {
+func (k *Keeper) UpgradeClient(ctx context.Context, clientID string, upgradedClient, upgradedConsState, upgradeClientProof, upgradeConsensusStateProof []byte) error {
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
 		return err
@@ -117,7 +113,7 @@ func (k *Keeper) UpgradeClient(
 // is responsible for validating the parameters of the substitute (ensuring they match the subject's parameters)
 // as well as copying the necessary consensus states from the substitute to the subject client store.
 // The substitute must be Active and the subject must not be Active.
-func (k *Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClientID string) error {
+func (k *Keeper) RecoverClient(ctx context.Context, subjectClientID, substituteClientID string) error {
 	clientModule, err := k.Route(ctx, subjectClientID)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrRouteNotFound, subjectClientID)
