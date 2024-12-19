@@ -17,4 +17,5 @@ var (
 	ErrRelayerNotFoundForAsyncAck    = errorsmod.Register(ModuleName, 10, "relayer address must be stored for async WriteAcknowledgement")
 	ErrFeeModuleLocked               = errorsmod.Register(ModuleName, 11, "the fee module is currently locked, a severe bug has been detected")
 	ErrUnsupportedAction             = errorsmod.Register(ModuleName, 12, "unsupported action")
+	ErrRefundDistributionFailed      = errorsmod.Register(ModuleName, 13, "refund distribution failed")
 )
