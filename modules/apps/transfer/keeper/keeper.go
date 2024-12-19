@@ -299,17 +299,8 @@ func (k Keeper) IterateTokensInEscrow(ctx context.Context, storeprefix []byte, c
 	}
 }
 
-// setForwardedPacket sets the forwarded packet in the store.
-func (k Keeper) setForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
-	store := k.storeService.OpenKVStore(ctx)
-	bz := k.cdc.MustMarshal(&packet)
-	if err := store.Set(types.PacketForwardKey(portID, channelID, sequence), bz); err != nil {
-		panic(err)
-	}
-}
-
 // getForwardedPacket gets the forwarded packet from the store.
-func (k Keeper) getForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
+func (k Keeper) GetForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(types.PacketForwardKey(portID, channelID, sequence))
 	if err != nil {
@@ -323,6 +314,15 @@ func (k Keeper) getForwardedPacket(ctx context.Context, portID, channelID string
 	k.cdc.MustUnmarshal(bz, &storedPacket)
 
 	return storedPacket, true
+}
+
+// setForwardedPacket sets the forwarded packet in the store.
+func (k Keeper) setForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
+	store := k.storeService.OpenKVStore(ctx)
+	bz := k.cdc.MustMarshal(&packet)
+	if err := store.Set(types.PacketForwardKey(portID, channelID, sequence), bz); err != nil {
+		panic(err)
+	}
 }
 
 // deleteForwardedPacket deletes the forwarded packet from the store.
