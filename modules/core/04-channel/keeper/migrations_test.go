@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -14,11 +13,11 @@ import (
 func (suite *KeeperTestSuite) TestMigrateDefaultParams() {
 	testCases := []struct {
 		name           string
-		expectedParams channeltypes.Params
+		expectedParams types.Params
 	}{
 		{
 			"success: default params",
-			channeltypes.DefaultParams(),
+			types.DefaultParams(),
 		},
 	}
 
@@ -61,7 +60,8 @@ func (suite *KeeperTestSuite) TestMigrateNextSequenceSend() {
 
 	migrator := keeper.NewMigrator(k)
 
-	migrator.MigrateNextSequenceSend(ctx)
+	err := migrator.MigrateNextSequenceSend(ctx)
+	suite.Require().NoError(err)
 
 	expV2Seqs := []types.PacketSequence{}
 	for _, es := range expSeqs {
