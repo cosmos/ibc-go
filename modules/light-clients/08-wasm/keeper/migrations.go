@@ -47,7 +47,7 @@ func (m Migrator) MigrateChecksums(ctx sdk.Context) error {
 
 // getStoredChecksums returns the checksums stored under the KeyChecksums key.
 func (m Migrator) getStoredChecksums(ctx sdk.Context) ([][]byte, error) {
-	store := m.keeper.storeService.OpenKVStore(ctx)
+	store := m.keeper.KVStoreService.OpenKVStore(ctx)
 
 	bz, err := store.Get([]byte(types.KeyChecksums))
 	if err != nil {
@@ -65,7 +65,7 @@ func (m Migrator) getStoredChecksums(ctx sdk.Context) ([][]byte, error) {
 
 // deleteChecksums deletes the checksums stored under the KeyChecksums key.
 func (m Migrator) deleteChecksums(ctx sdk.Context) error {
-	store := m.keeper.storeService.OpenKVStore(ctx)
+	store := m.keeper.KVStoreService.OpenKVStore(ctx)
 	err := store.Delete([]byte(types.KeyChecksums))
 
 	return err

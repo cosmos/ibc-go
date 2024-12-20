@@ -153,7 +153,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -168,7 +168,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -183,7 +183,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					nil, // client keeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -198,7 +198,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					nil,
@@ -213,7 +213,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					nil,
+					runtime.NewEnvironment(nil, log.NewNopLogger()),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -228,7 +228,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
