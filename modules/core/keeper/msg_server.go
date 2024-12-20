@@ -423,9 +423,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 }
 
 // Timeout defines a rpc handler method for MsgTimeout.
-func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
+func (k *Keeper) Timeout(ctx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		k.Logger.Error("timeout failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
@@ -562,6 +560,10 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypes.MsgAckno
 		// If the acknowledgement was already received, perform a no-op
 		// Use a branched multistore to prevent accidental state changes
 		channelVersion, err = k.ChannelKeeper.AcknowledgePacket(ctx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	}); err != nil {
 		if errors.Is(err, channeltypes.ErrNoOpMsg) {
