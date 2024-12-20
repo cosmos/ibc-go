@@ -217,12 +217,12 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"failed to validate active channel - invalid port identifier",
@@ -236,7 +236,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 
 				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
-			false,
+			host.ErrInvalidID,
 		},
 		{
 			"failed to validate active channel - invalid channel identifier",
@@ -250,7 +250,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 
 				genesisState = genesistypes.NewHostGenesisState(activeChannels, []genesistypes.RegisteredInterchainAccount{}, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
-			false,
+			host.ErrInvalidID,
 		},
 		{
 			"failed to validate registered account - invalid port identifier",
@@ -271,7 +271,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 
 				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
-			false,
+			host.ErrInvalidID,
 		},
 		{
 			"failed to validate registered account - invalid owner address",
@@ -292,7 +292,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 
 				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, icatypes.HostPortID, hosttypes.DefaultParams())
 			},
-			false,
+			icatypes.ErrInvalidAccountAddress,
 		},
 		{
 			"failed to validate controller ports - invalid port identifier",
@@ -313,7 +313,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 
 				genesisState = genesistypes.NewHostGenesisState(activeChannels, registeredAccounts, "invalid|port", hosttypes.DefaultParams())
 			},
-			false,
+			host.ErrInvalidID,
 		},
 	}
 
@@ -327,10 +327,11 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 
 			err := genesisState.Validate()
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, tc.name)
 			} else {
 				suite.Require().Error(err, tc.name)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
