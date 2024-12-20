@@ -9,7 +9,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
@@ -341,9 +340,7 @@ func (k *Keeper) ChanUpgradeAck(
 	}
 
 	timeout := counterpartyUpgrade.Timeout
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
-
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(k.HeaderService.HeaderInfo(ctx).Time.UnixNano())
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "counterparty upgrade timeout elapsed"))
 	}
@@ -464,9 +461,7 @@ func (k *Keeper) ChanUpgradeConfirm(
 	}
 
 	timeout := counterpartyUpgrade.Timeout
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
-
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(k.HeaderService.HeaderInfo(ctx).Time.UnixNano())
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "counterparty upgrade timeout elapsed"))
 	}
@@ -885,8 +880,8 @@ func (k *Keeper) startFlushing(ctx context.Context, portID, channelID string, up
 // getAbsoluteUpgradeTimeout returns the absolute timeout for the given upgrade.
 func (k *Keeper) getAbsoluteUpgradeTimeout(ctx context.Context) types.Timeout {
 	upgradeTimeout := k.GetParams(ctx).UpgradeTimeout
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	return types.NewTimeout(clienttypes.ZeroHeight(), uint64(sdkCtx.BlockTime().UnixNano())+upgradeTimeout.Timestamp)
+	blockTime := k.HeaderService.HeaderInfo(ctx).Time.UnixNano()
+	return types.NewTimeout(clienttypes.ZeroHeight(), uint64(blockTime)+upgradeTimeout.Timestamp)
 }
 
 // checkForUpgradeCompatibility checks performs stateful validation of self upgrade fields relative to counterparty upgrade.
