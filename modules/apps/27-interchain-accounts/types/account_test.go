@@ -120,19 +120,19 @@ func (suite *TypesTestSuite) TestGenesisAccountValidate() {
 	ownerAddr := sdk.AccAddress(pubkey.Address())
 
 	testCases := []struct {
-		name    string
-		acc     authtypes.GenesisAccount
-		expPass bool
+		name   string
+		acc    authtypes.GenesisAccount
+		expErr error
 	}{
 		{
 			"success",
 			types.NewInterchainAccount(baseAcc, ownerAddr.String()),
-			true,
+			nil,
 		},
 		{
 			"interchain account with empty AccountOwner field",
 			types.NewInterchainAccount(baseAcc, ""),
-			false,
+			types.ErrInvalidAccountAddress,
 		},
 	}
 
@@ -141,10 +141,11 @@ func (suite *TypesTestSuite) TestGenesisAccountValidate() {
 
 		err := tc.acc.Validate()
 
-		if tc.expPass {
+		if tc.expErr == nil {
 			suite.Require().NoError(err)
 		} else {
 			suite.Require().Error(err)
+			suite.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
