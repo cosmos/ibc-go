@@ -21,6 +21,7 @@ require (
 	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/tx v0.13.4
 	cosmossdk.io/x/upgrade v0.1.4
+<<<<<<< HEAD
 	github.com/CosmWasm/wasmvm/v2 v2.1.2
 	github.com/cometbft/cometbft v0.38.11
 	github.com/cosmos/cosmos-db v1.0.2
@@ -28,6 +29,15 @@ require (
 	github.com/cosmos/gogoproto v1.5.0
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
 	github.com/cosmos/ibc-go/v9 v9.0.0-beta.1
+=======
+	github.com/CosmWasm/wasmvm/v2 v2.1.4
+	github.com/cometbft/cometbft v1.0.0
+	github.com/cometbft/cometbft/api v1.0.0
+	github.com/cosmos/cosmos-db v1.1.1
+	github.com/cosmos/cosmos-sdk v0.53.0
+	github.com/cosmos/gogoproto v1.7.0
+	github.com/cosmos/ibc-go/v9 v9.0.0
+>>>>>>> 23a4a961 (chore: bump wasmvm (#7735))
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cast v1.6.0
