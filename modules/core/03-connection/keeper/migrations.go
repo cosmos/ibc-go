@@ -35,6 +35,6 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	}
 
 	m.keeper.SetParams(ctx, params)
-	m.keeper.Logger(ctx).Info("successfully migrated connection to self-manage params")
+	m.keeper.Logger.Info("successfully migrated connection to self-manage params")
 	return nil
 }
