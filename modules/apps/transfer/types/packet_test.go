@@ -484,8 +484,7 @@ func TestFungibleTokenPacketDataV2ValidateBasic(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.packetData.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				require.NoError(t, err, tc.name)
 			} else {
 				require.ErrorContains(t, err, tc.expErr.Error(), tc.name)
@@ -767,8 +766,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 
 		packetData, err := types.UnmarshalPacketData(packetDataBz, version)
 
-		expPass := tc.expError == nil
-		if expPass {
+		if tc.expError == nil {
 			require.IsType(t, types.FungibleTokenPacketDataV2{}, packetData)
 		} else {
 			require.ErrorIs(t, err, tc.expError)
@@ -821,8 +819,7 @@ func TestV2ForwardsCompatibilityFails(t *testing.T) {
 
 		packetData, err := types.UnmarshalPacketData(packetDataBz, types.V2)
 
-		expPass := tc.expError == nil
-		if expPass {
+		if tc.expError == nil {
 			require.NoError(t, err)
 			require.NotEqual(t, types.FungibleTokenPacketDataV2{}, packetData)
 		} else {
@@ -938,8 +935,7 @@ func TestPacketV1ToPacketV2(t *testing.T) {
 	for _, tc := range testCases {
 		actualV2Data, err := types.PacketDataV1ToV2(tc.v1Data)
 
-		expPass := tc.expError == nil
-		if expPass {
+		if tc.expError == nil {
 			require.NoError(t, err, "test case: %s", tc.name)
 			require.Equal(t, tc.v2Data, actualV2Data, "test case: %s", tc.name)
 		} else {

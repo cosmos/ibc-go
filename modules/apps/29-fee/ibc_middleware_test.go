@@ -1118,8 +1118,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 
 			err := path.EndpointA.ChanUpgradeInit()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1231,8 +1230,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 
 			err = path.EndpointB.ChanUpgradeTry()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1338,8 +1336,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 
 			err = cbs.OnChanUpgradeAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyUpgrade.Fields.Version)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)

@@ -683,8 +683,7 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 		tc.malleate()
 
 		err := msg.ValidateBasic()
-		expPass := tc.expError == nil
-		if expPass {
+		if tc.expError == nil {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
 			suite.Require().Error(err, "invalid case %s passed", tc.name)
@@ -869,9 +868,8 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 		}
 
 		err = msg.ValidateBasic()
-		expPass := tc.expError == nil
 
-		if expPass {
+		if tc.expError == nil {
 			suite.Require().NoError(err)
 		}
 		if tc.expError != nil {

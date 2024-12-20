@@ -280,8 +280,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(suite.chainA.GetContext(), msg)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 			} else {
@@ -467,8 +466,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 
 			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, packetData)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 
 				// Check denom metadata for of tokens received on chain B.
@@ -594,8 +592,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 			packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(1), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 			err = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packet, packetData)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 
 				_, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainA.GetContext(), sdk.DefaultBondDenom)
@@ -810,8 +807,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom.IBCDenom())
 			suite.Require().Equal(expEscrowAmount, totalEscrow.Amount)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				postAcknowledgementBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 				deltaAmount := postAcknowledgementBalance.Amount.Sub(preAcknowledgementBalance.Amount)
@@ -1048,8 +1044,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom.IBCDenom())
 			suite.Require().Equal(expEscrowAmount, totalEscrow.Amount)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				amountParsed, ok := sdkmath.NewIntFromString(amount)
 				suite.Require().True(ok)
@@ -1231,8 +1226,7 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 			// receive packet on chainA
 			err = path.RelayPacket(packet)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorContains(err, tc.expError.Error())

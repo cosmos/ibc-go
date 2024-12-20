@@ -596,8 +596,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 
 			channelVersion, err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.RecvPacket(suite.chainB.GetContext(), packet, proof, proofHeight)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(path.EndpointA.GetChannel().Version, channelVersion, "channel version is incorrect")
 

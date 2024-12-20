@@ -598,8 +598,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeTry() {
 					counterpartyVersion,
 				)
 
-				expPass := tc.expError == nil
-				if expPass {
+				if tc.expError == nil {
 					suite.Require().NoError(err)
 					suite.Require().Equal(path.EndpointB.GetChannel().Version, version)
 				} else {

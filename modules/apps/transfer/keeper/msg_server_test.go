@@ -182,8 +182,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				),
 			}.ToABCIEvents()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().NotEqual(res.Sequence, uint64(0))

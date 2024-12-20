@@ -96,8 +96,7 @@ func TestMsgTransferValidation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				require.NoError(t, err)
 			} else {
 				require.ErrorIs(t, err, tc.expError)
@@ -133,8 +132,7 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				require.NoError(t, err)
 			} else {
 				require.ErrorIs(t, err, tc.expError)
