@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
@@ -297,12 +298,12 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"success with empty account address",
@@ -316,7 +317,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success with EncodingProto3JSON",
@@ -330,7 +331,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"unsupported encoding format",
@@ -344,7 +345,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
-			false,
+			types.ErrInvalidCodec,
 		},
 		{
 			"unsupported transaction type",
@@ -358,7 +359,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					TxType:                 "invalid-tx-type",
 				}
 			},
-			false,
+			types.ErrUnknownDataType,
 		},
 		{
 			"invalid controller connection",
@@ -372,7 +373,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
-			false,
+			connectiontypes.ErrInvalidConnection,
 		},
 		{
 			"invalid host connection",
@@ -386,7 +387,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
-			false,
+			connectiontypes.ErrInvalidConnection,
 		},
 		{
 			"invalid address",
@@ -400,7 +401,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
-			false,
+			types.ErrInvalidAccountAddress,
 		},
 		{
 			"invalid version",
@@ -414,7 +415,7 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 					TxType:                 types.TxTypeSDKMultiMsg,
 				}
 			},
-			false,
+			types.ErrInvalidVersion,
 		},
 	}
 
@@ -437,10 +438,10 @@ func (suite *TypesTestSuite) TestValidateHostMetadata() {
 				metadata,
 			)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
