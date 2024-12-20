@@ -75,7 +75,7 @@ func (q *queryServer) ClientStates(ctx context.Context, req *types.QueryClientSt
 	}
 
 	var clientStates types.IdentifiedClientStates
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.KeyClientStorePrefix)
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), host.KeyClientStorePrefix)
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under client state key
@@ -166,7 +166,7 @@ func (q *queryServer) ConsensusStates(ctx context.Context, req *types.QueryConse
 	}
 
 	var consensusStates []types.ConsensusStateWithHeight
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under consensus state key
@@ -208,7 +208,7 @@ func (q *queryServer) ConsensusStateHeights(ctx context.Context, req *types.Quer
 	}
 
 	var consensusStateHeights []types.Height
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, _ []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under consensus state key
@@ -294,16 +294,15 @@ func (q *queryServer) UpgradedClientState(ctx context.Context, req *types.QueryU
 }
 
 // UpgradedConsensusState implements the Query/UpgradedConsensusState gRPC method
-func (q *queryServer) UpgradedConsensusState(c context.Context, req *types.QueryUpgradedConsensusStateRequest) (*types.QueryUpgradedConsensusStateResponse, error) {
+func (q *queryServer) UpgradedConsensusState(ctx context.Context, req *types.QueryUpgradedConsensusStateRequest) (*types.QueryUpgradedConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-
-	bz, err := q.GetUpgradedConsensusState(ctx, ctx.BlockHeight())
+	height := q.HeaderService.HeaderInfo(ctx).Height
+	bz, err := q.GetUpgradedConsensusState(ctx, height)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "%s, height %d", err.Error(), ctx.BlockHeight())
+		return nil, status.Errorf(codes.NotFound, "%s, height %d", err.Error(), height)
 	}
 
 	consensusState, err := types.UnmarshalConsensusState(q.cdc, bz)
@@ -388,7 +387,7 @@ func (q *queryServer) VerifyMembership(c context.Context, req *types.QueryVerify
 	)
 
 	if err := clientModule.VerifyMembership(cachedCtx, req.ClientId, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
-		q.Logger(ctx).Debug("proof verification failed", "key", req.MerklePath, "error", err)
+		q.Logger.Debug("proof verification failed", "key", req.MerklePath, "error", err)
 		return &types.QueryVerifyMembershipResponse{
 			Success: false,
 		}, nil

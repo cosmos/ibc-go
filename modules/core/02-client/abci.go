@@ -1,6 +1,8 @@
 package client
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
@@ -9,7 +11,11 @@ import (
 )
 
 // BeginBlocker is used to perform IBC client upgrades
-func BeginBlocker(ctx sdk.Context, k *keeper.Keeper) {
+func BeginBlocker(goCtx context.Context, k *keeper.Keeper) {
+	// TODO: In order to fully migrate away from sdk.Context here we will need to depend on comet service in order
+	// to consume the full block header as Env only contains header.Info (where we cannot access next vals hash)
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	plan, err := k.GetUpgradePlan(ctx)
 	if err == nil {
 		// Once we are at the last block this chain will commit, set the upgraded consensus state
@@ -29,7 +35,9 @@ func BeginBlocker(ctx sdk.Context, k *keeper.Keeper) {
 			// SetUpgradedConsensusState always returns nil, hence the blank here.
 			_ = k.SetUpgradedConsensusState(ctx, plan.Height, bz)
 
-			keeper.EmitUpgradeChainEvent(ctx, plan.Height)
+			if err := k.EmitUpgradeChainEvent(ctx, plan.Height); err != nil {
+				k.Logger.Error("error in events emission", "error", err.Error())
+			}
 		}
 	}
 }
