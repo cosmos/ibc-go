@@ -1,6 +1,7 @@
 name: Spell Check
 
 on:
+  workflow_dispatch:
   pull_request:
   schedule:
     - cron: "0 12 * * *"
@@ -15,11 +16,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install codespell
+        run: pip install codespell
       - name: Run codespell
         continue-on-error: true
-        run: |
-          sudo apt-get install codespell -y
-          codespell -w --skip="*.pb.go,*.pb.gw.go,*.json,*.git,*.js,*.h,*.bin,go.sum,go.mod,.github" --ignore-words=.github/.codespellignore
+        run: codespell -w --skip="*.pb.go,*.pb.gw.go,*.json,*.git,*.js,*.h,*.bin,go.sum,go.mod,.github,*.pdf,*.tla" --ignore-words=.github/.codespellignore
       - uses: peter-evans/create-pull-request@v7
         if: github.event_name != 'pull_request'
         with:
