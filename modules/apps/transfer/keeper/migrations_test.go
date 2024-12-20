@@ -485,3 +485,51 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestMigratorTotalEscrowsIntProtoToInt() {
+	var expectedTotalEscrowForDenoms []sdk.Coin
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+	}{
+		{
+			"success",
+			func() {
+				// set total escrow for denoms amounts in store using legacy IntProto encoding
+				store := suite.chainA.GetSimApp().TransferKeeper.KVStoreService.OpenKVStore(suite.chainA.GetContext())
+				key := transfertypes.TotalEscrowForDenomKey("ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA")
+
+				amount := sdk.IntProto{
+					Int: sdkmath.NewInt(10000),
+				}
+
+				bz := suite.chainA.Codec.MustMarshal(&amount)
+
+				err := store.Set(key, bz)
+				suite.Require().NoError(err)
+
+				expectedTotalEscrowForDenoms = append(expectedTotalEscrowForDenoms, sdk.NewCoin("ibc/EB7094899ACFB7A6F2A67DB084DEE2E9A83DEFAA5DEF92D9A9814FFD9FF673FA", sdkmath.NewInt(10000)))
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+			ctx := suite.chainA.GetContext()
+
+			tc.malleate()
+
+			// run migration
+			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+			err := migrator.MigrateTotalEscrowsIntProtoToInt(ctx)
+			suite.Require().NoError(err)
+
+			for _, expEscrow := range expectedTotalEscrowForDenoms {
+				totalEscrowForDenom := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, expEscrow.Denom)
+				suite.Require().Equal(expEscrow, totalEscrowForDenom)
+			}
+		})
+	}
+}
