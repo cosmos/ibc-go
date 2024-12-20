@@ -486,7 +486,11 @@ func NewSimApp(
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(runtime.NewEnvironment(runtime.NewKVStoreService(keys[upgradetypes.StoreKey]), logger.With(log.ModuleKey, "x/upgrade"), runtime.EnvWithMsgRouterService(app.MsgServiceRouter()), runtime.EnvWithQueryRouterService(app.GRPCQueryRouter())), skipUpgradeHeights, appCodec, homePath, app.BaseApp, govModuleAddr, app.ConsensusParamsKeeper)
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[ibcexported.StoreKey]), app.GetSubspace(ibcexported.ModuleName), app.UpgradeKeeper, govModuleAddr,
+		appCodec,
+		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibcexported.StoreKey]), logger.With(log.ModuleKey, "x/ibc")),
+		app.GetSubspace(ibcexported.ModuleName),
+		app.UpgradeKeeper,
+		govModuleAddr,
 	)
 
 	govRouter := govv1beta1.NewRouter()

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 
-	corestore "cosmossdk.io/core/store"
+	"cosmossdk.io/core/appmodule"
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -33,15 +33,15 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 
 // LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
-	cdc          codec.BinaryCodec
-	storeService corestore.KVStoreService
+	cdc codec.BinaryCodec
+	appmodule.Environment
 }
 
 // NewLightClientModule creates and returns a new 09-localhost LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec, storeService corestore.KVStoreService) *LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, env appmodule.Environment) *LightClientModule {
 	return &LightClientModule{
-		cdc:          cdc,
-		storeService: storeService,
+		cdc:         cdc,
+		Environment: env,
 	}
 }
 
@@ -83,7 +83,7 @@ func (l LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	ibcStore := l.storeService.OpenKVStore(ctx)
+	ibcStore := l.KVStoreService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
@@ -127,7 +127,7 @@ func (l LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	ibcStore := l.storeService.OpenKVStore(ctx)
+	ibcStore := l.KVStoreService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
