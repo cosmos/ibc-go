@@ -948,8 +948,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			res, err := queryServer.VerifyMembership(ctx, req)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().True(res.Success, "failed to verify membership proof")
 
