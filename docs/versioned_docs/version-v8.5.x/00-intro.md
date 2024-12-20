@@ -27,7 +27,7 @@ IBC provides a reliable, permissionless, and generic base layer (allowing for th
 
 - **IBC/TAO** comprises the Transport, Authentication, and Ordering of packets, i.e. the infrastructure layer.
 - **IBC/APP** consists of the application handlers for the data packets being passed over the transport layer. These include but are not limited to fungible token transfers (ICS-20), NFT transfers (ICS-721), and interchain accounts (ICS-27).
-- **Application module:** groups any application, middleware or smart contract that may wrap downsteam application handlers to provide enhanced functionality.
+- **Application module:** groups any application, middleware or smart contract that may wrap downstream application handlers to provide enhanced functionality.
 
 Note three crucial elements in the diagram:
 
