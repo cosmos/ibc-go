@@ -161,14 +161,14 @@ func (suite *KeeperTestSuite) TestGetAllGenesisClients() {
 }
 
 func (suite *KeeperTestSuite) TestGetAllGenesisMetadata() {
-	clientA, clientB := "07-tendermint-1", "clientB"
+	client, clientB := "07-tendermint-1", "clientB"
 
 	// create some starting state
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientA, &ibctm.ClientState{})
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientA, types.NewHeight(0, 1), &ibctm.ConsensusState{})
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientA, types.NewHeight(0, 2), &ibctm.ConsensusState{})
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientA, types.NewHeight(0, 3), &ibctm.ConsensusState{})
-	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientA, types.NewHeight(2, 300), &ibctm.ConsensusState{})
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), client, &ibctm.ClientState{})
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), client, types.NewHeight(0, 1), &ibctm.ConsensusState{})
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), client, types.NewHeight(0, 2), &ibctm.ConsensusState{})
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), client, types.NewHeight(0, 3), &ibctm.ConsensusState{})
+	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), client, types.NewHeight(2, 300), &ibctm.ConsensusState{})
 
 	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientB, &ibctm.ClientState{})
 	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientB, types.NewHeight(1, 100), &ibctm.ConsensusState{})
@@ -178,7 +178,7 @@ func (suite *KeeperTestSuite) TestGetAllGenesisMetadata() {
 	// Ordering is typically determined by the lexographic ordering of the height passed into each key.
 	expectedGenMetadata := []types.IdentifiedGenesisMetadata{
 		types.NewIdentifiedGenesisMetadata(
-			clientA,
+			client,
 			[]types.GenesisMetadata{
 				types.NewGenesisMetadata([]byte(fmt.Sprintf("%s/%s", host.KeyClientState, "clientMetadata")), []byte("value")),
 				types.NewGenesisMetadata(ibctm.ProcessedTimeKey(types.NewHeight(0, 1)), []byte("foo")),
@@ -199,7 +199,7 @@ func (suite *KeeperTestSuite) TestGetAllGenesisMetadata() {
 	}
 
 	genClients := []types.IdentifiedClientState{
-		types.NewIdentifiedClientState(clientA, &ibctm.ClientState{}), types.NewIdentifiedClientState(clientB, &ibctm.ClientState{}),
+		types.NewIdentifiedClientState(client, &ibctm.ClientState{}), types.NewIdentifiedClientState(clientB, &ibctm.ClientState{}),
 	}
 
 	suite.chainA.App.GetIBCKeeper().ClientKeeper.SetAllClientMetadata(suite.chainA.GetContext(), expectedGenMetadata)
