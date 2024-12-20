@@ -16,8 +16,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install codespell
-        run: sudo apt update && sudo apt install code-spell -y
+        run: pip install codespell
       - name: Run codespell
         continue-on-error: true
         run: codespell -w --skip="*.pb.go,*.pb.gw.go,*.json,*.git,*.js,*.h,*.bin,go.sum,go.mod,.github,*.pdf,*.tla" --ignore-words=.github/.codespellignore
