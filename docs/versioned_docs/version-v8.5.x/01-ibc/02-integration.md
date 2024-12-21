@@ -46,7 +46,7 @@ The following code example shows how to register the existing `ibctm.AppModuleBa
 import (
   ...
   // highlight-next-line
-+ ibctm "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint"
++ ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
   ...
 )
 
