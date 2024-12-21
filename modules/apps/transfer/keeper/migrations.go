@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	banktypes "cosmossdk.io/x/bank/types"
@@ -110,6 +111,38 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 	for i := 0; i < len(denoms); i++ {
 		m.keeper.SetDenom(ctx, denoms[i])
 		m.keeper.deleteDenomTrace(ctx, denomTraces[i])
+	}
+
+	return nil
+}
+
+func (m Migrator) MigrateTotalEscrowsIntProtoToInt(ctx sdk.Context) error {
+	store := runtime.KVStoreAdapter(m.keeper.KVStoreService.OpenKVStore(ctx))
+	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.KeyTotalEscrowPrefix))
+
+	var escrowTotals []sdk.Coin
+	for ; iterator.Valid(); iterator.Next() {
+		denom := strings.TrimPrefix(string(iterator.Key()), fmt.Sprintf("%s/", types.KeyTotalEscrowPrefix))
+		if strings.TrimSpace(denom) == "" {
+			continue // denom is empty
+		}
+
+		// unmarshal the amount using the deprecated legacy type: IntProto
+		amount := sdk.IntProto{}
+		m.keeper.cdc.MustUnmarshal(iterator.Value(), &amount)
+
+		// create new coin with sdkmath.Int for updated state entry encoding
+		newDenomEscrow := sdk.NewCoin(denom, sdkmath.NewInt(amount.Int.Int64()))
+		escrowTotals = append(escrowTotals, newDenomEscrow)
+	}
+
+	if err := iterator.Close(); err != nil {
+		return err
+	}
+
+	// update the state keys for total escrow for denom
+	for _, escrow := range escrowTotals {
+		m.keeper.SetTotalEscrowForDenom(ctx, escrow)
 	}
 
 	return nil
