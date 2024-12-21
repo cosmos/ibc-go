@@ -118,12 +118,12 @@ The new proposed format will be the following:
 ibcDenom = "ibc/" + hash(trace path + "/" + base denom)
 ```
 
-The hash function will be a SHA256 hash of the fields of the `DenomTrace`:
+The hash function will be a SHA256 hash of the fields of the `Denom`:
 
 ```protobuf
-// DenomTrace contains the base denomination for ICS20 fungible tokens and the source tracing
+// Denom contains the base denomination for ICS20 fungible tokens and the source tracing
 // information
-message DenomTrace {
+message Denom {
   // chain of port/channel identifiers used for tracing the source of the fungible token
   string path = 1;
   // base denomination of the relayed fungible token
@@ -134,16 +134,16 @@ message DenomTrace {
 The `IBCDenom` function constructs the `Coin` denomination used when creating the ICS20 fungible token packet data:
 
 ```go
-// Hash returns the hex bytes of the SHA256 hash of the DenomTrace fields using the following formula:
+// Hash returns the hex bytes of the SHA256 hash of the Denom fields using the following formula:
 //
 // hash = sha256(tracePath + "/" + baseDenom)
-func (dt DenomTrace) Hash() tmbytes.HexBytes {
+func (dt Denom) Hash() tmbytes.HexBytes {
   return tmhash.Sum(dt.Path + "/" + dt.BaseDenom)
 }
 
 // IBCDenom a coin denomination for an ICS20 fungible token in the format 'ibc/{hash(tracePath + baseDenom)}'. 
 // If the trace is empty, it will return the base denomination.
-func (dt DenomTrace) IBCDenom() string {
+func (dt Denom) IBCDenom() string {
   if dt.Path != "" {
     return fmt.Sprintf("ibc/%s", dt.Hash())
   }
@@ -155,33 +155,33 @@ func (dt DenomTrace) IBCDenom() string {
 
 In order to retrieve the trace information from an IBC denomination, a lookup table needs to be
 added to the `ibc-transfer` module. These values need to also be persisted between upgrades, meaning
-that a new `[]DenomTrace` `GenesisState` field state needs to be added to the module:
+that a new `[]Denom` `GenesisState` field state needs to be added to the module:
 
 ```go
-// GetDenomTrace retrieves the full identifiers trace and base denomination from the store.
-func (k Keeper) GetDenomTrace(ctx Context, denomTraceHash []byte) (DenomTrace, bool) {
+// GetDenom retrieves the full identifiers trace and base denomination from the store.
+func (k Keeper) GetDenom(ctx Context, denomHash []byte) (Denom, bool) {
   store := ctx.KVStore(k.storeKey)
-  bz := store.Get(types.KeyDenomTrace(traceHash))
+  bz := store.Get(types.KeyDenom(traceHash))
   if bz == nil {
-    return &DenomTrace, false
+    return &Denom, false
   }
 
-  var denomTrace DenomTrace
-  k.cdc.MustUnmarshalBinaryBare(bz, &denomTrace)
-  return denomTrace, true
+  var denom Denom
+  k.cdc.MustUnmarshalBinaryBare(bz, &denom)
+  return denom, true
 }
 
-// HasDenomTrace checks if a the key with the given trace hash exists on the store.
-func (k Keeper) HasDenomTrace(ctx Context, denomTraceHash []byte)  bool {
+// HasDenom checks if a the key with the given trace hash exists on the store.
+func (k Keeper) HasDenom(ctx Context, denomHash []byte)  bool {
   store := ctx.KVStore(k.storeKey)
-  return store.Has(types.KeyTrace(denomTraceHash))
+  return store.Has(types.KeyTrace(denomHash))
 }
 
-// SetDenomTrace sets a new {trace hash -> trace} pair to the store.
-func (k Keeper) SetDenomTrace(ctx Context, denomTrace DenomTrace) {
+// SetDenom sets a new {trace hash -> trace} pair to the store.
+func (k Keeper) SetDenom(ctx Context, denom Denom) {
   store := ctx.KVStore(k.storeKey)
-  bz := k.cdc.MustMarshalBinaryBare(&denomTrace)
-  store.Set(types.KeyTrace(denomTrace.Hash()), bz)
+  bz := k.cdc.MustMarshalBinaryBare(&denom)
+  store.Set(types.KeyTrace(denom.Hash()), bz)
 }
 ```
 
@@ -255,12 +255,12 @@ func (k Keeper) DenomPathFromHash(ctx sdk.Context, denom string) (string, error)
     return "", Wrap(ErrInvalidDenomForTransfer, err.Error())
   }
 
-  denomTrace, found := k.GetDenomTrace(ctx, hash)
+  denom, found := k.GetDenom(ctx, hash)
   if !found {
     return "", Wrap(ErrTraceNotFound, hexHash)
   }
 
-  fullDenomPath := denomTrace.GetFullDenomPath()
+  fullDenomPath := denom.GetFullDenomPath()
   return fullDenomPath, nil
 }
 ```
@@ -297,15 +297,15 @@ sourcePrefix := types.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel
 prefixedDenom := sourcePrefix + data.Denom
 
 // construct the denomination trace from the full raw denomination
-denomTrace := types.ParseDenomTrace(prefixedDenom)
+denom := types.ParseDenom(prefixedDenom)
 
 // set the value to the lookup table if not stored already
-traceHash := denomTrace.Hash()
-if !k.HasDenomTrace(ctx, traceHash) {
-  k.SetDenomTrace(ctx, traceHash, denomTrace)
+traceHash := denom.Hash()
+if !k.HasDenom(ctx, traceHash) {
+  k.SetDenom(ctx, traceHash, denom)
 }
 
-voucherDenom := denomTrace.IBCDenom()
+voucherDenom := denom.IBCDenom()
 voucher := sdk.NewCoin(voucherDenom, sdk.NewIntFromUint64(data.Amount))
 
 // mint new tokens if the source of the transfer is the same chain
@@ -322,13 +322,13 @@ return k.bankKeeper.SendCoinsFromModuleToAccount(
 ```
 
 ```go
-func NewDenomTraceFromRawDenom(denom string) DenomTrace{
+func NewDenomFromRawDenom(denom string) Denom{
   denomSplit := strings.Split(denom, "/")
   trace := ""
   if len(denomSplit) > 1 {
     trace = strings.Join(denomSplit[:len(denomSplit)-1], "/")
   }
-  return DenomTrace{
+  return Denom{
     BaseDenom: denomSplit[len(denomSplit)-1],
     Trace:     trace,
   }
