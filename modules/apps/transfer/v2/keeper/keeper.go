@@ -73,7 +73,7 @@ func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload
 	}
 
 	// TODO: events
-	// events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
+	events.EmitTransferEvent(ctx, sender.String(), data.Receiver, data.Tokens, data.Memo, data.Forwarding.Hops)
 
 	// TODO: telemetry
 	// telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
