@@ -87,7 +87,7 @@ func PortIdentifierValidator(id string) error {
 	return defaultIdentifierValidator(id, 2, DefaultMaxPortCharacterLength)
 }
 
-// NewPathValidator takes in a Identifier Validator function and returns
+// NewPathValidator takes in an Identifier Validator function and returns
 // a Path Validator function which requires path to consist of `/`-separated valid identifiers,
 // where a valid identifier is between 1-64 characters, contains only alphanumeric and some allowed
 // special characters (see IsValidID), and satisfies the custom `idValidator` function.
