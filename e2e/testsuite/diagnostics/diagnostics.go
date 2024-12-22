@@ -99,7 +99,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, suite
 	}
 }
 
-// getContainerName returns a either the ID of the container or stripped down human-readable
+// getContainerName returns an either the ID of the container or stripped down human-readable
 // version of the name if the name is non-empty.
 //
 // Note: You should still always use the ID  when interacting with the docker client.

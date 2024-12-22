@@ -44,7 +44,7 @@ const (
 	// where members can start sending MsgExec. This means that the window for
 	// sending a MsgExec transaction is:
 	// `[ submission + min_execution_period ; submission + voting_period + max_execution_period]`
-	// where max_execution_period is a app-specific config, defined in the keeper.
+	// where max_execution_period is an app-specific config, defined in the keeper.
 	// If not set, min_execution_period will default to 0.
 	DefaultMinExecutionPeriod = time.Duration(0)
 
