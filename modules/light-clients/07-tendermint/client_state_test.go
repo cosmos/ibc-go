@@ -21,7 +21,6 @@ func (suite *TendermintTestSuite) TestValidate() {
 		name        string
 		clientState *ibctm.ClientState
 		expErr      error
-		expPass     bool
 	}{
 		{
 			name:        "valid client",
