@@ -229,6 +229,9 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, cha
 	s.Require().NoError(UnmarshalMsgResponses(txResp, &submitProposalResponse))
 
 	proposalID := submitProposalResponse.ProposalId
+	defer func() {
+		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
+	}()
 
 	proposalResp, err := query.GRPCQuery[govtypesv1beta1.QueryProposalResponse](ctx, cosmosChain, &govtypesv1beta1.QueryProposalRequest{
 		ProposalId: proposalID,
