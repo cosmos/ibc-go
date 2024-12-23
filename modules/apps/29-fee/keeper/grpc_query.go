@@ -57,9 +57,7 @@ func (k Keeper) IncentivizedPacket(ctx context.Context, req *types.QueryIncentiv
 
 	feesInEscrow, exists := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !exists {
-		return nil, status.Error(
-			codes.NotFound,
-			errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error())
+		return nil, errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence)
 	}
 
 	return &types.QueryIncentivizedPacketResponse{
@@ -118,10 +116,7 @@ func (k Keeper) TotalRecvFees(ctx context.Context, req *types.QueryTotalRecvFees
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
-		return nil, status.Errorf(
-			codes.NotFound,
-			errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
-		)
+		return nil, errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence)
 	}
 
 	var recvFees sdk.Coins
@@ -142,10 +137,7 @@ func (k Keeper) TotalAckFees(ctx context.Context, req *types.QueryTotalAckFeesRe
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
-		return nil, status.Errorf(
-			codes.NotFound,
-			errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
-		)
+		return nil, errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence)
 	}
 
 	var ackFees sdk.Coins
@@ -166,10 +158,7 @@ func (k Keeper) TotalTimeoutFees(ctx context.Context, req *types.QueryTotalTimeo
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
-		return nil, status.Errorf(
-			codes.NotFound,
-			errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
-		)
+		return nil, errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence)
 	}
 
 	var timeoutFees sdk.Coins
