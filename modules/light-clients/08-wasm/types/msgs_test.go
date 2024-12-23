@@ -58,7 +58,7 @@ func TestMsgStoreCodeValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
+func TestMsgStoreCodeGetSigners(t *testing.T) {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -70,19 +70,20 @@ func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
+		t.Run(tc.name, func(t *testing.T) {
 			address := tc.address
 			msg := types.NewMsgStoreCode(address.String(), wasmtesting.Code)
 
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgSigners(msg)
+			coordinator := ibctesting.NewCoordinator(t, 1)
+			chainA := coordinator.GetChain(ibctesting.GetChainID(1))
+			signers, _, err := GetSimApp(chainA).AppCodec().GetMsgSigners(msg)
+
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().Equal(address.Bytes(), signers[0])
+				require.NoError(t, err)
+				require.Equal(t, address.Bytes(), signers[0])
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				require.Error(t, err)
+				require.Equal(t, err.Error(), tc.expErr.Error())
 			}
 		})
 	}
