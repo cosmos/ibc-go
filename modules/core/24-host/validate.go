@@ -36,7 +36,7 @@ var IsValidID = regexp.MustCompile(`^[a-zA-Z0-9\.\_\+\-\#\[\]\<\>]+$`).MatchStri
 // ValidateFn function type to validate path and identifier bytestrings
 type ValidateFn func(string) error
 
-func defaultIdentifierValidator(id string, min, max int) error {
+func defaultIdentifierValidator(id string, minLength, maxLength int) error {
 	if strings.TrimSpace(id) == "" {
 		return errorsmod.Wrap(ErrInvalidID, "identifier cannot be blank")
 	}
@@ -45,8 +45,8 @@ func defaultIdentifierValidator(id string, min, max int) error {
 		return errorsmod.Wrapf(ErrInvalidID, "identifier %s cannot contain separator '/'", id)
 	}
 	// valid id must fit the length requirements
-	if len(id) < min || len(id) > max {
-		return errorsmod.Wrapf(ErrInvalidID, "identifier %s has invalid length: %d, must be between %d-%d characters", id, len(id), min, max)
+	if len(id) < minLength || len(id) > maxLength {
+		return errorsmod.Wrapf(ErrInvalidID, "identifier %s has invalid length: %d, must be between %d-%d characters", id, len(id), minLength, maxLength)
 	}
 	// valid id must contain only alphanumeric characters and some allowed symbols.
 	if !IsValidID(id) {
