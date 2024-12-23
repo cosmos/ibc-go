@@ -369,7 +369,7 @@ func (k *Keeper) GetAllPacketAckSeqs(ctx context.Context) (seqs []types.PacketSe
 func (k *Keeper) IteratePacketCommitment(ctx context.Context, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
 	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyPacketCommitmentPrefix))
-	k.iterateHashes(ctx, iterator, cb)
+	k.iterateHashes(iterator, cb)
 }
 
 // GetAllPacketCommitments returns all stored PacketCommitments objects.
@@ -388,7 +388,7 @@ func (k *Keeper) GetAllPacketCommitments(ctx context.Context) (commitments []typ
 func (k *Keeper) IteratePacketCommitmentAtChannel(ctx context.Context, portID, channelID string, cb func(_, _ string, sequence uint64, hash []byte) bool) {
 	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, host.PacketCommitmentPrefixKey(portID, channelID))
-	k.iterateHashes(ctx, iterator, cb)
+	k.iterateHashes(iterator, cb)
 }
 
 // GetAllPacketCommitmentsAtChannel returns all stored PacketCommitments objects for a specified
@@ -408,7 +408,7 @@ func (k *Keeper) GetAllPacketCommitmentsAtChannel(ctx context.Context, portID, c
 func (k *Keeper) IteratePacketReceipt(ctx context.Context, cb func(portID, channelID string, sequence uint64, receipt []byte) bool) {
 	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyPacketReceiptPrefix))
-	k.iterateHashes(ctx, iterator, cb)
+	k.iterateHashes(iterator, cb)
 }
 
 // GetAllPacketReceipts returns all stored PacketReceipt objects.
@@ -427,7 +427,7 @@ func (k *Keeper) GetAllPacketReceipts(ctx context.Context) (receipts []types.Pac
 func (k *Keeper) IteratePacketAcknowledgement(ctx context.Context, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
 	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyPacketAckPrefix))
-	k.iterateHashes(ctx, iterator, cb)
+	k.iterateHashes(iterator, cb)
 }
 
 // GetAllPacketAcks returns all stored PacketAcknowledgements objects.
@@ -688,7 +688,7 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 }
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
-func (k *Keeper) iterateHashes(ctx context.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
+func (k *Keeper) iterateHashes(iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
 	defer coretypes.LogDeferred(k.Logger, func() error { return iterator.Close() })
 
 	for ; iterator.Valid(); iterator.Next() {
