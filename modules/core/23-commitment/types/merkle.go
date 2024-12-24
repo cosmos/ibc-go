@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
-// var representing the proofspecs for a SDK chain
+// var representing the proofspecs for an SDK chain
 var sdkSpecs = []*ics23.ProofSpec{ics23.IavlSpec, ics23.TendermintSpec}
 
 // ICS 023 Merkle Types Implementation
