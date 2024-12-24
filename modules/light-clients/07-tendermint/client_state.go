@@ -143,7 +143,7 @@ func (cs ClientState) Validate() error {
 			"latest height revision number must match chain id revision number (%d != %d)", cs.LatestHeight.RevisionNumber, clienttypes.ParseChainID(cs.ChainId))
 	}
 	if cs.LatestHeight.RevisionHeight == 0 {
-		return errorsmod.Wrapf(ErrInvalidHeaderHeight, "tendermint client's latest height revision height cannot be zero")
+		return errorsmod.Wrap(ErrInvalidHeaderHeight, "tendermint client's latest height revision height cannot be zero")
 	}
 	if cs.TrustingPeriod >= cs.UnbondingPeriod {
 		return errorsmod.Wrapf(
