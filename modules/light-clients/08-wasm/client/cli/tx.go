@@ -4,7 +4,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"sync"
 
+	"github.com/hashicorp/golang-lru/simplelru"
 	"github.com/spf13/cobra"
 
 	govcli "cosmossdk.io/x/gov/client/cli"
@@ -13,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -42,13 +45,29 @@ func newSubmitStoreCodeProposalCmd() *cobra.Command {
 				return err
 			}
 
+			bech32PrefixAccAddr := sdk.GetConfig().GetBech32AccountAddrPrefix()
+			lru, err := simplelru.NewLRU(60000, nil)
+			if err != nil {
+				panic(err)
+			}
+			addrCdc, err := addresscodec.NewCachedBech32Codec(
+				bech32PrefixAccAddr,
+				addresscodec.CachedCodecOptions{
+					Mu:  &sync.Mutex{},
+					Lru: lru})
+			if err != nil {
+				panic(err)
+			}
 			authority, _ := cmd.Flags().GetString(FlagAuthority)
 			if authority != "" {
-				if _, err = sdk.AccAddressFromBech32(authority); err != nil {
+				if _, err = addrCdc.StringToBytes(authority); err != nil {
 					return fmt.Errorf("invalid authority address: %w", err)
 				}
 			} else {
-				authority = sdk.AccAddress(address.Module(govtypes.ModuleName)).String()
+				authority, err = addrCdc.BytesToString(address.Module(govtypes.ModuleName))
+				if err != nil {
+					return fmt.Errorf("invalid authority address: %w", err)
+				}
 			}
 
 			code, err := os.ReadFile(args[0])
