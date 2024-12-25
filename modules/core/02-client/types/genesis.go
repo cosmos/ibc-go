@@ -2,10 +2,11 @@ package types
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
 	gogoprotoany "github.com/cosmos/gogoproto/types/any"
+
+	errorsmod "cosmossdk.io/errors"
 
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -119,19 +120,19 @@ func (gs GenesisState) Validate() error {
 
 	for i, client := range gs.Clients {
 		if err := host.ClientIdentifierValidator(client.ClientId); err != nil {
-			return fmt.Errorf("invalid client consensus state identifier %s index %d: %w", client.ClientId, i, err)
+			return errorsmod.Wrapf(ErrInvalidConsensus, "state identifier %s index %d: %s", client.ClientId, i, err.Error())
 		}
 
 		clientState, ok := client.ClientState.GetCachedValue().(exported.ClientState)
 		if !ok {
-			return fmt.Errorf("invalid client state with ID %s", client.ClientId)
+			return errorsmod.Wrapf(ErrInvalidConsensus, "invalid client state with ID %s", client.ClientId)
 		}
 
 		if !gs.Params.IsAllowedClient(clientState.ClientType()) {
-			return fmt.Errorf("client type %s not allowed by genesis params", clientState.ClientType())
+			return errorsmod.Wrapf(ErrInvalidClientType, "client type %s not allowed by genesis params", clientState.ClientType())
 		}
 		if err := clientState.Validate(); err != nil {
-			return fmt.Errorf("invalid client %v index %d: %w", client, i, err)
+			return errorsmod.Wrapf(ErrInvalidClientMetadata, "invalid client %v index %d: %s", client, i, err.Error())
 		}
 
 		clientType, sequence, err := ParseClientIdentifier(client.ClientId)
@@ -140,7 +141,7 @@ func (gs GenesisState) Validate() error {
 		}
 
 		if clientType != clientState.ClientType() {
-			return fmt.Errorf("client state type %s does not equal client type in client identifier %s", clientState.ClientType(), clientType)
+			return errorsmod.Wrapf(ErrInvalidClientType, "client state type %s does not equal client type in client identifier %s", clientState.ClientType(), clientType)
 		}
 
 		if err := ValidateClientType(clientType); err != nil {
@@ -159,26 +160,26 @@ func (gs GenesisState) Validate() error {
 		// check that consensus state is for a client in the genesis clients list
 		clientType, ok := validClients[cc.ClientId]
 		if !ok {
-			return fmt.Errorf("consensus state in genesis has a client id %s that does not map to a genesis client", cc.ClientId)
+			return errorsmod.Wrapf(ErrInvalidConsensus, "consensus state in genesis has a client id %s that does not map to a genesis client", cc.ClientId)
 		}
 
 		for i, consensusState := range cc.ConsensusStates {
 			if consensusState.Height.IsZero() {
-				return errors.New("consensus state height cannot be zero")
+				return errorsmod.Wrapf(ErrInvalidConsensus, "consensus state height cannot be zero")
 			}
 
 			cs, ok := consensusState.ConsensusState.GetCachedValue().(exported.ConsensusState)
 			if !ok {
-				return fmt.Errorf("invalid consensus state with client ID %s at height %s", cc.ClientId, consensusState.Height)
+				return errorsmod.Wrapf(ErrInvalidConsensus, "invalid consensus state with client ID %s at height %s", cc.ClientId, consensusState.Height)
 			}
 
 			if err := cs.ValidateBasic(); err != nil {
-				return fmt.Errorf("invalid client consensus state %v clientID %s index %d: %w", cs, cc.ClientId, i, err)
+				return errorsmod.Wrapf(ErrInvalidClientMetadata, "invalid client consensus state %v clientID %s index %d: %s", cs, cc.ClientId, i, err.Error())
 			}
 
 			// ensure consensus state type matches client state type
 			if clientType != cs.ClientType() {
-				return fmt.Errorf("consensus state client type %s does not equal client state client type %s", cs.ClientType(), clientType)
+				return errorsmod.Wrapf(ErrInvalidConsensus, "consensus state client type %s does not equal client state client type %s", cs.ClientType(), clientType)
 			}
 
 		}
@@ -188,19 +189,19 @@ func (gs GenesisState) Validate() error {
 		// check that metadata is for a client in the genesis clients list
 		_, ok := validClients[clientMetadata.ClientId]
 		if !ok {
-			return fmt.Errorf("metadata in genesis has a client id %s that does not map to a genesis client", clientMetadata.ClientId)
+			return errorsmod.Wrapf(ErrInvalidClientMetadata, "metadata in genesis has a client id %s that does not map to a genesis client", clientMetadata.ClientId)
 		}
 
 		for i, gm := range clientMetadata.ClientMetadata {
 			if err := gm.Validate(); err != nil {
-				return fmt.Errorf("invalid client metadata %v clientID %s index %d: %w", gm, clientMetadata.ClientId, i, err)
+				return errorsmod.Wrapf(ErrInvalidClientMetadata, "invalid client metadata %v clientID %s index %d: %s", gm, clientMetadata.ClientId, i, err.Error())
 			}
 		}
 
 	}
 
 	if maxSequence != 0 && maxSequence >= gs.NextClientSequence {
-		return fmt.Errorf("next client identifier sequence %d must be greater than the maximum sequence used in the provided client identifiers %d", gs.NextClientSequence, maxSequence)
+		return errorsmod.Wrapf(ErrInvalidClientMetadata, "next client identifier sequence %d must be greater than the maximum sequence used in the provided client identifiers %d", gs.NextClientSequence, maxSequence)
 	}
 
 	return nil
