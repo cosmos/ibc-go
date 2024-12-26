@@ -13,7 +13,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
-// EmitTransferEvent emits a ibc transfer event on successful transfers.
+// EmitTransferEvent emits an ibc transfer event on successful transfers.
 func (k Keeper) EmitTransferEvent(ctx context.Context, sender, receiver string, tokens types.Tokens, memo string, forwardingHops []types.Hop) error {
 	tokensStr := mustMarshalJSON(tokens)
 	forwardingHopsStr := mustMarshalJSON(forwardingHops)
