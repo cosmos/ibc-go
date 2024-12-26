@@ -420,8 +420,8 @@ github.com/cosmos/ics23/go v0.11.0 h1:jk5skjT0TqX5e5QJbEnwXIS2yI2vnmLOgpQPeM5Rtn
 github.com/cosmos/ics23/go v0.11.0/go.mod h1:A8OjxPE67hHST4Icw94hOxxFEJMBG031xIGF/JHNIY0=
 github.com/cosmos/ledger-cosmos-go v0.13.3 h1:7ehuBGuyIytsXbd4MP43mLeoN2LTOEnk5nvue4rK+yM=
 github.com/cosmos/ledger-cosmos-go v0.13.3/go.mod h1:HENcEP+VtahZFw38HZ3+LS3Iv5XV6svsnkk9vdJtLr8=
-github.com/cosmos/solidity-ibc-eureka/abigen v0.0.0-20241124101149-3e2c74b736f4 h1:B23RM5CtuNCgvEffdaMXNZxOH3fVOtNEfEVviOs4364=
-github.com/cosmos/solidity-ibc-eureka/abigen v0.0.0-20241124101149-3e2c74b736f4/go.mod h1:O7A2Q93QyD0m69LQmnDgOSvHGF5URFBTgY2QsxpdqSs=
+github.com/cosmos/solidity-ibc-eureka/abigen v0.0.0-20241224052802-b77c838815f9 h1:9o9xcAsD+JAJQTnI9sRwdCSz28o3zHqqgKaHBYcXP+s=
+github.com/cosmos/solidity-ibc-eureka/abigen v0.0.0-20241224052802-b77c838815f9/go.mod h1:gfJFGujP9PIuiyu9AfewNjtVx6cqUh6cNFXjEa3RObo=
 github.com/cpuguy83/go-md2man/v2 v2.0.4 h1:wfIWP927BUkWJb2NmU/kNDYIBTh/ziUX91+lVfRxZq4=
 github.com/cpuguy83/go-md2man/v2 v2.0.4/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/crate-crypto/go-ipa v0.0.0-20240223125850-b1e8a79f509c h1:uQYC5Z1mdLRPrZhHjHxufI8+2UG/i25QG92j0Er9p6I=
