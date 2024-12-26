@@ -9,7 +9,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	transferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -59,7 +58,7 @@ func (k *Keeper) OnSendPacket(ctx context.Context, sourceChannel string, payload
 			}
 
 			if err := k.BankKeeper.BurnCoins(
-				ctx, types.ModuleName, sdk.NewCoins(coin),
+				ctx, k.AuthKeeper.GetModuleAddress(types.ModuleName), sdk.NewCoins(coin),
 			); err != nil {
 				// NOTE: should not happen as the module account was
 				// retrieved on the step above and it has enough balance
@@ -149,7 +148,9 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 				k.SetDenomMetadata(ctx, token.Denom)
 			}
 
-			events.EmitDenomEvent(ctx, token)
+			if err := k.EmitDenomEvent(ctx, token); err != nil {
+				return err
+			}
 
 			voucher := sdk.NewCoin(voucherDenom, transferAmount)
 

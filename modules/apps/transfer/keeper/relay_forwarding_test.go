@@ -12,7 +12,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -1082,7 +1082,7 @@ func (suite *ForwardingTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().True(found, "Chain B has no forwarded packet")
 	suite.Require().Equal(packet, forwardedPacket, "ForwardedPacket stored in ChainB is not the same that was sent")
 
-	address := suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName).String()
+	address := suite.chainB.GetSimApp().AuthKeeper.GetModuleAddress(types.ModuleName).String()
 	data := types.NewFungibleTokenPacketDataV2(
 		[]types.Token{
 			{

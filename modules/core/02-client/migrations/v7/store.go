@@ -16,6 +16,7 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
@@ -143,7 +144,7 @@ func collectClients(ctx sdk.Context, store storetypes.KVStore, clientType string
 	clientPrefix := host.PrefixedClientStoreKey([]byte(clientType))
 	iterator := storetypes.KVStorePrefixIterator(store, clientPrefix)
 
-	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	defer coretypes.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		path := string(iterator.Key())
 		if !strings.Contains(path, host.KeyClientState) {

@@ -7,9 +7,11 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 
+	banktypes "cosmossdk.io/x/bank/types"
+
+	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	ica "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
@@ -110,8 +112,8 @@ func TestMsgRegisterInterchainAccountGetSigners(t *testing.T) {
 	require.NoError(t, err)
 
 	msg := types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "", channeltypes.ORDERED)
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
-	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ica.AppModule{})
+	signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
 	require.NoError(t, err)
 	require.Equal(t, expSigner.Bytes(), signers[0])
 }
@@ -175,7 +177,7 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 			Amount:      ibctesting.TestCoins,
 		}
 
-		encodingConfig := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+		encodingConfig := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ica.AppModule{})
 
 		data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 		require.NoError(t, err)
@@ -213,7 +215,7 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 		Amount:      ibctesting.TestCoins,
 	}
 
-	encodingConfig := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
+	encodingConfig := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ica.AppModule{})
 
 	data, err := icatypes.SerializeCosmosTx(encodingConfig.Codec, []proto.Message{msgBankSend}, icatypes.EncodingProtobuf)
 	require.NoError(t, err)
@@ -229,7 +231,7 @@ func TestMsgSendTxGetSigners(t *testing.T) {
 		100000,
 		packetData,
 	)
-	signers, _, err := encodingConfig.Codec.GetMsgV1Signers(msg)
+	signers, _, err := encodingConfig.Codec.GetMsgSigners(msg)
 	require.NoError(t, err)
 	require.Equal(t, expSigner.Bytes(), signers[0])
 }
@@ -277,8 +279,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			Params: types.DefaultParams(),
 		}
 
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
-		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ica.AppModule{})
+		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
 		if tc.expErr == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])

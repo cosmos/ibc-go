@@ -8,16 +8,16 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v9"
+	"github.com/strangelove-ventures/interchaintest/v9/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+	banktypes "cosmossdk.io/x/bank/types"
+	grouptypes "cosmossdk.io/x/group"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
@@ -44,7 +44,7 @@ const (
 	// where members can start sending MsgExec. This means that the window for
 	// sending a MsgExec transaction is:
 	// `[ submission + min_execution_period ; submission + voting_period + max_execution_period]`
-	// where max_execution_period is a app-specific config, defined in the keeper.
+	// where max_execution_period is an app-specific config, defined in the keeper.
 	// If not set, min_execution_period will default to 0.
 	DefaultMinExecutionPeriod = time.Duration(0)
 

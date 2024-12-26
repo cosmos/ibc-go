@@ -5,10 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/cosmos/ibc-go/v9/internal/logging"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -66,25 +64,16 @@ func (k Keeper) registerInterchainAccount(ctx context.Context, connectionID, por
 
 	k.setPort(ctx, portID)
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	msg := channeltypes.NewMsgChannelOpenInit(portID, version, ordering, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
-	handler := k.msgRouter.Handler(msg)
-	res, err := handler(sdkCtx, msg)
+	res, err := k.Environment.MsgRouterService.Invoke(ctx, msg)
 	if err != nil {
 		return "", err
 	}
 
-	events := res.GetEvents()
-	k.Logger(ctx).Debug("emitting interchain account registration events", logging.SdkEventsToLogArguments(events))
-
-	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
-	sdkCtx.EventManager().EmitEvents(events)
-
-	firstMsgResponse := res.MsgResponses[0]
-	channelOpenInitResponse, ok := firstMsgResponse.GetCachedValue().(*channeltypes.MsgChannelOpenInitResponse)
+	chanOpenInitResp, ok := res.(*channeltypes.MsgChannelOpenInitResponse)
 	if !ok {
-		return "", errorsmod.Wrapf(ibcerrors.ErrInvalidType, "failed to convert %T message response to %T", firstMsgResponse.GetCachedValue(), &channeltypes.MsgChannelOpenInitResponse{})
+		return "", errorsmod.Wrapf(ibcerrors.ErrInvalidType, "failed to convert %T message response to %T", res, &channeltypes.MsgChannelOpenInitResponse{})
 	}
 
-	return channelOpenInitResponse.ChannelId, nil
+	return chanOpenInitResp.ChannelId, nil
 }

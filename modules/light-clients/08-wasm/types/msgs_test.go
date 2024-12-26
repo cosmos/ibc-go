@@ -76,7 +76,7 @@ func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 			address := tc.address
 			msg := types.NewMsgStoreCode(address.String(), wasmtesting.Code)
 
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgSigners(msg)
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(address.Bytes(), signers[0])
@@ -150,8 +150,7 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 		tc := tc
 
 		err := tc.msg.ValidateBasic()
-		expPass := tc.expErr == nil
-		if expPass {
+		if tc.expErr == nil {
 			require.NoError(t, err)
 		} else {
 			require.ErrorIs(t, err, tc.expErr, tc.name)
@@ -180,7 +179,7 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 			address := tc.address
 			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, checksum, []byte("{}"))
 
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgSigners(msg)
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(address.Bytes(), signers[0])
@@ -242,12 +241,12 @@ func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 	suite.Require().NoError(err)
 
 	testCases := []struct {
-		name    string
-		address sdk.AccAddress
-		expPass bool
+		name     string
+		address  sdk.AccAddress
+		expError error
 	}{
-		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), true},
-		{"failure: nil address", nil, false},
+		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
+		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
@@ -258,12 +257,13 @@ func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 			address := tc.address
 			msg := types.NewMsgRemoveChecksum(address.String(), checksum)
 
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
-			if tc.expPass {
+			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgSigners(msg)
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(address.Bytes(), signers[0])
 			} else {
 				suite.Require().Error(err)
+				suite.Require().Equal(err.Error(), tc.expError.Error())
 			}
 		})
 	}

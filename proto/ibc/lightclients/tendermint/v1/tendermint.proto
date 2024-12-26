@@ -4,8 +4,8 @@ package ibc.lightclients.tendermint.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint;tendermint";
 
-import "tendermint/types/validator.proto";
-import "tendermint/types/types.proto";
+import "cometbft/types/v1/validator.proto";
+import "cometbft/types/v1/types.proto";
 import "cosmos/ics23/v1/proofs.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
@@ -86,11 +86,11 @@ message Misbehaviour {
 // hash to TrustedConsensusState.NextValidatorsHash since that is the last
 // trusted validator set at the TrustedHeight.
 message Header {
-  .tendermint.types.SignedHeader signed_header = 1 [(gogoproto.embed) = true];
+  .cometbft.types.v1.SignedHeader signed_header = 1 [(gogoproto.embed) = true];
 
-  .tendermint.types.ValidatorSet validator_set      = 2;
-  ibc.core.client.v1.Height      trusted_height     = 3 [(gogoproto.nullable) = false];
-  .tendermint.types.ValidatorSet trusted_validators = 4;
+  .cometbft.types.v1.ValidatorSet validator_set      = 2;
+  ibc.core.client.v1.Height       trusted_height     = 3 [(gogoproto.nullable) = false];
+  .cometbft.types.v1.ValidatorSet trusted_validators = 4;
 }
 
 // Fraction defines the protobuf message type for tmmath.Fraction that only

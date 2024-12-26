@@ -20,6 +20,6 @@ func NewMigrator(keeper *Keeper) Migrator {
 func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	params := channeltypes.DefaultParams()
 	m.keeper.SetParams(ctx, params)
-	m.keeper.Logger(ctx).Info("successfully migrated ibc channel params")
+	m.keeper.Logger.Info("successfully migrated ibc channel params")
 	return nil
 }

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -31,26 +32,27 @@ func TestIsAllowedClient(t *testing.T) {
 
 func TestValidateParams(t *testing.T) {
 	testCases := []struct {
-		name    string
-		params  Params
-		expPass bool
+		name     string
+		params   Params
+		expError error
 	}{
-		{"default params", DefaultParams(), true},
-		{"custom params", NewParams(exported.Tendermint), true},
-		{"blank client", NewParams(" "), false},
-		{"duplicate clients", NewParams(exported.Tendermint, exported.Tendermint), false},
-		{"allow all clients plus valid client", NewParams(AllowAllClients, exported.Tendermint), false},
-		{"too many allowed clients", NewParams(make([]string, MaxAllowedClientsLength+1)...), false},
+		{"default params", DefaultParams(), nil},
+		{"custom params", NewParams(exported.Tendermint), nil},
+		{"blank client", NewParams(" "), errors.New("client type 0 cannot be blank")},
+		{"duplicate clients", NewParams(exported.Tendermint, exported.Tendermint), errors.New("duplicate client type: 07-tendermint")},
+		{"allow all clients plus valid client", NewParams(AllowAllClients, exported.Tendermint), errors.New("allow list must have only one element because the allow all clients wildcard (*) is present")},
+		{"too many allowed clients", NewParams(make([]string, MaxAllowedClientsLength+1)...), errors.New("allowed clients length must not exceed 200 items")},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 
 		err := tc.params.Validate()
-		if tc.expPass {
+		if tc.expError == nil {
 			require.NoError(t, err, tc.name)
 		} else {
 			require.Error(t, err, tc.name)
+			require.ErrorContains(t, err, tc.expError.Error())
 		}
 	}
 }
