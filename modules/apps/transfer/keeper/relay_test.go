@@ -4,17 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	sdkmath "cosmossdk.io/math"
+	banktestutil "cosmossdk.io/x/bank/testutil"
+	banktypes "cosmossdk.io/x/bank/types"
+	minttypes "cosmossdk.io/x/mint/types"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	transferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -126,62 +123,64 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			},
 			nil,
 		},
-		{
-			"successful transfer of entire spendable balance with vesting account",
-			func() {
-				// create vesting account
-				vestingAccPrivKey := secp256k1.GenPrivKey()
-				vestingAccAddress := sdk.AccAddress(vestingAccPrivKey.PubKey().Address())
+		// TODO: Migrate vesting account test cases to use x/accounts lockup accounts as mentioned in v0.52 upgrading doc.
+		// https://github.com/cosmos/ibc-go/issues/7681
+		// {
+		// 	"successful transfer of entire spendable balance with vesting account",
+		// 	func() {
+		// 		// create vesting account
+		// 		vestingAccPrivKey := secp256k1.GenPrivKey()
+		// 		vestingAccAddress := sdk.AccAddress(vestingAccPrivKey.PubKey().Address())
 
-				vestingCoins := sdk.NewCoins(sdk.NewCoin(coins[0].Denom, ibctesting.DefaultCoinAmount))
-				_, err := suite.chainA.SendMsgs(vestingtypes.NewMsgCreateVestingAccount(
-					suite.chainA.SenderAccount.GetAddress(),
-					vestingAccAddress,
-					vestingCoins,
-					suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix(),
-					false,
-				))
-				suite.Require().NoError(err)
-				sender = vestingAccAddress
+		// 		vestingCoins := sdk.NewCoins(sdk.NewCoin(coins[0].Denom, ibctesting.DefaultCoinAmount))
+		// 		_, err := suite.chainA.SendMsgs(vestingtypes.NewMsgCreateVestingAccount(
+		// 			suite.chainA.SenderAccount.GetAddress(),
+		// 			vestingAccAddress,
+		// 			vestingCoins,
+		// 			suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix(),
+		// 			false,
+		// 		))
+		// 		suite.Require().NoError(err)
+		// 		sender = vestingAccAddress
 
-				// transfer some spendable coins to vesting account
-				transferCoins := sdk.NewCoins(sdk.NewCoin(coins[0].Denom, sdkmath.NewInt(42)))
-				_, err = suite.chainA.SendMsgs(banktypes.NewMsgSend(suite.chainA.SenderAccount.GetAddress(), vestingAccAddress, transferCoins))
-				suite.Require().NoError(err)
+		// 		// transfer some spendable coins to vesting account
+		// 		transferCoins := sdk.NewCoins(sdk.NewCoin(coins[0].Denom, sdkmath.NewInt(42)))
+		// 		_, err = suite.chainA.SendMsgs(banktypes.NewMsgSend(suite.chainA.SenderAccount.GetAddress(), vestingAccAddress, transferCoins))
+		// 		suite.Require().NoError(err)
 
-				coins = sdk.NewCoins(sdk.NewCoin(coins[0].Denom, types.UnboundedSpendLimit()))
-				expEscrowAmounts[0] = transferCoins[0].Amount
-			},
-			nil,
-		},
-		{
-			"failure: no spendable coins for vesting account",
-			func() {
-				// create vesting account
-				vestingAccPrivKey := secp256k1.GenPrivKey()
-				vestingAccAddress := sdk.AccAddress(vestingAccPrivKey.PubKey().Address())
+		// 		coins = sdk.NewCoins(sdk.NewCoin(coins[0].Denom, types.UnboundedSpendLimit()))
+		// 		expEscrowAmounts[0] = transferCoins[0].Amount
+		// 	},
+		// 	nil,
+		// },
+		// {
+		// 	"failure: no spendable coins for vesting account",
+		// 	func() {
+		// 		// create vesting account
+		// 		vestingAccPrivKey := secp256k1.GenPrivKey()
+		// 		vestingAccAddress := sdk.AccAddress(vestingAccPrivKey.PubKey().Address())
 
-				vestingCoins := sdk.NewCoins(sdk.NewCoin(coins[0].Denom, ibctesting.DefaultCoinAmount))
-				_, err := suite.chainA.SendMsgs(vestingtypes.NewMsgCreateVestingAccount(
-					suite.chainA.SenderAccount.GetAddress(),
-					vestingAccAddress,
-					vestingCoins,
-					suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix(),
-					false,
-				))
-				suite.Require().NoError(err)
-				sender = vestingAccAddress
+		// 		vestingCoins := sdk.NewCoins(sdk.NewCoin(coins[0].Denom, ibctesting.DefaultCoinAmount))
+		// 		_, err := suite.chainA.SendMsgs(vestingtypes.NewMsgCreateVestingAccount(
+		// 			suite.chainA.SenderAccount.GetAddress(),
+		// 			vestingAccAddress,
+		// 			vestingCoins,
+		// 			suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix(),
+		// 			false,
+		// 		))
+		// 		suite.Require().NoError(err)
+		// 		sender = vestingAccAddress
 
-				// just to prove that the vesting account has a balance (but not spendable)
-				vestingAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), vestingAccAddress, coins[0].Denom)
-				suite.Require().Equal(vestingCoins[0].Amount.Int64(), vestingAccBalance.Amount.Int64())
-				vestinSpendableBalance := suite.chainA.GetSimApp().BankKeeper.SpendableCoins(suite.chainA.GetContext(), vestingAccAddress)
-				suite.Require().Zero(vestinSpendableBalance.AmountOf(coins[0].Denom).Int64())
+		// 		// just to prove that the vesting account has a balance (but not spendable)
+		// 		vestingAccBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), vestingAccAddress, coins[0].Denom)
+		// 		suite.Require().Equal(vestingCoins[0].Amount.Int64(), vestingAccBalance.Amount.Int64())
+		// 		vestinSpendableBalance := suite.chainA.GetSimApp().BankKeeper.SpendableCoins(suite.chainA.GetContext(), vestingAccAddress)
+		// 		suite.Require().Zero(vestinSpendableBalance.AmountOf(coins[0].Denom).Int64())
 
-				coins = sdk.NewCoins(sdk.NewCoin(coins[0].Denom, types.UnboundedSpendLimit()))
-			},
-			types.ErrInvalidAmount,
-		},
+		// 		coins = sdk.NewCoins(sdk.NewCoin(coins[0].Denom, types.UnboundedSpendLimit()))
+		// 	},
+		// 	types.ErrInvalidAmount,
+		// },
 		{
 			"failure: source channel not found",
 			func() {
@@ -193,7 +192,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 		{
 			"failure: sender account is blocked",
 			func() {
-				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName)
+				sender = suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(minttypes.ModuleName)
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -280,8 +279,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(suite.chainA.GetContext(), msg)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 			} else {
@@ -411,7 +409,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 		{
 			"failure: receiver is module account",
 			func() {
-				packetData.Receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
+				packetData.Receiver = suite.chainB.GetSimApp().AuthKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -467,8 +465,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 
 			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, packetData)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 
 				// Check denom metadata for of tokens received on chain B.
@@ -560,7 +557,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 		{
 			"failure: receiver is module account",
 			func() {
-				packetData.Receiver = suite.chainB.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
+				packetData.Receiver = suite.chainB.GetSimApp().AuthKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -594,8 +591,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 			packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(1), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 			err = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainA.GetContext(), packet, packetData)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 
 				_, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainA.GetContext(), sdk.DefaultBondDenom)
@@ -810,8 +806,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom.IBCDenom())
 			suite.Require().Equal(expEscrowAmount, totalEscrow.Amount)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				postAcknowledgementBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 				deltaAmount := postAcknowledgementBalance.Amount.Sub(preAcknowledgementBalance.Amount)
@@ -1048,8 +1043,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom.IBCDenom())
 			suite.Require().Equal(expEscrowAmount, totalEscrow.Amount)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				amountParsed, ok := sdkmath.NewIntFromString(amount)
 				suite.Require().True(ok)
@@ -1231,8 +1225,7 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 			// receive packet on chainA
 			err = path.RelayPacket(packet)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorContains(err, tc.expError.Error())

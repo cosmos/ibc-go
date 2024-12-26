@@ -8,7 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -63,13 +62,13 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	// we are explicitly wrapping this emit event call in an anonymous function so that
 	// the packet data is evaluated after it has been assigned a value.
 	defer func() {
-		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
+		im.keeper.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
 	}()
 
 	data, ackErr = transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
 		return types.RecvPacketResult{
 			Status:          types.PacketStatus_Failure,
 			Acknowledgement: ack.Acknowledgement(),
@@ -78,14 +77,14 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 
 	if ackErr = im.keeper.OnRecvPacket(ctx, sourceChannel, destinationChannel, payload, data); ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
 		return types.RecvPacketResult{
 			Status:          types.PacketStatus_Failure,
 			Acknowledgement: ack.Acknowledgement(),
 		}
 	}
 
-	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", sequence)
+	im.keeper.Logger.Info("successfully handled ICS-20 packet", "sequence", sequence)
 
 	if data.HasForwarding() {
 		// NOTE: acknowledgement will be written asynchronously
@@ -109,7 +108,7 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 		return err
 	}
 
-	events.EmitOnTimeoutEvent(ctx, data)
+	im.keeper.EmitOnTimeoutEvent(ctx, data)
 	return nil
 }
 
@@ -128,6 +127,6 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 		return err
 	}
 
-	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
+	im.keeper.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 	return nil
 }

@@ -6,11 +6,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/simulation"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -21,7 +20,7 @@ func TestProposalMsgs(t *testing.T) {
 	s := rand.NewSource(1)
 	r := rand.New(s)
 
-	ctx := sdk.NewContext(nil, cmtproto.Header{}, true, nil)
+	ctx := sdk.NewContext(nil, true, nil)
 	accounts := simtypes.RandomAccounts(r, 3)
 
 	// execute ProposalMsgs function
@@ -32,7 +31,9 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, simulation.OpWeightMsgStoreCode, w0.AppParamsKey())
 	require.Equal(t, simulation.DefaultWeightMsgStoreCode, w0.DefaultWeight())
 
-	msg := w0.MsgSimulatorFn()(r, ctx, accounts)
+	codec := codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	msg, err := w0.MsgSimulatorFn()(ctx, r, accounts, codec)
+	require.NoError(t, err)
 	msgStoreCode, ok := msg.(*types.MsgStoreCode)
 	require.True(t, ok)
 

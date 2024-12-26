@@ -171,7 +171,7 @@ func (q *queryServer) PacketCommitments(ctx context.Context, req *types.QueryPac
 	}
 
 	var commitments []*types.PacketState
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), hostv2.PacketCommitmentPrefixKey(req.ChannelId))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), hostv2.PacketCommitmentPrefixKey(req.ChannelId))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		keySplit := strings.Split(string(key), "/")
@@ -238,7 +238,7 @@ func (q *queryServer) PacketAcknowledgements(ctx context.Context, req *types.Que
 	}
 
 	var acks []*types.PacketState
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), hostv2.PacketAcknowledgementPrefixKey(req.ChannelId))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), hostv2.PacketAcknowledgementPrefixKey(req.ChannelId))
 
 	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
 	// otherwise, maintain previous behaviour and perform paginated query

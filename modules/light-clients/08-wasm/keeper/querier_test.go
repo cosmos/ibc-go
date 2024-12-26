@@ -119,8 +119,7 @@ func (suite *KeeperTestSuite) TestCustomQuery() {
 
 			res, err := wasmClientKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, types.QueryMsg{Status: &types.StatusMsg{}})
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().Nil(err)
 				suite.Require().NotNil(res)
 			} else {
@@ -330,8 +329,7 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 			// due to test case: "success: verify membership query"
 			res, err := wasmClientKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, payload)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 			} else {

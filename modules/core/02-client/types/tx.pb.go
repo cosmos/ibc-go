@@ -5,13 +5,13 @@ package types
 
 import (
 	context "context"
-	types1 "cosmossdk.io/x/upgrade/types"
+	types "cosmossdk.io/x/upgrade/types"
 	fmt "fmt"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
+	any "github.com/cosmos/gogoproto/types/any"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -34,10 +34,10 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // MsgCreateClient defines a message to create an IBC client
 type MsgCreateClient struct {
 	// light client state
-	ClientState *types.Any `protobuf:"bytes,1,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
+	ClientState *any.Any `protobuf:"bytes,1,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 	// consensus state associated with the client that corresponds to a given
 	// height.
-	ConsensusState *types.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	ConsensusState *any.Any `protobuf:"bytes,2,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
@@ -119,7 +119,7 @@ type MsgUpdateClient struct {
 	// client unique identifier
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// client message to update the light client
-	ClientMessage *types.Any `protobuf:"bytes,2,opt,name=client_message,json=clientMessage,proto3" json:"client_message,omitempty"`
+	ClientMessage *any.Any `protobuf:"bytes,2,opt,name=client_message,json=clientMessage,proto3" json:"client_message,omitempty"`
 	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
@@ -200,10 +200,10 @@ type MsgUpgradeClient struct {
 	// client unique identifier
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// upgraded client state
-	ClientState *types.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
+	ClientState *any.Any `protobuf:"bytes,2,opt,name=client_state,json=clientState,proto3" json:"client_state,omitempty"`
 	// upgraded consensus state, only contains enough information to serve as a
 	// basis of trust in update logic
-	ConsensusState *types.Any `protobuf:"bytes,3,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	ConsensusState *any.Any `protobuf:"bytes,3,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 	// proof that old chain committed to new client
 	ProofUpgradeClient []byte `protobuf:"bytes,4,opt,name=proof_upgrade_client,json=proofUpgradeClient,proto3" json:"proof_upgrade_client,omitempty"`
 	// proof that old chain committed to new consensus state
@@ -291,7 +291,7 @@ type MsgSubmitMisbehaviour struct {
 	// client unique identifier
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// misbehaviour used for freezing the light client
-	Misbehaviour *types.Any `protobuf:"bytes,2,opt,name=misbehaviour,proto3" json:"misbehaviour,omitempty"`
+	Misbehaviour *any.Any `protobuf:"bytes,2,opt,name=misbehaviour,proto3" json:"misbehaviour,omitempty"`
 	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
@@ -450,7 +450,7 @@ var xxx_messageInfo_MsgRecoverClientResponse proto.InternalMessageInfo
 
 // MsgIBCSoftwareUpgrade defines the message used to schedule an upgrade of an IBC client using a v1 governance proposal
 type MsgIBCSoftwareUpgrade struct {
-	Plan types1.Plan `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan"`
+	Plan types.Plan `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan"`
 	// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
 	// This will make the chain commit to the correct upgraded (self) client state
 	// before the upgrade occurs, so that connecting chains can verify that the
@@ -459,7 +459,7 @@ type MsgIBCSoftwareUpgrade struct {
 	// planned chain upgrades. Correspondingly, the UpgradedClientState field has been
 	// deprecated in the Cosmos SDK to allow for this logic to exist solely in
 	// the 02-client module.
-	UpgradedClientState *types.Any `protobuf:"bytes,2,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
+	UpgradedClientState *any.Any `protobuf:"bytes,2,opt,name=upgraded_client_state,json=upgradedClientState,proto3" json:"upgraded_client_state,omitempty"`
 	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
 }
@@ -497,14 +497,14 @@ func (m *MsgIBCSoftwareUpgrade) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgIBCSoftwareUpgrade proto.InternalMessageInfo
 
-func (m *MsgIBCSoftwareUpgrade) GetPlan() types1.Plan {
+func (m *MsgIBCSoftwareUpgrade) GetPlan() types.Plan {
 	if m != nil {
 		return m.Plan
 	}
-	return types1.Plan{}
+	return types.Plan{}
 }
 
-func (m *MsgIBCSoftwareUpgrade) GetUpgradedClientState() *types.Any {
+func (m *MsgIBCSoftwareUpgrade) GetUpgradedClientState() *any.Any {
 	if m != nil {
 		return m.UpgradedClientState
 	}
@@ -1845,7 +1845,7 @@ func (m *MsgCreateClient) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ClientState == nil {
-				m.ClientState = &types.Any{}
+				m.ClientState = &any.Any{}
 			}
 			if err := m.ClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1881,7 +1881,7 @@ func (m *MsgCreateClient) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ConsensusState == nil {
-				m.ConsensusState = &types.Any{}
+				m.ConsensusState = &any.Any{}
 			}
 			if err := m.ConsensusState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2113,7 +2113,7 @@ func (m *MsgUpdateClient) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ClientMessage == nil {
-				m.ClientMessage = &types.Any{}
+				m.ClientMessage = &any.Any{}
 			}
 			if err := m.ClientMessage.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2313,7 +2313,7 @@ func (m *MsgUpgradeClient) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ClientState == nil {
-				m.ClientState = &types.Any{}
+				m.ClientState = &any.Any{}
 			}
 			if err := m.ClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2349,7 +2349,7 @@ func (m *MsgUpgradeClient) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ConsensusState == nil {
-				m.ConsensusState = &types.Any{}
+				m.ConsensusState = &any.Any{}
 			}
 			if err := m.ConsensusState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2617,7 +2617,7 @@ func (m *MsgSubmitMisbehaviour) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Misbehaviour == nil {
-				m.Misbehaviour = &types.Any{}
+				m.Misbehaviour = &any.Any{}
 			}
 			if err := m.Misbehaviour.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -3014,7 +3014,7 @@ func (m *MsgIBCSoftwareUpgrade) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.UpgradedClientState == nil {
-				m.UpgradedClientState = &types.Any{}
+				m.UpgradedClientState = &any.Any{}
 			}
 			if err := m.UpgradedClientState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

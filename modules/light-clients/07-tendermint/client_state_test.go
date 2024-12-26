@@ -21,7 +21,6 @@ func (suite *TendermintTestSuite) TestValidate() {
 		name        string
 		clientState *ibctm.ClientState
 		expErr      error
-		expPass     bool
 	}{
 		{
 			name:        "valid client",
@@ -126,8 +125,7 @@ func (suite *TendermintTestSuite) TestValidate() {
 		suite.Run(tc.name, func() {
 			err := tc.clientState.Validate()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, tc.name)
 			} else {
 				suite.Require().ErrorContains(err, tc.expErr.Error())

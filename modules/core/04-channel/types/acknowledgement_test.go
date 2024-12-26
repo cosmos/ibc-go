@@ -5,9 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	abcitypes "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	cmtstate "github.com/cometbft/cometbft/state"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -20,7 +18,7 @@ const (
 )
 
 // tests acknowledgement.ValidateBasic and acknowledgement.Acknowledgement
-func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *TypesTestSuite) TestAcknowledgement() {
 	testCases := []struct {
 		name         string
 		ack          types.Acknowledgement
@@ -94,7 +92,7 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 }
 
 // The safety of including ABCI error codes in the acknowledgement rests
-// on the inclusion of these ABCI error codes in the abcitypes.ResposneDeliverTx
+// on the inclusion of these ABCI error codes in the abcitypes.ResponseDeliverTx
 // hash. If the ABCI codes get removed from consensus they must no longer be used
 // in the packet acknowledgement.
 //
@@ -107,14 +105,14 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 	// different ABCI error code used
 	errDifferentABCICode := ibcerrors.ErrNotFound
 
-	deliverTx := sdkerrors.ResponseExecTxResultWithEvents(err, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	execTxResults := []*abcitypes.ExecTxResult{deliverTx}
+	deliverTx := responseExecTxResultWithEvents(err, gasUsed, gasWanted, []abci.Event{}, false)
+	execTxResults := []*abci.ExecTxResult{deliverTx}
 
-	deliverTxSameABCICode := sdkerrors.ResponseExecTxResultWithEvents(errSameABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	resultsSameABCICode := []*abcitypes.ExecTxResult{deliverTxSameABCICode}
+	deliverTxSameABCICode := responseExecTxResultWithEvents(errSameABCICode, gasUsed, gasWanted, []abci.Event{}, false)
+	resultsSameABCICode := []*abci.ExecTxResult{deliverTxSameABCICode}
 
-	deliverTxDifferentABCICode := sdkerrors.ResponseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abcitypes.Event{}, false)
-	resultsDifferentABCICode := []*abcitypes.ExecTxResult{deliverTxDifferentABCICode}
+	deliverTxDifferentABCICode := responseExecTxResultWithEvents(errDifferentABCICode, gasUsed, gasWanted, []abci.Event{}, false)
+	resultsDifferentABCICode := []*abci.ExecTxResult{deliverTxDifferentABCICode}
 
 	hash := cmtstate.TxResultsHash(execTxResults)
 	hashSameABCICode := cmtstate.TxResultsHash(resultsSameABCICode)
@@ -122,6 +120,20 @@ func (suite *TypesTestSuite) TestABCICodeDeterminism() {
 
 	suite.Require().Equal(hash, hashSameABCICode)
 	suite.Require().NotEqual(hash, hashDifferentABCICode)
+}
+
+// responseExecTxResultWithEvents returns an ABCI ExecTxResult object with fields
+// filled in from the given error, gas values and events.
+func responseExecTxResultWithEvents(err error, gw, gu uint64, events []abci.Event, debug bool) *abci.ExecTxResult {
+	space, code, log := errorsmod.ABCIInfo(err, debug)
+	return &abci.ExecTxResult{
+		Codespace: space,
+		Code:      code,
+		Log:       log,
+		GasWanted: int64(gw),
+		GasUsed:   int64(gu),
+		Events:    events,
+	}
 }
 
 // TestAcknowledgementError will verify that only a constant string and
@@ -142,7 +154,7 @@ func (suite *TypesTestSuite) TestAcknowledgementError() {
 	suite.Require().NotEqual(ack, ackDifferentABCICode)
 }
 
-func (suite TypesTestSuite) TestAcknowledgementWithCodespace() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *TypesTestSuite) TestAcknowledgementWithCodespace() {
 	testCases := []struct {
 		name     string
 		ack      types.Acknowledgement

@@ -179,8 +179,7 @@ func (suite *KeeperTestSuite) TestWasmInstantiate() {
 			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 			err := wasmClientKeeper.WasmInstantiate(suite.chainA.GetContext(), defaultWasmClientID, clientStore, &types.ClientState{Checksum: checksum}, initMsg)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
@@ -318,8 +317,7 @@ func (suite *KeeperTestSuite) TestWasmMigrate() {
 			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 			err = wasmClientKeeper.WasmMigrate(suite.chainA.GetContext(), clientStore, &types.ClientState{}, defaultWasmClientID, []byte("{}"))
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
@@ -396,8 +394,7 @@ func (suite *KeeperTestSuite) TestWasmQuery() {
 			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 			res, err := wasmClientKeeper.WasmQuery(suite.chainA.GetContext(), endpoint.ClientID, clientStore, wasmClientState, payload)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 			} else {
@@ -552,8 +549,7 @@ func (suite *KeeperTestSuite) TestWasmSudo() {
 			wasmClientKeeper := GetSimApp(suite.chainA).WasmClientKeeper
 			res, err := wasmClientKeeper.WasmSudo(suite.chainA.GetContext(), endpoint.ClientID, clientStore, wasmClientState, payload)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 			} else {

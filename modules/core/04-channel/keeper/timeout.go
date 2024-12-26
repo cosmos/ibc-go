@@ -70,7 +70,9 @@ func (k *Keeper) TimeoutPacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		emitTimeoutPacketEvent(ctx, packet, channel)
+		if err := k.emitTimeoutPacketEvent(ctx, packet, channel); err != nil {
+			return "", err
+		}
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -144,7 +146,7 @@ func (k *Keeper) timeoutExecuted(
 		// all upgrade information is deleted and the channel is set to CLOSED.
 		if channel.State == types.FLUSHING {
 			k.deleteUpgradeInfo(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-			k.Logger(ctx).Info(
+			k.Logger.Info(
 				"upgrade info deleted",
 				"port_id", packet.GetSourcePort(),
 				"channel_id", packet.GetSourceChannel(),
@@ -154,10 +156,12 @@ func (k *Keeper) timeoutExecuted(
 
 		channel.State = types.CLOSED
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-		emitChannelClosedEvent(ctx, packet, channel)
+		if err := k.emitChannelClosedEvent(ctx, packet, channel); err != nil {
+			return err
+		}
 	}
 
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet timed-out",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -167,9 +171,7 @@ func (k *Keeper) timeoutExecuted(
 	)
 
 	// emit an event marking that we have processed the timeout
-	emitTimeoutPacketEvent(ctx, packet, channel)
-
-	return nil
+	return k.emitTimeoutPacketEvent(ctx, packet, channel)
 }
 
 // TimeoutOnClose is called by a module in order to prove that the channel to
@@ -211,7 +213,9 @@ func (k *Keeper) TimeoutOnClose(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		emitTimeoutPacketEvent(ctx, packet, channel)
+		if err := k.emitTimeoutPacketEvent(ctx, packet, channel); err != nil {
+			return "", err
+		}
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to

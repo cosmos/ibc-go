@@ -4,13 +4,13 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 
 	sdkmath "cosmossdk.io/math"
+	banktypes "cosmossdk.io/x/bank/types"
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
+	govtypes "cosmossdk.io/x/gov/types/v1beta1"
+	stakingtypes "cosmossdk.io/x/staking/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -53,7 +53,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"single msg",
@@ -66,7 +66,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					},
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"multiple msgs, same types",
@@ -84,7 +84,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					},
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success: multiple msgs, different types",
@@ -102,7 +102,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					},
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success: msg with nested any",
@@ -122,7 +122,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					},
 				}
 			},
-			true,
+			nil,
 		},
 		{
 			"success: msg with nested array of any",
@@ -170,14 +170,14 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 
 				msgs = []proto.Message{propMsg}
 			},
-			true,
+			nil,
 		},
 		{
 			"success: empty messages",
 			func() {
 				msgs = []proto.Message{}
 			},
-			true,
+			nil,
 		},
 		{
 			"failure: unregistered msg type",
@@ -189,7 +189,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				expSerializeErrorStrings = []string{"NO_ERROR_EXPECTED", "cannot marshal CosmosTx with proto3 json"}
 				expDeserializeErrorStrings = []string{"cannot unmarshal CosmosTx with protobuf", "cannot unmarshal CosmosTx with proto3 json"}
 			},
-			false,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: multiple unregistered msg types",
@@ -203,7 +203,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				expSerializeErrorStrings = []string{"NO_ERROR_EXPECTED", "cannot marshal CosmosTx with proto3 json"}
 				expDeserializeErrorStrings = []string{"cannot unmarshal CosmosTx with protobuf", "cannot unmarshal CosmosTx with proto3 json"}
 			},
-			false,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: nested unregistered msg",
@@ -223,7 +223,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				expSerializeErrorStrings = []string{"NO_ERROR_EXPECTED", "cannot marshal CosmosTx with proto3 json"}
 				expDeserializeErrorStrings = []string{"cannot unmarshal CosmosTx with protobuf", "cannot unmarshal CosmosTx with proto3 json"}
 			},
-			false,
+			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: nested array of unregistered msg",
@@ -248,7 +248,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				expSerializeErrorStrings = []string{"NO_ERROR_EXPECTED", "cannot marshal CosmosTx with proto3 json"}
 				expDeserializeErrorStrings = []string{"cannot unmarshal CosmosTx with protobuf", "cannot unmarshal CosmosTx with proto3 json"}
 			},
-			false,
+			ibcerrors.ErrInvalidType,
 		},
 	}
 
@@ -259,8 +259,9 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 			suite.Run(tc.name, func() {
 				tc.malleate()
 
+				expPass := tc.expErr == nil
 				bz, err := types.SerializeCosmosTx(suite.chainA.Codec, msgs, encoding)
-				if encoding == types.EncodingProto3JSON && !tc.expPass {
+				if encoding == types.EncodingProto3JSON && !expPass {
 					suite.Require().Error(err, tc.name)
 					suite.Require().Contains(err.Error(), expSerializeErrorStrings[1], tc.name)
 				} else {
@@ -268,14 +269,15 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 				}
 
 				deserializedMsgs, err := types.DeserializeCosmosTx(suite.chainA.Codec, bz, encoding)
-				if tc.expPass {
+				if expPass {
 					suite.Require().NoError(err, tc.name)
 				} else {
 					suite.Require().Error(err, tc.name)
 					suite.Require().Contains(err.Error(), expDeserializeErrorStrings[i], tc.name)
+					suite.Require().ErrorIs(err, tc.expErr)
 				}
 
-				if tc.expPass {
+				if expPass {
 					for i, msg := range msgs {
 						// We're using proto.CompactTextString() for comparison instead of suite.Require().Equal() or proto.Equal()
 						// for two main reasons:

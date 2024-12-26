@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"time"
 
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -32,7 +33,8 @@ func (suite *TypesTestSuite) TestMarshalGenesisState() {
 	err := path.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
 
-	genesis := client.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	genesis, err := client.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	suite.Require().NoError(err)
 
 	bz, err := cdc.MarshalJSON(&genesis)
 	suite.Require().NoError(err)
@@ -62,12 +64,12 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 	testCases := []struct {
 		name     string
 		genState types.GenesisState
-		expPass  bool
+		expError error
 	}{
 		{
 			name:     "default",
 			genState: types.DefaultGenesisState(),
-			expPass:  true,
+			expError: nil,
 		},
 		{
 			name: "valid custom genesis",
@@ -103,7 +105,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				2,
 			),
-			expPass: true,
+			expError: nil,
 		},
 		{
 			name: "invalid client type",
@@ -120,7 +122,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				0,
 			),
-			expPass: false,
+			expError: errors.New("client state type 07-tendermint does not equal client type in client identifier 06-solomachine"),
 		},
 		{
 			name: "invalid clientid",
@@ -148,7 +150,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				0,
 			),
-			expPass: false,
+			expError: errors.New("client state type 07-tendermint does not equal client type in client identifier myclient"),
 		},
 		{
 			name: "consensus state client id does not match client id in genesis clients",
@@ -176,7 +178,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				0,
 			),
-			expPass: false,
+			expError: errors.New("consensus state in genesis has a client id 07-tendermint-1 that does not map to a genesis client"),
 		},
 		{
 			name: "invalid consensus state height",
@@ -204,7 +206,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				0,
 			),
-			expPass: false,
+			expError: errors.New("consensus state height cannot be zero"),
 		},
 		{
 			name: "invalid consensus state",
@@ -232,7 +234,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				0,
 			),
-			expPass: false,
+			expError: errors.New("invalid client consensus state timestamp"),
 		},
 		{
 			name: "client in genesis clients is disallowed by params",
@@ -260,7 +262,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				0,
 			),
-			expPass: false,
+			expError: errors.New("client type 07-tendermint not allowed by genesis params"),
 		},
 		{
 			name: "metadata client-id does not match a genesis client",
@@ -296,7 +298,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				0,
 			),
-			expPass: false,
+			expError: errors.New("metadata in genesis has a client id wrongclientid that does not map to a genesis client"),
 		},
 		{
 			name: "invalid metadata",
@@ -332,6 +334,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				0,
 			),
+			expError: errors.New("invalid client metadata"),
 		},
 		{
 			name: "invalid params",
@@ -359,7 +362,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				0,
 			),
-			expPass: false,
+			expError: errors.New("client type 0 cannot be blank"),
 		},
 		{
 			name: "invalid param",
@@ -387,7 +390,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				0,
 			),
-			expPass: false,
+			expError: errors.New("client type 0 cannot be blank"),
 		},
 		{
 			name: "next sequence too small",
@@ -418,7 +421,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				0,
 			),
-			expPass: false,
+			expError: errors.New("next client identifier sequence 0 must be greater than the maximum sequence used in the provided client identifiers 1"),
 		},
 		{
 			name: "failed to parse client identifier in client state loop",
@@ -446,7 +449,7 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				5,
 			),
-			expPass: false,
+			expError: errors.New("invalid client identifier my-client is not in format"),
 		},
 		{
 			name: "consensus state different than client state type",
@@ -470,17 +473,17 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 				false,
 				5,
 			),
-			expPass: false,
+			expError: errors.New("consensus state in genesis has a client id 07-tendermint-0 that does not map to a genesis client"),
 		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		err := tc.genState.Validate()
-		if tc.expPass {
+		if tc.expError == nil {
 			suite.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			suite.Require().ErrorContains(err, tc.expError.Error())
 		}
 	}
 }

@@ -71,8 +71,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 	for _, tc := range testCases {
 		tc := tc
 		s.Run(tc.name, func() {
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				s.Require().NotPanics(tc.instantiateFn, "unexpected panic: NewIBCMiddleware")
 			} else {
 				s.Require().PanicsWithError(tc.expError.Error(), tc.instantiateFn, "expected panic with error: ", tc.expError.Error())
@@ -263,7 +262,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			nil,
 		},
 		{
-			"failure: underlying app OnAcknolwedgePacket fails",
+			"failure: underlying app OnAcknowledgePacket fails",
 			func() {
 				ack = []byte("invalid ack")
 			},

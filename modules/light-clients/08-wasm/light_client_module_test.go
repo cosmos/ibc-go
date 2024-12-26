@@ -223,8 +223,7 @@ func (suite *WasmTestSuite) TestTimestampAtHeight() {
 
 			timestamp, err := lightClientModule.TimestampAtHeight(suite.chainA.GetContext(), clientID, height)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(expectedTimestamp, timestamp)
 			} else {
@@ -351,8 +350,7 @@ func (suite *WasmTestSuite) TestInitialize() {
 
 			err = lightClientModule.Initialize(suite.chainA.GetContext(), clientID, clientStateBz, consensusStateBz)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorContains(err, tc.expError.Error())
@@ -495,8 +493,7 @@ func (suite *WasmTestSuite) TestVerifyMembership() {
 
 			err = lightClientModule.VerifyMembership(suite.chainA.GetContext(), clientID, proofHeight, 0, 0, proof, path, value)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
 				suite.Require().NoError(err)
@@ -661,8 +658,7 @@ func (suite *WasmTestSuite) TestVerifyNonMembership() {
 
 			err = lightClientModule.VerifyNonMembership(suite.chainA.GetContext(), clientID, proofHeight, 0, 0, proof, path)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
 				suite.Require().NoError(err)
@@ -772,8 +768,7 @@ func (suite *WasmTestSuite) TestVerifyClientMessage() {
 
 			err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorIs(err, tc.expErr)
@@ -933,8 +928,7 @@ func (suite *WasmTestSuite) TestVerifyUpgradeAndUpdateState() {
 				upgradedConsensusStateProof,
 			)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 
 				// verify new client state and consensus state
@@ -1530,8 +1524,7 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 
 			err = lightClientModule.RecoverClient(suite.chainA.GetContext(), subjectClientID, substituteClientID)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 
 				subjectClientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), subjectClientID)
