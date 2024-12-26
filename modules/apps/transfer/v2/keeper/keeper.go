@@ -148,7 +148,9 @@ func (k *Keeper) OnRecvPacket(ctx context.Context, sourceChannel, destChannel st
 				k.SetDenomMetadata(ctx, token.Denom)
 			}
 
-			k.EmitDenomEvent(ctx, token)
+			if err := k.EmitDenomEvent(ctx, token); err != nil {
+				return err
+			}
 
 			voucher := sdk.NewCoin(voucherDenom, transferAmount)
 

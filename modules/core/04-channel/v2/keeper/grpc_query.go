@@ -234,7 +234,7 @@ func (q *queryServer) PacketAcknowledgements(ctx context.Context, req *types.Que
 	}
 
 	if !q.HasChannel(ctx, req.ChannelId) {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrapf(types.ErrChannelNotFound, req.ChannelId).Error())
+		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
 	}
 
 	var acks []*types.PacketState

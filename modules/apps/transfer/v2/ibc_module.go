@@ -62,7 +62,9 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	// we are explicitly wrapping this emit event call in an anonymous function so that
 	// the packet data is evaluated after it has been assigned a value.
 	defer func() {
-		im.keeper.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
+		if err := im.keeper.EmitOnRecvPacketEvent(ctx, data, ack, ackErr); err != nil {
+			im.keeper.Logger.Error(fmt.Sprintf("failed to emit %T event", types.EventTypeRecvPacket), "error", err)
+		}
 	}()
 
 	data, ackErr = transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
@@ -108,8 +110,7 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 		return err
 	}
 
-	im.keeper.EmitOnTimeoutEvent(ctx, data)
-	return nil
+	return im.keeper.EmitOnTimeoutEvent(ctx, data)
 }
 
 func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload types.Payload, relayer sdk.AccAddress) error {
@@ -127,6 +128,5 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 		return err
 	}
 
-	im.keeper.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
-	return nil
+	return im.keeper.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 }
