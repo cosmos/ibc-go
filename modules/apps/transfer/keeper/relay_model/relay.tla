@@ -98,7 +98,7 @@ SendTransferPre(packet, pbank) ==
    /\ IsNativeDenomTrace(trace) \/ (IsValidDenomTrace(trace) /\ IsKnownDenomTrace(trace))
    /\ data.sender /= NullId
    /\ <<escrow, data.denomTrace>> \in DOMAIN pbank  
-   /\ \/ amount = 0  \* SendTrasfer actually allows for 0 amount
+   /\ \/ amount = 0  \* SendTransfer actually allows for 0 amount
       \/ <<MakeAccount(sender), trace>> \in DOMAIN pbank /\ bank[MakeAccount(sender), trace] >= amount
 
 SendTransferNext(packet) ==
