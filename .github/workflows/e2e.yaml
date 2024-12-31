@@ -65,6 +65,6 @@ jobs:
       chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       # on regular PRs we won't run upgrade tests.
-      # NOTE: we are exluding TestTransferTestSuite as we run this full suite instead of each individual test.
+      # NOTE: we are excluding TestTransferTestSuite as we run this full suite instead of each individual test.
       test-exclusions: 'TestUpgradeTestSuite,TestIBCWasmUpgradeTestSuite,TestTransferTestSuite,TestAuthzTransferTestSuite,TestTransferTestSuiteSendReceive,TestTransferTestSuiteSendEnabled,TestTransferLocalhostTestSuite,TestConnectionTestSuite,TestInterchainAccountsGovTestSuite,TestIncentivizedTransferTestSuite,TestTransferForwardingTestSuite'
       temp-run-full-suite: true

@@ -2492,8 +2492,8 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 				errorReceipt, found := channelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "error receipt should be found")
 
-				if ue, ok := upgradeError.(*types.UpgradeError); ok {
-					suite.Require().Equal(ue.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
+				if upgradeError, ok := upgradeError.(*types.UpgradeError); ok {
+					suite.Require().Equal(upgradeError.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
 				}
 			} else {
 
