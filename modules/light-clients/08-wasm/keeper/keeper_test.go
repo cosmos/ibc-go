@@ -10,6 +10,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	govtypes "cosmossdk.io/x/gov/types"
@@ -42,6 +43,7 @@ type KeeperTestSuite struct {
 	// mockVM is a mock wasm VM that implements the WasmEngine interface
 	mockVM *wasmtesting.MockWasmEngine
 	chainA *ibctesting.TestChain
+	env    appmodule.Environment
 }
 
 func init() {
@@ -68,6 +70,10 @@ func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.env = runtime.NewEnvironment(
+		runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+		log.NewNopLogger().With(log.ModuleKey, "x/"+exported.ModuleName+"-"+types.ModuleName),
+	)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), GetSimApp(suite.chainA).InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, GetSimApp(suite.chainA).WasmClientKeeper)
@@ -153,7 +159,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					suite.env,
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -168,7 +174,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					suite.env,
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -183,7 +189,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					suite.env,
 					nil, // client keeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -198,7 +204,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					suite.env,
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					nil,
@@ -213,7 +219,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					nil,
+					runtime.NewEnvironment(nil, suite.env.Logger),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -228,7 +234,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			func() {
 				keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					suite.env,
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),

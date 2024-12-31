@@ -7,6 +7,7 @@ import (
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
+	"cosmossdk.io/core/log"
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -15,6 +16,7 @@ import (
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 /*
@@ -77,6 +79,9 @@ func (q *queryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) 
 
 	moduleLogger(q.Ctx).Debug("Redacting query error", "cause", err)
 	return nil, redactError(err)
+}
+func moduleLogger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }
 
 type (
