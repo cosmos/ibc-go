@@ -56,8 +56,8 @@ See section [Definitions](https://github.com/cosmos/ibc/tree/main/spec/app/ics-0
 
 | ID  | Description | Verification | Status |
 | --- | ----------- | ------------ | ------ |
-| 2.01 | A relayer shall have the ability to register for a channel an optional payee address to which fees shall be distributed for successful relaying `MsgAcknowledgement` and `MsgTimeout`. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/msg_server_test.go#L23) | `Verified` |
-| 2.02 | The payee address shall only be registered if the channel exist. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/msg_server_test.go#L28) | `Verified` |
+| 2.01 | A relayer shall have the ability to register for a channel an optional payee address to which fees shall be distributed for successfully relaying `MsgAcknowledgement` and `MsgTimeout`. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/msg_server_test.go#L23) | `Verified` |
+| 2.02 | The payee address shall only be registered if the channel exists. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/msg_server_test.go#L28) | `Verified` |
 | 2.03 | The payee address shall only be registered if the channel is fee enabled. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/msg_server_test.go#L35) | `Verified` |
 | 2.04 | The payee address shall only be registered if the address is a valid `Bech32` address. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/msg_server_test.go#L42) | `Verified` |
 | 2.05 | The payee address shall only be registered if the address is not blocked. | [Acceptance test](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/msg_server_test.go#L49) | `Verified` |
@@ -124,7 +124,7 @@ See section [Definitions](https://github.com/cosmos/ibc/tree/main/spec/app/ics-0
 
 | ID  | Description | Verification | Status |
 | --- | ----------- | ------------ | ------ |
-| 6.01 | On successful processing of `MsgAcknowledgement`, fees for successful relay of `MsgTimeout` shall be refunded. | [Fees are refunded is the refund address is a valid `Bech32` address](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/escrow.go#L103). | `Verified` |
+| 6.01 | On successful processing of `MsgAcknowledgement`, fees for successful relay of `MsgTimeout` shall be refunded. | [Fees are refunded if the refund address is a valid `Bech32` address](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/escrow.go#L103). | `Verified` |
 | 6.02 | On successful processing of `MsgAcknowledgement`, if fees for successful relay of `MsgRecvPacket` cannot be distributed, then they should be refunded. | [Fees are refunded](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/escrow.go#L96) if the payee address registered on the counterparty chain for the relayer is either [invalid](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/escrow_test.go#L105) or a [blocked address](https://github.com/cosmos/ibc-go/blob/v4.0.0/modules/apps/29-fee/keeper/escrow_test.go#L120). | `Verified` |
 
 #### `OnTimeoutPacket`
