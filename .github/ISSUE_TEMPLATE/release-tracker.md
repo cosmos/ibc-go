@@ -17,6 +17,11 @@ v                     without deliberation
 ## IBC spec compatibility
 
 <!-- Version of the IBC spec that this release is compatible with -->
+<!-- Please specify:
+- ICS specs version numbers
+- Any breaking changes in compatibility
+- Required minimum versions of dependent chains
+-->
 
 ## QA
 
@@ -46,6 +51,9 @@ versions of ibc-go to guarantee that no regression is introduced -->
 - [ ] Add backport task to [`mergify.yml`](https://github.com/cosmos/ibc-go/blob/main/.github/mergify.yml)
 - [ ] Upgrade ibc-go version in [interchaintest](https://github.com/strangelove-ventures/ibctest).
 - [ ] Check Swagger is up-to-date.
+- [ ] Perform security audit of changes since last release
+- [ ] Update migration documentation with any breaking changes
+- [ ] Verify all API documentation is current
 
 ## Post-release checklist
 
