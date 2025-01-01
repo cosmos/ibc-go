@@ -16,7 +16,7 @@ A user now wants to send this IBC denomination of token A, originating from chai
 
 However, this problem is prevalent within the ecosystem and there are cases of IBC denominations on chains with >2 hops in the path. 
 
-Regarding forwarding, if a user wants to transfer tokens between chains, then perform an action with those tokens, without forwarding, a user would have to sign each transaction on every chain and wait for the tokens to arrive at the destination before performing the next action. This is time consuming and a provides a poor user experience, a user also cannot just specify the desired outcome of their workflow in a trivial way.   
+Regarding forwarding, if a user wants to transfer tokens between chains, then perform an action with those tokens, without forwarding, a user would have to sign each transaction on every chain and wait for the tokens to arrive at the destination before performing the next action. This is time consuming and provides a poor user experience, a user also cannot just specify the desired outcome of their workflow in a trivial way.   
 
 ## Objectives
 
@@ -76,7 +76,7 @@ A user on one chain, for example the Cosmos Hub holds an asset, e.g. ATOM and wa
 | 1.04 | When unwinding is used in combination with forwarding, both the unwind and forwarding should succeed or the tokens should be recoverable on the sending chain | | `Draft` | 
 | 1.05 | The forwarding mechanism shall allow a user to transfer tokens beyond the first destination for those tokens | | `Draft` | 
 | 1.06 | The forwarding mechanism shall allow tokens to have some action performed on them before being sent onto a new destination | | `Draft` | 
-| 1.07 | The routing information for forwarding or to go from unwound token to destination must be input with the initial transfer | | `Draft` |
+| 1.07 | The routing information for forwarding or going from unwound token to destination must be input with the initial transfer | | `Draft` |
 | 1.08 | If an intermediate chain does not have the unwinding or forwarding functionality, the tokens must be recoverable on the sending chain | | `Draft` | 
 | 1.09 | If unwinding or forwarding fails, then the reason for the failure should be returned in an error | | `Draft` |
 | 1.10 | When unwinding, it should be possible for the forwarding path to be evaluated implicitly from introspecting the denomination trace or to be explicitly input as forwarding hops by the user | | `Draft` |  
