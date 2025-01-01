@@ -72,4 +72,4 @@ testing
     └── config.toml
 ```
 
-`simd` if the chain binary that will be used to run 2 blockchains (`chain1` and `chain2`). THe folder `gm` will contain the data folders for both blockchains.
+`simd` if the chain binary that will be used to run 2 blockchains (`chain1` and `chain2`). The folder `gm` will contain the data folders for both blockchains.
