@@ -22,7 +22,7 @@ func NewWasmEndpoint(chain *ibctesting.TestChain) *WasmEndpoint {
 	}
 }
 
-// CreateClient creates an wasm client on a mock cometbft chain.
+// CreateClient creates a wasm client on a mock cometbft chain.
 // The client and consensus states are represented by byte slices
 // and the starting height is 1.
 func (endpoint *WasmEndpoint) CreateClient() error {
