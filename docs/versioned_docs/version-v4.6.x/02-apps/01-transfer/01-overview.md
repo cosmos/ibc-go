@@ -108,7 +108,7 @@ The only viable alternative for clients (at the time of writing) to tokens with 
 
 ## Locked funds
 
-In some [exceptional cases](/architecture/adr-026-ibc-client-recovery-mechanisms#exceptional-cases), a client state associated with a given channel cannot be updated. This causes that funds from fungible tokens in that channel will be permanently locked and thus can no longer be transferred.
+In some [exceptional cases](/architecture/adr-026-ibc-client-recovery-mechanisms#exceptional-cases), a client state associated with a given channel cannot be updated. This means funds from fungible tokens in that channel will be permanently locked and thus can no longer be transferred.
 
 To mitigate this, a client update governance proposal can be submitted to update the frozen client
 with a new valid header. Once the proposal passes the client state will be unfrozen and the funds
