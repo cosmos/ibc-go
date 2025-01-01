@@ -48,7 +48,7 @@ This will be possible for SDK v0.46.x and above.
 ### Allow `nil` underlying applications
 
 Authentication modules should interact with the controller module via the message server and should not be associated with application logic.
-For now, it will be allowed to set a `nil` underlying application.
+For now, setting a `nil` underlying application will be allowed.
 A future version may remove the underlying application entirely.
 
 See issue [#2040](https://github.com/cosmos/ibc-go/issues/2040)
