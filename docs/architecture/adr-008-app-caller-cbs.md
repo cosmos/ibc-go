@@ -494,7 +494,7 @@ func (im IBCModule) OnTimeoutPacket(
 //
 // panics if
 //   - the contractExecutor panics for any reason, and the callbackType is SendPacket, or
-//   - the contractExecutor runs out of gas and the relayer has not reserved gas grater than or equal to
+//   - the contractExecutor runs out of gas and the relayer has not reserved gas greater than or equal to
 //     CommitGasLimit.
 func (IBCMiddleware) processCallback(
 	ctx sdk.Context, callbackType types.CallbackType,
