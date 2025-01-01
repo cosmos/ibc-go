@@ -27,7 +27,7 @@ At a high level we will focus on:
 - Spending time on expanding and deepening our knowledge of IBC, but also other parts of the Cosmos stack.
 - And last, but not least, onboarding new members to the team.
 
-For a detail view of each iteration's planned work, please check out our [project board](https://github.com/orgs/cosmos/projects/7).
+For a detailed view of each iteration's planned work, please check out our [project board](https://github.com/orgs/cosmos/projects/7).
 
 ### Release schedule
 
