@@ -22,7 +22,7 @@ This is because in order to verify a new path, a new `DataType` must be added fo
 
 ## Decision
 
-Remove `DataType` and change the `DataType` in the `SignBytes` and `SignatureAndData` to be `Path`.
+Remove `DataType` and change the `DataType` in the `SignBytes` and `SignatureAndData` to `Path`.
 The new `Path` field should be bytes.
 Remove all `...Data` proto definitions except for `HeaderData`
 These `...Data` definitions were created previously for each `DataType`.
