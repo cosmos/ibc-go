@@ -21,8 +21,8 @@ in order to increase developer ergonomics by reducing boilerplate
 verification code.
 
 For atomic multi-message transaction, we want to keep the IBC related
-state modification to be preserved even the application side state change
-reverts. One of the example might be IBC token sending message following with
+state modification to be preserved even when the application side state change
+reverts. One of the example might be IBC token sending message followed by
 stake delegation which uses the tokens received by the previous packet message.
 If the token receiving fails for any reason, we might not want to keep
 executing the transaction, but we also don't want to abort the transaction
@@ -121,7 +121,7 @@ are `sdk.Msg` types correspond to `handleUpdateClient`, `handleRecvPacket`,
 respectively.
 
 The side effects of `RecvPacket`, `VerifyAcknowledgement`,
-`VerifyTimeout` will be extracted out into separated functions,
+`VerifyTimeout` will be extracted into separate functions,
 `WriteAcknowledgement`, `DeleteCommitment`, `DeleteCommitmentTimeout`, respectively,
 which will be called by the application handlers after the execution.
 
@@ -154,7 +154,7 @@ func (keeper ChannelKeeper) DeleteCommitmentTimeout(ctx Context, packet Packet) 
 Each application handler should call respective finalization methods on the `PortKeeper`
 in order to increase sequence (in case of packet) or remove the commitment
 (in case of acknowledgement and timeout).
-Calling those functions implies that the application logic has successfully executed.
+Calling those functions implies that the application logic has been successfully executed.
 However, the handlers can return `Result` with `CodeTxBreak` after calling those methods
 which will persist the state changes that has been already done but prevent any further
 messages to be executed in case of semantically invalid packet. This will keep the sequence
@@ -164,7 +164,7 @@ In any case the application modules should never return state reverting result,
 which will make the channel unable to proceed.
 
 `ChannelKeeper.CheckOpen` method will be introduced. This will replace `onChanOpen*` defined
-under the routing module specification. Instead of define each channel handshake callback
+under the routing module specification. Instead of defining each channel handshake callback
 functions, application modules can provide `ChannelChecker` function with the `AppModule`
 which will be injected to `ChannelKeeper.Port()` at the top level application.
 `CheckOpen` will find the correct `ChannelChecker` using the
