@@ -179,7 +179,7 @@ The old verification functions (`VerifyClientState`, `VerifyConnection`, etc) sh
 - Flexibility for light client implementations
 - Well defined interfaces and their required functionality
 - Generic verification functions
-- Applies changes necessary for future client/connection/channel upgrabability features
+- Applies changes necessary for future client/connection/channel upgradability features
 - Timeout processing for solo machines
 - Reduced code complexity
 
