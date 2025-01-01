@@ -24,14 +24,14 @@ or updating clients which have become "stuck". Without this mechanism, validator
 to construct a state root to unfreeze the client. Unfreezing clients, re-enables all of the channels
 built upon that client. This may result in recovery of otherwise lost funds.
 
-Tendermint light clients may become expired if the trusting period has passed since their
+Tendermint light clients may expire if the trusting period has passed since their
 last update. This may occur if relayers stop submitting headers to update the clients.
 
 An unplanned upgrade by the counterparty chain may also result in expired clients. If the counterparty
 chain undergoes an unplanned upgrade, there may be no commitment to that upgrade signed by the validator
 set before the chain-id changes. In this situation, the validator set of the last valid update for the
 light client is never expected to produce another valid header since the chain-id has changed, which will
-ultimately lead the on-chain light client to become expired.
+ultimately lead the on-chain light client to expire.
 
 In the case that a highly valued light client is frozen, expired, or rendered non-updateable, a
 governance proposal may be submitted to update this client, known as the subject client. The
