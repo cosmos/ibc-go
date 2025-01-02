@@ -6,11 +6,9 @@ import (
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
-	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 func mockErrorCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
@@ -37,7 +35,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 			func() {
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					suite.env,
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -62,7 +60,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					suite.env,
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -88,7 +86,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					suite.env,
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -115,7 +113,7 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				})
 				k = keeper.NewKeeperWithVM(
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
+					suite.env,
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),

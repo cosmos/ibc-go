@@ -8,20 +8,20 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
 	"cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
+	"cosmossdk.io/core/appmodule"
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // Keeper defines the 08-wasm keeper
 type Keeper struct {
+	appmodule.Environment
+
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
@@ -30,8 +30,7 @@ type Keeper struct {
 
 	vm types.WasmEngine
 
-	checksums    collections.KeySet[[]byte]
-	storeService store.KVStoreService
+	checksums collections.KeySet[[]byte]
 
 	queryPlugins QueryPlugins
 
@@ -46,15 +45,6 @@ func (k Keeper) Codec() codec.BinaryCodec {
 // GetAuthority returns the 08-wasm module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
-}
-
-// Logger returns a module-specific logger.
-func (Keeper) Logger(ctx sdk.Context) log.Logger {
-	return moduleLogger(ctx)
-}
-
-func moduleLogger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }
 
 // GetVM returns the keeper's vm engine.
