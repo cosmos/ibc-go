@@ -687,7 +687,6 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 		if tc.expError == nil {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
-			suite.Require().Error(err, "invalid case %s passed", tc.name)
 			suite.Require().ErrorIs(err, tc.expError, "invalid case %s passed", tc.name)
 		}
 	}

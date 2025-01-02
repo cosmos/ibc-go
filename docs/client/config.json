@@ -63,6 +63,25 @@
       }
     },
     {
+      "url": "./tmp-swagger-gen/ibc/core/channel/v2/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "ChannelV2Params",
+          "Channel": "ChannelV2",
+          "ChannelClientState": "ChannelClientStateV2",
+          "ChannelConsensusState": "ChannelConsensusStateV2",
+          "NextSequenceSend": "NextSequenceSendV2",
+          "PacketAcknowledgement": "PacketAcknowledgementV2",
+          "PacketAcknowledgements": "PacketAcknowledgementsV2",
+          "PacketCommitment": "PacketCommitmentV2",
+          "PacketCommitments": "PacketCommitmentsV2",
+          "PacketReceipt": "PacketReceiptV2",
+          "UnreceivedAcks": "UnreceivedAcksV2",
+          "UnreceivedPackets": "UnreceivedPacketsV2",
+        }
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/ibc/lightclients/wasm/v1/query.swagger.json",
       "operationIds": {
         "rename": {

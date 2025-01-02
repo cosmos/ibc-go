@@ -41,6 +41,9 @@ issues:
     - linters:
         - staticcheck
       text: "SA1019:" # silence errors on usage of deprecated funcs
+    - text: "G115: integer overflow conversion"
+      linters:
+        - gosec
 
   max-issues-per-linter: 10000
   max-same-issues: 10000

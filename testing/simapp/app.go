@@ -129,15 +129,19 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2"
+	ibctransferkeeperv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2/keeper"
 	ibc "github.com/cosmos/ibc-go/v9/modules/core"
 	ibcclienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibcapi "github.com/cosmos/ibc-go/v9/modules/core/api"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
+	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
 )
 
 const appName = "SimApp"
@@ -212,12 +216,16 @@ type SimApp struct {
 	ICAControllerKeeper icacontrollerkeeper.Keeper
 	ICAHostKeeper       icahostkeeper.Keeper
 	TransferKeeper      ibctransferkeeper.Keeper
+	TransferKeeperV2    *ibctransferkeeperv2.Keeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
 	IBCMockModule ibcmock.IBCModule
 	ICAAuthModule ibcmock.IBCModule
 	FeeMockModule ibcmock.IBCModule
+
+	MockModuleV2A mockv2.IBCModule
+	MockModuleV2B mockv2.IBCModule
 
 	// the module manager
 	ModuleManager *module.Manager
@@ -541,6 +549,7 @@ func NewSimApp(
 
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
+	ibcRouterV2 := ibcapi.NewRouter()
 
 	// Middleware Stacks
 
@@ -637,8 +646,22 @@ func NewSimApp(
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 
+	// create two separate mock v2 applications so that it is possible to test multi packet data.
+	mockV2A := mockv2.NewIBCModule()
+	ibcRouterV2.AddRoute(mockv2.PortIDA, mockV2A)
+	app.MockModuleV2A = mockV2A
+
+	mockV2B := mockv2.NewIBCModule()
+	ibcRouterV2.AddRoute(mockv2.PortIDB, mockV2B)
+	app.MockModuleV2B = mockV2B
+
+	// register the transfer v2 module.
+	app.TransferKeeperV2 = ibctransferkeeperv2.NewKeeper(app.TransferKeeper, app.IBCKeeper.ChannelKeeperV2)
+	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeperV2))
+
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
+	app.IBCKeeper.SetRouterV2(ibcRouterV2)
 
 	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()

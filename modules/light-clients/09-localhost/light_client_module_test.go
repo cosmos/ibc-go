@@ -151,7 +151,7 @@ func (suite *LocalhostTestSuite) TestVerifyMembership() {
 					0,
 				)
 
-				commitmentBz := channeltypes.CommitPacket(suite.chain.Codec, packet)
+				commitmentBz := channeltypes.CommitPacket(packet)
 				suite.chain.GetSimApp().GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chain.GetContext(), mock.PortID, ibctesting.FirstChannelID, 1, commitmentBz)
 
 				merklePath := commitmenttypes.NewMerklePath(host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence()))
