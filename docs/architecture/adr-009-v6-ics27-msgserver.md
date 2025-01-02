@@ -78,7 +78,7 @@ See issue [#2145](https://github.com/cosmos/ibc-go/issues/2145)
 ### Future considerations
 
 [ADR 008](https://github.com/cosmos/ibc-go/pull/1976) proposes the creation of a middleware which enables callers of an IBC packet send to perform application logic in conjunction with the IBC application.
-The underlying application can be removed at the availability of such a middleware as that will be the preferred method for executing application logic upon a ICS 27 packet send.
+The underlying application can be removed at the availability of such a middleware as that will be the preferred method for executing application logic upon an ICS 27 packet send.
 
 ### Miscellaneous
 
