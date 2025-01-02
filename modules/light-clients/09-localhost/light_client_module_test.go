@@ -47,7 +47,7 @@ func (suite *LocalhostTestSuite) TestVerifyClientMessage() {
 	lightClientModule, err := suite.chain.App.GetIBCKeeper().ClientKeeper.Route(suite.chain.GetContext(), exported.LocalhostClientID)
 	suite.Require().NoError(err)
 
-	err = lightClientModule.Initialize(suite.chain.GetContext(), exported.LocalhostClientID, nil, nil)
+	err = lightClientModule.VerifyClientMessage(suite.chain.GetContext(), exported.LocalhostClientID, nil)
 	suite.Require().Error(err)
 }
 
