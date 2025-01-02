@@ -44,11 +44,14 @@ func newSubmitStoreCodeProposalCmd() *cobra.Command {
 
 			authority, _ := cmd.Flags().GetString(FlagAuthority)
 			if authority != "" {
-				if _, err = sdk.AccAddressFromBech32(authority); err != nil {
+				if _, err = clientCtx.AddressCodec.StringToBytes(authority); err != nil {
 					return fmt.Errorf("invalid authority address: %w", err)
 				}
 			} else {
-				authority = sdk.AccAddress(address.Module(govtypes.ModuleName)).String()
+				authority, err = clientCtx.AddressCodec.BytesToString(address.Module(govtypes.ModuleName))
+				if err != nil {
+					return fmt.Errorf("failed to get authority address: %w", err)
+				}
 			}
 
 			code, err := os.ReadFile(args[0])
