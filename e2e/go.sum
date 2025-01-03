@@ -216,8 +216,8 @@ cosmossdk.io/store v1.0.0-rc.0.0.20241213081318-957e24171608 h1:NaFVgzmO3YFX+l76
 cosmossdk.io/store v1.0.0-rc.0.0.20241213081318-957e24171608/go.mod h1:eZNgZKvZRlDUk8CE3LTDVMAcSM7zLOet2S8fByQkF3s=
 cosmossdk.io/x/accounts v0.0.0-20241213081318-957e24171608 h1:No84LXBp0kEzJfAqorxrgqzmzqOpHhbs8IK2nBpVQJY=
 cosmossdk.io/x/accounts v0.0.0-20241213081318-957e24171608/go.mod h1:wADXnci9qeFwOQ09qiyf1uLdI4n/RSSTG8mSM9hmxys=
-cosmossdk.io/x/accounts/defaults/base v0.0.0-20241218104812-cb56c6e47f76 h1:g2Nby5rzo9dCaX9/XC4i+f5EsXNbr89ItxnrHeKS8Vk=
-cosmossdk.io/x/accounts/defaults/base v0.0.0-20241218104812-cb56c6e47f76/go.mod h1:/yzjhfOOxcbhrYxQfTHyxNMzGhemHH4mg8k0o54UI4M=
+cosmossdk.io/x/accounts/defaults/base v0.2.0-rc.1 h1:sVAOVQLbdmzLmjnWLhAhIN65HTmSMGBIwU2uTeSCEp0=
+cosmossdk.io/x/accounts/defaults/base v0.2.0-rc.1/go.mod h1:52PyilJMRraVwNcG58q4t7OSzSHApqNfJheq+mNB+qw=
 cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20241213081318-957e24171608 h1:nMu0DD9qutZ7dzIySxTRnLYvZtockBghVkwBHyuwBLI=
 cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20241213081318-957e24171608/go.mod h1:m0eg/A4J5fmXFNGEldQpeTrMr9PFWaVIFjbDYes0j9I=
 cosmossdk.io/x/accounts/defaults/multisig v0.0.0-20241213081318-957e24171608 h1:JL+VXHmb8xqwU7ToR2RG0V2BTmE+t1PkJ880xKi46Tc=
@@ -393,8 +393,8 @@ github.com/containerd/log v0.1.0/go.mod h1:VRRf09a7mHDIRezVKTRCrOq78v577GXq3bSa3
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/cosmos/btcutil v1.0.5 h1:t+ZFcX77LpKtDBhjucvnOH8C2l2ioGsBNEQ3jef8xFk=
 github.com/cosmos/btcutil v1.0.5/go.mod h1:IyB7iuqZMJlthe2tkIFL33xPyzbFYP0XVdS8P5lUPis=
-github.com/cosmos/cosmos-db v1.1.0 h1:KLHNVQ73h7vawXTpj9UJ7ZR2IXv51tsEHkQJJ9EBDzI=
-github.com/cosmos/cosmos-db v1.1.0/go.mod h1:t7c4A6cfGdpUwwVxrQ0gQLeRQqGUBJu0yvE4F/26REg=
+github.com/cosmos/cosmos-db v1.1.1 h1:FezFSU37AlBC8S98NlSagL76oqBRWq/prTPvFcEJNCM=
+github.com/cosmos/cosmos-db v1.1.1/go.mod h1:AghjcIPqdhSLP/2Z0yha5xPH3nLnskz81pBx3tcVSAw=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5 h1:eNcayDLpip+zVLRLYafhzLvQlSmyab+RC5W7ZfmxJLA=
 github.com/cosmos/cosmos-proto v1.0.0-beta.5/go.mod h1:hQGLpiIUloJBMdQMMWb/4wRApmI9hjHH05nefC0Ojec=
 github.com/cosmos/cosmos-sdk v0.52.0-beta.2.0.20241213155709-f1e881e81b1b h1:ZaEAV5tsUTnyWEC/Gt8DXHKBANDyx70PVCiPOEVnuHk=
@@ -1511,8 +1511,8 @@ google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQ
 google.golang.org/protobuf v1.27.1/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
 google.golang.org/protobuf v1.28.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
 google.golang.org/protobuf v1.28.1/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
-google.golang.org/protobuf v1.36.0 h1:mjIs9gYtt56AzC4ZaffQuh88TZurBGhIJMBZGSxNerQ=
-google.golang.org/protobuf v1.36.0/go.mod h1:9fA7Ob0pmnwhb644+1+CVWFRbNajQ6iRojtC/QF5bRE=
+google.golang.org/protobuf v1.36.1 h1:yBPeRvTftaleIgM3PZ/WBIZ7XM/eEYAaEyCwvyjq/gk=
+google.golang.org/protobuf v1.36.1/go.mod h1:9fA7Ob0pmnwhb644+1+CVWFRbNajQ6iRojtC/QF5bRE=
 gopkg.in/alecthomas/kingpin.v2 v2.2.6/go.mod h1:FMv+mEhP44yOT+4EoQTLFTRgOQ1FBLkstjWtayDeSgw=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=

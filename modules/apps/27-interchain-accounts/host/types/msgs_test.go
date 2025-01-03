@@ -111,8 +111,7 @@ func TestMsgModuleQuerySafeValidateBasic(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				require.NoError(t, err)
 			} else {
 				require.Error(t, err)

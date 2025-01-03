@@ -139,8 +139,7 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 			err = path.EndpointA.ChanUpgradeOpen()
 			suite.Require().NoError(err)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				channelA := path.EndpointA.GetChannel()
 				suite.Require().Equal(upgradeVersion, channelA.Version)
 

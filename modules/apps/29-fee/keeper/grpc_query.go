@@ -118,7 +118,7 @@ func (k Keeper) TotalRecvFees(ctx context.Context, req *types.QueryTotalRecvFees
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
-		return nil, status.Errorf(
+		return nil, status.Error(
 			codes.NotFound,
 			errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
 		)
@@ -142,7 +142,7 @@ func (k Keeper) TotalAckFees(ctx context.Context, req *types.QueryTotalAckFeesRe
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
-		return nil, status.Errorf(
+		return nil, status.Error(
 			codes.NotFound,
 			errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
 		)
@@ -166,7 +166,7 @@ func (k Keeper) TotalTimeoutFees(ctx context.Context, req *types.QueryTotalTimeo
 
 	feesInEscrow, found := k.GetFeesInEscrow(ctx, req.PacketId)
 	if !found {
-		return nil, status.Errorf(
+		return nil, status.Error(
 			codes.NotFound,
 			errorsmod.Wrapf(types.ErrFeeNotFound, "channel: %s, port: %s, sequence: %d", req.PacketId.ChannelId, req.PacketId.PortId, req.PacketId.Sequence).Error(),
 		)

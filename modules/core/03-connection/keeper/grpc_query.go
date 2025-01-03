@@ -10,7 +10,6 @@ import (
 	"cosmossdk.io/store/prefix"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -34,7 +33,7 @@ func NewQueryServer(k *Keeper) types.QueryServer {
 }
 
 // Connection implements the Query/Connection gRPC method
-func (q *queryServer) Connection(c context.Context, req *types.QueryConnectionRequest) (*types.QueryConnectionResponse, error) {
+func (q *queryServer) Connection(ctx context.Context, req *types.QueryConnectionRequest) (*types.QueryConnectionResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -43,7 +42,6 @@ func (q *queryServer) Connection(c context.Context, req *types.QueryConnectionRe
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
 	connection, found := q.GetConnection(ctx, req.ConnectionId)
 	if !found {
 		return nil, status.Error(
@@ -59,16 +57,14 @@ func (q *queryServer) Connection(c context.Context, req *types.QueryConnectionRe
 }
 
 // Connections implements the Query/Connections gRPC method
-func (q *queryServer) Connections(c context.Context, req *types.QueryConnectionsRequest) (*types.QueryConnectionsResponse, error) {
+func (q *queryServer) Connections(ctx context.Context, req *types.QueryConnectionsRequest) (*types.QueryConnectionsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
-
 	var connections []*types.IdentifiedConnection
 
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), []byte(host.KeyConnectionPrefix))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), []byte(host.KeyConnectionPrefix))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var result types.ConnectionEnd
@@ -97,7 +93,7 @@ func (q *queryServer) Connections(c context.Context, req *types.QueryConnections
 }
 
 // ClientConnections implements the Query/ClientConnections gRPC method
-func (q *queryServer) ClientConnections(c context.Context, req *types.QueryClientConnectionsRequest) (*types.QueryClientConnectionsResponse, error) {
+func (q *queryServer) ClientConnections(ctx context.Context, req *types.QueryClientConnectionsRequest) (*types.QueryClientConnectionsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -106,7 +102,6 @@ func (q *queryServer) ClientConnections(c context.Context, req *types.QueryClien
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
 	clientConnectionPaths, found := q.GetClientConnectionPaths(ctx, req.ClientId)
 	if !found {
 		return nil, status.Error(
@@ -122,7 +117,7 @@ func (q *queryServer) ClientConnections(c context.Context, req *types.QueryClien
 }
 
 // ConnectionClientState implements the Query/ConnectionClientState gRPC method
-func (q *queryServer) ConnectionClientState(c context.Context, req *types.QueryConnectionClientStateRequest) (*types.QueryConnectionClientStateResponse, error) {
+func (q *queryServer) ConnectionClientState(ctx context.Context, req *types.QueryConnectionClientStateRequest) (*types.QueryConnectionClientStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -130,8 +125,6 @@ func (q *queryServer) ConnectionClientState(c context.Context, req *types.QueryC
 	if err := host.ConnectionIdentifierValidator(req.ConnectionId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-
-	ctx := sdk.UnwrapSDKContext(c)
 
 	connection, found := q.GetConnection(ctx, req.ConnectionId)
 	if !found {
@@ -156,7 +149,7 @@ func (q *queryServer) ConnectionClientState(c context.Context, req *types.QueryC
 }
 
 // ConnectionConsensusState implements the Query/ConnectionConsensusState gRPC method
-func (q *queryServer) ConnectionConsensusState(c context.Context, req *types.QueryConnectionConsensusStateRequest) (*types.QueryConnectionConsensusStateResponse, error) {
+func (q *queryServer) ConnectionConsensusState(ctx context.Context, req *types.QueryConnectionConsensusStateRequest) (*types.QueryConnectionConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -164,8 +157,6 @@ func (q *queryServer) ConnectionConsensusState(c context.Context, req *types.Que
 	if err := host.ConnectionIdentifierValidator(req.ConnectionId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-
-	ctx := sdk.UnwrapSDKContext(c)
 
 	connection, found := q.GetConnection(ctx, req.ConnectionId)
 	if !found {
@@ -194,10 +185,8 @@ func (q *queryServer) ConnectionConsensusState(c context.Context, req *types.Que
 }
 
 // ConnectionParams implements the Query/ConnectionParams gRPC method.
-func (q *queryServer) ConnectionParams(c context.Context, req *types.QueryConnectionParamsRequest) (*types.QueryConnectionParamsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
+func (q *queryServer) ConnectionParams(ctx context.Context, req *types.QueryConnectionParamsRequest) (*types.QueryConnectionParamsResponse, error) {
 	params := q.GetParams(ctx)
-
 	return &types.QueryConnectionParamsResponse{
 		Params: &params,
 	}, nil

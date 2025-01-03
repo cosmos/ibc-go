@@ -65,7 +65,7 @@ func (q *queryServer) Channels(ctx context.Context, req *types.QueryChannelsRequ
 	}
 
 	var channels []*types.IdentifiedChannel
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), []byte(host.KeyChannelEndPrefix))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), []byte(host.KeyChannelEndPrefix))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		var result types.Channel
@@ -106,7 +106,7 @@ func (q *queryServer) ConnectionChannels(ctx context.Context, req *types.QueryCo
 
 	var channels []*types.IdentifiedChannel
 
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), []byte(host.KeyChannelEndPrefix))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), []byte(host.KeyChannelEndPrefix))
 
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(key, value []byte, accumulate bool) (bool, error) {
 		// filter any metadata stored under channel key
@@ -254,7 +254,7 @@ func (q *queryServer) PacketCommitments(ctx context.Context, req *types.QueryPac
 		)
 	}
 	var commitments []*types.PacketState
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.PacketCommitmentPrefixKey(req.PortId, req.ChannelId))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), host.PacketCommitmentPrefixKey(req.PortId, req.ChannelId))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		keySplit := strings.Split(string(key), "/")
@@ -352,7 +352,7 @@ func (q *queryServer) PacketAcknowledgements(ctx context.Context, req *types.Que
 		)
 	}
 	var acks []*types.PacketState
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.PacketAcknowledgementPrefixKey(req.PortId, req.ChannelId))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), host.PacketAcknowledgementPrefixKey(req.PortId, req.ChannelId))
 
 	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
 	// otherwise, maintain previous behaviour and perform paginated query
