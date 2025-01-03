@@ -37,7 +37,7 @@ To add additional light clients, code would need to be added directly to the 02-
 Evidently, this would likely become problematic as IBC scaled to many chains using consensus mechanisms beyond the initial supported light clients.
 Issue [#6064](https://github.com/cosmos/cosmos-sdk/issues/6064) on the SDK addressed this problem by creating a more modular 02-client submodule.
 The 02-client submodule would now interact with each light client via an interface.
-While, this change was positive in development, increasing the flexibility and adoptability of IBC, it also opened the door to new problems.
+While, this change was positive in development, increasing the flexibility and adaptability of IBC, it also opened the door to new problems.
 
 The difficulty of generalizing light clients became apparent once changes to those light clients were required.
 Each light client represents a different consensus algorithm which may contain a host of complexity and nuances.
