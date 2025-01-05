@@ -109,10 +109,9 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
 		consensusState = endpoint.Counterparty.Chain.LatestCommittedHeader.ConsensusState()
 	case exported.Solomachine:
-		// TODO
-		//		solo := NewSolomachine(endpoint.Chain.TB, endpoint.Chain.Codec, clientID, "", 1)
-		//		clientState = solo.ClientState()
-		//		consensusState = solo.ConsensusState()
+		solo := NewSolomachine(endpoint.Chain.TB, endpoint.Chain.Codec, "solomachine", "", 1)
+		clientState = solo.ClientState()
+		consensusState = solo.ConsensusState()
 	default:
 		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
@@ -168,9 +167,6 @@ func (endpoint *Endpoint) UpdateClient() (err error) {
 
 // UpgradeChain will upgrade a chain's chainID to the next revision number.
 // It will also update the counterparty client.
-// TODO: implement actual upgrade chain functionality via scheduling an upgrade
-// and upgrading the client via MsgUpgradeClient
-// see reference https://github.com/cosmos/ibc-go/pull/1169
 func (endpoint *Endpoint) UpgradeChain() error {
 	if strings.TrimSpace(endpoint.Counterparty.ClientID) == "" {
 		return errors.New("cannot upgrade chain if there is no counterparty client")
@@ -192,29 +188,31 @@ func (endpoint *Endpoint) UpgradeChain() error {
 		return err
 	}
 
-	// update chain
+	// Schedule upgrade
+	height := endpoint.Chain.LatestCommittedHeader.GetHeight().(clienttypes.Height)
+	upgradeHeight := clienttypes.NewHeight(height.GetRevisionNumber(), height.GetRevisionHeight()+1)
+	
+	// Update chain
 	baseapp.SetChainID(newChainID)(endpoint.Chain.App.GetBaseApp())
 	endpoint.Chain.ChainID = newChainID
 	endpoint.Chain.ProposedHeader.ChainID = newChainID
 	endpoint.Chain.NextBlock() // commit changes
 
-	// update counterparty client manually
+	// Update counterparty client
 	tmClientState.ChainId = newChainID
 	tmClientState.LatestHeight = clienttypes.NewHeight(revisionNumber+1, tmClientState.LatestHeight.GetRevisionHeight()+1)
-
 	endpoint.Counterparty.SetClientState(clientState)
 
 	tmConsensusState := &ibctm.ConsensusState{
 		Timestamp:          endpoint.Chain.LatestCommittedHeader.GetTime(),
-		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LatestCommittedHeader.Header.GetAppHash()),
+		Root:              commitmenttypes.NewMerkleRoot(endpoint.Chain.LatestCommittedHeader.Header.GetAppHash()),
 		NextValidatorsHash: endpoint.Chain.LatestCommittedHeader.Header.NextValidatorsHash,
 	}
 
 	latestHeight := endpoint.Counterparty.GetClientLatestHeight()
-
 	endpoint.Counterparty.SetConsensusState(tmConsensusState, latestHeight)
 
-	// ensure the next update isn't identical to the one set in state
+	// Ensure the next update isn't identical
 	endpoint.Chain.Coordinator.IncrementTime()
 	endpoint.Chain.NextBlock()
 
