@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[69633],{52212:e=>{e.exports=JSON.parse('{"version":{"pluginId":"params","version":"current","label":"Next","banner":null,"badge":false,"noIndex":false,"className":"docs-version-current","isLast":true,"docsSidebars":{},"docs":{"params":{"id":"params","title":"Parameters","description":"02-Client"}}}}')}}]);
