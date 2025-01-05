@@ -22,8 +22,8 @@ jobs:
       - name: Install codespell
         run: pip install codespell
       - name: Run codespell
-        continue-on-error: true
-        run: codespell -w --skip="*.pb.go,*.pb.gw.go,*.json,*.git,*.js,*.h,*.bin,go.sum,go.mod,.github,*.pdf,*.tla" --ignore-words=.github/.codespellignore
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
+        run: codespell -w --skip="*.pb.go,*.pb.gw.go,*.json,*.git,*.js,*.h,*.bin,go.sum,go.mod,*.pdf,*.tla" --ignore-words=.github/.codespellignore --check-hidden
       - uses: peter-evans/create-pull-request@v7
         if: github.event_name != 'pull_request'
         with:
