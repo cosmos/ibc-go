@@ -382,7 +382,7 @@ func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet type
 	}
 }
 
-// IsBlockedAddr checks if the given address is allowed to send or receive tokens.
+// isBlockedAddr checks if the given address is allowed to send or receive tokens.
 // The module account is always allowed to send and receive tokens.
 func (k Keeper) isBlockedAddr(addr sdk.AccAddress) bool {
 	moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
