@@ -31,8 +31,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
-	// TODO: remove
-	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
+	// Commit initial blocks to ensure proper initialization of chains
+	// This is required because QueryProof needs at least 2 blocks to return valid proofs
 	suite.coordinator.CommitNBlocks(suite.chainA, 2)
 	suite.coordinator.CommitNBlocks(suite.chainB, 2)
 }
