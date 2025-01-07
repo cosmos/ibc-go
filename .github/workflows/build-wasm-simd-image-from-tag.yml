@@ -16,6 +16,9 @@ env:
 jobs:
    build-image-at-tag:
       runs-on: ubuntu-latest
+      permissions:
+        packages: write
+        contents: read
       steps:
          - uses: actions/checkout@v4
            with:
