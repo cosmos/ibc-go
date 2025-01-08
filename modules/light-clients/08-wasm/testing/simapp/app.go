@@ -110,6 +110,7 @@ import (
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	cmted25519 "github.com/cometbft/cometbft/crypto/ed25519"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
@@ -977,6 +978,17 @@ func (app *SimApp) InitChainer(ctx sdk.Context, req *abci.InitChainRequest) (*ab
 	if err := app.UpgradeKeeper.SetModuleVersionMap(ctx, app.ModuleManager.GetVersionMap()); err != nil {
 		panic(err)
 	}
+
+	paramsProto, err := app.ConsensusParamsKeeper.ParamsStore.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+	params := cmttypes.ConsensusParamsFromProto(paramsProto)
+	params.Block.MaxGas = 100_000_000
+	if err := app.ConsensusParamsKeeper.ParamsStore.Set(ctx, params.ToProto()); err != nil {
+		return nil, err
+	}
+
 	return app.ModuleManager.InitGenesis(ctx, genesisState)
 }
 
