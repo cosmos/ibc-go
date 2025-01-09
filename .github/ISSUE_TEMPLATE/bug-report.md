@@ -12,7 +12,7 @@ v    Please also ensure that this is not a duplicate issue :)
 
 <!--
 IMPORTANT: Prior to opening a bug report, check if it affects one of the core modules
-and if its elegible for a bug bounty on `SECURITY.md`. Bugs that are not submitted
+and if its eligible for a bug bounty on `SECURITY.md`. Bugs that are not submitted
 through the appropriate channels won't receive any bounty.
  -->
 
