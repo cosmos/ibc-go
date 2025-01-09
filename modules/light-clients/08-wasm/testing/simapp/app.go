@@ -983,9 +983,9 @@ func (app *SimApp) InitChainer(ctx sdk.Context, req *abci.InitChainRequest) (*ab
 	if err != nil {
 		return nil, err
 	}
-	params := cmttypes.ConsensusParamsFromProto(paramsProto)
-	params.Block.MaxGas = 100_000_000
-	if err := app.ConsensusParamsKeeper.ParamsStore.Set(ctx, params.ToProto()); err != nil {
+	consensusParams := cmttypes.ConsensusParamsFromProto(paramsProto)
+	consensusParams.Block.MaxGas = 100_000_000
+	if err := app.ConsensusParamsKeeper.ParamsStore.Set(ctx, consensusParams.ToProto()); err != nil {
 		return nil, err
 	}
 
