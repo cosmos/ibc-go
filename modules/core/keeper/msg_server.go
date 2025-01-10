@@ -13,6 +13,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
 	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
@@ -358,9 +359,7 @@ func (k *Keeper) ChannelCloseConfirm(ctx context.Context, msg *channeltypes.MsgC
 }
 
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
-func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
+func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		k.Logger.Error("receive packet failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
@@ -374,36 +373,45 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 		return nil, errorsmod.Wrapf(porttypes.ErrInvalidRoute, "route not found to portID: %s", msg.Packet.DestinationPort)
 	}
 
-	// Perform TAO verification
-	//
-	// If the packet was already received, perform a no-op
-	// Use a cached context to prevent accidental state changes
-	cacheCtx, writeFn := ctx.CacheContext()
-	channelVersion, err := k.ChannelKeeper.RecvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+	var channelVersion string
+	if err := k.BranchService.Execute(ctx, func(ctx context.Context) error {
+		// Perform TAO verification
+		channelVersion, err = k.ChannelKeeper.RecvPacket(ctx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
+		if err != nil {
+			return err
+		}
 
-	switch err {
-	case nil:
-		writeFn()
-	case channeltypes.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
-		k.Logger.Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
-		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
-	default:
+		return nil
+	}); err != nil {
+		if errors.Is(err, channeltypes.ErrNoOpMsg) {
+			// no-ops do not need event emission as they will be ignored
+			k.Logger.Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
+			return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
+		}
+
 		k.Logger.Error("receive packet failed", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel, "error", errorsmod.Wrap(err, "receive packet verification failed"))
 		return nil, errorsmod.Wrap(err, "receive packet verification failed")
 	}
 
-	// Perform application logic callback
-	//
-	// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
-	cacheCtx, writeFn = ctx.CacheContext()
-	ack := cbs.OnRecvPacket(cacheCtx, channelVersion, msg.Packet, relayer)
-	if ack == nil || ack.Success() {
+	var ack exported.Acknowledgement
+	if err := k.BranchService.Execute(ctx, func(ctx context.Context) error {
+		// Perform application logic callback
+		ack = cbs.OnRecvPacket(ctx, channelVersion, msg.Packet, relayer)
+		if !ack.Success() {
+			// we must return an error here so that false positive events are not emitted
+			return channeltypes.ErrFailedAcknowledgement
+		}
+
 		// write application state changes for asynchronous and successful acknowledgements
-		writeFn()
-	} else {
-		// Modify events in cached context to reflect unsuccessful acknowledgement
-		ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
+		return nil
+	}); err != nil {
+		if errors.Is(err, channeltypes.ErrFailedAcknowledgement) {
+			// k.EventService.EventManager(ctx).EmitKV()
+			// Modify events in cached context to reflect unsuccessful acknowledgement
+
+			// We lost apis to propagate and err prefix events from a branched multistore ctx
+			// ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
+		}
 	}
 
 	// Set packet acknowledgement only if the acknowledgement is not nil.
