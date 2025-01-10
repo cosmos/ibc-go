@@ -16,6 +16,7 @@ import (
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
+	txsigning "cosmossdk.io/x/tx/signing"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -27,6 +28,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/client/snapshot"
 	"github.com/cosmos/cosmos-sdk/codec"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/server"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -64,11 +66,17 @@ func NewRootCmd() *cobra.Command {
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
+		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
+		WithAddressCodec(addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())).
+		WithValidatorAddressCodec(addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix())).
+		WithConsensusAddressCodec(addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix())).
 		WithHomeDir(simapp.DefaultNodeHome).
-		WithViper("") // In simapp, we don't use any prefix for env variables.
+		WithViper(""). // uses by default the binary name as prefix
+		WithAddressPrefix(sdk.GetConfig().GetBech32AccountAddrPrefix()).
+		WithValidatorPrefix(sdk.GetConfig().GetBech32ValidatorAddrPrefix())
 
 	rootCmd := &cobra.Command{
 		Use:           "simd",
@@ -96,6 +104,10 @@ func NewRootCmd() *cobra.Command {
 			txConfigOpts := tx.ConfigOptions{
 				EnabledSignModes:           enabledSignModes,
 				TextualCoinMetadataQueryFn: txmodule.NewGRPCCoinMetadataQueryFn(initClientCtx),
+				SigningOptions: &txsigning.Options{
+					AddressCodec:          initClientCtx.InterfaceRegistry.SigningContext().AddressCodec(),
+					ValidatorAddressCodec: initClientCtx.InterfaceRegistry.SigningContext().ValidatorAddressCodec(),
+				},
 			}
 			txConfigWithTextual, err := tx.NewTxConfigWithOptions(
 				codec.NewProtoCodec(encodingConfig.InterfaceRegistry),
