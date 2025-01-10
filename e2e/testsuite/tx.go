@@ -18,12 +18,12 @@ import (
 	govtypesv1 "cosmossdk.io/x/gov/types/v1"
 	govtypesv1beta1 "cosmossdk.io/x/gov/types/v1beta1"
 
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
@@ -158,7 +158,7 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 		panic("ExecuteAndPassGovV1Proposal must be passed a cosmos.CosmosChain")
 	}
 
-	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
+	sender, err := addresscodec.NewBech32Codec(cosmosChain.Config().Bech32Prefix).StringToBytes(user.FormattedAddress())
 	s.Require().NoError(err)
 
 	proposalID := s.proposalIDs[cosmosChain.Config().ChainID]
