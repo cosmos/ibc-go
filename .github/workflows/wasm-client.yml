@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
       - uses: golangci/golangci-lint-action@v6.1.1
         with:
-          version: v1.60
+          version: v1.62
           only-new-issues: true
           args: --timeout 10m
           working-directory: modules/light-clients/08-wasm

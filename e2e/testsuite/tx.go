@@ -222,16 +222,16 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Beta1Proposal(ctx context.Context, cha
 		panic("ExecuteAndPassGovV1Beta1Proposal must be passed a cosmos.CosmosChain")
 	}
 
-	proposalID := s.proposalIDs[chain.Config().ChainID]
-	defer func() {
-		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
-	}()
-
 	txResp := s.ExecuteGovV1Beta1Proposal(ctx, cosmosChain, user, content)
 	s.AssertTxSuccess(txResp)
 
-	// TODO: replace with parsed proposal ID from MsgSubmitProposalResponse
-	// https://github.com/cosmos/ibc-go/issues/2122
+	var submitProposalResponse govtypesv1beta1.MsgSubmitProposalResponse
+	s.Require().NoError(UnmarshalMsgResponses(txResp, &submitProposalResponse))
+
+	proposalID := submitProposalResponse.ProposalId
+	defer func() {
+		s.proposalIDs[chain.Config().ChainID] = proposalID + 1
+	}()
 
 	proposalResp, err := query.GRPCQuery[govtypesv1beta1.QueryProposalResponse](ctx, cosmosChain, &govtypesv1beta1.QueryProposalRequest{
 		ProposalId: proposalID,
