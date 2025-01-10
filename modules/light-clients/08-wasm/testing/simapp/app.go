@@ -984,7 +984,7 @@ func (app *SimApp) InitChainer(ctx sdk.Context, req *abci.InitChainRequest) (*ab
 		return nil, err
 	}
 	consensusParams := cmttypes.ConsensusParamsFromProto(paramsProto)
-	consensusParams.Block.MaxGas = 100_000_000
+	consensusParams.Block.MaxGas = 75_000_000 // The same as Cosmos Hub at the moment
 	if err := app.ConsensusParamsKeeper.ParamsStore.Set(ctx, consensusParams.ToProto()); err != nil {
 		return nil, err
 	}
