@@ -158,8 +158,9 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 		panic("ExecuteAndPassGovV1Proposal must be passed a cosmos.CosmosChain")
 	}
 
-	sender, err := addresscodec.NewBech32Codec(cosmosChain.Config().Bech32Prefix).StringToBytes(user.FormattedAddress())
+	senderBytes, err := addresscodec.NewBech32Codec(cosmosChain.Config().Bech32Prefix).StringToBytes(user.FormattedAddress())
 	s.Require().NoError(err)
+	sender := sdk.AccAddress(senderBytes)
 
 	proposalID := s.proposalIDs[cosmosChain.Config().ChainID]
 	defer func() {
