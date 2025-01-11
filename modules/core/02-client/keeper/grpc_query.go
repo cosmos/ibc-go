@@ -94,8 +94,10 @@ func (q *queryServer) ClientStates(ctx context.Context, req *types.QueryClientSt
 			return false, err
 		}
 
-		identifiedClient := types.NewIdentifiedClientState(clientID, clientState)
-		clientStates = append(clientStates, identifiedClient)
+		if accumulate {
+			identifiedClient := types.NewIdentifiedClientState(clientID, clientState)
+			clientStates = append(clientStates, identifiedClient)
+		}
 		return true, nil
 	})
 	if err != nil {
@@ -184,7 +186,10 @@ func (q *queryServer) ConsensusStates(ctx context.Context, req *types.QueryConse
 			return false, err
 		}
 
-		consensusStates = append(consensusStates, types.NewConsensusStateWithHeight(height, consensusState))
+		if accumulate {
+			consensusStates = append(consensusStates, types.NewConsensusStateWithHeight(height, consensusState))
+		}
+
 		return true, nil
 	})
 	if err != nil {
@@ -221,7 +226,10 @@ func (q *queryServer) ConsensusStateHeights(ctx context.Context, req *types.Quer
 			return false, err
 		}
 
-		consensusStateHeights = append(consensusStateHeights, height)
+		if accumulate {
+			consensusStateHeights = append(consensusStateHeights, height)
+		}
+
 		return true, nil
 	})
 	if err != nil {

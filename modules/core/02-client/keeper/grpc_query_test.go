@@ -116,6 +116,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		msg      string
 		malleate func()
 		expErr   error
+		expTotal int
 	}{
 		{
 			"req is nil",
@@ -123,6 +124,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				req = nil
 			},
 			status.Error(codes.InvalidArgument, "empty request"),
+			0,
 		},
 		{
 			"empty pagination",
@@ -131,6 +133,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				req = &types.QueryClientStatesRequest{}
 			},
 			nil,
+			0,
 		},
 		{
 			"success",
@@ -157,6 +160,31 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				}
 			},
 			nil,
+			2,
+		},
+		{
+			"success request with pagination limit",
+			func() {
+				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path1.SetupClients()
+
+				path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path2.SetupClients()
+
+				clientStateA1 := path1.EndpointA.GetClientState()
+
+				idcs := types.NewIdentifiedClientState(path1.EndpointA.ClientID, clientStateA1)
+
+				expClientStates = types.IdentifiedClientStates{idcs}.Sort()
+				req = &types.QueryClientStatesRequest{
+					Pagination: &query.PageRequest{
+						Limit:      1,
+						CountTotal: true,
+					},
+				}
+			},
+			nil,
+			2,
 		},
 	}
 
@@ -174,7 +202,8 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expClientStates.Sort(), res.ClientStates)
-				suite.Require().Equal(len(expClientStates), int(res.Pagination.Total))
+				suite.Require().Equal(tc.expTotal, int(res.Pagination.Total))
+
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
