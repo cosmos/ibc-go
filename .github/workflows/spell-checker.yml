@@ -1,9 +1,14 @@
-name: Fix typos nightly
+name: Spell Check
 
 on:
-  workflow_dispatch: {} # enable manual running of workflow.
+  workflow_dispatch:
+  pull_request:
   schedule:
-    - cron: "0 8 * * *"
+    - cron: "0 12 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   build:
@@ -11,15 +16,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: sobolevn/misspell-fixer-action@26173e641ba08255d0c9826b8a873f8b96f76932
-      - uses: peter-evans/create-pull-request@v7
+      - uses: actions/setup-python@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: fixes by misspell-fixer"
-          title: "chore: typos fix by misspell-fixer"
+          python-version: '3.12'
+      - name: Install codespell
+        run: pip install codespell
+      - name: Run codespell
+        continue-on-error: ${{ github.event_name != 'pull_request' }}
+        run: codespell -w --skip="*.pb.go,*.pb.gw.go,*.json,*.git,*.js,*.h,*.bin,go.sum,go.mod,*.pdf,*.tla" --ignore-words=.github/.codespellignore --check-hidden
+      - uses: peter-evans/create-pull-request@v7
+        if: github.event_name != 'pull_request'
+        with:
+          commit-message: "chore: spelling errors fixes"
+          title: "chore: fix spelling errors"
           branch: "bot/fix-typos"
           delete-branch: true
           body: |
             This PR fixes typos in the codebase.
-            Please, review it and merge if everything is fine.
-            If there are proto changes, please, run `make proto-all` and commit changes.
+            Please review it, and merge if everything is fine.
+            If there are proto changes, run `make proto-all` and commit the changes.

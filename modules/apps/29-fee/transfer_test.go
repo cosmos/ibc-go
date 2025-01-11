@@ -139,8 +139,7 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 			err = path.EndpointA.ChanUpgradeOpen()
 			suite.Require().NoError(err)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				channelA := path.EndpointA.GetChannel()
 				suite.Require().Equal(upgradeVersion, channelA.Version)
 
@@ -162,7 +161,7 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 				res, err := suite.chainA.SendMsgs(msgs...)
 				suite.Require().NoError(err) // message committed
 
-				feeEscrowAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName)
+				feeEscrowAddr := suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(types.ModuleName)
 				escrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), feeEscrowAddr, sdk.DefaultBondDenom)
 				suite.Require().Equal(escrowBalance.Amount, fee.Total().AmountOf(sdk.DefaultBondDenom))
 

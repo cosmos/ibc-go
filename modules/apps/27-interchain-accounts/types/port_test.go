@@ -15,13 +15,13 @@ func (suite *TypesTestSuite) TestNewControllerPortID() {
 		name     string
 		malleate func()
 		expValue string
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
 			types.ControllerPortPrefix + TestOwnerAddress,
-			true,
+			nil,
 		},
 		{
 			"invalid owner address",
@@ -29,7 +29,7 @@ func (suite *TypesTestSuite) TestNewControllerPortID() {
 				owner = "    "
 			},
 			"",
-			false,
+			types.ErrInvalidAccountAddress,
 		},
 	}
 
@@ -45,12 +45,13 @@ func (suite *TypesTestSuite) TestNewControllerPortID() {
 
 			portID, err := types.NewControllerPortID(owner)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, tc.name)
 				suite.Require().Equal(tc.expValue, portID)
 			} else {
 				suite.Require().Error(err, tc.name)
 				suite.Require().Empty(portID)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

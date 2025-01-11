@@ -8,7 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -18,8 +17,10 @@ import (
 var _ types.MsgServer = (*Keeper)(nil)
 
 // Transfer defines an rpc handler method for MsgTransfer.
-func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
+func (k Keeper) Transfer(ctx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
+	if !k.GetParams(ctx).SendEnabled {
+		return nil, types.ErrSendDisabled
+	}
 
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
@@ -82,24 +83,25 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	events.EmitTransferEvent(ctx, sender.String(), msg.Receiver, tokens, msg.Memo, hops)
+	if err := k.EmitTransferEvent(ctx, sender.String(), msg.Receiver, tokens, msg.Memo, hops); err != nil {
+		return nil, err
+	}
 
 	destinationPort := channel.Counterparty.PortId
 	destinationChannel := channel.Counterparty.ChannelId
 	telemetry.ReportTransfer(msg.SourcePort, msg.SourceChannel, destinationPort, destinationChannel, tokens)
 
-	k.Logger(ctx).Info("IBC fungible token transfer", "tokens", coins, "sender", msg.Sender, "receiver", msg.Receiver)
+	k.Logger.Info("IBC fungible token transfer", "tokens", coins, "sender", msg.Sender, "receiver", msg.Receiver)
 
 	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }
 
 // UpdateParams defines an rpc handler method for MsgUpdateParams. Updates the ibc-transfer module's parameters.
-func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+func (k Keeper) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	k.SetParams(ctx, msg.Params)
 
 	return &types.MsgUpdateParamsResponse{}, nil
@@ -108,7 +110,7 @@ func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) 
 // unwindHops unwinds the hops present in the tokens denomination and returns the message modified to reflect
 // the unwound path to take. It assumes that only a single token is present (as this is verified in ValidateBasic)
 // in the tokens list and ensures that the token is not native to the chain.
-func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
+func (k Keeper) unwindHops(ctx context.Context, msg *types.MsgTransfer) (*types.MsgTransfer, error) {
 	unwindHops, err := k.getUnwindHops(ctx, msg.GetCoins())
 	if err != nil {
 		return nil, err
@@ -129,7 +131,7 @@ func (k Keeper) unwindHops(ctx sdk.Context, msg *types.MsgTransfer) (*types.MsgT
 // getUnwindHops returns the hops to be used during unwinding. If coins consists of more than
 // one coin, all coins must have the exact same trace, else an error is returned. getUnwindHops
 // also validates that the coins are not native to the chain.
-func (k Keeper) getUnwindHops(ctx sdk.Context, coins sdk.Coins) ([]types.Hop, error) {
+func (k Keeper) getUnwindHops(ctx context.Context, coins sdk.Coins) ([]types.Hop, error) {
 	// Sanity: validation for MsgTransfer ensures coins are not empty.
 	if len(coins) == 0 {
 		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "coins cannot be empty")

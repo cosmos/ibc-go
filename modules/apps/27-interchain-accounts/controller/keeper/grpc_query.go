@@ -6,8 +6,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 )
@@ -15,12 +13,10 @@ import (
 var _ types.QueryServer = (*Keeper)(nil)
 
 // InterchainAccount implements the Query/InterchainAccount gRPC method
-func (k Keeper) InterchainAccount(goCtx context.Context, req *types.QueryInterchainAccountRequest) (*types.QueryInterchainAccountResponse, error) {
+func (k Keeper) InterchainAccount(ctx context.Context, req *types.QueryInterchainAccountRequest) (*types.QueryInterchainAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	portID, err := icatypes.NewControllerPortID(req.Owner)
 	if err != nil {
@@ -38,10 +34,8 @@ func (k Keeper) InterchainAccount(goCtx context.Context, req *types.QueryInterch
 }
 
 // Params implements the Query/Params gRPC method
-func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
+func (k Keeper) Params(ctx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	params := k.GetParams(ctx)
-
 	return &types.QueryParamsResponse{
 		Params: &params,
 	}, nil

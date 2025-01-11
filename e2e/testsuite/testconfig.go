@@ -10,18 +10,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	interchaintestutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v9"
+	"github.com/strangelove-ventures/interchaintest/v9/ibc"
+	interchaintestutil "github.com/strangelove-ventures/interchaintest/v9/testutil"
 	"gopkg.in/yaml.v2"
 
+	govtypes "cosmossdk.io/x/gov/types"
+	govv1 "cosmossdk.io/x/gov/types/v1"
+	govv1beta1 "cosmossdk.io/x/gov/types/v1beta1"
+
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectestutil "github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 
@@ -67,7 +69,7 @@ const (
 	// TODO: https://github.com/cosmos/ibc-go/issues/4965
 	defaultHyperspaceTag = "20231122v39"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "1.10.0"
+	defaultHermesTag = "1.10.4"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
@@ -91,7 +93,7 @@ func getChainImage(binary string) string {
 type TestConfig struct {
 	// ChainConfigs holds configuration values related to the chains used in the tests.
 	ChainConfigs []ChainConfig `yaml:"chains"`
-	// RelayerConfig holds all known relayer configurations that can be used in the tests.
+	// RelayerConfigs holds all known relayer configurations that can be used in the tests.
 	RelayerConfigs []relayer.Config `yaml:"relayers"`
 	// ActiveRelayer specifies the relayer that will be used. It must match the ID of one of the entries in RelayerConfigs.
 	ActiveRelayer string `yaml:"activeRelayer"`
@@ -612,6 +614,11 @@ func IsFork() bool {
 	return isEnvTrue("FORK")
 }
 
+// IsRunSuite returns true if the tests are running in suite mode, false is returned otherwise.
+func IsRunSuite() bool {
+	return isEnvTrue("RUN_SUITE")
+}
+
 func isEnvTrue(env string) bool {
 	return strings.ToLower(os.Getenv(env)) == "true"
 }
@@ -651,11 +658,17 @@ func DefaultChainOptions() ChainOptions {
 		NumValidators: &chainBVal,
 	}
 
-	return ChainOptions{
-		ChainSpecs: []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+	// if running a single test, only one relayer is needed.
+	numRelayers := 1
+	if IsRunSuite() {
 		// arbitrary number that will not be required if https://github.com/strangelove-ventures/interchaintest/issues/1153 is resolved.
 		// It can be overridden in individual test suites in SetupSuite if required.
-		RelayerCount: 10,
+		numRelayers = 10
+	}
+
+	return ChainOptions{
+		ChainSpecs:   []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+		RelayerCount: numRelayers,
 	}
 }
 
@@ -680,7 +693,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 		},
 		Bin:                 cc.Binary,
 		Bech32Prefix:        "cosmos",
-		CoinType:            fmt.Sprint(sdk.GetConfig().GetCoinType()),
+		CoinType:            fmt.Sprint(sdk.CoinType),
 		Denom:               denom,
 		EncodingConfig:      SDKEncodingConfig(),
 		GasPrices:           fmt.Sprintf("0.00%s", denom),
@@ -830,7 +843,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 
 // modifyGovV1AppState takes the existing gov app state and marshals it to a govv1 GenesisState.
 func modifyGovV1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
-	cfg := testutil.MakeTestEncodingConfig()
+	cfg := testutil.MakeTestEncodingConfig(codectestutil.CodecOptions{})
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	govv1.RegisterInterfaces(cfg.InterfaceRegistry)
@@ -858,7 +871,7 @@ func modifyGovV1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byt
 
 // modifyGovv1Beta1AppState takes the existing gov app state and marshals it to a govv1beta1 GenesisState.
 func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
-	cfg := testutil.MakeTestEncodingConfig()
+	cfg := testutil.MakeTestEncodingConfig(codectestutil.CodecOptions{})
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
@@ -881,7 +894,7 @@ func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) (
 
 // modifyClientGenesisAppState takes the existing ibc app state and marshals it to an ibc GenesisState.
 func modifyClientGenesisAppState(ibcAppState []byte) ([]byte, error) {
-	cfg := testutil.MakeTestEncodingConfig()
+	cfg := testutil.MakeTestEncodingConfig(codectestutil.CodecOptions{})
 
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
 	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)

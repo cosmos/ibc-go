@@ -14,7 +14,7 @@ import (
 // - Update solo machine client state protobuf definition (v2 to v3)
 // - Remove all solo machine consensus states
 // - Remove any localhost clients
-func MigrateGenesis(appState genutiltypes.AppMap, cdc codec.ProtoCodecMarshaler) (genutiltypes.AppMap, error) {
+func MigrateGenesis(appState genutiltypes.AppMap, cdc codec.Codec) (genutiltypes.AppMap, error) {
 	if appState[ibcexported.ModuleName] == nil {
 		return appState, nil
 	}
