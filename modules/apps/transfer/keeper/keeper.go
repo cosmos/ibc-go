@@ -308,7 +308,7 @@ func (k Keeper) setForwardedPacket(ctx context.Context, portID, channelID string
 }
 
 // getForwardedPacket gets the forwarded packet from the store.
-func (k Keeper) getForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
+func (k Keeper) GetForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
 	store := k.KVStoreService.OpenKVStore(ctx)
 	bz, err := store.Get(types.PacketForwardKey(portID, channelID, sequence))
 	if err != nil {

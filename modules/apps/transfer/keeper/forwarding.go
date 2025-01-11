@@ -13,8 +13,8 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
-// forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
-func (k Keeper) forwardPacket(ctx context.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
+// ForwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
+func (k Keeper) ForwardPacket(ctx context.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
 	var nextForwardingPath *types.Forwarding
 	if len(data.Forwarding.Hops) > 1 {
 		// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver

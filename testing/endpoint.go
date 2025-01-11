@@ -542,8 +542,8 @@ func (endpoint *Endpoint) AcknowledgePacketWithResult(packet channeltypes.Packet
 	return endpoint.Chain.SendMsgs(ackMsg)
 }
 
-// TimeoutPacket sends a MsgTimeout to the channel associated with the endpoint.
-func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
+// TimeoutPacketWithResult sends a MsgTimeout to the channel associated with the endpoint.
+func (endpoint *Endpoint) TimeoutPacketWithResult(packet channeltypes.Packet) (*abci.ExecTxResult, error) {
 	// get proof for timeout based on channel order
 	var packetKey []byte
 
@@ -553,7 +553,7 @@ func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
 	case channeltypes.UNORDERED:
 		packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	default:
-		return fmt.Errorf("unsupported order type %s", endpoint.ChannelConfig.Order)
+		return nil, fmt.Errorf("unsupported order type %s", endpoint.ChannelConfig.Order)
 	}
 
 	counterparty := endpoint.Counterparty
@@ -566,7 +566,13 @@ func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
 		proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	return endpoint.Chain.sendMsgs(timeoutMsg)
+	return endpoint.Chain.SendMsgs(timeoutMsg)
+}
+
+// TimeoutPacket sends a MsgTimeout to the channel associated with the endpoint.
+func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
+	_, err := endpoint.TimeoutPacketWithResult(packet)
+	return err
 }
 
 // TimeoutOnClose sends a MsgTimeoutOnClose to the channel associated with the endpoint.
