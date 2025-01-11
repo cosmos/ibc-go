@@ -8,7 +8,7 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
 	"cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
+	"cosmossdk.io/core/appmodule"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
 
@@ -22,7 +22,7 @@ import (
 
 // Keeper defines the 08-wasm keeper
 type Keeper struct {
-	// implements gRPC QueryServer interface
+	appmodule.Environment
 	types.QueryServer
 
 	cdc          codec.BinaryCodec
@@ -30,8 +30,7 @@ type Keeper struct {
 
 	vm types.WasmEngine
 
-	checksums    collections.KeySet[[]byte]
-	storeService store.KVStoreService
+	checksums collections.KeySet[[]byte]
 
 	queryPlugins QueryPlugins
 
@@ -87,10 +86,12 @@ func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *queryHandler 
 // - Size bounds are checked. Contract length must not be 0 or exceed a specific size (maxWasmSize).
 // - The contract must not have already been stored in store.
 func (k Keeper) storeWasmCode(ctx context.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	var err error
 	if types.IsGzip(code) {
-		sdkCtx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
+		if err := k.GasService.GasMeter(ctx).Consume(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode"); err != nil {
+			return nil, errorsmod.Wrap(err, "failed to consume gas for decompression")
+		}
+
 		code, err = types.Uncompress(code, types.MaxWasmSize)
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "failed to store contract")
@@ -113,6 +114,7 @@ func (k Keeper) storeWasmCode(ctx context.Context, code []byte, storeFn func(cod
 	}
 
 	// create the code in the vm
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	gasLeft := types.VMGasRegister.RuntimeGasForContract(sdkCtx)
 	vmChecksum, gasUsed, err := storeFn(code, gasLeft)
 	types.VMGasRegister.ConsumeRuntimeGas(sdkCtx, gasUsed)
@@ -186,7 +188,7 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksu
 }
 
 // GetWasmClientState returns the 08-wasm client state for the given client identifier.
-func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.ClientState, error) {
+func (k Keeper) GetWasmClientState(ctx context.Context, clientID string) (*types.ClientState, error) {
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
 		return nil, errorsmod.Wrapf(clienttypes.ErrClientTypeNotFound, "clientID %s", clientID)
@@ -233,7 +235,7 @@ func (k Keeper) HasChecksum(ctx context.Context, checksum types.Checksum) bool {
 }
 
 // InitializePinnedCodes updates wasmvm to pin to cache all contracts marked as pinned
-func (k Keeper) InitializePinnedCodes(ctx sdk.Context) error {
+func (k Keeper) InitializePinnedCodes(ctx context.Context) error {
 	checksums, err := k.GetAllChecksums(ctx)
 	if err != nil {
 		return err
