@@ -12,7 +12,7 @@ func (k Keeper) InitGenesis(ctx context.Context, state types.GenesisState) {
 
 	for _, denom := range state.Denoms {
 		k.SetDenom(ctx, denom)
-		k.setDenomMetadata(ctx, denom)
+		k.SetDenomMetadata(ctx, denom)
 	}
 
 	k.SetParams(ctx, state.Params)

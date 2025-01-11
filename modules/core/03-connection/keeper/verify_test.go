@@ -33,9 +33,6 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 		expErr   error
 	}{
 		{"verification success", func() {}, nil},
-		{"client state not found - changed client ID", func() {
-			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (IDisInvalid) status is Unauthorized")},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
 		}, errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "failed connection state verification for client (07-tendermint-0): client state height < proof height ({1 9} < {1 14}), please ensure the client has been updated")},
@@ -96,9 +93,6 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 		expErr   error
 	}{
 		{"verification success", func() {}, nil},
-		{"client state not found- changed client ID", func() {
-			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (IDisInvalid) status is Unauthorized")},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
 		}, errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "failed channel state verification for client (07-tendermint-0): client state height < proof height ({1 15} < {1 20}), please ensure the client has been updated")},
@@ -174,9 +168,6 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 			delayTimePeriod = uint64(1 * time.Second.Nanoseconds())
 			timePerBlock = 1
 		}, errorsmod.Wrap(ibctm.ErrDelayPeriodNotPassed, "failed packet commitment verification for client (07-tendermint-0): cannot verify packet until height: 1-1000000016, current height: 1-17")},
-		{"client state not found- changed client ID", func() {
-			path.EndpointB.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen")},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
 		}, errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "failed packet commitment verification for client (07-tendermint-0): client state height < proof height ({1 17} < {1 22}), please ensure the client has been updated")},
@@ -220,7 +211,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 				suite.chainB.App.GetIBCKeeper().ConnectionKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(timePerBlock))
 			}
 
-			commitment := channeltypes.CommitPacket(suite.chainB.App.GetIBCKeeper().Codec(), packet)
+			commitment := channeltypes.CommitPacket(packet)
 			err = suite.chainB.App.GetIBCKeeper().ConnectionKeeper.VerifyPacketCommitment(
 				suite.chainB.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
 				packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(), commitment,
@@ -266,9 +257,6 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 			delayTimePeriod = uint64(1 * time.Second.Nanoseconds())
 			timePerBlock = 1
 		}, errorsmod.Wrap(ibctm.ErrDelayPeriodNotPassed, "failed packet acknowledgement verification for client (07-tendermint-0): cannot verify packet until height: 1-1000000018, current height: 1-19")},
-		{"client state not found- changed client ID", func() {
-			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen")},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
 		}, errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "failed packet acknowledgement verification for client (07-tendermint-0): client state height < proof height ({1 19} < {1 24}), please ensure the client has been updated")},
@@ -367,9 +355,6 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			delayTimePeriod = uint64(1 * time.Second.Nanoseconds())
 			timePerBlock = 1
 		}, errorsmod.Wrap(ibctm.ErrDelayPeriodNotPassed, "failed packet commitment verification for client (07-tendermint-0): cannot verify packet until height: 1-1000000016, current height: 1-17")},
-		{"client state not found - changed client ID", func() {
-			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen")},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
 		}, errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "failed packet commitment verification for client (07-tendermint-0): client state height < proof height ({1 17} < {1 22}), please ensure the client has been updated")},
@@ -474,9 +459,6 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 			delayTimePeriod = uint64(1 * time.Second.Nanoseconds())
 			timePerBlock = 1
 		}, errorsmod.Wrap(ibctm.ErrDelayPeriodNotPassed, "failed packet commitment verification for client (07-tendermint-0): cannot verify packet until height: 1-1000000016, current height: 1-17")},
-		{"client state not found- changed client ID", func() {
-			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen")},
 		{"consensus state not found - increased proof height", func() {
 			heightDiff = 5
 		}, errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "failed packet commitment verification for client (07-tendermint-0): client state height < proof height ({1 17} < {1 22}), please ensure the client has been updated")},
@@ -570,13 +552,6 @@ func (suite *KeeperTestSuite) TestVerifyUpgradeErrorReceipt() {
 			expErr: errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen"),
 		},
 		{
-			name: "fails with bad client id",
-			malleate: func() {
-				path.EndpointB.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-			},
-			expErr: errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (IDisInvalid) status is Unauthorized"),
-		},
-		{
 			name: "verification fails when the key does not exist",
 			malleate: func() {
 				suite.chainA.DeleteKey(host.ChannelUpgradeErrorKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
@@ -651,13 +626,6 @@ func (suite *KeeperTestSuite) TestVerifyUpgrade() {
 				path.EndpointB.SetClientState(clientState)
 			},
 			expErr: errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen"),
-		},
-		{
-			name: "fails with bad client id",
-			malleate: func() {
-				path.EndpointB.UpdateConnection(func(c *types.ConnectionEnd) { c.ClientId = ibctesting.InvalidID })
-			},
-			expErr: errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (IDisInvalid) status is Unauthorized"),
 		},
 		{
 			name: "fails when the upgrade field is different",

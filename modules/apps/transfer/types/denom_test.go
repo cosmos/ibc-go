@@ -21,6 +21,11 @@ func (suite *TypesTestSuite) TestDenomsValidate() {
 			nil,
 		},
 		{
+			"valid trace with client id",
+			types.Denoms{types.NewDenom("uatom", types.NewHop("transfer", "07-tendermint-0"))},
+			nil,
+		},
+		{
 			"valid multiple trace info",
 			types.Denoms{types.NewDenom("uatom", types.NewHop("transfer", "channel-1"), types.NewHop("transfer", "channel-2"))},
 			nil,
@@ -78,6 +83,16 @@ func (suite *TypesTestSuite) TestPath() {
 			"1 hop denom",
 			types.NewDenom("uatom", types.NewHop("transfer", "channel-0")),
 			"transfer/channel-0/uatom",
+		},
+		{
+			"1 hop denom with client id",
+			types.NewDenom("uatom", types.NewHop("transfer", "07-tendermint-0")),
+			"transfer/07-tendermint-0/uatom",
+		},
+		{
+			"1 hop denom with client id and slashes",
+			types.NewDenom("gamm/pool/osmo", types.NewHop("transfer", "07-tendermint-0")),
+			"transfer/07-tendermint-0/gamm/pool/osmo",
 		},
 		{
 			"2 hop denom",
@@ -203,6 +218,13 @@ func (suite *TypesTestSuite) TestDenomChainSource() {
 			false,
 		},
 		{
+			"sender chain is source: single trace with client id",
+			types.NewDenom("ubtc", types.NewHop("transfer", "07-tendermint-0")),
+			"transfer",
+			"channel-0",
+			false,
+		},
+		{
 			"sender chain is source: swapped portID and channelID",
 			types.NewDenom("uatom", types.NewHop("transfer", "channel-0")),
 			"channel-0",
@@ -224,6 +246,13 @@ func (suite *TypesTestSuite) TestDenomChainSource() {
 			),
 			"transfer",
 			"channel-0",
+			true,
+		},
+		{
+			"receiver chain is source: single trace with client id",
+			types.NewDenom("ubtc", types.NewHop("transfer", "07-tendermint-0")),
+			"transfer",
+			"07-tendermint-0",
 			true,
 		},
 		{
@@ -284,6 +313,7 @@ func TestExtractDenomFromPath(t *testing.T) {
 		{"base denom with trailing slash", "atom/", types.NewDenom("atom/")},
 		{"base denom multiple trailing slash", "foo///bar//baz/atom/", types.NewDenom("foo///bar//baz/atom/")},
 		{"ibc denom one hop", "transfer/channel-0/atom", types.NewDenom("atom", types.NewHop("transfer", "channel-0"))},
+		{"ibc denom one hop with client id", "transfer/07-tendermint-0/atom", types.NewDenom("atom", types.NewHop("transfer", "07-tendermint-0"))},
 		{"ibc denom one hop trailing slash", "transfer/channel-0/atom/", types.NewDenom("atom/", types.NewHop("transfer", "channel-0"))},
 		{"ibc denom one hop multiple slashes", "transfer/channel-0//at/om/", types.NewDenom("/at/om/", types.NewHop("transfer", "channel-0"))},
 		{"ibc denom two hops", "transfer/channel-0/transfer/channel-60/atom", types.NewDenom("atom", types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-60"))},
