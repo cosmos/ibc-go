@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package ibc.core.client.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/02-client/types";
+
+import "cosmos/msg/v1/msg.proto";
+import "gogoproto/gogo.proto";
+
+// CounterpartyInfo defines the key that the counterparty will use to message our client
+message CounterpartyInfo {
+  // counterparty messaging key prefix is the key that the counterparty will store
+  // all outgoing IBC packet messages intended for our chain.
+  // the provable messages will be stored with the following key prefix and the
+  // ICS24 standardized path for the given message type
+  repeated bytes counterparty_messaging_key = 1;
+}
+
+// CounterpartyMsg defines the ibc/client CounterpartyMsg service.
+service CounterpartyMsg {
+  option (cosmos.msg.v1.service) = true;
+
+  // RegisterCounterparty defines a rpc handler method for MsgRegisterCounterparty.
+  rpc RegisterCounterparty(MsgRegisterCounterparty) returns (MsgRegisterCounterpartyResponse);
+}
+
+// MsgRegisterCounterparty defines a message to register a counterparty on a client
+message MsgRegisterCounterparty {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  // client identifier
+  string client_id = 1;
+  // counterparty messaging key
+  repeated bytes counterparty_messaging_key = 2;
+  // signer address
+  string signer = 3;
+}
+
+// MsgRegisterCounterpartyResponse defines the Msg/RegisterCounterparty response type.
+message MsgRegisterCounterpartyResponse {}
