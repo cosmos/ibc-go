@@ -6,11 +6,11 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	types1 "github.com/cosmos/cosmos-sdk/codec/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
+	any "github.com/cosmos/gogoproto/types/any"
 	types "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
@@ -304,7 +304,7 @@ func (m *QueryChannelConsensusStateRequest) GetRevisionHeight() uint64 {
 // Query/QueryChannelConsensusState RPC method
 type QueryChannelConsensusStateResponse struct {
 	// consensus state associated with the channel
-	ConsensusState *types1.Any `protobuf:"bytes,1,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
+	ConsensusState *any.Any `protobuf:"bytes,1,opt,name=consensus_state,json=consensusState,proto3" json:"consensus_state,omitempty"`
 	// client ID associated with the consensus state
 	ClientId string `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// merkle proof of existence
@@ -346,7 +346,7 @@ func (m *QueryChannelConsensusStateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryChannelConsensusStateResponse proto.InternalMessageInfo
 
-func (m *QueryChannelConsensusStateResponse) GetConsensusState() *types1.Any {
+func (m *QueryChannelConsensusStateResponse) GetConsensusState() *any.Any {
 	if m != nil {
 		return m.ConsensusState
 	}
@@ -3886,7 +3886,7 @@ func (m *QueryChannelConsensusStateResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ConsensusState == nil {
-				m.ConsensusState = &types1.Any{}
+				m.ConsensusState = &any.Any{}
 			}
 			if err := m.ConsensusState.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

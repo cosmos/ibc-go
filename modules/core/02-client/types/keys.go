@@ -29,6 +29,10 @@ const (
 	// ParamsKey is the store key for the IBC client parameters
 	ParamsKey = "clientParams"
 
+	KeyCreator = "creator"
+
+	KeyCounterparty = "counterparty"
+
 	// AllowAllClients is the value that if set in AllowedClients param
 	// would allow any wired up light client modules to be allowed
 	AllowAllClients = "*"
@@ -90,4 +94,12 @@ func MustParseClientIdentifier(clientID string) string {
 	}
 
 	return clientType
+}
+
+func CreatorKey() []byte {
+	return []byte(KeyCreator)
+}
+
+func CounterpartyKey() []byte {
+	return []byte(KeyCounterparty)
 }

@@ -40,7 +40,27 @@ func (k *Keeper) CreateClient(ctx context.Context, msg *clienttypes.MsgCreateCli
 		return nil, err
 	}
 
+	// set the client creator so that eureka counterparty can be set by same relayer
+	k.ClientKeeper.SetClientCreator(ctx, clientID, sdk.AccAddress(msg.Signer))
+
 	return &clienttypes.MsgCreateClientResponse{ClientId: clientID}, nil
+}
+
+// RegisterCounterparty will register the eureka counterparty info for the given client id
+// it must be called by the same relayer that called CreateClient
+func (k *Keeper) RegisterCounterparty(ctx context.Context, msg *clienttypes.MsgRegisterCounterparty) (*clienttypes.MsgRegisterCounterpartyResponse, error) {
+	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
+	if !creator.Equals(sdk.AccAddress(msg.Signer)) {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected same signer as createClient submittor %s, got %s", creator, msg.Signer)
+	}
+
+	counterpartyInfo := clienttypes.CounterpartyInfo{
+		CounterpartyMessagingKey: msg.CounterpartyMessagingKey,
+	}
+	k.ClientKeeper.SetClientCounterparty(ctx, msg.ClientId, counterpartyInfo)
+
+	k.ClientKeeper.DeleteClientCreator(ctx, msg.ClientId)
+	return &clienttypes.MsgRegisterCounterpartyResponse{}, nil
 }
 
 // UpdateClient defines a rpc handler method for MsgUpdateClient.

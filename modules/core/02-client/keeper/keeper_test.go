@@ -127,6 +127,25 @@ func (suite *KeeperTestSuite) TestSetClientState() {
 	suite.Require().Equal(clientState, retrievedState, "Client states are not equal")
 }
 
+func (suite *KeeperTestSuite) TestSetClientCreator() {
+	creator := suite.chainA.SenderAccount.GetAddress()
+	suite.keeper.SetClientCreator(suite.ctx, testClientID, creator)
+	getCreator := suite.keeper.GetClientCreator(suite.ctx, testClientID)
+	suite.Require().Equal(creator, getCreator)
+	suite.keeper.DeleteClientCreator(suite.ctx, testClientID)
+	getCreator = suite.keeper.GetClientCreator(suite.ctx, testClientID)
+	suite.Require().Equal(sdk.AccAddress(nil), getCreator)
+}
+
+func (suite *KeeperTestSuite) TestSetClientCounterparty() {
+	counterparty := types.NewCounterpartyInfo([][]byte{[]byte("ibc"), []byte("channel-7")})
+	suite.keeper.SetClientCounterparty(suite.ctx, testClientID, counterparty)
+
+	retrievedCounterparty, found := suite.keeper.GetClientCounterparty(suite.ctx, testClientID)
+	suite.Require().True(found, "GetCounterparty failed")
+	suite.Require().Equal(counterparty, retrievedCounterparty, "Counterparties are not equal")
+}
+
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, suite.consensusState)
 

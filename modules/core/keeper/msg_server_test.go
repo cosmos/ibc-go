@@ -31,6 +31,62 @@ var (
 	maxSequence   = uint64(10)
 )
 
+// TestRegisterCounterparty tests that counterpartyInfo is correctly stored
+// and only if the submittor is the same submittor as prior createClient msg
+func (suite *KeeperTestSuite) TestRegisterCounterparty() {
+	var path *ibctesting.Path
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				path.SetupClients()
+			},
+			nil,
+		},
+		{
+			"client not created first",
+			func() {},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"creator is different than expected",
+			func() {
+				path.SetupClients()
+				path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.SetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID, sdk.AccAddress(ibctesting.TestAccAddress))
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+	}
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			tc.malleate()
+			counterpartyKey := [][]byte{[]byte("ibc"), []byte("channel-7")}
+			msg := clienttypes.NewMsgRegisterCounterparty(path.EndpointA.ClientID, counterpartyKey, suite.chainA.SenderAccount.GetAddress().String())
+			_, err := suite.chainA.App.GetIBCKeeper().RegisterCounterparty(suite.chainA.GetContext(), msg)
+			if tc.expError != nil {
+				suite.Require().Error(err)
+				suite.Require().True(errors.Is(err, tc.expError))
+			} else {
+				suite.Require().NoError(err)
+				counterpartyInfo, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().True(ok)
+				suite.Require().Equal(counterpartyInfo, clienttypes.CounterpartyInfo{counterpartyKey})
+				creator := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().Empty(creator)
+			}
+		})
+	}
+
+}
+
 // tests the IBC handler receiving a packet on ordered and unordered channels.
 // It verifies that the storing of an acknowledgement on success occurs. It
 // tests high level properties like ordering and basic sanity checks. More
