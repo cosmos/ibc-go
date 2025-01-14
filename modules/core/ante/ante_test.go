@@ -91,7 +91,7 @@ func (suite *AnteTestSuite) createRecvPacketMessageV2(isRedundant bool) *channel
 	err = suite.path.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
-	packetKey := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
+	packetKey := hostv2.PacketCommitmentKey(packet.SourceId, packet.Sequence)
 	proof, proofHeight := suite.chainA.QueryProof(packetKey)
 
 	return channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
@@ -134,7 +134,7 @@ func (suite *AnteTestSuite) createAcknowledgementMessageV2(isRedundant bool) *ch
 		suite.Require().NoError(err)
 	}
 
-	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
+	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationId, packet.Sequence)
 	proof, proofHeight := suite.chainA.QueryProof(packetKey)
 
 	return channeltypesv2.NewMsgAcknowledgement(packet, ack, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
@@ -184,7 +184,7 @@ func (suite *AnteTestSuite) createTimeoutMessageV2(isRedundant bool) *channeltyp
 		suite.Require().NoError(err)
 	}
 
-	packetKey := hostv2.PacketReceiptKey(packet.SourceChannel, packet.Sequence)
+	packetKey := hostv2.PacketReceiptKey(packet.SourceId, packet.Sequence)
 	proof, proofHeight := suite.chainA.QueryProof(packetKey)
 
 	return channeltypesv2.NewMsgTimeout(packet, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())

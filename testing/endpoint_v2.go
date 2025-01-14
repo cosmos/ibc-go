@@ -82,7 +82,7 @@ func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, paylo
 // MsgRecvPacket sends a MsgRecvPacket on the associated endpoint with the provided packet.
 func (endpoint *Endpoint) MsgRecvPacket(packet channeltypesv2.Packet) error {
 	// get proof of packet commitment from chainA
-	packetKey := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
+	packetKey := hostv2.PacketCommitmentKey(packet.SourceId, packet.Sequence)
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
 
 	msg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
@@ -96,7 +96,7 @@ func (endpoint *Endpoint) MsgRecvPacket(packet channeltypesv2.Packet) error {
 
 // MsgAcknowledgePacket sends a MsgAcknowledgement on the associated endpoint with the provided packet and ack.
 func (endpoint *Endpoint) MsgAcknowledgePacket(packet channeltypesv2.Packet, ack channeltypesv2.Acknowledgement) error {
-	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
+	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationId, packet.Sequence)
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
 
 	msg := channeltypesv2.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
@@ -110,7 +110,7 @@ func (endpoint *Endpoint) MsgAcknowledgePacket(packet channeltypesv2.Packet, ack
 
 // MsgTimeoutPacket sends a MsgTimeout on the associated endpoint with the provided packet.
 func (endpoint *Endpoint) MsgTimeoutPacket(packet channeltypesv2.Packet) error {
-	packetKey := hostv2.PacketReceiptKey(packet.DestinationChannel, packet.Sequence)
+	packetKey := hostv2.PacketReceiptKey(packet.DestinationId, packet.Sequence)
 	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
 
 	msg := channeltypesv2.NewMsgTimeout(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())

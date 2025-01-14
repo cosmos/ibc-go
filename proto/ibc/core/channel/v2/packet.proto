@@ -14,9 +14,9 @@ message Packet {
   // with a later sequence number.
   uint64 sequence = 1;
   // identifies the sending chain.
-  string source_channel = 2;
+  string source_id = 2;
   // identifies the receiving chain.
-  string destination_channel = 3;
+  string destination_id = 3;
   // timeout timestamp in seconds after which the packet times out.
   uint64 timeout_timestamp = 4;
   // a list of payloads, each one for a specific application.
