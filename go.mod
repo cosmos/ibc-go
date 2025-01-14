@@ -3,39 +3,39 @@ go 1.23.4
 module github.com/cosmos/ibc-go/v9
 
 require (
-	cosmossdk.io/api v0.8.0
-	cosmossdk.io/client/v2 v2.0.0-beta.6
+	cosmossdk.io/api v0.8.1
+	cosmossdk.io/client/v2 v2.10.0-beta.1
 	cosmossdk.io/core v1.0.0
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.5.0
 	cosmossdk.io/math v1.5.0
 	cosmossdk.io/store v1.10.0-rc.1.0.20241218084712-ca559989da43
-	cosmossdk.io/x/accounts v0.0.0-20241218110910-47409028a73d
+	cosmossdk.io/x/accounts v0.2.0-rc.1
 	cosmossdk.io/x/accounts/defaults/base v0.2.0-rc.1
 	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/accounts/defaults/multisig v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/authz v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/bank v0.0.0-20241218110910-47409028a73d
+	cosmossdk.io/x/bank v0.2.0-rc.1
 	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/distribution v0.0.0-20240906090851-36d9b25e8981
-	cosmossdk.io/x/epochs v0.0.0-20240522060652-a1ae4c3e0337
+	cosmossdk.io/x/distribution v0.2.0-rc.1
+	cosmossdk.io/x/epochs v0.2.0-rc.1
 	cosmossdk.io/x/evidence v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/feegrant v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/gov v0.0.0-20231113122742-912390d5fc4a
+	cosmossdk.io/x/gov v0.2.0-rc.1
 	cosmossdk.io/x/group v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/mint v0.0.0-20240909082436-01c0e9ba3581
 	cosmossdk.io/x/nft v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/params v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/protocolpool v0.0.0-20230925135524-a1bc045b3190
+	cosmossdk.io/x/protocolpool v0.2.0-rc.1
 	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
-	cosmossdk.io/x/staking v0.0.0-20241218110910-47409028a73d
-	cosmossdk.io/x/tx v1.0.0-alpha.3
+	cosmossdk.io/x/staking v0.2.0-rc.1
+	cosmossdk.io/x/tx v1.0.0
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/cometbft/cometbft v1.0.0
 	github.com/cometbft/cometbft/api v1.0.0
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.53.0
+	github.com/cosmos/cosmos-sdk v0.52.0
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ics23/go v0.11.0
 	github.com/cosmos/solidity-ibc-eureka/abigen v0.0.0-20241224052802-b77c838815f9
@@ -52,15 +52,15 @@ require (
 )
 
 require (
-	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.36.0-20241120201313-68e42a58b301.1 // indirect
-	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.36.0-20240130113600-88ef6483f90f.1 // indirect
+	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.36.1-20241120201313-68e42a58b301.1 // indirect
+	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.36.1-20240130113600-88ef6483f90f.1 // indirect
 	cloud.google.com/go v0.115.1 // indirect
 	cloud.google.com/go/auth v0.8.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.4 // indirect
 	cloud.google.com/go/compute/metadata v0.5.2 // indirect
 	cloud.google.com/go/iam v1.1.13 // indirect
 	cloud.google.com/go/storage v1.43.0 // indirect
-	cosmossdk.io/collections v1.0.0-rc.1 // indirect
+	cosmossdk.io/collections v1.0.0 // indirect
 	cosmossdk.io/core/testing v0.0.1 // indirect
 	cosmossdk.io/depinject v1.1.0 // indirect
 	cosmossdk.io/schema v1.0.0 // indirect
@@ -76,7 +76,6 @@ require (
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
 	github.com/bits-and-blooms/bitset v1.13.0 // indirect
-	github.com/btcsuite/btcd/btcec/v2 v2.3.4 // indirect
 	github.com/bytedance/sonic v1.12.6 // indirect
 	github.com/bytedance/sonic/loader v0.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -96,8 +95,8 @@ require (
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
-	github.com/cosmos/iavl v1.3.4 // indirect
-	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
+	github.com/cosmos/iavl v1.3.5 // indirect
+	github.com/cosmos/ledger-cosmos-go v0.14.0 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240223125850-b1e8a79f509c // indirect
 	github.com/crate-crypto/go-kzg-4844 v1.0.0 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
@@ -116,7 +115,6 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/getsentry/sentry-go v0.29.0 // indirect
-	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -209,7 +207,7 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	github.com/zondax/hid v0.9.2 // indirect
-	github.com/zondax/ledger-go v0.14.3 // indirect
+	github.com/zondax/ledger-go v1.0.0 // indirect
 	gitlab.com/yawning/secp256k1-voi v0.0.0-20230925100816-f2616030848b // indirect
 	gitlab.com/yawning/tuplehash v0.0.0-20230713102510-df83abbf9a02 // indirect
 	go.etcd.io/bbolt v1.4.0-alpha.1 // indirect
@@ -219,12 +217,11 @@ require (
 	go.opentelemetry.io/otel v1.31.0 // indirect
 	go.opentelemetry.io/otel/metric v1.31.0 // indirect
 	go.opentelemetry.io/otel/trace v1.31.0 // indirect
-	go.uber.org/mock v0.5.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.12.0 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
-	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
@@ -233,7 +230,7 @@ require (
 	golang.org/x/time v0.6.0 // indirect
 	google.golang.org/api v0.192.0 // indirect
 	google.golang.org/genproto v0.0.0-20240814211410-ddb44dafa142 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20241202173237-19429a94021a // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241219192143-6b3ec007d9bb // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
@@ -245,32 +242,27 @@ require (
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 replace (
-	cosmossdk.io/api => cosmossdk.io/api v0.8.0-rc.2.0.20241213081318-957e24171608
-	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.0.0-20241213081318-957e24171608
-	cosmossdk.io/core => cosmossdk.io/core v1.0.0-alpha.6.0.20241213081318-957e24171608
-	cosmossdk.io/store => cosmossdk.io/store v1.0.0-rc.0.0.20241213081318-957e24171608
-	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/accounts/defaults/lockup => cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/accounts/defaults/multisig => cosmossdk.io/x/accounts/defaults/multisig v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/circuit => cosmossdk.io/x/circuit v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/epochs => cosmossdk.io/x/epochs v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/feegrant => cosmossdk.io/x/feegrant v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/group => cosmossdk.io/x/group v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/nft => cosmossdk.io/x/nft v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20241213081318-957e24171608
-	cosmossdk.io/x/tx => cosmossdk.io/x/tx v1.0.0-alpha.1.0.20241212002302-a6d28e384938
-	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20241213081318-957e24171608
-	github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.0-rc1.0.20240908111210-ab0be101882f
+	cosmossdk.io/client/v2 => cosmossdk.io/client/v2 v2.10.0-beta.1.0.20250114081937-a40ade9515cc
+	cosmossdk.io/x/accounts => cosmossdk.io/x/accounts v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/accounts/defaults/lockup => cosmossdk.io/x/accounts/defaults/lockup v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/accounts/defaults/multisig => cosmossdk.io/x/accounts/defaults/multisig v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/circuit => cosmossdk.io/x/circuit v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/epochs => cosmossdk.io/x/epochs v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/evidence => cosmossdk.io/x/evidence v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/feegrant => cosmossdk.io/x/feegrant v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/gov => cosmossdk.io/x/gov v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/group => cosmossdk.io/x/group v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/nft => cosmossdk.io/x/nft v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/params => cosmossdk.io/x/params v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.0.0-20250114081937-a40ade9515cc
+	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.0.0-20250114081937-a40ade9515cc
 	// pseudo version lower than the latest tag
-	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-beta.2.0.20241213155709-f1e881e81b1b
+	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.1.0.20250114081937-a40ade9515cc
 )
