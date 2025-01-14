@@ -1,7 +1,8 @@
 package types
 
-func NewCounterpartyInfo(counterpartyMessagingKey [][]byte) CounterpartyInfo {
+func NewCounterpartyInfo(merklePrefix [][]byte, clientId string) CounterpartyInfo {
 	return CounterpartyInfo{
-		CounterpartyMessagingKey: counterpartyMessagingKey,
+		MerklePrefix: merklePrefix,
+		ClientId:     clientId,
 	}
 }

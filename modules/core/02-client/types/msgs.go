@@ -325,11 +325,12 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 }
 
 // NewMsgRegisterCounterparty creates a new instance of MsgRegisterCounterparty.
-func NewMsgRegisterCounterparty(clientId string, counterpartyMsgKey [][]byte, signer string) *MsgRegisterCounterparty {
+func NewMsgRegisterCounterparty(clientId string, merklePrefix [][]byte, counterpartyClientId string, signer string) *MsgRegisterCounterparty {
 	return &MsgRegisterCounterparty{
-		ClientId:                 clientId,
-		CounterpartyMessagingKey: counterpartyMsgKey,
-		Signer:                   signer,
+		ClientId:             clientId,
+		MerklePrefix:         merklePrefix,
+		CounterpartyClientId: counterpartyClientId,
+		Signer:               signer,
 	}
 }
 
@@ -338,8 +339,11 @@ func (msg *MsgRegisterCounterparty) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-	if len(msg.CounterpartyMessagingKey) == 0 {
+	if len(msg.MerklePrefix) == 0 {
 		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty messaging key cannot be empty")
 	}
-	return host.ClientIdentifierValidator(msg.ClientId)
+	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
+		return err
+	}
+	return host.ClientIdentifierValidator(msg.CounterpartyClientId)
 }

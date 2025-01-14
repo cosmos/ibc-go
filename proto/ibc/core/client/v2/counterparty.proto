@@ -9,11 +9,10 @@ import "gogoproto/gogo.proto";
 
 // CounterpartyInfo defines the key that the counterparty will use to message our client
 message CounterpartyInfo {
-  // counterparty messaging key prefix is the key that the counterparty will store
-  // all outgoing IBC packet messages intended for our chain.
-  // the provable messages will be stored with the following key prefix and the
-  // ICS24 standardized path for the given message type
-  repeated bytes counterparty_messaging_key = 1;
+  // merkle prefix key is the prefix that ics provable keys are stored under
+  repeated bytes merkle_prefix = 1;
+  // client identifier is the identifier used to send packet messages to our client
+  string client_id = 2;
 }
 
 // CounterpartyMsg defines the ibc/client CounterpartyMsg service.
@@ -32,10 +31,12 @@ message MsgRegisterCounterparty {
 
   // client identifier
   string client_id = 1;
-  // counterparty messaging key
-  repeated bytes counterparty_messaging_key = 2;
+  // counterparty merkle prefix
+  repeated bytes merkle_prefix = 2;
+  // counterparty client identifier
+  string counterparty_client_id = 3;
   // signer address
-  string signer = 3;
+  string signer = 4;
 }
 
 // MsgRegisterCounterpartyResponse defines the Msg/RegisterCounterparty response type.

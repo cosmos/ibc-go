@@ -31,11 +31,10 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // CounterpartyInfo defines the key that the counterparty will use to message our client
 type CounterpartyInfo struct {
-	// counterparty messaging key prefix is the key that the counterparty will store
-	// all outgoing IBC packet messages intended for our chain.
-	// the provable messages will be stored with the following key prefix and the
-	// ICS24 standardized path for the given message type
-	CounterpartyMessagingKey [][]byte `protobuf:"bytes,1,rep,name=counterparty_messaging_key,json=counterpartyMessagingKey,proto3" json:"counterparty_messaging_key,omitempty"`
+	// merkle prefix key is the prefix that ics provable keys are stored under
+	MerklePrefix [][]byte `protobuf:"bytes,1,rep,name=merkle_prefix,json=merklePrefix,proto3" json:"merkle_prefix,omitempty"`
+	// client identifier is the identifier used to send packet messages to our client
+	ClientId string `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 }
 
 func (m *CounterpartyInfo) Reset()         { *m = CounterpartyInfo{} }
@@ -71,21 +70,30 @@ func (m *CounterpartyInfo) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CounterpartyInfo proto.InternalMessageInfo
 
-func (m *CounterpartyInfo) GetCounterpartyMessagingKey() [][]byte {
+func (m *CounterpartyInfo) GetMerklePrefix() [][]byte {
 	if m != nil {
-		return m.CounterpartyMessagingKey
+		return m.MerklePrefix
 	}
 	return nil
+}
+
+func (m *CounterpartyInfo) GetClientId() string {
+	if m != nil {
+		return m.ClientId
+	}
+	return ""
 }
 
 // MsgRegisterCounterparty defines a message to register a counterparty on a client
 type MsgRegisterCounterparty struct {
 	// client identifier
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
-	// counterparty messaging key
-	CounterpartyMessagingKey [][]byte `protobuf:"bytes,2,rep,name=counterparty_messaging_key,json=counterpartyMessagingKey,proto3" json:"counterparty_messaging_key,omitempty"`
+	// counterparty merkle prefix
+	MerklePrefix [][]byte `protobuf:"bytes,2,rep,name=merkle_prefix,json=merklePrefix,proto3" json:"merkle_prefix,omitempty"`
+	// counterparty client identifier
+	CounterpartyClientId string `protobuf:"bytes,3,opt,name=counterparty_client_id,json=counterpartyClientId,proto3" json:"counterparty_client_id,omitempty"`
 	// signer address
-	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
+	Signer string `protobuf:"bytes,4,opt,name=signer,proto3" json:"signer,omitempty"`
 }
 
 func (m *MsgRegisterCounterparty) Reset()         { *m = MsgRegisterCounterparty{} }
@@ -169,30 +177,31 @@ func init() {
 }
 
 var fileDescriptor_bc4a81c3d2196cf1 = []byte{
-	// 360 bytes of a gzipped FileDescriptorProto
+	// 376 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0xcd, 0x4c, 0x4a, 0xd6,
 	0x4f, 0xce, 0x2f, 0x4a, 0xd5, 0x4f, 0xce, 0xc9, 0x4c, 0xcd, 0x2b, 0xd1, 0x2f, 0x33, 0xd2, 0x4f,
 	0xce, 0x2f, 0xcd, 0x2b, 0x49, 0x2d, 0x2a, 0x48, 0x2c, 0x2a, 0xa9, 0xd4, 0x2b, 0x28, 0xca, 0x2f,
 	0xc9, 0x17, 0x12, 0xca, 0x4c, 0x4a, 0xd6, 0x03, 0x29, 0xd3, 0x83, 0x28, 0xd3, 0x2b, 0x33, 0x92,
 	0x12, 0x4f, 0xce, 0x2f, 0xce, 0xcd, 0x2f, 0xd6, 0xcf, 0x2d, 0x4e, 0xd7, 0x2f, 0x33, 0x04, 0x51,
 	0x10, 0xc5, 0x52, 0x22, 0xe9, 0xf9, 0xe9, 0xf9, 0x60, 0xa6, 0x3e, 0x88, 0x05, 0x11, 0x55, 0x0a,
-	0xe0, 0x12, 0x70, 0x46, 0x32, 0xd8, 0x33, 0x2f, 0x2d, 0x5f, 0xc8, 0x86, 0x4b, 0x0a, 0xd9, 0xb2,
-	0xf8, 0xdc, 0xd4, 0xe2, 0xe2, 0xc4, 0xf4, 0xcc, 0xbc, 0xf4, 0xf8, 0xec, 0xd4, 0x4a, 0x09, 0x46,
-	0x05, 0x66, 0x0d, 0x9e, 0x20, 0x09, 0x64, 0x15, 0xbe, 0x30, 0x05, 0xde, 0xa9, 0x95, 0x4a, 0x73,
-	0x19, 0xb9, 0xc4, 0x7d, 0x8b, 0xd3, 0x83, 0x52, 0xd3, 0x33, 0x8b, 0x4b, 0x52, 0x8b, 0x90, 0x4d,
-	0x17, 0x92, 0xe6, 0xe2, 0x84, 0xb8, 0x34, 0x3e, 0x33, 0x45, 0x82, 0x51, 0x81, 0x51, 0x83, 0x33,
-	0x88, 0x03, 0x22, 0xe0, 0x99, 0x42, 0xc0, 0x5a, 0x26, 0xfc, 0xd6, 0x0a, 0x89, 0x71, 0xb1, 0x15,
-	0x67, 0xa6, 0xe7, 0xa5, 0x16, 0x49, 0x30, 0x83, 0xcd, 0x85, 0xf2, 0xac, 0xf8, 0x3b, 0x16, 0xc8,
-	0x33, 0x34, 0x3d, 0xdf, 0xa0, 0x05, 0x15, 0x50, 0x52, 0xe4, 0x92, 0xc7, 0xe1, 0xbc, 0xa0, 0xd4,
-	0xe2, 0x82, 0xfc, 0xbc, 0xe2, 0x54, 0xa3, 0x49, 0x8c, 0x5c, 0xfc, 0xc8, 0x12, 0xbe, 0xc5, 0xe9,
-	0x42, 0x15, 0x5c, 0x22, 0x58, 0xbd, 0xa4, 0xad, 0x87, 0x19, 0x09, 0x7a, 0x38, 0x2c, 0x90, 0x32,
-	0x26, 0x41, 0x31, 0xcc, 0x35, 0x52, 0xac, 0x0d, 0xcf, 0x37, 0x68, 0x31, 0x3a, 0x05, 0x9d, 0x78,
-	0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83, 0x47, 0x72, 0x8c, 0x13, 0x1e, 0xcb, 0x31, 0x5c,
-	0x78, 0x2c, 0xc7, 0x70, 0xe3, 0xb1, 0x1c, 0x43, 0x94, 0x45, 0x7a, 0x66, 0x49, 0x46, 0x69, 0x92,
-	0x5e, 0x72, 0x7e, 0xae, 0x3e, 0x34, 0xf6, 0x33, 0x93, 0x92, 0x75, 0xd3, 0xf3, 0xf5, 0xcb, 0x2c,
-	0xf5, 0x73, 0xf3, 0x53, 0x4a, 0x73, 0x52, 0x8b, 0x21, 0xa9, 0xc9, 0xc0, 0x48, 0x17, 0x9a, 0xa0,
-	0x4a, 0x2a, 0x0b, 0x52, 0x8b, 0x93, 0xd8, 0xc0, 0x89, 0xc0, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff,
-	0x63, 0x9f, 0xd3, 0xcf, 0x70, 0x02, 0x00, 0x00,
+	0xe1, 0x12, 0x70, 0x46, 0x32, 0xd8, 0x33, 0x2f, 0x2d, 0x5f, 0x48, 0x99, 0x8b, 0x37, 0x37, 0xb5,
+	0x28, 0x3b, 0x27, 0x35, 0xbe, 0xa0, 0x28, 0x35, 0x2d, 0xb3, 0x42, 0x82, 0x51, 0x81, 0x59, 0x83,
+	0x27, 0x88, 0x07, 0x22, 0x18, 0x00, 0x16, 0x13, 0x92, 0xe6, 0xe2, 0x84, 0x58, 0x1a, 0x9f, 0x99,
+	0x22, 0xc1, 0xa4, 0xc0, 0xa8, 0xc1, 0x19, 0xc4, 0x01, 0x11, 0xf0, 0x4c, 0x51, 0xda, 0xc5, 0xc8,
+	0x25, 0xee, 0x5b, 0x9c, 0x1e, 0x94, 0x9a, 0x9e, 0x59, 0x5c, 0x92, 0x5a, 0x84, 0x6c, 0x03, 0xaa,
+	0x46, 0x46, 0x54, 0x8d, 0x98, 0x56, 0x33, 0x61, 0xb1, 0xda, 0x84, 0x4b, 0x0c, 0x39, 0x30, 0xe2,
+	0x11, 0xc6, 0x31, 0x83, 0x8d, 0x13, 0x41, 0x96, 0x75, 0x86, 0x19, 0x2d, 0xc6, 0xc5, 0x56, 0x9c,
+	0x99, 0x9e, 0x97, 0x5a, 0x24, 0xc1, 0x02, 0x56, 0x05, 0xe5, 0x59, 0xf1, 0x77, 0x2c, 0x90, 0x67,
+	0x68, 0x7a, 0xbe, 0x41, 0x0b, 0x2a, 0xa0, 0xa4, 0xc8, 0x25, 0x8f, 0xc3, 0xed, 0x41, 0xa9, 0xc5,
+	0x05, 0xf9, 0x79, 0xc5, 0xa9, 0x46, 0x93, 0x18, 0xb9, 0xf8, 0x91, 0x25, 0x7c, 0x8b, 0xd3, 0x85,
+	0x2a, 0xb8, 0x44, 0xb0, 0xfa, 0x57, 0x5b, 0x0f, 0x33, 0x96, 0xf4, 0x70, 0x58, 0x20, 0x65, 0x4c,
+	0x82, 0x62, 0x98, 0x6b, 0xa4, 0x58, 0x1b, 0x9e, 0x6f, 0xd0, 0x62, 0x74, 0x0a, 0x3a, 0xf1, 0x48,
+	0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0,
+	0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28, 0x8b, 0xf4, 0xcc, 0x92, 0x8c, 0xd2, 0x24, 0xbd,
+	0xe4, 0xfc, 0x5c, 0x7d, 0x68, 0xf2, 0xc8, 0x4c, 0x4a, 0xd6, 0x4d, 0xcf, 0xd7, 0x2f, 0xb3, 0xd4,
+	0xcf, 0xcd, 0x4f, 0x29, 0xcd, 0x49, 0x2d, 0x86, 0x24, 0x37, 0x03, 0x23, 0x5d, 0x68, 0x8a, 0x2b,
+	0xa9, 0x2c, 0x48, 0x2d, 0x4e, 0x62, 0x03, 0xa7, 0x12, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff,
+	0x6e, 0x69, 0x35, 0x60, 0x91, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -297,11 +306,18 @@ func (m *CounterpartyInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.CounterpartyMessagingKey) > 0 {
-		for iNdEx := len(m.CounterpartyMessagingKey) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.CounterpartyMessagingKey[iNdEx])
-			copy(dAtA[i:], m.CounterpartyMessagingKey[iNdEx])
-			i = encodeVarintCounterparty(dAtA, i, uint64(len(m.CounterpartyMessagingKey[iNdEx])))
+	if len(m.ClientId) > 0 {
+		i -= len(m.ClientId)
+		copy(dAtA[i:], m.ClientId)
+		i = encodeVarintCounterparty(dAtA, i, uint64(len(m.ClientId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.MerklePrefix) > 0 {
+		for iNdEx := len(m.MerklePrefix) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.MerklePrefix[iNdEx])
+			copy(dAtA[i:], m.MerklePrefix[iNdEx])
+			i = encodeVarintCounterparty(dAtA, i, uint64(len(m.MerklePrefix[iNdEx])))
 			i--
 			dAtA[i] = 0xa
 		}
@@ -334,13 +350,20 @@ func (m *MsgRegisterCounterparty) MarshalToSizedBuffer(dAtA []byte) (int, error)
 		copy(dAtA[i:], m.Signer)
 		i = encodeVarintCounterparty(dAtA, i, uint64(len(m.Signer)))
 		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.CounterpartyClientId) > 0 {
+		i -= len(m.CounterpartyClientId)
+		copy(dAtA[i:], m.CounterpartyClientId)
+		i = encodeVarintCounterparty(dAtA, i, uint64(len(m.CounterpartyClientId)))
+		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.CounterpartyMessagingKey) > 0 {
-		for iNdEx := len(m.CounterpartyMessagingKey) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.CounterpartyMessagingKey[iNdEx])
-			copy(dAtA[i:], m.CounterpartyMessagingKey[iNdEx])
-			i = encodeVarintCounterparty(dAtA, i, uint64(len(m.CounterpartyMessagingKey[iNdEx])))
+	if len(m.MerklePrefix) > 0 {
+		for iNdEx := len(m.MerklePrefix) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.MerklePrefix[iNdEx])
+			copy(dAtA[i:], m.MerklePrefix[iNdEx])
+			i = encodeVarintCounterparty(dAtA, i, uint64(len(m.MerklePrefix[iNdEx])))
 			i--
 			dAtA[i] = 0x12
 		}
@@ -395,11 +418,15 @@ func (m *CounterpartyInfo) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.CounterpartyMessagingKey) > 0 {
-		for _, b := range m.CounterpartyMessagingKey {
+	if len(m.MerklePrefix) > 0 {
+		for _, b := range m.MerklePrefix {
 			l = len(b)
 			n += 1 + l + sovCounterparty(uint64(l))
 		}
+	}
+	l = len(m.ClientId)
+	if l > 0 {
+		n += 1 + l + sovCounterparty(uint64(l))
 	}
 	return n
 }
@@ -414,11 +441,15 @@ func (m *MsgRegisterCounterparty) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCounterparty(uint64(l))
 	}
-	if len(m.CounterpartyMessagingKey) > 0 {
-		for _, b := range m.CounterpartyMessagingKey {
+	if len(m.MerklePrefix) > 0 {
+		for _, b := range m.MerklePrefix {
 			l = len(b)
 			n += 1 + l + sovCounterparty(uint64(l))
 		}
+	}
+	l = len(m.CounterpartyClientId)
+	if l > 0 {
+		n += 1 + l + sovCounterparty(uint64(l))
 	}
 	l = len(m.Signer)
 	if l > 0 {
@@ -473,7 +504,7 @@ func (m *CounterpartyInfo) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CounterpartyMessagingKey", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MerklePrefix", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -500,8 +531,40 @@ func (m *CounterpartyInfo) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CounterpartyMessagingKey = append(m.CounterpartyMessagingKey, make([]byte, postIndex-iNdEx))
-			copy(m.CounterpartyMessagingKey[len(m.CounterpartyMessagingKey)-1], dAtA[iNdEx:postIndex])
+			m.MerklePrefix = append(m.MerklePrefix, make([]byte, postIndex-iNdEx))
+			copy(m.MerklePrefix[len(m.MerklePrefix)-1], dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCounterparty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCounterparty
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCounterparty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ClientId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -587,7 +650,7 @@ func (m *MsgRegisterCounterparty) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CounterpartyMessagingKey", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MerklePrefix", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -614,10 +677,42 @@ func (m *MsgRegisterCounterparty) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CounterpartyMessagingKey = append(m.CounterpartyMessagingKey, make([]byte, postIndex-iNdEx))
-			copy(m.CounterpartyMessagingKey[len(m.CounterpartyMessagingKey)-1], dAtA[iNdEx:postIndex])
+			m.MerklePrefix = append(m.MerklePrefix, make([]byte, postIndex-iNdEx))
+			copy(m.MerklePrefix[len(m.MerklePrefix)-1], dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CounterpartyClientId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCounterparty
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCounterparty
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCounterparty
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CounterpartyClientId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
 			}

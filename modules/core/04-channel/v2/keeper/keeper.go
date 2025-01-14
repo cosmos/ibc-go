@@ -252,6 +252,19 @@ func (k *Keeper) aliasV1Channel(ctx context.Context, portID, channelID string) (
 	return channelv2, true
 }
 
+// resolveV2Identifiers returns the client identifier and the counterpartyInfo for the client given the packetId
+// Note: For fresh eureka channels, the client identifier and packet identifier are the same.
+// For aliased channels, the packet identifier will be the original channel ID and the counterpartyInfo will be constructed from the channel
+func (k *Keeper) resolveV2Identifiers(ctx context.Context, portId string, packetId string) (string, clienttypes.CounterpartyInfo, error) {
+	counterpartyInfo, ok := k.ClientKeeper.GetClientCounterparty(ctx, packetId)
+	if !ok {
+		channel, ok := k.channelKeeperV1.GetChannel(ctx, portId, packetId)
+		if ok {
+			connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+		}
+	}
+}
+
 // convertV1Channel attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
 // to a v2 counterparty and stores it in the v2 channel keeper for future use
 func (k *Keeper) convertV1Channel(ctx context.Context, port, id string) (types.Channel, bool) {

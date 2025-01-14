@@ -68,8 +68,8 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
-			counterpartyKey := [][]byte{[]byte("ibc"), []byte("channel-7")}
-			msg := clienttypes.NewMsgRegisterCounterparty(path.EndpointA.ClientID, counterpartyKey, suite.chainA.SenderAccount.GetAddress().String())
+			merklePrefix := [][]byte{[]byte("ibc"), []byte("channel-7")}
+			msg := clienttypes.NewMsgRegisterCounterparty(path.EndpointA.ClientID, merklePrefix, path.EndpointB.ClientID, suite.chainA.SenderAccount.GetAddress().String())
 			_, err := suite.chainA.App.GetIBCKeeper().RegisterCounterparty(suite.chainA.GetContext(), msg)
 			if tc.expError != nil {
 				suite.Require().Error(err)
@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 				suite.Require().NoError(err)
 				counterpartyInfo, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(ok)
-				suite.Require().Equal(counterpartyInfo, clienttypes.CounterpartyInfo{counterpartyKey})
+				suite.Require().Equal(counterpartyInfo, clienttypes.NewCounterpartyInfo(merklePrefix, path.EndpointB.ClientID))
 				creator := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().Empty(creator)
 			}

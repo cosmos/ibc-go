@@ -994,6 +994,7 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 			types.NewMsgRegisterCounterparty(
 				"testclientid",
 				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid3",
 				signer,
 			),
 			nil,
@@ -1003,6 +1004,17 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 			types.NewMsgRegisterCounterparty(
 				"",
 				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid3",
+				signer,
+			),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: empty counterparty client id",
+			types.NewMsgRegisterCounterparty(
+				"testclientid",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"",
 				signer,
 			),
 			host.ErrInvalidID,
@@ -1012,6 +1024,7 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 			types.NewMsgRegisterCounterparty(
 				"testclientid",
 				[][]byte{},
+				"testclientid3",
 				signer,
 			),
 			types.ErrInvalidCounterparty,
@@ -1021,6 +1034,7 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 			types.NewMsgRegisterCounterparty(
 				"testclientid",
 				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid3",
 				"badsigner",
 			),
 			ibcerrors.ErrInvalidAddress,
