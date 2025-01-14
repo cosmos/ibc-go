@@ -268,7 +268,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			"failure: invalid destination channel on received packet",
 			func() {},
 			func() {
-				packet.DestinationChannel = ibctesting.InvalidID
+				packet.DestinationId = ibctesting.InvalidID
 			},
 			channeltypesv2.ErrChannelNotFound,
 		},
@@ -276,7 +276,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			"failure: counter party channel does not match source channel",
 			func() {},
 			func() {
-				packet.SourceChannel = ibctesting.InvalidID
+				packet.SourceId = ibctesting.InvalidID
 			},
 			channeltypes.ErrInvalidChannelIdentifier,
 		},
@@ -335,7 +335,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				actualAckHash := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeperV2.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence)
+				actualAckHash := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeperV2.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationId, packet.Sequence)
 				expectedHash := channeltypesv2.CommitAcknowledgement(expectedAck)
 
 				suite.Require().Equal(expectedHash, actualAckHash)
@@ -343,7 +343,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 				denom := transfertypes.Denom{
 					Base: sdk.DefaultBondDenom,
 					Trace: []transfertypes.Hop{
-						transfertypes.NewHop(sendPayload.DestinationPort, packet.DestinationChannel),
+						transfertypes.NewHop(sendPayload.DestinationPort, packet.DestinationId),
 					},
 				}
 

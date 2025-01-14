@@ -383,7 +383,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "success: NoOp",
 			malleate: func() {
-				suite.chainA.App.GetIBCKeeper().IdKeeperV2.DeletePacketCommitment(suite.chainA.GetContext(), packet.SourceId, packet.Sequence)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeletePacketCommitment(suite.chainA.GetContext(), packet.SourceId, packet.Sequence)
 
 				// Modify the callback to return an error.
 				// This way, we can verify that the callback is not executed in a No-op case.
