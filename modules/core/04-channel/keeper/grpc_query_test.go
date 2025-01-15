@@ -323,6 +323,47 @@ func (suite *KeeperTestSuite) TestQueryConnectionChannels() {
 			},
 			nil,
 		},
+		{
+			"success with pagination limit",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.Setup()
+				// channel0 on first connection on chainA
+				counterparty0 := types.Counterparty{
+					PortId:    path.EndpointB.ChannelConfig.PortID,
+					ChannelId: path.EndpointB.ChannelID,
+				}
+
+				// path1 creates a second channel on first connection on chainA
+				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path1.SetChannelOrdered()
+				path1.EndpointA.ClientID = path.EndpointA.ClientID
+				path1.EndpointB.ClientID = path.EndpointB.ClientID
+				path1.EndpointA.ConnectionID = path.EndpointA.ConnectionID
+				path1.EndpointB.ConnectionID = path.EndpointB.ConnectionID
+
+				suite.coordinator.CreateMockChannels(path1)
+
+				channel0 := types.NewChannel(
+					types.OPEN, types.UNORDERED,
+					counterparty0, []string{path.EndpointA.ConnectionID}, path.EndpointA.ChannelConfig.Version,
+				)
+
+				idCh0 := types.NewIdentifiedChannel(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel0)
+
+				expChannels = []*types.IdentifiedChannel{&idCh0}
+
+				req = &types.QueryConnectionChannelsRequest{
+					Connection: path.EndpointA.ConnectionID,
+					Pagination: &query.PageRequest{
+						Key:        nil,
+						Limit:      1,
+						CountTotal: true,
+					},
+				}
+			},
+			nil,
+		},
 	}
 
 	for _, tc := range testCases {
