@@ -89,9 +89,9 @@ func (msg *MsgRegisterCounterparty) ValidateBasic() error {
 }
 
 // NewMsgSendPacket creates a new MsgSendPacket instance.
-func NewMsgSendPacket(sourceChannel string, timeoutTimestamp uint64, signer string, payloads ...Payload) *MsgSendPacket {
+func NewMsgSendPacket(sourceClient string, timeoutTimestamp uint64, signer string, payloads ...Payload) *MsgSendPacket {
 	return &MsgSendPacket{
-		SourceChannel:    sourceChannel,
+		SourceClient:     sourceClient,
 		TimeoutTimestamp: timeoutTimestamp,
 		Payloads:         payloads,
 		Signer:           signer,
@@ -100,7 +100,7 @@ func NewMsgSendPacket(sourceChannel string, timeoutTimestamp uint64, signer stri
 
 // ValidateBasic performs basic checks on a MsgSendPacket.
 func (msg *MsgSendPacket) ValidateBasic() error {
-	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
+	if err := host.ClientIdentifierValidator(msg.SourceClient); err != nil {
 		return err
 	}
 

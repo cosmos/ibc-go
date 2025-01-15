@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			"success with later packet",
 			func() {
 				// send the same packet earlier so next packet send should be sequence 2
-				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceId, packet.TimeoutTimestamp, packet.Payloads)
+				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient, packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err)
 				expSequence = 2
 			},
@@ -45,7 +45,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		{
 			"channel not found",
 			func() {
-				packet.SourceId = ibctesting.InvalidID
+				packet.SourceClient = ibctesting.InvalidID
 			},
 			types.ErrChannelNotFound,
 		},
@@ -109,7 +109,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			tc.malleate()
 
 			// send packet
-			seq, destChannel, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceId, packet.TimeoutTimestamp, packet.Payloads)
+			seq, destChannel, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient, packet.TimeoutTimestamp, packet.Payloads)
 
 			expPass := tc.expError == nil
 			if expPass {
@@ -119,12 +119,12 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				suite.Require().Equal(path.EndpointB.ChannelID, destChannel)
 				// verify send packet stored the packet commitment correctly
 				expCommitment := types.CommitPacket(packet)
-				suite.Require().Equal(expCommitment, suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetPacketCommitment(suite.chainA.GetContext(), packet.SourceId, seq))
+				suite.Require().Equal(expCommitment, suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetPacketCommitment(suite.chainA.GetContext(), packet.SourceClient, seq))
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Equal(uint64(0), seq)
-				suite.Require().Nil(suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetPacketCommitment(suite.chainA.GetContext(), packet.SourceId, seq))
+				suite.Require().Nil(suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetPacketCommitment(suite.chainA.GetContext(), packet.SourceClient, seq))
 
 			}
 		})
@@ -151,7 +151,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		{
 			"failure: channel not found",
 			func() {
-				packet.DestinationId = ibctesting.InvalidID
+				packet.DestinationClient = ibctesting.InvalidID
 			},
 			types.ErrChannelNotFound,
 		},
@@ -165,7 +165,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		{
 			"failure: counterparty channel identifier different than source channel",
 			func() {
-				packet.SourceId = unusedChannel
+				packet.SourceClient = unusedChannel
 			},
 			types.ErrInvalidChannelIdentifier,
 		},
@@ -179,14 +179,14 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 		{
 			"failure: packet already received",
 			func() {
-				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationId, packet.Sequence)
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
 			},
 			types.ErrNoOpMsg,
 		},
 		{
 			"failure: verify membership failed",
 			func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceId, packet.Sequence, []byte(""))
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceClient, packet.Sequence, []byte(""))
 				suite.coordinator.CommitBlock(path.EndpointA.Chain)
 				suite.Require().NoError(path.EndpointB.UpdateClient())
 			},
@@ -214,7 +214,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			tc.malleate()
 
 			// get proof of v2 packet commitment from chainA
-			packetKey := hostv2.PacketCommitmentKey(packet.GetSourceId(), packet.GetSequence())
+			packetKey := hostv2.PacketCommitmentKey(packet.GetSourceClient(), packet.GetSequence())
 			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
 
 			err = suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.RecvPacketTest(suite.chainB.GetContext(), packet, proof, proofHeight)
@@ -223,7 +223,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				_, found := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.GetPacketReceipt(suite.chainB.GetContext(), packet.DestinationId, packet.Sequence)
+				_, found := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.GetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
 				suite.Require().True(found)
 			} else {
 				suite.Require().Error(err)
@@ -252,14 +252,14 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		{
 			"failure: channel not found",
 			func() {
-				packet.DestinationId = ibctesting.InvalidID
+				packet.DestinationClient = ibctesting.InvalidID
 			},
 			types.ErrChannelNotFound,
 		},
 		{
 			"failure: counterparty channel identifier different than source channel",
 			func() {
-				packet.SourceId = unusedChannel
+				packet.SourceClient = unusedChannel
 			},
 			types.ErrInvalidChannelIdentifier,
 		},
@@ -267,7 +267,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			"failure: ack already exists",
 			func() {
 				ackBz := types.CommitAcknowledgement(ack)
-				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationId, packet.Sequence, ackBz)
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, ackBz)
 			},
 			types.ErrAcknowledgementExists,
 		},
@@ -301,7 +301,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement},
 			}
 
-			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationId, packet.Sequence)
+			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
 
 			tc.malleate()
 
@@ -311,7 +311,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				ackCommitment := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationId, packet.Sequence)
+				ackCommitment := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
 				suite.Require().Equal(types.CommitAcknowledgement(ack), ackCommitment)
 			} else {
 				suite.Require().Error(err)
@@ -344,21 +344,21 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		{
 			"failure: channel not found",
 			func() {
-				packet.SourceId = ibctesting.InvalidID
+				packet.SourceClient = ibctesting.InvalidID
 			},
 			types.ErrChannelNotFound,
 		},
 		{
 			"failure: counterparty channel identifier different than source channel",
 			func() {
-				packet.DestinationId = unusedChannel
+				packet.DestinationClient = unusedChannel
 			},
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"failure: packet commitment doesn't exist.",
 			func() {
-				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeletePacketCommitment(suite.chainA.GetContext(), packet.SourceId, packet.Sequence)
+				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeletePacketCommitment(suite.chainA.GetContext(), packet.SourceClient, packet.Sequence)
 			},
 			types.ErrNoOpMsg,
 		},
@@ -409,7 +409,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			tc.malleate()
 
-			packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationId, packet.Sequence)
+			packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationClient, packet.Sequence)
 			proof, proofHeight := path.EndpointB.QueryProof(packetKey)
 
 			if freezeClient {
@@ -422,7 +422,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetPacketCommitment(suite.chainA.GetContext(), packet.SourceId, packet.Sequence)
+				commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetPacketCommitment(suite.chainA.GetContext(), packet.SourceClient, packet.Sequence)
 				suite.Require().Empty(commitment)
 			} else {
 				suite.Require().Error(err)
@@ -448,7 +448,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"success",
 			func() {
 				// send packet
-				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceId,
+				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
 					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 			},
@@ -458,11 +458,11 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"failure: channel not found",
 			func() {
 				// send packet
-				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceId,
+				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
 					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 
-				packet.SourceId = ibctesting.InvalidID
+				packet.SourceClient = ibctesting.InvalidID
 			},
 			types.ErrChannelNotFound,
 		},
@@ -470,11 +470,11 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"failure: counterparty channel identifier different than source channel",
 			func() {
 				// send packet
-				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceId,
+				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
 					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 
-				packet.DestinationId = unusedChannel
+				packet.DestinationClient = unusedChannel
 			},
 			types.ErrInvalidChannelIdentifier,
 		},
@@ -484,7 +484,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 				packet.TimeoutTimestamp = uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 				// send packet
-				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceId,
+				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
 					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 			},
@@ -498,7 +498,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 		{
 			"failure: packet does not match commitment",
 			func() {
-				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceId,
+				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
 					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 
@@ -511,7 +511,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"failure: client status invalid",
 			func() {
 				// send packet
-				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceId,
+				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
 					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 
@@ -523,12 +523,12 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"failure: verify non-membership failed",
 			func() {
 				// send packet
-				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceId,
+				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
 					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
 
 				// set packet receipt to mock a valid past receive
-				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationId, packet.Sequence)
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -563,7 +563,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			// get proof of packet receipt absence from chainB
-			receiptKey := hostv2.PacketReceiptKey(packet.DestinationId, packet.Sequence)
+			receiptKey := hostv2.PacketReceiptKey(packet.DestinationClient, packet.Sequence)
 			proof, proofHeight := path.EndpointB.QueryProof(receiptKey)
 
 			if freezeClient {
@@ -576,7 +576,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetPacketCommitment(suite.chainA.GetContext(), packet.DestinationId, packet.Sequence)
+				commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetPacketCommitment(suite.chainA.GetContext(), packet.DestinationClient, packet.Sequence)
 				suite.Require().Nil(commitment, "packet commitment not deleted")
 			} else {
 				suite.Require().Error(err)

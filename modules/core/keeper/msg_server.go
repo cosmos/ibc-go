@@ -55,7 +55,7 @@ func (k *Keeper) RegisterCounterparty(ctx context.Context, msg *clienttypes.MsgR
 	}
 
 	counterpartyInfo := clienttypes.CounterpartyInfo{
-		MerklePrefix: msg.MerklePrefix,
+		MerklePrefix: msg.CounterpartyMerklePrefix,
 		ClientId:     msg.CounterpartyClientId,
 	}
 	k.ClientKeeper.SetClientCounterparty(ctx, msg.ClientId, counterpartyInfo)

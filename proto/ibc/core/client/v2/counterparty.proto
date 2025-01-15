@@ -32,7 +32,7 @@ message MsgRegisterCounterparty {
   // client identifier
   string client_id = 1;
   // counterparty merkle prefix
-  repeated bytes merkle_prefix = 2;
+  repeated bytes counterparty_merkle_prefix = 2;
   // counterparty client identifier
   string counterparty_client_id = 3;
   // signer address

@@ -57,14 +57,14 @@ func TestValidateBasic(t *testing.T) {
 		{
 			"failure: invalid source ID",
 			func() {
-				packet.SourceId = ""
+				packet.SourceClient = ""
 			},
 			host.ErrInvalidID,
 		},
 		{
 			"failure: invalid dest ID",
 			func() {
-				packet.DestinationId = ""
+				packet.DestinationClient = ""
 			},
 			host.ErrInvalidID,
 		},

@@ -161,7 +161,7 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 		{
 			name: "failure: invalid source channel",
 			malleate: func() {
-				msg.SourceChannel = ""
+				msg.SourceClient = ""
 			},
 			expError: host.ErrInvalidID,
 		},

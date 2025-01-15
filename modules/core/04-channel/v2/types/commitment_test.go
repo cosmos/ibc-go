@@ -57,10 +57,10 @@ func TestCommitPacket(t *testing.T) {
 			})
 			require.NoError(t, err)
 			packet = types.Packet{
-				Sequence:         1,
-				SourceId:         "channel-0",
-				DestinationId:    "channel-1",
-				TimeoutTimestamp: 100,
+				Sequence:          1,
+				SourceClient:      "07-tendermint-0",
+				DestinationClient: "07-tendermint-1",
+				TimeoutTimestamp:  100,
 				Payloads: []types.Payload{
 					{
 						SourcePort:      transfertypes.PortID,

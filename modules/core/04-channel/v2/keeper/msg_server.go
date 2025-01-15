@@ -83,15 +83,15 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *types.MsgSendPacket) (*typ
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
-	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceChannel, msg.TimeoutTimestamp, msg.Payloads)
+	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceClient, msg.TimeoutTimestamp, msg.Payloads)
 	if err != nil {
-		sdkCtx.Logger().Error("send packet failed", "source-channel", msg.SourceChannel, "error", errorsmod.Wrap(err, "send packet failed"))
-		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceChannel)
+		sdkCtx.Logger().Error("send packet failed", "source-client", msg.SourceClient, "error", errorsmod.Wrap(err, "send packet failed"))
+		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceClient)
 	}
 
 	for _, pd := range msg.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
-		err := cbs.OnSendPacket(ctx, msg.SourceChannel, destChannel, sequence, pd, signer)
+		err := cbs.OnSendPacket(ctx, msg.SourceClient, destChannel, sequence, pd, signer)
 		if err != nil {
 			return nil, err
 		}
@@ -122,10 +122,10 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		writeFn()
 	case types.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
-		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", msg.Packet.SourceId)
+		sdkCtx.Logger().Debug("no-op on redundant relay", "source-client", msg.Packet.SourceClient)
 		return &types.MsgRecvPacketResponse{Result: types.NOOP}, nil
 	default:
-		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceId, "error", errorsmod.Wrap(err, "receive packet verification failed"))
+		sdkCtx.Logger().Error("receive packet failed", "source-client", msg.Packet.SourceClient, "error", errorsmod.Wrap(err, "receive packet verification failed"))
 		return nil, errorsmod.Wrap(err, "receive packet verification failed")
 	}
 
@@ -139,7 +139,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 		cacheCtx, writeFn = sdkCtx.CacheContext()
 		cb := k.Router.Route(pd.DestinationPort)
-		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceId, msg.Packet.DestinationId, msg.Packet.Sequence, pd, signer)
+		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, pd, signer)
 
 		if res.Status != types.PacketStatus_Failure {
 			// write application state changes for asynchronous and successful acknowledgements
@@ -169,8 +169,8 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 
 	// note this should never happen as the payload would have had to be empty.
 	if len(ack.AppAcknowledgements) == 0 {
-		sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceId, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
-		return &types.MsgRecvPacketResponse{Result: types.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-channel %s invalid acknowledgement results", msg.Packet.SourceId)
+		sdkCtx.Logger().Error("receive packet failed", "source-client", msg.Packet.SourceClient, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
+		return &types.MsgRecvPacketResponse{Result: types.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-client %s invalid acknowledgement results", msg.Packet.SourceClient)
 	}
 
 	if !isAsync {
@@ -189,7 +189,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 	// TODO: store the packet for async applications to access if required.
 	defer telemetry.ReportRecvPacket(msg.Packet)
 
-	sdkCtx.Logger().Info("receive packet callback succeeded", "source-channel", msg.Packet.SourceId, "dest-channel", msg.Packet.DestinationId, "result", types.SUCCESS.String())
+	sdkCtx.Logger().Info("receive packet callback succeeded", "source-client", msg.Packet.SourceClient, "dest-client", msg.Packet.DestinationClient, "result", types.SUCCESS.String())
 	return &types.MsgRecvPacketResponse{Result: types.SUCCESS}, nil
 }
 
@@ -209,19 +209,19 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 	case nil:
 		writeFn()
 	case types.ErrNoOpMsg:
-		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", msg.Packet.SourceId)
+		sdkCtx.Logger().Debug("no-op on redundant relay", "source-client", msg.Packet.SourceClient)
 		return &types.MsgAcknowledgementResponse{Result: types.NOOP}, nil
 	default:
-		sdkCtx.Logger().Error("acknowledgement failed", "source-channel", msg.Packet.SourceId, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
+		sdkCtx.Logger().Error("acknowledgement failed", "source-client", msg.Packet.SourceClient, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
 		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
 	}
 
 	for i, pd := range msg.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
 		ack := msg.Acknowledgement.AppAcknowledgements[i]
-		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceId, msg.Packet.DestinationId, msg.Packet.Sequence, ack, pd, relayer)
+		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, ack, pd, relayer)
 		if err != nil {
-			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, msg.Packet.SourceId, msg.Packet.DestinationId)
+			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source client %s, destination client %s", pd.SourcePort, msg.Packet.SourceClient, msg.Packet.DestinationClient)
 		}
 	}
 
@@ -242,26 +242,26 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types
 
 	cacheCtx, writeFn := sdkCtx.CacheContext()
 	if err := k.timeoutPacket(cacheCtx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight); err != nil {
-		sdkCtx.Logger().Error("Timeout packet failed", "source-channel", timeout.Packet.SourceId, "destination-channel", timeout.Packet.DestinationId, "error", errorsmod.Wrap(err, "timeout packet failed"))
-		return nil, errorsmod.Wrapf(err, "timeout packet failed for source id: %s and destination id: %s", timeout.Packet.SourceId, timeout.Packet.DestinationId)
+		sdkCtx.Logger().Error("Timeout packet failed", "source-client", timeout.Packet.SourceClient, "destination-client", timeout.Packet.DestinationClient, "error", errorsmod.Wrap(err, "timeout packet failed"))
+		return nil, errorsmod.Wrapf(err, "timeout packet failed for source id: %s and destination id: %s", timeout.Packet.SourceClient, timeout.Packet.DestinationClient)
 	}
 
 	switch err {
 	case nil:
 		writeFn()
 	case types.ErrNoOpMsg:
-		sdkCtx.Logger().Debug("no-op on redundant relay", "source-channel", timeout.Packet.SourceId)
+		sdkCtx.Logger().Debug("no-op on redundant relay", "source-client", timeout.Packet.SourceClient)
 		return &types.MsgTimeoutResponse{Result: types.NOOP}, nil
 	default:
-		sdkCtx.Logger().Error("timeout failed", "source-channel", timeout.Packet.SourceId, "error", errorsmod.Wrap(err, "timeout packet verification failed"))
+		sdkCtx.Logger().Error("timeout failed", "source-client", timeout.Packet.SourceClient, "error", errorsmod.Wrap(err, "timeout packet verification failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
 	}
 
 	for _, pd := range timeout.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
-		err := cbs.OnTimeoutPacket(ctx, timeout.Packet.SourceId, timeout.Packet.DestinationId, timeout.Packet.Sequence, pd, signer)
+		err := cbs.OnTimeoutPacket(ctx, timeout.Packet.SourceClient, timeout.Packet.DestinationClient, timeout.Packet.Sequence, pd, signer)
 		if err != nil {
-			return nil, errorsmod.Wrapf(err, "failed OnTimeoutPacket for source port %s, source channel %s, destination channel %s", pd.SourcePort, timeout.Packet.SourceId, timeout.Packet.DestinationId)
+			return nil, errorsmod.Wrapf(err, "failed OnTimeoutPacket for source port %s, source client %s, destination client %s", pd.SourcePort, timeout.Packet.SourceClient, timeout.Packet.DestinationClient)
 		}
 	}
 
