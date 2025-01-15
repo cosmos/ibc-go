@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
 	channelkeeperv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -261,8 +262,19 @@ func (k *Keeper) resolveV2Identifiers(ctx context.Context, portId string, packet
 		channel, ok := k.channelKeeperV1.GetChannel(ctx, portId, packetId)
 		if ok {
 			connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+			if !ok {
+				// should never happen since the connection should exist if the channel exists
+				return "", clienttypes.CounterpartyInfo{}, types.ErrInvalidChannel
+			}
+			// convert v1 merkle prefix into the v2 path format
+			merklePrefix := [][]byte{connection.Counterparty.Prefix.KeyPrefix, []byte("")}
+			// create the counterparty info, here we set the counterparty client Id to the the counterparty channel id
+			// this is because we want to preserve the original identifiers that are used to write provable paths to each other
+			counterpartyInfo = clienttypes.NewCounterpartyInfo(merklePrefix, channel.Counterparty.ChannelId)
+			return connection.ClientId, counterpartyInfo, nil
 		}
 	}
+	return packetId, counterpartyInfo, nil
 }
 
 // convertV1Channel attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
