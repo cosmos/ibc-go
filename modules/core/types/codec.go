@@ -7,6 +7,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	localhost "github.com/cosmos/ibc-go/v9/modules/light-clients/09-localhost"
 )
 
 // RegisterInterfaces registers ibc types against interfaces using the global InterfaceRegistry.
@@ -16,4 +17,5 @@ func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 	connectiontypes.RegisterInterfaces(registry)
 	channeltypes.RegisterInterfaces(registry)
 	commitmenttypes.RegisterInterfaces(registry)
+	localhost.RegisterInterfaces(registry)
 }
