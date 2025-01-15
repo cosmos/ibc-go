@@ -43,17 +43,17 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
-			"channel not found",
+			"client not found",
 			func() {
 				packet.SourceClient = ibctesting.InvalidID
 			},
-			types.ErrChannelNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
 			"packet failed basic validation",
 			func() {
 				// invalid data
-				packet.Payloads = nil
+				packet.Payloads[0].SourcePort = ""
 			},
 			types.ErrInvalidPacket,
 		},
@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 			// create standard packet that can be malleated
-			packet = types.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
+			packet = types.NewPacket(1, path.EndpointA.ClientID, path.EndpointB.ClientID,
 				timeoutTimestamp, payload)
 			expSequence = 1
 
@@ -109,14 +109,14 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			tc.malleate()
 
 			// send packet
-			seq, destChannel, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient, packet.TimeoutTimestamp, packet.Payloads)
+			seq, destClient, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient, packet.TimeoutTimestamp, packet.Payloads)
 
 			expPass := tc.expError == nil
 			if expPass {
 				suite.Require().NoError(err)
 				// verify send packet method instantiated packet with correct sequence and destination channel
 				suite.Require().Equal(expSequence, seq)
-				suite.Require().Equal(path.EndpointB.ChannelID, destChannel)
+				suite.Require().Equal(path.EndpointB.ClientID, destClient)
 				// verify send packet stored the packet commitment correctly
 				expCommitment := types.CommitPacket(packet)
 				suite.Require().Equal(expCommitment, suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetPacketCommitment(suite.chainA.GetContext(), packet.SourceClient, seq))
@@ -149,11 +149,11 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			nil,
 		},
 		{
-			"failure: channel not found",
+			"failure: client not found",
 			func() {
 				packet.DestinationClient = ibctesting.InvalidID
 			},
-			types.ErrChannelNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
 			"failure: client is not active",
@@ -163,7 +163,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			clienttypes.ErrClientNotActive,
 		},
 		{
-			"failure: counterparty channel identifier different than source channel",
+			"failure: counterparty client identifier different than source client",
 			func() {
 				packet.SourceClient = unusedChannel
 			},
@@ -250,14 +250,14 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			nil,
 		},
 		{
-			"failure: channel not found",
+			"failure: client not found",
 			func() {
 				packet.DestinationClient = ibctesting.InvalidID
 			},
-			types.ErrChannelNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
-			"failure: counterparty channel identifier different than source channel",
+			"failure: counterparty client identifier different than source client",
 			func() {
 				packet.SourceClient = unusedChannel
 			},
@@ -293,7 +293,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 			// create standard packet that can be malleated
-			packet = types.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
+			packet = types.NewPacket(1, path.EndpointA.ClientID, path.EndpointB.ClientID,
 				timeoutTimestamp, payload)
 
 			// create standard ack that can be malleated
@@ -342,14 +342,14 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			nil,
 		},
 		{
-			"failure: channel not found",
+			"failure: client not found",
 			func() {
 				packet.SourceClient = ibctesting.InvalidID
 			},
-			types.ErrChannelNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
-			"failure: counterparty channel identifier different than source channel",
+			"failure: counterparty client identifier different than destination client",
 			func() {
 				packet.DestinationClient = unusedChannel
 			},
@@ -455,7 +455,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			nil,
 		},
 		{
-			"failure: channel not found",
+			"failure: client not found",
 			func() {
 				// send packet
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
@@ -464,10 +464,10 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 				packet.SourceClient = ibctesting.InvalidID
 			},
-			types.ErrChannelNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
-			"failure: counterparty channel identifier different than source channel",
+			"failure: counterparty client identifier different than destination client",
 			func() {
 				// send packet
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
@@ -551,7 +551,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Unix())
 
 			// test cases may mutate timeout values
-			packet = types.NewPacket(1, path.EndpointA.ChannelID, path.EndpointB.ChannelID,
+			packet = types.NewPacket(1, path.EndpointA.ClientID, path.EndpointB.ClientID,
 				timeoutTimestamp, payload)
 
 			tc.malleate()

@@ -75,15 +75,15 @@ func (k Keeper) creatorStore(ctx context.Context) storetypes.KVStore {
 }
 
 // SetChannel sets the Channel for a given channel identifier.
-func (k *Keeper) SetChannel(ctx context.Context, channelID string, channel types.Channel) {
+func (k *Keeper) SetChannel(ctx context.Context, clientID string, channel types.Channel) {
 	bz := k.cdc.MustMarshal(&channel)
-	k.channelStore(ctx).Set([]byte(channelID), bz)
+	k.channelStore(ctx).Set([]byte(clientID), bz)
 }
 
 // GetChannel gets the Channel for a given channel identifier.
-func (k *Keeper) GetChannel(ctx context.Context, channelID string) (types.Channel, bool) {
+func (k *Keeper) GetChannel(ctx context.Context, clientID string) (types.Channel, bool) {
 	store := k.channelStore(ctx)
-	bz := store.Get([]byte(channelID))
+	bz := store.Get([]byte(clientID))
 	if len(bz) == 0 {
 		return types.Channel{}, false
 	}
@@ -94,14 +94,14 @@ func (k *Keeper) GetChannel(ctx context.Context, channelID string) (types.Channe
 }
 
 // HasChannel returns true if a Channel exists for a given channel identifier, otherwise false.
-func (k *Keeper) HasChannel(ctx context.Context, channelID string) bool {
+func (k *Keeper) HasChannel(ctx context.Context, clientID string) bool {
 	store := k.channelStore(ctx)
-	return store.Has([]byte(channelID))
+	return store.Has([]byte(clientID))
 }
 
 // GetCreator returns the creator of the channel.
-func (k *Keeper) GetCreator(ctx context.Context, channelID string) (string, bool) {
-	bz := k.creatorStore(ctx).Get([]byte(channelID))
+func (k *Keeper) GetCreator(ctx context.Context, clientID string) (string, bool) {
+	bz := k.creatorStore(ctx).Get([]byte(clientID))
 	if len(bz) == 0 {
 		return "", false
 	}
@@ -110,19 +110,19 @@ func (k *Keeper) GetCreator(ctx context.Context, channelID string) (string, bool
 }
 
 // SetCreator sets the creator of the channel.
-func (k *Keeper) SetCreator(ctx context.Context, channelID, creator string) {
-	k.creatorStore(ctx).Set([]byte(channelID), []byte(creator))
+func (k *Keeper) SetCreator(ctx context.Context, clientID, creator string) {
+	k.creatorStore(ctx).Set([]byte(clientID), []byte(creator))
 }
 
 // DeleteCreator deletes the creator associated with the channel.
-func (k *Keeper) DeleteCreator(ctx context.Context, channelID string) {
-	k.creatorStore(ctx).Delete([]byte(channelID))
+func (k *Keeper) DeleteCreator(ctx context.Context, clientID string) {
+	k.creatorStore(ctx).Delete([]byte(clientID))
 }
 
-// GetPacketReceipt returns the packet receipt from the packet receipt path based on the channelID and sequence.
-func (k *Keeper) GetPacketReceipt(ctx context.Context, channelID string, sequence uint64) ([]byte, bool) {
+// GetPacketReceipt returns the packet receipt from the packet receipt path based on the clientID and sequence.
+func (k *Keeper) GetPacketReceipt(ctx context.Context, clientID string, sequence uint64) ([]byte, bool) {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	bz, err := store.Get(hostv2.PacketReceiptKey(channelID, sequence))
+	bz, err := store.Get(hostv2.PacketReceiptKey(clientID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -133,9 +133,9 @@ func (k *Keeper) GetPacketReceipt(ctx context.Context, channelID string, sequenc
 }
 
 // HasPacketReceipt returns true if the packet receipt exists, otherwise false.
-func (k *Keeper) HasPacketReceipt(ctx context.Context, channelID string, sequence uint64) bool {
+func (k *Keeper) HasPacketReceipt(ctx context.Context, clientID string, sequence uint64) bool {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	has, err := store.Has(hostv2.PacketReceiptKey(channelID, sequence))
+	has, err := store.Has(hostv2.PacketReceiptKey(clientID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -145,17 +145,17 @@ func (k *Keeper) HasPacketReceipt(ctx context.Context, channelID string, sequenc
 
 // SetPacketReceipt writes the packet receipt under the receipt path
 // This is a public path that is standardized by the IBC V2 specification.
-func (k *Keeper) SetPacketReceipt(ctx context.Context, channelID string, sequence uint64) {
+func (k *Keeper) SetPacketReceipt(ctx context.Context, clientID string, sequence uint64) {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	if err := store.Set(hostv2.PacketReceiptKey(channelID, sequence), []byte{byte(2)}); err != nil {
+	if err := store.Set(hostv2.PacketReceiptKey(clientID, sequence), []byte{byte(2)}); err != nil {
 		panic(err)
 	}
 }
 
 // GetPacketAcknowledgement fetches the packet acknowledgement from the store.
-func (k *Keeper) GetPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64) []byte {
+func (k *Keeper) GetPacketAcknowledgement(ctx context.Context, clientID string, sequence uint64) []byte {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	bz, err := store.Get(hostv2.PacketAcknowledgementKey(channelID, sequence))
+	bz, err := store.Get(hostv2.PacketAcknowledgementKey(clientID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -164,22 +164,22 @@ func (k *Keeper) GetPacketAcknowledgement(ctx context.Context, channelID string,
 
 // SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 // This is a public path that is standardized by the IBC V2 specification.
-func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64, ackHash []byte) {
+func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, clientID string, sequence uint64, ackHash []byte) {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	if err := store.Set(hostv2.PacketAcknowledgementKey(channelID, sequence), ackHash); err != nil {
+	if err := store.Set(hostv2.PacketAcknowledgementKey(clientID, sequence), ackHash); err != nil {
 		panic(err)
 	}
 }
 
 // HasPacketAcknowledgement checks if the packet ack hash is already on the store.
-func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, channelID string, sequence uint64) bool {
-	return len(k.GetPacketAcknowledgement(ctx, channelID, sequence)) > 0
+func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, clientID string, sequence uint64) bool {
+	return len(k.GetPacketAcknowledgement(ctx, clientID, sequence)) > 0
 }
 
 // GetPacketCommitment returns the packet commitment hash under the commitment path.
-func (k *Keeper) GetPacketCommitment(ctx context.Context, channelID string, sequence uint64) []byte {
+func (k *Keeper) GetPacketCommitment(ctx context.Context, clientID string, sequence uint64) []byte {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	bz, err := store.Get(hostv2.PacketCommitmentKey(channelID, sequence))
+	bz, err := store.Get(hostv2.PacketCommitmentKey(clientID, sequence))
 	if err != nil {
 		panic(err)
 	}
@@ -190,47 +190,49 @@ func (k *Keeper) GetPacketCommitment(ctx context.Context, channelID string, sequ
 }
 
 // SetPacketCommitment writes the commitment hash under the commitment path.
-func (k *Keeper) SetPacketCommitment(ctx context.Context, channelID string, sequence uint64, commitment []byte) {
+func (k *Keeper) SetPacketCommitment(ctx context.Context, clientID string, sequence uint64, commitment []byte) {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	if err := store.Set(hostv2.PacketCommitmentKey(channelID, sequence), commitment); err != nil {
+	if err := store.Set(hostv2.PacketCommitmentKey(clientID, sequence), commitment); err != nil {
 		panic(err)
 	}
 }
 
 // DeletePacketCommitment deletes the packet commitment hash under the commitment path.
-func (k *Keeper) DeletePacketCommitment(ctx context.Context, channelID string, sequence uint64) {
+func (k *Keeper) DeletePacketCommitment(ctx context.Context, clientID string, sequence uint64) {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	if err := store.Delete(hostv2.PacketCommitmentKey(channelID, sequence)); err != nil {
+	if err := store.Delete(hostv2.PacketCommitmentKey(clientID, sequence)); err != nil {
 		panic(err)
 	}
 }
 
 // GetNextSequenceSend returns the next send sequence from the sequence path
-func (k *Keeper) GetNextSequenceSend(ctx context.Context, channelID string) (uint64, bool) {
+func (k *Keeper) GetNextSequenceSend(ctx context.Context, clientID string) (uint64, bool) {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	bz, err := store.Get(hostv2.NextSequenceSendKey(channelID))
+	bz, err := store.Get(hostv2.NextSequenceSendKey(clientID))
 	if err != nil {
 		panic(err)
 	}
+	// initialize sequence to 1 if it does not exist
 	if len(bz) == 0 {
-		return 0, false
+		k.SetNextSequenceSend(ctx, clientID, 1)
+		return 1, true
 	}
 	return sdk.BigEndianToUint64(bz), true
 }
 
 // SetNextSequenceSend writes the next send sequence under the sequence path
-func (k *Keeper) SetNextSequenceSend(ctx context.Context, channelID string, sequence uint64) {
+func (k *Keeper) SetNextSequenceSend(ctx context.Context, clientID string, sequence uint64) {
 	store := k.KVStoreService.OpenKVStore(ctx)
 	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(hostv2.NextSequenceSendKey(channelID), bigEndianBz); err != nil {
+	if err := store.Set(hostv2.NextSequenceSendKey(clientID), bigEndianBz); err != nil {
 		panic(err)
 	}
 }
 
 // aliasV1Channel returns a version 2 channel for the given port and channel ID
 // by converting the channel into a version 2 channel.
-func (k *Keeper) aliasV1Channel(ctx context.Context, portID, channelID string) (types.Channel, bool) {
-	channel, ok := k.channelKeeperV1.GetChannel(ctx, portID, channelID)
+func (k *Keeper) aliasV1Channel(ctx context.Context, portID, clientID string) (types.Channel, bool) {
+	channel, ok := k.channelKeeperV1.GetChannel(ctx, portID, clientID)
 	if !ok {
 		return types.Channel{}, false
 	}
@@ -272,6 +274,9 @@ func (k *Keeper) resolveV2Identifiers(ctx context.Context, portId string, packet
 			// this is because we want to preserve the original identifiers that are used to write provable paths to each other
 			counterpartyInfo = clienttypes.NewCounterpartyInfo(merklePrefix, channel.Counterparty.ChannelId)
 			return connection.ClientId, counterpartyInfo, nil
+		} else {
+			// neither client nor channel exists so return client not found error
+			return "", clienttypes.CounterpartyInfo{}, clienttypes.ErrClientNotFound
 		}
 	}
 	return packetId, counterpartyInfo, nil

@@ -18,9 +18,10 @@ import (
 )
 
 var (
-	_ clienttypes.MsgServer     = (*Keeper)(nil)
-	_ connectiontypes.MsgServer = (*Keeper)(nil)
-	_ channeltypes.MsgServer    = (*Keeper)(nil)
+	_ clienttypes.MsgServer             = (*Keeper)(nil)
+	_ clienttypes.CounterpartyMsgServer = (*Keeper)(nil)
+	_ connectiontypes.MsgServer         = (*Keeper)(nil)
+	_ channeltypes.MsgServer            = (*Keeper)(nil)
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.

@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 )
@@ -30,7 +31,7 @@ func (endpoint *Endpoint) CreateChannel() (err error) {
 
 // RegisterCounterparty will construct and execute a MsgRegisterCounterparty on the associated endpoint.
 func (endpoint *Endpoint) RegisterCounterparty() (err error) {
-	msg := channeltypesv2.NewMsgRegisterCounterparty(endpoint.ChannelID, endpoint.Counterparty.ChannelID, endpoint.Chain.SenderAccount.GetAddress().String())
+	msg := clienttypes.NewMsgRegisterCounterparty(endpoint.ClientID, endpoint.Counterparty.MerklePathPrefix.KeyPath, endpoint.Counterparty.ClientID, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	// setup counterparty
 	_, err = endpoint.Chain.SendMsgs(msg)
@@ -50,7 +51,7 @@ func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, payload channel
 
 // MsgSendPacketWithSender sends a packet on the associated endpoint using the provided sender. The constructed packet is returned.
 func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, payload channeltypesv2.Payload, sender SenderAccount) (channeltypesv2.Packet, error) {
-	msgSendPacket := channeltypesv2.NewMsgSendPacket(endpoint.ChannelID, timeoutTimestamp, sender.SenderAccount.GetAddress().String(), payload)
+	msgSendPacket := channeltypesv2.NewMsgSendPacket(endpoint.ClientID, timeoutTimestamp, sender.SenderAccount.GetAddress().String(), payload)
 
 	res, err := endpoint.Chain.SendMsgsWithSender(sender, msgSendPacket)
 	if err != nil {
@@ -74,7 +75,7 @@ func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, paylo
 	if err != nil {
 		return channeltypesv2.Packet{}, err
 	}
-	packet := channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ChannelID, endpoint.Counterparty.ChannelID, timeoutTimestamp, payload)
+	packet := channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ClientID, endpoint.Counterparty.ClientID, timeoutTimestamp, payload)
 
 	return packet, nil
 }

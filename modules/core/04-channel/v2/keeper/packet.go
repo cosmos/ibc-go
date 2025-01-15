@@ -95,13 +95,13 @@ func (k *Keeper) recvPacket(
 	proofHeight exported.Height,
 ) error {
 	// lookup counterparty and clientid from packet identifiers
-	clientID, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].SourcePort, packet.DestinationClient)
+	clientID, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].DestinationPort, packet.DestinationClient)
 	if err != nil {
 		return err
 	}
 
 	if counterparty.ClientId != packet.SourceClient {
-		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty id (%s) does not match packet source id (%s)", &counterparty.ClientId, packet.SourceClient)
+		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
@@ -157,13 +157,13 @@ func (k Keeper) WriteAcknowledgement(
 	ack types.Acknowledgement,
 ) error {
 	// lookup counterparty and clientid from packet identifiers
-	_, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].SourcePort, packet.DestinationClient)
+	_, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].DestinationPort, packet.DestinationClient)
 	if err != nil {
 		return err
 	}
 
 	if counterparty.ClientId != packet.SourceClient {
-		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty id (%s) does not match packet source id (%s)", &counterparty.ClientId, packet.SourceClient)
+		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
@@ -194,7 +194,7 @@ func (k Keeper) WriteAcknowledgement(
 
 func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, acknowledgement types.Acknowledgement, proof []byte, proofHeight exported.Height) error {
 	// lookup counterparty and clientid from packet identifiers
-	clientID, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].SourcePort, packet.DestinationClient)
+	clientID, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].SourcePort, packet.SourceClient)
 	if err != nil {
 		return err
 	}
@@ -258,13 +258,13 @@ func (k *Keeper) timeoutPacket(
 	proofHeight exported.Height,
 ) error {
 	// lookup counterparty and clientid from packet identifiers
-	clientID, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].SourcePort, packet.DestinationClient)
+	clientID, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].SourcePort, packet.SourceClient)
 	if err != nil {
 		return err
 	}
 
 	if counterparty.ClientId != packet.DestinationClient {
-		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty id (%s) does not match packet destination id (%s)", &counterparty.ClientId, packet.DestinationClient)
+		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
 	}
 
 	// check that timeout height or timeout timestamp has passed on the other end

@@ -160,7 +160,7 @@ func (path *Path) Setup() {
 func (path *Path) SetupV2() {
 	path.SetupClients()
 
-	path.CreateChannelsV2()
+	// path.CreateChannelsV2()
 
 	path.SetupCounterparties()
 }
