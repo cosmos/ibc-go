@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
@@ -20,10 +21,12 @@ func (k Keeper) Transfer(ctx context.Context, msg *types.MsgTransfer) (*types.Ms
 		return nil, types.ErrSendDisabled
 	}
 
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	addrCdc := addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	senderBytes, err := addrCdc.StringToBytes(msg.Sender)
 	if err != nil {
 		return nil, err
 	}
+	sender := sdk.AccAddress(senderBytes)
 
 	coins := msg.GetCoins()
 

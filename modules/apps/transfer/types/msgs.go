@@ -10,6 +10,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
+
 )
 
 const (
@@ -35,7 +37,9 @@ func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgUpdateParams) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	addrCdc := addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	_, err := addrCdc.StringToBytes(msg.Signer)
+
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}

@@ -25,6 +25,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -158,7 +159,9 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 		panic("ExecuteAndPassGovV1Proposal must be passed a cosmos.CosmosChain")
 	}
 
-	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
+	addrCdc := addresscodec.NewBech32Codec(cosmosChain.Config().Bech32Prefix)
+	senderBytes, err := addrCdc.StringToBytes(user.FormattedAddress())
+	sender := sdk.AccAddress(senderBytes)
 	s.Require().NoError(err)
 
 	proposalID := s.proposalIDs[cosmosChain.Config().ChainID]
@@ -276,7 +279,14 @@ func (*E2ETestSuite) waitForGovV1Beta1ProposalToPass(ctx context.Context, chain 
 
 // ExecuteGovV1Beta1Proposal submits a v1beta1 governance proposal using the provided content.
 func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.Chain, user ibc.Wallet, content govtypesv1beta1.Content) sdk.TxResponse {
-	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
+	cosmosChain, ok := chain.(*cosmos.CosmosChain)
+	if !ok {
+		panic("ExecuteAndPassGovV1Proposal must be passed a cosmos.CosmosChain")
+	}
+	addrCdc := addresscodec.NewBech32Codec(cosmosChain.Config().Bech32Prefix)
+	senderBytes, err := addrCdc.StringToBytes(user.FormattedAddress())
+
+	sender := sdk.AccAddress(senderBytes)
 	s.Require().NoError(err)
 
 	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender.String())

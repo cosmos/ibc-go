@@ -21,6 +21,7 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 )
 
 func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
@@ -108,7 +109,10 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 }
 
 func TestMsgRegisterInterchainAccountGetSigners(t *testing.T) {
-	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+	addrCdc := addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	expSigerBytes, err := addrCdc.StringToBytes(ibctesting.TestAccAddress)
+	expSigner := sdk.AccAddress(expSigerBytes)
+
 	require.NoError(t, err)
 
 	msg := types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "", channeltypes.ORDERED)

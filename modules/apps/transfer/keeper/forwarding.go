@@ -7,6 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -104,7 +105,9 @@ func (k Keeper) getReceiverFromPacketData(data types.FungibleTokenPacketDataV2) 
 		return k.authKeeper.GetModuleAddress(types.ModuleName), nil
 	}
 
-	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
+	addrCdc := addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	receiverBytes, err := addrCdc.StringToBytes(data.Receiver)
+	receiver := sdk.AccAddress(receiverBytes)
 	if err != nil {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
 	}
