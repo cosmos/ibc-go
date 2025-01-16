@@ -9,57 +9,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/internal/v2/telemetry"
 )
 
 var _ types.MsgServer = &Keeper{}
-
-// CreateChannel defines a rpc handler method for MsgCreateChannel.
-func (k *Keeper) CreateChannel(goCtx context.Context, msg *types.MsgCreateChannel) (*types.MsgCreateChannelResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	channelID := k.channelKeeperV1.GenerateChannelIdentifier(ctx)
-
-	// Initialize channel with empty counterparty channel identifier.
-	channel := types.NewChannel(msg.ClientId, "", msg.MerklePathPrefix)
-	k.SetChannel(ctx, channelID, channel)
-	k.SetCreator(ctx, channelID, msg.Signer)
-	k.SetNextSequenceSend(ctx, channelID, 1)
-
-	k.emitCreateChannelEvent(goCtx, channelID, msg.ClientId)
-
-	return &types.MsgCreateChannelResponse{ChannelId: channelID}, nil
-}
-
-// RegisterCounterparty defines a rpc handler method for MsgRegisterCounterparty.
-func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *types.MsgRegisterCounterparty) (*types.MsgRegisterCounterpartyResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	channel, ok := k.GetChannel(ctx, msg.ChannelId)
-	if !ok {
-		return nil, errorsmod.Wrapf(types.ErrChannelNotFound, "channel must exist for channel id %s", msg.ChannelId)
-	}
-
-	creator, found := k.GetCreator(ctx, msg.ChannelId)
-	if !found {
-		return nil, errorsmod.Wrap(ibcerrors.ErrUnauthorized, "channel creator must be set")
-	}
-
-	if creator != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "channel creator (%s) must match signer (%s)", creator, msg.Signer)
-	}
-
-	channel.CounterpartyChannelId = msg.CounterpartyChannelId
-	k.SetChannel(ctx, msg.ChannelId, channel)
-	// Delete client creator from state as it is not needed after this point.
-	k.DeleteCreator(ctx, msg.ChannelId)
-
-	k.emitRegisterCounterpartyEvent(goCtx, msg.ChannelId, channel)
-
-	return &types.MsgRegisterCounterpartyResponse{}, nil
-}
 
 // SendPacket implements the PacketMsgServer SendPacket method.
 func (k *Keeper) SendPacket(ctx context.Context, msg *types.MsgSendPacket) (*types.MsgSendPacketResponse, error) {

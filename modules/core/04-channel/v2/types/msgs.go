@@ -9,7 +9,6 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypesv1 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
@@ -17,12 +16,6 @@ import (
 const MaxTimeoutDelta time.Duration = 24 * time.Hour
 
 var (
-	_ sdk.Msg              = (*MsgCreateChannel)(nil)
-	_ sdk.HasValidateBasic = (*MsgCreateChannel)(nil)
-
-	_ sdk.Msg              = (*MsgRegisterCounterparty)(nil)
-	_ sdk.HasValidateBasic = (*MsgRegisterCounterparty)(nil)
-
 	_ sdk.Msg              = (*MsgSendPacket)(nil)
 	_ sdk.HasValidateBasic = (*MsgSendPacket)(nil)
 
@@ -35,58 +28,6 @@ var (
 	_ sdk.Msg              = (*MsgAcknowledgement)(nil)
 	_ sdk.HasValidateBasic = (*MsgAcknowledgement)(nil)
 )
-
-// NewMsgCreateChannel creates a new MsgCreateChannel instance
-func NewMsgCreateChannel(clientID string, merklePathPrefix commitmenttypesv2.MerklePath, signer string) *MsgCreateChannel {
-	return &MsgCreateChannel{
-		Signer:           signer,
-		ClientId:         clientID,
-		MerklePathPrefix: merklePathPrefix,
-	}
-}
-
-// ValidateBasic performs basic checks on a MsgCreateChannel.
-func (msg *MsgCreateChannel) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
-		return err
-	}
-
-	if err := msg.MerklePathPrefix.ValidateAsPrefix(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// NewMsgRegisterCounterparty creates a new MsgRegisterCounterparty instance
-func NewMsgRegisterCounterparty(channelID, counterpartyChannelID string, signer string) *MsgRegisterCounterparty {
-	return &MsgRegisterCounterparty{
-		Signer:                signer,
-		ChannelId:             channelID,
-		CounterpartyChannelId: counterpartyChannelID,
-	}
-}
-
-// ValidateBasic performs basic checks on a MsgRegisterCounterparty.
-func (msg *MsgRegisterCounterparty) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	if err := host.ChannelIdentifierValidator(msg.ChannelId); err != nil {
-		return err
-	}
-
-	if err := host.ChannelIdentifierValidator(msg.CounterpartyChannelId); err != nil {
-		return err
-	}
-
-	return nil
-}
 
 // NewMsgSendPacket creates a new MsgSendPacket instance.
 func NewMsgSendPacket(sourceClient string, timeoutTimestamp uint64, signer string, payloads ...Payload) *MsgSendPacket {

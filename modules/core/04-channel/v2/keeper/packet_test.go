@@ -167,7 +167,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {
 				packet.SourceClient = unusedChannel
 			},
-			types.ErrInvalidChannelIdentifier,
+			clienttypes.ErrInvalidCounterparty,
 		},
 		{
 			"failure: packet has timed out",
@@ -261,7 +261,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			func() {
 				packet.SourceClient = unusedChannel
 			},
-			types.ErrInvalidChannelIdentifier,
+			clienttypes.ErrInvalidCounterparty,
 		},
 		{
 			"failure: ack already exists",
@@ -353,7 +353,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			func() {
 				packet.DestinationClient = unusedChannel
 			},
-			types.ErrInvalidChannelIdentifier,
+			clienttypes.ErrInvalidCounterparty,
 		},
 		{
 			"failure: packet commitment doesn't exist.",
@@ -476,7 +476,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 				packet.DestinationClient = unusedChannel
 			},
-			types.ErrInvalidChannelIdentifier,
+			clienttypes.ErrInvalidCounterparty,
 		},
 		{
 			"failure: packet has not timed out yet",

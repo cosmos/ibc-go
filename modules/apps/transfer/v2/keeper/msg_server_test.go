@@ -278,7 +278,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			func() {
 				packet.SourceClient = ibctesting.InvalidID
 			},
-			channeltypes.ErrInvalidChannelIdentifier,
+			clienttypes.ErrInvalidCounterparty,
 		},
 		{
 			"failure: receive is disabled",

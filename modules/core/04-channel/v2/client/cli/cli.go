@@ -19,8 +19,6 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	queryCmd.AddCommand(
-		getCmdQueryChannel(),
-		getCmdQueryChannelClientState(),
 		getCmdQueryNextSequenceSend(),
 		getCmdQueryPacketCommitment(),
 		getCmdQueryPacketCommitments(),
@@ -43,10 +41,8 @@ func NewTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	txCmd.AddCommand(
-		newCreateChannelTxCmd(),
-		newRegisterCounterpartyTxCmd(),
-	)
+	// TODO: Add v2 packet commands
+	txCmd.AddCommand()
 
 	return txCmd
 }

@@ -99,7 +99,7 @@ func (k *Keeper) recvPacket(
 	}
 
 	if counterparty.ClientId != packet.SourceClient {
-		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
+		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
@@ -161,7 +161,7 @@ func (k Keeper) WriteAcknowledgement(
 	}
 
 	if counterparty.ClientId != packet.SourceClient {
-		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
+		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
@@ -198,7 +198,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 	}
 
 	if counterparty.ClientId != packet.DestinationClient {
-		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
+		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
 	}
 
 	commitment := k.GetPacketCommitment(ctx, packet.SourceClient, packet.Sequence)
@@ -262,7 +262,7 @@ func (k *Keeper) timeoutPacket(
 	}
 
 	if counterparty.ClientId != packet.DestinationClient {
-		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
+		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
 	}
 
 	// check that timeout height or timeout timestamp has passed on the other end

@@ -2,15 +2,11 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
-	"cosmossdk.io/store/prefix"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -18,7 +14,6 @@ import (
 	channelkeeperv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	commitmentv2types "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -60,63 +55,6 @@ func NewKeeper(
 func (Keeper) Logger(ctx context.Context) log.Logger {
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
-}
-
-// channelStore returns the KV store under which channels are stored.
-func (k Keeper) channelStore(ctx context.Context) storetypes.KVStore {
-	channelPrefix := []byte(fmt.Sprintf("%s/", types.ChannelPrefix))
-	return prefix.NewStore(runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx)), channelPrefix)
-}
-
-// creatorStore returns the KV store under which creators are stored.
-func (k Keeper) creatorStore(ctx context.Context) storetypes.KVStore {
-	creatorPrefix := []byte(fmt.Sprintf("%s/", types.CreatorPrefix))
-	return prefix.NewStore(runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx)), creatorPrefix)
-}
-
-// SetChannel sets the Channel for a given channel identifier.
-func (k *Keeper) SetChannel(ctx context.Context, clientID string, channel types.Channel) {
-	bz := k.cdc.MustMarshal(&channel)
-	k.channelStore(ctx).Set([]byte(clientID), bz)
-}
-
-// GetChannel gets the Channel for a given channel identifier.
-func (k *Keeper) GetChannel(ctx context.Context, clientID string) (types.Channel, bool) {
-	store := k.channelStore(ctx)
-	bz := store.Get([]byte(clientID))
-	if len(bz) == 0 {
-		return types.Channel{}, false
-	}
-
-	var channel types.Channel
-	k.cdc.MustUnmarshal(bz, &channel)
-	return channel, true
-}
-
-// HasChannel returns true if a Channel exists for a given channel identifier, otherwise false.
-func (k *Keeper) HasChannel(ctx context.Context, clientID string) bool {
-	store := k.channelStore(ctx)
-	return store.Has([]byte(clientID))
-}
-
-// GetCreator returns the creator of the channel.
-func (k *Keeper) GetCreator(ctx context.Context, clientID string) (string, bool) {
-	bz := k.creatorStore(ctx).Get([]byte(clientID))
-	if len(bz) == 0 {
-		return "", false
-	}
-
-	return string(bz), true
-}
-
-// SetCreator sets the creator of the channel.
-func (k *Keeper) SetCreator(ctx context.Context, clientID, creator string) {
-	k.creatorStore(ctx).Set([]byte(clientID), []byte(creator))
-}
-
-// DeleteCreator deletes the creator associated with the channel.
-func (k *Keeper) DeleteCreator(ctx context.Context, clientID string) {
-	k.creatorStore(ctx).Delete([]byte(clientID))
 }
 
 // GetPacketReceipt returns the packet receipt from the packet receipt path based on the clientID and sequence.
@@ -227,32 +165,6 @@ func (k *Keeper) SetNextSequenceSend(ctx context.Context, clientID string, seque
 	}
 }
 
-// aliasV1Channel returns a version 2 channel for the given port and channel ID
-// by converting the channel into a version 2 channel.
-func (k *Keeper) aliasV1Channel(ctx context.Context, portID, clientID string) (types.Channel, bool) {
-	channel, ok := k.channelKeeperV1.GetChannel(ctx, portID, clientID)
-	if !ok {
-		return types.Channel{}, false
-	}
-	// Do not allow channel to be converted into a version 2 channel
-	// if the channel is not OPEN or if it is not UNORDERED
-	if channel.State != channeltypesv1.OPEN || channel.Ordering != channeltypesv1.UNORDERED {
-		return types.Channel{}, false
-	}
-	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
-	if !ok {
-		return types.Channel{}, false
-	}
-	merklePathPrefix := commitmentv2types.NewMerklePath(connection.Counterparty.Prefix.KeyPrefix, []byte(""))
-
-	channelv2 := types.Channel{
-		CounterpartyChannelId: channel.Counterparty.ChannelId,
-		ClientId:              connection.ClientId,
-		MerklePathPrefix:      merklePathPrefix,
-	}
-	return channelv2, true
-}
-
 // resolveV2Identifiers returns the client identifier and the counterpartyInfo for the client given the packetId
 // Note: For fresh eureka channels, the client identifier and packet identifier are the same.
 // For aliased channels, the packet identifier will be the original channel ID and the counterpartyInfo will be constructed from the channel
@@ -264,7 +176,7 @@ func (k *Keeper) resolveV2Identifiers(ctx context.Context, portId string, packet
 			connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 			if !ok {
 				// should never happen since the connection should exist if the channel exists
-				return "", clienttypes.CounterpartyInfo{}, types.ErrInvalidChannel
+				return "", clienttypes.CounterpartyInfo{}, channeltypesv1.ErrChannelNotFound
 			}
 			// convert v1 merkle prefix into the v2 path format
 			merklePrefix := [][]byte{connection.Counterparty.Prefix.KeyPrefix, []byte("")}
@@ -278,16 +190,4 @@ func (k *Keeper) resolveV2Identifiers(ctx context.Context, portId string, packet
 		}
 	}
 	return packetId, counterpartyInfo, nil
-}
-
-// convertV1Channel attempts to retrieve a v1 channel from the channel keeper if it exists, then converts it
-// to a v2 counterparty and stores it in the v2 channel keeper for future use
-func (k *Keeper) convertV1Channel(ctx context.Context, port, id string) (types.Channel, bool) {
-	if channel, ok := k.aliasV1Channel(ctx, port, id); ok {
-		// we can key on just the channel here since channel ids are globally unique
-		k.SetChannel(ctx, id, channel)
-		return channel, true
-	}
-
-	return types.Channel{}, false
 }
