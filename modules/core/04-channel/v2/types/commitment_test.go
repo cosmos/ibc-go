@@ -26,7 +26,7 @@ func TestCommitPacket(t *testing.T) {
 		{
 			"json packet",
 			func() {}, // default is json packet
-			"450194f2ce25b12487f65593e106d91367a1e5c90b2efc03ed78265a54cfcebe",
+			"a096722aa6534040a0efbdae05765132a7b223ad306d6512f3734821bd046505",
 		},
 		{
 			"abi packet",
@@ -42,7 +42,7 @@ func TestCommitPacket(t *testing.T) {
 				packet.Payloads[0].Value = transferData
 				packet.Payloads[0].Encoding = transfertypes.EncodingABI
 			},
-			"b691a1950f6fb0bbbcf4bdb16fe2c4d0aa7ef783eb7803073f475cb8164d9b7a",
+			"d408dca5088b9b375edb3c4df6bae0e18084fc0dbd90fcd0d028506553c81b25",
 		},
 	}
 

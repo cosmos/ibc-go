@@ -265,15 +265,15 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			nil,
 		},
 		{
-			"failure: invalid destination channel on received packet",
+			"failure: invalid destination client on received packet",
 			func() {},
 			func() {
 				packet.DestinationClient = ibctesting.InvalidID
 			},
-			channeltypesv2.ErrChannelNotFound,
+			clienttypes.ErrClientNotFound,
 		},
 		{
-			"failure: counter party channel does not match source channel",
+			"failure: counter party client does not match source client",
 			func() {},
 			func() {
 				packet.SourceClient = ibctesting.InvalidID
@@ -593,7 +593,7 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 	denomBtoC := transfertypes.Denom{
 		Base: sdk.DefaultBondDenom,
 		Trace: []transfertypes.Hop{
-			transfertypes.NewHop(transfertypes.ModuleName, pathv2.EndpointB.ChannelID),
+			transfertypes.NewHop(transfertypes.ModuleName, pathv2.EndpointB.ClientID),
 			transfertypes.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID),
 		},
 	}
