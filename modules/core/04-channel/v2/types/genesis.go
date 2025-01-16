@@ -9,11 +9,11 @@ import (
 )
 
 // NewPacketState creates a new PacketState instance.
-func NewPacketState(channelID string, sequence uint64, data []byte) PacketState {
+func NewPacketState(clientID string, sequence uint64, data []byte) PacketState {
 	return PacketState{
-		ChannelId: channelID,
-		Sequence:  sequence,
-		Data:      data,
+		ClientId: clientID,
+		Sequence: sequence,
+		Data:     data,
 	}
 }
 
@@ -22,20 +22,20 @@ func (ps PacketState) Validate() error {
 	if ps.Data == nil {
 		return errors.New("data bytes cannot be nil")
 	}
-	return validateGenFields(ps.ChannelId, ps.Sequence)
+	return validateGenFields(ps.ClientId, ps.Sequence)
 }
 
 // NewPacketSequence creates a new PacketSequences instance.
-func NewPacketSequence(channelID string, sequence uint64) PacketSequence {
+func NewPacketSequence(clientID string, sequence uint64) PacketSequence {
 	return PacketSequence{
-		ChannelId: channelID,
-		Sequence:  sequence,
+		ClientId: clientID,
+		Sequence: sequence,
 	}
 }
 
 // Validate performs basic validation of fields returning an error upon any failure.
 func (ps PacketSequence) Validate() error {
-	return validateGenFields(ps.ChannelId, ps.Sequence)
+	return validateGenFields(ps.ClientId, ps.Sequence)
 }
 
 // NewGenesisState creates a GenesisState instance.
@@ -123,8 +123,8 @@ func (gs GenesisState) Validate() error {
 	return nil
 }
 
-func validateGenFields(channelID string, sequence uint64) error {
-	if err := host.ChannelIdentifierValidator(channelID); err != nil {
+func validateGenFields(clientID string, sequence uint64) error {
+	if err := host.ClientIdentifierValidator(clientID); err != nil {
 		return fmt.Errorf("invalid channel Id: %w", err)
 	}
 	if sequence == 0 {

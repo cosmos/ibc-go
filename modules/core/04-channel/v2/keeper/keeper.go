@@ -212,10 +212,8 @@ func (k *Keeper) GetNextSequenceSend(ctx context.Context, clientID string) (uint
 	if err != nil {
 		panic(err)
 	}
-	// initialize sequence to 1 if it does not exist
 	if len(bz) == 0 {
-		k.SetNextSequenceSend(ctx, clientID, 1)
-		return 1, true
+		return 0, false
 	}
 	return sdk.BigEndianToUint64(bz), true
 }

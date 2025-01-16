@@ -224,15 +224,15 @@ func request_Query_NextSequenceSend_0(ctx context.Context, marshaler runtime.Mar
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	msg, err := client.NextSequenceSend(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -251,15 +251,15 @@ func local_request_Query_NextSequenceSend_0(ctx context.Context, marshaler runti
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	msg, err := server.NextSequenceSend(ctx, &protoReq)
@@ -278,15 +278,15 @@ func request_Query_PacketCommitment_0(ctx context.Context, marshaler runtime.Mar
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	val, ok = pathParams["sequence"]
@@ -316,15 +316,15 @@ func local_request_Query_PacketCommitment_0(ctx context.Context, marshaler runti
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	val, ok = pathParams["sequence"]
@@ -344,7 +344,7 @@ func local_request_Query_PacketCommitment_0(ctx context.Context, marshaler runti
 }
 
 var (
-	filter_Query_PacketCommitments_0 = &utilities.DoubleArray{Encoding: map[string]int{"channel_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Query_PacketCommitments_0 = &utilities.DoubleArray{Encoding: map[string]int{"client_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Query_PacketCommitments_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -358,15 +358,15 @@ func request_Query_PacketCommitments_0(ctx context.Context, marshaler runtime.Ma
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -392,15 +392,15 @@ func local_request_Query_PacketCommitments_0(ctx context.Context, marshaler runt
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -426,15 +426,15 @@ func request_Query_PacketAcknowledgement_0(ctx context.Context, marshaler runtim
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	val, ok = pathParams["sequence"]
@@ -464,15 +464,15 @@ func local_request_Query_PacketAcknowledgement_0(ctx context.Context, marshaler 
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	val, ok = pathParams["sequence"]
@@ -492,7 +492,7 @@ func local_request_Query_PacketAcknowledgement_0(ctx context.Context, marshaler 
 }
 
 var (
-	filter_Query_PacketAcknowledgements_0 = &utilities.DoubleArray{Encoding: map[string]int{"channel_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Query_PacketAcknowledgements_0 = &utilities.DoubleArray{Encoding: map[string]int{"client_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Query_PacketAcknowledgements_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -506,15 +506,15 @@ func request_Query_PacketAcknowledgements_0(ctx context.Context, marshaler runti
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -540,15 +540,15 @@ func local_request_Query_PacketAcknowledgements_0(ctx context.Context, marshaler
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -563,10 +563,6 @@ func local_request_Query_PacketAcknowledgements_0(ctx context.Context, marshaler
 
 }
 
-var (
-	filter_Query_PacketReceipt_0 = &utilities.DoubleArray{Encoding: map[string]int{"channel_id": 0, "sequence": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
-)
-
 func request_Query_PacketReceipt_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryPacketReceiptRequest
 	var metadata runtime.ServerMetadata
@@ -578,15 +574,15 @@ func request_Query_PacketReceipt_0(ctx context.Context, marshaler runtime.Marsha
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	val, ok = pathParams["sequence"]
@@ -598,13 +594,6 @@ func request_Query_PacketReceipt_0(ctx context.Context, marshaler runtime.Marsha
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sequence", err)
-	}
-
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_PacketReceipt_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.PacketReceipt(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -623,15 +612,15 @@ func local_request_Query_PacketReceipt_0(ctx context.Context, marshaler runtime.
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	val, ok = pathParams["sequence"]
@@ -643,13 +632,6 @@ func local_request_Query_PacketReceipt_0(ctx context.Context, marshaler runtime.
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sequence", err)
-	}
-
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_PacketReceipt_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.PacketReceipt(ctx, &protoReq)
@@ -668,15 +650,15 @@ func request_Query_UnreceivedPackets_0(ctx context.Context, marshaler runtime.Ma
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	val, ok = pathParams["sequences"]
@@ -706,15 +688,15 @@ func local_request_Query_UnreceivedPackets_0(ctx context.Context, marshaler runt
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	val, ok = pathParams["sequences"]
@@ -744,15 +726,15 @@ func request_Query_UnreceivedAcks_0(ctx context.Context, marshaler runtime.Marsh
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	val, ok = pathParams["packet_ack_sequences"]
@@ -782,15 +764,15 @@ func local_request_Query_UnreceivedAcks_0(ctx context.Context, marshaler runtime
 		_   = err
 	)
 
-	val, ok = pathParams["channel_id"]
+	val, ok = pathParams["client_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "channel_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "client_id")
 	}
 
-	protoReq.ChannelId, err = runtime.String(val)
+	protoReq.ClientId, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "client_id", err)
 	}
 
 	val, ok = pathParams["packet_ack_sequences"]
@@ -1339,21 +1321,21 @@ var (
 
 	pattern_Query_ChannelConsensusState_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"ibc", "core", "channel", "v2", "channels", "channel_id", "consensus_state"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_NextSequenceSend_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"ibc", "core", "channel", "v2", "channels", "channel_id", "next_sequence_send"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_NextSequenceSend_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"ibc", "core", "channel", "v2", "clients", "client_id", "next_sequence_send"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PacketCommitment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"ibc", "core", "channel", "v2", "channels", "channel_id", "packet_commitments", "sequence"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_PacketCommitment_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"ibc", "core", "channel", "v2", "clients", "client_id", "packet_commitments", "sequence"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PacketCommitments_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"ibc", "core", "channel", "v2", "channels", "channel_id", "packet_commitments"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_PacketCommitments_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"ibc", "core", "channel", "v2", "clients", "client_id", "packet_commitments"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PacketAcknowledgement_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"ibc", "core", "channel", "v2", "channels", "channel_id", "packet_acks", "sequence"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_PacketAcknowledgement_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"ibc", "core", "channel", "v2", "clients", "client_id", "packet_acks", "sequence"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PacketAcknowledgements_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"ibc", "core", "channel", "v2", "channels", "channel_id", "packet_acknowledgements"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_PacketAcknowledgements_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"ibc", "core", "channel", "v2", "clients", "client_id", "packet_acknowledgements"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PacketReceipt_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"ibc", "core", "channel", "v2", "channels", "channel_id", "packet_receipts", "sequence"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_PacketReceipt_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"ibc", "core", "channel", "v2", "clients", "client_id", "packet_receipts", "sequence"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_UnreceivedPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"ibc", "core", "channel", "v2", "channels", "channel_id", "packet_commitments", "sequences", "unreceived_packets"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_UnreceivedPackets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"ibc", "core", "channel", "v2", "clients", "client_id", "packet_commitments", "sequences", "unreceived_packets"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_UnreceivedAcks_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"ibc", "core", "channel", "v2", "channels", "channel_id", "packet_commitments", "packet_ack_sequences", "unreceived_acks"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_UnreceivedAcks_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7, 2, 8}, []string{"ibc", "core", "channel", "v2", "clients", "client_id", "packet_commitments", "packet_ack_sequences", "unreceived_acks"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

@@ -25,8 +25,8 @@ message GenesisState {
 message PacketState {
   option (gogoproto.goproto_getters) = false;
 
-  // channel unique identifier.
-  string channel_id = 1;
+  // client unique identifier.
+  string client_id = 1;
   // packet sequence.
   uint64 sequence = 2;
   // embedded data that represents packet state.
@@ -35,8 +35,8 @@ message PacketState {
 
 // PacketSequence defines the genesis type necessary to retrieve and store next send sequences.
 message PacketSequence {
-  // channel unique identifier.
-  string channel_id = 1;
+  // client unique identifier.
+  string client_id = 1;
   // packet sequence
   uint64 sequence = 2;
 }

@@ -280,7 +280,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				// change the destination id to a non-existent channel.
 				packet.DestinationClient = ibctesting.InvalidID
 			},
-			expError: types.ErrChannelNotFound,
+			expError: clienttypes.ErrClientNotFound,
 		},
 		{
 			name: "failure: invalid proof",
@@ -407,7 +407,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 				// change the source id to a non-existent channel.
 				packet.SourceClient = "not-existent-channel"
 			},
-			expError: types.ErrChannelNotFound,
+			expError: clienttypes.ErrClientNotFound,
 		},
 		{
 			name: "failure: invalid commitment",
@@ -497,12 +497,12 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			expError: mock.MockApplicationCallbackError,
 		},
 		{
-			name: "failure: channel not found",
+			name: "failure: client not found",
 			malleate: func() {
-				// change the source id to a non-existent channel.
-				packet.SourceClient = "not-existent-channel"
+				// change the source id to a non-existent client.
+				packet.SourceClient = "not-existent-client"
 			},
-			expError: types.ErrChannelNotFound,
+			expError: clienttypes.ErrClientNotFound,
 		},
 		{
 			name: "failure: invalid commitment",

@@ -47,9 +47,9 @@ func NewQueryChannelConsensusStateResponse(clientID string, anyConsensusState *c
 }
 
 // NewQueryNextSequenceSendRequest creates a new next sequence send query.
-func NewQueryNextSequenceSendRequest(channelID string) *QueryNextSequenceSendRequest {
+func NewQueryNextSequenceSendRequest(clientID string) *QueryNextSequenceSendRequest {
 	return &QueryNextSequenceSendRequest{
-		ChannelId: channelID,
+		ClientId: clientID,
 	}
 }
 
@@ -65,10 +65,10 @@ func NewQueryNextSequenceSendResponse(
 }
 
 // NewQueryPacketCommitmentRequest creates and returns a new packet commitment query request.
-func NewQueryPacketCommitmentRequest(channelID string, sequence uint64) *QueryPacketCommitmentRequest {
+func NewQueryPacketCommitmentRequest(clientID string, sequence uint64) *QueryPacketCommitmentRequest {
 	return &QueryPacketCommitmentRequest{
-		ChannelId: channelID,
-		Sequence:  sequence,
+		ClientId: clientID,
+		Sequence: sequence,
 	}
 }
 
@@ -82,10 +82,10 @@ func NewQueryPacketCommitmentResponse(commitmentHash []byte, proof []byte, proof
 }
 
 // NewQueryPacketAcknowledgementRequest creates and returns a new packet acknowledgement query request.
-func NewQueryPacketAcknowledgementRequest(channelID string, sequence uint64) *QueryPacketAcknowledgementRequest {
+func NewQueryPacketAcknowledgementRequest(clientID string, sequence uint64) *QueryPacketAcknowledgementRequest {
 	return &QueryPacketAcknowledgementRequest{
-		ChannelId: channelID,
-		Sequence:  sequence,
+		ClientId: clientID,
+		Sequence: sequence,
 	}
 }
 
@@ -99,10 +99,10 @@ func NewQueryPacketAcknowledgementResponse(acknowledgementHash []byte, proof []b
 }
 
 // NewQueryPacketReceiptRequest creates and returns a new packet receipt query request.
-func NewQueryPacketReceiptRequest(channelID string, sequence uint64) *QueryPacketReceiptRequest {
+func NewQueryPacketReceiptRequest(clientID string, sequence uint64) *QueryPacketReceiptRequest {
 	return &QueryPacketReceiptRequest{
-		ChannelId: channelID,
-		Sequence:  sequence,
+		ClientId: clientID,
+		Sequence: sequence,
 	}
 }
 
@@ -116,9 +116,9 @@ func NewQueryPacketReceiptResponse(exists bool, proof []byte, height clienttypes
 }
 
 // NewQueryPacketReceiptRequest creates and returns a new packet receipt query request.
-func NewQueryUnreceivedPacketsRequest(channelID string, sequences []uint64) *QueryUnreceivedPacketsRequest {
+func NewQueryUnreceivedPacketsRequest(clientID string, sequences []uint64) *QueryUnreceivedPacketsRequest {
 	return &QueryUnreceivedPacketsRequest{
-		ChannelId: channelID,
+		ClientId:  clientID,
 		Sequences: sequences,
 	}
 }
