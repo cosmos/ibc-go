@@ -87,7 +87,6 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 			}
 		})
 	}
-
 }
 
 // tests the IBC handler receiving a packet on ordered and unordered channels.
