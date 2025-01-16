@@ -325,11 +325,11 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 }
 
 // NewMsgRegisterCounterparty creates a new instance of MsgRegisterCounterparty.
-func NewMsgRegisterCounterparty(clientId string, merklePrefix [][]byte, counterpartyClientId string, signer string) *MsgRegisterCounterparty {
+func NewMsgRegisterCounterparty(clientID string, merklePrefix [][]byte, counterpartyClientID string, signer string) *MsgRegisterCounterparty {
 	return &MsgRegisterCounterparty{
-		ClientId:                 clientId,
+		ClientId:                 clientID,
 		CounterpartyMerklePrefix: merklePrefix,
-		CounterpartyClientId:     counterpartyClientId,
+		CounterpartyClientId:     counterpartyClientID,
 		Signer:                   signer,
 	}
 }
