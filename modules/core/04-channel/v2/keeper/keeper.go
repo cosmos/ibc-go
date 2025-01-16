@@ -9,10 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
 	channelkeeperv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
-	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
@@ -163,31 +161,4 @@ func (k *Keeper) SetNextSequenceSend(ctx context.Context, clientID string, seque
 	if err := store.Set(hostv2.NextSequenceSendKey(clientID), bigEndianBz); err != nil {
 		panic(err)
 	}
-}
-
-// resolveV2Identifiers returns the client identifier and the counterpartyInfo for the client given the packetId
-// Note: For fresh eureka channels, the client identifier and packet identifier are the same.
-// For aliased channels, the packet identifier will be the original channel ID and the counterpartyInfo will be constructed from the channel
-func (k *Keeper) resolveV2Identifiers(ctx context.Context, portId string, packetId string) (string, clienttypes.CounterpartyInfo, error) {
-	counterpartyInfo, ok := k.ClientKeeper.GetClientCounterparty(ctx, packetId)
-	if !ok {
-		channel, ok := k.channelKeeperV1.GetChannel(ctx, portId, packetId)
-		if ok {
-			connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
-			if !ok {
-				// should never happen since the connection should exist if the channel exists
-				return "", clienttypes.CounterpartyInfo{}, channeltypesv1.ErrChannelNotFound
-			}
-			// convert v1 merkle prefix into the v2 path format
-			merklePrefix := [][]byte{connection.Counterparty.Prefix.KeyPrefix, []byte("")}
-			// create the counterparty info, here we set the counterparty client Id to the the counterparty channel id
-			// this is because we want to preserve the original identifiers that are used to write provable paths to each other
-			counterpartyInfo = clienttypes.NewCounterpartyInfo(merklePrefix, channel.Counterparty.ChannelId)
-			return connection.ClientId, counterpartyInfo, nil
-		} else {
-			// neither client nor channel exists so return client not found error
-			return "", clienttypes.CounterpartyInfo{}, clienttypes.ErrClientNotFound
-		}
-	}
-	return packetId, counterpartyInfo, nil
 }

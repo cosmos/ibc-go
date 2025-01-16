@@ -270,7 +270,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			func() {
 				packet.DestinationClient = ibctesting.InvalidID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counter party client does not match source client",

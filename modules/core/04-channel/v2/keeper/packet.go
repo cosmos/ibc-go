@@ -24,10 +24,10 @@ func (k *Keeper) sendPacket(
 	timeoutTimestamp uint64,
 	payloads []types.Payload,
 ) (uint64, string, error) {
-	// lookup counterparty and clientid from packet identifiers
-	clientID, counterparty, err := k.resolveV2Identifiers(ctx, payloads[0].SourcePort, sourceClient)
-	if err != nil {
-		return 0, "", err
+	// lookup counterparty from packet identifiers
+	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, sourceClient)
+	if !ok {
+		return 0, "", errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", sourceClient)
 	}
 
 	sequence, found := k.GetNextSequenceSend(ctx, sourceClient)
@@ -43,17 +43,17 @@ func (k *Keeper) sendPacket(
 	}
 
 	// check that the client of counterparty chain is still active
-	if status := k.ClientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return 0, "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	if status := k.ClientKeeper.GetClientStatus(ctx, sourceClient); status != exported.Active {
+		return 0, "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", sourceClient, status)
 	}
 
 	// retrieve latest height and timestamp of the client of counterparty chain
-	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, clientID)
+	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, sourceClient)
 	if latestHeight.IsZero() {
-		return 0, "", errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", clientID)
+		return 0, "", errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", sourceClient)
 	}
 
-	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientID, latestHeight)
+	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceClient, latestHeight)
 	if err != nil {
 		return 0, "", err
 	}
@@ -91,10 +91,10 @@ func (k *Keeper) recvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// lookup counterparty and clientid from packet identifiers
-	clientID, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].DestinationPort, packet.DestinationClient)
-	if err != nil {
-		return err
+	// lookup counterparty from packet identifiers
+	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.DestinationClient)
+	if !ok {
+		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
 
 	if counterparty.ClientId != packet.SourceClient {
@@ -126,14 +126,14 @@ func (k *Keeper) recvPacket(
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		clientID,
+		packet.DestinationClient,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 		commitment,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationClient)
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
@@ -153,10 +153,10 @@ func (k Keeper) WriteAcknowledgement(
 	packet types.Packet,
 	ack types.Acknowledgement,
 ) error {
-	// lookup counterparty and clientid from packet identifiers
-	_, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].DestinationPort, packet.DestinationClient)
-	if err != nil {
-		return err
+	// lookup counterparty from packet identifiers
+	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.DestinationClient)
+	if !ok {
+		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
 
 	if counterparty.ClientId != packet.SourceClient {
@@ -190,10 +190,10 @@ func (k Keeper) WriteAcknowledgement(
 }
 
 func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, acknowledgement types.Acknowledgement, proof []byte, proofHeight exported.Height) error {
-	// lookup counterparty and clientid from packet identifiers
-	clientID, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].SourcePort, packet.SourceClient)
-	if err != nil {
-		return err
+	// lookup counterparty from packet identifiers
+	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.SourceClient)
+	if !ok {
+		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
 	}
 
 	if counterparty.ClientId != packet.DestinationClient {
@@ -222,14 +222,14 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		clientID,
+		packet.SourceClient,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 		types.CommitAcknowledgement(acknowledgement),
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientID)
+		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", packet.SourceClient)
 	}
 
 	k.DeletePacketCommitment(ctx, packet.SourceClient, packet.Sequence)
@@ -254,10 +254,10 @@ func (k *Keeper) timeoutPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// lookup counterparty and clientid from packet identifiers
-	clientID, counterparty, err := k.resolveV2Identifiers(ctx, packet.Payloads[0].SourcePort, packet.SourceClient)
-	if err != nil {
-		return err
+	// lookup counterparty from packet identifiers
+	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.SourceClient)
+	if !ok {
+		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
 	}
 
 	if counterparty.ClientId != packet.DestinationClient {
@@ -265,7 +265,7 @@ func (k *Keeper) timeoutPacket(
 	}
 
 	// check that timeout height or timeout timestamp has passed on the other end
-	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientID, proofHeight)
+	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceClient, proofHeight)
 	if err != nil {
 		return err
 	}
@@ -298,13 +298,13 @@ func (k *Keeper) timeoutPacket(
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
-		clientID,
+		packet.SourceClient,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientID)
+		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceClient)
 	}
 
 	// delete packet commitment to prevent replay

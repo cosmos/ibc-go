@@ -88,7 +88,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			malleate: func() {
 				path.EndpointA.ClientID = ibctesting.InvalidID
 			},
-			expError: clienttypes.ErrClientNotFound,
+			expError: clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			name: "failure: route to non existing app",
@@ -197,7 +197,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				// change the destination id to a non-existent channel.
 				packet.DestinationClient = ibctesting.InvalidID
 			},
-			expError: clienttypes.ErrClientNotFound,
+			expError: clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			name: "failure: invalid proof",
@@ -324,7 +324,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 				// change the source id to a non-existent channel.
 				packet.SourceClient = "not-existent-channel"
 			},
-			expError: clienttypes.ErrClientNotFound,
+			expError: clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			name: "failure: invalid commitment",
@@ -419,7 +419,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 				// change the source id to a non-existent client.
 				packet.SourceClient = "not-existent-client"
 			},
-			expError: clienttypes.ErrClientNotFound,
+			expError: clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			name: "failure: invalid commitment",

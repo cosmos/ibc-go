@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			func() {
 				packet.SourceClient = ibctesting.InvalidID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			"packet failed basic validation",
@@ -153,7 +153,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {
 				packet.DestinationClient = ibctesting.InvalidID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: client is not active",
@@ -254,7 +254,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			func() {
 				packet.DestinationClient = ibctesting.InvalidID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source client",
@@ -346,7 +346,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			func() {
 				packet.SourceClient = ibctesting.InvalidID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than destination client",
@@ -464,7 +464,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 				packet.SourceClient = ibctesting.InvalidID
 			},
-			clienttypes.ErrClientNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than destination client",
