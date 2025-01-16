@@ -79,6 +79,9 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 				counterpartyInfo, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(ok)
 				suite.Require().Equal(counterpartyInfo, clienttypes.NewCounterpartyInfo(merklePrefix, path.EndpointB.ClientID))
+				nextSeqSend, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().True(ok)
+				suite.Require().Equal(nextSeqSend, uint64(1))
 				creator := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().Empty(creator)
 			}

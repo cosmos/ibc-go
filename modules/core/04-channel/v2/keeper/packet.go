@@ -32,8 +32,7 @@ func (k *Keeper) sendPacket(
 
 	sequence, found := k.GetNextSequenceSend(ctx, sourceClient)
 	if !found {
-		// initialize sequnce to 1 if it does not exist
-		sequence = 1
+		return 0, "", errorsmod.Wrapf(types.ErrSequenceSendNotFound, "source client: %s", sourceClient)
 	}
 
 	// construct packet from given fields and channel state

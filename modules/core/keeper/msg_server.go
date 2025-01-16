@@ -61,6 +61,9 @@ func (k *Keeper) RegisterCounterparty(ctx context.Context, msg *clienttypes.MsgR
 	}
 	k.ClientKeeper.SetClientCounterparty(ctx, msg.ClientId, counterpartyInfo)
 
+	// initialize next sequence send to enable packet flow
+	k.ChannelKeeperV2.SetNextSequenceSend(ctx, msg.ClientId, 1)
+
 	k.ClientKeeper.DeleteClientCreator(ctx, msg.ClientId)
 	return &clienttypes.MsgRegisterCounterpartyResponse{}, nil
 }
