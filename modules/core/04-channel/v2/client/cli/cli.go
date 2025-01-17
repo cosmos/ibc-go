@@ -41,7 +41,7 @@ func NewTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	// TODO: Add v2 packet commands
+	// TODO: Add v2 packet commands: https://github.com/cosmos/ibc-go/issues/7853
 	txCmd.AddCommand()
 
 	return txCmd
