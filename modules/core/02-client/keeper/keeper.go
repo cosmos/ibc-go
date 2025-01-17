@@ -137,11 +137,13 @@ func (k *Keeper) DeleteClientCreator(ctx context.Context, clientID string) {
 	store.Delete(types.CreatorKey())
 }
 
+// SetClientCounterparty sets counterpartyInfo for a given clientID
 func (k *Keeper) SetClientCounterparty(ctx context.Context, clientID string, counterparty types.CounterpartyInfo) {
 	store := k.ClientStore(ctx, clientID)
 	store.Set(types.CounterpartyKey(), k.cdc.MustMarshal(&counterparty))
 }
 
+// GetClientCounterparty gets counterpartyInfo for a given clientID
 func (k *Keeper) GetClientCounterparty(ctx context.Context, clientID string) (types.CounterpartyInfo, bool) {
 	store := k.ClientStore(ctx, clientID)
 	bz := store.Get(types.CounterpartyKey())

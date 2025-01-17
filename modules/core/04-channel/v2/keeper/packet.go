@@ -24,7 +24,7 @@ func (k *Keeper) sendPacket(
 	timeoutTimestamp uint64,
 	payloads []types.Payload,
 ) (uint64, string, error) {
-	// lookup counterparty from packet identifiers
+	// lookup counterparty from client identifiers
 	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, sourceClient)
 	if !ok {
 		return 0, "", errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", sourceClient)
@@ -91,7 +91,7 @@ func (k *Keeper) recvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// lookup counterparty from packet identifiers
+	// lookup counterparty from client identifiers
 	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
@@ -109,7 +109,7 @@ func (k *Keeper) recvPacket(
 	}
 
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
-	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
+	// Packet receipts must not be pruned, unless it has been marked stale
 	// by the increase of the recvStartSequence.
 	if k.HasPacketReceipt(ctx, packet.DestinationClient, packet.Sequence) {
 		// This error indicates that the packet has already been relayed. Core IBC will
@@ -153,7 +153,7 @@ func (k Keeper) WriteAcknowledgement(
 	packet types.Packet,
 	ack types.Acknowledgement,
 ) error {
-	// lookup counterparty from packet identifiers
+	// lookup counterparty from client identifiers
 	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
@@ -190,7 +190,7 @@ func (k Keeper) WriteAcknowledgement(
 }
 
 func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, acknowledgement types.Acknowledgement, proof []byte, proofHeight exported.Height) error {
-	// lookup counterparty from packet identifiers
+	// lookup counterparty from client identifiers
 	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.SourceClient)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
@@ -254,7 +254,7 @@ func (k *Keeper) timeoutPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// lookup counterparty from packet identifiers
+	// lookup counterparty from client identifiers
 	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.SourceClient)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
