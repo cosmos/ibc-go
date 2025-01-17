@@ -1,55 +1,13 @@
 package types
 
 import (
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 )
 
-// NewQueryChannelRequest creates and returns a new channel query request.
-func NewQueryChannelRequest(channelID string) *QueryChannelRequest {
-	return &QueryChannelRequest{
-		ChannelId: channelID,
-	}
-}
-
-// NewQueryChannelResponse creates and returns a new channel query response.
-func NewQueryChannelResponse(channel Channel) *QueryChannelResponse {
-	return &QueryChannelResponse{
-		Channel: channel,
-	}
-}
-
-// NewQueryChannelClientStateRequest creates and returns a new ChannelClientState query request.
-func NewQueryChannelClientStateRequest(channelID string) *QueryChannelClientStateRequest {
-	return &QueryChannelClientStateRequest{
-		ChannelId: channelID,
-	}
-}
-
-// NewQueryChannelClientStateResponse creates and returns a new ChannelClientState query response.
-func NewQueryChannelClientStateResponse(identifiedClientState clienttypes.IdentifiedClientState, proof []byte, height clienttypes.Height) *QueryChannelClientStateResponse {
-	return &QueryChannelClientStateResponse{
-		IdentifiedClientState: &identifiedClientState,
-		Proof:                 proof,
-		ProofHeight:           height,
-	}
-}
-
-// NewQueryChannelConsensusStateResponse creates and returns a new ChannelConsensusState query response.
-func NewQueryChannelConsensusStateResponse(clientID string, anyConsensusState *codectypes.Any, proof []byte, height clienttypes.Height) *QueryChannelConsensusStateResponse {
-	return &QueryChannelConsensusStateResponse{
-		ConsensusState: anyConsensusState,
-		ClientId:       clientID,
-		Proof:          proof,
-		ProofHeight:    height,
-	}
-}
-
 // NewQueryNextSequenceSendRequest creates a new next sequence send query.
-func NewQueryNextSequenceSendRequest(channelID string) *QueryNextSequenceSendRequest {
+func NewQueryNextSequenceSendRequest(clientID string) *QueryNextSequenceSendRequest {
 	return &QueryNextSequenceSendRequest{
-		ChannelId: channelID,
+		ClientId: clientID,
 	}
 }
 
@@ -65,10 +23,10 @@ func NewQueryNextSequenceSendResponse(
 }
 
 // NewQueryPacketCommitmentRequest creates and returns a new packet commitment query request.
-func NewQueryPacketCommitmentRequest(channelID string, sequence uint64) *QueryPacketCommitmentRequest {
+func NewQueryPacketCommitmentRequest(clientID string, sequence uint64) *QueryPacketCommitmentRequest {
 	return &QueryPacketCommitmentRequest{
-		ChannelId: channelID,
-		Sequence:  sequence,
+		ClientId: clientID,
+		Sequence: sequence,
 	}
 }
 
@@ -82,10 +40,10 @@ func NewQueryPacketCommitmentResponse(commitmentHash []byte, proof []byte, proof
 }
 
 // NewQueryPacketAcknowledgementRequest creates and returns a new packet acknowledgement query request.
-func NewQueryPacketAcknowledgementRequest(channelID string, sequence uint64) *QueryPacketAcknowledgementRequest {
+func NewQueryPacketAcknowledgementRequest(clientID string, sequence uint64) *QueryPacketAcknowledgementRequest {
 	return &QueryPacketAcknowledgementRequest{
-		ChannelId: channelID,
-		Sequence:  sequence,
+		ClientId: clientID,
+		Sequence: sequence,
 	}
 }
 
@@ -99,10 +57,10 @@ func NewQueryPacketAcknowledgementResponse(acknowledgementHash []byte, proof []b
 }
 
 // NewQueryPacketReceiptRequest creates and returns a new packet receipt query request.
-func NewQueryPacketReceiptRequest(channelID string, sequence uint64) *QueryPacketReceiptRequest {
+func NewQueryPacketReceiptRequest(clientID string, sequence uint64) *QueryPacketReceiptRequest {
 	return &QueryPacketReceiptRequest{
-		ChannelId: channelID,
-		Sequence:  sequence,
+		ClientId: clientID,
+		Sequence: sequence,
 	}
 }
 
@@ -116,9 +74,9 @@ func NewQueryPacketReceiptResponse(exists bool, proof []byte, height clienttypes
 }
 
 // NewQueryPacketReceiptRequest creates and returns a new packet receipt query request.
-func NewQueryUnreceivedPacketsRequest(channelID string, sequences []uint64) *QueryUnreceivedPacketsRequest {
+func NewQueryUnreceivedPacketsRequest(clientID string, sequences []uint64) *QueryUnreceivedPacketsRequest {
 	return &QueryUnreceivedPacketsRequest{
-		ChannelId: channelID,
+		ClientId:  clientID,
 		Sequences: sequences,
 	}
 }

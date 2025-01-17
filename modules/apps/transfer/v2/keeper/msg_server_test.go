@@ -265,20 +265,20 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			nil,
 		},
 		{
-			"failure: invalid destination channel on received packet",
+			"failure: invalid destination client on received packet",
 			func() {},
 			func() {
-				packet.DestinationChannel = ibctesting.InvalidID
+				packet.DestinationClient = ibctesting.InvalidID
 			},
-			channeltypesv2.ErrChannelNotFound,
+			clienttypes.ErrCounterpartyNotFound,
 		},
 		{
-			"failure: counter party channel does not match source channel",
+			"failure: counter party client does not match source client",
 			func() {},
 			func() {
-				packet.SourceChannel = ibctesting.InvalidID
+				packet.SourceClient = ibctesting.InvalidID
 			},
-			channeltypes.ErrInvalidChannelIdentifier,
+			clienttypes.ErrInvalidCounterparty,
 		},
 		{
 			"failure: receive is disabled",
@@ -335,7 +335,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 			if expPass {
 				suite.Require().NoError(err)
 
-				actualAckHash := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeperV2.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationChannel, packet.Sequence)
+				actualAckHash := suite.chainB.GetSimApp().IBCKeeper.ChannelKeeperV2.GetPacketAcknowledgement(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
 				expectedHash := channeltypesv2.CommitAcknowledgement(expectedAck)
 
 				suite.Require().Equal(expectedHash, actualAckHash)
@@ -343,7 +343,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacketTransfer() {
 				denom := transfertypes.Denom{
 					Base: sdk.DefaultBondDenom,
 					Trace: []transfertypes.Hop{
-						transfertypes.NewHop(sendPayload.DestinationPort, packet.DestinationChannel),
+						transfertypes.NewHop(sendPayload.DestinationPort, packet.DestinationClient),
 					},
 				}
 
@@ -593,7 +593,7 @@ func (suite *KeeperTestSuite) TestV2RetainsFungibility() {
 	denomBtoC := transfertypes.Denom{
 		Base: sdk.DefaultBondDenom,
 		Trace: []transfertypes.Hop{
-			transfertypes.NewHop(transfertypes.ModuleName, pathv2.EndpointB.ChannelID),
+			transfertypes.NewHop(transfertypes.ModuleName, pathv2.EndpointB.ClientID),
 			transfertypes.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID),
 		},
 	}

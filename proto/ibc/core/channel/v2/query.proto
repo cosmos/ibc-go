@@ -5,132 +5,60 @@ package ibc.core.channel.v2;
 option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types";
 
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "ibc/core/channel/v2/channel.proto";
 import "ibc/core/channel/v2/genesis.proto";
 import "ibc/core/client/v1/client.proto";
 import "google/api/annotations.proto";
-import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
 
 // Query provides defines the gRPC querier service
 service Query {
-  // Channel queries the counterparty of an IBC client.
-  rpc Channel(QueryChannelRequest) returns (QueryChannelResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}";
-  }
-
-  // ChannelClientState queries for the client state for the channel associated
-  // with the provided channel identifiers.
-  rpc ChannelClientState(QueryChannelClientStateRequest) returns (QueryChannelClientStateResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/client_state";
-  }
-
-  // ChannelConsensusState queries for the consensus state for the channel associated
-  // with the provided channel identifiers.
-  rpc ChannelConsensusState(QueryChannelConsensusStateRequest) returns (QueryChannelConsensusStateResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/consensus_state";
-  }
-
   // NextSequenceSend returns the next send sequence for a given channel.
   rpc NextSequenceSend(QueryNextSequenceSendRequest) returns (QueryNextSequenceSendResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/next_sequence_send";
+    option (google.api.http).get = "/ibc/core/channel/v2/clients/{client_id}/next_sequence_send";
   }
 
   // PacketCommitment queries a stored packet commitment hash.
   rpc PacketCommitment(QueryPacketCommitmentRequest) returns (QueryPacketCommitmentResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/{sequence}";
+    option (google.api.http).get = "/ibc/core/channel/v2/clients/{client_id}/packet_commitments/{sequence}";
   }
 
   // PacketCommitments queries a stored packet commitment hash.
   rpc PacketCommitments(QueryPacketCommitmentsRequest) returns (QueryPacketCommitmentsResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments";
+    option (google.api.http).get = "/ibc/core/channel/v2/clients/{client_id}/packet_commitments";
   }
 
   // PacketAcknowledgement queries a stored acknowledgement commitment hash.
   rpc PacketAcknowledgement(QueryPacketAcknowledgementRequest) returns (QueryPacketAcknowledgementResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_acks/{sequence}";
+    option (google.api.http).get = "/ibc/core/channel/v2/clients/{client_id}/packet_acks/{sequence}";
   }
 
   // PacketAcknowledgements returns all packet acknowledgements associated with a channel.
   rpc PacketAcknowledgements(QueryPacketAcknowledgementsRequest) returns (QueryPacketAcknowledgementsResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_acknowledgements";
+    option (google.api.http).get = "/ibc/core/channel/v2/clients/{client_id}/packet_acknowledgements";
   }
 
   // PacketReceipt queries a stored packet receipt.
   rpc PacketReceipt(QueryPacketReceiptRequest) returns (QueryPacketReceiptResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_receipts/{sequence}";
+    option (google.api.http).get = "/ibc/core/channel/v2/clients/{client_id}/packet_receipts/{sequence}";
   }
 
   // UnreceivedPackets returns all the unreceived IBC packets associated with a channel and sequences.
   rpc UnreceivedPackets(QueryUnreceivedPacketsRequest) returns (QueryUnreceivedPacketsResponse) {
-    option (google.api.http).get = "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/"
+    option (google.api.http).get = "/ibc/core/channel/v2/clients/{client_id}/packet_commitments/"
                                    "{sequences}/unreceived_packets";
   }
 
   // UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a channel and sequences.
   rpc UnreceivedAcks(QueryUnreceivedAcksRequest) returns (QueryUnreceivedAcksResponse) {
     option (google.api.http).get =
-        "/ibc/core/channel/v2/channels/{channel_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks";
+        "/ibc/core/channel/v2/clients/{client_id}/packet_commitments/{packet_ack_sequences}/unreceived_acks";
   }
-}
-
-// QueryChannelRequest is the request type for the Query/Channel RPC method
-message QueryChannelRequest {
-  string channel_id = 1;
-}
-
-// QueryChannelRequest is the response type for the Query/Channel RPC method
-message QueryChannelResponse {
-  // the channel associated with the provided channel id
-  Channel channel = 1 [(gogoproto.nullable) = false];
-}
-
-// QueryChannelClientStateRequest is the request type for the Query/ClientState
-// RPC method
-message QueryChannelClientStateRequest {
-  // channel unique identifier
-  string channel_id = 1;
-}
-
-// QueryChannelClientStateResponse is the Response type for the
-// Query/QueryChannelClientState RPC method
-message QueryChannelClientStateResponse {
-  // client state associated with the channel
-  ibc.core.client.v1.IdentifiedClientState identified_client_state = 1;
-  // merkle proof of existence
-  bytes proof = 2;
-  // height at which the proof was retrieved
-  ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
-}
-
-// QueryChannelConsensusStateRequest is the request type for the Query/ConsensusState
-// RPC method
-message QueryChannelConsensusStateRequest {
-  // channel unique identifier
-  string channel_id = 1;
-  // revision number of the consensus state
-  uint64 revision_number = 2;
-  // revision height of the consensus state
-  uint64 revision_height = 3;
-}
-
-// QueryChannelConsensusStateResponse is the Response type for the
-// Query/QueryChannelConsensusState RPC method
-message QueryChannelConsensusStateResponse {
-  // consensus state associated with the channel
-  google.protobuf.Any consensus_state = 1;
-  // client ID associated with the consensus state
-  string client_id = 2;
-  // merkle proof of existence
-  bytes proof = 3;
-  // height at which the proof was retrieved
-  ibc.core.client.v1.Height proof_height = 4 [(gogoproto.nullable) = false];
 }
 
 // QueryNextSequenceSendRequest is the request type for the Query/QueryNextSequenceSend RPC method
 message QueryNextSequenceSendRequest {
-  // channel unique identifier
-  string channel_id = 1;
+  // client unique identifier
+  string client_id = 1;
 }
 
 // QueryNextSequenceSendResponse is the response type for the Query/QueryNextSequenceSend RPC method
@@ -145,8 +73,8 @@ message QueryNextSequenceSendResponse {
 
 // QueryPacketCommitmentRequest is the request type for the Query/PacketCommitment RPC method.
 message QueryPacketCommitmentRequest {
-  // channel unique identifier
-  string channel_id = 1;
+  // client unique identifier
+  string client_id = 1;
   // packet sequence
   uint64 sequence = 2;
 }
@@ -163,8 +91,8 @@ message QueryPacketCommitmentResponse {
 
 // QueryPacketCommitmentsRequest is the request type for the Query/PacketCommitments RPC method.
 message QueryPacketCommitmentsRequest {
-  // channel unique identifier
-  string channel_id = 1;
+  // client unique identifier
+  string client_id = 1;
   // pagination request
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
@@ -181,8 +109,8 @@ message QueryPacketCommitmentsResponse {
 
 // QueryPacketAcknowledgementRequest is the request type for the Query/PacketAcknowledgement RPC method.
 message QueryPacketAcknowledgementRequest {
-  // channel unique identifier
-  string channel_id = 1;
+  // client unique identifier
+  string client_id = 1;
   // packet sequence
   uint64 sequence = 2;
 }
@@ -200,8 +128,8 @@ message QueryPacketAcknowledgementResponse {
 // QueryPacketAcknowledgementsRequest is the request type for the
 // Query/QueryPacketCommitments RPC method
 message QueryPacketAcknowledgementsRequest {
-  // channel unique identifier
-  string channel_id = 1;
+  // client unique identifier
+  string client_id = 1;
   // pagination request
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
   // list of packet sequences
@@ -220,12 +148,10 @@ message QueryPacketAcknowledgementsResponse {
 
 // QueryPacketReceiptRequest is the request type for the Query/PacketReceipt RPC method.
 message QueryPacketReceiptRequest {
-  // port unique identifier
-  string port_id = 1;
-  // channel unique identifier
-  string channel_id = 2;
+  // client unique identifier
+  string client_id = 1;
   // packet sequence
-  uint64 sequence = 3;
+  uint64 sequence = 2;
 }
 
 // QueryPacketReceiptResponse is the response type for the Query/PacketReceipt RPC method.
@@ -240,8 +166,8 @@ message QueryPacketReceiptResponse {
 
 // QueryUnreceivedPacketsRequest is the request type for the Query/UnreceivedPackets RPC method
 message QueryUnreceivedPacketsRequest {
-  // channel unique identifier
-  string channel_id = 1;
+  // client unique identifier
+  string client_id = 1;
   // list of packet sequences
   repeated uint64 sequences = 2;
 }
@@ -253,11 +179,12 @@ message QueryUnreceivedPacketsResponse {
   // query block height
   ibc.core.client.v1.Height height = 2 [(gogoproto.nullable) = false];
 }
+
 // QueryUnreceivedAcks is the request type for the
 // Query/UnreceivedAcks RPC method
 message QueryUnreceivedAcksRequest {
-  // channel unique identifier
-  string channel_id = 1;
+  // client unique identifier
+  string client_id = 1;
   // list of acknowledgement sequences
   repeated uint64 packet_ack_sequences = 2;
 }

@@ -34,97 +34,21 @@ func NewQueryServer(k *Keeper) types.QueryServer {
 	}
 }
 
-// Channel implements the Query/Channel gRPC method
-func (q *queryServer) Channel(ctx context.Context, req *types.QueryChannelRequest) (*types.QueryChannelResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	channel, found := q.GetChannel(ctx, req.ChannelId)
-	if !found {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", req.ChannelId).Error())
-	}
-
-	return types.NewQueryChannelResponse(channel), nil
-}
-
-// ChannelClientState implements the Query/ChannelClientState gRPC method
-func (q *queryServer) ChannelClientState(ctx context.Context, req *types.QueryChannelClientStateRequest) (*types.QueryChannelClientStateResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	channel, found := q.GetChannel(ctx, req.ChannelId)
-	if !found {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", req.ChannelId).Error())
-	}
-
-	clientState, found := q.ClientKeeper.GetClientState(ctx, channel.ClientId)
-	if !found {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrapf(clienttypes.ErrClientNotFound, "client-id: %s", channel.ClientId).Error())
-	}
-
-	identifiedClientState := clienttypes.NewIdentifiedClientState(channel.ClientId, clientState)
-	res := types.NewQueryChannelClientStateResponse(identifiedClientState, nil, clienttypes.GetSelfHeight(ctx))
-
-	return res, nil
-}
-
-// ChannelConsensusState implements the Query/ChannelConsensusState gRPC method
-func (q *queryServer) ChannelConsensusState(ctx context.Context, req *types.QueryChannelConsensusStateRequest) (*types.QueryChannelConsensusStateResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	channel, found := q.GetChannel(ctx, req.ChannelId)
-	if !found {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrapf(types.ErrChannelNotFound, "channel-id: %s", req.ChannelId).Error())
-	}
-
-	consHeight := clienttypes.NewHeight(req.RevisionNumber, req.RevisionHeight)
-	consensusState, found := q.ClientKeeper.GetClientConsensusState(ctx, channel.ClientId, consHeight)
-	if !found {
-		return nil, status.Error(
-			codes.NotFound,
-			errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "client-id: %s", channel.ClientId).Error(),
-		)
-	}
-
-	anyConsensusState, err := clienttypes.PackConsensusState(consensusState)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	return types.NewQueryChannelConsensusStateResponse(channel.ClientId, anyConsensusState, nil, clienttypes.GetSelfHeight(ctx)), nil
-}
-
 // NextSequenceSend implements the Query/NextSequenceSend gRPC method
 func (q *queryServer) NextSequenceSend(ctx context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	sequence, found := q.GetNextSequenceSend(ctx, req.ChannelId)
+	sequence, found := q.GetNextSequenceSend(ctx, req.ClientId)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
-			errorsmod.Wrapf(types.ErrSequenceSendNotFound, "channel-id %s", req.ChannelId).Error(),
+			errorsmod.Wrapf(types.ErrSequenceSendNotFound, "client-id %s", req.ClientId).Error(),
 		)
 	}
 	return types.NewQueryNextSequenceSendResponse(sequence, nil, clienttypes.GetSelfHeight(ctx)), nil
@@ -136,7 +60,7 @@ func (q *queryServer) PacketCommitment(ctx context.Context, req *types.QueryPack
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -144,11 +68,7 @@ func (q *queryServer) PacketCommitment(ctx context.Context, req *types.QueryPack
 		return nil, status.Error(codes.InvalidArgument, "packet sequence cannot be 0")
 	}
 
-	if !q.HasChannel(ctx, req.ChannelId) {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
-	}
-
-	commitment := q.GetPacketCommitment(ctx, req.ChannelId, req.Sequence)
+	commitment := q.GetPacketCommitment(ctx, req.ClientId, req.Sequence)
 	if len(commitment) == 0 {
 		return nil, status.Error(codes.NotFound, "packet commitment hash not found")
 	}
@@ -162,16 +82,12 @@ func (q *queryServer) PacketCommitments(ctx context.Context, req *types.QueryPac
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	if !q.HasChannel(ctx, req.ChannelId) {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
-	}
-
 	var commitments []*types.PacketState
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), hostv2.PacketCommitmentPrefixKey(req.ChannelId))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), hostv2.PacketCommitmentPrefixKey(req.ClientId))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		keySplit := strings.Split(string(key), "/")
@@ -181,7 +97,7 @@ func (q *queryServer) PacketCommitments(ctx context.Context, req *types.QueryPac
 			return types.ErrInvalidPacket
 		}
 
-		commitment := types.NewPacketState(req.ChannelId, sequence, value)
+		commitment := types.NewPacketState(req.ClientId, sequence, value)
 		commitments = append(commitments, &commitment)
 		return nil
 	})
@@ -203,7 +119,7 @@ func (q *queryServer) PacketAcknowledgement(ctx context.Context, req *types.Quer
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -211,11 +127,7 @@ func (q *queryServer) PacketAcknowledgement(ctx context.Context, req *types.Quer
 		return nil, status.Error(codes.InvalidArgument, "packet sequence cannot be 0")
 	}
 
-	if !q.HasChannel(ctx, req.ChannelId) {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
-	}
-
-	acknowledgement := q.GetPacketAcknowledgement(ctx, req.ChannelId, req.Sequence)
+	acknowledgement := q.GetPacketAcknowledgement(ctx, req.ClientId, req.Sequence)
 	if len(acknowledgement) == 0 {
 		return nil, status.Error(codes.NotFound, "packet acknowledgement hash not found")
 	}
@@ -229,26 +141,22 @@ func (q *queryServer) PacketAcknowledgements(ctx context.Context, req *types.Que
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	if !q.HasChannel(ctx, req.ChannelId) {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
-	}
-
 	var acks []*types.PacketState
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), hostv2.PacketAcknowledgementPrefixKey(req.ChannelId))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.KVStoreService.OpenKVStore(ctx)), hostv2.PacketAcknowledgementPrefixKey(req.ClientId))
 
 	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
 	// otherwise, maintain previous behaviour and perform paginated query
 	for _, seq := range req.PacketCommitmentSequences {
-		acknowledgement := q.GetPacketAcknowledgement(ctx, req.ChannelId, seq)
+		acknowledgement := q.GetPacketAcknowledgement(ctx, req.ClientId, seq)
 		if len(acknowledgement) == 0 {
 			continue
 		}
 
-		ack := types.NewPacketState(req.ChannelId, seq, acknowledgement)
+		ack := types.NewPacketState(req.ClientId, seq, acknowledgement)
 		acks = append(acks, &ack)
 	}
 
@@ -269,7 +177,7 @@ func (q *queryServer) PacketAcknowledgements(ctx context.Context, req *types.Que
 			return types.ErrInvalidPacket
 		}
 
-		ack := types.NewPacketState(req.ChannelId, sequence, value)
+		ack := types.NewPacketState(req.ClientId, sequence, value)
 		acks = append(acks, &ack)
 
 		return nil
@@ -291,7 +199,7 @@ func (q *queryServer) PacketReceipt(ctx context.Context, req *types.QueryPacketR
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
@@ -299,11 +207,7 @@ func (q *queryServer) PacketReceipt(ctx context.Context, req *types.QueryPacketR
 		return nil, status.Error(codes.InvalidArgument, "packet sequence cannot be 0")
 	}
 
-	if !q.HasChannel(ctx, req.ChannelId) {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
-	}
-
-	hasReceipt := q.HasPacketReceipt(ctx, req.ChannelId, req.Sequence)
+	hasReceipt := q.HasPacketReceipt(ctx, req.ClientId, req.Sequence)
 
 	return types.NewQueryPacketReceiptResponse(hasReceipt, nil, clienttypes.GetSelfHeight(ctx)), nil
 }
@@ -329,12 +233,8 @@ func (q *queryServer) UnreceivedPackets(ctx context.Context, req *types.QueryUnr
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	if !q.HasChannel(ctx, req.ChannelId) {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
 	}
 
 	var unreceivedSequences []uint64
@@ -345,7 +245,7 @@ func (q *queryServer) UnreceivedPackets(ctx context.Context, req *types.QueryUnr
 		}
 
 		// if the packet receipt does not exist, then it is unreceived
-		if !q.HasPacketReceipt(ctx, req.ChannelId, seq) {
+		if !q.HasPacketReceipt(ctx, req.ClientId, seq) {
 			unreceivedSequences = append(unreceivedSequences, seq)
 		}
 	}
@@ -379,12 +279,8 @@ func (q *queryServer) UnreceivedAcks(ctx context.Context, req *types.QueryUnrece
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := host.ChannelIdentifierValidator(req.ChannelId); err != nil {
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	if !q.HasChannel(ctx, req.ChannelId) {
-		return nil, status.Error(codes.NotFound, errorsmod.Wrap(types.ErrChannelNotFound, req.ChannelId).Error())
 	}
 
 	var unreceivedSequences []uint64
@@ -396,7 +292,7 @@ func (q *queryServer) UnreceivedAcks(ctx context.Context, req *types.QueryUnrece
 
 		// if packet commitment still exists on the original sending chain, then packet ack has not been received
 		// since processing the ack will delete the packet commitment
-		if commitment := q.GetPacketCommitment(ctx, req.ChannelId, seq); len(commitment) != 0 {
+		if commitment := q.GetPacketCommitment(ctx, req.ClientId, seq); len(commitment) != 0 {
 			unreceivedSequences = append(unreceivedSequences, seq)
 		}
 

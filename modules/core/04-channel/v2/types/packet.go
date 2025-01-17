@@ -10,13 +10,13 @@ import (
 )
 
 // NewPacket constructs a new packet.
-func NewPacket(sequence uint64, sourceChannel, destinationChannel string, timeoutTimestamp uint64, payloads ...Payload) Packet {
+func NewPacket(sequence uint64, sourceClient, destinationClient string, timeoutTimestamp uint64, payloads ...Payload) Packet {
 	return Packet{
-		Sequence:           sequence,
-		SourceChannel:      sourceChannel,
-		DestinationChannel: destinationChannel,
-		TimeoutTimestamp:   timeoutTimestamp,
-		Payloads:           payloads,
+		Sequence:          sequence,
+		SourceClient:      sourceClient,
+		DestinationClient: destinationClient,
+		TimeoutTimestamp:  timeoutTimestamp,
+		Payloads:          payloads,
 	}
 }
 
@@ -43,11 +43,11 @@ func (p Packet) ValidateBasic() error {
 		}
 	}
 
-	if err := host.ChannelIdentifierValidator(p.SourceChannel); err != nil {
-		return errorsmod.Wrap(err, "invalid source channel ID")
+	if err := host.ChannelIdentifierValidator(p.SourceClient); err != nil {
+		return errorsmod.Wrap(err, "invalid source ID")
 	}
-	if err := host.ChannelIdentifierValidator(p.DestinationChannel); err != nil {
-		return errorsmod.Wrap(err, "invalid destination channel ID")
+	if err := host.ChannelIdentifierValidator(p.DestinationClient); err != nil {
+		return errorsmod.Wrap(err, "invalid destination ID")
 	}
 
 	if p.Sequence == 0 {
