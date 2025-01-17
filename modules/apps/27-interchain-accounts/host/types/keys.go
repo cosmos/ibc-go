@@ -1,6 +1,8 @@
 package types
 
 import (
+	"slices"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -25,11 +27,5 @@ func ContainsMsgType(allowMsgs []string, msg sdk.Msg) bool {
 		return true
 	}
 
-	for _, v := range allowMsgs {
-		if v == sdk.MsgTypeURL(msg) {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(allowMsgs, sdk.MsgTypeURL(msg))
 }
