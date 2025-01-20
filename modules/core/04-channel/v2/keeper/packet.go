@@ -57,15 +57,14 @@ func (k *Keeper) sendPacket(
 	// client timestamps are in nanoseconds while packet timeouts are in seconds
 	// thus to compare them, we convert the client timestamp to seconds in uint64
 	// to be consistent with IBC V2 specified timeout behaviour
-	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceClient, latestHeight)
+	latestTimestampNano, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceClient, latestHeight)
 	if err != nil {
 		return 0, "", err
 	}
-	latestTimestampSecs := uint64(time.Unix(0, int64(latestTimestamp)).Unix())
+	latestTimestamp := uint64(time.Unix(0, int64(latestTimestampNano)).Unix())
 
-	timeoutTimestamp = types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
-	if latestTimestampSecs >= packet.TimeoutTimestamp {
-		return 0, "", errorsmod.Wrapf(types.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeoutTimestamp)
+	if latestTimestamp >= packet.TimeoutTimestamp {
+		return 0, "", errorsmod.Wrapf(types.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, packet.TimeoutTimestamp)
 	}
 
 	commitment := types.CommitPacket(packet)
@@ -271,13 +270,13 @@ func (k *Keeper) timeoutPacket(
 	// client timestamps are in nanoseconds while packet timeouts are in seconds
 	// so we convert client timestamp to seconds in uint64 to be consistent
 	// with IBC V2 timeout behaviour
-	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceClient, proofHeight)
+	proofTimestampNano, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceClient, proofHeight)
 	if err != nil {
 		return err
 	}
-	proofTimestampSecs := uint64(time.Unix(0, int64(proofTimestamp)).Unix())
+	proofTimestamp := uint64(time.Unix(0, int64(proofTimestampNano)).Unix())
 
-	if proofTimestampSecs < packet.TimeoutTimestamp {
+	if proofTimestamp < packet.TimeoutTimestamp {
 		return errorsmod.Wrapf(types.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, packet.TimeoutTimestamp)
 	}
 
