@@ -50,10 +50,10 @@ import (
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
 func (k Keeper) SendTransfer(
 	ctx context.Context,
-	tokens types.Tokens,
-	sender sdk.AccAddress,
 	sourcePort string,
 	sourceChannel string,
+	tokens types.Tokens,
+	sender sdk.AccAddress,
 ) error {
 	if !k.GetParams(ctx).SendEnabled {
 		return types.ErrSendDisabled
@@ -266,11 +266,12 @@ func (k Keeper) HandleForwardedPacketAcknowledgement(
 	data types.FungibleTokenPacketDataV2,
 	ack channeltypes.Acknowledgement,
 ) error {
+	var forwardAck channeltypes.Acknowledgement
+
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
 		// Write a successful async ack for the forwardedPacket
-		forwardAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-		return k.acknowledgeForwardedPacket(ctx, forwardedPacket, packet, forwardAck)
+		forwardAck = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 	case *channeltypes.Acknowledgement_Error:
 		// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
 		// we must revert the changes that came from successfully receiving the tokens on our chain
@@ -279,11 +280,12 @@ func (k Keeper) HandleForwardedPacketAcknowledgement(
 			return err
 		}
 
-		forwardAck := internaltypes.NewForwardErrorAcknowledgement(packet, ack)
-		return k.acknowledgeForwardedPacket(ctx, forwardedPacket, packet, forwardAck)
+		forwardAck = internaltypes.NewForwardErrorAcknowledgement(packet, ack)
 	default:
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 	}
+
+	return k.acknowledgeForwardedPacket(ctx, forwardedPacket, packet, forwardAck)
 }
 
 // OnTimeoutPacket processes a transfer packet timeout by refunding the tokens to the sender

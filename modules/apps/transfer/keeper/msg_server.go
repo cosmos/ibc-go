@@ -67,7 +67,7 @@ func (k Keeper) Transfer(ctx context.Context, msg *types.MsgTransfer) (*types.Ms
 		}
 	}
 
-	if err := k.SendTransfer(ctx, tokens, sender, msg.SourcePort, msg.SourceChannel); err != nil {
+	if err := k.SendTransfer(ctx, msg.SourcePort, msg.SourceChannel, tokens, sender); err != nil {
 		return nil, err
 	}
 

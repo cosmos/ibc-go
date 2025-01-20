@@ -44,7 +44,7 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "sender %s is different from signer %s", sender, signer)
 	}
 
-	if err := im.keeper.SendTransfer(goCtx, data.Tokens, signer, payload.SourcePort, sourceChannel); err != nil {
+	if err := im.keeper.SendTransfer(goCtx, payload.SourcePort, sourceChannel, data.Tokens, signer); err != nil {
 		return err
 	}
 
