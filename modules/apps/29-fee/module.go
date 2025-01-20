@@ -8,27 +8,28 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
 	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/client/cli"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 )
 
 var (
-	_ module.AppModule              = (*AppModule)(nil)
-	_ module.HasAminoCodec          = AppModule{}
-	_ module.AppModuleSimulation    = (*AppModule)(nil)
-	_ module.HasGenesis             = (*AppModule)(nil)
-	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
-	_ module.HasServices            = (*AppModule)(nil)
 	_ appmodule.AppModule           = (*AppModule)(nil)
+	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
+
+	_ module.AppModule   = (*AppModule)(nil)
+	_ module.HasGenesis  = (*AppModule)(nil)
+	_ module.HasServices = (*AppModule)(nil)
+
+	_ autocli.HasCustomTxCommand    = (*AppModule)(nil)
+	_ autocli.HasCustomQueryCommand = (*AppModule)(nil)
 )
 
 // AppModule represents the AppModule for this module
@@ -55,11 +56,6 @@ func (AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
-
-// RegisterLegacyAminoCodec implements AppModule interface
-func (AppModule) RegisterLegacyAminoCodec(cdc coreregistry.AminoRegistrar) {
-	types.RegisterLegacyAminoCodec(cdc)
-}
 
 // RegisterInterfaces registers module concrete types into protobuf Any.
 func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
@@ -129,18 +125,3 @@ func (am AppModule) ExportGenesis(ctx context.Context) (json.RawMessage, error) 
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 2 }
-
-// AppModuleSimulation functions
-
-// GenerateGenesisState creates a randomized GenState of the 29-fee module.
-func (AppModule) GenerateGenesisState(_ *module.SimulationState) {
-}
-
-// RegisterStoreDecoder registers a decoder for 29-fee module's types
-func (AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {
-}
-
-// WeightedOperations returns the all the 29-fee module operations with their respective weights.
-func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
-	return nil
-}
