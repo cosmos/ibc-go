@@ -28,6 +28,9 @@ var (
 			"v8.1",
 		},
 	}
+	govv1ProposalProposalType = semverutil.FeatureReleases{
+		MajorVersion: "v10",
+	}
 )
 
 // Messages removes any fields that are not supported by the chain version.
@@ -48,6 +51,9 @@ func removeUnknownFields(tag string, msg sdk.Msg) sdk.Msg {
 		if !govv1ProposalTitleAndSummary.IsSupported(tag) {
 			msg.Title = ""
 			msg.Summary = ""
+		}
+		if !govv1ProposalProposalType.IsSupported(tag) {
+			msg.ProposalType = govtypesv1.ProposalType_PROPOSAL_TYPE_UNSPECIFIED
 		}
 		// sanitize messages contained in the x/gov proposal
 		msgs, err := msg.GetMsgs()
