@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"strconv"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -53,15 +54,17 @@ func (k *Keeper) sendPacket(
 		return 0, "", errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", sourceClient)
 	}
 
+	// client timestamps are in nanoseconds while packet timeouts are in seconds
+	// thus to compare them, we convert the client timestamp to seconds in uint64
+	// to be consistent with IBC V2 specified timeout behaviour
 	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceClient, latestHeight)
 	if err != nil {
 		return 0, "", err
 	}
+	latestTimestampSecs := uint64(time.Unix(0, int64(latestTimestamp)).Unix())
 
-	// client timestamps are in nanoseconds while packet timeouts are in seconds
-	// thus to compare them, we convert the packet timeout to nanoseconds
 	timeoutTimestamp = types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
-	if latestTimestamp >= timeoutTimestamp {
+	if latestTimestampSecs >= packet.TimeoutTimestamp {
 		return 0, "", errorsmod.Wrapf(types.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeoutTimestamp)
 	}
 
@@ -264,15 +267,18 @@ func (k *Keeper) timeoutPacket(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
 	}
 
-	// check that timeout height or timeout timestamp has passed on the other end
+	// check that timeout timestamp has passed on the other end
+	// client timestamps are in nanoseconds while packet timeouts are in seconds
+	// so we convert client timestamp to seconds in uint64 to be consistent
+	// with IBC V2 timeout behaviour
 	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceClient, proofHeight)
 	if err != nil {
 		return err
 	}
+	proofTimestampSecs := uint64(time.Unix(0, int64(proofTimestamp)).Unix())
 
-	timeoutTimestamp := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
-	if proofTimestamp < timeoutTimestamp {
-		return errorsmod.Wrapf(types.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, timeoutTimestamp)
+	if proofTimestampSecs < packet.TimeoutTimestamp {
+		return errorsmod.Wrapf(types.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, packet.TimeoutTimestamp)
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
