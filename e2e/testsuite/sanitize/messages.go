@@ -6,9 +6,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	cmtcrypto "github.com/cometbft/cometbft/api/cometbft/crypto/v1"
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
+
 	"github.com/cosmos/ibc-go/e2e/semverutil"
 	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
 var (
@@ -28,7 +33,12 @@ var (
 			"v8.1",
 		},
 	}
+	// groupsv1ProposalProposalType represents the releases that support the new proposal type field.
 	govv1ProposalProposalType = semverutil.FeatureReleases{
+		MajorVersion: "v10",
+	}
+	// cometBFTv1Validator represents the releases that support the new validator fields.
+	cometBFTv1Validator = semverutil.FeatureReleases{
 		MajorVersion: "v10",
 	}
 )
@@ -84,6 +94,44 @@ func removeUnknownFields(tag string, msg sdk.Msg) sdk.Msg {
 		if !icaUnorderedChannelFeatureReleases.IsSupported(tag) {
 			msg.Ordering = channeltypes.NONE
 		}
+	case *clienttypes.MsgUpdateClient:
+		if !cometBFTv1Validator.IsSupported(tag) {
+			clientMessage, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
+			if err != nil {
+				panic(err)
+			}
+			header, ok := clientMessage.(*ibctm.Header)
+			if !ok {
+				return msg
+			}
+
+			replaceCometBFTValidatorV1(header.ValidatorSet.Proposer)
+			for _, validator := range header.ValidatorSet.Validators {
+				replaceCometBFTValidatorV1(validator)
+			}
+
+			replaceCometBFTValidatorV1(header.TrustedValidators.Proposer)
+			for _, validator := range header.TrustedValidators.Validators {
+				replaceCometBFTValidatorV1(validator)
+			}
+
+			// repack the client message
+			clientMessageAny, err := clienttypes.PackClientMessage(header)
+			if err != nil {
+				panic(err)
+			}
+			msg.ClientMessage = clientMessageAny
+		}
 	}
 	return msg
+}
+
+func replaceCometBFTValidatorV1(validator *cmtproto.Validator) {
+	validator.PubKey = &cmtcrypto.PublicKey{
+		Sum: &cmtcrypto.PublicKey_Ed25519{
+			Ed25519: validator.PubKeyBytes,
+		},
+	}
+	validator.PubKeyBytes = nil
+	validator.PubKeyType = ""
 }

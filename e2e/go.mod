@@ -12,6 +12,7 @@ require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.5.0
 	cosmossdk.io/x/upgrade v0.1.4
+	cosmossdk.io/api v0.8.1
 	github.com/cometbft/cometbft v1.0.0
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/gogoproto v1.7.0
