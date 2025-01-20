@@ -126,6 +126,7 @@ func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	clienttypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	clienttypes.RegisterCounterpartyMsgServer(cfg.MsgServer(), am.keeper)
 	connectiontypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	channeltypesv2.RegisterMsgServer(cfg.MsgServer(), am.keeper.ChannelKeeperV2)

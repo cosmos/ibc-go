@@ -115,6 +115,47 @@ func (k *Keeper) SetClientState(ctx context.Context, clientID string, clientStat
 	store.Set(host.ClientStateKey(), types.MustMarshalClientState(k.cdc, clientState))
 }
 
+// GetClientCreator returns the creator of a client
+func (k *Keeper) GetClientCreator(ctx context.Context, clientID string) sdk.AccAddress {
+	store := k.ClientStore(ctx, clientID)
+	bz := store.Get(types.CreatorKey())
+	if len(bz) == 0 {
+		return nil
+	}
+	return sdk.AccAddress(bz)
+}
+
+// SetClientCreator sets the creator of a client
+func (k *Keeper) SetClientCreator(ctx context.Context, clientID string, creator sdk.AccAddress) {
+	store := k.ClientStore(ctx, clientID)
+	store.Set(types.CreatorKey(), creator.Bytes())
+}
+
+// DeleteClientCreator deletes the creator of a client
+func (k *Keeper) DeleteClientCreator(ctx context.Context, clientID string) {
+	store := k.ClientStore(ctx, clientID)
+	store.Delete(types.CreatorKey())
+}
+
+// SetClientCounterparty sets counterpartyInfo for a given clientID
+func (k *Keeper) SetClientCounterparty(ctx context.Context, clientID string, counterparty types.CounterpartyInfo) {
+	store := k.ClientStore(ctx, clientID)
+	store.Set(types.CounterpartyKey(), k.cdc.MustMarshal(&counterparty))
+}
+
+// GetClientCounterparty gets counterpartyInfo for a given clientID
+func (k *Keeper) GetClientCounterparty(ctx context.Context, clientID string) (types.CounterpartyInfo, bool) {
+	store := k.ClientStore(ctx, clientID)
+	bz := store.Get(types.CounterpartyKey())
+	if len(bz) == 0 {
+		return types.CounterpartyInfo{}, false
+	}
+
+	var counterparty types.CounterpartyInfo
+	k.cdc.MustUnmarshal(bz, &counterparty)
+	return counterparty, true
+}
+
 // GetClientConsensusState gets the stored consensus state from a client at a given height.
 func (k *Keeper) GetClientConsensusState(ctx context.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
 	store := k.ClientStore(ctx, clientID)

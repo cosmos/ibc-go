@@ -7,16 +7,9 @@ package keeper
 import (
 	"context"
 
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
-
-// ChannelStore is a wrapper around channelStore to allow its usage during testing.
-func (k Keeper) ChannelStore(ctx context.Context) storetypes.KVStore {
-	return k.channelStore(ctx)
-}
 
 func (k *Keeper) SendPacketTest(
 	ctx context.Context,
@@ -74,9 +67,4 @@ func (k *Keeper) TimeoutPacketTest(
 		proof,
 		proofHeight,
 	)
-}
-
-// AliasV1Channel is a wrapper around aliasV1Channel to allow its usage in tests.
-func (k *Keeper) AliasV1Channel(ctx context.Context, portID, channelID string) (types.Channel, bool) {
-	return k.aliasV1Channel(ctx, portID, channelID)
 }

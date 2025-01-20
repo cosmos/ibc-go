@@ -11,8 +11,6 @@ import (
 func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
-		&MsgCreateChannel{},
-		&MsgRegisterCounterparty{},
 		&MsgSendPacket{},
 		&MsgRecvPacket{},
 		&MsgTimeout{},

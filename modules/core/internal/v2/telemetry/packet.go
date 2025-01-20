@@ -16,9 +16,9 @@ func ReportRecvPacket(packet types.Packet) {
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(ibcmetrics.LabelSourcePort, payload.SourcePort),
-				telemetry.NewLabel(ibcmetrics.LabelSourceChannel, packet.SourceChannel),
+				telemetry.NewLabel(ibcmetrics.LabelSourceChannel, packet.SourceClient),
 				telemetry.NewLabel(ibcmetrics.LabelDestinationPort, payload.DestinationPort),
-				telemetry.NewLabel(ibcmetrics.LabelDestinationChannel, packet.DestinationChannel),
+				telemetry.NewLabel(ibcmetrics.LabelDestinationChannel, packet.DestinationClient),
 			},
 		)
 	}
@@ -31,9 +31,9 @@ func ReportTimeoutPacket(packet types.Packet) {
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(ibcmetrics.LabelSourcePort, payload.SourcePort),
-				telemetry.NewLabel(ibcmetrics.LabelSourceChannel, packet.SourceChannel),
+				telemetry.NewLabel(ibcmetrics.LabelSourceChannel, packet.SourceClient),
 				telemetry.NewLabel(ibcmetrics.LabelDestinationPort, payload.DestinationPort),
-				telemetry.NewLabel(ibcmetrics.LabelDestinationChannel, packet.DestinationChannel),
+				telemetry.NewLabel(ibcmetrics.LabelDestinationChannel, packet.DestinationClient),
 				telemetry.NewLabel(ibcmetrics.LabelTimeoutType, "height"),
 			},
 		)
@@ -47,9 +47,9 @@ func ReportAcknowledgePacket(packet types.Packet) {
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(ibcmetrics.LabelSourcePort, payload.SourcePort),
-				telemetry.NewLabel(ibcmetrics.LabelSourceChannel, packet.SourceChannel),
+				telemetry.NewLabel(ibcmetrics.LabelSourceChannel, packet.SourceClient),
 				telemetry.NewLabel(ibcmetrics.LabelDestinationPort, payload.DestinationPort),
-				telemetry.NewLabel(ibcmetrics.LabelDestinationChannel, packet.DestinationChannel),
+				telemetry.NewLabel(ibcmetrics.LabelDestinationChannel, packet.DestinationClient),
 			},
 		)
 	}
