@@ -13,13 +13,14 @@ func (s *TypesTestSuite) TestBuildMerklePath() {
 
 	prefixPath := [][]byte{[]byte("ibc"), []byte("")}
 	packetCommitmentKey := host.PacketCommitmentKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1)
+	emptyPrefixPanicMsg := "cannot build merkle path with empty prefix"
 
 	testCases := []struct {
 		name      string
 		prefix    [][]byte
 		path      []byte
 		expPath   commitmenttypesv2.MerklePath
-		expPanics bool
+		expPanics *string
 	}{
 		{
 			name:    "standard ibc path",
@@ -43,7 +44,7 @@ func (s *TypesTestSuite) TestBuildMerklePath() {
 			name:      "empty prefix",
 			prefix:    [][]byte{},
 			path:      packetCommitmentKey,
-			expPanics: true,
+			expPanics: &emptyPrefixPanicMsg,
 		},
 		{
 			name:    "empty path",
@@ -57,13 +58,13 @@ func (s *TypesTestSuite) TestBuildMerklePath() {
 		tc := tc
 
 		s.Run(tc.name, func() {
-			if tc.expPanics {
-				s.Require().PanicsWithValue("cannot build merkle path with empty prefix", func() {
-					_ = types.BuildMerklePath(tc.prefix, tc.path)
-				})
-			} else {
+			if tc.expPanics == nil {
 				merklePath := types.BuildMerklePath(tc.prefix, tc.path)
 				s.Require().Equal(tc.expPath, merklePath)
+			} else {
+				s.Require().PanicsWithValue(*tc.expPanics, func() {
+					_ = types.BuildMerklePath(tc.prefix, tc.path)
+				})
 			}
 		})
 	}
