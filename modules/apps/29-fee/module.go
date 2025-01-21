@@ -21,9 +21,10 @@ import (
 )
 
 var (
-	_ appmodule.AppModule           = (*AppModule)(nil)
-	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
-	_ appmodule.HasAminoCodec       = (*AppModule)(nil)
+	_ appmodule.AppModule             = (*AppModule)(nil)
+	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
+	_ appmodule.HasAminoCodec         = (*AppModule)(nil)
+	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
 
 	_ module.AppModule   = (*AppModule)(nil)
 	_ module.HasGenesis  = (*AppModule)(nil)
