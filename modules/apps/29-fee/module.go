@@ -23,6 +23,7 @@ import (
 var (
 	_ appmodule.AppModule           = (*AppModule)(nil)
 	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
+	_ appmodule.HasAminoCodec       = (*AppModule)(nil)
 
 	_ module.AppModule   = (*AppModule)(nil)
 	_ module.HasGenesis  = (*AppModule)(nil)
@@ -56,6 +57,11 @@ func (AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
+
+// RegisterLegacyAminoCodec implements AppModule interface
+func (AppModule) RegisterLegacyAminoCodec(cdc coreregistry.AminoRegistrar) {
+	types.RegisterLegacyAminoCodec(cdc)
+}
 
 // RegisterInterfaces registers module concrete types into protobuf Any.
 func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
