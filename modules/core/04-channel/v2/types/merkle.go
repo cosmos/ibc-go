@@ -13,8 +13,8 @@ func BuildMerklePath(prefix [][]byte, path []byte) commitmenttypesv2.MerklePath 
 	}
 
 	// copy prefix to avoid modifying the original slice
-	prefix = append([][]byte(nil), prefix...)
+	fullPath := append([][]byte(nil), prefix...)
 	// append path to last element
-	prefix[prefixLength-1] = append(prefix[prefixLength-1], path...)
-	return commitmenttypesv2.NewMerklePath(prefix...)
+	fullPath[prefixLength-1] = append(fullPath[prefixLength-1], path...)
+	return commitmenttypesv2.NewMerklePath(fullPath...)
 }
