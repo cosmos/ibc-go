@@ -30,7 +30,7 @@ The current pain points for existing ICA users are listed:
 
 | Features  | Release |
 | --------- | ------- |
-| Multi-plexed Interchain Accounts | ibc-go v10.0.0 |
+| Multi-plexed Interchain Accounts | ibc-go version tbd |
 
 # User requirements
 

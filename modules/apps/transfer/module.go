@@ -8,12 +8,12 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
 	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -25,14 +25,22 @@ import (
 )
 
 var (
-	_ module.AppModule              = (*AppModule)(nil)
-	_ module.AppModuleBasic         = (*AppModule)(nil)
-	_ module.AppModuleSimulation    = (*AppModule)(nil)
-	_ module.HasGenesis             = (*AppModule)(nil)
-	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
-	_ module.HasInvariants          = (*AppModule)(nil)
-	_ module.HasServices            = (*AppModule)(nil)
-	_ appmodule.AppModule           = (*AppModule)(nil)
+	_ appmodule.AppModule             = (*AppModule)(nil)
+	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
+	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
+
+	_ module.AppModule      = (*AppModule)(nil)
+	_ module.HasGRPCGateway = (*AppModule)(nil)
+	_ module.HasGenesis     = (*AppModule)(nil)
+	_ module.HasServices    = (*AppModule)(nil)
+
+	// Sims
+	_ module.AppModuleSimulation         = (*AppModule)(nil)
+	_ module.HasLegacyProposalMsgs       = (*AppModule)(nil)
+	_ module.HasLegacyWeightedOperations = (*AppModule)(nil)
+
+	_ autocli.HasCustomTxCommand    = (*AppModule)(nil)
+	_ autocli.HasCustomQueryCommand = (*AppModule)(nil)
 
 	_ porttypes.IBCModule = (*IBCModule)(nil)
 )
@@ -107,11 +115,6 @@ func (AppModule) GetTxCmd() *cobra.Command {
 // GetQueryCmd implements AppModule interface
 func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
-}
-
-// RegisterInvariants implements the AppModule interface
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	keeper.RegisterInvariants(ir, &am.keeper)
 }
 
 // RegisterServices registers module services.
