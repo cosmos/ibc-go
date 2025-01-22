@@ -9,10 +9,10 @@ replace (
 )
 
 require (
+	cosmossdk.io/api v0.8.2 // indirect
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.5.0
 	cosmossdk.io/x/upgrade v0.1.4
-	cosmossdk.io/api v0.8.1
 	github.com/cometbft/cometbft v1.0.0
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/gogoproto v1.7.0
@@ -31,7 +31,6 @@ require (
 require (
 	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.36.2-20241120201313-68e42a58b301.1 // indirect
 	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.36.2-20240130113600-88ef6483f90f.1 // indirect
-	cosmossdk.io/api v0.8.2 // indirect
 	cosmossdk.io/collections v1.0.0 // indirect
 	cosmossdk.io/core v1.0.0 // indirect
 	cosmossdk.io/depinject v1.1.0 // indirect
