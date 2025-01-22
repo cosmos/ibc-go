@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"encoding/json"
 	"errors"
+	"math"
 	"testing"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
@@ -122,7 +123,7 @@ func (suite *KeeperTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[
 
 // storeWasmCode stores the wasm code on chain and returns the checksum.
 func (suite *KeeperTestSuite) storeWasmCode(wasmCode []byte) []byte {
-	ctx := suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
+	ctx := suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewGasMeter(math.MaxUint64)).WithGasMeter(storetypes.NewGasMeter(math.MaxUint64))
 
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmCode)
 	response, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)

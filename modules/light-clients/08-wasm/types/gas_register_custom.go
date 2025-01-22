@@ -24,6 +24,10 @@ var CostJSONDeserialization = wasmvmtypes.UFraction{
 }
 
 func (g WasmGasRegister) RuntimeGasForContract(meter gas.Meter) uint64 {
+	remaining := meter.Remaining()
+	limit := meter.Limit()
+	consumed := meter.Consumed()
+	_, _, _ = remaining, limit, consumed
 	if meter.Remaining() >= meter.Limit() {
 		return 0
 	}

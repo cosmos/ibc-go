@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 
@@ -15,14 +16,14 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
-func mockErrorCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
-	return func(_ sdk.Context, _ json.RawMessage) ([]byte, error) {
+func mockErrorCustomQuerier() func(context.Context, json.RawMessage) ([]byte, error) {
+	return func(_ context.Context, _ json.RawMessage) ([]byte, error) {
 		return nil, errors.New("custom querier error for TestNewKeeperWithOptions")
 	}
 }
 
-func mockErrorStargateQuerier() func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
-	return func(_ sdk.Context, _ *wasmvmtypes.StargateQuery) ([]byte, error) {
+func mockErrorStargateQuerier() func(context.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
+	return func(_ context.Context, _ *wasmvmtypes.StargateQuery) ([]byte, error) {
 		return nil, errors.New("stargate querier error for TestNewKeeperWithOptions")
 	}
 }
