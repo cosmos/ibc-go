@@ -105,14 +105,14 @@ func removeUnknownFields(tag string, msg sdk.Msg) sdk.Msg {
 				return msg
 			}
 
-			replaceCometBFTValidatorV1(header.ValidatorSet.Proposer)
+			convertCometBFTValidatorV1(header.ValidatorSet.Proposer)
 			for _, validator := range header.ValidatorSet.Validators {
-				replaceCometBFTValidatorV1(validator)
+				convertCometBFTValidatorV1(validator)
 			}
 
-			replaceCometBFTValidatorV1(header.TrustedValidators.Proposer)
+			convertCometBFTValidatorV1(header.TrustedValidators.Proposer)
 			for _, validator := range header.TrustedValidators.Validators {
-				replaceCometBFTValidatorV1(validator)
+				convertCometBFTValidatorV1(validator)
 			}
 
 			// repack the client message
@@ -126,7 +126,7 @@ func removeUnknownFields(tag string, msg sdk.Msg) sdk.Msg {
 	return msg
 }
 
-func replaceCometBFTValidatorV1(validator *cmtproto.Validator) {
+func convertCometBFTValidatorV1(validator *cmtproto.Validator) {
 	validator.PubKey = &cmtcrypto.PublicKey{
 		Sum: &cmtcrypto.PublicKey_Ed25519{
 			Ed25519: validator.PubKeyBytes,
