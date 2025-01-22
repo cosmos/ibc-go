@@ -9,10 +9,7 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/core/gas"
-	"cosmossdk.io/core/log"
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -113,7 +110,7 @@ func (e QueryPlugins) Merge(x *QueryPlugins) QueryPlugins {
 }
 
 // HandleQuery implements the ibcwasm.QueryPluginsI interface.
-func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error) {
+func (e QueryPlugins) HandleQuery(ctx context.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error) {
 	if request.Stargate != nil {
 		return e.Stargate(ctx, request.Stargate)
 	}
