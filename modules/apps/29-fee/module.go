@@ -27,11 +27,10 @@ var (
 	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
 	_ appmodule.HasAminoCodec         = (*AppModule)(nil)
 	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
-	_ appmodule.HasMigrations       = (*AppModule)(nil)
+	_ appmodule.HasMigrations         = (*AppModule)(nil)
 
-
-	_ module.AppModule   = (*AppModule)(nil)
-	_ module.HasGenesis  = (*AppModule)(nil)
+	_ module.AppModule  = (*AppModule)(nil)
+	_ module.HasGenesis = (*AppModule)(nil)
 
 	_ autocli.HasCustomTxCommand    = (*AppModule)(nil)
 	_ autocli.HasCustomQueryCommand = (*AppModule)(nil)

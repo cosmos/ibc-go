@@ -35,12 +35,11 @@ var (
 	_ appmodule.AppModule             = (*AppModule)(nil)
 	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
 	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
-	_ appmodule.HasMigrations    	  = (*AppModule)(nil)
+	_ appmodule.HasMigrations         = (*AppModule)(nil)
 
 	_ module.AppModule      = (*AppModule)(nil)
 	_ module.HasGenesis     = (*AppModule)(nil)
 	_ module.HasGRPCGateway = (*AppModule)(nil)
-
 
 	// Sims
 	_ module.AppModuleSimulation   = (*AppModule)(nil)
