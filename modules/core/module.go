@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
+	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
 	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	coreregistry "cosmossdk.io/core/registry"
@@ -33,14 +34,21 @@ import (
 )
 
 var (
-	_ module.AppModule              = (*AppModule)(nil)
-	_ module.AppModuleBasic         = (*AppModule)(nil)
-	_ module.AppModuleSimulation    = (*AppModule)(nil)
-	_ module.HasGenesis             = (*AppModule)(nil)
-	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
-	_ appmodule.AppModule           = (*AppModule)(nil)
-	_ appmodule.HasBeginBlocker     = (*AppModule)(nil)
+	_ appmodule.AppModule             = (*AppModule)(nil)
+	_ appmodule.HasBeginBlocker       = (*AppModule)(nil)
+	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
+	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
 	_ appmodule.HasMigrations       = (*AppModule)(nil)
+
+	_ module.AppModule      = (*AppModule)(nil)
+	_ module.HasGRPCGateway = (*AppModule)(nil)
+	_ module.HasGenesis     = (*AppModule)(nil)
+
+	_ module.HasLegacyProposalMsgs = (*AppModule)(nil)
+	_ module.AppModuleSimulation   = (*AppModule)(nil)
+
+	_ autocli.HasCustomTxCommand    = (*AppModule)(nil)
+	_ autocli.HasCustomQueryCommand = (*AppModule)(nil)
 )
 
 // AppModule implements an application module for the ibc module.
@@ -67,9 +75,6 @@ func (AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
-
-// RegisterLegacyAminoCodec does nothing. IBC does not support amino.
-func (AppModule) RegisterLegacyAminoCodec(coreregistry.AminoRegistrar) {}
 
 // DefaultGenesis returns default genesis state as raw bytes for the ibc
 // module.
@@ -207,9 +212,4 @@ func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.Weight
 // RegisterStoreDecoder registers a decoder for ibc module's types
 func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	sdr[exported.StoreKey] = simulation.NewDecodeStore(*am.keeper)
-}
-
-// WeightedOperations returns the all the ibc module operations with their respective weights.
-func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
-	return nil
 }
