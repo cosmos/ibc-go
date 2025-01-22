@@ -7,8 +7,10 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 
 	"cosmossdk.io/core/appmodule"
+	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -31,8 +33,8 @@ var (
 	_ module.HasGenesis             = (*AppModule)(nil)
 	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
 	_ module.HasInvariants          = (*AppModule)(nil)
-	_ module.HasServices            = (*AppModule)(nil)
 	_ appmodule.AppModule           = (*AppModule)(nil)
+	_ appmodule.HasMigrations       = (*AppModule)(nil)
 
 	_ porttypes.IBCModule = (*IBCModule)(nil)
 )
@@ -115,27 +117,32 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-	types.RegisterQueryV2Server(cfg.QueryServer(), am.keeper)
+func (am AppModule) RegisterServices(cfg grpc.ServiceRegistrar) error {
+	types.RegisterMsgServer(cfg, am.keeper)
+	types.RegisterQueryServer(cfg, am.keeper)
+	types.RegisterQueryV2Server(cfg, am.keeper)
+	return nil
+}
 
+func (am AppModule) RegisterMigrations(registrar appmodulev2.MigrationRegistrar) error {
 	m := keeper.NewMigrator(am.keeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 2, m.MigrateTotalEscrowForDenom); err != nil {
-		panic(fmt.Errorf("failed to migrate transfer app from version 2 to 3 (total escrow entry migration): %v", err))
+	if err := registrar.Register(types.ModuleName, 2, m.MigrateTotalEscrowForDenom); err != nil {
+		return fmt.Errorf("failed to migrate transfer app from version 2 to 3 (total escrow entry migration): %w", err)
 	}
 
-	if err := cfg.RegisterMigration(types.ModuleName, 3, m.MigrateParams); err != nil {
-		panic(fmt.Errorf("failed to migrate transfer app version 3 to 4 (self-managed params migration): %v", err))
+	if err := registrar.Register(types.ModuleName, 3, m.MigrateParams); err != nil {
+		return fmt.Errorf("failed to migrate transfer app version 3 to 4 (self-managed params migration): %w", err)
 	}
 
-	if err := cfg.RegisterMigration(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
-		panic(fmt.Errorf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %v", err))
+	if err := registrar.Register(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
+		return fmt.Errorf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %w", err)
 	}
 
-	if err := cfg.RegisterMigration(types.ModuleName, 5, m.MigrateDenomTraceToDenom); err != nil {
-		panic(fmt.Errorf("failed to migrate transfer app from version 5 to 6 (migrate DenomTrace to Denom): %v", err))
+	if err := registrar.Register(types.ModuleName, 5, m.MigrateDenomTraceToDenom); err != nil {
+		return fmt.Errorf("failed to migrate transfer app from version 5 to 6 (migrate DenomTrace to Denom): %w", err)
 	}
+
+	return nil
 }
 
 // InitGenesis performs genesis initialization for the ibc-transfer module. It returns
