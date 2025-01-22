@@ -81,8 +81,8 @@ func (q *queryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) 
 }
 
 type (
-	CustomQuerier   func(ctx sdk.Context, request json.RawMessage) ([]byte, error)
-	StargateQuerier func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error)
+	CustomQuerier   func(ctx context.Context, request json.RawMessage) ([]byte, error)
+	StargateQuerier func(ctx context.Context, request *wasmvmtypes.StargateQuery) ([]byte, error)
 
 	// QueryPlugins is a list of queriers that can be used to extend the default querier.
 	QueryPlugins struct {
@@ -132,8 +132,8 @@ func NewDefaultQueryPlugins(queryRouter types.QueryRouter) QueryPlugins {
 
 // AcceptListStargateQuerier allows all queries that are in the provided accept list.
 // This function returns protobuf encoded responses in bytes.
-func AcceptListStargateQuerier(acceptedQueries []string, queryRouter types.QueryRouter) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
-	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
+func AcceptListStargateQuerier(acceptedQueries []string, queryRouter types.QueryRouter) func(context.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
+	return func(ctx context.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 		// append user defined accepted queries to default list defined above.
 		acceptedQueries = append(defaultAcceptList, acceptedQueries...)
 
@@ -147,7 +147,7 @@ func AcceptListStargateQuerier(acceptedQueries []string, queryRouter types.Query
 			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("No route to query '%s'", request.Path)}
 		}
 
-		res, err := route(ctx, &abci.QueryRequest{
+		res, err := route(sdk.UnwrapSDKContext(ctx), &abci.QueryRequest{
 			Data: request.Data,
 			Path: request.Path,
 		})
@@ -163,8 +163,8 @@ func AcceptListStargateQuerier(acceptedQueries []string, queryRouter types.Query
 }
 
 // RejectCustomQuerier rejects all custom queries
-func RejectCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
-	return func(ctx sdk.Context, request json.RawMessage) ([]byte, error) {
+func RejectCustomQuerier() func(context.Context, json.RawMessage) ([]byte, error) {
+	return func(ctx context.Context, request json.RawMessage) ([]byte, error) {
 		return nil, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"}
 	}
 }
