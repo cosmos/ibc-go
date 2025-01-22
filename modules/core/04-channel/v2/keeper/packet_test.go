@@ -301,11 +301,13 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement},
 			}
 
+			// mock receive with async acknowledgement
 			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
+			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetAsyncPacket(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, packet)
 
 			tc.malleate()
 
-			err := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
+			err := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.WriteAcknowledgement(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, ack)
 
 			expPass := tc.expError == nil
 			if expPass {
