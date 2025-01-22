@@ -154,15 +154,12 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.
 // ExecuteGovV1Proposal submits a v1 governance proposal using the provided user and message and uses all validators
 // to vote yes on the proposal.
 func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, chain ibc.Chain, user ibc.Wallet) error {
+	sender := s.ConvertToAccAddress(chain, user.FormattedAddress())
+
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
-		panic("ExecuteAndPassGovV1Proposal must be passed a cosmos.CosmosChain")
+		panic("ExecuteGovV1Proposal must be passed a cosmos.CosmosChain")
 	}
-
-	addrCdc := addresscodec.NewBech32Codec(cosmosChain.Config().Bech32Prefix)
-	senderBytes, err := addrCdc.StringToBytes(user.FormattedAddress())
-	sender := sdk.AccAddress(senderBytes)
-	s.Require().NoError(err)
 
 	proposalID := s.proposalIDs[cosmosChain.Config().ChainID]
 	defer func() {
@@ -190,6 +187,19 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 
 	s.T().Logf("validators voted %s on proposal with ID: %d", cosmos.ProposalVoteYes, proposalID)
 	return s.waitForGovV1ProposalToPass(ctx, cosmosChain, proposalID)
+}
+
+func (s *E2ETestSuite) ConvertToAccAddress(chain ibc.Chain, formattedAddress string) sdk.AccAddress {
+	cosmosChain, ok := chain.(*cosmos.CosmosChain)
+	if !ok {
+		panic("ConvertToAccAddress must be passed a cosmos.CosmosChain")
+	}
+
+	addrCdc := addresscodec.NewBech32Codec(cosmosChain.Config().Bech32Prefix)
+	senderBytes, err := addrCdc.StringToBytes(formattedAddress)
+	s.Require().NoError(err)
+
+	return sdk.AccAddress(senderBytes)
 }
 
 // waitForGovV1ProposalToPass polls for the entire voting period to see if the proposal has passed.
@@ -279,17 +289,13 @@ func (*E2ETestSuite) waitForGovV1Beta1ProposalToPass(ctx context.Context, chain 
 
 // ExecuteGovV1Beta1Proposal submits a v1beta1 governance proposal using the provided content.
 func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.Chain, user ibc.Wallet, content govtypesv1beta1.Content) sdk.TxResponse {
-	cosmosChain, ok := chain.(*cosmos.CosmosChain)
-	if !ok {
-		panic("ExecuteAndPassGovV1Proposal must be passed a cosmos.CosmosChain")
-	}
-	addrCdc := addresscodec.NewBech32Codec(cosmosChain.Config().Bech32Prefix)
-	senderBytes, err := addrCdc.StringToBytes(user.FormattedAddress())
+	sender := s.ConvertToAccAddress(chain, user.FormattedAddress())
 
-	sender := sdk.AccAddress(senderBytes)
-	s.Require().NoError(err)
-
-	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender.String())
+	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(
+		content,
+		sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)),
+		sender.String(),
+	)
 	s.Require().NoError(err)
 
 	return s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)
