@@ -8,6 +8,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
+	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
 	coreregistry "cosmossdk.io/core/registry"
 
@@ -21,12 +22,17 @@ import (
 )
 
 var (
-	_ module.AppModule              = (*AppModule)(nil)
-	_ module.AppModuleBasic         = (*AppModule)(nil)
-	_ module.HasGenesis             = (*AppModule)(nil)
-	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
-	_ module.HasServices            = (*AppModule)(nil)
-	_ appmodule.AppModule           = (*AppModule)(nil)
+	_ appmodule.AppModule             = (*AppModule)(nil)
+	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
+	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
+
+	_ module.AppModule      = (*AppModule)(nil)
+	_ module.HasGRPCGateway = (*AppModule)(nil)
+	_ module.HasGenesis     = (*AppModule)(nil)
+	_ module.HasServices    = (*AppModule)(nil)
+
+	_ autocli.HasCustomTxCommand    = (*AppModule)(nil)
+	_ autocli.HasCustomQueryCommand = (*AppModule)(nil)
 )
 
 // AppModule represents the AppModule for this module
@@ -53,9 +59,6 @@ func (AppModule) IsAppModule() {}
 func (AppModule) Name() string {
 	return types.ModuleName
 }
-
-// RegisterLegacyAminoCodec performs a no-op. The Wasm client does not support amino.
-func (AppModule) RegisterLegacyAminoCodec(coreregistry.AminoRegistrar) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any. This allows core IBC
 // to unmarshal Wasm light client types.
