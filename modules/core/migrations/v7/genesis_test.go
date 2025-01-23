@@ -18,6 +18,8 @@ import (
 	v7 "github.com/cosmos/ibc-go/v9/modules/core/migrations/v7"
 	"github.com/cosmos/ibc-go/v9/modules/core/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+
+	"cosmossdk.io/log"
 )
 
 type MigrationsV7TestSuite struct {
@@ -136,7 +138,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// migrate store get expected genesis
 	// store migration and genesis migration should produce identical results
 	// NOTE: tendermint clients are not pruned in genesis so the test should not have expired tendermint clients
-	err = clientv7.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	err = clientv7.MigrateStore(suite.chainA.GetContext(), log.NewTestLogger(suite.T()), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 	expectedClientGenState, err := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
 	suite.Require().NoError(err)

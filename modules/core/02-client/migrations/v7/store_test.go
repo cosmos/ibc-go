@@ -14,6 +14,8 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+
+	"cosmossdk.io/log"
 )
 
 // numCreations is the number of clients/consensus states created for
@@ -62,7 +64,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStore() {
 	suite.createSolomachineClients(solomachines)
 	suite.createLocalhostClients()
 
-	err := v7.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	err := v7.MigrateStore(suite.chainA.GetContext(), log.NewTestLogger(suite.T()), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 
 	suite.assertSolomachineClients(solomachines)
@@ -78,7 +80,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateStoreNoTendermintClients() {
 	suite.createSolomachineClients(solomachines)
 	suite.createLocalhostClients()
 
-	err := v7.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	err := v7.MigrateStore(suite.chainA.GetContext(), log.NewTestLogger(suite.T()), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	suite.Require().NoError(err)
 
 	suite.assertSolomachineClients(solomachines)
