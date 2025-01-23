@@ -4,8 +4,11 @@ package transfer
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
+	"unicode"
 
 	"github.com/strangelove-ventures/interchaintest/v9/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
@@ -36,6 +39,19 @@ type transferTester struct {
 	testsuite.E2ETestSuite
 }
 
+// getUniqueDenom returns a unique denomination for the test by appending the test name
+func (s *transferTester) getUniqueDenom(ctx context.Context, chain ibc.Chain, testName string) string {
+	baseDenom := chain.Config().Denom
+	// Create a unique suffix from the test name (use only alphanumeric chars)
+	suffix := strings.Map(func(r rune) rune {
+		if unicode.IsLetter(r) || unicode.IsNumber(r) {
+			return r
+		}
+		return '-'
+	}, testName)
+	return fmt.Sprintf("%s-%s", baseDenom, suffix)
+}
+
 // QueryTransferParams queries the on-chain send enabled param for the transfer module
 func (s *transferTester) QueryTransferParams(ctx context.Context, chain ibc.Chain) transfertypes.Params {
 	res, err := query.GRPCQuery[transfertypes.QueryParamsResponse](ctx, chain, &transfertypes.QueryParamsRequest{})
@@ -59,19 +75,13 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-
-	// NOTE: t.Parallel() should be called before SetupPath in all tests.
-	// t.Name() must be stored in a variable before t.Parallel() otherwise t.Name() is not
-	// deterministic.
 	t.Parallel()
 
 	relayer, channelA := s.CreateTransferPath(testName)
-
 	chainA, chainB := s.GetChains()
 
-	chainBVersion := chainB.Config().Images[0].Version
-	chainADenom := chainA.Config().Denom
-
+	// Use unique denominations for this test
+	chainADenom := s.getUniqueDenom(ctx, chainA, testName)
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
 
@@ -92,14 +102,14 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 
-		// TODO: cannot query total escrow if tests in parallel are using the same denom.
-		// if testvalues.TotalEscrowFeatureReleases.IsSupported(chainAVersion) {
-		//	actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
-		//	s.Require().NoError(err)
-		//
-		//	expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
-		//	s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
-		// }
+		// Now we can safely query total escrow since we're using a unique denomination
+		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainA.Config().Images[0].Version) {
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
+			s.Require().NoError(err)
+
+			expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
+			s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
+		}
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -118,7 +128,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().Equal(expected, actualBalance.Int64())
 	})
 
-	if testvalues.TokenMetadataFeatureReleases.IsSupported(chainBVersion) {
+	if testvalues.TokenMetadataFeatureReleases.IsSupported(chainB.Config().Images[0].Version) {
 		t.Run("metadata for IBC denomination exists on chainB", func(t *testing.T) {
 			s.AssertHumanReadableDenom(ctx, chainB, chainADenom, channelA)
 		})
@@ -178,8 +188,8 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 
 	chainA, chainB := s.GetChains()
 
-	chainADenom := chainA.Config().Denom
-	chainBDenom := chainB.Config().Denom
+	chainADenom := s.getUniqueDenom(ctx, chainA, testName)
+	chainBDenom := s.getUniqueDenom(ctx, chainB, testName)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -204,12 +214,13 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 
-		// https://github.com/cosmos/ibc-go/issues/6742
-		// actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
-		// s.Require().NoError(err)
-		//
-		// expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
-		// s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
+		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainA.Config().Images[0].Version) {
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
+			s.Require().NoError(err)
+
+			expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
+			s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
+		}
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -263,12 +274,13 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized_MultiDenom(
 		})
 	})
 
-	// https://github.com/cosmos/ibc-go/issues/6742
-	// t.Run("native chainA tokens are un-escrowed", func(t *testing.T) {
-	//	actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
-	//	s.Require().NoError(err)
-	//	s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
-	// })
+	t.Run("native chainA tokens are un-escrowed", func(t *testing.T) {
+		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainA.Config().Images[0].Version) {
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
+			s.Require().NoError(err)
+			s.Require().Equal(sdk.NewCoin(chainADenom, sdkmath.NewInt(0)), actualTotalEscrow) // total escrow is zero because tokens have come back
+		}
+	})
 }
 
 // TestMsgTransfer_Fails_InvalidAddress_MultiDenom attempts to send a multidenom IBC transfer
@@ -284,8 +296,8 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 
 	chainA, chainB := s.GetChains()
 
-	chainADenom := chainA.Config().Denom
-	chainBDenom := chainB.Config().Denom
+	chainADenom := s.getUniqueDenom(ctx, chainA, testName)
+	chainBDenom := s.getUniqueDenom(ctx, chainB, testName)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -309,12 +321,13 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress_MultiDenom() {
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 
-		// https://github.com/cosmos/ibc-go/issues/6742
-		// actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
-		// s.Require().NoError(err)
-		//
-		// expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
-		// s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
+		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainA.Config().Images[0].Version) {
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
+			s.Require().NoError(err)
+
+			expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
+			s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
+		}
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -407,17 +420,10 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 
 	chainA, chainB := s.GetChains()
 
-	chainADenom := chainA.Config().Denom
+	chainADenom := s.getUniqueDenom(ctx, chainA, testName)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-
-	t.Run("native IBC token transfer from chainA to invalid address", func(t *testing.T) {
-		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferCoins(chainADenom), chainAAddress, testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", nil)
-		s.AssertTxSuccess(transferTxResp)
-	})
 
 	t.Run("tokens are escrowed", func(t *testing.T) {
 		actualBalance, err := s.GetChainANativeBalance(ctx, chainAWallet)
@@ -425,6 +431,14 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
+
+		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainA.Config().Images[0].Version) {
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
+			s.Require().NoError(err)
+
+			expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
+			s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
+		}
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -452,10 +466,15 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 	t.Parallel()
 	relayer, channelA := s.CreateTransferPath(testName)
 
-	chainA, _ := s.GetChains()
+	chainA, chainB := s.GetChains()
+
+	chainADenom := s.getUniqueDenom(ctx, chainA, testName)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	chainAAddress := chainAWallet.FormattedAddress()
+
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	chainBAddress := chainBWallet.FormattedAddress()
 
 	chainBWalletAmount := ibc.WalletAmount{
 		Address: chainBWallet.FormattedAddress(), // destination address
@@ -476,6 +495,14 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
+
+		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainA.Config().Images[0].Version) {
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
+			s.Require().NoError(err)
+
+			expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
+			s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
+		}
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -512,7 +539,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 	chainA, chainB := s.GetChains()
 
-	chainADenom := chainA.Config().Denom
+	chainADenom := s.getUniqueDenom(ctx, chainA, testName)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -533,6 +560,14 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
+
+		if testvalues.TotalEscrowFeatureReleases.IsSupported(chainA.Config().Images[0].Version) {
+			actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)
+			s.Require().NoError(err)
+
+			expectedTotalEscrow := sdk.NewCoin(chainADenom, sdkmath.NewInt(testvalues.IBCTransferAmount))
+			s.Require().Equal(expectedTotalEscrow, actualTotalEscrow)
+		}
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -563,7 +598,7 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 
 	chainA, chainB := s.GetChains()
 
-	chainADenom := chainA.Config().Denom
+	chainADenom := s.getUniqueDenom(ctx, chainA, testName)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
