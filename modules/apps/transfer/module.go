@@ -11,7 +11,6 @@ import (
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -127,7 +126,7 @@ func (am AppModule) RegisterServices(cfg grpc.ServiceRegistrar) error {
 	return nil
 }
 
-func (am AppModule) RegisterMigrations(registrar appmodulev2.MigrationRegistrar) error {
+func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) error {
 	m := keeper.NewMigrator(am.keeper)
 	if err := registrar.Register(types.ModuleName, 2, m.MigrateTotalEscrowForDenom); err != nil {
 		return fmt.Errorf("failed to migrate transfer app from version 2 to 3 (total escrow entry migration): %w", err)

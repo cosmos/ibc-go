@@ -11,7 +11,6 @@ import (
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -106,7 +105,7 @@ func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
-func (am AppModule) RegisterMigrations(registrar appmodulev2.MigrationRegistrar) error {
+func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) error {
 	m := keeper.NewMigrator(am.keeper)
 	if err := registrar.Register(types.ModuleName, 1, m.Migrate1to2); err != nil {
 		return fmt.Errorf("failed to migrate ibc-fee module from version 1 to 2 (refund leftover fees): %v", err)

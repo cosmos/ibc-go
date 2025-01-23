@@ -11,7 +11,6 @@ import (
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
-	appmodulev2 "cosmossdk.io/core/appmodule/v2"
 	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -123,7 +122,7 @@ func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 	types.RegisterInterfaces(registry)
 }
 
-func (am AppModule) RegisterMigrations(registrar appmodulev2.MigrationRegistrar) error {
+func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) error {
 	clientMigrator := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
 	if err := registrar.Register(exported.ModuleName, 2, clientMigrator.Migrate2to3); err != nil {
 		return err
