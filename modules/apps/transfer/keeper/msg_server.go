@@ -61,7 +61,7 @@ func (k Keeper) Transfer(ctx context.Context, msg *types.MsgTransfer) (*types.Ms
 	tokens := make([]types.Token, len(coins))
 
 	for i, coin := range coins {
-		tokens[i], err = k.tokenFromCoin(ctx, coin)
+		tokens[i], err = k.TokenFromCoin(ctx, coin)
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +71,7 @@ func (k Keeper) Transfer(ctx context.Context, msg *types.MsgTransfer) (*types.Ms
 		return nil, err
 	}
 
-	packetDataBytes, err := createPacketDataBytesFromVersion(
+	packetDataBytes, err := CreatePacketDataBytesFromVersion(
 		appVersion, sender.String(), msg.Receiver, msg.Memo, tokens, hops,
 	)
 	if err != nil {

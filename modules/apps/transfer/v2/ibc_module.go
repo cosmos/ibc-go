@@ -19,14 +19,16 @@ import (
 var _ api.IBCModule = (*IBCModule)(nil)
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper) *IBCModule {
+func NewIBCModule(k keeper.Keeper, chanV2Keeper transfertypes.ChannelKeeperV2) *IBCModule {
 	return &IBCModule{
-		keeper: k,
+		keeper:       k,
+		chanV2Keeper: chanV2Keeper,
 	}
 }
 
 type IBCModule struct {
-	keeper keeper.Keeper
+	keeper       keeper.Keeper
+	chanV2Keeper transfertypes.ChannelKeeperV2
 }
 
 func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, signer sdk.AccAddress) error {

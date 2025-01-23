@@ -8,8 +8,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channelv2types "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -40,6 +42,12 @@ type ChannelKeeper interface {
 	GetNextSequenceSend(ctx context.Context, portID, channelID string) (uint64, bool)
 	GetAllChannelsWithPortPrefix(ctx context.Context, portPrefix string) []channeltypes.IdentifiedChannel
 	HasChannel(ctx context.Context, portID, channelID string) bool
+}
+
+// ChannelKeeperV2 defines the expected IBC channel V2 keeper
+type ChannelKeeperV2 interface {
+	GetCounterparty(ctx context.Context, clientId string) (clienttypes.CounterpartyInfo, bool)
+	SendPacket(ctx context.Context, msg *channelv2types.MsgSendPacket) (*channelv2types.MsgSendPacketResponse, error)
 }
 
 // ClientKeeper defines the expected IBC client keeper

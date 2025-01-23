@@ -48,8 +48,3 @@ func (k Keeper) SetForwardedPacket(ctx sdk.Context, portID, channelID string, se
 func (k Keeper) GetAllForwardedPackets(ctx sdk.Context) []types.ForwardedPacket {
 	return k.getAllForwardedPackets(ctx)
 }
-
-// CreatePacketDataBytesFromVersion is a wrapper around createPacketDataBytesFromVersion for testing purposes
-func CreatePacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, hops []types.Hop) ([]byte, error) {
-	return createPacketDataBytesFromVersion(appVersion, sender, receiver, memo, tokens, hops)
-}

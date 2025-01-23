@@ -397,8 +397,8 @@ func (k Keeper) UnescrowCoin(ctx context.Context, escrowAddress, receiver sdk.Ac
 	return nil
 }
 
-// tokenFromCoin constructs an IBC token given an SDK coin.
-func (k Keeper) tokenFromCoin(ctx context.Context, coin sdk.Coin) (types.Token, error) {
+// TokenFromCoin constructs an IBC token given an SDK coin.
+func (k Keeper) TokenFromCoin(ctx context.Context, coin sdk.Coin) (types.Token, error) {
 	// if the coin does not have an IBC denom, return as is
 	if !strings.HasPrefix(coin.Denom, "ibc/") {
 		return types.Token{
@@ -426,8 +426,8 @@ func (k Keeper) tokenFromCoin(ctx context.Context, coin sdk.Coin) (types.Token, 
 	}, nil
 }
 
-// createPacketDataBytesFromVersion creates the packet data bytes to be sent based on the application version.
-func createPacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, hops []types.Hop) ([]byte, error) {
+// CreatePacketDataBytesFromVersion creates the packet data bytes to be sent based on the application version.
+func CreatePacketDataBytesFromVersion(appVersion, sender, receiver, memo string, tokens types.Tokens, hops []types.Hop) ([]byte, error) {
 	switch appVersion {
 	case types.V1:
 		// Sanity check, tokens must always be of length 1 if using app version V1.
