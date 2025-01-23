@@ -12,7 +12,6 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -121,8 +120,7 @@ func (k *Keeper) recvPacket(
 	}
 
 	path := hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence)
-	merklePrefix := commitmenttypes.NewMerklePath(counterparty.MerklePrefix...)
-	merklePath := types.BuildMerklePath(merklePrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePrefix, path)
 
 	commitment := types.CommitPacket(packet)
 
@@ -219,8 +217,7 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 	}
 
 	path := hostv2.PacketAcknowledgementKey(packet.DestinationClient, packet.Sequence)
-	merklePrefix := commitmenttypes.NewMerklePath(counterparty.MerklePrefix...)
-	merklePath := types.BuildMerklePath(merklePrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
@@ -298,8 +295,7 @@ func (k *Keeper) timeoutPacket(
 
 	// verify packet receipt absence
 	path := hostv2.PacketReceiptKey(packet.DestinationClient, packet.Sequence)
-	merklePrefix := commitmenttypes.NewMerklePath(counterparty.MerklePrefix...)
-	merklePath := types.BuildMerklePath(merklePrefix, path)
+	merklePath := types.BuildMerklePath(counterparty.MerklePrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
