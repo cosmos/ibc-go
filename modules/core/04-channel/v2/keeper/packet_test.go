@@ -253,6 +253,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			"failure: client not found",
 			func() {
 				packet.DestinationClient = ibctesting.InvalidID
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetAsyncPacket(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, packet)
 			},
 			clienttypes.ErrCounterpartyNotFound,
 		},
@@ -260,6 +262,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			"failure: counterparty client identifier different than source client",
 			func() {
 				packet.SourceClient = unusedChannel
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetAsyncPacket(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, packet)
 			},
 			clienttypes.ErrInvalidCounterparty,
 		},
@@ -275,8 +279,16 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			"failure: receipt not found for packet",
 			func() {
 				packet.Sequence = 2
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetAsyncPacket(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, packet)
 			},
 			types.ErrInvalidPacket,
+		},
+		{
+			"failure: async packet not found",
+			func() {
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.DeleteAsyncPacket(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
+			},
+			types.ErrInvalidAcknowledgement,
 		},
 	}
 
@@ -301,11 +313,13 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement},
 			}
 
+			// mock receive with async acknowledgement
 			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
+			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetAsyncPacket(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, packet)
 
 			tc.malleate()
 
-			err := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.WriteAcknowledgement(suite.chainB.GetContext(), packet, ack)
+			err := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.WriteAcknowledgement(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, ack)
 
 			expPass := tc.expError == nil
 			if expPass {

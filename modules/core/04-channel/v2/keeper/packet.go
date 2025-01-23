@@ -146,9 +146,9 @@ func (k *Keeper) recvPacket(
 	return nil
 }
 
-// WriteAcknowledgement writes the acknowledgement to the store.
-// TODO: change this function to accept destPort, destChannel, sequence, ack
-func (k Keeper) WriteAcknowledgement(
+// writeAcknowledgement writes the acknowledgement to the store and emits the packet and acknowledgement
+// for relayers to relay the acknowledgement to the counterparty chain.
+func (k Keeper) writeAcknowledgement(
 	ctx context.Context,
 	packet types.Packet,
 	ack types.Acknowledgement,
@@ -184,7 +184,33 @@ func (k Keeper) WriteAcknowledgement(
 
 	emitWriteAcknowledgementEvents(ctx, packet, ack)
 
-	// TODO: delete the packet that has been stored in ibc-core.
+	return nil
+}
+
+// WriteAcknowledgement writes the acknowledgement and emits events for asynchronous acknowledgements
+// this is the method to be called by external apps when they want to write an acknowledgement asyncrhonously
+func (k *Keeper) WriteAcknowledgement(ctx context.Context, clientID string, sequence uint64, ack types.Acknowledgement) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	// Validate the acknowledgement
+	if err := ack.Validate(); err != nil {
+		sdkCtx.Logger().Error("write acknowledgement failed", "error", errorsmod.Wrap(err, "invalid acknowledgement"))
+		return errorsmod.Wrap(err, "invalid acknowledgement")
+	}
+
+	packet, ok := k.GetAsyncPacket(ctx, clientID, sequence)
+	if !ok {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "packet with clientID (%s) and sequence (%d) not found for async acknowledgement", clientID, sequence)
+	}
+
+	// Write the acknowledgement to the store
+	if err := k.writeAcknowledgement(ctx, packet, ack); err != nil {
+		sdkCtx.Logger().Error("write acknowledgement failed", "error", errorsmod.Wrap(err, "write acknowledgement failed"))
+		return errorsmod.Wrap(err, "write acknowledgement failed")
+	}
+
+	// Delete the packet from the async store
+	k.DeleteAsyncPacket(ctx, clientID, sequence)
 
 	return nil
 }

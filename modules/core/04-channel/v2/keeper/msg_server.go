@@ -135,9 +135,12 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		// Set packet acknowledgement only if the acknowledgement is not async.
 		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 		// acknowledgement is async.
-		if err := k.WriteAcknowledgement(ctx, msg.Packet, ack); err != nil {
+		if err := k.writeAcknowledgement(ctx, msg.Packet, ack); err != nil {
 			return nil, err
 		}
+	} else {
+		// store the packet temporarily until the application returns an acknowledgement
+		k.SetAsyncPacket(ctx, msg.Packet.DestinationClient, msg.Packet.Sequence, msg.Packet)
 	}
 
 	// TODO: store the packet for async applications to access if required.

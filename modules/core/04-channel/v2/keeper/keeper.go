@@ -162,3 +162,35 @@ func (k *Keeper) SetNextSequenceSend(ctx context.Context, clientID string, seque
 		panic(err)
 	}
 }
+
+// SetAsyncPacket writes the packet under the async path
+func (k *Keeper) SetAsyncPacket(ctx context.Context, clientID string, sequence uint64, packet types.Packet) {
+	store := k.KVStoreService.OpenKVStore(ctx)
+	bz := k.cdc.MustMarshal(&packet)
+	if err := store.Set(types.AsyncPacketKey(clientID, sequence), bz); err != nil {
+		panic(err)
+	}
+}
+
+// GetAsyncPacket fetches the packet from the async path
+func (k *Keeper) GetAsyncPacket(ctx context.Context, clientID string, sequence uint64) (types.Packet, bool) {
+	store := k.KVStoreService.OpenKVStore(ctx)
+	bz, err := store.Get(types.AsyncPacketKey(clientID, sequence))
+	if err != nil {
+		panic(err)
+	}
+	if len(bz) == 0 {
+		return types.Packet{}, false
+	}
+	var packet types.Packet
+	k.cdc.MustUnmarshal(bz, &packet)
+	return packet, true
+}
+
+// DeleteAsyncPacket deletes the packet from the async path
+func (k *Keeper) DeleteAsyncPacket(ctx context.Context, clientID string, sequence uint64) {
+	store := k.KVStoreService.OpenKVStore(ctx)
+	if err := store.Delete(types.AsyncPacketKey(clientID, sequence)); err != nil {
+		panic(err)
+	}
+}
