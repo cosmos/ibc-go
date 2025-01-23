@@ -5,6 +5,8 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/log"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -18,8 +20,6 @@ import (
 	v7 "github.com/cosmos/ibc-go/v9/modules/core/migrations/v7"
 	"github.com/cosmos/ibc-go/v9/modules/core/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-
-	"cosmossdk.io/log"
 )
 
 type MigrationsV7TestSuite struct {

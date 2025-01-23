@@ -6,6 +6,8 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/log"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
@@ -14,8 +16,6 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-
-	"cosmossdk.io/log"
 )
 
 // numCreations is the number of clients/consensus states created for
