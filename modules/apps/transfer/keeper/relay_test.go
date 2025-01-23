@@ -268,7 +268,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 				forwarding,
 			)
 
-			fmt.Printf("msg: %+v", msg)
 			res, err := suite.chainA.GetSimApp().TransferKeeper.Transfer(suite.chainA.GetContext(), msg)
 
 			if tc.expError == nil {
