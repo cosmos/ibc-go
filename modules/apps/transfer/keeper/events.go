@@ -11,6 +11,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // EmitTransferEvent emits an ibc transfer event on successful transfers.
@@ -36,7 +37,7 @@ func (k Keeper) EmitTransferEvent(ctx context.Context, sender, receiver string, 
 }
 
 // EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback
-func (k Keeper) EmitOnRecvPacketEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement, ackErr error) error {
+func (k Keeper) EmitOnRecvPacketEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2, ack ibcexported.Acknowledgement, ackErr error) error {
 	tokensStr := mustMarshalJSON(packetData.Tokens)
 	forwardingHopStr := mustMarshalJSON(packetData.Forwarding.Hops)
 
