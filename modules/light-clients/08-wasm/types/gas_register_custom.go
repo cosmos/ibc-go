@@ -6,6 +6,7 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"cosmossdk.io/core/gas"
 	storetypes "cosmossdk.io/store/types"
@@ -47,7 +48,8 @@ func (g WasmGasRegister) ConsumeRuntimeGas(meter gas.Meter, gasAmt uint64) {
 		panic(fmt.Errorf("ConsumeRuntimeGas: failed to consume gas: %w", err))
 	}
 
-	// TODO(technicallyty): this used to be a meter.IsOutOfGas check, which has since been removed from the gas meter iface.
+	sdk.Context{}.GasMeter().IsOutOfGas()
+	// This used to be a meter.IsOutOfGas check, which has since been removed from the gas meter iface.
 	// We use the InfiniteGasMeter in tests, which would ALWAYS return false to IsOutOfGas. Now that we don't have that method,
 	// we have to include this weird hack that essentially checks if we're out of gas and we're not the infinite gas meter.
 	// Please don't replicate this if you can. It is ugly.
