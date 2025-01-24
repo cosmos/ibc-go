@@ -37,7 +37,7 @@ var defaultAcceptList = []string{
 	"/ibc.core.client.v1.Query/VerifyMembership",
 }
 
-// queryHandler is a wrapper around the sdk.Context and the CallerID that calls
+// queryHandler is a wrapper around the sdk Environment and the CallerID that calls
 // into the query plugins.
 type queryHandler struct {
 	appmodule.Environment
