@@ -8,9 +8,9 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
 	"cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
+	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/log"
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,6 +22,7 @@ import (
 
 // Keeper defines the 08-wasm keeper
 type Keeper struct {
+	appmodule.Environment
 	// implements gRPC QueryServer interface
 	types.QueryServer
 
@@ -30,8 +31,7 @@ type Keeper struct {
 
 	vm types.WasmEngine
 
-	checksums    collections.KeySet[[]byte]
-	storeService store.KVStoreService
+	checksums collections.KeySet[[]byte]
 
 	queryPlugins QueryPlugins
 
@@ -49,8 +49,8 @@ func (k Keeper) GetAuthority() string {
 }
 
 // Logger returns a module-specific logger.
-func (Keeper) Logger(ctx sdk.Context) log.Logger {
-	return moduleLogger(ctx)
+func (k Keeper) Logger(_ context.Context) log.Logger {
+	return k.Environment.Logger
 }
 
 func moduleLogger(ctx sdk.Context) log.Logger {
@@ -77,7 +77,7 @@ func (k *Keeper) setQueryPlugins(plugins QueryPlugins) {
 	k.queryPlugins = plugins
 }
 
-func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *queryHandler {
+func (k Keeper) newQueryHandler(ctx context.Context, callerID string) *queryHandler {
 	return newQueryHandler(ctx, k.getQueryPlugins(), callerID)
 }
 
@@ -186,7 +186,7 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksu
 }
 
 // GetWasmClientState returns the 08-wasm client state for the given client identifier.
-func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.ClientState, error) {
+func (k Keeper) GetWasmClientState(ctx context.Context, clientID string) (*types.ClientState, error) {
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
 		return nil, errorsmod.Wrapf(clienttypes.ErrClientTypeNotFound, "clientID %s", clientID)
@@ -233,7 +233,7 @@ func (k Keeper) HasChecksum(ctx context.Context, checksum types.Checksum) bool {
 }
 
 // InitializePinnedCodes updates wasmvm to pin to cache all contracts marked as pinned
-func (k Keeper) InitializePinnedCodes(ctx sdk.Context) error {
+func (k Keeper) InitializePinnedCodes(ctx context.Context) error {
 	checksums, err := k.GetAllChecksums(ctx)
 	if err != nil {
 		return err
