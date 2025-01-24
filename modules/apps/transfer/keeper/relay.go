@@ -73,14 +73,6 @@ func (k Keeper) SendTransfer(
 			return errorsmod.Wrap(types.ErrSendDisabled, err.Error())
 		}
 
-		// Using types.UnboundedSpendLimit allows us to send the entire balance of a given denom.
-		if coin.Amount.Equal(types.UnboundedSpendLimit()) {
-			coin.Amount = k.BankKeeper.SpendableCoin(ctx, sender, coin.Denom).Amount
-			if coin.Amount.IsZero() {
-				return errorsmod.Wrapf(types.ErrInvalidAmount, "empty spendable balance for %s", coin.Denom)
-			}
-		}
-
 		// NOTE: SendTransfer simply sends the denomination as it exists on its own
 		// chain inside the packet data. The receiving chain will perform denom
 		// prefixing as necessary.
