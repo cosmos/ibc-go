@@ -26,7 +26,7 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
 		return nil, errorsmod.Wrap(err, "failed to store wasm bytecode")
 	}
 
-	emitStoreWasmCodeEvent(ctx, checksum)
+	emitStoreWasmCodeEvent(k.EventService.EventManager(ctx), checksum)
 
 	return &types.MsgStoreCodeResponse{
 		Checksum: checksum,
@@ -57,12 +57,10 @@ func (k Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecks
 }
 
 // MigrateContract defines a rpc handler method for MsgMigrateContract
-func (k Keeper) MigrateContract(goCtx context.Context, msg *types.MsgMigrateContract) (*types.MsgMigrateContractResponse, error) {
+func (k Keeper) MigrateContract(ctx context.Context, msg *types.MsgMigrateContract) (*types.MsgMigrateContractResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	err := k.migrateContractCode(ctx, msg.ClientId, msg.Checksum, msg.Msg)
 	if err != nil {

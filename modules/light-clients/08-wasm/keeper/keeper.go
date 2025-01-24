@@ -17,7 +17,6 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // Keeper defines the 08-wasm keeper
@@ -53,10 +52,6 @@ func (k Keeper) Logger(_ context.Context) log.Logger {
 	return k.Environment.Logger
 }
 
-func moduleLogger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
-}
-
 // GetVM returns the keeper's vm engine.
 func (k Keeper) GetVM() types.WasmEngine {
 	return k.vm
@@ -78,7 +73,7 @@ func (k *Keeper) setQueryPlugins(plugins QueryPlugins) {
 }
 
 func (k Keeper) newQueryHandler(ctx context.Context, callerID string) *queryHandler {
-	return newQueryHandler(ctx, k.getQueryPlugins(), callerID)
+	return newQueryHandler(ctx, k.Environment.Logger, k.getQueryPlugins(), callerID)
 }
 
 // storeWasmCode stores the contract to the VM, pins the checksum in the VM's in memory cache and stores the checksum
@@ -141,7 +136,7 @@ func (k Keeper) storeWasmCode(ctx context.Context, code []byte, storeFn func(cod
 
 // migrateContractCode migrates the contract for a given light client to one denoted by the given new checksum. The checksum we
 // are migrating to must first be stored using storeWasmCode and must not match the checksum currently stored for this light client.
-func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksum, migrateMsg []byte) error {
+func (k Keeper) migrateContractCode(ctx context.Context, clientID string, newChecksum, migrateMsg []byte) error {
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 	wasmClientState, found := types.GetClientState(clientStore, k.cdc)
 	if !found {
@@ -180,7 +175,7 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksu
 
 	k.clientKeeper.SetClientState(ctx, clientID, wasmClientState)
 
-	emitMigrateContractEvent(ctx, clientID, oldChecksum, newChecksum)
+	emitMigrateContractEvent(k.EventService.EventManager(ctx), clientID, oldChecksum, newChecksum)
 
 	return nil
 }

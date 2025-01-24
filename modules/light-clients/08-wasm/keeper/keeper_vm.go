@@ -33,6 +33,10 @@ func NewKeeperWithVM(
 		panic(errors.New("client keeper must not be nil"))
 	}
 
+	if env.KVStoreService == nil {
+		panic(errors.New("store service must not be nil"))
+	}
+
 	if queryRouter == nil {
 		panic(errors.New("query router must not be nil"))
 	}

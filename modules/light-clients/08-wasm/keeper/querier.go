@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"slices"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
+	"cosmossdk.io/core/log"
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -39,15 +41,17 @@ var defaultAcceptList = []string{
 // queryHandler is a wrapper around the sdk.Context and the CallerID that calls
 // into the query plugins.
 type queryHandler struct {
+	logger   log.Logger
 	Ctx      sdk.Context
 	Plugins  QueryPlugins
 	CallerID string
 }
 
 // newQueryHandler returns a default querier that can be used in the contract.
-func newQueryHandler(ctx sdk.Context, plugins QueryPlugins, callerID string) *queryHandler {
+func newQueryHandler(ctx context.Context, logger log.Logger, plugins QueryPlugins, callerID string) *queryHandler {
 	return &queryHandler{
-		Ctx:      ctx,
+		Ctx:      sdk.UnwrapSDKContext(ctx),
+		logger:   logger,
 		Plugins:  plugins,
 		CallerID: callerID,
 	}
@@ -75,7 +79,7 @@ func (q *queryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) 
 		return res, nil
 	}
 
-	moduleLogger(q.Ctx).Debug("Redacting query error", "cause", err)
+	q.logger.Debug("Redacting query error", "cause", err)
 	return nil, redactError(err)
 }
 
