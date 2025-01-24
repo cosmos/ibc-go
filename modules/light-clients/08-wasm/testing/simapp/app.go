@@ -14,6 +14,7 @@ import (
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+	apisigning "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/client/v2/autocli"
 	coreaddress "cosmossdk.io/core/address"
 	corestore "cosmossdk.io/core/store"
@@ -71,7 +72,6 @@ import (
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	apisigning "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

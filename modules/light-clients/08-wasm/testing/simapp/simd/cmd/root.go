@@ -12,12 +12,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	apisigning "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/client/v2/offchain"
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 
-	apisigning "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	sdkdebug "github.com/cosmos/cosmos-sdk/client/debug"
