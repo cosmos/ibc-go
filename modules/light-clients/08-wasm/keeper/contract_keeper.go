@@ -37,7 +37,7 @@ var (
 
 // instantiateContract calls vm.Instantiate with appropriate arguments.
 func (k Keeper) instantiateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
-	sdkGasMeter := ctx.GasMeter()
+	sdkGasMeter := k.GasService.GasMeter(ctx)
 	multipliedGasMeter := types.NewMultipliedGasMeter(sdkGasMeter, types.VMGasRegister)
 	gasLimit := VMGasRegister.RuntimeGasForContract(ctx)
 
