@@ -5,12 +5,14 @@ import (
 	"errors"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
-	"github.com/cosmos/cosmos-sdk/runtime"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
 	"cosmossdk.io/log"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
 func mockErrorCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
