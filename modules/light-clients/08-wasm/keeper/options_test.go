@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"cosmossdk.io/log"
-
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+
+	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"

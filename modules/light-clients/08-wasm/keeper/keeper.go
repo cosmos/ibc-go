@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"fmt"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
@@ -13,6 +14,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 )
@@ -83,7 +85,9 @@ func (k Keeper) storeWasmCode(ctx context.Context, code []byte, storeFn func(cod
 	meter := k.GasService.GasMeter(ctx)
 	var err error
 	if types.IsGzip(code) {
-		meter.Consume(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
+		if err := meter.Consume(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode"); err != nil {
+			return nil, fmt.Errorf("failed to consume gas for Uncompress gzip bytecode: %w", err)
+		}
 		code, err = types.Uncompress(code, types.MaxWasmSize)
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "failed to store contract")
@@ -173,7 +177,9 @@ func (k Keeper) migrateContractCode(ctx context.Context, clientID string, newChe
 
 	k.clientKeeper.SetClientState(ctx, clientID, wasmClientState)
 
-	emitMigrateContractEvent(k.EventService.EventManager(ctx), clientID, oldChecksum, newChecksum)
+	if err = emitMigrateContractEvent(k.EventService.EventManager(ctx), clientID, oldChecksum, newChecksum); err != nil {
+		return fmt.Errorf("failed to emit migrate contract events: %w", err)
+	}
 
 	return nil
 }

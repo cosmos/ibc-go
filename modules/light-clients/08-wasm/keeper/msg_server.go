@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -26,7 +27,9 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
 		return nil, errorsmod.Wrap(err, "failed to store wasm bytecode")
 	}
 
-	emitStoreWasmCodeEvent(k.EventService.EventManager(ctx), checksum)
+	if err := emitStoreWasmCodeEvent(k.EventService.EventManager(ctx), checksum); err != nil {
+		return nil, fmt.Errorf("failed to emit store wasm code events: %w", err)
+	}
 
 	return &types.MsgStoreCodeResponse{
 		Checksum: checksum,

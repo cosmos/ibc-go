@@ -9,10 +9,10 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/appmodule"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )

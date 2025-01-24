@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
@@ -48,7 +49,9 @@ func (k Keeper) instantiateContract(ctx context.Context, clientID string, client
 		Funds:  nil,
 	}
 
-	sdkGasMeter.Consume(types.VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: instantiate")
+	if err := sdkGasMeter.Consume(types.VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: instantiate"); err != nil {
+		return nil, fmt.Errorf("failed to consume gas for Loading Cosmwasm module instantiate: %w", err)
+	}
 
 	resp, gasUsed, err := k.GetVM().Instantiate(checksum, env, msgInfo, msg, internaltypes.NewStoreAdapter(clientStore), wasmvmAPI, k.newQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
 	types.VMGasRegister.ConsumeRuntimeGas(sdkGasMeter, gasUsed)
@@ -63,7 +66,9 @@ func (k Keeper) callContract(ctx context.Context, clientID string, clientStore s
 
 	env := getEnv(k.HeaderService.HeaderInfo(ctx), clientID)
 
-	sdkGasMeter.Consume(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: sudo")
+	if err := sdkGasMeter.Consume(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: sudo"); err != nil {
+		return nil, fmt.Errorf("failed to consume gas for Loading Cosmwasm module sudo: %w", err)
+	}
 	resp, gasUsed, err := k.GetVM().Sudo(checksum, env, msg, internaltypes.NewStoreAdapter(clientStore), wasmvmAPI, k.newQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
 	VMGasRegister.ConsumeRuntimeGas(sdkGasMeter, gasUsed)
 	return resp, err
@@ -77,7 +82,9 @@ func (k Keeper) queryContract(ctx context.Context, clientID string, clientStore 
 
 	env := getEnv(k.HeaderService.HeaderInfo(ctx), clientID)
 
-	sdkGasMeter.Consume(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: query")
+	if err := sdkGasMeter.Consume(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: query"); err != nil {
+		return nil, fmt.Errorf("failed to consume gas for Loading Cosmwasm module query: %w", err)
+	}
 	resp, gasUsed, err := k.GetVM().Query(checksum, env, msg, internaltypes.NewStoreAdapter(clientStore), wasmvmAPI, k.newQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
 	VMGasRegister.ConsumeRuntimeGas(sdkGasMeter, gasUsed)
 
@@ -92,7 +99,9 @@ func (k Keeper) migrateContract(ctx context.Context, clientID string, clientStor
 
 	env := getEnv(k.HeaderService.HeaderInfo(ctx), clientID)
 
-	sdkGasMeter.Consume(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: migrate")
+	if err := sdkGasMeter.Consume(VMGasRegister.SetupContractCost(true, len(msg)), "Loading CosmWasm module: migrate"); err != nil {
+		return nil, fmt.Errorf("failed to consume gas for Loading Cosmwasm module migrate: %w", err)
+	}
 	resp, gasUsed, err := k.GetVM().Migrate(checksum, env, msg, internaltypes.NewStoreAdapter(clientStore), wasmvmAPI, k.newQueryHandler(ctx, clientID), multipliedGasMeter, gasLimit, types.CostJSONDeserialization)
 	VMGasRegister.ConsumeRuntimeGas(sdkGasMeter, gasUsed)
 
@@ -253,15 +262,15 @@ func unmarshalClientState(cdc codec.BinaryCodec, bz []byte) (exported.ClientStat
 }
 
 // getEnv returns the state of the blockchain environment the contract is running on
-func getEnv(header header.Info, contractAddr string) wasmvmtypes.Env {
-	chainID := header.ChainID
-	height := header.Height
+func getEnv(headerInfo header.Info, contractAddr string) wasmvmtypes.Env {
+	chainID := headerInfo.ChainID
+	height := headerInfo.Height
 
 	// safety checks before casting below
 	if height < 0 {
 		panic(errors.New("block height must never be negative"))
 	}
-	nsec := header.Time.UnixNano()
+	nsec := headerInfo.Time.UnixNano()
 	if nsec < 0 {
 		panic(errors.New("block (unix) time must never be negative "))
 	}

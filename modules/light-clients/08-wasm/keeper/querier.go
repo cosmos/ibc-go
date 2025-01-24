@@ -8,10 +8,10 @@ import (
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"cosmossdk.io/core/appmodule"
 	errorsmod "cosmossdk.io/errors"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 

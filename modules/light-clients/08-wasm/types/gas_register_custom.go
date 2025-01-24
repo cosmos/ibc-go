@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"math"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
@@ -40,9 +41,11 @@ func (g WasmGasRegister) RuntimeGasForContract(meter gas.Meter) uint64 {
 	return g.ToWasmVMGas(meter.Limit() - consumedToLimit)
 }
 
-func (g WasmGasRegister) ConsumeRuntimeGas(meter gas.Meter, gas uint64) {
-	consumed := g.FromWasmVMGas(gas)
-	meter.Consume(consumed, "wasm contract")
+func (g WasmGasRegister) ConsumeRuntimeGas(meter gas.Meter, gasAmt uint64) {
+	consumed := g.FromWasmVMGas(gasAmt)
+	if err := meter.Consume(consumed, "wasm contract"); err != nil {
+		panic(fmt.Errorf("ConsumeRuntimeGas: failed to consume gas: %w", err))
+	}
 
 	// TODO(technicallyty): this used to be a meter.IsOutOfGas check, which has since been removed from the gas meter iface.
 	// We use the InfiniteGasMeter in tests, which would ALWAYS return false to IsOutOfGas. Now that we don't have that method,
