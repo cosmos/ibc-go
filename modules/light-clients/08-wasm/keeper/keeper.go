@@ -73,7 +73,7 @@ func (k *Keeper) setQueryPlugins(plugins QueryPlugins) {
 }
 
 func (k Keeper) newQueryHandler(ctx context.Context, callerID string) *queryHandler {
-	return newQueryHandler(ctx, k.Environment.Logger, k.getQueryPlugins(), callerID)
+	return newQueryHandler(ctx, k.Environment, k.getQueryPlugins(), callerID)
 }
 
 // storeWasmCode stores the contract to the VM, pins the checksum in the VM's in memory cache and stores the checksum
