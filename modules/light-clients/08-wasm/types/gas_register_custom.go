@@ -8,8 +8,6 @@ import (
 
 	"cosmossdk.io/core/gas"
 	storetypes "cosmossdk.io/store/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // While gas_register.go is a direct copy of https://github.com/CosmWasm/wasmd/blob/main/x/wasm/types/gas_register.go
@@ -33,17 +31,25 @@ func (g WasmGasRegister) RuntimeGasForContract(meter gas.Meter) uint64 {
 	if meter.Limit() == 0 || meter.Limit() == math.MaxUint64 {
 		return math.MaxUint64
 	}
-	sdk.Context{}.GasMeter().GasConsumedToLimit()
-	var consumedToLimit
-	return g.ToWasmVMGas(meter.Limit() - meter.GasConsumedToLimit())
+	var consumedToLimit gas.Gas
+	if meter.Remaining() <= meter.Limit() {
+		consumedToLimit = meter.Limit()
+	} else {
+		consumedToLimit = meter.Consumed()
+	}
+	return g.ToWasmVMGas(meter.Limit() - consumedToLimit)
 }
 
 func (g WasmGasRegister) ConsumeRuntimeGas(meter gas.Meter, gas uint64) {
 	consumed := g.FromWasmVMGas(gas)
 	meter.Consume(consumed, "wasm contract")
 
-	// throw OutOfGas error if we ran out (got exactly to zero due to better limit enforcing)
-	if meter.Remaining() >= meter.Limit() {
+	// TODO(technicallyty): this used to be a meter.IsOutOfGas check, which has since been removed from the gas meter iface.
+	// We use the InfiniteGasMeter in tests, which would ALWAYS return false to IsOutOfGas. Now that we don't have that method,
+	// we have to include this weird hack that essentially checks if we're out of gas and we're not the infinite gas meter.
+	// Please don't replicate this if you can. It is ugly.
+	if meter.Remaining() >= meter.Limit() && (meter.Limit() != math.MaxUint64 && meter.Remaining() != math.MaxUint64) {
+		// throw OutOfGas error if we ran out (got exactly to zero due to better limit enforcing)
 		panic(storetypes.ErrorOutOfGas{Descriptor: "Wasmer function execution"})
 	}
 }
