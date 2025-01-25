@@ -687,7 +687,6 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 		if tc.expError == nil {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
-			suite.Require().Error(err, "invalid case %s passed", tc.name)
 			suite.Require().ErrorIs(err, tc.expError, "invalid case %s passed", tc.name)
 		}
 	}
@@ -980,5 +979,76 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			require.Error(t, err)
 			require.Equal(t, err.Error(), tc.expErr.Error())
 		}
+	}
+}
+
+func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
+	signer := ibctesting.TestAccAddress
+	testCases := []struct {
+		name     string
+		msg      *types.MsgRegisterCounterparty
+		expError error
+	}{
+		{
+			"success",
+			types.NewMsgRegisterCounterparty(
+				"testclientid",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid3",
+				signer,
+			),
+			nil,
+		},
+		{
+			"failure: empty client id",
+			types.NewMsgRegisterCounterparty(
+				"",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid3",
+				signer,
+			),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: empty counterparty client id",
+			types.NewMsgRegisterCounterparty(
+				"testclientid",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"",
+				signer,
+			),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: empty counterparty messaging key",
+			types.NewMsgRegisterCounterparty(
+				"testclientid",
+				[][]byte{},
+				"testclientid3",
+				signer,
+			),
+			types.ErrInvalidCounterparty,
+		},
+		{
+			"failure: empty signer",
+			types.NewMsgRegisterCounterparty(
+				"testclientid",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid3",
+				"badsigner",
+			),
+			ibcerrors.ErrInvalidAddress,
+		},
+	}
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.msg.ValidateBasic()
+			if tc.expError == nil {
+				require.NoError(t, err)
+			} else {
+				require.ErrorIs(t, err, tc.expError)
+			}
+		})
 	}
 }

@@ -34,8 +34,8 @@ type Keeper struct {
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
-	authKeeper    types.AuthKeeper
-	bankKeeper    types.BankKeeper
+	AuthKeeper    types.AuthKeeper
+	BankKeeper    types.BankKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -68,8 +68,8 @@ func NewKeeper(
 		legacySubspace: legacySubspace,
 		ics4Wrapper:    ics4Wrapper,
 		channelKeeper:  channelKeeper,
-		authKeeper:     authKeeper,
-		bankKeeper:     bankKeeper,
+		AuthKeeper:     authKeeper,
+		BankKeeper:     bankKeeper,
 		authority:      authority,
 	}
 }
@@ -189,8 +189,8 @@ func (k Keeper) IterateDenoms(ctx context.Context, cb func(denom types.Denom) bo
 	}
 }
 
-// setDenomMetadata sets an IBC token's denomination metadata
-func (k Keeper) setDenomMetadata(ctx context.Context, denom types.Denom) {
+// SetDenomMetadata sets an IBC token's denomination metadata
+func (k Keeper) SetDenomMetadata(ctx context.Context, denom types.Denom) {
 	metadata := banktypes.Metadata{
 		Description: fmt.Sprintf("IBC token from %s", denom.Path()),
 		DenomUnits: []*banktypes.DenomUnit{
@@ -208,7 +208,7 @@ func (k Keeper) setDenomMetadata(ctx context.Context, denom types.Denom) {
 		Symbol:  strings.ToUpper(denom.Base),
 	}
 
-	k.bankKeeper.SetDenomMetaData(ctx, metadata)
+	k.BankKeeper.SetDenomMetaData(ctx, metadata)
 }
 
 // GetTotalEscrowForDenom gets the total amount of source chain tokens that
@@ -308,7 +308,7 @@ func (k Keeper) setForwardedPacket(ctx context.Context, portID, channelID string
 }
 
 // getForwardedPacket gets the forwarded packet from the store.
-func (k Keeper) getForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
+func (k Keeper) GetForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
 	store := k.KVStoreService.OpenKVStore(ctx)
 	bz, err := store.Get(types.PacketForwardKey(portID, channelID, sequence))
 	if err != nil {
@@ -384,11 +384,11 @@ func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet type
 
 // IsBlockedAddr checks if the given address is allowed to send or receive tokens.
 // The module account is always allowed to send and receive tokens.
-func (k Keeper) isBlockedAddr(addr sdk.AccAddress) bool {
-	moduleAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+func (k Keeper) IsBlockedAddr(addr sdk.AccAddress) bool {
+	moduleAddr := k.AuthKeeper.GetModuleAddress(types.ModuleName)
 	if addr.Equals(moduleAddr) {
 		return false
 	}
 
-	return k.bankKeeper.BlockedAddr(addr)
+	return k.BankKeeper.BlockedAddr(addr)
 }

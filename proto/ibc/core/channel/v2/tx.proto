@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package ibc.core.channel.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos/msg/v1/msg.proto";
+import "ibc/core/channel/v2/packet.proto";
+import "ibc/core/client/v1/client.proto";
+
+// Msg defines the ibc/channel/v2 Msg service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // SendPacket defines a rpc handler method for MsgSendPacket.
+  rpc SendPacket(MsgSendPacket) returns (MsgSendPacketResponse);
+
+  // RecvPacket defines a rpc handler method for MsgRecvPacket.
+  rpc RecvPacket(MsgRecvPacket) returns (MsgRecvPacketResponse);
+
+  // Timeout defines a rpc handler method for MsgTimeout.
+  rpc Timeout(MsgTimeout) returns (MsgTimeoutResponse);
+
+  // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
+  rpc Acknowledgement(MsgAcknowledgement) returns (MsgAcknowledgementResponse);
+}
+
+// MsgSendPacket sends an outgoing IBC packet.
+message MsgSendPacket {
+  option (cosmos.msg.v1.signer)      = "signer";
+  option (gogoproto.goproto_getters) = false;
+
+  string           source_client     = 1;
+  uint64           timeout_timestamp = 2;
+  repeated Payload payloads          = 3 [(gogoproto.nullable) = false];
+  string           signer            = 4;
+}
+
+// MsgSendPacketResponse defines the Msg/SendPacket response type.
+message MsgSendPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 sequence = 1;
+}
+
+// MsgRecvPacket receives an incoming IBC packet.
+message MsgRecvPacket {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  Packet                    packet           = 1 [(gogoproto.nullable) = false];
+  bytes                     proof_commitment = 2;
+  ibc.core.client.v1.Height proof_height     = 3 [(gogoproto.nullable) = false];
+  string                    signer           = 4;
+}
+
+// ResponseResultType defines the possible outcomes of the execution of a message
+enum ResponseResultType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // Default zero value enumeration
+  RESPONSE_RESULT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "UNSPECIFIED"];
+  // The message did not call the IBC application callbacks (because, for example, the packet had already been relayed)
+  RESPONSE_RESULT_TYPE_NOOP = 1 [(gogoproto.enumvalue_customname) = "NOOP"];
+  // The message was executed successfully
+  RESPONSE_RESULT_TYPE_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "SUCCESS"];
+  // The message was executed unsuccessfully
+  RESPONSE_RESULT_TYPE_FAILURE = 3 [(gogoproto.enumvalue_customname) = "FAILURE"];
+}
+
+// MsgRecvPacketResponse defines the Msg/RecvPacket response type.
+message MsgRecvPacketResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ResponseResultType result = 1;
+}
+
+// MsgTimeout receives timed-out packet
+message MsgTimeout {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  Packet                    packet           = 1 [(gogoproto.nullable) = false];
+  bytes                     proof_unreceived = 2;
+  ibc.core.client.v1.Height proof_height     = 3 [(gogoproto.nullable) = false];
+  string                    signer           = 5;
+}
+
+// MsgTimeoutResponse defines the Msg/Timeout response type.
+message MsgTimeoutResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ResponseResultType result = 1;
+}
+
+// MsgAcknowledgement receives incoming IBC acknowledgement.
+message MsgAcknowledgement {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  Packet                    packet          = 1 [(gogoproto.nullable) = false];
+  Acknowledgement           acknowledgement = 2 [(gogoproto.nullable) = false];
+  bytes                     proof_acked     = 3;
+  ibc.core.client.v1.Height proof_height    = 4 [(gogoproto.nullable) = false];
+  string                    signer          = 5;
+}
+
+// MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
+message MsgAcknowledgementResponse {
+  option (gogoproto.goproto_getters) = false;
+
+  ResponseResultType result = 1;
+}

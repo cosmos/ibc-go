@@ -110,9 +110,11 @@ import (
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	cmted25519 "github.com/cometbft/cometbft/crypto/ed25519"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp/customquery"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ica "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller"
@@ -128,10 +130,12 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v9/modules/apps/transfer/v2"
 	ibc "github.com/cosmos/ibc-go/v9/modules/core"
 	ibcclienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	ibcapi "github.com/cosmos/ibc-go/v9/modules/core/api"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
@@ -550,9 +554,17 @@ func NewSimApp(
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, app.GRPCQueryRouter(),
 		)
 	} else {
+		querierOption := wasmkeeper.WithQueryPlugins(&wasmkeeper.QueryPlugins{
+			Custom: customquery.CustomQuerier(),
+			Stargate: wasmkeeper.AcceptListStargateQuerier(
+				[]string{"/cosmos.base.tendermint.v1beta1.Service/ABCIQuery"},
+				app.GRPCQueryRouter(),
+			),
+		})
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
 			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, app.GRPCQueryRouter(),
+			querierOption,
 		)
 	}
 
@@ -588,6 +600,7 @@ func NewSimApp(
 
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
+	ibcRouterV2 := ibcapi.NewRouter()
 
 	// Middleware Stacks
 
@@ -676,8 +689,12 @@ func NewSimApp(
 	feeWithMockModule := ibcfee.NewIBCMiddleware(feeMockModule, app.IBCFeeKeeper)
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 
-	// Seal the IBC Router
+	// register the transfer v2 module.
+	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeper))
+
+	// Seal the IBC Routers.
 	app.IBCKeeper.SetRouter(ibcRouter)
+	app.IBCKeeper.SetRouterV2(ibcRouterV2)
 
 	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
@@ -957,6 +974,17 @@ func (app *SimApp) InitChainer(ctx sdk.Context, req *abci.InitChainRequest) (*ab
 	if err := app.UpgradeKeeper.SetModuleVersionMap(ctx, app.ModuleManager.GetVersionMap()); err != nil {
 		panic(err)
 	}
+
+	paramsProto, err := app.ConsensusParamsKeeper.ParamsStore.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+	consensusParams := cmttypes.ConsensusParamsFromProto(paramsProto)
+	consensusParams.Block.MaxGas = 75_000_000 // The same as Cosmos Hub at the moment
+	if err := app.ConsensusParamsKeeper.ParamsStore.Set(ctx, consensusParams.ToProto()); err != nil {
+		return nil, err
+	}
+
 	return app.ModuleManager.InitGenesis(ctx, genesisState)
 }
 

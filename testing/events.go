@@ -44,7 +44,7 @@ func ParseConnectionIDFromEvents(events []abci.Event) (string, error) {
 }
 
 // ParseChannelIDFromEvents parses events emitted from a MsgChannelOpenInit or
-// MsgChannelOpenTry and returns the channel identifier.
+// MsgChannelOpenTry or a MsgCreateChannel and returns the channel identifier.
 func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeChannelOpenInit || ev.Type == channeltypes.EventTypeChannelOpenTry {
