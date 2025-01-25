@@ -1,6 +1,7 @@
 package solomachine
 
 import (
+	apisigning "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	errorsmod "cosmossdk.io/errors"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -23,7 +24,7 @@ func VerifySignature(pubKey cryptotypes.PubKey, signBytes []byte, sigData signin
 
 		// The function supplied fulfills the VerifyMultisignature interface. No special
 		// adjustments need to be made to the sign bytes based on the sign mode.
-		if err := pubKey.VerifyMultisignature(func(signing.SignMode) ([]byte, error) {
+		if err := pubKey.VerifyMultisignature(func(apisigning.SignMode) ([]byte, error) {
 			return signBytes, nil
 		}, data); err != nil {
 			return errorsmod.Wrapf(ErrSignatureVerificationFailed, "failed to verify multisignature: %s", err.Error())
