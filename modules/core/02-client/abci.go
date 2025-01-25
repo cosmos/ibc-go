@@ -2,18 +2,20 @@ package client
 
 import (
 	"context"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	cometabci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 )
 
-// BeginBlocker is used to perform IBC client upgrades
-func BeginBlocker(goCtx context.Context, k *keeper.Keeper) {
-	// TODO: In order to fully migrate away from sdk.Context here we will need to depend on comet service in order
-	// to consume the full block header as Env only contains header.Info (where we cannot access next vals hash)
+// BeginBlocker is used to perform IBC client upgrades.
+// Uses comet service through blockHeader to access full block header information,
+// including NextValidatorsHash and other header data.
+func BeginBlocker(goCtx context.Context, k *keeper.Keeper, blockHeader *cometabci.RequestBeginBlock) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	plan, err := k.GetUpgradePlan(ctx)
@@ -27,8 +29,8 @@ func BeginBlocker(goCtx context.Context, k *keeper.Keeper) {
 		_, err := k.GetUpgradedClient(ctx, plan.Height)
 		if err == nil && ctx.BlockHeight() == plan.Height-1 {
 			upgradedConsState := &ibctm.ConsensusState{
-				Timestamp:          ctx.BlockTime(),
-				NextValidatorsHash: ctx.BlockHeader().NextValidatorsHash,
+				Timestamp:          time.Unix(0, blockHeader.Header.Time.UnixNano()),
+				NextValidatorsHash: blockHeader.Header.NextValidatorsHash,
 			}
 			bz := types.MustMarshalConsensusState(k.Codec(), upgradedConsState)
 
