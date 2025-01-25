@@ -19,9 +19,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             platform: linux/amd64
-          - os: macos-latest
+          - os: ubuntu-24.04-arm
             platform: linux/arm64
     runs-on: ${{ matrix.os }}
     steps:
@@ -31,9 +31,6 @@ jobs:
          fetch-depth: 0
 
       # TODO: Get rid of this script, it is super unecessary and can probably be done in a little bash line
-      - uses: actions/setup-go@v5 # Only used by the "make python-install-deps"
-        with:
-          go-version: '1.23'
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
