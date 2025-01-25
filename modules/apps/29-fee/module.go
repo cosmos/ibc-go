@@ -7,6 +7,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
@@ -26,10 +27,10 @@ var (
 	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
 	_ appmodule.HasAminoCodec         = (*AppModule)(nil)
 	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
+	_ appmodule.HasMigrations         = (*AppModule)(nil)
 
-	_ module.AppModule   = (*AppModule)(nil)
-	_ module.HasGenesis  = (*AppModule)(nil)
-	_ module.HasServices = (*AppModule)(nil)
+	_ module.AppModule  = (*AppModule)(nil)
+	_ module.HasGenesis = (*AppModule)(nil)
 
 	_ autocli.HasCustomTxCommand    = (*AppModule)(nil)
 	_ autocli.HasCustomQueryCommand = (*AppModule)(nil)
@@ -104,15 +105,19 @@ func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
-// RegisterServices registers module services.
-func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-
+func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) error {
 	m := keeper.NewMigrator(am.keeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
-		panic(fmt.Errorf("failed to migrate ibc-fee module from version 1 to 2 (refund leftover fees): %v", err))
+	if err := registrar.Register(types.ModuleName, 1, m.Migrate1to2); err != nil {
+		return fmt.Errorf("failed to migrate ibc-fee module from version 1 to 2 (refund leftover fees): %v", err)
 	}
+	return nil
+}
+
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg grpc.ServiceRegistrar) error {
+	types.RegisterMsgServer(cfg, am.keeper)
+	types.RegisterQueryServer(cfg, am.keeper)
+	return nil
 }
 
 // InitGenesis performs genesis initialization for the ibc-29-fee module. It returns
