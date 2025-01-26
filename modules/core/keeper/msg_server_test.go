@@ -372,6 +372,7 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, 0)
 		}, errors.New("invalid proof"), false},
 		{"successful no-op: ORDERED - packet already acknowledged (replay)", func() {
+			path.SetChannelOrdered()
 			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(timeoutHeight, 0, ibctesting.MockPacketData)
