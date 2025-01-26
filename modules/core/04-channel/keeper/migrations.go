@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"context"
 
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
@@ -17,7 +17,7 @@ func NewMigrator(keeper *Keeper) Migrator {
 }
 
 // MigrateParams migrates params to the default channel params.
-func (m Migrator) MigrateParams(ctx sdk.Context) error {
+func (m Migrator) MigrateParams(ctx context.Context) error {
 	params := channeltypes.DefaultParams()
 	m.keeper.SetParams(ctx, params)
 	m.keeper.Logger.Info("successfully migrated ibc channel params")

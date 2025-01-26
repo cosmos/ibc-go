@@ -30,9 +30,9 @@ func NewMigrator(keeper Keeper) Migrator {
 }
 
 // MigrateParams migrates the transfer module's parameters from the x/params to self store.
-func (m Migrator) MigrateParams(ctx sdk.Context) error {
+func (m Migrator) MigrateParams(ctx context.Context) error {
 	var params types.Params
-	m.keeper.legacySubspace.GetParamSet(ctx, &params)
+	m.keeper.legacySubspace.GetParamSet(sdk.UnwrapSDKContext(ctx), &params)
 
 	m.keeper.SetParams(ctx, params)
 	m.keeper.Logger.Info("successfully migrated transfer app self-manage params")
@@ -40,7 +40,7 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 }
 
 // MigrateDenomMetadata sets token metadata for all the IBC denom traces
-func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
+func (m Migrator) MigrateDenomMetadata(ctx context.Context) error {
 	m.keeper.iterateDenomTraces(ctx,
 		func(dt internaltypes.DenomTrace) (stop bool) {
 			// check if the metadata for the given denom trace does not already exist
@@ -55,7 +55,7 @@ func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
 }
 
 // MigrateTotalEscrowForDenom migrates the total amount of source chain tokens in escrow.
-func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
+func (m Migrator) MigrateTotalEscrowForDenom(ctx context.Context) error {
 	var totalEscrowed sdk.Coins
 	portID := m.keeper.GetPort(ctx)
 
@@ -76,7 +76,7 @@ func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
 }
 
 // MigrateDenomTraceToDenom migrates storage from using DenomTrace to Denom.
-func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
+func (m Migrator) MigrateDenomTraceToDenom(ctx context.Context) error {
 	var (
 		denoms      []types.Denom
 		denomTraces []internaltypes.DenomTrace
@@ -147,7 +147,7 @@ func (k Keeper) iterateDenomTraces(ctx context.Context, cb func(denomTrace inter
 }
 
 // setDenomMetadataWithDenomTrace sets an IBC token's denomination metadata
-func (k Keeper) setDenomMetadataWithDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
+func (k Keeper) setDenomMetadataWithDenomTrace(ctx context.Context, denomTrace internaltypes.DenomTrace) {
 	metadata := banktypes.Metadata{
 		Description: fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath()),
 		DenomUnits: []*banktypes.DenomUnit{
