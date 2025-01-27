@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"cosmossdk.io/core/event"
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -394,11 +395,13 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypes.MsgRecvPacket
 	}
 
 	var ack exported.Acknowledgement
-	if err := k.BranchService.Execute(ctx, func(ctx context.Context) error {
+	var events []sdk.Event
+	if err := k.BranchService.Execute(ctx, func(subCtx context.Context) error {
 		// Perform application logic callback
-		ack = cbs.OnRecvPacket(ctx, channelVersion, msg.Packet, relayer)
+		ack = cbs.OnRecvPacket(subCtx, channelVersion, msg.Packet, relayer)
 		if !ack.Success() {
 			// we must return an error here so that false positive events are not emitted
+			events = sdk.UnwrapSDKContext(subCtx).EventManager().Events()
 			return channeltypes.ErrFailedAcknowledgement
 		}
 
@@ -406,11 +409,17 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypes.MsgRecvPacket
 		return nil
 	}); err != nil {
 		if errors.Is(err, channeltypes.ErrFailedAcknowledgement) {
-			// k.EventService.EventManager(ctx).EmitKV()
-			// Modify events in cached context to reflect unsuccessful acknowledgement
-
-			// We lost apis to propagate and err prefix events from a branched multistore ctx
-			// ctx.EventManager().EmitEvents(convertToErrorEvents(cacheCtx.EventManager().Events()))
+			errEvents := convertToErrorEvents(events)
+			for _, e := range errEvents {
+				var attrs []event.Attribute
+				for _, attr := range e.Attributes {
+					attrs = append(attrs, event.Attribute{
+						Key:   attr.Key,
+						Value: attr.Value,
+					})
+				}
+				k.EventService.EventManager(ctx).EmitKV(e.Type, attrs...)
+			}
 		}
 	}
 
