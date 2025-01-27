@@ -17,6 +17,7 @@ import (
 	apisigning "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"cosmossdk.io/client/v2/autocli"
 	coreaddress "cosmossdk.io/core/address"
+	appmodule "cosmossdk.io/core/appmodule"
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -111,7 +112,6 @@ import (
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	cmted25519 "github.com/cometbft/cometbft/crypto/ed25519"
 
-	appmodule "cosmossdk.io/core/appmodule"
 	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"

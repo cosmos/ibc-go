@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cast"
 
 	coreaddress "cosmossdk.io/core/address"
+	appmodule "cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/accounts"
@@ -90,7 +91,6 @@ import (
 	cmtcrypto "github.com/cometbft/cometbft/crypto"
 	cmted25519 "github.com/cometbft/cometbft/crypto/ed25519"
 
-	appmodule "cosmossdk.io/core/appmodule"
 	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
 	ica "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller"
