@@ -9,6 +9,8 @@ retract (
 	[v8.2.0, v8.3.2]
 	// contain ASA-2024-007 vulnerability
 	[v8.0.0, v8.1.1]
+	// contained state-incompatible changes
+	[v8.5.3]
 )
 
 require (
