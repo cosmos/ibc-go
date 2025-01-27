@@ -48,7 +48,7 @@ func (k Keeper) GetAuthority() string {
 }
 
 // Logger returns a module-specific logger.
-func (k Keeper) Logger(_ context.Context) log.Logger {
+func (k Keeper) Logger() log.Logger {
 	return k.Environment.Logger
 }
 
