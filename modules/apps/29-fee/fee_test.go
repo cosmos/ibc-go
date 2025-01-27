@@ -78,7 +78,7 @@ func RemoveFeeMiddleware(chain *ibctesting.TestChain) {
 	newRouter := porttypes.NewRouter() // Create a new router
 	// Remove Fee middleware from transfer module
 	chain.GetSimApp().TransferKeeper.WithICS4Wrapper(channelKeeper)
-	transferStack := transfer.NewIBCModule(chain.GetSimApp().TransferKeeper)
+	transferStack := transfer.NewIBCModule(chain.GetSimApp().TransferKeeper, chain.GetSimApp().IBCKeeper.ChannelKeeperV2)
 	newRouter.AddRoute(transfertypes.ModuleName, transferStack)
 
 	// Remove Fee middleware from icahost submodule

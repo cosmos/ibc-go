@@ -502,7 +502,7 @@ func NewSimApp(
 
 	// create IBC module from bottom to top of stack
 	var transferStack porttypes.IBCModule
-	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	transferStack = transfer.NewIBCModule(app.TransferKeeper, app.IBCKeeper.ChannelKeeperV2)
 	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
 	var transferICS4Wrapper porttypes.ICS4Wrapper
 	transferICS4Wrapper, ok := transferStack.(porttypes.ICS4Wrapper)

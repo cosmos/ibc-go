@@ -12,9 +12,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
+	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channelv2types "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -29,10 +31,12 @@ var (
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModule struct {
 	keeper keeper.Keeper
+	// if the chain does not support chanV2Keeper, this can be nil
+	chanV2Keeper types.ChannelKeeperV2
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper) IBCModule {
+func NewIBCModule(k keeper.Keeper, chanV2Keeper types.ChannelKeeperV2) IBCModule {
 	return IBCModule{
 		keeper: k,
 	}
@@ -255,10 +259,43 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	if forwardedPacket, isForwarded := im.keeper.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); isForwarded {
+	// if the previous packet was an IBC V1 packet, then do IBC v1 WriteAcknowledgement
+	forwardedPacket, isForwardedV1 := im.keeper.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	if isForwardedV1 {
 		if err := im.keeper.HandleForwardedPacketAcknowledgement(ctx, packet, forwardedPacket, data, ack); err != nil {
 			return err
 		}
+	} else if awaitPacketId, isForwardedV2 := im.keeper.GetForwardV2PacketId(ctx, packet.SourceChannel, packet.Sequence); isForwardedV2 {
+		if im.chanV2Keeper == nil {
+			panic("chanV2Keeper is nil but we are trying to write acknowledgmeent a v2 packet")
+		}
+		// if the previous packet was an IBC V2 packet, then do IBC v2 WriteAcknowledgement
+		var awaitAck channeltypes.Acknowledgement
+
+		switch ack.Response.(type) {
+		case *channeltypes.Acknowledgement_Result:
+			// Write a successful async ack for awaitPacket
+			awaitAck = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+		case *channeltypes.Acknowledgement_Error:
+			// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
+			// we must revert the changes that came from successfully receiving the tokens on our chain
+			// before propagating the error acknowledgement back to original sender chain
+			if err := im.keeper.RevertForwardedPacket(ctx, awaitPacketId.PortId, awaitPacketId.ChannelId, data); err != nil {
+				return err
+			}
+
+			awaitAck = internaltypes.NewForwardErrorAcknowledgement(packet.SourcePort, packet.SourceChannel, ack)
+		default:
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
+		}
+
+		// write async acknowledgment for original received packet
+		asyncAcknowledgement := channelv2types.NewAcknowledgement(awaitAck.Acknowledgement())
+		im.chanV2Keeper.WriteAcknowledgement(ctx, awaitPacketId.ChannelId, awaitPacketId.Sequence, asyncAcknowledgement)
+
+		// delete forwardPacketId
+		im.keeper.DeleteForwardV2PacketId(ctx, packet.SourceChannel, packet.TimeoutTimestamp)
+
 	}
 
 	return im.keeper.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
@@ -281,10 +318,27 @@ func (im IBCModule) OnTimeoutPacket(
 		return err
 	}
 
-	if forwardedPacket, isForwarded := im.keeper.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); isForwarded {
+	// if the previous packet was an IBC V1 packet, then do IBC v1 WriteAcknowledgement
+	if forwardedPacket, isForwardedV1 := im.keeper.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); isForwardedV1 {
 		if err := im.keeper.HandleForwardedPacketTimeout(ctx, packet, forwardedPacket, data); err != nil {
 			return err
 		}
+	} else if awaitPacketId, isForwarwardedV2 := im.keeper.GetForwardV2PacketId(ctx, packet.SourceChannel, packet.Sequence); isForwarwardedV2 {
+		if im.chanV2Keeper == nil {
+			panic("chanV2Keeper is nil but we are trying to write acknowledgmeent a v2 packet")
+		}
+		// if the previous packet was an IBC V2 packet, then do IBC v2 WriteAcknowledgement
+		if err := im.keeper.RevertForwardedPacket(ctx, awaitPacketId.PortId, awaitPacketId.ChannelId, data); err != nil {
+			return err
+		}
+
+		// write an async failed acknowledgement for original received packet since our forwarded packet timed out
+		awaitAck := internaltypes.NewForwardTimeoutAcknowledgement(packet.SourcePort, packet.SourceChannel)
+		awaitAcknowledgement := channelv2types.NewAcknowledgement(awaitAck.Acknowledgement())
+		im.chanV2Keeper.WriteAcknowledgement(ctx, awaitPacketId.ChannelId, awaitPacketId.Sequence, awaitAcknowledgement)
+
+		// delete forwardPacketId
+		im.keeper.DeleteForwardV2PacketId(ctx, packet.SourceChannel, packet.Sequence)
 	}
 
 	return im.keeper.EmitOnTimeoutEvent(ctx, data)

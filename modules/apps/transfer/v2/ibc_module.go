@@ -147,7 +147,7 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 
 	if awaitPacketId, isForwarded := im.keeper.GetForwardV2PacketId(ctx, sourceChannel, sequence); isForwarded {
 		// revert the receive of the original packet
-		if err := im.revertForwardedPacket(ctx, awaitPacketId.ChannelId, awaitPacketId.PortId, awaitPacketId.Sequence, data); err != nil {
+		if err := im.keeper.RevertForwardedPacket(ctx, awaitPacketId.PortId, awaitPacketId.ChannelId, data); err != nil {
 			return err
 		}
 
@@ -189,7 +189,7 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 			// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
 			// we must revert the changes that came from successfully receiving the tokens on our chain
 			// before propagating the error acknowledgement back to original sender chain
-			if err := im.revertForwardedPacket(ctx, awaitPacketId.ChannelId, awaitPacketId.PortId, awaitPacketId.Sequence, data); err != nil {
+			if err := im.keeper.RevertForwardedPacket(ctx, awaitPacketId.PortId, awaitPacketId.ChannelId, data); err != nil {
 				return err
 			}
 

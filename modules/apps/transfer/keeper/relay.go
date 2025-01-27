@@ -276,7 +276,7 @@ func (k Keeper) HandleForwardedPacketAcknowledgement(
 		// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
 		// we must revert the changes that came from successfully receiving the tokens on our chain
 		// before propagating the error acknowledgement back to original sender chain
-		if err := k.revertForwardedPacket(ctx, forwardedPacket, data); err != nil {
+		if err := k.RevertForwardedPacket(ctx, forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel, data); err != nil {
 			return err
 		}
 
@@ -301,7 +301,7 @@ func (k Keeper) OnTimeoutPacket(
 // HandleForwardedTimeout processes a timeout packet that was sent from the chain as an intermediate.
 // The packet is reverted and the tokens are refunded to the sender.
 func (k Keeper) HandleForwardedPacketTimeout(ctx context.Context, packet channeltypes.Packet, forwardedPacket channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
-	if err := k.revertForwardedPacket(ctx, forwardedPacket, data); err != nil {
+	if err := k.RevertForwardedPacket(ctx, forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel, data); err != nil {
 		return err
 	}
 

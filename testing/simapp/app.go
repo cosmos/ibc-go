@@ -594,7 +594,7 @@ func NewSimApp(
 
 	// create IBC module from bottom to top of stack
 	var transferStack porttypes.IBCModule
-	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	transferStack = transfer.NewIBCModule(app.TransferKeeper, app.IBCKeeper.ChannelKeeperV2)
 	transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
 
 	// Add transfer stack to IBC Router
