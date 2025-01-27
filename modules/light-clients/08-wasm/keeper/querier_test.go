@@ -8,6 +8,7 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -17,6 +18,8 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+
+	"cosmossdk.io/core/router"
 )
 
 type CustomQuery struct {
@@ -153,8 +156,9 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 		{
 			"success: custom query",
 			func() {
+				rtr := runtime.NewQueryRouterService(GetSimApp(suite.chainA).GRPCQueryRouter())
 				querierPlugin := keeper.QueryPlugins{
-					Stargate: keeper.AcceptListStargateQuerier([]string{typeURL}, GetSimApp(suite.chainA).GRPCQueryRouter()),
+					Stargate: keeper.AcceptListStargateQuerier([]string{typeURL}, rtr),
 				}
 
 				GetSimApp(suite.chainA).WasmClientKeeper.SetQueryPlugins(querierPlugin)

@@ -116,7 +116,7 @@ func (k Keeper) WasmInstantiate(ctx context.Context, clientID string, clientStor
 	}
 
 	checksum := cs.Checksum
-	res, err := k.instantiateContract(sdk.UnwrapSDKContext(ctx), clientID, clientStore, checksum, encodedData)
+	res, err := k.instantiateContract(ctx, clientID, clientStore, checksum, encodedData)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrVMError, err.Error())
 	}
@@ -155,7 +155,7 @@ func (k Keeper) WasmSudo(ctx context.Context, clientID string, clientStore store
 	}
 
 	checksum := cs.Checksum
-	res, err := k.callContract(sdk.UnwrapSDKContext(ctx), clientID, clientStore, checksum, encodedData)
+	res, err := k.callContract(ctx, clientID, clientStore, checksum, encodedData)
 	if err != nil {
 		return nil, errorsmod.Wrap(types.ErrVMError, err.Error())
 	}
@@ -210,7 +210,7 @@ func (k Keeper) WasmQuery(ctx context.Context, clientID string, clientStore stor
 		return nil, errorsmod.Wrap(err, "failed to marshal payload for wasm query")
 	}
 
-	res, err := k.queryContract(sdk.UnwrapSDKContext(ctx), clientID, clientStore, cs.Checksum, encodedData)
+	res, err := k.queryContract(ctx, clientID, clientStore, cs.Checksum, encodedData)
 	if err != nil {
 		return nil, errorsmod.Wrap(types.ErrVMError, err.Error())
 	}

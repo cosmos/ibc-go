@@ -552,9 +552,12 @@ func NewSimApp(
 		)
 	} else {
 		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
-			runtime.NewEnvironment(runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), logger.With(log.ModuleKey, "x/ibc-wasm")),
+			runtime.NewEnvironment(
+				runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), logger.With(log.ModuleKey, "x/ibc-wasm"),
+				runtime.EnvWithQueryRouterService(app.GRPCQueryRouter()),
+			),
 			appCodec, app.IBCKeeper.ClientKeeper,
-			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, app.GRPCQueryRouter(),
+			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig,
 		)
 	}
 
