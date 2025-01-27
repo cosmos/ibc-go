@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -8,18 +9,12 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
-	"github.com/cosmos/cosmos-sdk/runtime"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-
-	"cosmossdk.io/core/router"
 )
 
 type CustomQuery struct {
@@ -30,8 +25,8 @@ type QueryEcho struct {
 	Data string `json:"data"`
 }
 
-func mockCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
-	return func(ctx sdk.Context, request json.RawMessage) ([]byte, error) {
+func mockCustomQuerier() func(context.Context, json.RawMessage) ([]byte, error) {
+	return func(ctx context.Context, request json.RawMessage) ([]byte, error) {
 		var customQuery CustomQuery
 		err := json.Unmarshal([]byte(request), &customQuery)
 		if err != nil {
@@ -156,9 +151,8 @@ func (suite *KeeperTestSuite) TestStargateQuery() {
 		{
 			"success: custom query",
 			func() {
-				rtr := runtime.NewQueryRouterService(GetSimApp(suite.chainA).GRPCQueryRouter())
 				querierPlugin := keeper.QueryPlugins{
-					Stargate: keeper.AcceptListStargateQuerier([]string{typeURL}, rtr),
+					Stargate: keeper.AcceptListStargateQuerier([]string{typeURL}, GetSimApp(suite.chainA).GRPCQueryRouter()),
 				}
 
 				GetSimApp(suite.chainA).WasmClientKeeper.SetQueryPlugins(querierPlugin)

@@ -26,6 +26,7 @@ func NewKeeperWithVM(
 	clientKeeper types.ClientKeeper,
 	authority string,
 	vm types.WasmEngine,
+	queryRouter types.QueryRouter,
 	opts ...Option,
 ) Keeper {
 	if clientKeeper == nil {
@@ -36,7 +37,7 @@ func NewKeeperWithVM(
 		panic(errors.New("store service must not be nil"))
 	}
 
-	if env.QueryRouterService == nil {
+	if queryRouter == nil {
 		panic(errors.New("query router must not be nil"))
 	}
 
@@ -57,6 +58,7 @@ func NewKeeperWithVM(
 		checksums:    collections.NewKeySet(sb, types.ChecksumsKey, "checksums", collections.BytesKey),
 		clientKeeper: clientKeeper,
 		authority:    authority,
+		queryRouter:  queryRouter,
 	}
 
 	_, err := sb.Build()
@@ -66,7 +68,7 @@ func NewKeeperWithVM(
 
 	// set query plugins to ensure there is a non-nil query plugin
 	// regardless of what options the user provides
-	keeper.setQueryPlugins(NewDefaultQueryPlugins(keeper.QueryRouterService))
+	keeper.setQueryPlugins(NewDefaultQueryPlugins(keeper.queryRouter))
 
 	for _, opt := range opts {
 		opt.apply(keeper)
@@ -84,6 +86,7 @@ func NewKeeperWithConfig(
 	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
+	queryRouter types.QueryRouter,
 	opts ...Option,
 ) Keeper {
 	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)
@@ -91,5 +94,5 @@ func NewKeeperWithConfig(
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-	return NewKeeperWithVM(env, cdc, clientKeeper, authority, vm, opts...)
+	return NewKeeperWithVM(env, cdc, clientKeeper, authority, vm, queryRouter, opts...)
 }
