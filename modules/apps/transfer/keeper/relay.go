@@ -10,7 +10,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -349,8 +348,7 @@ func (k Keeper) OnTimeoutPacket(ctx context.Context, packet channeltypes.Packet,
 func (k Keeper) refundPacketTokens(ctx context.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// NOTE: packet data type already checked in handler.go
 
-	addrCdc := addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
-	senderBytes, err := addrCdc.StringToBytes(data.Sender)
+	senderBytes, err := k.addrCdc.StringToBytes(data.Sender)
 	sender := sdk.AccAddress(senderBytes)
 	if err != nil {
 		return err

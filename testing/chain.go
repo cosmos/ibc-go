@@ -61,6 +61,7 @@ type TestChain struct {
 	ProposedHeader        cmtproto.Header // proposed (uncommitted) header for current block height
 	TxConfig              client.TxConfig
 	Codec                 codec.Codec
+	Bech32Prefix          string
 
 	Vals     *cmttypes.ValidatorSet
 	NextVals *cmttypes.ValidatorSet
@@ -162,6 +163,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		SenderPrivKey:     senderAccs[0].SenderPrivKey,
 		SenderAccount:     senderAccs[0].SenderAccount,
 		SenderAccounts:    senderAccs,
+		Bech32Prefix:      sdk.GetConfig().GetBech32AccountAddrPrefix(),
 	}
 
 	// commit genesis block
