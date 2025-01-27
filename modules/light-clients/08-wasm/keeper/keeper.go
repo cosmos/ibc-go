@@ -177,7 +177,7 @@ func (k Keeper) migrateContractCode(ctx context.Context, clientID string, newChe
 
 	k.clientKeeper.SetClientState(ctx, clientID, wasmClientState)
 
-	if err = emitMigrateContractEvent(k.EventService.EventManager(ctx), clientID, oldChecksum, newChecksum); err != nil {
+	if err = k.emitMigrateContractEvent(ctx, clientID, oldChecksum, newChecksum); err != nil {
 		return fmt.Errorf("failed to emit migrate contract events: %w", err)
 	}
 

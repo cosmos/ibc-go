@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"encoding/hex"
 	"errors"
 
@@ -12,7 +13,8 @@ import (
 )
 
 // emitStoreWasmCodeEvent emits a store wasm code event
-func emitStoreWasmCodeEvent(em event.Manager, checksum types.Checksum) error {
+func (k Keeper) emitStoreWasmCodeEvent(ctx context.Context, checksum types.Checksum) error {
+	em := k.EventService.EventManager(ctx)
 	return errors.Join(
 		em.EmitKV(
 			types.EventTypeStoreWasmCode,
@@ -26,7 +28,8 @@ func emitStoreWasmCodeEvent(em event.Manager, checksum types.Checksum) error {
 }
 
 // emitMigrateContractEvent emits a migrate contract event
-func emitMigrateContractEvent(em event.Manager, clientID string, checksum, newChecksum types.Checksum) error {
+func (k Keeper) emitMigrateContractEvent(ctx context.Context, clientID string, checksum, newChecksum types.Checksum) error {
+	em := k.EventService.EventManager(ctx)
 	return errors.Join(
 		em.EmitKV(
 			types.EventTypeMigrateContract,

@@ -27,7 +27,7 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
 		return nil, errorsmod.Wrap(err, "failed to store wasm bytecode")
 	}
 
-	if err := emitStoreWasmCodeEvent(k.EventService.EventManager(ctx), checksum); err != nil {
+	if err := k.emitStoreWasmCodeEvent(ctx, checksum); err != nil {
 		return nil, fmt.Errorf("failed to emit store wasm code events: %w", err)
 	}
 
