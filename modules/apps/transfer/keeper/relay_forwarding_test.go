@@ -1101,7 +1101,7 @@ func (suite *ForwardingTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().True(found, "chainB does not have an ack")
 
 	// And that this ack is of the type we expect (Error due to time out)
-	expectedAck := internaltypes.NewForwardTimeoutAcknowledgement(packetFromBToC)
+	expectedAck := internaltypes.NewForwardTimeoutAcknowledgement(packetFromBToC.SourcePort, packetFromBToC.SourceChannel)
 	expectedAckBytes := channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement())
 	suite.Require().Equal(expectedAckBytes, storedAck)
 	suite.Require().Equal(expectedAck.Acknowledgement(), ack)
@@ -1349,7 +1349,7 @@ func (suite *ForwardingTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 
 	// And that this ack is of the type we expect (Error due to ReceiveEnabled param being false)
 	initialErrorAck := channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled)
-	forwardErrorAck := internaltypes.NewForwardErrorAcknowledgement(packetFromCtoD, initialErrorAck)
+	forwardErrorAck := internaltypes.NewForwardErrorAcknowledgement(packetFromCtoD.SourcePort, packetFromCtoD.SourceChannel, initialErrorAck)
 	ackbytes := channeltypes.CommitAcknowledgement(forwardErrorAck.Acknowledgement())
 	suite.Require().Equal(ackbytes, storedAck)
 
@@ -1375,7 +1375,7 @@ func (suite *ForwardingTestSuite) TestMultihopForwardingErrorAcknowledgement() {
 	suite.Require().True(found, "chainB does not have an ack")
 
 	// And that this ack is of the type we expect (Error due to ReceiveEnabled param being false)
-	forwardErrorAck = internaltypes.NewForwardErrorAcknowledgement(packetFromBtoC, forwardErrorAck)
+	forwardErrorAck = internaltypes.NewForwardErrorAcknowledgement(packetFromBtoC.SourcePort, packetFromBtoC.SourceChannel, forwardErrorAck)
 	ackbytes = channeltypes.CommitAcknowledgement(forwardErrorAck.Acknowledgement())
 	suite.Require().Equal(ackbytes, storedAck)
 

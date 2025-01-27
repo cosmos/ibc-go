@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
 	channelkeeperv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
@@ -161,6 +162,12 @@ func (k *Keeper) SetNextSequenceSend(ctx context.Context, clientID string, seque
 	if err := store.Set(hostv2.NextSequenceSendKey(clientID), bigEndianBz); err != nil {
 		panic(err)
 	}
+}
+
+// GetCounterparty is a proxy function that gets the counterparty from underlying client
+// to fulfill a uniform interface for interacting with IBC core for applications
+func (k *Keeper) GetCounterparty(ctx context.Context, clientID string) (clienttypes.CounterpartyInfo, bool) {
+	return k.ClientKeeper.GetClientCounterparty(ctx, clientID)
 }
 
 // SetAsyncPacket writes the packet under the async path

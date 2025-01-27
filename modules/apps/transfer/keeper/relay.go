@@ -280,7 +280,7 @@ func (k Keeper) HandleForwardedPacketAcknowledgement(
 			return err
 		}
 
-		forwardAck = internaltypes.NewForwardErrorAcknowledgement(packet, ack)
+		forwardAck = internaltypes.NewForwardErrorAcknowledgement(packet.SourcePort, packet.SourceChannel, ack)
 	default:
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
 	}
@@ -305,7 +305,7 @@ func (k Keeper) HandleForwardedPacketTimeout(ctx context.Context, packet channel
 		return err
 	}
 
-	forwardAck := internaltypes.NewForwardTimeoutAcknowledgement(packet)
+	forwardAck := internaltypes.NewForwardTimeoutAcknowledgement(packet.SourcePort, packet.SourceChannel)
 	return k.acknowledgeForwardedPacket(ctx, forwardedPacket, packet, forwardAck)
 }
 

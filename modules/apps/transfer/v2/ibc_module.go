@@ -3,15 +3,18 @@ package v2
 import (
 	"context"
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	channelv2types "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
@@ -64,6 +67,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 		ackErr error
 		data   transfertypes.FungibleTokenPacketDataV2
 	)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 	recvResult := types.RecvPacketResult{
@@ -88,7 +92,8 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 		}
 	}
 
-	if _, ackErr = im.keeper.OnRecvPacket(
+	var receivedCoins sdk.Coins
+	if receivedCoins, ackErr = im.keeper.OnRecvPacket(
 		ctx,
 		data,
 		payload.SourcePort,
@@ -111,21 +116,18 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 
 	if data.HasForwarding() {
 		// we are now sending from the forward escrow address to the final receiver address.
-		ack = channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarding not yet supported"))
-		return types.RecvPacketResult{
-			Status:          types.PacketStatus_Failure,
-			Acknowledgement: ack.Acknowledgement(),
+		timeoutTimestamp := uint64(sdkCtx.BlockTime().Add(time.Hour).Unix())
+		if err := im.forwardPacket(ctx, destinationChannel, payload.DestinationPort, sequence, data, timeoutTimestamp, receivedCoins); err != nil {
+			return types.RecvPacketResult{
+				Status:          types.PacketStatus_Failure,
+				Acknowledgement: channeltypes.NewErrorAcknowledgement(err).Acknowledgement(),
+			}
 		}
-		// TODO: handle forwarding
-		// TODO: inside this version of the function, we should fetch the packet that was stored in IBC core in order to set it for forwarding.
-		//	if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
-		//		return err
-		//	}
 
 		// NOTE: acknowledgement will be written asynchronously
-		// return types.RecvPacketResult{
-		// 	Status: types.PacketStatus_Async,
-		// }
+		return types.RecvPacketResult{
+			Status: types.PacketStatus_Async,
+		}
 	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
@@ -143,7 +145,20 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 		return err
 	}
 
-	// TODO: handle forwarding
+	if awaitPacketId, isForwarded := im.keeper.GetForwardV2PacketId(ctx, sourceChannel, sequence); isForwarded {
+		// revert the receive of the original packet
+		if err := im.revertForwardedPacket(ctx, awaitPacketId.ChannelId, awaitPacketId.PortId, awaitPacketId.Sequence, data); err != nil {
+			return err
+		}
+
+		// write an async failed acknowledgement for original received packet since our forwarded packet timed out
+		awaitAck := internaltypes.NewForwardTimeoutAcknowledgement(payload.SourcePort, sourceChannel)
+		awaitAcknowledgement := channelv2types.NewAcknowledgement(awaitAck.Acknowledgement())
+		im.chanV2Keeper.WriteAcknowledgement(ctx, awaitPacketId.ChannelId, awaitPacketId.Sequence, awaitAcknowledgement)
+
+		// delete forwardPacketId
+		im.keeper.DeleteForwardV2PacketId(ctx, sourceChannel, sequence)
+	}
 
 	return im.keeper.EmitOnTimeoutEvent(ctx, data)
 }
@@ -163,7 +178,33 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 		return err
 	}
 
-	// TODO: handle forwarding
+	if awaitPacketId, isForwarded := im.keeper.GetForwardV2PacketId(ctx, sourceChannel, sequence); isForwarded {
+		var awaitAck channeltypes.Acknowledgement
+
+		switch ack.Response.(type) {
+		case *channeltypes.Acknowledgement_Result:
+			// Write a successful async ack for awaitPacket
+			awaitAck = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+		case *channeltypes.Acknowledgement_Error:
+			// the forwarded packet has failed, thus the funds have been refunded to the intermediate address.
+			// we must revert the changes that came from successfully receiving the tokens on our chain
+			// before propagating the error acknowledgement back to original sender chain
+			if err := im.revertForwardedPacket(ctx, awaitPacketId.ChannelId, awaitPacketId.PortId, awaitPacketId.Sequence, data); err != nil {
+				return err
+			}
+
+			awaitAck = internaltypes.NewForwardErrorAcknowledgement(payload.SourcePort, sourceChannel, ack)
+		default:
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected one of [%T, %T], got %T", channeltypes.Acknowledgement_Result{}, channeltypes.Acknowledgement_Error{}, ack.Response)
+		}
+
+		// write async acknowledgment for original received packet
+		asyncAcknowledgement := channelv2types.NewAcknowledgement(awaitAck.Acknowledgement())
+		im.chanV2Keeper.WriteAcknowledgement(ctx, awaitPacketId.ChannelId, awaitPacketId.Sequence, asyncAcknowledgement)
+
+		// delete forwardPacketId
+		im.keeper.DeleteForwardV2PacketId(ctx, sourceChannel, sequence)
+	}
 
 	return im.keeper.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 }

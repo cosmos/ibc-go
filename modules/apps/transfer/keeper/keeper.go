@@ -382,6 +382,48 @@ func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet type
 	}
 }
 
+// SetForwardV2PacketId sets the packet id for eureka forwarding logic
+func (k Keeper) SetForwardV2PacketId(ctx context.Context, forwardClient string, forwardSequence uint64, awaitClient string, awaitPort string, awaitSequence uint64) {
+	store := k.KVStoreService.OpenKVStore(ctx)
+	key := types.PacketForwardKey("", forwardClient, forwardSequence)
+	packetId := channeltypes.PacketId{
+		PortId:    awaitPort,
+		ChannelId: awaitClient,
+		Sequence:  awaitSequence,
+	}
+	bz := k.cdc.MustMarshal(&packetId)
+	if err := store.Set(key, bz); err != nil {
+		panic(err)
+	}
+}
+
+// GetForwardV2PacketId gets the packet id for eureka forwarding logic
+func (k Keeper) GetForwardV2PacketId(ctx context.Context, forwardClient string, forwardSequence uint64) (channeltypes.PacketId, bool) {
+	store := k.KVStoreService.OpenKVStore(ctx)
+	key := types.PacketForwardKey("", forwardClient, forwardSequence)
+	bz, err := store.Get(key)
+	if err != nil {
+		panic(err)
+	}
+	if bz == nil {
+		return channeltypes.PacketId{}, false
+	}
+
+	var packetId channeltypes.PacketId
+	k.cdc.MustUnmarshal(bz, &packetId)
+
+	return packetId, true
+}
+
+// DeleteForwardV2PacketId deletes the packet id for eureka forwarding logic
+func (k Keeper) DeleteForwardV2PacketId(ctx context.Context, forwardClient string, forwardSequence uint64) {
+	store := k.KVStoreService.OpenKVStore(ctx)
+	key := types.PacketForwardKey("", forwardClient, forwardSequence)
+	if err := store.Delete(key); err != nil {
+		panic(err)
+	}
+}
+
 // IsBlockedAddr checks if the given address is allowed to send or receive tokens.
 // The module account is always allowed to send and receive tokens.
 func (k Keeper) IsBlockedAddr(addr sdk.AccAddress) bool {

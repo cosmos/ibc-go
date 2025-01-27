@@ -690,7 +690,7 @@ func NewSimApp(
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 
 	// register the transfer v2 module.
-	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeper))
+	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeper, app.IBCKeeper.ChannelKeeperV2))
 
 	// Seal the IBC Routers.
 	app.IBCKeeper.SetRouter(ibcRouter)

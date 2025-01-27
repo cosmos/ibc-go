@@ -48,6 +48,7 @@ type ChannelKeeper interface {
 type ChannelKeeperV2 interface {
 	GetCounterparty(ctx context.Context, clientId string) (clienttypes.CounterpartyInfo, bool)
 	SendPacket(ctx context.Context, msg *channelv2types.MsgSendPacket) (*channelv2types.MsgSendPacketResponse, error)
+	WriteAcknowledgement(ctx context.Context, clientId string, sequence uint64, ack channelv2types.Acknowledgement) error
 }
 
 // ClientKeeper defines the expected IBC client keeper
