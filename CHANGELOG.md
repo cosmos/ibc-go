@@ -34,12 +34,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v8.5.3](https://github.com/cosmos/ibc-go/releases/tag/v8.5.3) - 2025-01-24
-
-### Bug Fixes
-
-* (core/02-client) [\#7868](https://github.com/cosmos/ibc-go/pull/7868) Add json tags for Height for ibc client proto
-
 ## [v8.5.2](https://github.com/cosmos/ibc-go/releases/tag/v8.5.2) - 2024-11-05
 
 ### Testing
