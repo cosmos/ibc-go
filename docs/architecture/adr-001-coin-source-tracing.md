@@ -161,9 +161,9 @@ that a new `[]DenomTrace` `GenesisState` field state needs to be added to the mo
 // GetDenomTrace retrieves the full identifiers trace and base denomination from the store.
 func (k Keeper) GetDenomTrace(ctx Context, denomTraceHash []byte) (DenomTrace, bool) {
   store := ctx.KVStore(k.storeKey)
-  bz := store.Get(types.KeyDenomTrace(traceHash))
+  bz := store.Get(types.KeyDenomTrace(denomTraceHash))
   if bz == nil {
-    return &DenomTrace, false
+    return DenomTrace{}, false
   }
 
   var denomTrace DenomTrace
