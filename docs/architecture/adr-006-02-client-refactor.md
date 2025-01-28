@@ -105,7 +105,7 @@ The IBC specification states:
 
 The initial version of the IBC go SDK based module did not fulfill this requirement.
 Instead, the 02-client submodule required each light client to return the client and consensus state which should be updated in the client prefixed store.
-This decision lead to the issues "Solomachine doesn't set consensus states" and "New clients may want to do batch updates".
+This decision led to the issues "Solomachine doesn't set consensus states" and "New clients may want to do batch updates".
 
 Each light client should be required to set its own client and consensus states on any update necessary.
 The go implementation should be changed to match the specification requirements.
