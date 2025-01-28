@@ -202,13 +202,13 @@ type AppModule struct {}
 // CheckChannel will be provided to the ChannelKeeper as ChannelKeeper.Port(module.CheckChannel)
 func (module AppModule) CheckChannel(portID, channelID string, channel Channel) error {
   if channel.Ordering != UNORDERED {
-    return ErrUncompatibleOrdering()
+    return ErrIncompatibleOrdering()
   }
   if channel.CounterpartyPort != "bank" {
-    return ErrUncompatiblePort()
+    return ErrIncompatiblePort()
   }
   if channel.Version != "" {
-    return ErrUncompatibleVersion()
+    return ErrIncompatibleVersion()
   }
   return nil
 }
