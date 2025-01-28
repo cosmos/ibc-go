@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/codec/address"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log"
@@ -76,6 +77,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				newIBCKeeperFn = func() {
 					ibckeeper.NewKeeper(
 						suite.chainA.GetSimApp().AppCodec(),
+						address.NewBech32Codec(suite.chainA.Bech32Prefix),
 						runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), log.NewNopLogger()),
 						suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 						upgradeKeeper,
@@ -96,6 +98,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			newIBCKeeperFn = func() {
 				ibckeeper.NewKeeper(
 					suite.chainA.GetSimApp().AppCodec(),
+					address.NewBech32Codec(suite.chainA.Bech32Prefix),
 					runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), log.NewNopLogger()),
 					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					upgradeKeeper,

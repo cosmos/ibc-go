@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/core/appmodule"
 	storetypes "cosmossdk.io/store/types"
 
@@ -24,7 +25,8 @@ var _ types.ChannelKeeper = (*Keeper)(nil)
 type Keeper struct {
 	appmodule.Environment
 
-	cdc codec.BinaryCodec
+	cdc       codec.BinaryCodec
+	AddrCodec address.Codec
 
 	authKeeper    types.AuthKeeper
 	ics4Wrapper   porttypes.ICS4Wrapper
@@ -34,12 +36,13 @@ type Keeper struct {
 
 // NewKeeper creates a new 29-fee Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, env appmodule.Environment,
+	cdc codec.BinaryCodec, addrCdc address.Codec, env appmodule.Environment,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper,
 	authKeeper types.AuthKeeper, bankKeeper types.BankKeeper,
 ) Keeper {
 	return Keeper{
 		cdc:           cdc,
+		AddrCodec:     addrCdc,
 		Environment:   env,
 		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
