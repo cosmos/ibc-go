@@ -685,6 +685,7 @@ func NewSimApp(
 	// must be passed by reference here.
 	app.ModuleManager = module.NewManagerFromMap(map[string]appmodule.AppModule{
 		genutiltypes.ModuleName:   genutil.NewAppModule(appCodec, app.AuthKeeper, app.StakingKeeper, app, txConfig, genutiltypes.DefaultMessageValidator),
+		accounts.ModuleName:       accounts.NewAppModule(appCodec, app.AccountsKeeper),
 		authtypes.ModuleName:      auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountsKeeper, authsims.RandomGenesisAccounts, nil),
 		vestingtypes.ModuleName:   vesting.NewAppModule(app.AuthKeeper, app.BankKeeper),
 		banktypes.ModuleName:      bank.NewAppModule(appCodec, app.BankKeeper, app.AuthKeeper),
