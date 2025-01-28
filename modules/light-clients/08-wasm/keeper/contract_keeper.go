@@ -16,7 +16,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"

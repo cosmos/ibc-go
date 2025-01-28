@@ -58,7 +58,6 @@ func NewKeeperWithVM(
 		checksums:    collections.NewKeySet(sb, types.ChecksumsKey, "checksums", collections.BytesKey),
 		clientKeeper: clientKeeper,
 		authority:    authority,
-		queryRouter:  queryRouter,
 	}
 
 	_, err := sb.Build()
@@ -68,7 +67,7 @@ func NewKeeperWithVM(
 
 	// set query plugins to ensure there is a non-nil query plugin
 	// regardless of what options the user provides
-	keeper.setQueryPlugins(NewDefaultQueryPlugins(keeper.queryRouter))
+	keeper.setQueryPlugins(NewDefaultQueryPlugins(queryRouter))
 
 	for _, opt := range opts {
 		opt.apply(keeper)

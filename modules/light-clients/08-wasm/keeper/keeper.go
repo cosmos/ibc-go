@@ -34,8 +34,6 @@ type Keeper struct {
 
 	queryPlugins QueryPlugins
 
-	queryRouter types.QueryRouter
-
 	authority string
 }
 
