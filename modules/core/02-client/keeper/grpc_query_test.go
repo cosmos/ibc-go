@@ -110,6 +110,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 	var (
 		req             *types.QueryClientStatesRequest
 		expClientStates = types.IdentifiedClientStates{}
+		expCount        = 0
 	)
 
 	testCases := []struct {
@@ -121,6 +122,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			"req is nil",
 			func() {
 				req = nil
+				expCount = 0
 			},
 			status.Error(codes.InvalidArgument, "empty request"),
 		},
@@ -128,6 +130,7 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 			"empty pagination",
 			func() {
 				expClientStates = nil
+				expCount = 0
 				req = &types.QueryClientStatesRequest{}
 			},
 			nil,
@@ -155,6 +158,31 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 						CountTotal: true,
 					},
 				}
+				expCount = 2
+			},
+			nil,
+		},
+		{
+			"success request with pagination limit",
+			func() {
+				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path1.SetupClients()
+
+				path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path2.SetupClients()
+
+				clientStateA1 := path1.EndpointA.GetClientState()
+
+				idcs := types.NewIdentifiedClientState(path1.EndpointA.ClientID, clientStateA1)
+
+				expClientStates = types.IdentifiedClientStates{idcs}.Sort()
+				req = &types.QueryClientStatesRequest{
+					Pagination: &query.PageRequest{
+						Limit:      1,
+						CountTotal: true,
+					},
+				}
+				expCount = 2
 			},
 			nil,
 		},
@@ -174,7 +202,8 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
 				suite.Require().Equal(expClientStates.Sort(), res.ClientStates)
-				suite.Require().Equal(len(expClientStates), int(res.Pagination.Total))
+				suite.Require().Equal(expCount, int(res.Pagination.Total))
+
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
@@ -371,6 +400,36 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 			nil,
 		},
 		{
+			"success with pagination limit",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupClients()
+
+				height1, ok := path.EndpointA.GetClientLatestHeight().(types.Height)
+				suite.Require().True(ok)
+				expConsensusStates = []types.ConsensusStateWithHeight{
+					types.NewConsensusStateWithHeight(
+						height1,
+						path.EndpointA.GetConsensusState(height1),
+					),
+				}
+
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+				_, ok = path.EndpointA.GetClientLatestHeight().(types.Height)
+				suite.Require().True(ok)
+
+				req = &types.QueryConsensusStatesRequest{
+					ClientId: path.EndpointA.ClientID,
+					Pagination: &query.PageRequest{
+						Limit:      1,
+						CountTotal: true,
+					},
+				}
+			},
+			nil,
+		},
+		{
 			"invalid client identifier",
 			func() {
 				req = &types.QueryConsensusStatesRequest{}
@@ -459,6 +518,29 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 					ClientId: path.EndpointA.ClientID,
 					Pagination: &query.PageRequest{
 						Limit:      3,
+						CountTotal: true,
+					},
+				}
+			},
+			nil,
+		},
+		{
+			"success:  pagination with limit",
+			func() {
+				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path.SetupClients()
+
+				expConsensusStateHeights = []types.Height{path.EndpointA.GetClientLatestHeight().(types.Height)}
+
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				// expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientLatestHeight().(types.Height))
+
+				req = &types.QueryConsensusStateHeightsRequest{
+					ClientId: path.EndpointA.ClientID,
+					Pagination: &query.PageRequest{
+						Limit:      1,
 						CountTotal: true,
 					},
 				}

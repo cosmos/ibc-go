@@ -126,8 +126,11 @@ func (q *queryServer) ConnectionChannels(ctx context.Context, req *types.QueryCo
 			return false, err
 		}
 
-		identifiedChannel := types.NewIdentifiedChannel(portID, channelID, result)
-		channels = append(channels, &identifiedChannel)
+		if accumulate {
+			identifiedChannel := types.NewIdentifiedChannel(portID, channelID, result)
+			channels = append(channels, &identifiedChannel)
+		}
+
 		return true, nil
 	})
 	if err != nil {
