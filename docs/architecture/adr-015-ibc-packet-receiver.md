@@ -22,7 +22,7 @@ verification code.
 
 For atomic multi-message transaction, we want to keep the IBC related
 state modification to be preserved even the application side state change
-reverts. One of the example might be IBC token sending message following with
+reverts. One example might be IBC token sending message following with
 stake delegation which uses the tokens received by the previous packet message.
 If the token receiving fails for any reason, we might not want to keep
 executing the transaction, but we also don't want to abort the transaction
