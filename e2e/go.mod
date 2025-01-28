@@ -78,7 +78,7 @@ require (
 	github.com/cosmos/iavl v1.3.5 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.14.0 // indirect
-	github.com/cosmos/solidity-ibc-eureka/abigen v0.0.0-20241224052802-b77c838815f9 // indirect
+	github.com/cosmos/solidity-ibc-eureka/abigen v0.0.0-20250127190842-6cf4203c32c2 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240223125850-b1e8a79f509c // indirect
 	github.com/crate-crypto/go-kzg-4844 v1.0.0 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect

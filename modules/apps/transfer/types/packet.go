@@ -259,8 +259,8 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
 		}
 	case EncodingABI:
-		if ics20Version != V1 {
-			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "encoding %s is only supported for ICS20-V1", EncodingABI)
+		if ics20Version != V2 {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "encoding %s is only supported for ICS20-V2", EncodingABI)
 		}
 		var err error
 		data, err = decodeABIFungibleTokenPacketData(bz)
@@ -319,19 +319,46 @@ func PacketDataV1ToV2(packetData FungibleTokenPacketData) (FungibleTokenPacketDa
 	}, nil
 }
 
-// decodeABIFungibleTokenPacketData decodes a solidity ABI encoded ics20lib.ICS20LibFungibleTokenPacketData
-// and converts it into an ibc-go FungibleTokenPacketData.
-func decodeABIFungibleTokenPacketData(data []byte) (*FungibleTokenPacketData, error) {
+// decodeABIFungibleTokenPacketData decodes a solidity ABI encoded ics20lib.ICS20LibFungibleTokenPacketDataV2
+// and converts it into an ibc-go FungibleTokenPacketDataV2.
+func decodeABIFungibleTokenPacketData(data []byte) (*FungibleTokenPacketDataV2, error) {
 	solidityFtpd, err := ics20lib.DecodeFungibleTokenPacketData(data)
 	if err != nil {
 		return nil, err
 	}
 
-	return &FungibleTokenPacketData{
-		Denom:    solidityFtpd.Denom,
-		Amount:   solidityFtpd.Amount.String(),
-		Sender:   solidityFtpd.Sender,
-		Receiver: solidityFtpd.Receiver,
-		Memo:     solidityFtpd.Memo,
+	// extract the tokens
+	var tokens []Token
+	for _, token := range solidityFtpd.Tokens {
+		var trace []Hop
+		for _, hop := range token.Denom.Trace {
+			trace = append(trace, Hop{
+				PortId:    hop.PortId,
+				ChannelId: hop.ChannelId,
+			})
+		}
+
+		tokens = append(tokens, Token{
+			Denom:  NewDenom(token.Denom.Base, trace...),
+			Amount: token.Amount.String(),
+		})
+	}
+
+	// extract the forwarding hops
+	var forwardingHops []Hop
+	for _, hop := range solidityFtpd.Forwarding.Hops {
+		forwardingHops = append(forwardingHops, Hop{
+			PortId:    hop.PortId,
+			ChannelId: hop.ChannelId,
+		})
+	}
+
+	// assemble
+	return &FungibleTokenPacketDataV2{
+		Tokens:     tokens,
+		Sender:     solidityFtpd.Sender,
+		Receiver:   solidityFtpd.Receiver,
+		Memo:       solidityFtpd.Memo,
+		Forwarding: NewForwardingPacketData(solidityFtpd.Forwarding.DestinationMemo, forwardingHops...),
 	}, nil
 }

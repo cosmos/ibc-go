@@ -755,23 +755,6 @@ func TestUnmarshalPacketData(t *testing.T) {
 			nil,
 		},
 		{
-			"success: v1 -> v2 with abi encoding",
-			func() {
-				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketData{
-					Denom:    "atom",
-					Amount:   big.NewInt(1000),
-					Sender:   sender,
-					Receiver: receiver,
-					Memo:     "",
-				})
-				require.NoError(t, err)
-
-				packetDataBz = bz
-				encoding = types.EncodingABI
-			},
-			nil,
-		},
-		{
 			"success: v2 with empty encoding (protobuf)",
 			func() {
 				packetData := types.NewFungibleTokenPacketDataV2(
@@ -805,13 +788,44 @@ func TestUnmarshalPacketData(t *testing.T) {
 			nil,
 		},
 		{
-			"failure: v2 with ABI encoding (not supported)",
+			"success: v2 with abi encoding",
+			func() {
+				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketData{
+					Tokens: []ics20lib.ICS20LibToken{
+						{
+							Denom: ics20lib.ICS20LibDenom{
+								Base: "atom",
+								Trace: []ics20lib.ICS20LibHop{
+									{
+										PortId:    "transfer",
+										ChannelId: "channel-0",
+									},
+								},
+							},
+							Amount: big.NewInt(1000),
+						},
+					},
+					Sender:     sender,
+					Receiver:   receiver,
+					Memo:       "",
+					Forwarding: ics20lib.ICS20LibForwardingPacketData{},
+				})
+				require.NoError(t, err)
+
+				packetDataBz = bz
+				encoding = types.EncodingABI
+				version = types.V2
+			},
+			nil,
+		},
+		{
+			"failure: v1 with ABI encoding (not supported)",
 			func() {
 				packetDataBz = []byte("should fail before this gets relevant")
-				version = types.V2
+				version = types.V1
 				encoding = types.EncodingABI
 			},
-			errors.New("encoding application/x-solidity-abi is only supported for ICS20-V1"),
+			errors.New("encoding application/x-solidity-abi is only supported for ICS20-V2"),
 		},
 		{
 			"failure: invalid encoding",
@@ -854,25 +868,27 @@ func TestUnmarshalPacketData(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		packetDataV1 := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, "")
+		t.Run(tc.name, func(t *testing.T) {
+			packetDataV1 := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, "")
 
-		packetDataBz = packetDataV1.GetBytes()
-		version = types.V1
-		encoding = ""
+			packetDataBz = packetDataV1.GetBytes()
+			version = types.V1
+			encoding = ""
 
-		tc.malleate()
+			tc.malleate()
 
-		packetData, err := types.UnmarshalPacketData(packetDataBz, version, encoding)
+			packetData, err := types.UnmarshalPacketData(packetDataBz, version, encoding)
 
-		if tc.expError == nil {
-			require.NoError(t, err)
-			require.NotEmpty(t, packetData.Tokens)
-			require.NotEmpty(t, packetData.Sender)
-			require.NotEmpty(t, packetData.Receiver)
-			require.IsType(t, types.FungibleTokenPacketDataV2{}, packetData)
-		} else {
-			ibctesting.RequireErrorIsOrContains(t, err, tc.expError)
-		}
+			if tc.expError == nil {
+				require.NoError(t, err)
+				require.NotEmpty(t, packetData.Tokens)
+				require.NotEmpty(t, packetData.Sender)
+				require.NotEmpty(t, packetData.Receiver)
+				require.IsType(t, types.FungibleTokenPacketDataV2{}, packetData)
+			} else {
+				ibctesting.RequireErrorIsOrContains(t, err, tc.expError)
+			}
+		})
 	}
 }
 
