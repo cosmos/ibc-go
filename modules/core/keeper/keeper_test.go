@@ -3,12 +3,12 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/codec/address"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 
+	"github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"

@@ -223,17 +223,17 @@ func (k Keeper) GetAllPayees(ctx context.Context) []types.RegisteredPayee {
 
 // SetCounterpartyPayeeAddress maps the destination chain counterparty payee address to the source relayer address
 // The receiving chain must store the mapping from: address -> counterpartyPayeeAddress for the given channel
-func (k Keeper) SetCounterpartyPayeeAddress(ctx context.Context, address, counterpartyAddress, channelID string) {
+func (k Keeper) SetCounterpartyPayeeAddress(ctx context.Context, addr, counterpartyAddress, channelID string) {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	if err := store.Set(types.KeyCounterpartyPayee(address, channelID), []byte(counterpartyAddress)); err != nil {
+	if err := store.Set(types.KeyCounterpartyPayee(addr, channelID), []byte(counterpartyAddress)); err != nil {
 		panic(err)
 	}
 }
 
 // GetCounterpartyPayeeAddress gets the counterparty payee address given a destination relayer address
-func (k Keeper) GetCounterpartyPayeeAddress(ctx context.Context, address, channelID string) (string, bool) {
+func (k Keeper) GetCounterpartyPayeeAddress(ctx context.Context, relayerAddr, channelID string) (string, bool) {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	key := types.KeyCounterpartyPayee(address, channelID)
+	key := types.KeyCounterpartyPayee(relayerAddr, channelID)
 
 	addr, err := store.Get(key)
 	if err != nil {
@@ -272,9 +272,9 @@ func (k Keeper) GetAllCounterpartyPayees(ctx context.Context) []types.Registered
 }
 
 // SetRelayerAddressForAsyncAck sets the forward relayer address during OnRecvPacket in case of async acknowledgement
-func (k Keeper) SetRelayerAddressForAsyncAck(ctx context.Context, packetID channeltypes.PacketId, address string) {
+func (k Keeper) SetRelayerAddressForAsyncAck(ctx context.Context, packetID channeltypes.PacketId, addr string) {
 	store := k.KVStoreService.OpenKVStore(ctx)
-	if err := store.Set(types.KeyRelayerAddressForAsyncAck(packetID), []byte(address)); err != nil {
+	if err := store.Set(types.KeyRelayerAddressForAsyncAck(packetID), []byte(addr)); err != nil {
 		panic(err)
 	}
 }
