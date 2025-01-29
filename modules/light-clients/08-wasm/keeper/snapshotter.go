@@ -91,7 +91,7 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 // RestoreExtension implements the snapshot.ExtensionSnapshotter interface.
 // RestoreExtension is used to read data from an existing extension state snapshot into the 08-wasm module.
 // The payload reader returns io.EOF when it has reached the end of the extension state snapshot.
-func (ws *WasmSnapshotter) RestoreExtension(format uint32, payloadReader snapshot.ExtensionPayloadReader) error {
+func (ws *WasmSnapshotter) RestoreExtension(_ uint64, format uint32, payloadReader snapshot.ExtensionPayloadReader) error {
 	if format == ws.SnapshotFormat() {
 		return ws.processAllItems(payloadReader, restoreV1)
 	}
