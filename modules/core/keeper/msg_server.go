@@ -361,7 +361,7 @@ func (k *Keeper) ChannelCloseConfirm(ctx context.Context, msg *channeltypes.MsgC
 func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	relayer, err := k.AddrCdc.StringToBytes(msg.Signer)
 	if err != nil {
 		k.Logger.Error("receive packet failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
@@ -424,7 +424,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 
 // Timeout defines a rpc handler method for MsgTimeout.
 func (k *Keeper) Timeout(ctx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
-	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	relayer, err := k.AddrCdc.StringToBytes(msg.Signer)
 	if err != nil {
 		k.Logger.Error("timeout failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
@@ -482,7 +482,7 @@ func (k *Keeper) Timeout(ctx context.Context, msg *channeltypes.MsgTimeout) (*ch
 
 // TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose.
 func (k *Keeper) TimeoutOnClose(ctx context.Context, msg *channeltypes.MsgTimeoutOnClose) (*channeltypes.MsgTimeoutOnCloseResponse, error) {
-	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	relayer, err := k.AddrCdc.StringToBytes(msg.Signer)
 	if err != nil {
 		k.Logger.Error("timeout on close failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
@@ -541,7 +541,7 @@ func (k *Keeper) TimeoutOnClose(ctx context.Context, msg *channeltypes.MsgTimeou
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
 func (k *Keeper) Acknowledgement(ctx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
-	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
+	relayer, err := k.AddrCdc.StringToBytes(msg.Signer)
 	if err != nil {
 		k.Logger.Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
