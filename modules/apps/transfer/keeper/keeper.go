@@ -66,15 +66,14 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:            cdc,
-		addrCdc:        addrCdc,
-		Environment:    env,
-		legacySubspace: legacySubspace,
-		ics4Wrapper:    ics4Wrapper,
-		channelKeeper:  channelKeeper,
-		authKeeper:     authKeeper,
-		bankKeeper:     bankKeeper,
-		authority:      authority,
+		cdc:           cdc,
+		addrCdc:       addrCdc,
+		Environment:   env,
+		ics4Wrapper:   ics4Wrapper,
+		channelKeeper: channelKeeper,
+		authKeeper:    authKeeper,
+		bankKeeper:    bankKeeper,
+		authority:     authority,
 	}
 }
 
