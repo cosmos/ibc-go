@@ -29,3 +29,12 @@ func ContainsMsgType(allowMsgs []string, msg sdk.Msg) bool {
 
 	return slices.Contains(allowMsgs, sdk.MsgTypeURL(msg))
 }
+
+var (
+	// KeyHostEnabled is the store key for HostEnabled Params for legacy purposes.
+	// Deprecated: this will be removed.
+	KeyHostEnabled = []byte("HostEnabled")
+	// KeyAllowMessages is the store key for the AllowMessages Params for legacy purposes.
+	// Deprecated: this will be removed.
+	KeyAllowMessages = []byte("AllowMessages")
+)

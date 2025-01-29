@@ -133,7 +133,7 @@ func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) e
 	}
 
 	if err := registrar.Register(types.ModuleName, 3, m.MigrateParams); err != nil {
-		return fmt.Errorf("failed to migrate transfer app version 3 to 4 (self-managed params migration): %w", err)
+		return fmt.Errorf("failed to migrate transfer app from version 3 to 4 (set denom metadata migration): %w", err)
 	}
 
 	if err := registrar.Register(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
