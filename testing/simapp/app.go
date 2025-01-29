@@ -458,6 +458,7 @@ func NewSimApp(
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
+		signingCtx.AddressCodec(),
 		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibcexported.StoreKey]), logger.With(log.ModuleKey, "x/ibc")),
 		app.GetSubspace(ibcexported.ModuleName),
 		app.UpgradeKeeper,
@@ -512,6 +513,7 @@ func NewSimApp(
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
 		appCodec,
+		signingCtx.AddressCodec(),
 		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibcfeetypes.StoreKey]), logger.With(log.ModuleKey, fmt.Sprintf("x/%s-%s", ibcexported.ModuleName, ibcfeetypes.ModuleName))),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
 		app.IBCKeeper.ChannelKeeper,
