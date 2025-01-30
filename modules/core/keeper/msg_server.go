@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"cosmossdk.io/core/event"
 	errorsmod "cosmossdk.io/errors"
@@ -421,7 +422,9 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypes.MsgRecvPacket
 						Value: attr.Value,
 					})
 				}
-				k.EventService.EventManager(ctx).EmitKV(e.Type, attrs...)
+				if err := k.EventService.EventManager(ctx).EmitKV(e.Type, attrs...); err != nil {
+					return nil, fmt.Errorf("failed to emit error events in RecvPacket: %w", err)
+				}
 			}
 		}
 	}
