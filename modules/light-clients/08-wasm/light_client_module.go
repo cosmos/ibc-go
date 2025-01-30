@@ -9,8 +9,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -71,8 +69,7 @@ func (l LightClientModule) Initialize(ctx context.Context, clientID string, clie
 		Checksum:       clientState.Checksum,
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	return l.keeper.WasmInstantiate(sdkCtx, clientID, clientStore, &clientState, payload)
+	return l.keeper.WasmInstantiate(ctx, clientID, clientStore, &clientState, payload)
 }
 
 // VerifyClientMessage obtains the client state associated with the client identifier, it then must verify the ClientMessage.
@@ -97,8 +94,7 @@ func (l LightClientModule) VerifyClientMessage(ctx context.Context, clientID str
 	payload := types.QueryMsg{
 		VerifyClientMessage: &types.VerifyClientMessageMsg{ClientMessage: clientMessage.Data},
 	}
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	_, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
+	_, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
 	return err
 }
 
@@ -122,8 +118,7 @@ func (l LightClientModule) CheckForMisbehaviour(ctx context.Context, clientID st
 		CheckForMisbehaviour: &types.CheckForMisbehaviourMsg{ClientMessage: clientMessage.Data},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	res, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
+	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		return false
 	}
@@ -157,8 +152,7 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx context.Context, client
 		UpdateStateOnMisbehaviour: &types.UpdateStateOnMisbehaviourMsg{ClientMessage: clientMessage.Data},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		panic(err)
 	}
@@ -184,8 +178,7 @@ func (l LightClientModule) UpdateState(ctx context.Context, clientID string, cli
 		UpdateState: &types.UpdateStateMsg{ClientMessage: clientMessage.Data},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	res, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
+	res, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		panic(err)
 	}
@@ -253,8 +246,7 @@ func (l LightClientModule) VerifyMembership(
 		},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	return err
 }
 
@@ -306,8 +298,7 @@ func (l LightClientModule) VerifyNonMembership(
 		},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	return err
 }
 
@@ -336,8 +327,7 @@ func (l LightClientModule) Status(ctx context.Context, clientID string) exported
 	}
 
 	payload := types.QueryMsg{Status: &types.StatusMsg{}}
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	res, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
+	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		return exported.Unknown
 	}
@@ -386,8 +376,7 @@ func (l LightClientModule) TimestampAtHeight(ctx context.Context, clientID strin
 		},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	res, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
+	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		return 0, errorsmod.Wrapf(err, "height (%s)", height)
 	}
@@ -440,8 +429,7 @@ func (l LightClientModule) RecoverClient(ctx context.Context, clientID, substitu
 		MigrateClientStore: &types.MigrateClientStoreMsg{},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	_, err = l.keeper.WasmSudo(sdkCtx, clientID, store, subjectClientState, payload)
+	_, err = l.keeper.WasmSudo(ctx, clientID, store, subjectClientState, payload)
 	return err
 }
 
@@ -489,7 +477,6 @@ func (l LightClientModule) VerifyUpgradeAndUpdateState(
 		},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	return err
 }
