@@ -399,7 +399,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypes.MsgRecvPacket
 	if err := k.BranchService.Execute(ctx, func(subCtx context.Context) error {
 		// Perform application logic callback
 		ack = cbs.OnRecvPacket(subCtx, channelVersion, msg.Packet, relayer)
-		if !ack.Success() {
+		if ack != nil && !ack.Success() {
 			// we must return an error here so that false positive events are not emitted
 			events = sdk.UnwrapSDKContext(subCtx).EventManager().Events()
 			return channeltypes.ErrFailedAcknowledgement
