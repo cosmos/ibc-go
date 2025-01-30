@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -24,7 +26,8 @@ func NewMigrator(keeper Keeper) Migrator {
 // It grabs the checksums stored previously under the old key and stores
 // them in the global KeySet collection. It then deletes the old key and
 // the checksums stored under it.
-func (m Migrator) MigrateChecksums(ctx sdk.Context) error {
+func (m Migrator) MigrateChecksums(goCtx context.Context) error {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	checksums, err := m.getStoredChecksums(ctx)
 	if err != nil {
 		return err
