@@ -42,6 +42,7 @@ require (
 	cosmossdk.io/x/distribution v0.2.0-rc.1 // indirect
 	cosmossdk.io/x/feegrant v0.2.0-rc.1 // indirect
 	cosmossdk.io/x/gov v0.2.0-rc.1
+	cosmossdk.io/x/params v0.0.0-20241108061010-a0458127fccf
 	cosmossdk.io/x/slashing v0.2.0-rc.1 // indirect
 	cosmossdk.io/x/staking v0.2.0-rc.1 // indirect
 	cosmossdk.io/x/tx v1.1.0 // indirect
@@ -208,10 +209,7 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-require (
-	cosmossdk.io/x/group v0.2.0-rc.1
-	cosmossdk.io/x/params v0.0.0-20241108061010-a0458127fccf
-)
+require cosmossdk.io/x/group v0.2.0-rc.1
 
 require (
 	cloud.google.com/go v0.115.1 // indirect

@@ -1,7 +1,7 @@
-buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.36.4-20241120201313-68e42a58b301.1 h1:lcvKfPJ0GTMLh1Ib9n9b3Hx/U2lXj27rb5pujo3EKko=
-buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.36.4-20241120201313-68e42a58b301.1/go.mod h1:dW1kItnxv+SgI6SBjokdyIZqKl2uhOJahkOqIXDNDC8=
-buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.36.4-20240130113600-88ef6483f90f.1 h1:xn+yVpC5XMvaSQWjfRWmitcYemPznXR7Y65rIMTxoiU=
-buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.36.4-20240130113600-88ef6483f90f.1/go.mod h1:9oTVKh0Ppx5zXStsybi9Zb//6TuLreQxSZqBDE25JGo=
+buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.36.3-20241120201313-68e42a58b301.1 h1:ka493q+UHMpnJHmWS5EqsvVnOQIKrCdO/2Jpzht4drc=
+buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.36.3-20241120201313-68e42a58b301.1/go.mod h1:mvIvtXjrqo1Rmpf+OUuHIVQpA6f9bezvxtZ1c1uo3a8=
+buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.36.3-20240130113600-88ef6483f90f.1 h1:t5a3Rfm5y1+U3gqSq9fd728bj7kL9Rq1oBBXgx2iaaE=
+buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.36.3-20240130113600-88ef6483f90f.1/go.mod h1:tUkfiDbobvvm/uysw5gXCf0I+2eFtlo7pBTy+OTnzZc=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
@@ -252,8 +252,8 @@ cosmossdk.io/x/slashing v0.2.0-rc.1.0.20250124173324-960d44842b9e h1:zuTHxUXdW+Y
 cosmossdk.io/x/slashing v0.2.0-rc.1.0.20250124173324-960d44842b9e/go.mod h1:E51/hlkHDfdVpkh8I5jl9GY0IyiFSxxfIG+e28b18Ko=
 cosmossdk.io/x/staking v0.2.0-rc.1.0.20250124173324-960d44842b9e h1:LLhaJy8ZunYAyk1F7QhgXL4CrzrRRGdpIyqN+Zp7TH8=
 cosmossdk.io/x/staking v0.2.0-rc.1.0.20250124173324-960d44842b9e/go.mod h1:UDqT4bbVaaz2+rv+FWi3MMEQQX8fsVTGBNnAf8Zs880=
-cosmossdk.io/x/tx v1.1.0 h1:5C5XGNGYzbOTKbcf47oBI/VLObb5bmcMqH/C6H/sp1E=
-cosmossdk.io/x/tx v1.1.0/go.mod h1:QF15QyTcGH4wfKawfRdSihWwutf4OhgiA+HIwWhjle0=
+cosmossdk.io/x/tx v1.0.1 h1:PomaVlERYWxhki9RKX+uTE30eJkyqIQjxc7kw1DPXUk=
+cosmossdk.io/x/tx v1.0.1/go.mod h1:dwOSom2k2BJuGgnm9YXBeFII9gbHJGN/BHZBVCbZvPg=
 cosmossdk.io/x/upgrade v0.2.0-rc.1.0.20250124173324-960d44842b9e h1:4aleuyrWA6Oo5M2jmlHn4k4vT1vxogqbbQH5yktqDUE=
 cosmossdk.io/x/upgrade v0.2.0-rc.1.0.20250124173324-960d44842b9e/go.mod h1:Yzo7lGev8EHHtbcAkrI4Fc6L1jD3/VW3VxeHqXva24Y=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
@@ -1400,8 +1400,8 @@ google.golang.org/genproto v0.0.0-20240814211410-ddb44dafa142 h1:oLiyxGgE+rt22du
 google.golang.org/genproto v0.0.0-20240814211410-ddb44dafa142/go.mod h1:G11eXq53iI5Q+kyNOmCvnzBaxEA2Q/Ik5Tj7nqBE8j4=
 google.golang.org/genproto/googleapis/api v0.0.0-20241202173237-19429a94021a h1:OAiGFfOiA0v9MRYsSidp3ubZaBnteRUyn3xB2ZQ5G/E=
 google.golang.org/genproto/googleapis/api v0.0.0-20241202173237-19429a94021a/go.mod h1:jehYqy3+AhJU9ve55aNOaSml7wUXjF9x6z2LcCfpAhY=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20250122153221-138b5a5a4fd4 h1:yrTuav+chrF0zF/joFGICKTzYv7mh/gr9AgEXrVU8ao=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20250122153221-138b5a5a4fd4/go.mod h1:+2Yz8+CLJbIfL9z73EW45avw8Lmge3xVElCP9zEKi50=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250106144421-5f5ef82da422 h1:3UsHvIr4Wc2aW4brOaSCmcxh9ksica6fHEr8P1XhkYw=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250106144421-5f5ef82da422/go.mod h1:3ENsm/5D1mzDyhpzeRi1NR784I0BcofWBoSc5QqqMK4=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.20.1/go.mod h1:10oTOabMzJvdu6/UiuZezV6QK5dSlG84ov/aaiqXj38=
 google.golang.org/grpc v1.21.1/go.mod h1:oYelfM1adQP15Ek0mdvEgi9Df8B9CZIaU1084ijfRaM=

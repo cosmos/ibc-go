@@ -4,7 +4,7 @@ module github.com/cosmos/ibc-go/v9
 
 require (
 	cosmossdk.io/api v0.8.2
-	cosmossdk.io/client/v2 v2.10.0-beta.2
+	cosmossdk.io/client/v2 v2.10.0-beta.1
 	cosmossdk.io/core v1.0.0
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/log v1.5.0
@@ -12,24 +12,24 @@ require (
 	cosmossdk.io/store v1.10.0-rc.1.0.20241218084712-ca559989da43
 	cosmossdk.io/x/accounts v0.2.0-rc.1
 	cosmossdk.io/x/accounts/defaults/base v0.2.0-rc.1
-	cosmossdk.io/x/accounts/defaults/lockup v0.2.0-rc.1
-	cosmossdk.io/x/accounts/defaults/multisig v0.2.0-rc.1
-	cosmossdk.io/x/authz v0.2.0-rc.1
+	cosmossdk.io/x/accounts/defaults/lockup v0.0.0-00010101000000-000000000000
+	cosmossdk.io/x/accounts/defaults/multisig v0.0.0-00010101000000-000000000000
+	cosmossdk.io/x/authz v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/bank v0.2.0-rc.1
-	cosmossdk.io/x/consensus v0.2.0-rc.1
+	cosmossdk.io/x/consensus v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/distribution v0.2.0-rc.1
 	cosmossdk.io/x/epochs v0.2.0-rc.1
-	cosmossdk.io/x/evidence v0.2.0-rc.1
-	cosmossdk.io/x/feegrant v0.2.0-rc.1
+	cosmossdk.io/x/evidence v0.0.0-00010101000000-000000000000
+	cosmossdk.io/x/feegrant v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/gov v0.2.0-rc.1
-	cosmossdk.io/x/group v0.2.0-rc.1
-	cosmossdk.io/x/mint v0.2.0-rc.1
-	cosmossdk.io/x/nft v0.2.0-rc.1
+	cosmossdk.io/x/group v0.0.0-00010101000000-000000000000
+	cosmossdk.io/x/mint v0.0.0-20240909082436-01c0e9ba3581
+	cosmossdk.io/x/nft v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/params v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/protocolpool v0.2.0-rc.1
-	cosmossdk.io/x/slashing v0.2.0-rc.1
+	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/staking v0.2.0-rc.1
-	cosmossdk.io/x/tx v1.1.0
+	cosmossdk.io/x/tx v1.0.1
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/cometbft/cometbft v1.0.0
 	github.com/cometbft/cometbft/api v1.0.0
@@ -51,8 +51,8 @@ require (
 )
 
 require (
-	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.36.4-20241120201313-68e42a58b301.1 // indirect
-	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.36.4-20240130113600-88ef6483f90f.1 // indirect
+	buf.build/gen/go/cometbft/cometbft/protocolbuffers/go v1.36.3-20241120201313-68e42a58b301.1 // indirect
+	buf.build/gen/go/cosmos/gogo-proto/protocolbuffers/go v1.36.3-20240130113600-88ef6483f90f.1 // indirect
 	cloud.google.com/go v0.115.1 // indirect
 	cloud.google.com/go/auth v0.8.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.4 // indirect
@@ -214,7 +214,7 @@ require (
 	golang.org/x/time v0.6.0 // indirect
 	google.golang.org/api v0.192.0 // indirect
 	google.golang.org/genproto v0.0.0-20240814211410-ddb44dafa142 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250122153221-138b5a5a4fd4 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250106144421-5f5ef82da422 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
@@ -247,9 +247,6 @@ replace (
 	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/upgrade => cosmossdk.io/x/upgrade v0.2.0-rc.1.0.20250124173324-960d44842b9e
-
-	// use cosmos fork of keyring
-	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 	// pseudo version lower than the latest tag
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.52.0-rc.2
 )
