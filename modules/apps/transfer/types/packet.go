@@ -334,7 +334,7 @@ func decodeABIFungibleTokenPacketData(data []byte) (*FungibleTokenPacketDataV2, 
 		for _, hop := range token.Denom.Trace {
 			trace = append(trace, Hop{
 				PortId:    hop.PortId,
-				ChannelId: hop.ChannelId,
+				ChannelId: hop.ClientId,
 			})
 		}
 
@@ -349,7 +349,7 @@ func decodeABIFungibleTokenPacketData(data []byte) (*FungibleTokenPacketDataV2, 
 	for _, hop := range solidityFtpd.Forwarding.Hops {
 		forwardingHops = append(forwardingHops, Hop{
 			PortId:    hop.PortId,
-			ChannelId: hop.ChannelId,
+			ChannelId: hop.ClientId,
 		})
 	}
 

@@ -31,15 +31,15 @@ func TestCommitPacket(t *testing.T) {
 		{
 			"abi packet",
 			func() {
-				transferData, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketData{
+				transferData, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketDataV2{
 					Tokens: []ics20lib.ICS20LibToken{
 						{
 							Denom: ics20lib.ICS20LibDenom{
 								Base: "uatom",
 								Trace: []ics20lib.ICS20LibHop{
 									{
-										PortId:    "traceport",
-										ChannelId: "channel-0",
+										PortId:   "traceport",
+										ClientId: "client-0",
 									},
 								},
 							},
@@ -53,8 +53,8 @@ func TestCommitPacket(t *testing.T) {
 						DestinationMemo: "destination-memo",
 						Hops: []ics20lib.ICS20LibHop{
 							{
-								PortId:    "hopport",
-								ChannelId: "channel-1",
+								PortId:   "hopport",
+								ClientId: "client-1",
 							},
 						},
 					},
@@ -64,7 +64,7 @@ func TestCommitPacket(t *testing.T) {
 				packet.Payloads[0].Encoding = transfertypes.EncodingABI
 				packet.Payloads[0].Version = transfertypes.V2
 			},
-			"daec01c9dbadbb3bbbd84fa210c17f7c15aab5bac6239c7963393cece8f552df",
+			"634d50b132aadb0395ceb840bb613191326b5fc47248fd50e9e5c622ca11b59f",
 		},
 	}
 

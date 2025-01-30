@@ -790,15 +790,15 @@ func TestUnmarshalPacketData(t *testing.T) {
 		{
 			"success: v2 with abi encoding",
 			func() {
-				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketData{
+				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketDataV2{
 					Tokens: []ics20lib.ICS20LibToken{
 						{
 							Denom: ics20lib.ICS20LibDenom{
 								Base: "atom",
 								Trace: []ics20lib.ICS20LibHop{
 									{
-										PortId:    "transfer",
-										ChannelId: "channel-0",
+										PortId:   "transfer",
+										ClientId: "client-0",
 									},
 								},
 							},
