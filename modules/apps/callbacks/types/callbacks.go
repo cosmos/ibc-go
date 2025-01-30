@@ -1,15 +1,18 @@
 package types
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -51,6 +54,13 @@ type CallbacksCompatibleModule interface {
 	porttypes.PacketDataUnmarshaler
 }
 
+// CallbacksCompatibleModuleV2 is an interface that combines the IBCModuleV2 and PacketDataUnmarshaler
+// interfaces to assert that the underlying application supports both.
+type CallbacksCompatibleModuleV2 interface {
+	api.IBCModule
+	porttypes.PacketDataUnmarshaler
+}
+
 // CallbackData is the callback data parsed from the packet.
 type CallbackData struct {
 	// CallbackAddress is the address of the callback actor.
@@ -82,7 +92,7 @@ func GetSourceCallbackData(
 		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
 	}
 
-	return getCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, SourceCallbackKey)
+	return GetCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, SourceCallbackKey)
 }
 
 // GetDestCallbackData parses the packet data and returns the destination callback data.
@@ -96,14 +106,14 @@ func GetDestCallbackData(
 		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
 	}
 
-	return getCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, DestinationCallbackKey)
+	return GetCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, DestinationCallbackKey)
 }
 
-// getCallbackData parses the packet data and returns the callback data.
+// GetCallbackData parses the packet data and returns the callback data.
 // It also checks that the remaining gas is greater than the gas limit specified in the packet data.
 // The addressGetter and gasLimitGetter functions are used to retrieve the callback
 // address and gas limit from the callback data.
-func getCallbackData(
+func GetCallbackData(
 	packetData interface{},
 	version, srcPortID string,
 	remainingGas, maxGas uint64,
@@ -144,6 +154,55 @@ func getCallbackData(
 		CommitGasLimit:     commitGasLimit,
 		ApplicationVersion: version,
 	}, nil
+}
+
+// ProcessCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
+//
+// Error Precedence and Returns:
+//   - oogErr: Takes the highest precedence. If the callback runs out of gas, an error wrapped with types.ErrCallbackOutOfGas is returned.
+//   - panicErr: Takes the second-highest precedence. If a panic occurs and it is not propagated, an error wrapped with types.ErrCallbackPanic is returned.
+//   - callbackErr: If the callbackExecutor returns an error, it is returned as-is.
+//
+// panics if
+//   - the contractExecutor panics for any reason, and the callbackType is SendPacket, or
+//   - the contractExecutor runs out of gas and the relayer has not reserved gas grater than or equal to
+//     CommitGasLimit.
+func ProcessCallback(
+	ctx sdk.Context, callbackType CallbackType,
+	callbackData CallbackData, callbackExecutor func(sdk.Context) error,
+) (err error) {
+	cachedCtx, writeFn := ctx.CacheContext()
+	cachedCtx = cachedCtx.WithGasMeter(storetypes.NewGasMeter(callbackData.ExecutionGasLimit))
+
+	defer func() {
+		// consume the minimum of g.consumed and g.limit
+		ctx.GasMeter().ConsumeGas(cachedCtx.GasMeter().GasConsumedToLimit(), fmt.Sprintf("ibc %s callback", callbackType))
+
+		// recover from all panics except during SendPacket callbacks
+		if r := recover(); r != nil {
+			if callbackType == CallbackTypeSendPacket {
+				panic(r)
+			}
+			err = errorsmod.Wrapf(ErrCallbackPanic, "ibc %s callback panicked with: %v", callbackType, r)
+		}
+
+		// if the callback ran out of gas and the relayer has not reserved enough gas, then revert the state
+		if cachedCtx.GasMeter().IsPastLimit() {
+			if callbackData.AllowRetry() {
+				panic(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", callbackType, callbackData.CommitGasLimit)})
+			}
+			err = errorsmod.Wrapf(ErrCallbackOutOfGas, "ibc %s callback out of gas", callbackType)
+		}
+
+		// allow the transaction to be committed, continuing the packet lifecycle
+	}()
+
+	err = callbackExecutor(cachedCtx)
+	if err == nil {
+		writeFn()
+	}
+
+	return err
 }
 
 func computeExecAndCommitGasLimit(callbackData map[string]interface{}, remainingGas, maxGas uint64) (uint64, uint64) {

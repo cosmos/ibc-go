@@ -953,13 +953,8 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			tc.malleate()
 			var err error
 
-			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
-			s.Require().True(ok)
-			mockCallbackStack, ok := cbs.(ibccallbacks.IBCMiddleware)
-			s.Require().True(ok)
-
 			processCallback := func() {
-				err = mockCallbackStack.ProcessCallback(ctx, callbackType, callbackData, callbackExecutor)
+				err = types.ProcessCallback(ctx, callbackType, callbackData, callbackExecutor)
 			}
 
 			expPass := tc.expValue == nil
