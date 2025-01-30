@@ -36,7 +36,7 @@ func TestCommitPacket(t *testing.T) {
 						{
 							Denom: ics20lib.ICS20LibDenom{
 								Base: "uatom",
-								Trace: []ics20lib.ICS20LibHop{
+								Trace: []ics20lib.IICS20TransferMsgsHop{
 									{
 										PortId:   "traceport",
 										ClientId: "client-0",
@@ -51,7 +51,7 @@ func TestCommitPacket(t *testing.T) {
 					Memo:     "memo",
 					Forwarding: ics20lib.ICS20LibForwardingPacketData{
 						DestinationMemo: "destination-memo",
-						Hops: []ics20lib.ICS20LibHop{
+						Hops: []ics20lib.IICS20TransferMsgsHop{
 							{
 								PortId:   "hopport",
 								ClientId: "client-1",

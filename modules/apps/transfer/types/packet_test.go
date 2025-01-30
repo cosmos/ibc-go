@@ -795,7 +795,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 						{
 							Denom: ics20lib.ICS20LibDenom{
 								Base: "atom",
-								Trace: []ics20lib.ICS20LibHop{
+								Trace: []ics20lib.IICS20TransferMsgsHop{
 									{
 										PortId:   "transfer",
 										ClientId: "client-0",
