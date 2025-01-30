@@ -410,6 +410,9 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypes.MsgRecvPacket
 	}); err != nil {
 		if errors.Is(err, channeltypes.ErrFailedAcknowledgement) {
 			errEvents := convertToErrorEvents(events)
+			// the sdk context returns SDK events, but the EventManager requires event.Events,
+			// so we will loop through the events and convert them here in order to emit them with the
+			// environment's event manager.
 			for _, e := range errEvents {
 				var attrs []event.Attribute
 				for _, attr := range e.Attributes {
