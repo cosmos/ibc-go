@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"cosmossdk.io/core/event"
+	sdkevent "cosmossdk.io/core/event"
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -415,9 +415,9 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *channeltypes.MsgRecvPacket
 			// so we will loop through the events and convert them here in order to emit them with the
 			// environment's event manager.
 			for _, e := range errEvents {
-				var attrs []event.Attribute
+				var attrs []sdkevent.Attribute
 				for _, attr := range e.Attributes {
-					attrs = append(attrs, event.Attribute{
+					attrs = append(attrs, sdkevent.Attribute{
 						Key:   attr.Key,
 						Value: attr.Value,
 					})
