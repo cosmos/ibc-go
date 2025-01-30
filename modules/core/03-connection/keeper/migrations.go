@@ -22,10 +22,3 @@ func (m Migrator) Migrate3to4(ctx context.Context) error {
 	connectionv7.MigrateLocalhostConnection(ctx, m.keeper)
 	return nil
 }
-
-// MigrateParams migrates from consensus version 4 to 5.
-// This migration takes the parameters that are currently stored and managed by x/params
-// and stores them directly in the ibc module's state.
-func (Migrator) MigrateParams(_ context.Context) error {
-	return nil
-}

@@ -13,7 +13,11 @@ import (
 )
 
 // Simulation parameter constants
-const port = "port_id"
+const (
+	port    = "port_id"
+	send    = "SendEnabled"
+	receive = "ReceiveEnabled"
+)
 
 // RandomEnabled randomized send or receive enabled param with 75% prob of being true.
 func RandomEnabled(r *rand.Rand) bool {
@@ -30,13 +34,13 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	var sendEnabled bool
 	simState.AppParams.GetOrGenerate(
-		string(types.KeySendEnabled), &sendEnabled, simState.Rand,
+		send, &sendEnabled, simState.Rand,
 		func(r *rand.Rand) { sendEnabled = RandomEnabled(r) },
 	)
 
 	var receiveEnabled bool
 	simState.AppParams.GetOrGenerate(
-		string(types.KeyReceiveEnabled), &receiveEnabled, simState.Rand,
+		receive, &receiveEnabled, simState.Rand,
 		func(r *rand.Rand) { receiveEnabled = RandomEnabled(r) },
 	)
 

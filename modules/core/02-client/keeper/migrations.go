@@ -28,13 +28,6 @@ func (m Migrator) Migrate2to3(ctx context.Context) error {
 	return v7.MigrateStore(ctx, m.keeper.Logger, m.keeper.KVStoreService, m.keeper.cdc, m.keeper)
 }
 
-// MigrateParams migrates from consensus version 4 to 5.
-// This migration takes the parameters that are currently stored and managed by x/params
-// and stores them directly in the ibc module's state.
-func (Migrator) MigrateParams(_ context.Context) error {
-	return nil
-}
-
 // MigrateToStatelessLocalhost deletes the localhost client state. The localhost
 // implementation is now stateless.
 func (m Migrator) MigrateToStatelessLocalhost(ctx context.Context) error {

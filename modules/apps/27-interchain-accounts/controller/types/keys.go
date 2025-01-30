@@ -10,6 +10,3 @@ const (
 	// ParamsKey is the store key for the interchain accounts controller parameters
 	ParamsKey = "params"
 )
-
-// KeyControllerEnabled is the store key for ControllerEnabled Params for legacy purposes.
-var KeyControllerEnabled = []byte("ControllerEnabled")

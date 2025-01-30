@@ -248,8 +248,6 @@ cosmossdk.io/x/mint v0.2.0-rc.1.0.20250124173324-960d44842b9e h1:m60YGIQ4KgXGILY
 cosmossdk.io/x/mint v0.2.0-rc.1.0.20250124173324-960d44842b9e/go.mod h1:Ht29swG+6V6AdaBqTCjQ/Ij/VJ/YqLy9Cv1M9fcT1xA=
 cosmossdk.io/x/nft v0.2.0-rc.1.0.20250124173324-960d44842b9e h1:e9IDOfn3SfuX0n8J78rKXD6pzLilEDVAWu1uZmP5xxs=
 cosmossdk.io/x/nft v0.2.0-rc.1.0.20250124173324-960d44842b9e/go.mod h1:6ML9Qz384qfrYEzGSF0rt0jvh9BbYbnzkObGEPUyEoE=
-cosmossdk.io/x/params v0.2.0-rc.1.0.20250124173324-960d44842b9e h1:IblAaDptrdGJgEGQBBFu3SmDJALe1n7wrLewMqJwzzw=
-cosmossdk.io/x/params v0.2.0-rc.1.0.20250124173324-960d44842b9e/go.mod h1:C2Y+AwExUFRcmgoiYpMK/g4V5bVBx8Y0spvErODWnhg=
 cosmossdk.io/x/protocolpool v0.2.0-rc.1.0.20250124173324-960d44842b9e h1:L36WSYsihSK/Ma+Sb1XO07mnE4wHlOZjBEhu15UtwH8=
 cosmossdk.io/x/protocolpool v0.2.0-rc.1.0.20250124173324-960d44842b9e/go.mod h1:aYqW53L5KY9xeXNfDC8zyeJCsxfKnFMdsipRLeIiG9c=
 cosmossdk.io/x/slashing v0.2.0-rc.1.0.20250124173324-960d44842b9e h1:zuTHxUXdW+YVho/SxcKVDUCQe3dpzYwlEk8G7QbDmjg=

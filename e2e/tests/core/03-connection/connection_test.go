@@ -4,9 +4,6 @@ package connection
 
 import (
 	"context"
-	"fmt"
-	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -15,14 +12,10 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	govtypes "cosmossdk.io/x/gov/types"
-	paramsproposaltypes "cosmossdk.io/x/params/types/proposal"
-
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
-	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 // compatibility:from_version: v7.4.0
@@ -40,25 +33,11 @@ func (s *ConnectionTestSuite) CreateConnectionTestPath(testName string) (ibc.Rel
 
 // QueryMaxExpectedTimePerBlockParam queries the on-chain max expected time per block param for 03-connection
 func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Context, chain ibc.Chain) uint64 {
-	if testvalues.SelfParamsFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
-		res, err := query.GRPCQuery[connectiontypes.QueryConnectionParamsResponse](ctx, chain, &connectiontypes.QueryConnectionParamsRequest{})
-		s.Require().NoError(err)
-
-		return res.Params.MaxExpectedTimePerBlock
-	}
-	res, err := query.GRPCQuery[paramsproposaltypes.QueryParamsResponse](ctx, chain, &paramsproposaltypes.QueryParamsRequest{
-		Subspace: ibcexported.ModuleName,
-		Key:      string(connectiontypes.KeyMaxExpectedTimePerBlock),
-	})
+	res, err := query.GRPCQuery[connectiontypes.QueryConnectionParamsResponse](ctx, chain, &connectiontypes.QueryConnectionParamsRequest{})
 	s.Require().NoError(err)
 
-	// removing additional strings that are used for amino
-	delay := strings.ReplaceAll(res.Param.Value, "\"", "")
-	// convert to uint64
-	uinttime, err := strconv.ParseUint(delay, 10, 64)
-	s.Require().NoError(err)
+	return res.Params.MaxExpectedTimePerBlock
 
-	return uinttime
 }
 
 // TestMaxExpectedTimePerBlockParam tests changing the MaxExpectedTimePerBlock param using a governance proposal
@@ -69,7 +48,6 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 	relayer, channelA := s.CreateConnectionTestPath(testName)
 
 	chainA, chainB := s.GetChains()
-	chainAVersion := chainA.Config().Images[0].Version
 
 	chainBDenom := chainB.Config().Denom
 	chainAIBCToken := testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID)
@@ -89,21 +67,13 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 
 	t.Run("change the delay to 60 seconds", func(t *testing.T) {
 		delay := uint64(1 * time.Minute)
-		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
-			s.Require().NoError(err)
-			s.Require().NotNil(authority)
+		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		s.Require().NotNil(authority)
 
-			msg := connectiontypes.NewMsgUpdateParams(authority.String(), connectiontypes.NewParams(delay))
-			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
-		} else {
-			changes := []paramsproposaltypes.ParamChange{
-				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(connectiontypes.KeyMaxExpectedTimePerBlock), fmt.Sprintf(`"%d"`, delay)),
-			}
+		msg := connectiontypes.NewMsgUpdateParams(authority.String(), connectiontypes.NewParams(delay))
+		s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
 
-			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
-		}
 	})
 
 	t.Run("validate the param was successfully changed", func(t *testing.T) {

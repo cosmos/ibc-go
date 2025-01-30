@@ -29,10 +29,6 @@ func NewMigrator(keeper Keeper) Migrator {
 	}
 }
 
-func (Migrator) MigrateParams(_ context.Context) error {
-	return nil
-}
-
 // MigrateDenomMetadata sets token metadata for all the IBC denom traces
 func (m Migrator) MigrateDenomMetadata(ctx context.Context) error {
 	m.keeper.iterateDenomTraces(ctx,

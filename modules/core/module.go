@@ -132,22 +132,7 @@ func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) e
 	if err := registrar.Register(exported.ModuleName, 3, connectionMigrator.Migrate3to4); err != nil {
 		return err
 	}
-
-	if err := registrar.Register(exported.ModuleName, 4, func(ctx context.Context) error {
-		if err := clientMigrator.MigrateParams(ctx); err != nil {
-			return err
-		}
-
-		return connectionMigrator.MigrateParams(ctx)
-	}); err != nil {
-		return err
-	}
-
-	channelMigrator := channelkeeper.NewMigrator(am.keeper.ChannelKeeper)
-	if err := registrar.Register(exported.ModuleName, 5, channelMigrator.MigrateParams); err != nil {
-		return err
-	}
-
+	
 	if err := registrar.Register(exported.ModuleName, 6, clientMigrator.MigrateToStatelessLocalhost); err != nil {
 		return err
 	}
