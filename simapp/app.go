@@ -17,6 +17,7 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	clienthelpers "cosmossdk.io/client/v2/helpers"
 	coreaddress "cosmossdk.io/core/address"
+	appmodule "cosmossdk.io/core/appmodule"
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -487,6 +488,7 @@ func NewSimApp(
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
+		signingCtx.AddressCodec(),
 		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibcexported.StoreKey]), logger.With(log.ModuleKey, "x/ibc")),
 		app.GetSubspace(ibcexported.ModuleName),
 		app.UpgradeKeeper,
@@ -541,6 +543,7 @@ func NewSimApp(
 	// IBC Fee Module keeper
 	app.IBCFeeKeeper = ibcfeekeeper.NewKeeper(
 		appCodec,
+		signingCtx.AddressCodec(),
 		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibcfeetypes.StoreKey]), logger.With(log.ModuleKey, fmt.Sprintf("x/%s-%s", ibcexported.ModuleName, ibcfeetypes.ModuleName))),
 		app.IBCKeeper.ChannelKeeper, // may be replaced with IBC middleware
 		app.IBCKeeper.ChannelKeeper,
@@ -577,6 +580,7 @@ func NewSimApp(
 	// since fee middleware will wrap the IBCKeeper for underlying application.
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
+		signingCtx.AddressCodec(),
 		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), logger.With(log.ModuleKey, fmt.Sprintf("x/%s-%s", ibcexported.ModuleName, ibctransfertypes.ModuleName))),
 		app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
@@ -682,40 +686,40 @@ func NewSimApp(
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
-	app.ModuleManager = module.NewManager(
-		genutil.NewAppModule(appCodec, app.AuthKeeper, app.StakingKeeper, app, txConfig, genutiltypes.DefaultMessageValidator),
-		accounts.NewAppModule(appCodec, app.AccountsKeeper),
-		auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountsKeeper, authsims.RandomGenesisAccounts, nil),
-		vesting.NewAppModule(app.AuthKeeper, app.BankKeeper),
-		bank.NewAppModule(appCodec, app.BankKeeper, app.AuthKeeper),
-		feegrantmodule.NewAppModule(appCodec, app.FeeGrantKeeper, app.interfaceRegistry),
-		gov.NewAppModule(appCodec, &app.GovKeeper, app.AuthKeeper, app.BankKeeper, app.PoolKeeper),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AuthKeeper),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AuthKeeper, app.BankKeeper, app.StakingKeeper, app.interfaceRegistry, cometService),
-		distr.NewAppModule(appCodec, app.DistrKeeper, app.StakingKeeper),
-		staking.NewAppModule(appCodec, app.StakingKeeper),
-		upgrade.NewAppModule(app.UpgradeKeeper),
-		params.NewAppModule(app.ParamsKeeper),
-		evidence.NewAppModule(appCodec, app.EvidenceKeeper, cometService),
-		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.interfaceRegistry),
-		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AuthKeeper, app.BankKeeper, app.interfaceRegistry),
-		nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AuthKeeper, app.BankKeeper, app.interfaceRegistry),
-		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
-		circuit.NewAppModule(appCodec, app.CircuitKeeper),
-		protocolpool.NewAppModule(appCodec, app.PoolKeeper, app.AuthKeeper, app.BankKeeper),
-		epochs.NewAppModule(appCodec, app.EpochsKeeper),
+	app.ModuleManager = module.NewManagerFromMap(map[string]appmodule.AppModule{
+		genutiltypes.ModuleName:   genutil.NewAppModule(appCodec, app.AuthKeeper, app.StakingKeeper, app, txConfig, genutiltypes.DefaultMessageValidator),
+		accounts.ModuleName:       accounts.NewAppModule(appCodec, app.AccountsKeeper),
+		authtypes.ModuleName:      auth.NewAppModule(appCodec, app.AuthKeeper, app.AccountsKeeper, authsims.RandomGenesisAccounts, nil),
+		vestingtypes.ModuleName:   vesting.NewAppModule(app.AuthKeeper, app.BankKeeper),
+		banktypes.ModuleName:      bank.NewAppModule(appCodec, app.BankKeeper, app.AuthKeeper),
+		feegrant.ModuleName:       feegrantmodule.NewAppModule(appCodec, app.FeeGrantKeeper, app.interfaceRegistry),
+		govtypes.ModuleName:       gov.NewAppModule(appCodec, &app.GovKeeper, app.AuthKeeper, app.BankKeeper, app.PoolKeeper),
+		minttypes.ModuleName:      mint.NewAppModule(appCodec, app.MintKeeper, app.AuthKeeper),
+		slashingtypes.ModuleName:  slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AuthKeeper, app.BankKeeper, app.StakingKeeper, app.interfaceRegistry, cometService),
+		distrtypes.ModuleName:     distr.NewAppModule(appCodec, app.DistrKeeper, app.StakingKeeper),
+		stakingtypes.ModuleName:   staking.NewAppModule(appCodec, app.StakingKeeper),
+		upgradetypes.ModuleName:   upgrade.NewAppModule(app.UpgradeKeeper),
+		evidencetypes.ModuleName:  evidence.NewAppModule(appCodec, app.EvidenceKeeper, cometService),
+		paramstypes.ModuleName:    params.NewAppModule(app.ParamsKeeper),
+		authz.ModuleName:          authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.interfaceRegistry),
+		group.ModuleName:          groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AuthKeeper, app.BankKeeper, app.interfaceRegistry),
+		nft.ModuleName:            nftmodule.NewAppModule(appCodec, app.NFTKeeper, app.AuthKeeper, app.BankKeeper, app.interfaceRegistry),
+		consensustypes.ModuleName: consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
+		circuittypes.ModuleName:   circuit.NewAppModule(appCodec, app.CircuitKeeper),
+		pooltypes.ModuleName:      protocolpool.NewAppModule(appCodec, app.PoolKeeper, app.AuthKeeper, app.BankKeeper),
+		epochstypes.ModuleName:    epochs.NewAppModule(appCodec, app.EpochsKeeper),
 
 		// IBC modules
-		ibc.NewAppModule(appCodec, app.IBCKeeper),
-		transfer.NewAppModule(appCodec, app.TransferKeeper),
-		ibcfee.NewAppModule(appCodec, app.IBCFeeKeeper),
-		ica.NewAppModule(appCodec, &app.ICAControllerKeeper, &app.ICAHostKeeper),
-		mockModule,
+		ibcexported.ModuleName:      ibc.NewAppModule(appCodec, app.IBCKeeper),
+		ibctransfertypes.ModuleName: transfer.NewAppModule(appCodec, app.TransferKeeper),
+		ibcfeetypes.ModuleName:      ibcfee.NewAppModule(appCodec, app.IBCFeeKeeper),
+		icatypes.ModuleName:         ica.NewAppModule(appCodec, &app.ICAControllerKeeper, &app.ICAHostKeeper),
+		mockModule.Name():           mockModule,
 
 		// IBC light clients
-		ibctm.NewAppModule(tmLightClientModule),
-		solomachine.NewAppModule(smLightClientModule),
-	)
+		ibctm.ModuleName:       ibctm.NewAppModule(tmLightClientModule),
+		solomachine.ModuleName: solomachine.NewAppModule(smLightClientModule),
+	})
 
 	app.ModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.ModuleManager.RegisterInterfaces(interfaceRegistry)
