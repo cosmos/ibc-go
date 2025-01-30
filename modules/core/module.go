@@ -132,7 +132,7 @@ func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) e
 	if err := registrar.Register(exported.ModuleName, 3, connectionMigrator.Migrate3to4); err != nil {
 		return err
 	}
-	
+
 	if err := registrar.Register(exported.ModuleName, 6, clientMigrator.MigrateToStatelessLocalhost); err != nil {
 		return err
 	}

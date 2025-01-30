@@ -123,7 +123,7 @@ func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
-func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) error {
+func (AppModule) RegisterMigrations(_ appmodule.MigrationRegistrar) error {
 	return nil
 }
 

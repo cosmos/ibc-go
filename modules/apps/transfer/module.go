@@ -131,7 +131,7 @@ func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) e
 	if err := registrar.Register(types.ModuleName, 2, m.MigrateTotalEscrowForDenom); err != nil {
 		return fmt.Errorf("failed to migrate transfer app from version 2 to 3 (total escrow entry migration): %w", err)
 	}
-	
+
 	if err := registrar.Register(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
 		return fmt.Errorf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %w", err)
 	}

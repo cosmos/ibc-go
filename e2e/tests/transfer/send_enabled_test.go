@@ -10,6 +10,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	govtypes "cosmossdk.io/x/gov/types"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"

@@ -12,6 +12,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	govtypes "cosmossdk.io/x/gov/types"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -37,7 +38,6 @@ func (s *ConnectionTestSuite) QueryMaxExpectedTimePerBlockParam(ctx context.Cont
 	s.Require().NoError(err)
 
 	return res.Params.MaxExpectedTimePerBlock
-
 }
 
 // TestMaxExpectedTimePerBlockParam tests changing the MaxExpectedTimePerBlock param using a governance proposal
@@ -73,7 +73,6 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 
 		msg := connectiontypes.NewMsgUpdateParams(authority.String(), connectiontypes.NewParams(delay))
 		s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
-
 	})
 
 	t.Run("validate the param was successfully changed", func(t *testing.T) {
