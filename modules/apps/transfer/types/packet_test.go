@@ -790,10 +790,10 @@ func TestUnmarshalPacketData(t *testing.T) {
 		{
 			"success: v2 with abi encoding",
 			func() {
-				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketDataV2{
-					Tokens: []ics20lib.ICS20LibToken{
+				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.IICS20TransferMsgsFungibleTokenPacketDataV2{
+					Tokens: []ics20lib.IICS20TransferMsgsToken{
 						{
-							Denom: ics20lib.ICS20LibDenom{
+							Denom: ics20lib.IICS20TransferMsgsDenom{
 								Base: "atom",
 								Trace: []ics20lib.IICS20TransferMsgsHop{
 									{
@@ -808,7 +808,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 					Sender:     sender,
 					Receiver:   receiver,
 					Memo:       "",
-					Forwarding: ics20lib.ICS20LibForwardingPacketData{},
+					Forwarding: ics20lib.IICS20TransferMsgsForwardingPacketData{},
 				})
 				require.NoError(t, err)
 

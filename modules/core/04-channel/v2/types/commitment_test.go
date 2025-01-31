@@ -31,10 +31,10 @@ func TestCommitPacket(t *testing.T) {
 		{
 			"abi packet",
 			func() {
-				transferData, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketDataV2{
-					Tokens: []ics20lib.ICS20LibToken{
+				transferData, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.IICS20TransferMsgsFungibleTokenPacketDataV2{
+					Tokens: []ics20lib.IICS20TransferMsgsToken{
 						{
-							Denom: ics20lib.ICS20LibDenom{
+							Denom: ics20lib.IICS20TransferMsgsDenom{
 								Base: "uatom",
 								Trace: []ics20lib.IICS20TransferMsgsHop{
 									{
@@ -49,7 +49,7 @@ func TestCommitPacket(t *testing.T) {
 					Sender:   "sender",
 					Receiver: "receiver",
 					Memo:     "memo",
-					Forwarding: ics20lib.ICS20LibForwardingPacketData{
+					Forwarding: ics20lib.IICS20TransferMsgsForwardingPacketData{
 						DestinationMemo: "destination-memo",
 						Hops: []ics20lib.IICS20TransferMsgsHop{
 							{
