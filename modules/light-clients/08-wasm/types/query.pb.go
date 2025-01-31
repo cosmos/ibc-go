@@ -1047,7 +1047,7 @@ func skipQuery(dAtA []byte) (n int, err error) {
 }
 
 var (
-	ErrInvalidLengthQuery        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrInvalidLengthQuery        = fmt.Errorf("proto: negative length found during unmarshalling")
 	ErrIntOverflowQuery          = fmt.Errorf("proto: integer overflow")
 	ErrUnexpectedEndOfGroupQuery = fmt.Errorf("proto: unexpected end of group")
 )
