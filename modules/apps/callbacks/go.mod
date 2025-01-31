@@ -23,7 +23,6 @@ require (
 	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/gov v0.2.0-rc.1
 	cosmossdk.io/x/mint v0.0.0-20240909082436-01c0e9ba3581
-	cosmossdk.io/x/params v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/protocolpool v0.2.0-rc.1
 	cosmossdk.io/x/slashing v0.0.0-00010101000000-000000000000
 	cosmossdk.io/x/staking v0.2.0-rc.1
@@ -234,7 +233,6 @@ replace (
 	cosmossdk.io/x/accounts/defaults/multisig => cosmossdk.io/x/accounts/defaults/multisig v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/authz => cosmossdk.io/x/authz v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/bank => cosmossdk.io/x/bank v0.2.0-rc.1.0.20250124173324-960d44842b9e
-	cosmossdk.io/x/circuit => cosmossdk.io/x/circuit v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/consensus => cosmossdk.io/x/consensus v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/distribution => cosmossdk.io/x/distribution v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/epochs => cosmossdk.io/x/epochs v0.2.0-rc.1.0.20250124173324-960d44842b9e
@@ -244,7 +242,6 @@ replace (
 	cosmossdk.io/x/group => cosmossdk.io/x/group v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/mint => cosmossdk.io/x/mint v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/nft => cosmossdk.io/x/nft v0.2.0-rc.1.0.20250124173324-960d44842b9e
-	cosmossdk.io/x/params => cosmossdk.io/x/params v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/protocolpool => cosmossdk.io/x/protocolpool v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/slashing => cosmossdk.io/x/slashing v0.2.0-rc.1.0.20250124173324-960d44842b9e
 	cosmossdk.io/x/staking => cosmossdk.io/x/staking v0.2.0-rc.1.0.20250124173324-960d44842b9e

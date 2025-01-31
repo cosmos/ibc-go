@@ -61,7 +61,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AppCodec(),
 				address.NewBech32Codec(suite.chainA.Bech32Prefix),
 				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
-				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().AuthKeeper,
@@ -74,7 +73,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AppCodec(),
 				address.NewBech32Codec(suite.chainA.Bech32Prefix),
 				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
-				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				authkeeper.AccountKeeper{}, // empty account keeper
@@ -87,7 +85,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AppCodec(),
 				address.NewBech32Codec(suite.chainA.Bech32Prefix),
 				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
-				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().AuthKeeper,

@@ -16,7 +16,6 @@ import (
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	portkeeper "github.com/cosmos/ibc-go/v9/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Keeper defines each ICS keeper for IBC
@@ -36,8 +35,11 @@ type Keeper struct {
 
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
-	cdc codec.BinaryCodec, addrCdc address.Codec, env appmodule.Environment, paramSpace types.ParamSubspace,
-	upgradeKeeper clienttypes.UpgradeKeeper, authority string,
+	cdc codec.BinaryCodec,
+	addrCdc address.Codec,
+	env appmodule.Environment,
+	upgradeKeeper clienttypes.UpgradeKeeper,
+	authority string,
 ) *Keeper {
 	// panic if any of the keepers passed in is empty
 	if isEmpty(upgradeKeeper) {
@@ -48,8 +50,8 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	clientKeeper := clientkeeper.NewKeeper(cdc, env, paramSpace, upgradeKeeper)
-	connectionKeeper := connectionkeeper.NewKeeper(cdc, env, paramSpace, clientKeeper)
+	clientKeeper := clientkeeper.NewKeeper(cdc, env, upgradeKeeper)
+	connectionKeeper := connectionkeeper.NewKeeper(cdc, env, clientKeeper)
 	portKeeper := portkeeper.NewKeeper()
 	channelKeeper := channelkeeper.NewKeeper(cdc, env, clientKeeper, connectionKeeper)
 

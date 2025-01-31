@@ -16,7 +16,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	banktypes "cosmossdk.io/x/bank/types"
 	govtypes "cosmossdk.io/x/gov/types"
-	paramsproposaltypes "cosmossdk.io/x/params/types/proposal"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -65,7 +64,6 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	s.CreateDefaultPaths(testName)
 
 	chainA, _ := s.GetChains()
-	chainAVersion := chainA.Config().Images[0].Version
 
 	// setup controller account on chainA
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -77,24 +75,15 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	})
 
 	t.Run("disable the controller", func(t *testing.T) {
-		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
-			s.Require().NoError(err)
-			s.Require().NotNil(authority)
+		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		s.Require().NotNil(authority)
 
-			msg := controllertypes.MsgUpdateParams{
-				Signer: authority.String(),
-				Params: controllertypes.NewParams(false),
-			}
-			s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainA, controllerAccount)
-		} else {
-			changes := []paramsproposaltypes.ParamChange{
-				paramsproposaltypes.NewParamChange(controllertypes.StoreKey, string(controllertypes.KeyControllerEnabled), "false"),
-			}
-
-			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, controllerAccount, proposal)
+		msg := controllertypes.MsgUpdateParams{
+			Signer: authority.String(),
+			Params: controllertypes.NewParams(false),
 		}
+		s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainA, controllerAccount)
 	})
 
 	t.Run("ensure controller is disabled", func(t *testing.T) {
@@ -169,24 +158,15 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 	})
 
 	t.Run("disable the host", func(t *testing.T) {
-		if testvalues.SelfParamsFeatureReleases.IsSupported(chainBVersion) {
-			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
-			s.Require().NoError(err)
-			s.Require().NotNil(authority)
+		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
+		s.Require().NoError(err)
+		s.Require().NotNil(authority)
 
-			msg := hosttypes.MsgUpdateParams{
-				Signer: authority.String(),
-				Params: hosttypes.NewParams(false, []string{hosttypes.AllowAllHostMsgs}),
-			}
-			s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainB, chainBAccount)
-		} else {
-			changes := []paramsproposaltypes.ParamChange{
-				paramsproposaltypes.NewParamChange(hosttypes.StoreKey, string(hosttypes.KeyHostEnabled), "false"),
-			}
-
-			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainB, chainBAccount, proposal)
+		msg := hosttypes.MsgUpdateParams{
+			Signer: authority.String(),
+			Params: hosttypes.NewParams(false, []string{hosttypes.AllowAllHostMsgs}),
 		}
+		s.ExecuteAndPassGovV1Proposal(ctx, &msg, chainB, chainBAccount)
 	})
 
 	t.Run("ensure the host is disabled", func(t *testing.T) {

@@ -12,7 +12,6 @@ import (
 	govv1 "cosmossdk.io/x/gov/types/v1"
 	govv1beta1 "cosmossdk.io/x/gov/types/v1beta1"
 	grouptypes "cosmossdk.io/x/group"
-	proposaltypes "cosmossdk.io/x/params/types/proposal"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -81,7 +80,6 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 	authtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	cryptocodec.RegisterInterfaces(cfg.InterfaceRegistry)
 	grouptypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	proposaltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	authz.RegisterInterfaces(cfg.InterfaceRegistry)
 	txtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)

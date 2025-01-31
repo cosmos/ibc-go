@@ -3,10 +3,6 @@ package types
 import (
 	"context"
 
-	paramtypes "cosmossdk.io/x/params/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -18,9 +14,4 @@ type ClientKeeper interface {
 	VerifyMembership(ctx context.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path, value []byte) error
 	VerifyNonMembership(ctx context.Context, clientID string, height exported.Height, delayTimePeriod uint64, delayBlockPeriod uint64, proof []byte, path exported.Path) error
 	IterateClientStates(ctx context.Context, prefix []byte, cb func(string, exported.ClientState) bool)
-}
-
-// ParamSubspace defines the expected Subspace interface for module parameters.
-type ParamSubspace interface {
-	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
 }

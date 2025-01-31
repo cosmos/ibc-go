@@ -29,16 +29,6 @@ func NewMigrator(keeper Keeper) Migrator {
 	}
 }
 
-// MigrateParams migrates the transfer module's parameters from the x/params to self store.
-func (m Migrator) MigrateParams(ctx context.Context) error {
-	var params types.Params
-	m.keeper.legacySubspace.GetParamSet(sdk.UnwrapSDKContext(ctx), &params)
-
-	m.keeper.SetParams(ctx, params)
-	m.keeper.Logger.Info("successfully migrated transfer app self-manage params")
-	return nil
-}
-
 // MigrateDenomMetadata sets token metadata for all the IBC denom traces
 func (m Migrator) MigrateDenomMetadata(ctx context.Context) error {
 	m.keeper.iterateDenomTraces(ctx,

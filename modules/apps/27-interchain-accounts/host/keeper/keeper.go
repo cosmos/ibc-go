@@ -32,8 +32,7 @@ import (
 type Keeper struct {
 	appmodule.Environment
 
-	cdc            codec.Codec
-	legacySubspace icatypes.ParamSubspace
+	cdc codec.Codec
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
@@ -49,9 +48,12 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts host Keeper instance
 func NewKeeper(
-	cdc codec.Codec, env appmodule.Environment, legacySubspace icatypes.ParamSubspace,
-	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper,
-	authKeeper icatypes.AuthKeeper, authority string,
+	cdc codec.Codec,
+	env appmodule.Environment,
+	ics4Wrapper porttypes.ICS4Wrapper,
+	channelKeeper icatypes.ChannelKeeper,
+	authKeeper icatypes.AuthKeeper,
+	authority string,
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := authKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
@@ -63,14 +65,13 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		Environment:    env,
-		cdc:            cdc,
-		legacySubspace: legacySubspace,
-		ics4Wrapper:    ics4Wrapper,
-		channelKeeper:  channelKeeper,
-		authKeeper:     authKeeper,
-		mqsAllowList:   newModuleQuerySafeAllowList(),
-		authority:      authority,
+		Environment:   env,
+		cdc:           cdc,
+		ics4Wrapper:   ics4Wrapper,
+		channelKeeper: channelKeeper,
+		authKeeper:    authKeeper,
+		mqsAllowList:  newModuleQuerySafeAllowList(),
+		authority:     authority,
 	}
 }
 

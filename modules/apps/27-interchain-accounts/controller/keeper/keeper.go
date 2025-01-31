@@ -26,10 +26,9 @@ import (
 type Keeper struct {
 	appmodule.Environment
 
-	cdc            codec.Codec
-	legacySubspace icatypes.ParamSubspace
-	ics4Wrapper    porttypes.ICS4Wrapper
-	channelKeeper  icatypes.ChannelKeeper
+	cdc           codec.Codec
+	ics4Wrapper   porttypes.ICS4Wrapper
+	channelKeeper icatypes.ChannelKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -38,20 +37,22 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
-	cdc codec.Codec, env appmodule.Environment, legacySubspace icatypes.ParamSubspace,
-	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper, authority string,
+	cdc codec.Codec,
+	env appmodule.Environment,
+	ics4Wrapper porttypes.ICS4Wrapper,
+	channelKeeper icatypes.ChannelKeeper,
+	authority string,
 ) Keeper {
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
 	return Keeper{
-		Environment:    env,
-		cdc:            cdc,
-		legacySubspace: legacySubspace,
-		ics4Wrapper:    ics4Wrapper,
-		channelKeeper:  channelKeeper,
-		authority:      authority,
+		Environment:   env,
+		cdc:           cdc,
+		ics4Wrapper:   ics4Wrapper,
+		channelKeeper: channelKeeper,
+		authority:     authority,
 	}
 }
 

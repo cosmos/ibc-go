@@ -121,7 +121,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
-				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
@@ -131,7 +130,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
-				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				"", // authority

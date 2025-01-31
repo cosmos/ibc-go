@@ -29,24 +29,26 @@ import (
 type Keeper struct {
 	appmodule.Environment
 
-	cdc            codec.BinaryCodec
-	router         *types.Router
-	legacySubspace types.ParamSubspace
-	upgradeKeeper  types.UpgradeKeeper
+	cdc           codec.BinaryCodec
+	router        *types.Router
+	upgradeKeeper types.UpgradeKeeper
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, env appmodule.Environment, legacySubspace types.ParamSubspace, uk types.UpgradeKeeper) *Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	env appmodule.Environment,
+	uk types.UpgradeKeeper,
+) *Keeper {
 	router := types.NewRouter()
 	localhostModule := localhost.NewLightClientModule(cdc, env)
 	router.AddRoute(exported.Localhost, localhostModule)
 
 	return &Keeper{
-		Environment:    env,
-		cdc:            cdc,
-		router:         router,
-		legacySubspace: legacySubspace,
-		upgradeKeeper:  uk,
+		Environment:   env,
+		cdc:           cdc,
+		router:        router,
+		upgradeKeeper: uk,
 	}
 }
 

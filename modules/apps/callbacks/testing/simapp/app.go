@@ -38,9 +38,6 @@ import (
 	"cosmossdk.io/x/mint"
 	mintkeeper "cosmossdk.io/x/mint/keeper"
 	minttypes "cosmossdk.io/x/mint/types"
-	"cosmossdk.io/x/params"
-	paramskeeper "cosmossdk.io/x/params/keeper"
-	paramstypes "cosmossdk.io/x/params/types"
 	poolkeeper "cosmossdk.io/x/protocolpool/keeper"
 	pooltypes "cosmossdk.io/x/protocolpool/types"
 	"cosmossdk.io/x/slashing"
@@ -173,7 +170,6 @@ type SimApp struct {
 	PoolKeeper     poolkeeper.Keeper
 	GovKeeper      govkeeper.Keeper
 	UpgradeKeeper  *upgradekeeper.Keeper
-	ParamsKeeper   paramskeeper.Keeper
 
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	IBCFeeKeeper          ibcfeekeeper.Keeper
@@ -287,7 +283,7 @@ func NewSimApp(
 	keys := storetypes.NewKVStoreKeys(
 		accounts.StoreKey, authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, pooltypes.StoreKey, slashingtypes.StoreKey,
-		feegrant.StoreKey, govtypes.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
+		feegrant.StoreKey, govtypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
 		ibcfeetypes.StoreKey, consensusparamtypes.StoreKey,
 	)
@@ -297,7 +293,7 @@ func NewSimApp(
 		panic(err)
 	}
 
-	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
+	tkeys := storetypes.NewTransientStoreKeys()
 	memKeys := storetypes.NewMemoryStoreKeys(ibcmock.MemStoreKey)
 
 	app := &SimApp{
@@ -312,8 +308,6 @@ func NewSimApp(
 		memKeys:           memKeys,
 	}
 	cometService := runtime.NewContextAwareCometInfoService()
-
-	app.ParamsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
 	// set the BaseApp's parameter store
 	app.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, runtime.NewEnvironment(runtime.NewKVStoreService(keys[consensusparamtypes.StoreKey]), logger.With(log.ModuleKey, "x/consensus")), govModuleAddr)
@@ -408,7 +402,6 @@ func NewSimApp(
 		appCodec,
 		signingCtx.AddressCodec(),
 		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibcexported.StoreKey]), logger.With(log.ModuleKey, "x/ibc")),
-		app.GetSubspace(ibcexported.ModuleName),
 		app.UpgradeKeeper,
 		govModuleAddr,
 	)
@@ -444,7 +437,6 @@ func NewSimApp(
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 		appCodec,
 		runtime.NewEnvironment(runtime.NewKVStoreService(keys[icacontrollertypes.StoreKey]), logger.With(log.ModuleKey, "x/icacontroller"), runtime.EnvWithMsgRouterService(app.MsgServiceRouter())),
-		app.GetSubspace(icacontrollertypes.SubModuleName),
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper,
 		govModuleAddr,
@@ -454,7 +446,6 @@ func NewSimApp(
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec,
 		runtime.NewEnvironment(runtime.NewKVStoreService(keys[icahosttypes.StoreKey]), logger.With(log.ModuleKey, "x/icahost"), runtime.EnvWithMsgRouterService(app.MsgServiceRouter()), runtime.EnvWithQueryRouterService(app.GRPCQueryRouter())),
-		app.GetSubspace(icahosttypes.SubModuleName),
 		app.IBCFeeKeeper, // use ics29 fee as ics4Wrapper in middleware stack
 		app.IBCKeeper.ChannelKeeper,
 		app.AuthKeeper,
@@ -474,7 +465,6 @@ func NewSimApp(
 		appCodec,
 		signingCtx.AddressCodec(),
 		runtime.NewEnvironment(runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), logger.With(log.ModuleKey, fmt.Sprintf("x/%s-%s", ibcexported.ModuleName, ibctransfertypes.ModuleName))),
-		app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCFeeKeeper, // ISC4 Wrapper: fee IBC middleware
 		app.IBCKeeper.ChannelKeeper,
 		app.AuthKeeper, app.BankKeeper,
@@ -601,7 +591,6 @@ func NewSimApp(
 		distrtypes.ModuleName:          distr.NewAppModule(appCodec, app.DistrKeeper, app.StakingKeeper),
 		stakingtypes.ModuleName:        staking.NewAppModule(appCodec, app.StakingKeeper),
 		upgradetypes.ModuleName:        upgrade.NewAppModule(app.UpgradeKeeper),
-		paramstypes.ModuleName:         params.NewAppModule(app.ParamsKeeper),
 		consensusparamtypes.ModuleName: consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 
 		// IBC modules
@@ -674,7 +663,6 @@ func NewSimApp(
 		icatypes.ModuleName,
 		ibcfeetypes.ModuleName,
 		ibcmock.ModuleName,
-		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 	}
@@ -886,14 +874,6 @@ func (app *SimApp) GetStoreKeys() []storetypes.StoreKey {
 	return keys
 }
 
-// GetSubspace returns a param subspace for a given module name.
-//
-// NOTE: This is solely to be used for testing purposes.
-func (app *SimApp) GetSubspace(moduleName string) paramstypes.Subspace {
-	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
-	return subspace
-}
-
 // SimulationManager implements the SimulationApp interface
 func (app *SimApp) SimulationManager() *module.SimulationManager {
 	return app.simulationManager
@@ -987,20 +967,6 @@ func BlockedAddresses(ac coreaddress.Codec) (map[string]bool, error) {
 	delete(modAccAddrs, ibcMockAddr)
 
 	return modAccAddrs, nil
-}
-
-// initParamsKeeper init params keeper and its subspaces
-func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
-	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
-
-	// TODO: ibc module subspaces can be removed after migration of params
-	// https://github.com/cosmos/ibc-go/issues/2010
-	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
-	paramsKeeper.Subspace(ibcexported.ModuleName)
-	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
-	paramsKeeper.Subspace(icahosttypes.SubModuleName)
-
-	return paramsKeeper
 }
 
 // IBC TestingApp functions

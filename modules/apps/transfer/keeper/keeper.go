@@ -30,9 +30,8 @@ import (
 type Keeper struct {
 	appmodule.Environment
 
-	addrCdc        address.Codec
-	cdc            codec.BinaryCodec
-	legacySubspace types.ParamSubspace
+	addrCdc address.Codec
+	cdc     codec.BinaryCodec
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -49,7 +48,6 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	addrCdc address.Codec,
 	env appmodule.Environment,
-	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	authKeeper types.AuthKeeper,
@@ -66,15 +64,14 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:            cdc,
-		addrCdc:        addrCdc,
-		Environment:    env,
-		legacySubspace: legacySubspace,
-		ics4Wrapper:    ics4Wrapper,
-		channelKeeper:  channelKeeper,
-		authKeeper:     authKeeper,
-		bankKeeper:     bankKeeper,
-		authority:      authority,
+		cdc:           cdc,
+		addrCdc:       addrCdc,
+		Environment:   env,
+		ics4Wrapper:   ics4Wrapper,
+		channelKeeper: channelKeeper,
+		authKeeper:    authKeeper,
+		bankKeeper:    bankKeeper,
+		authority:     authority,
 	}
 }
 

@@ -24,18 +24,20 @@ import (
 type Keeper struct {
 	appmodule.Environment
 
-	cdc            codec.BinaryCodec
-	clientKeeper   types.ClientKeeper
-	legacySubspace types.ParamSubspace
+	cdc          codec.BinaryCodec
+	clientKeeper types.ClientKeeper
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, env appmodule.Environment, legacySubspace types.ParamSubspace, ck types.ClientKeeper) *Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	env appmodule.Environment,
+	ck types.ClientKeeper,
+) *Keeper {
 	return &Keeper{
-		Environment:    env,
-		cdc:            cdc,
-		legacySubspace: legacySubspace,
-		clientKeeper:   ck,
+		Environment:  env,
+		cdc:          cdc,
+		clientKeeper: ck,
 	}
 }
 
