@@ -12,11 +12,8 @@ import (
 )
 
 func (im *IBCModule) forwardPacket(ctx context.Context, destinationClient string, destinationPort string, sequence uint64, data types.FungibleTokenPacketDataV2, timeoutTimestamp uint64, receivedCoins sdk.Coins) error {
-	var nextForwardingPath *types.Forwarding
-	if len(data.Forwarding.Hops) > 1 {
-		// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver
-		nextForwardingPath = types.NewForwarding(false, data.Forwarding.Hops[1:]...)
-	}
+	// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver
+	nextForwardingPath := types.NewForwarding(false, data.Forwarding.Hops[1:]...)
 
 	// sending from module account (used as a temporary forward escrow) to the original receiver address.
 	sender := im.keeper.AuthKeeper.GetModuleAddress(types.ModuleName)
