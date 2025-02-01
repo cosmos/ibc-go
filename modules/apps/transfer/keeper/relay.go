@@ -390,7 +390,7 @@ func (k Keeper) UnescrowCoin(ctx context.Context, escrowAddress, receiver sdk.Ac
 }
 
 // tokenFromCoin constructs an IBC token given an SDK coin.
-func (k Keeper) tokenFromCoin(ctx context.Context, coin sdk.Coin) (types.Token, error) {
+func (k Keeper) TokenFromCoin(ctx context.Context, coin sdk.Coin) (types.Token, error) {
 	// if the coin does not have an IBC denom, return as is
 	if !strings.HasPrefix(coin.Denom, "ibc/") {
 		return types.Token{
