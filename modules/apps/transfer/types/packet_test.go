@@ -790,7 +790,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 		{
 			"success: v2 with abi encoding",
 			func() {
-				bz, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.IICS20TransferMsgsFungibleTokenPacketDataV2{
+				bz, err := ics20lib.EncodeFungibleTokenPacketDataV2(ics20lib.IICS20TransferMsgsFungibleTokenPacketDataV2{
 					Tokens: []ics20lib.IICS20TransferMsgsToken{
 						{
 							Denom: ics20lib.IICS20TransferMsgsDenom{

@@ -31,7 +31,7 @@ func TestCommitPacket(t *testing.T) {
 		{
 			"abi packet",
 			func() {
-				transferData, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.IICS20TransferMsgsFungibleTokenPacketDataV2{
+				transferData, err := ics20lib.EncodeFungibleTokenPacketDataV2(ics20lib.IICS20TransferMsgsFungibleTokenPacketDataV2{
 					Tokens: []ics20lib.IICS20TransferMsgsToken{
 						{
 							Denom: ics20lib.IICS20TransferMsgsDenom{

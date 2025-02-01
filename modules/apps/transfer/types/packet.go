@@ -322,7 +322,7 @@ func PacketDataV1ToV2(packetData FungibleTokenPacketData) (FungibleTokenPacketDa
 // decodeABIFungibleTokenPacketData decodes a solidity ABI encoded ics20lib.ICS20LibFungibleTokenPacketDataV2
 // and converts it into an ibc-go FungibleTokenPacketDataV2.
 func decodeABIFungibleTokenPacketData(data []byte) (*FungibleTokenPacketDataV2, error) {
-	solidityFtpd, err := ics20lib.DecodeFungibleTokenPacketData(data)
+	solidityFtpd, err := ics20lib.DecodeFungibleTokenPacketDataV2(data)
 	if err != nil {
 		return nil, err
 	}
