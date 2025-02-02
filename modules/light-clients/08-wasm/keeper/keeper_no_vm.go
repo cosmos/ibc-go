@@ -15,6 +15,7 @@ import (
 // custom build directive: nolink_libwasmvm.
 // This function is intended to panic and notify users that 08-wasm keeper functionality is not available.
 func NewKeeperWithVM(
+	_ environment.Environment,
 	_ codec.BinaryCodec,
 	_ storetypes.KVStoreService,
 	_ types.ClientKeeper,
@@ -31,6 +32,7 @@ func NewKeeperWithVM(
 // custom build directive: nolink_libwasmvm.
 // This function is intended to panic and notify users that 08-wasm keeper functionality is not available.
 func NewKeeperWithConfig(
+	_ environment.Environment,
 	_ codec.BinaryCodec,
 	_ storetypes.KVStoreService,
 	_ types.ClientKeeper,

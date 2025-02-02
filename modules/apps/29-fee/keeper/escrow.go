@@ -18,7 +18,7 @@ import (
 // escrowPacketFee sends the packet fee to the 29-fee module account to hold in escrow
 func (k Keeper) escrowPacketFee(ctx context.Context, packetID channeltypes.PacketId, packetFee types.PacketFee) error {
 	// check if the refund address is valid
-	refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
+	refundAddr, err := k.AddrCodec.StringToBytes(packetFee.RefundAddress)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (k Keeper) DistributePacketFeesOnAcknowledgement(ctx context.Context, forwa
 	// if the escrow account has insufficient balance then we want to avoid partially distributing fees
 	if err := k.BranchService.Execute(ctx, func(ctx context.Context) error {
 		// forward relayer address will be empty if conversion fails
-		forwardAddr, _ := sdk.AccAddressFromBech32(forwardRelayer)
+		forwardAddr, _ := k.AddrCodec.StringToBytes(forwardRelayer)
 
 		for _, packetFee := range packetFees {
 			if !k.EscrowAccountHasBalance(ctx, packetFee.Fee.Total()) {
@@ -61,7 +61,7 @@ func (k Keeper) DistributePacketFeesOnAcknowledgement(ctx context.Context, forwa
 			}
 
 			// check if refundAcc address works
-			refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
+			refundAddr, err := k.AddrCodec.StringToBytes(packetFee.RefundAddress)
 			if err != nil {
 				panic(fmt.Errorf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
 			}
@@ -117,7 +117,7 @@ func (k Keeper) DistributePacketFeesOnTimeout(ctx context.Context, timeoutRelaye
 			}
 
 			// check if refundAcc address works
-			refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
+			refundAddr, err := k.AddrCodec.StringToBytes(packetFee.RefundAddress)
 			if err != nil {
 				panic(fmt.Errorf("could not parse refundAcc %s to sdk.AccAddress", packetFee.RefundAddress))
 			}
@@ -206,7 +206,7 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx context.Context, portID, channelI
 					return ibcerrors.ErrInsufficientFunds
 				}
 
-				refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
+				refundAddr, err := k.AddrCodec.StringToBytes(packetFee.RefundAddress)
 				if err != nil {
 					unRefundedFees = append(unRefundedFees, packetFee)
 					continue
