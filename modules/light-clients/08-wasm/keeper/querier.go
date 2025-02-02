@@ -1,14 +1,15 @@
 package keeper
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"slices"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
+	"cosmossdk.io/core/appmodule"
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -36,52 +37,54 @@ var defaultAcceptList = []string{
 	"/ibc.core.client.v1.Query/VerifyMembership",
 }
 
-// queryHandler is a wrapper around the sdk.Context and the CallerID that calls
+// queryHandler is a wrapper around the sdk Environment and the CallerID that calls
 // into the query plugins.
 type queryHandler struct {
-	Ctx      sdk.Context
+	appmodule.Environment
+	Ctx      context.Context
 	Plugins  QueryPlugins
 	CallerID string
 }
 
 // newQueryHandler returns a default querier that can be used in the contract.
-func newQueryHandler(ctx sdk.Context, plugins QueryPlugins, callerID string) *queryHandler {
+func newQueryHandler(ctx context.Context, env appmodule.Environment, plugins QueryPlugins, callerID string) *queryHandler {
 	return &queryHandler{
-		Ctx:      ctx,
-		Plugins:  plugins,
-		CallerID: callerID,
+		Ctx:         ctx,
+		Environment: env,
+		Plugins:     plugins,
+		CallerID:    callerID,
 	}
 }
 
 // GasConsumed implements the wasmvmtypes.Querier interface.
 func (q *queryHandler) GasConsumed() uint64 {
-	return VMGasRegister.ToWasmVMGas(q.Ctx.GasMeter().GasConsumed())
+	return VMGasRegister.ToWasmVMGas(q.GasService.GasMeter(q.Ctx).Consumed())
 }
 
 // Query implements the wasmvmtypes.Querier interface.
 func (q *queryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
-	sdkGas := VMGasRegister.FromWasmVMGas(gasLimit)
-
+	sdkGasLimit := VMGasRegister.FromWasmVMGas(gasLimit)
 	// discard all changes/events in subCtx by not committing the cached context
-	subCtx, _ := q.Ctx.WithGasMeter(storetypes.NewGasMeter(sdkGas)).CacheContext()
+	var res []byte
+	_, err := q.BranchService.ExecuteWithGasLimit(q.Ctx, sdkGasLimit, func(ctx context.Context) error {
+		var err error
+		res, err = q.Plugins.HandleQuery(ctx, q.CallerID, request)
+		if err == nil {
+			return nil
+		}
 
-	// make sure we charge the higher level context even on panic
-	defer func() {
-		q.Ctx.GasMeter().ConsumeGas(subCtx.GasMeter().GasConsumed(), "contract sub-query")
-	}()
-
-	res, err := q.Plugins.HandleQuery(subCtx, q.CallerID, request)
-	if err == nil {
-		return res, nil
+		q.Logger.Debug("Redacting query error", "cause", err)
+		return err
+	})
+	if err != nil {
+		return nil, redactError(err)
 	}
-
-	moduleLogger(q.Ctx).Debug("Redacting query error", "cause", err)
-	return nil, redactError(err)
+	return res, nil
 }
 
 type (
-	CustomQuerier   func(ctx sdk.Context, request json.RawMessage) ([]byte, error)
-	StargateQuerier func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error)
+	CustomQuerier   func(ctx context.Context, request json.RawMessage) ([]byte, error)
+	StargateQuerier func(ctx context.Context, request *wasmvmtypes.StargateQuery) ([]byte, error)
 
 	// QueryPlugins is a list of queriers that can be used to extend the default querier.
 	QueryPlugins struct {
@@ -109,7 +112,7 @@ func (e QueryPlugins) Merge(x *QueryPlugins) QueryPlugins {
 }
 
 // HandleQuery implements the ibcwasm.QueryPluginsI interface.
-func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error) {
+func (e QueryPlugins) HandleQuery(ctx context.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error) {
 	if request.Stargate != nil {
 		return e.Stargate(ctx, request.Stargate)
 	}
@@ -131,8 +134,8 @@ func NewDefaultQueryPlugins(queryRouter types.QueryRouter) QueryPlugins {
 
 // AcceptListStargateQuerier allows all queries that are in the provided accept list.
 // This function returns protobuf encoded responses in bytes.
-func AcceptListStargateQuerier(acceptedQueries []string, queryRouter types.QueryRouter) func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
-	return func(ctx sdk.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
+func AcceptListStargateQuerier(acceptedQueries []string, queryRouter types.QueryRouter) func(context.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
+	return func(ctx context.Context, request *wasmvmtypes.StargateQuery) ([]byte, error) {
 		// append user defined accepted queries to default list defined above.
 		acceptedQueries = append(defaultAcceptList, acceptedQueries...)
 
@@ -146,7 +149,7 @@ func AcceptListStargateQuerier(acceptedQueries []string, queryRouter types.Query
 			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("No route to query '%s'", request.Path)}
 		}
 
-		res, err := route(ctx, &abci.QueryRequest{
+		res, err := route(sdk.UnwrapSDKContext(ctx), &abci.QueryRequest{
 			Data: request.Data,
 			Path: request.Path,
 		})
@@ -162,8 +165,8 @@ func AcceptListStargateQuerier(acceptedQueries []string, queryRouter types.Query
 }
 
 // RejectCustomQuerier rejects all custom queries
-func RejectCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
-	return func(ctx sdk.Context, request json.RawMessage) ([]byte, error) {
+func RejectCustomQuerier() func(context.Context, json.RawMessage) ([]byte, error) {
+	return func(ctx context.Context, request json.RawMessage) ([]byte, error) {
 		return nil, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"}
 	}
 }

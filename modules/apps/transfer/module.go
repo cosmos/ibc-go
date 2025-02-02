@@ -7,13 +7,14 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc"
 
+	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
 	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -25,14 +26,22 @@ import (
 )
 
 var (
-	_ module.AppModule              = (*AppModule)(nil)
-	_ module.AppModuleBasic         = (*AppModule)(nil)
-	_ module.AppModuleSimulation    = (*AppModule)(nil)
-	_ module.HasGenesis             = (*AppModule)(nil)
-	_ appmodule.HasConsensusVersion = (*AppModule)(nil)
-	_ module.HasInvariants          = (*AppModule)(nil)
-	_ module.HasServices            = (*AppModule)(nil)
-	_ appmodule.AppModule           = (*AppModule)(nil)
+	_ appmodule.AppModule             = (*AppModule)(nil)
+	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
+	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
+	_ appmodule.HasMigrations         = (*AppModule)(nil)
+
+	_ module.AppModule      = (*AppModule)(nil)
+	_ module.HasGRPCGateway = (*AppModule)(nil)
+	_ module.HasGenesis     = (*AppModule)(nil)
+
+	// Sims
+	_ module.AppModuleSimulation         = (*AppModule)(nil)
+	_ module.HasLegacyProposalMsgs       = (*AppModule)(nil)
+	_ module.HasLegacyWeightedOperations = (*AppModule)(nil)
+
+	_ autocli.HasCustomTxCommand    = (*AppModule)(nil)
+	_ autocli.HasCustomQueryCommand = (*AppModule)(nil)
 
 	_ porttypes.IBCModule = (*IBCModule)(nil)
 )
@@ -109,33 +118,33 @@ func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
-// RegisterInvariants implements the AppModule interface
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	keeper.RegisterInvariants(ir, &am.keeper)
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg grpc.ServiceRegistrar) error {
+	types.RegisterMsgServer(cfg, am.keeper)
+	types.RegisterQueryServer(cfg, am.keeper)
+	types.RegisterQueryV2Server(cfg, am.keeper)
+	return nil
 }
 
-// RegisterServices registers module services.
-func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-	types.RegisterQueryV2Server(cfg.QueryServer(), am.keeper)
-
+func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) error {
 	m := keeper.NewMigrator(am.keeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 2, m.MigrateTotalEscrowForDenom); err != nil {
-		panic(fmt.Errorf("failed to migrate transfer app from version 2 to 3 (total escrow entry migration): %v", err))
+	if err := registrar.Register(types.ModuleName, 2, m.MigrateTotalEscrowForDenom); err != nil {
+		return fmt.Errorf("failed to migrate transfer app from version 2 to 3 (total escrow entry migration): %w", err)
 	}
 
-	if err := cfg.RegisterMigration(types.ModuleName, 3, m.MigrateParams); err != nil {
-		panic(fmt.Errorf("failed to migrate transfer app version 3 to 4 (self-managed params migration): %v", err))
+	if err := registrar.Register(types.ModuleName, 3, m.MigrateParams); err != nil {
+		return fmt.Errorf("failed to migrate transfer app version 3 to 4 (self-managed params migration): %w", err)
 	}
 
-	if err := cfg.RegisterMigration(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
-		panic(fmt.Errorf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %v", err))
+	if err := registrar.Register(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
+		return fmt.Errorf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %w", err)
 	}
 
-	if err := cfg.RegisterMigration(types.ModuleName, 5, m.MigrateDenomTraceToDenom); err != nil {
-		panic(fmt.Errorf("failed to migrate transfer app from version 5 to 6 (migrate DenomTrace to Denom): %v", err))
+	if err := registrar.Register(types.ModuleName, 5, m.MigrateDenomTraceToDenom); err != nil {
+		return fmt.Errorf("failed to migrate transfer app from version 5 to 6 (migrate DenomTrace to Denom): %w", err)
 	}
+
+	return nil
 }
 
 // InitGenesis performs genesis initialization for the ibc-transfer module. It returns

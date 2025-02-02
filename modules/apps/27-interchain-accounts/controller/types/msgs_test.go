@@ -9,6 +9,7 @@ import (
 
 	banktypes "cosmossdk.io/x/bank/types"
 
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -108,7 +109,10 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 }
 
 func TestMsgRegisterInterchainAccountGetSigners(t *testing.T) {
-	expSigner, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
+	addrCdc := addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	expSigerBytes, err := addrCdc.StringToBytes(ibctesting.TestAccAddress)
+	expSigner := sdk.AccAddress(expSigerBytes)
+
 	require.NoError(t, err)
 
 	msg := types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "", channeltypes.ORDERED)

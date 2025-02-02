@@ -1,8 +1,10 @@
 package v7
 
 import (
+	"context"
 	"strings"
 
+	"cosmossdk.io/core/log"
 	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -10,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -32,24 +33,24 @@ const Localhost string = "09-localhost"
 // - Pruning all solo machine consensus states
 // - Removing the localhost client
 // - Asserting existing tendermint clients are properly registered on the chain codec
-func MigrateStore(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+func MigrateStore(ctx context.Context, logger log.Logger, storeService corestore.KVStoreService, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
 	store := runtime.KVStoreAdapter(storeService.OpenKVStore(ctx))
 
-	if err := handleSolomachineMigration(ctx, store, cdc, clientKeeper); err != nil {
+	if err := handleSolomachineMigration(ctx, logger, store, cdc, clientKeeper); err != nil {
 		return err
 	}
 
-	if err := handleTendermintMigration(ctx, store, clientKeeper); err != nil {
+	if err := handleTendermintMigration(ctx, logger, store, clientKeeper); err != nil {
 		return err
 	}
 
-	return handleLocalhostMigration(ctx, store, clientKeeper)
+	return handleLocalhostMigration(ctx, logger, store, clientKeeper)
 }
 
 // handleSolomachineMigration iterates over the solo machine clients and migrates client state from
 // protobuf definition v2 to v3. All consensus states stored outside of the client state are pruned.
-func handleSolomachineMigration(ctx sdk.Context, store storetypes.KVStore, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
-	clients, err := collectClients(ctx, store, exported.Solomachine)
+func handleSolomachineMigration(ctx context.Context, logger log.Logger, store storetypes.KVStore, cdc codec.BinaryCodec, clientKeeper ClientKeeper) error {
+	clients, err := collectClients(logger, store, exported.Solomachine)
 	if err != nil {
 		return err
 	}
@@ -85,8 +86,8 @@ func handleSolomachineMigration(ctx sdk.Context, store storetypes.KVStore, cdc c
 
 // handleTendermintMigration asserts that the tendermint client in state can be decoded properly.
 // This ensures the upgrading chain properly registered the tendermint client types on the chain codec.
-func handleTendermintMigration(ctx sdk.Context, store storetypes.KVStore, clientKeeper ClientKeeper) error {
-	clients, err := collectClients(ctx, store, exported.Tendermint)
+func handleTendermintMigration(ctx context.Context, logger log.Logger, store storetypes.KVStore, clientKeeper ClientKeeper) error {
+	clients, err := collectClients(logger, store, exported.Tendermint)
 	if err != nil {
 		return err
 	}
@@ -117,8 +118,8 @@ func handleTendermintMigration(ctx sdk.Context, store storetypes.KVStore, client
 }
 
 // handleLocalhostMigration removes all client and consensus states associated with the localhost client type.
-func handleLocalhostMigration(ctx sdk.Context, store storetypes.KVStore, clientKeeper ClientKeeper) error {
-	clients, err := collectClients(ctx, store, Localhost)
+func handleLocalhostMigration(ctx context.Context, logger log.Logger, store storetypes.KVStore, clientKeeper ClientKeeper) error {
+	clients, err := collectClients(logger, store, Localhost)
 	if err != nil {
 		return err
 	}
@@ -140,11 +141,11 @@ func handleLocalhostMigration(ctx sdk.Context, store storetypes.KVStore, clientK
 // avoid state corruption as modifying state during iteration is unsafe. A special case
 // for tendermint clients is included as only one tendermint clientID is required for
 // v7 migrations.
-func collectClients(ctx sdk.Context, store storetypes.KVStore, clientType string) (clients []string, err error) {
+func collectClients(logger log.Logger, store storetypes.KVStore, clientType string) (clients []string, err error) {
 	clientPrefix := host.PrefixedClientStoreKey([]byte(clientType))
 	iterator := storetypes.KVStorePrefixIterator(store, clientPrefix)
 
-	defer coretypes.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	defer coretypes.LogDeferred(logger, func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		path := string(iterator.Key())
 		if !strings.Contains(path, host.KeyClientState) {

@@ -91,15 +91,15 @@ func (ws *WasmSnapshotter) SnapshotExtension(height uint64, payloadWriter snapsh
 // RestoreExtension implements the snapshot.ExtensionSnapshotter interface.
 // RestoreExtension is used to read data from an existing extension state snapshot into the 08-wasm module.
 // The payload reader returns io.EOF when it has reached the end of the extension state snapshot.
-func (ws *WasmSnapshotter) RestoreExtension(height uint64, format uint32, payloadReader snapshot.ExtensionPayloadReader) error {
+func (ws *WasmSnapshotter) RestoreExtension(_ uint64, format uint32, payloadReader snapshot.ExtensionPayloadReader) error {
 	if format == ws.SnapshotFormat() {
-		return ws.processAllItems(height, payloadReader, restoreV1)
+		return ws.processAllItems(payloadReader, restoreV1)
 	}
 
 	return errorsmod.Wrapf(snapshot.ErrUnknownFormat, "expected %d, got %d", ws.SnapshotFormat(), format)
 }
 
-func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
+func restoreV1(k *Keeper, compressedCode []byte) error {
 	if !types.IsGzip(compressedCode) {
 		return errorsmod.Wrap(types.ErrInvalidData, "expected wasm code is not gzip format")
 	}
@@ -122,11 +122,9 @@ func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
 }
 
 func (ws *WasmSnapshotter) processAllItems(
-	height uint64,
 	payloadReader snapshot.ExtensionPayloadReader,
-	cb func(sdk.Context, *Keeper, []byte) error,
+	cb func(*Keeper, []byte) error,
 ) error {
-	ctx := sdk.NewContext(ws.cms, false, nil).WithBlockHeight(int64(height))
 	for {
 		payload, err := payloadReader()
 		if err == io.EOF {
@@ -135,7 +133,7 @@ func (ws *WasmSnapshotter) processAllItems(
 			return err
 		}
 
-		if err := cb(ctx, ws.keeper, payload); err != nil {
+		if err := cb(ws.keeper, payload); err != nil {
 			return errorsmod.Wrap(err, "failure processing snapshot item")
 		}
 	}

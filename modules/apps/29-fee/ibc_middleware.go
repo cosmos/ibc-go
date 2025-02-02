@@ -283,7 +283,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		payee = relayer.String()
 	}
 
-	payeeAddr, err := sdk.AccAddressFromBech32(payee)
+	payeeAddr, err := im.keeper.AddrCodec.StringToBytes(payee)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
 	}
@@ -329,7 +329,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		payee = relayer.String()
 	}
 
-	payeeAddr, err := sdk.AccAddressFromBech32(payee)
+	payeeAddr, err := im.keeper.AddrCodec.StringToBytes(payee)
 	if err != nil {
 		return errorsmod.Wrapf(err, "failed to create sdk.Address from payee: %s", payee)
 	}
