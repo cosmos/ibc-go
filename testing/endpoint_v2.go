@@ -146,3 +146,23 @@ func (endpoint *Endpoint) MsgTimeoutPacket(packet channeltypesv2.Packet) error {
 
 	return endpoint.Counterparty.UpdateClient()
 }
+
+// MsgTimeoutPacketWithResult sends a MsgTimeout on the associated endpoint with the provided packet.
+// It will return the result of the transaction
+func (endpoint *Endpoint) MsgTimeoutPacketWithResult(packet channeltypesv2.Packet) (*abci.ExecTxResult, error) {
+	packetKey := hostv2.PacketReceiptKey(packet.DestinationClient, packet.Sequence)
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	msg := channeltypesv2.NewMsgTimeout(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := endpoint.Counterparty.UpdateClient(); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}

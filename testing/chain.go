@@ -252,8 +252,6 @@ func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height i
 		})
 	require.NoError(chain.TB, err)
 
-	fmt.Printf("%#v\n", res)
-
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
 	require.NoError(chain.TB, err)
 
