@@ -1,6 +1,7 @@
 package ibctesting
 
 import (
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 	"github.com/cosmos/gogoproto/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -76,6 +77,28 @@ func (endpoint *Endpoint) MsgRecvPacket(packet channeltypesv2.Packet) error {
 	return endpoint.Counterparty.UpdateClient()
 }
 
+// MsgRecvPacketWithResult receives a packet v2 on the associated endpoint and returns
+// the result of the transaction
+func (endpoint *Endpoint) MsgRecvPacketWithResult(packet channeltypesv2.Packet) (*abci.ExecTxResult, error) {
+	// get proof of packet commitment from chainA
+	packetKey := hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence)
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	msg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	// receive on counterparty and update source client
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := endpoint.Counterparty.UpdateClient(); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 // MsgAcknowledgePacket sends a MsgAcknowledgement on the associated endpoint with the provided packet and ack.
 func (endpoint *Endpoint) MsgAcknowledgePacket(packet channeltypesv2.Packet, ack channeltypesv2.Acknowledgement) error {
 	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationClient, packet.Sequence)
@@ -88,6 +111,26 @@ func (endpoint *Endpoint) MsgAcknowledgePacket(packet channeltypesv2.Packet, ack
 	}
 
 	return endpoint.Counterparty.UpdateClient()
+}
+
+// MsgAcknowledgePacketWithResult sends a MsgAcknowledgement on the associated endpoint with the provided packet and ack.
+// It will return the result of the transaction
+func (endpoint *Endpoint) MsgAcknowledgePacketWithResult(packet channeltypesv2.Packet, ack channeltypesv2.Acknowledgement) (*abci.ExecTxResult, error) {
+	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationClient, packet.Sequence)
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	msg := channeltypesv2.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := endpoint.Counterparty.UpdateClient(); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 // MsgTimeoutPacket sends a MsgTimeout on the associated endpoint with the provided packet.
