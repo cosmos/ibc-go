@@ -31,6 +31,8 @@ type TransferTestSuite struct {
 	pathBToC *ibctesting.Path
 }
 
+const invalidPortId = "invalidportid"
+
 func (suite *TransferTestSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
@@ -81,7 +83,7 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			"transfer with invalid source port",
 			[]string{sdk.DefaultBondDenom},
 			func() {
-				payload.SourcePort = "invalidportid"
+				payload.SourcePort = invalidPortId
 			},
 			channeltypesv2.ErrInvalidPacket,
 		},
@@ -89,7 +91,7 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			"transfer with invalid destination port",
 			[]string{sdk.DefaultBondDenom},
 			func() {
-				payload.DestinationPort = "invalidportid"
+				payload.DestinationPort = invalidPortId
 			},
 			channeltypesv2.ErrInvalidPacket,
 		},
@@ -193,7 +195,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			"transfer with invalid source port",
 			[]string{sdk.DefaultBondDenom},
 			func() {
-				payload.SourcePort = "invalidportid"
+				payload.SourcePort = invalidPortId
 			},
 			channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(channeltypesv2.ErrInvalidPacket, "payload port ID is invalid: expected %s, got sourcePort: %s destPort: %s", types.PortID, payload.SourcePort, payload.DestinationPort)).Acknowledgement(),
 		},
@@ -201,7 +203,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			"transfer with invalid dest port",
 			[]string{sdk.DefaultBondDenom},
 			func() {
-				payload.DestinationPort = "invalidportid"
+				payload.DestinationPort = invalidPortId
 			},
 			channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(channeltypesv2.ErrInvalidPacket, "payload port ID is invalid: expected %s, got sourcePort: %s destPort: %s", types.PortID, payload.SourcePort, payload.DestinationPort)).Acknowledgement(),
 		},
