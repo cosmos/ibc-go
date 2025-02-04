@@ -67,6 +67,14 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 	return packets[0], nil
 }
 
+func ParseEurekaPacketFromEvents(events []abci.Event) (channeltypes.EurekaPacket, error) {
+	packets, err := ParseEurekaPacketsFromEvents(channeltypes.EventTypeSendPacket, events)
+	if err != nil {
+		return channeltypes.EurekaPacket{}, err
+	}
+	return packets[0], nil
+}
+
 // ParseRecvPacketFromEvents parses events emitted from a MsgRecvPacket and returns
 // the first EventTypeRecvPacket packet found.
 // Returns an error if no packet is found.
@@ -97,6 +105,66 @@ func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltyp
 						return ferr(err)
 					}
 					packet.Data = data
+				case channeltypes.AttributeKeySequence:
+					seq, err := strconv.ParseUint(attr.Value, 10, 64)
+					if err != nil {
+						return ferr(err)
+					}
+
+					packet.Sequence = seq
+
+				case channeltypes.AttributeKeySrcPort:
+					packet.SourcePort = attr.Value
+
+				case channeltypes.AttributeKeySrcChannel:
+					packet.SourceChannel = attr.Value
+
+				case channeltypes.AttributeKeyDstPort:
+					packet.DestinationPort = attr.Value
+
+				case channeltypes.AttributeKeyDstChannel:
+					packet.DestinationChannel = attr.Value
+
+				case channeltypes.AttributeKeyTimeoutHeight:
+					height, err := clienttypes.ParseHeight(attr.Value)
+					if err != nil {
+						return ferr(err)
+					}
+
+					packet.TimeoutHeight = height
+
+				case channeltypes.AttributeKeyTimeoutTimestamp:
+					timestamp, err := strconv.ParseUint(attr.Value, 10, 64)
+					if err != nil {
+						return ferr(err)
+					}
+
+					packet.TimeoutTimestamp = timestamp
+
+				default:
+					continue
+				}
+			}
+
+			packets = append(packets, packet)
+		}
+	}
+	if len(packets) == 0 {
+		return ferr(errors.New("acknowledgement event attribute not found"))
+	}
+	return packets, nil
+}
+
+func ParseEurekaPacketsFromEvents(eventType string, events []abci.Event) ([]channeltypes.EurekaPacket, error) {
+	ferr := func(err error) ([]channeltypes.EurekaPacket, error) {
+		return nil, fmt.Errorf("ibctesting.ParseEurekaPacketsFromEvents: %w", err)
+	}
+	var packets []channeltypes.EurekaPacket
+	for _, ev := range events {
+		if ev.Type == eventType {
+			var packet channeltypes.EurekaPacket
+			for _, attr := range ev.Attributes {
+				switch attr.Key {
 				case channeltypes.AttributeKeySequence:
 					seq, err := strconv.ParseUint(attr.Value, 10, 64)
 					if err != nil {

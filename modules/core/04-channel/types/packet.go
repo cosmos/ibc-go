@@ -62,6 +62,23 @@ func NewPacket(
 	}
 }
 
+func NewEurekaPacket(
+	data []byte,
+	sequence uint64, sourcePort, sourceChannel,
+	destinationPort, destinationChannel string,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+) EurekaPacket {
+	return EurekaPacket{
+		Sequence:           sequence,
+		SourcePort:         sourcePort,
+		SourceChannel:      sourceChannel,
+		DestinationPort:    destinationPort,
+		DestinationChannel: destinationChannel,
+		TimeoutHeight:      timeoutHeight,
+		TimeoutTimestamp:   timeoutTimestamp,
+	}
+}
+
 // GetSequence implements PacketI interface
 func (p Packet) GetSequence() uint64 { return p.Sequence }
 
