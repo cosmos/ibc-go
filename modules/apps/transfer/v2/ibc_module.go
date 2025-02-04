@@ -9,9 +9,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
-	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
@@ -29,8 +29,11 @@ type IBCModule struct {
 	keeper keeper.Keeper
 }
 
-func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, signer sdk.AccAddress) error {
-	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
+func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
+	if payload.SourcePort != types.PortID || payload.DestinationPort != types.PortID {
+		return errorsmod.Wrapf(channeltypesv2.ErrInvalidPacket, "payload port ID is invalid: expected %s, got sourcePort: %s destPort: %s", types.PortID, payload.SourcePort, payload.DestinationPort)
+	}
+	data, err := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {
 		return err
 	}
@@ -57,31 +60,37 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 	return nil
 }
 
-func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
+func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+	if payload.SourcePort != types.PortID || payload.DestinationPort != types.PortID {
+		return channeltypesv2.RecvPacketResult{
+			Status:          channeltypesv2.PacketStatus_Failure,
+			Acknowledgement: channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(channeltypesv2.ErrInvalidPacket, "payload port ID is invalid: expected %s, got sourcePort: %s destPort: %s", types.PortID, payload.SourcePort, payload.DestinationPort)).Acknowledgement(),
+		}
+	}
 	var (
 		ackErr error
-		data   transfertypes.FungibleTokenPacketDataV2
+		data   types.FungibleTokenPacketDataV2
 	)
 
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	recvResult := types.RecvPacketResult{
-		Status:          types.PacketStatus_Success,
+	recvResult := channeltypesv2.RecvPacketResult{
+		Status:          channeltypesv2.PacketStatus_Success,
 		Acknowledgement: ack.Acknowledgement(),
 	}
 	// we are explicitly wrapping this emit event call in an anonymous function so that
 	// the packet data is evaluated after it has been assigned a value.
 	defer func() {
 		if err := im.keeper.EmitOnRecvPacketEvent(ctx, data, ack, ackErr); err != nil {
-			im.keeper.Logger.Error(fmt.Sprintf("failed to emit %T event", types.EventTypeRecvPacket), "error", err)
+			im.keeper.Logger.Error(fmt.Sprintf("failed to emit %T event", channeltypesv2.EventTypeRecvPacket), "error", err)
 		}
 	}()
 
-	data, ackErr = transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
+	data, ackErr = types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
-		return types.RecvPacketResult{
-			Status:          types.PacketStatus_Failure,
+		return channeltypesv2.RecvPacketResult{
+			Status:          channeltypesv2.PacketStatus_Failure,
 			Acknowledgement: ack.Acknowledgement(),
 		}
 	}
@@ -96,8 +105,8 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	); ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
-		return types.RecvPacketResult{
-			Status:          types.PacketStatus_Failure,
+		return channeltypesv2.RecvPacketResult{
+			Status:          channeltypesv2.PacketStatus_Failure,
 			Acknowledgement: ack.Acknowledgement(),
 		}
 	}
@@ -110,8 +119,8 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	if data.HasForwarding() {
 		// we are now sending from the forward escrow address to the final receiver address.
 		ack = channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarding not yet supported"))
-		return types.RecvPacketResult{
-			Status:          types.PacketStatus_Failure,
+		return channeltypesv2.RecvPacketResult{
+			Status:          channeltypesv2.PacketStatus_Failure,
 			Acknowledgement: ack.Acknowledgement(),
 		}
 		// TODO: handle forwarding
@@ -130,8 +139,8 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	return recvResult
 }
 
-func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload types.Payload, relayer sdk.AccAddress) error {
-	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
+func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
+	data, err := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {
 		return err
 	}
@@ -146,13 +155,13 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 	return im.keeper.EmitOnTimeoutEvent(ctx, data)
 }
 
-func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload types.Payload, relayer sdk.AccAddress) error {
+func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
 	var ack channeltypes.Acknowledgement
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	data, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
+	data, err := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {
 		return err
 	}
