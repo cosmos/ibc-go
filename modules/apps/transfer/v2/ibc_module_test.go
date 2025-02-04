@@ -298,7 +298,6 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				suite.Require().Equal(channeltypesv2.PacketStatus_Failure, recvResult.Status)
 				suite.Require().Equal(tc.expErrAck, recvResult.Acknowledgement)
 			}
-
 		})
 	}
 }
