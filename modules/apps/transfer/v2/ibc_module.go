@@ -3,6 +3,7 @@ package v2
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -30,6 +31,11 @@ type IBCModule struct {
 }
 
 func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
+	// Enforce that the source and destination portIDs are the same and equal to the transfer portID
+	// This is necessary for IBC Eureka since the portIDs (and thus the application-application connection) is not prenegotiated
+	// by the channel handshake
+	// This restriction can be removed in a future where the trace hop on receive commits to **both** the source and destination portIDs
+	// rather than just the destination port
 	if payload.SourcePort != types.PortID || payload.DestinationPort != types.PortID {
 		return errorsmod.Wrapf(channeltypesv2.ErrInvalidPacket, "payload port ID is invalid: expected %s, got sourcePort: %s destPort: %s", types.PortID, payload.SourcePort, payload.DestinationPort)
 	}
@@ -47,6 +53,19 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "sender %s is different from signer %s", sender, signer)
 	}
 
+	// Enforce that the base denom does not contain any slashes
+	// Since IBC v2 packets will no longer have channel identifiers, we cannot rely
+	// on the channel format to easily divide the trace from the base denomination in ICS20 v1 packets
+	// The simplest way to prevent any potential issues from arising is to simply disallow any slashes in the base denomination
+	// This prevents such denominations from being sent with IBCV v2 packets, however we can still support them in IBC v1 packets
+	// If we enforce that IBC v2 packets are sent with ICS20 v2 and above versions that separate the trace from the base denomination
+	// in the packet data, then we can remove this restriction.
+	for _, token := range data.Tokens {
+		if strings.Contains(token.Denom.Base, "/") {
+			return errorsmod.Wrapf(types.ErrInvalidDenomForTransfer, "base denomination %s cannot contain slashes for IBC v2 packet", token.Denom.Base)
+		}
+	}
+
 	if err := im.keeper.SendTransfer(goCtx, payload.SourcePort, sourceChannel, data.Tokens, signer); err != nil {
 		return err
 	}
@@ -61,6 +80,11 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 }
 
 func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+	// Enforce that the source and destination portIDs are the same and equal to the transfer portID
+	// This is necessary for IBC Eureka since the portIDs (and thus the application-application connection) is not prenegotiated
+	// by the channel handshake
+	// This restriction can be removed in a future where the trace hop on receive commits to **both** the source and destination portIDs
+	// rather than just the destination port
 	if payload.SourcePort != types.PortID || payload.DestinationPort != types.PortID {
 		return channeltypesv2.RecvPacketResult{
 			Status:          channeltypesv2.PacketStatus_Failure,

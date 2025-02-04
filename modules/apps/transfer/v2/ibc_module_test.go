@@ -78,12 +78,26 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			nil,
 		},
 		{
+			"transfer with invalid source port",
+			[]string{sdk.DefaultBondDenom},
+			func() {
+				payload.SourcePort = "invalidportid"
+			},
+			channeltypesv2.ErrInvalidPacket,
+		},
+		{
 			"transfer with invalid destination port",
 			[]string{sdk.DefaultBondDenom},
 			func() {
 				payload.DestinationPort = "invalidportid"
 			},
 			channeltypesv2.ErrInvalidPacket,
+		},
+		{
+			"transfer with slashes in base denom",
+			[]string{"base/coin"},
+			func() {},
+			types.ErrInvalidDenomForTransfer,
 		},
 	}
 
@@ -96,8 +110,6 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 				originalBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom)
 				originalBalances = originalBalances.Add(originalBalance)
 			}
-
-			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 			amount, ok := sdkmath.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
 			suite.Require().True(ok)
@@ -131,14 +143,11 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			// malleate payload
 			tc.malleate()
 
-			msg := channeltypesv2.NewMsgSendPacket(
-				suite.pathAToB.EndpointA.ClientID,
-				timeoutTimestamp,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				payload,
-			)
+			ctx := suite.chainA.GetContext()
+			cbs := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
 
-			_, err := suite.chainA.SendMsgs(msg)
+			err := cbs.OnSendPacket(ctx, suite.pathAToB.EndpointA.ClientID, suite.pathAToB.EndpointB.ClientID, 1, payload, suite.chainA.SenderAccount.GetAddress())
+
 			if tc.expError != nil {
 				suite.Require().Contains(err.Error(), tc.expError.Error())
 			} else {
