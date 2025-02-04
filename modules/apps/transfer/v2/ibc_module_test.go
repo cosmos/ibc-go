@@ -151,9 +151,8 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			if tc.expError != nil {
 				suite.Require().Contains(err.Error(), tc.expError.Error())
 			} else {
-				suite.Require().NoError(err) // message committed
+				suite.Require().NoError(err)
 
-				// TODO parse packet from result events and check against expected events
 				escrowAddress := types.GetEscrowAddress(types.PortID, suite.pathAToB.EndpointA.ClientID)
 				for _, coin := range originalCoins {
 					// check that the balance for chainA is updated
