@@ -36,6 +36,11 @@ jobs:
             go.sum
             **/go.mod
             **/go.sum
+<<<<<<< HEAD
+=======
+      - name: Build ibc-go
+        run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
+>>>>>>> b8b9cb80 (deps: bump wasmvm to v2.2.2 (#7911))
       - name: Install compiler for arm64.
         if: matrix.go-arch == 'arm64'
         run: |
