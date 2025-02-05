@@ -3,8 +3,9 @@ package keeper_test
 import (
 	"encoding/hex"
 
+	govtypes "cosmossdk.io/x/gov/types"
+
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"

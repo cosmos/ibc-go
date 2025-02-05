@@ -716,7 +716,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"success: fail to distribute recv fee (blocked address), returned to refund account",
 			func() {
-				blockedAddr := suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				blockedAddr := suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 
 				// reassign ack.ForwardRelayerAddress to a blocked address
 				ack = types.NewIncentivizedAcknowledgement(blockedAddr.String(), ibcmock.MockAcknowledgement.Acknowledgement(), true).Acknowledgement()
@@ -954,7 +954,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		{
 			"success: fail to distribute timeout fee (blocked address), returned to refund account",
 			func() {
-				relayerAddr = suite.chainA.GetSimApp().AccountKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
+				relayerAddr = suite.chainA.GetSimApp().AuthKeeper.GetModuleAccount(suite.chainA.GetContext(), transfertypes.ModuleName).GetAddress()
 			},
 			nil,
 			func() {},
@@ -1118,8 +1118,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 
 			err := path.EndpointA.ChanUpgradeInit()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1231,8 +1230,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 
 			err = path.EndpointB.ChanUpgradeTry()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1338,8 +1336,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 
 			err = cbs.OnChanUpgradeAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterpartyUpgrade.Fields.Version)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -1557,17 +1554,17 @@ func (suite *FeeTestSuite) TestAckUnmarshal() {
 	testCases := []struct {
 		name     string
 		ackBytes []byte
-		expPass  bool
+		expError error
 	}{
 		{
 			"success",
 			[]byte(`{"app_acknowledgement": "eyJyZXN1bHQiOiJiVzlqYXlCaFkydHViM2RzWldsblpXMWxiblE9In0=", "forward_relayer_address": "relayer", "underlying_app_success": true}`),
-			true,
+			nil,
 		},
 		{
 			"failure: unknown fields",
 			[]byte(`{"app_acknowledgement": "eyJyZXN1bHQiOiJiVzlqYXlCaFkydHViM2RzWldsblpXMWxiblE9In0=", "forward_relayer_address": "relayer", "underlying_app_success": true, "extra_field": "foo"}`),
-			false,
+			errors.New("json: unknown field \"extra_field\""),
 		},
 	}
 	for _, tc := range testCases {
@@ -1575,10 +1572,10 @@ func (suite *FeeTestSuite) TestAckUnmarshal() {
 			ack := &types.IncentivizedAcknowledgement{}
 			err := json.Unmarshal(tc.ackBytes, ack)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				suite.Require().ErrorContains(err, tc.expError.Error())
 			}
 		})
 	}

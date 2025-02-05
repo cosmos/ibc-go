@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	solomachine "github.com/cosmos/ibc-go/v9/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
@@ -29,7 +31,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 		msg        string
 		malleate   func()
 		clientType string
-		expPass    bool
+		expErr     error
 	}{
 		{
 			"success: 07-tendermint client type supported",
@@ -39,7 +41,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 				consensusState = suite.chainA.App.AppCodec().MustMarshal(suite.consensusState)
 			},
 			exported.Tendermint,
-			true,
+			nil,
 		},
 		{
 			"failure: 07-tendermint client status is not active",
@@ -50,7 +52,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 				consensusState = suite.chainA.App.AppCodec().MustMarshal(suite.consensusState)
 			},
 			exported.Tendermint,
-			false,
+			errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot create client (07-tendermint-0) with status Frozen"),
 		},
 		{
 			"success: 06-solomachine client type supported",
@@ -61,13 +63,13 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 				consensusState = suite.chainA.App.AppCodec().MustMarshal(smConsensusState)
 			},
 			exported.Solomachine,
-			true,
+			nil,
 		},
 		{
 			"failure: 09-localhost client type not supported",
 			func() {},
 			exported.Localhost,
-			false,
+			errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "cannot create client of type: 09-localhost"),
 		},
 	}
 
@@ -84,7 +86,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 
 			// assert correct behaviour based on expected error
 			clientState, found := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(clientID)
 				suite.Require().True(found)
@@ -94,6 +96,7 @@ func (suite *KeeperTestSuite) TestCreateClient() {
 				suite.Require().Empty(clientID)
 				suite.Require().False(found)
 				suite.Require().Empty(clientState)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -122,7 +125,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 	cases := []struct {
 		name      string
 		malleate  func()
-		expPass   bool
+		expErr    error
 		expFreeze bool
 	}{
 		{"valid update", func() {
@@ -133,7 +136,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			suite.Require().NoError(err)
 
 			updateHeader = createFutureUpdateFn(trustedHeight.(clienttypes.Height))
-		}, true, false},
+		}, nil, false},
 		{"valid past update", func() {
 			trustedHeight := path.EndpointA.GetClientLatestHeight()
 
@@ -154,7 +157,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			// updateHeader will fill in consensus state between prevConsState and suite.consState
 			// clientState should not be updated
 			updateHeader = createPastUpdateFn(fillHeight, trustedHeight.(clienttypes.Height))
-		}, true, false},
+		}, nil, false},
 		{"valid duplicate update", func() {
 			height1 := clienttypes.NewHeight(1, 1)
 
@@ -184,7 +187,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			updateHeader = createPastUpdateFn(height3, height1)
 			// set updateHeader's consensus state in store to create duplicate UpdateClient scenario
 			path.EndpointA.SetConsensusState(updateHeader.ConsensusState(), updateHeader.GetHeight())
-		}, true, false},
+		}, nil, false},
 		{"misbehaviour detection: conflicting header", func() {
 			clientID := path.EndpointA.ClientID
 
@@ -212,7 +215,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			conflictConsState := updateHeader.ConsensusState()
 			conflictConsState.Root = commitmenttypes.NewMerkleRoot([]byte("conflicting apphash"))
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(suite.chainA.GetContext(), clientID, updateHeader.GetHeight(), conflictConsState)
-		}, true, true},
+		}, nil, true},
 		{"misbehaviour detection: monotonic time violation", func() {
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			suite.Require().True(ok)
@@ -236,14 +239,14 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 
 			updateHeader = createFutureUpdateFn(trustedHeight)
-		}, true, true},
+		}, nil, true},
 		{"client state not found", func() {
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			suite.Require().True(ok)
 			updateHeader = createFutureUpdateFn(clientState.LatestHeight)
 
 			path.EndpointA.ClientID = ibctesting.InvalidID
-		}, false, false},
+		}, errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier IDisInvalid is not in format: `{client-type}-{N}`"), false},
 		{"consensus state not found", func() {
 			clientState := path.EndpointA.GetClientState()
 			tmClient, ok := clientState.(*ibctm.ClientState)
@@ -253,21 +256,21 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientState)
 			updateHeader = createFutureUpdateFn(tmClient.LatestHeight)
-		}, false, false},
+		}, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot update client (07-tendermint-0) with status Expired"), false},
 		{"client is not active", func() {
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			suite.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(1, 1)
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientState)
 			updateHeader = createFutureUpdateFn(clientState.LatestHeight)
-		}, false, false},
+		}, errorsmod.Wrapf(clienttypes.ErrClientNotActive, "cannot update client (07-tendermint-0) with status Frozen"), false},
 		{"invalid header", func() {
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
 			suite.Require().True(ok)
 			updateHeader = createFutureUpdateFn(clientState.LatestHeight)
 			updateHeader.TrustedHeight, ok = updateHeader.TrustedHeight.Increment().(clienttypes.Height)
 			suite.Require().True(ok)
-		}, false, false},
+		}, errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "could not get trusted consensus state from clientStore for Header at TrustedHeight: 1-3"), false},
 	}
 
 	for _, tc := range cases {
@@ -281,14 +284,14 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 
 			var clientState *ibctm.ClientState
 			var ok bool
-			if tc.expPass {
+			if tc.expErr == nil {
 				clientState, ok = path.EndpointA.GetClientState().(*ibctm.ClientState)
 				suite.Require().True(ok)
 			}
 
 			err := suite.chainA.App.GetIBCKeeper().ClientKeeper.UpdateClient(suite.chainA.GetContext(), path.EndpointA.ClientID, updateHeader)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, err)
 
 				newClientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
@@ -320,6 +323,7 @@ func (suite *KeeperTestSuite) TestUpdateClientTendermint() {
 				}
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -336,9 +340,9 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 	)
 
 	testCases := []struct {
-		name    string
-		setup   func()
-		expPass bool
+		name   string
+		setup  func()
+		expErr error
 	}{
 		{
 			name: "successful upgrade",
@@ -365,7 +369,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(upgradeHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(upgradeHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
-			expPass: true,
+			expErr: nil,
 		},
 		{
 			name: "client state not found",
@@ -395,7 +399,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 				path.EndpointA.ClientID = "wrongclientid"
 			},
-			expPass: false,
+			expErr: errorsmod.Wrap(host.ErrInvalidID, "unable to parse client identifier wrongclientid: invalid client identifier wrongclientid is not in format: `{client-type}-{N}"),
 		},
 		{
 			name: "client state is not active",
@@ -430,7 +434,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				tmClient.FrozenHeight = clienttypes.NewHeight(1, 1)
 				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID, tmClient)
 			},
-			expPass: false,
+			expErr: errorsmod.Wrap(clienttypes.ErrClientNotActive, "cannot upgrade client (07-tendermint-2) with status Frozen"),
 		},
 		{
 			name: "light client module VerifyUpgradeAndUpdateState fails",
@@ -461,7 +465,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(upgradeHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(upgradeHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
 			},
-			expPass: false,
+			expErr: errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed to verify membership proof at index 0: provided value doesn't match proof"),
 		},
 	}
 
@@ -493,10 +497,11 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 
 			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.UpgradeClient(suite.chainA.GetContext(), path.EndpointA.ClientID, upgradedClientAny.Value, upgradedConsStateAny.Value, upgradedClientProof, upgradedConsensusStateProof)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, "verify upgrade failed on valid case: %s", tc.name)
 			} else {
 				suite.Require().Error(err, "verify upgrade passed on invalid case: %s", tc.name)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -666,8 +671,7 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 			ctx := suite.chainA.GetContext()
 			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.RecoverClient(ctx, subject, substitute)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 
 				expectedEvents := sdk.Events{

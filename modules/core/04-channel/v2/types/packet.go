@@ -10,13 +10,13 @@ import (
 )
 
 // NewPacket constructs a new packet.
-func NewPacket(sequence uint64, sourceChannel, destinationChannel string, timeoutTimestamp uint64, payloads ...Payload) Packet {
+func NewPacket(sequence uint64, sourceClient, destinationClient string, timeoutTimestamp uint64, payloads ...Payload) Packet {
 	return Packet{
-		Sequence:           sequence,
-		SourceChannel:      sourceChannel,
-		DestinationChannel: destinationChannel,
-		TimeoutTimestamp:   timeoutTimestamp,
-		Payloads:           payloads,
+		Sequence:          sequence,
+		SourceClient:      sourceClient,
+		DestinationClient: destinationClient,
+		TimeoutTimestamp:  timeoutTimestamp,
+		Payloads:          payloads,
 	}
 }
 
@@ -34,7 +34,7 @@ func NewPayload(sourcePort, destPort, version, encoding string, value []byte) Pa
 // ValidateBasic validates that a Packet satisfies the basic requirements.
 func (p Packet) ValidateBasic() error {
 	if len(p.Payloads) != 1 {
-		return errorsmod.Wrap(ErrInvalidPacket, "payloads must not be empty")
+		return errorsmod.Wrap(ErrInvalidPacket, "payloads must contain exactly one payload")
 	}
 
 	for _, pd := range p.Payloads {
@@ -43,11 +43,11 @@ func (p Packet) ValidateBasic() error {
 		}
 	}
 
-	if err := host.ChannelIdentifierValidator(p.SourceChannel); err != nil {
-		return errorsmod.Wrap(err, "invalid source channel ID")
+	if err := host.ChannelIdentifierValidator(p.SourceClient); err != nil {
+		return errorsmod.Wrap(err, "invalid source ID")
 	}
-	if err := host.ChannelIdentifierValidator(p.DestinationChannel); err != nil {
-		return errorsmod.Wrap(err, "invalid destination channel ID")
+	if err := host.ChannelIdentifierValidator(p.DestinationClient); err != nil {
+		return errorsmod.Wrap(err, "invalid destination ID")
 	}
 
 	if p.Sequence == 0 {
@@ -83,25 +83,4 @@ func (p Payload) ValidateBasic() error {
 // TimeoutTimestampToNanos takes seconds as a uint64 and returns Unix nanoseconds as uint64.
 func TimeoutTimestampToNanos(seconds uint64) uint64 {
 	return uint64(time.Unix(int64(seconds), 0).UnixNano())
-}
-
-// NewAcknowledgement creates a new Acknowledgement instance
-func NewAcknowledgement(recvSuccess bool, appAcknowledgements [][]byte) Acknowledgement {
-	return Acknowledgement{
-		RecvSuccess:         recvSuccess,
-		AppAcknowledgements: appAcknowledgements,
-	}
-}
-
-// ValidateBasic validates the acknowledgment
-func (a Acknowledgement) ValidateBasic() error {
-	if len(a.GetAppAcknowledgements()) == 0 {
-		return errorsmod.Wrap(ErrInvalidAcknowledgement, "acknowledgement cannot be empty")
-	}
-	for _, ack := range a.GetAppAcknowledgements() {
-		if len(ack) == 0 {
-			return errorsmod.Wrap(ErrInvalidAcknowledgement, "app acknowledgement cannot be empty")
-		}
-	}
-	return nil
 }

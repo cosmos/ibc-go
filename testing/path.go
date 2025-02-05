@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -160,8 +160,6 @@ func (path *Path) Setup() {
 func (path *Path) SetupV2() {
 	path.SetupClients()
 
-	path.CreateChannelsV2()
-
 	path.SetupCounterparties()
 }
 
@@ -257,19 +255,6 @@ func (path *Path) CreateChannels() {
 
 	// ensure counterparty is up to date
 	err = path.EndpointA.UpdateClient()
-	if err != nil {
-		panic(err)
-	}
-}
-
-// CreateChannelsV2 initializes two channel endpoints by executing CreateChannel on both chainA and chainB.
-func (path *Path) CreateChannelsV2() {
-	err := path.EndpointA.CreateChannel()
-	if err != nil {
-		panic(err)
-	}
-
-	err = path.EndpointB.CreateChannel()
 	if err != nil {
 		panic(err)
 	}

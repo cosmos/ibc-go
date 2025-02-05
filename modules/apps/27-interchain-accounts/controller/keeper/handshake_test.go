@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			{
 				"connection not found",
 				func() {
-					channel.ConnectionHops = []string{"invalid-connnection-id"}
+					channel.ConnectionHops = []string{ibctesting.InvalidID}
 					path.EndpointA.SetChannel(*channel)
 				},
 				connectiontypes.ErrConnectionNotFound,
@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			{
 				"invalid controller connection ID",
 				func() {
-					metadata.ControllerConnectionId = "invalid-connnection-id"
+					metadata.ControllerConnectionId = ibctesting.InvalidID
 
 					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 					suite.Require().NoError(err)
@@ -199,7 +199,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 			{
 				"invalid host connection ID",
 				func() {
-					metadata.HostConnectionId = "invalid-connnection-id"
+					metadata.HostConnectionId = ibctesting.InvalidID
 
 					versionBytes, err := icatypes.ModuleCdc.MarshalJSON(&metadata)
 					suite.Require().NoError(err)
@@ -298,8 +298,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 					path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel.Counterparty, channel.Version,
 				)
 
-				expPass := tc.expError == nil
-				if expPass {
+				if tc.expError == nil {
 					suite.Require().NoError(err)
 					suite.Require().Equal(expectedVersion, version)
 				} else {
@@ -686,9 +685,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeInit() {
 					version,
 				)
 
-				expPass := tc.expError == nil
-
-				if expPass {
+				if tc.expError == nil {
 					suite.Require().NoError(err)
 					suite.Require().Equal(upgradeVersion, version)
 				} else {
@@ -857,8 +854,7 @@ func (suite *KeeperTestSuite) TestOnChanUpgradeAck() {
 					counterpartyVersion,
 				)
 
-				expPass := tc.expError == nil
-				if expPass {
+				if tc.expError == nil {
 					suite.Require().NoError(err)
 					suite.Require().Equal(path.EndpointA.GetChannel().Version, counterpartyVersion)
 				} else {

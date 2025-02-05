@@ -7,10 +7,10 @@ option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types";
 import "ibc/core/client/v1/client.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "ibc/core/channel/v1/channel.proto";
+import "ibc/core/channel/v1/upgrade.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
-import "ibc/core/channel/v1/upgrade.proto";
 
 // Query provides defines the gRPC querier service
 service Query {

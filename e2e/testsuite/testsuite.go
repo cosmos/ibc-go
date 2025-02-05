@@ -11,19 +11,19 @@ import (
 	"sync"
 
 	dockerclient "github.com/docker/docker/client"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v9"
+	"github.com/strangelove-ventures/interchaintest/v9/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v9/ibc"
+	"github.com/strangelove-ventures/interchaintest/v9/testreporter"
+	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
 	sdkmath "cosmossdk.io/math"
+	banktypes "cosmossdk.io/x/bank/types"
+	govtypes "cosmossdk.io/x/gov/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"github.com/cosmos/ibc-go/e2e/relayer"
@@ -42,7 +42,7 @@ const (
 	// ChainBRelayerName is the name given to the relayer wallet on ChainB
 	ChainBRelayerName = "rlyB"
 	// DefaultGasValue is the default gas value used to configure tx.Factory
-	DefaultGasValue = 500_000_0000
+	DefaultGasValue = 100_000_00
 )
 
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
@@ -125,7 +125,7 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 
 	// If no path is provided, use the default (e2e/diagnostics/genesis.json).
 	if exportPath == "" {
-		e2eDir, err := directories.E2E(t)
+		e2eDir, err := directories.E2E()
 		s.Require().NoError(err, "can't get e2edir")
 		exportPath = path.Join(e2eDir, directories.DefaultGenesisExportPath)
 	}
@@ -150,11 +150,11 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
 }
 
-// initalizeRelayerPool pre-loads the relayer pool with n relayers.
+// initializeRelayerPool pre-loads the relayer pool with n relayers.
 // this is a workaround due to the restriction on relayer creation during the test
 // ref: https://github.com/strangelove-ventures/interchaintest/issues/1153
 // if the above issue is resolved, it should be possible to lazily create relayers in each test.
-func (s *E2ETestSuite) initalizeRelayerPool(n int) []ibc.Relayer {
+func (s *E2ETestSuite) initializeRelayerPool(n int) []ibc.Relayer {
 	var relayers []ibc.Relayer
 	for i := 0; i < n; i++ {
 		relayers = append(relayers, relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network))
@@ -181,7 +181,7 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 
 	s.chains = s.createChains(chainOptions)
 
-	s.relayerPool = s.initalizeRelayerPool(chainOptions.RelayerCount)
+	s.relayerPool = s.initializeRelayerPool(chainOptions.RelayerCount)
 
 	ic := s.newInterchain(s.relayerPool, s.chains, channelOptionsModifier)
 
@@ -558,6 +558,18 @@ func (s *E2ETestSuite) createWalletOnChainIndex(ctx context.Context, amount, cha
 	wallet := interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chain)[0]
 	// note the GetAndFundTestUsers requires the caller to wait for some blocks before the funds are accessible.
 	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
+
+	// in order to ensure that the underlying account is created, we need to perform an operation on its behalf.
+	// in this case we just send 1 token to itself so the account gets created.
+	err := chain.SendFunds(ctx, wallet.KeyName(), ibc.WalletAmount{
+		Address: wallet.FormattedAddress(),
+		Denom:   chain.Config().Denom,
+		Amount:  sdkmath.NewInt(1),
+	})
+
+	s.Require().NoError(err)
+	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
+
 	return wallet
 }
 
@@ -735,9 +747,6 @@ func GetIBCToken(fullTokenDenom string, portID, channelID string) transfertypes.
 // use less resources and allow the tests to run faster.
 // both the number of validators and full nodes can be overwritten in a config file.
 func getValidatorsAndFullNodes(chainIdx int) (int, int) {
-	if IsCI() {
-		return 4, 1
-	}
 	tc := LoadConfig()
 	return tc.GetChainNumValidators(chainIdx), tc.GetChainNumFullNodes(chainIdx)
 }

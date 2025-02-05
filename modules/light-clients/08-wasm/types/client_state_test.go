@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	errorsmod "cosmossdk.io/errors"
+
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -10,32 +12,32 @@ func (suite *TypesTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string
 		clientState *types.ClientState
-		expPass     bool
+		expErr      error
 	}{
 		{
 			name:        "valid client",
 			clientState: types.NewClientState([]byte{0}, wasmtesting.Code, clienttypes.ZeroHeight()),
-			expPass:     true,
+			expErr:      nil,
 		},
 		{
 			name:        "nil data",
 			clientState: types.NewClientState(nil, wasmtesting.Code, clienttypes.ZeroHeight()),
-			expPass:     false,
+			expErr:      errorsmod.Wrap(types.ErrInvalidData, "data cannot be empty"),
 		},
 		{
 			name:        "empty data",
 			clientState: types.NewClientState([]byte{}, wasmtesting.Code, clienttypes.ZeroHeight()),
-			expPass:     false,
+			expErr:      errorsmod.Wrap(types.ErrInvalidData, "data cannot be empty"),
 		},
 		{
 			name:        "nil checksum",
 			clientState: types.NewClientState([]byte{0}, nil, clienttypes.ZeroHeight()),
-			expPass:     false,
+			expErr:      errorsmod.Wrap(types.ErrInvalidChecksum, "checksum cannot be empty"),
 		},
 		{
 			name:        "empty checksum",
 			clientState: types.NewClientState([]byte{0}, []byte{}, clienttypes.ZeroHeight()),
-			expPass:     false,
+			expErr:      errorsmod.Wrap(types.ErrInvalidChecksum, "checksum cannot be empty"),
 		},
 		{
 			name: "longer than 32 bytes checksum",
@@ -49,17 +51,18 @@ func (suite *TypesTestSuite) TestValidate() {
 				},
 				clienttypes.ZeroHeight(),
 			),
-			expPass: false,
+			expErr: errorsmod.Wrap(types.ErrInvalidChecksum, "checksum cannot be empty"),
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			err := tc.clientState.Validate()
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err, tc.name)
 			} else {
 				suite.Require().Error(err, tc.name)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

@@ -61,8 +61,7 @@ func (suite *TypesTestSuite) TestAddRoute() {
 
 			tc.malleate()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				router.AddRoute(clientType, &tmLightClientModule)
 				suite.Require().True(router.HasRoute(clientType))
 			} else {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
@@ -65,8 +66,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 		tc := tc
 
 		msg := types.NewMsgUpdateParams(tc.address.String(), types.DefaultParams())
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
-		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ica.AppModule{})
+		signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
 		if tc.errMsg == "" {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
@@ -110,8 +111,7 @@ func TestMsgModuleQuerySafeValidateBasic(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.msg.ValidateBasic()
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				require.NoError(t, err)
 			} else {
 				require.Error(t, err)
@@ -136,8 +136,8 @@ func TestMsgModuleQuerySafeGetSigners(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			msg := types.NewMsgModuleQuerySafe(tc.address.String(), []types.QueryRequest{})
-			encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
-			signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
+			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ica.AppModule{})
+			signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
 			if tc.errMsg == "" {
 				require.NoError(t, err)
 				require.Equal(t, tc.address.Bytes(), signers[0])

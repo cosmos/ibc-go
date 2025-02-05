@@ -29,13 +29,19 @@ const (
 	// ParamsKey is the store key for the IBC client parameters
 	ParamsKey = "clientParams"
 
+	// KeyCreator is the key for the creator in the client-specific store
+	KeyCreator = "creator"
+
+	// KeyCounterparty is the key for the counterpartyInfo in the client-specific store
+	KeyCounterparty = "counterparty"
+
 	// AllowAllClients is the value that if set in AllowedClients param
 	// would allow any wired up light client modules to be allowed
 	AllowAllClients = "*"
 )
 
 // FormatClientIdentifier returns the client identifier with the sequence appended.
-// This is a SDK specific format not enforced by IBC protocol.
+// This is an SDK specific format not enforced by IBC protocol.
 func FormatClientIdentifier(clientType string, sequence uint64) string {
 	return fmt.Sprintf("%s-%d", clientType, sequence)
 }
@@ -90,4 +96,14 @@ func MustParseClientIdentifier(clientID string) string {
 	}
 
 	return clientType
+}
+
+// CreatorKey returns the key under which the client creator is stored in the client store
+func CreatorKey() []byte {
+	return []byte(KeyCreator)
+}
+
+// CounterpartyKey returns the key under which the counterparty is stored in the client store
+func CounterpartyKey() []byte {
+	return []byte(KeyCounterparty)
 }

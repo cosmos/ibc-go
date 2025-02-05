@@ -1,10 +1,12 @@
 package tendermint_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
@@ -13,34 +15,34 @@ import (
 
 func TestCodecTypeRegistration(t *testing.T) {
 	testCases := []struct {
-		name    string
-		typeURL string
-		expPass bool
+		name     string
+		typeURL  string
+		expError error
 	}{
 		{
 			"success: ClientState",
 			sdk.MsgTypeURL(&tendermint.ClientState{}),
-			true,
+			nil,
 		},
 		{
 			"success: ConsensusState",
 			sdk.MsgTypeURL(&tendermint.ConsensusState{}),
-			true,
+			nil,
 		},
 		{
 			"success: Header",
 			sdk.MsgTypeURL(&tendermint.Header{}),
-			true,
+			nil,
 		},
 		{
 			"success: Misbehaviour",
 			sdk.MsgTypeURL(&tendermint.Misbehaviour{}),
-			true,
+			nil,
 		},
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			false,
+			fmt.Errorf("unable to resolve type URL ibc.invalid.MsgTypeURL"),
 		},
 	}
 
@@ -48,15 +50,15 @@ func TestCodecTypeRegistration(t *testing.T) {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
-			encodingCfg := moduletestutil.MakeTestEncodingConfig(tendermint.AppModuleBasic{})
+			encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, tendermint.AppModule{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				require.NotNil(t, msg)
 				require.NoError(t, err)
 			} else {
 				require.Nil(t, msg)
-				require.Error(t, err)
+				require.ErrorContains(t, err, tc.expError.Error())
 			}
 		})
 	}

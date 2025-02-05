@@ -10,10 +10,11 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+	banktypes "cosmossdk.io/x/bank/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	icahost "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
@@ -148,10 +149,10 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 		},
 		{
 			"account address generation is block dependent", func() {
-				icaHostAccount := icatypes.GenerateAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-				err := suite.chainB.GetSimApp().BankKeeper.SendCoins(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), icaHostAccount, sdk.Coins{sdk.NewCoin("stake", sdkmath.NewInt(1))})
-				suite.Require().NoError(err)
-				suite.Require().True(suite.chainB.GetSimApp().AccountKeeper.HasAccount(suite.chainB.GetContext(), icaHostAccount))
+				interchainAccAddr := icatypes.GenerateAddress(suite.chainB.GetContext().HeaderInfo(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+				interchainAcc := icatypes.NewInterchainAccount(authtypes.NewBaseAccountWithAddress(interchainAccAddr), path.EndpointA.ChannelConfig.PortID)
+				suite.chainB.GetSimApp().AuthKeeper.NewAccount(suite.chainB.GetContext(), interchainAcc)
+				suite.chainB.GetSimApp().AuthKeeper.SetAccount(suite.chainB.GetContext(), interchainAcc)
 
 				// ensure account registration is simulated in a separate block
 				suite.chainB.NextBlock()

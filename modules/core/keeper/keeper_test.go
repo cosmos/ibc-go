@@ -5,6 +5,7 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"cosmossdk.io/log"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -51,29 +52,39 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expPanic string
 	}{
-		{"failure: empty upgrade keeper value", func() {
-			emptyUpgradeKeeperValue := upgradekeeper.Keeper{}
-
-			upgradeKeeper = emptyUpgradeKeeperValue
-		}, false},
-		{"failure: empty upgrade keeper pointer", func() {
-			emptyUpgradeKeeperPointer := &upgradekeeper.Keeper{}
-
-			upgradeKeeper = emptyUpgradeKeeperPointer
-		}, false},
-		{"failure: empty authority", func() {
-			newIBCKeeperFn = func() {
-				ibckeeper.NewKeeper(
-					suite.chainA.GetSimApp().AppCodec(),
-					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
-					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
-					upgradeKeeper,
-					"", // authority
-				)
-			}
-		}, false},
+		{
+			name: "failure: empty upgrade keeper value",
+			malleate: func() {
+				emptyUpgradeKeeperValue := upgradekeeper.Keeper{}
+				upgradeKeeper = emptyUpgradeKeeperValue
+			},
+			expPanic: "cannot initialize IBC keeper: empty upgrade keeper",
+		},
+		{
+			name: "failure: empty upgrade keeper pointer",
+			malleate: func() {
+				emptyUpgradeKeeperPointer := &upgradekeeper.Keeper{}
+				upgradeKeeper = emptyUpgradeKeeperPointer
+			},
+			expPanic: "cannot initialize IBC keeper: empty upgrade keeper",
+		},
+		{
+			name: "failure: empty authority",
+			malleate: func() {
+				newIBCKeeperFn = func() {
+					ibckeeper.NewKeeper(
+						suite.chainA.GetSimApp().AppCodec(),
+						runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), log.NewNopLogger()),
+						suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
+						upgradeKeeper,
+						"", // authority
+					)
+				}
+			},
+			expPanic: "authority cannot be empty",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -85,7 +96,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			newIBCKeeperFn = func() {
 				ibckeeper.NewKeeper(
 					suite.chainA.GetSimApp().AppCodec(),
-					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
+					runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), log.NewNopLogger()),
 					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					upgradeKeeper,
 					suite.chainA.App.GetIBCKeeper().GetAuthority(),
@@ -96,14 +107,19 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 
 			tc.malleate()
 
-			if tc.expPass {
-				suite.Require().NotPanics(
-					newIBCKeeperFn,
-				)
+			if tc.expPanic != "" {
+				suite.Require().Panics(func() {
+					newIBCKeeperFn()
+				}, "expected panic but no panic occurred")
+
+				defer func() {
+					if r := recover(); r != nil {
+						suite.Require().Contains(r.(error).Error(), tc.expPanic, "unexpected panic message")
+					}
+				}()
+
 			} else {
-				suite.Require().Panics(
-					newIBCKeeperFn,
-				)
+				suite.Require().NotPanics(newIBCKeeperFn, "unexpected panic occurred")
 			}
 		})
 	}

@@ -11,7 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -111,7 +111,7 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V2)
+		im.keeper.Logger.Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V2)
 		return types.V2, nil
 	}
 
@@ -172,32 +172,57 @@ func (im IBCModule) OnRecvPacket(
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
 	var (
+		ack    ibcexported.Acknowledgement
 		ackErr error
 		data   types.FungibleTokenPacketDataV2
 	)
 
-	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-
 	// we are explicitly wrapping this emit event call in an anonymous function so that
 	// the packet data is evaluated after it has been assigned a value.
 	defer func() {
-		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
+		if err := im.keeper.EmitOnRecvPacketEvent(ctx, data, ack, ackErr); err != nil {
+			ack = channeltypes.NewErrorAcknowledgement(err)
+		}
 	}()
 
 	data, ackErr = types.UnmarshalPacketData(packet.GetData(), channelVersion, "")
 	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		return ack
 	}
 
-	if ackErr = im.keeper.OnRecvPacket(ctx, packet, data); ackErr != nil {
+	receivedCoins, ackErr := im.keeper.OnRecvPacket(
+		ctx,
+		data,
+		packet.SourcePort,
+		packet.SourceChannel,
+		packet.DestinationPort,
+		packet.DestinationChannel,
+	)
+	if ackErr != nil {
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		return ack
 	}
 
-	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
+	if data.HasForwarding() {
+		// we are now sending from the forward escrow address to the final receiver address.
+		if ackErr = im.keeper.ForwardPacket(ctx, data, packet, receivedCoins); ackErr != nil {
+			ack = channeltypes.NewErrorAcknowledgement(ackErr)
+			im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+			return ack
+
+		}
+
+		ack = nil
+	}
+
+	ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
+
+	telemetry.ReportOnRecvPacket(packet, data.Tokens)
+
+	im.keeper.Logger.Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
 
 	if data.HasForwarding() {
 		// NOTE: acknowledgement will be written asynchronously
@@ -226,14 +251,17 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	if err := im.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
+	if err := im.keeper.OnAcknowledgementPacket(ctx, packet.SourcePort, packet.SourceChannel, data, ack.Success()); err != nil {
 		return err
 	}
 
-	recvSuccess := ack.Success()
-	events.EmitOnAcknowledgementPacketEvent(ctx, data, recvSuccess, ack)
+	if forwardedPacket, isForwarded := im.keeper.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); isForwarded {
+		if err := im.keeper.HandleForwardedPacketAcknowledgement(ctx, packet, forwardedPacket, data, ack); err != nil {
+			return err
+		}
+	}
 
-	return nil
+	return im.keeper.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 }
 
 // OnTimeoutPacket implements the IBCModule interface
@@ -249,12 +277,17 @@ func (im IBCModule) OnTimeoutPacket(
 	}
 
 	// refund tokens
-	if err := im.keeper.OnTimeoutPacket(ctx, packet, data); err != nil {
+	if err := im.keeper.OnTimeoutPacket(ctx, packet.SourcePort, packet.SourceChannel, data); err != nil {
 		return err
 	}
 
-	events.EmitOnTimeoutEvent(ctx, data)
-	return nil
+	if forwardedPacket, isForwarded := im.keeper.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); isForwarded {
+		if err := im.keeper.HandleForwardedPacketTimeout(ctx, packet, forwardedPacket, data); err != nil {
+			return err
+		}
+	}
+
+	return im.keeper.EmitOnTimeoutEvent(ctx, data)
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
@@ -277,7 +310,7 @@ func (im IBCModule) OnChanUpgradeTry(ctx context.Context, portID, channelID stri
 	}
 
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V2)
+		im.keeper.Logger.Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V2)
 		return types.V2, nil
 	}
 

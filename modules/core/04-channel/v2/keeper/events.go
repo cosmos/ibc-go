@@ -24,11 +24,11 @@ func emitSendPacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendPacket,
-			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.SourceChannel),
-			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
+			sdk.NewAttribute(types.AttributeKeySrcClient, packet.SourceClient),
+			sdk.NewAttribute(types.AttributeKeyDstClient, packet.DestinationClient),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.TimeoutTimestamp)),
-			sdk.NewAttribute(types.AttributeKeyPacketDataHex, hex.EncodeToString(encodedPacket)),
+			sdk.NewAttribute(types.AttributeKeyEncodedPacketHex, hex.EncodeToString(encodedPacket)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -49,11 +49,11 @@ func emitRecvPacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRecvPacket,
-			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.SourceChannel),
-			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
+			sdk.NewAttribute(types.AttributeKeySrcClient, packet.SourceClient),
+			sdk.NewAttribute(types.AttributeKeyDstClient, packet.DestinationClient),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.TimeoutTimestamp)),
-			sdk.NewAttribute(types.AttributeKeyPacketDataHex, hex.EncodeToString(encodedPacket)),
+			sdk.NewAttribute(types.AttributeKeyEncodedPacketHex, hex.EncodeToString(encodedPacket)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -79,12 +79,12 @@ func emitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ac
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWriteAck,
-			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.SourceChannel),
-			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
+			sdk.NewAttribute(types.AttributeKeySrcClient, packet.SourceClient),
+			sdk.NewAttribute(types.AttributeKeyDstClient, packet.DestinationClient),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.TimeoutTimestamp)),
-			sdk.NewAttribute(types.AttributeKeyPacketDataHex, hex.EncodeToString(encodedPacket)),
-			sdk.NewAttribute(types.AttributeKeyAckDataHex, hex.EncodeToString(encodedAck)),
+			sdk.NewAttribute(types.AttributeKeyEncodedPacketHex, hex.EncodeToString(encodedPacket)),
+			sdk.NewAttribute(types.AttributeKeyEncodedAckHex, hex.EncodeToString(encodedAck)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -105,11 +105,11 @@ func emitAcknowledgePacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAcknowledgePacket,
-			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.SourceChannel),
-			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
+			sdk.NewAttribute(types.AttributeKeySrcClient, packet.SourceClient),
+			sdk.NewAttribute(types.AttributeKeyDstClient, packet.DestinationClient),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.TimeoutTimestamp)),
-			sdk.NewAttribute(types.AttributeKeyPacketDataHex, hex.EncodeToString(encodedPacket)),
+			sdk.NewAttribute(types.AttributeKeyEncodedPacketHex, hex.EncodeToString(encodedPacket)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -130,46 +130,11 @@ func emitTimeoutPacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeoutPacket,
-			sdk.NewAttribute(types.AttributeKeySrcChannel, packet.SourceChannel),
-			sdk.NewAttribute(types.AttributeKeyDstChannel, packet.DestinationChannel),
+			sdk.NewAttribute(types.AttributeKeySrcClient, packet.SourceClient),
+			sdk.NewAttribute(types.AttributeKeyDstClient, packet.DestinationClient),
 			sdk.NewAttribute(types.AttributeKeySequence, fmt.Sprintf("%d", packet.Sequence)),
 			sdk.NewAttribute(types.AttributeKeyTimeoutTimestamp, fmt.Sprintf("%d", packet.TimeoutTimestamp)),
-			sdk.NewAttribute(types.AttributeKeyPacketDataHex, hex.EncodeToString(encodedPacket)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
-}
-
-// emitCreateChannelEvent emits a channel create event.
-func (*Keeper) emitCreateChannelEvent(ctx context.Context, channelID, clientID string) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeCreateChannel,
-			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
-			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
-}
-
-// emitRegisterCounterpartyEvent emits a register counterparty event.
-func (*Keeper) emitRegisterCounterpartyEvent(ctx context.Context, channelID string, channel types.Channel) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeRegisterCounterparty,
-			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
-			sdk.NewAttribute(types.AttributeKeyClientID, channel.ClientId),
-			sdk.NewAttribute(types.AttributeKeyCounterpartyChannelID, channel.CounterpartyChannelId),
+			sdk.NewAttribute(types.AttributeKeyEncodedPacketHex, hex.EncodeToString(encodedPacket)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

@@ -19,7 +19,6 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	queryCmd.AddCommand(
-		getCmdQueryChannel(),
 		getCmdQueryNextSequenceSend(),
 		getCmdQueryPacketCommitment(),
 		getCmdQueryPacketCommitments(),
@@ -42,10 +41,8 @@ func NewTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	txCmd.AddCommand(
-		newCreateChannelTxCmd(),
-		newRegisterCounterpartyTxCmd(),
-	)
+	// TODO: Add v2 packet commands: https://github.com/cosmos/ibc-go/issues/7853
+	txCmd.AddCommand()
 
 	return txCmd
 }

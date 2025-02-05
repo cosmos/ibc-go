@@ -8,8 +8,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -35,8 +33,6 @@ func (k *Keeper) SendPacket(
 	if channel.State != types.OPEN {
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
-
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 
 	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -85,9 +81,11 @@ func (k *Keeper) SendPacket(
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	emitSendPacketEvent(sdkCtx, packet, channel, timeoutHeight)
+	if err := k.emitSendPacketEvent(ctx, packet, channel, timeoutHeight); err != nil {
+		return 0, err
+	}
 
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet sent",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", sourcePort,
@@ -157,8 +155,7 @@ func (k *Keeper) RecvPacket(
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(k.HeaderService.HeaderInfo(ctx).Time.UnixNano())
 	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		return "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
@@ -180,7 +177,7 @@ func (k *Keeper) RecvPacket(
 	}
 
 	// log that a packet has been received & executed
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet received",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -190,7 +187,9 @@ func (k *Keeper) RecvPacket(
 	)
 
 	// emit an event that the relayer can query for
-	emitRecvPacketEvent(sdkCtx, packet, channel)
+	if err := k.emitRecvPacketEvent(ctx, packet, channel); err != nil {
+		return "", err
+	}
 
 	return channel.Version, nil
 }
@@ -207,7 +206,6 @@ func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet,
 		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
 	switch channel.Ordering {
 	case types.UNORDERED:
 		// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
@@ -215,7 +213,9 @@ func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet,
 		// by the increase of the recvStartSequence.
 		_, found := k.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		if found {
-			emitRecvPacketEvent(sdkCtx, packet, channel)
+			if err := k.emitRecvPacketEvent(ctx, packet, channel); err != nil {
+				return err
+			}
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -239,7 +239,9 @@ func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet,
 		}
 
 		if packet.GetSequence() < nextSequenceRecv {
-			emitRecvPacketEvent(sdkCtx, packet, channel)
+			if err := k.emitRecvPacketEvent(ctx, packet, channel); err != nil {
+				return err
+			}
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -325,7 +327,7 @@ func (k *Keeper) WriteAcknowledgement(
 	)
 
 	// log that a packet acknowledgement has been written
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"acknowledgement written",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -334,10 +336,7 @@ func (k *Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	emitWriteAcknowledgementEvent(sdkCtx, packet.(types.Packet), channel, bz)
-
-	return nil
+	return k.emitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
 }
 
 // AcknowledgePacket is called by a module to process the acknowledgement of a
@@ -392,7 +391,9 @@ func (k *Keeper) AcknowledgePacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		emitAcknowledgePacketEvent(ctx, packet, channel)
+		if err := k.emitAcknowledgePacketEvent(ctx, packet, channel); err != nil {
+			return "", err
+		}
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -444,7 +445,7 @@ func (k *Keeper) AcknowledgePacket(
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// log that a packet has been acknowledged
-	k.Logger(ctx).Info(
+	k.Logger.Info(
 		"packet acknowledged",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -454,7 +455,9 @@ func (k *Keeper) AcknowledgePacket(
 	)
 
 	// emit an event marking that we have processed the acknowledgement
-	emitAcknowledgePacketEvent(ctx, packet, channel)
+	if err := k.emitAcknowledgePacketEvent(ctx, packet, channel); err != nil {
+		return "", err
+	}
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
 	if channel.State == types.FLUSHING {
@@ -471,19 +474,20 @@ func (k *Keeper) AcknowledgePacket(
 func (k *Keeper) handleFlushState(ctx context.Context, packet types.Packet, channel types.Channel) {
 	if counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel()); found {
 		timeout := counterpartyUpgrade.Timeout
-		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-		selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
 
+		selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(k.HeaderService.HeaderInfo(ctx).Time.UnixNano())
 		if timeout.Elapsed(selfHeight, selfTimestamp) {
 			// packet flushing timeout has expired, abort the upgrade
 			// committing an error receipt to state, deleting upgrade information and restoring the channel.
-			k.Logger(ctx).Info("upgrade aborted", "port_id", packet.GetSourcePort(), "channel_id", packet.GetSourceChannel(), "upgrade_sequence", channel.UpgradeSequence)
+			k.Logger.Info("upgrade aborted", "port_id", packet.GetSourcePort(), "channel_id", packet.GetSourceChannel(), "upgrade_sequence", channel.UpgradeSequence)
 			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp))
 		} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
 			// set the channel state to flush complete if all packets have been acknowledged/flushed.
 			channel.State = types.FLUSHCOMPLETE
 			k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-			emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
+			if err := k.emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel); err != nil {
+				panic(err)
+			}
 		}
 	}
 }

@@ -13,10 +13,10 @@ message Packet {
   // with an earlier sequence number must be sent and received before a Packet
   // with a later sequence number.
   uint64 sequence = 1;
-  // identifies the sending chain.
-  string source_channel = 2;
-  // identifies the receiving chain.
-  string destination_channel = 3;
+  // identifies the sending client on the sending chain.
+  string source_client = 2;
+  // identifies the receiving client on the receiving chain.
+  string destination_client = 3;
   // timeout timestamp in seconds after which the packet times out.
   uint64 timeout_timestamp = 4;
   // a list of payloads, each one for a specific application.

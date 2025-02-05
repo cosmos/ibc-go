@@ -1,26 +1,17 @@
 package types
 
+import "fmt"
+
 const (
 	// SubModuleName defines the channelv2 module name.
 	SubModuleName = "channelv2"
 
-	// ChannelKey is the key used to store channels in the channel store.
-	// the channel key is imported from types instead of host because
-	// the channel key is not a part of the ics-24 host specification
-	ChannelKey = "channel"
-
-	// CreatorKey is the key used to store the channel creator in the channel store
-	// the creator key is imported from types instead of host because
-	// the creator key is not a part of the ics-24 host specification
-	CreatorKey = "creator"
+	// KeyAsyncPacket defines the key to store the async packet.
+	KeyAsyncPacket = "async_packet"
 )
 
-// PacketCommitmentPrefixKey returns the store key prefix under which packet commitments for a particular channel are stored.
-func PacketCommitmentPrefixKey(channelID string) []byte {
-	return append([]byte(channelID), byte(1))
-}
-
-// PacketAcknowledgementPrefixKey returns the store key prefix under which packet acknowledgements for a particular channel are stored.
-func PacketAcknowledgementPrefixKey(channelID string) []byte {
-	return append([]byte(channelID), byte(3))
+// AsyncPacketKey returns the key under which the packet is stored
+// if the receiving application returns an async acknowledgement.
+func AsyncPacketKey(clientID string, sequence uint64) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%d", KeyAsyncPacket, clientID, sequence))
 }

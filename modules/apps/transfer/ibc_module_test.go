@@ -41,7 +41,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 			// connection hops is not used in the transfer application callback,
 			// it is already validated in the core OnChanUpgradeInit.
 			"success: invalid connection hops", func() {
-				path.EndpointA.ConnectionID = "invalid-connection-id"
+				path.EndpointA.ConnectionID = ibctesting.InvalidID
 			}, nil, types.V2,
 		},
 		{
@@ -101,8 +101,7 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterparty, channel.Version,
 			)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(tc.expVersion, version)
 			} else {
@@ -186,8 +185,7 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			version, err := cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel.Counterparty, counterpartyVersion,
 			)
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(tc.expVersion, version)
 			} else {
@@ -236,8 +234,7 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 
 			err := cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelID, counterpartyVersion)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -472,8 +469,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 
 			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress())
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 
 				escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
@@ -545,8 +541,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
 
 			err := path.EndpointA.ChanUpgradeInit()
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				upgrade := path.EndpointA.GetChannelUpgrade()
 				suite.Require().Equal(upgradePath.EndpointA.ConnectionID, upgrade.Fields.ConnectionHops[0])
@@ -623,8 +618,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
 				counterpartyUpgrade.Fields.Ordering, counterpartyUpgrade.Fields.ConnectionHops, counterpartyUpgrade.Fields.Version,
 			)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().Equal(types.V2, version)
 			} else {
@@ -688,8 +682,7 @@ func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
 
 			err = cbs.OnChanUpgradeAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.Version)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
@@ -847,8 +840,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 
 			packetData, version, err := unmarshalerStack.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 
 				v2PacketData, ok := packetData.(types.FungibleTokenPacketDataV2)

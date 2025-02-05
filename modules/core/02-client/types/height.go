@@ -162,11 +162,11 @@ func SetRevisionNumber(chainID string, revision uint64) (string, error) {
 
 	splitStr := strings.Split(chainID, "-")
 	// swap out revision number with given revision
-	splitStr[len(splitStr)-1] = strconv.Itoa(int(revision))
+	splitStr[len(splitStr)-1] = strconv.FormatUint(revision, 10)
 	return strings.Join(splitStr, "-"), nil
 }
 
-// ParseChainID is a utility function that returns an revision number from the given ChainID.
+// ParseChainID is a utility function that returns a revision number from the given ChainID.
 // ParseChainID attempts to parse a chain id in the format: `{chainID}-{revision}`
 // and return the revisionnumber as a uint64.
 // If the chainID is not in the expected format, a default revision value of 0 is returned.

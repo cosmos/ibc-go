@@ -10,18 +10,18 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v9"
+	"github.com/strangelove-ventures/interchaintest/v9/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v9/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+	govtypes "cosmossdk.io/x/gov/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	e2erelayer "github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -46,8 +46,8 @@ const (
 
 func TestUpgradeTestSuite(t *testing.T) {
 	testCfg := testsuite.LoadConfig()
-	if testCfg.UpgradeConfig.Tag == "" || testCfg.UpgradeConfig.PlanName == "" {
-		t.Fatalf("%s and %s must be set when running an upgrade test", testsuite.ChainUpgradeTagEnv, testsuite.ChainUpgradePlanEnv)
+	if testCfg.UpgradePlanName == "" {
+		t.Fatalf("%s must be set when running an upgrade test", testsuite.ChainUpgradePlanEnv)
 	}
 
 	testifysuite.Run(t, new(UpgradeTestSuite))
@@ -74,17 +74,12 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 		Info:   fmt.Sprintf("upgrade version test from %s to %s", currentVersion, upgradeVersion),
 	}
 
-	if testvalues.GovV1MessagesFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
-		msgSoftwareUpgrade := &upgradetypes.MsgSoftwareUpgrade{
-			Plan:      plan,
-			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		}
-
-		s.ExecuteAndPassGovV1Proposal(ctx, msgSoftwareUpgrade, chain, wallet)
-	} else {
-		upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal(fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion), "upgrade chain E2E test", plan)
-		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
+	msgSoftwareUpgrade := &upgradetypes.MsgSoftwareUpgrade{
+		Plan:      plan,
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	}
+
+	s.ExecuteAndPassGovV1Proposal(ctx, msgSoftwareUpgrade, chain, wallet)
 
 	err = test.WaitForCondition(time.Minute*2, time.Second*2, func() (bool, error) {
 		status, err := chain.GetNode().Client.Status(ctx)
@@ -185,7 +180,7 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), chainAUpgradeProposalWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
 	t.Run("restart relayer", func(t *testing.T) {
@@ -268,7 +263,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 		testCfg := testsuite.LoadConfig()
 		proposerWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-		s.UpgradeChain(ctx, chain.(*cosmos.CosmosChain), proposerWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chain.(*cosmos.CosmosChain), proposerWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
 	t.Run("send funds to test wallet", func(t *testing.T) {
@@ -408,7 +403,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	chainAUpgradeProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	t.Run("upgrade chainA", func(t *testing.T) {
-		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), chainAUpgradeProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), chainAUpgradeProposalWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
 	// see this issue https://github.com/informalsystems/hermes/issues/3579
@@ -505,7 +500,7 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
 	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
@@ -599,7 +594,7 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chainB.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainB.(*cosmos.CosmosChain), govProposalWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
 	t.Run("update params", func(t *testing.T) {
@@ -706,7 +701,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	t.Run("upgrade chain", func(t *testing.T) {
 		testCfg := testsuite.LoadConfig()
 		proposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), proposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), proposalWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
 	t.Run("29-fee migration partially refunds escrowed tokens", func(t *testing.T) {
@@ -837,7 +832,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_FeeMiddlewareChannelUpgrade(
 
 			t.Run("chain A", func(t *testing.T) {
 				govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-				s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+				s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 			})
 		}()
 
@@ -847,7 +842,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_FeeMiddlewareChannelUpgrade(
 
 			t.Run("chain B", func(t *testing.T) {
 				govProposalWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-				s.UpgradeChain(ctx, chainB.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[1].Tag, testCfg.UpgradeConfig.Tag)
+				s.UpgradeChain(ctx, chainB.(*cosmos.CosmosChain), govProposalWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[1].Tag, testCfg.GetUpgradeConfig().Tag)
 			})
 		}()
 
@@ -1099,7 +1094,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
 	t.Run("start relayer", func(t *testing.T) {
@@ -1229,7 +1224,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_Localhost() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
 	t.Run("localhost does not exist in state after upgrade", func(t *testing.T) {
@@ -1335,7 +1330,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_ICS20v2ChannelUpgrade() {
 
 	t.Run("upgrade chain", func(t *testing.T) {
 		govProposalWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.UpgradeConfig.PlanName, testCfg.ChainConfigs[0].Tag, testCfg.UpgradeConfig.Tag)
+		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), govProposalWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
 	t.Run("upgrade channel to ics20-2", func(t *testing.T) {
@@ -1347,7 +1342,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_ICS20v2ChannelUpgrade() {
 	})
 
 	t.Run("verify channel A upgraded and transfer version is ics20-2", func(t *testing.T) {
-		err := test.WaitForCondition(time.Minute*2, time.Second*2, func() (bool, error) {
+		err := test.WaitForCondition(time.Minute*3, time.Second*2, func() (bool, error) {
 			channel, err := query.Channel(ctx, chainA, channelA.PortID, channelA.ChannelID)
 			if err != nil {
 				return false, err

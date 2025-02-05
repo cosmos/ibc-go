@@ -1,6 +1,7 @@
 package solomachine_test
 
 import (
+	"errors"
 	"fmt"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -164,7 +165,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 				"failure: invalid consensus state: Tendermint consensus state",
 				&ibctm.ConsensusState{},
 				sm.ClientState(),
-				fmt.Errorf("proto: wrong wireType = 0 for field TypeUrl"),
+				errors.New("proto: wrong wireType = 0 for field TypeUrl"),
 			},
 			{
 				"failure: invalid consensus state: consensus state does not match consensus state in client",
@@ -182,7 +183,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 				"failure: invalid client state: Tendermint client state",
 				sm.ConsensusState(),
 				&ibctm.ClientState{},
-				fmt.Errorf("proto: wrong wireType = 2 for field IsFrozen"),
+				errors.New("proto: wrong wireType = 2 for field IsFrozen"),
 			},
 		}
 
@@ -202,8 +203,7 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 				err = lightClientModule.Initialize(suite.chainA.GetContext(), clientID, clientStateBz, consStateBz)
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
-				expPass := tc.expErr == nil
-				if expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 					suite.Require().True(store.Has(host.ClientStateKey()))
 				} else {
@@ -551,7 +551,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
 				},
-				fmt.Errorf("failed to unmarshal proof into type"),
+				errors.New("failed to unmarshal proof into type"),
 			},
 			{
 				"failure: consensus state timestamp is greater than signature",
@@ -598,7 +598,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 					suite.Require().NoError(err)
 				},
-				fmt.Errorf("failed to unmarshal proof into type"),
+				errors.New("failed to unmarshal proof into type"),
 			},
 			{
 				"failure: proof is nil",
@@ -678,8 +678,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					0, 0, proof, path, signBytes.Data,
 				)
 
-				expPass := tc.expErr == nil
-				if expPass {
+				if tc.expErr == nil {
 					// Grab fresh client state after updates.
 					cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
 					suite.Require().True(found)
@@ -771,7 +770,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					path = sm.GetClientStatePath(counterpartyClientIdentifier)
 					proof = []byte("invalid proof")
 				},
-				fmt.Errorf("failed to unmarshal proof into type"),
+				errors.New("failed to unmarshal proof into type"),
 			},
 			{
 				"failure: consensus state timestamp is greater than signature",
@@ -818,7 +817,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 					suite.Require().NoError(err)
 				},
-				fmt.Errorf("failed to unmarshal proof into type"),
+				errors.New("failed to unmarshal proof into type"),
 			},
 			{
 				"failure: proof is nil",
@@ -903,8 +902,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					0, 0, proof, path,
 				)
 
-				expPass := tc.expErr == nil
-				if expPass {
+				if tc.expErr == nil {
 					// Grab fresh client state after updates.
 					cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), clientID)
 					suite.Require().True(found)
@@ -1000,8 +998,7 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 
 			err = lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 
 				// assert that status of subject client is now Active
@@ -1083,8 +1080,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 					consensusHeights = lightClientModule.UpdateState(suite.chainA.GetContext(), clientID, clientMsg)
 				}
 
-				expPass := tc.expPanic == nil
-				if expPass {
+				if tc.expPanic == nil {
 					updateStateFunc()
 
 					clientStateBz := store.Get(host.ClientStateKey())
@@ -1173,8 +1169,7 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 					foundMisbehaviour = lightClientModule.CheckForMisbehaviour(suite.chainA.GetContext(), clientID, clientMsg)
 				}
 
-				expPass := tc.expPanic == nil
-				if expPass {
+				if tc.expPanic == nil {
 					foundMisbehaviourFunc()
 
 					suite.Require().Equal(tc.foundMisbehaviour, foundMisbehaviour)
@@ -1229,8 +1224,7 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 					lightClientModule.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), clientID, nil)
 				}
 
-				expPass := tc.expPanic == nil
-				if expPass {
+				if tc.expPanic == nil {
 					updateOnMisbehaviourFunc()
 
 					store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
@@ -1297,7 +1291,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 					h := sm.CreateHeader(sm.Diversifier)
 					h.Signature = suite.GetInvalidProof()
 					clientMsg = h
-				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
+				}, errors.New("proto: wrong wireType = 0 for field Multi"),
 			},
 			{
 				"failure: invalid timestamp in header",
@@ -1405,8 +1399,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 
 				err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
 
-				expPass := tc.expErr == nil
-				if expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().ErrorContains(err, tc.expErr.Error())
@@ -1469,7 +1462,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 
 					m.SignatureOne.Signature = suite.GetInvalidProof()
 					clientMsg = m
-				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
+				}, errors.New("proto: wrong wireType = 0 for field Multi"),
 			},
 			{
 				"failure: invalid SignatureTwo SignatureData",
@@ -1478,7 +1471,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 
 					m.SignatureTwo.Signature = suite.GetInvalidProof()
 					clientMsg = m
-				}, fmt.Errorf("proto: wrong wireType = 0 for field Multi"),
+				}, errors.New("proto: wrong wireType = 0 for field Multi"),
 			},
 			{
 				"failure: invalid SignatureOne timestamp",
@@ -1651,8 +1644,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 
 				err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), clientID, clientMsg)
 
-				expPass := tc.expErr == nil
-				if expPass {
+				if tc.expErr == nil {
 					suite.Require().NoError(err)
 				} else {
 					suite.Require().ErrorContains(err, tc.expErr.Error())

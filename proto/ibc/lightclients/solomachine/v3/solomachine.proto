@@ -25,7 +25,7 @@ message ConsensusState {
   option (gogoproto.goproto_getters) = false;
   // public key of the solo machine
   google.protobuf.Any public_key = 1;
-  // diversifier allows the same public key to be re-used across different solo
+  // diversifier allows the same public key to be reused across different solo
   // machine clients (potentially on different chains) without being considered
   // misbehaviour.
   string diversifier = 2;

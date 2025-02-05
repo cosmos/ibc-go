@@ -365,21 +365,28 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 
 					}
 				case "OnRecvPacket":
-					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+					_, err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(
+						suite.chainB.GetContext(),
+						tc.packet.Data,
+						packet.SourcePort,
+						packet.SourceChannel,
+						packet.DestinationPort,
+						packet.DestinationChannel,
+					)
 
 				case "OnTimeoutPacket":
 					registerDenomFn()
-					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet, tc.packet.Data)
+					err = suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet.SourcePort, packet.SourceChannel, tc.packet.Data)
 
 				case "OnRecvAcknowledgementResult":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
-						suite.chainB.GetContext(), packet, tc.packet.Data,
-						channeltypes.NewResultAcknowledgement(nil))
+						suite.chainB.GetContext(), packet.SourcePort, packet.SourceChannel, tc.packet.Data,
+						true)
 				case "OnRecvAcknowledgementError":
 					registerDenomFn()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
-						suite.chainB.GetContext(), packet, tc.packet.Data,
-						channeltypes.NewErrorAcknowledgement(fmt.Errorf("MBT Error Acknowledgement")))
+						suite.chainB.GetContext(), packet.SourcePort, packet.SourceChannel, tc.packet.Data,
+						false)
 				default:
 					err = fmt.Errorf("Unknown handler:  %s", tc.handler)
 				}

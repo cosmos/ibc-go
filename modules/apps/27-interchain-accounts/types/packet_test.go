@@ -11,7 +11,7 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 	testCases := []struct {
 		name       string
 		packetData types.InterchainAccountPacketData
-		expPass    bool
+		expErr     error
 	}{
 		{
 			"success",
@@ -20,7 +20,7 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 				Data: []byte("data"),
 				Memo: "memo",
 			},
-			true,
+			nil,
 		},
 		{
 			"success, empty memo",
@@ -28,7 +28,7 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 				Type: types.EXECUTE_TX,
 				Data: []byte("data"),
 			},
-			true,
+			nil,
 		},
 		{
 			"type unspecified",
@@ -37,7 +37,7 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 				Data: []byte("data"),
 				Memo: "memo",
 			},
-			false,
+			types.ErrInvalidOutgoingData,
 		},
 		{
 			"empty data",
@@ -46,7 +46,7 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 				Data: []byte{},
 				Memo: "memo",
 			},
-			false,
+			types.ErrInvalidOutgoingData,
 		},
 		{
 			"nil data",
@@ -55,7 +55,7 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 				Data: nil,
 				Memo: "memo",
 			},
-			false,
+			types.ErrInvalidOutgoingData,
 		},
 		{
 			"memo too large",
@@ -64,7 +64,7 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 				Data: []byte("data"),
 				Memo: ibctesting.GenerateString(types.MaxMemoCharLength + 1),
 			},
-			false,
+			types.ErrInvalidOutgoingData,
 		},
 	}
 
@@ -75,10 +75,11 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 
 			err := tc.packetData.ValidateBasic()
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

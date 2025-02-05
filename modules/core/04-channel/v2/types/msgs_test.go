@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -36,117 +35,6 @@ func TestTypesTestSuite(t *testing.T) {
 	suite.Run(t, new(TypesTestSuite))
 }
 
-func (s *TypesTestSuite) TestMsgRegisterCounterpartyValidateBasic() {
-	var msg *types.MsgRegisterCounterparty
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success",
-			func() {},
-			nil,
-		},
-		{
-			"failure: invalid signer address",
-			func() {
-				msg.Signer = "invalid"
-			},
-			ibcerrors.ErrInvalidAddress,
-		},
-		{
-			"failure: invalid channel ID",
-			func() {
-				msg.ChannelId = ""
-			},
-			host.ErrInvalidID,
-		},
-		{
-			"failure: invalid counterparty channel ID",
-			func() {
-				msg.CounterpartyChannelId = ""
-			},
-			host.ErrInvalidID,
-		},
-	}
-
-	for _, tc := range testCases {
-		msg = types.NewMsgRegisterCounterparty(
-			ibctesting.FirstChannelID,
-			ibctesting.SecondChannelID,
-			ibctesting.TestAccAddress,
-		)
-
-		tc.malleate()
-
-		err := msg.ValidateBasic()
-		expPass := tc.expError == nil
-		if expPass {
-			s.Require().NoError(err, "valid case %s failed", tc.name)
-		} else {
-			s.Require().ErrorIs(err, tc.expError, "invalid case %s passed", tc.name)
-		}
-	}
-}
-
-// TestMsgCreateChannelValidateBasic tests ValidateBasic for MsgCreateChannel
-func (s *TypesTestSuite) TestMsgCreateChannelValidateBasic() {
-	var msg *types.MsgCreateChannel
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success",
-			func() {},
-			nil,
-		},
-		{
-			"failure: invalid signer address",
-			func() {
-				msg.Signer = "invalid"
-			},
-			ibcerrors.ErrInvalidAddress,
-		},
-		{
-			"failure: invalid client ID",
-			func() {
-				msg.ClientId = ""
-			},
-			host.ErrInvalidID,
-		},
-		{
-			"failure: empty key path",
-			func() {
-				msg.MerklePathPrefix.KeyPath = nil
-			},
-			errors.New("path cannot have length 0"),
-		},
-	}
-
-	for _, tc := range testCases {
-		msg = types.NewMsgCreateChannel(
-			ibctesting.FirstClientID,
-			commitmenttypes.NewMerklePath([]byte("key")),
-			ibctesting.TestAccAddress,
-		)
-
-		tc.malleate()
-
-		err := msg.ValidateBasic()
-		expPass := tc.expError == nil
-		if expPass {
-			s.Require().NoError(err, "valid case %s failed", tc.name)
-		} else {
-			s.Require().ErrorContains(err, tc.expError.Error(), "invalid case %s passed", tc.name)
-		}
-	}
-}
-
 func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 	var msg *types.MsgSendPacket
 	testCases := []struct {
@@ -161,7 +49,7 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 		{
 			name: "failure: invalid source channel",
 			malleate: func() {
-				msg.SourceChannel = ""
+				msg.SourceClient = ""
 			},
 			expError: host.ErrInvalidID,
 		},
@@ -325,7 +213,7 @@ func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
 		{
 			name: "failure: invalid acknowledgement",
 			malleate: func() {
-				msg.Acknowledgement = types.Acknowledgement{}
+				msg.Acknowledgement = types.NewAcknowledgement(true, [][]byte{[]byte("")})
 			},
 			expError: types.ErrInvalidAcknowledgement,
 		},
@@ -334,7 +222,7 @@ func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
 		s.Run(tc.name, func() {
 			msg = types.NewMsgAcknowledgement(
 				types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, s.chainA.GetTimeoutTimestamp(), mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)),
-				types.Acknowledgement{RecvSuccess: true, AppAcknowledgements: [][]byte{[]byte("ack")}},
+				types.NewAcknowledgement(true, [][]byte{[]byte("appAck1")}),
 				testProof,
 				clienttypes.ZeroHeight(),
 				s.chainA.SenderAccount.GetAddress().String(),

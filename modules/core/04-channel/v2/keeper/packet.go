@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"strconv"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -19,72 +20,63 @@ import (
 // in order for the packet to be sent to the counterparty.
 func (k *Keeper) sendPacket(
 	ctx context.Context,
-	sourceChannel string,
+	sourceClient string,
 	timeoutTimestamp uint64,
 	payloads []types.Payload,
 ) (uint64, string, error) {
-	// Lookup channel associated with our source channel to retrieve the destination channel
-	channel, ok := k.GetChannel(ctx, sourceChannel)
+	// lookup counterparty from client identifiers
+	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, sourceClient)
 	if !ok {
-		// TODO: figure out how aliasing will work when more than one payload is sent.
-		channel, ok = k.convertV1Channel(ctx, payloads[0].SourcePort, sourceChannel)
-		if !ok {
-			return 0, "", errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
-		}
+		return 0, "", errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", sourceClient)
 	}
 
-	destChannel := channel.CounterpartyChannelId
-	clientID := channel.ClientId
-
-	sequence, found := k.GetNextSequenceSend(ctx, sourceChannel)
+	sequence, found := k.GetNextSequenceSend(ctx, sourceClient)
 	if !found {
-		return 0, "", errorsmod.Wrapf(
-			types.ErrSequenceSendNotFound,
-			"source channel: %s", sourceChannel,
-		)
+		return 0, "", errorsmod.Wrapf(types.ErrSequenceSendNotFound, "source client: %s", sourceClient)
 	}
 
 	// construct packet from given fields and channel state
-	packet := types.NewPacket(sequence, sourceChannel, destChannel, timeoutTimestamp, payloads...)
+	packet := types.NewPacket(sequence, sourceClient, counterparty.ClientId, timeoutTimestamp, payloads...)
 
 	if err := packet.ValidateBasic(); err != nil {
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
 	}
 
 	// check that the client of counterparty chain is still active
-	if status := k.ClientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
-		return 0, "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
+	if status := k.ClientKeeper.GetClientStatus(ctx, sourceClient); status != exported.Active {
+		return 0, "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", sourceClient, status)
 	}
 
 	// retrieve latest height and timestamp of the client of counterparty chain
-	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, clientID)
+	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, sourceClient)
 	if latestHeight.IsZero() {
-		return 0, "", errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", clientID)
-	}
-
-	latestTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientID, latestHeight)
-	if err != nil {
-		return 0, "", err
+		return 0, "", errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", sourceClient)
 	}
 
 	// client timestamps are in nanoseconds while packet timeouts are in seconds
-	// thus to compare them, we convert the packet timeout to nanoseconds
-	timeoutTimestamp = types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
-	if latestTimestamp >= timeoutTimestamp {
-		return 0, "", errorsmod.Wrapf(types.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, timeoutTimestamp)
+	// thus to compare them, we convert the client timestamp to seconds in uint64
+	// to be consistent with IBC V2 specified timeout behaviour
+	latestTimestampNano, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceClient, latestHeight)
+	if err != nil {
+		return 0, "", err
+	}
+	latestTimestamp := uint64(time.Unix(0, int64(latestTimestampNano)).Unix())
+
+	if latestTimestamp >= packet.TimeoutTimestamp {
+		return 0, "", errorsmod.Wrapf(types.ErrTimeoutElapsed, "latest timestamp: %d, timeout timestamp: %d", latestTimestamp, packet.TimeoutTimestamp)
 	}
 
 	commitment := types.CommitPacket(packet)
 
 	// bump the sequence and set the packet commitment, so it is provable by the counterparty
-	k.SetNextSequenceSend(ctx, sourceChannel, sequence+1)
-	k.SetPacketCommitment(ctx, sourceChannel, packet.GetSequence(), commitment)
+	k.SetNextSequenceSend(ctx, sourceClient, sequence+1)
+	k.SetPacketCommitment(ctx, sourceClient, packet.GetSequence(), commitment)
 
-	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest_channel_id", packet.DestinationChannel, "src_channel_id", packet.SourceChannel)
+	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_client_id", packet.DestinationClient, "src_client_id", packet.SourceClient)
 
 	emitSendPacketEvents(ctx, packet)
 
-	return sequence, destChannel, nil
+	return sequence, counterparty.ClientId, nil
 }
 
 // recvPacket implements the packet receiving logic required by a packet handler.￼
@@ -100,20 +92,15 @@ func (k *Keeper) recvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
+	// lookup counterparty from client identifiers
+	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
-		// TODO: figure out how aliasing will work when more than one payload is sent.
-		channel, ok = k.convertV1Channel(ctx, packet.Payloads[0].DestinationPort, packet.DestinationChannel)
-		if !ok {
-			return errorsmod.Wrap(types.ErrChannelNotFound, packet.DestinationChannel)
-		}
+		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
 
-	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
+	if counterparty.ClientId != packet.SourceClient {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
 	}
-
-	clientID := channel.ClientId
 
 	// check if packet timed out by comparing it with the latest height of the chain
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -123,114 +110,124 @@ func (k *Keeper) recvPacket(
 	}
 
 	// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
-	// on unordered channels. Packet receipts must not be pruned, unless it has been marked stale
+	// Packet receipts must not be pruned, unless it has been marked stale
 	// by the increase of the recvStartSequence.
-	if k.HasPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence) {
-		emitRecvPacketEvents(ctx, packet)
+	if k.HasPacketReceipt(ctx, packet.DestinationClient, packet.Sequence) {
 		// This error indicates that the packet has already been relayed. Core IBC will
 		// treat this error as a no-op in order to prevent an entire relay transaction
 		// from failing and consuming unnecessary fees.
 		return types.ErrNoOpMsg
 	}
 
-	path := hostv2.PacketCommitmentKey(packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	path := hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePrefix, path)
 
 	commitment := types.CommitPacket(packet)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		clientID,
+		packet.DestinationClient,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 		commitment,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", packet.DestinationClient)
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
-	k.SetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence)
+	k.SetPacketReceipt(ctx, packet.DestinationClient, packet.Sequence)
 
-	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_id", packet.SourceChannel, "dst_id", packet.DestinationChannel)
+	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_client_id", packet.SourceClient, "dst_client_id", packet.DestinationClient)
 
 	emitRecvPacketEvents(ctx, packet)
 
 	return nil
 }
 
-// WriteAcknowledgement writes the acknowledgement to the store.
-// TODO: change this function to accept destPort, destChannel, sequence, ack
-func (k Keeper) WriteAcknowledgement(
+// writeAcknowledgement writes the acknowledgement to the store and emits the packet and acknowledgement
+// for relayers to relay the acknowledgement to the counterparty chain.
+func (k Keeper) writeAcknowledgement(
 	ctx context.Context,
 	packet types.Packet,
 	ack types.Acknowledgement,
 ) error {
-	// Lookup channel associated with destination channel ID and ensure
-	// that the packet was indeed sent by our counterparty by verifying
-	// packet sender is our channel's counterparty channel id.
-	channel, ok := k.GetChannel(ctx, packet.DestinationChannel)
+	// lookup counterparty from client identifiers
+	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "channel (%s) not found", packet.DestinationChannel)
+		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
 
-	if channel.CounterpartyChannelId != packet.SourceChannel {
-		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet source channel id (%s)", channel.CounterpartyChannelId, packet.SourceChannel)
+	if counterparty.ClientId != packet.SourceClient {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
-	if k.HasPacketAcknowledgement(ctx, packet.DestinationChannel, packet.Sequence) {
-		return errorsmod.Wrapf(types.ErrAcknowledgementExists, "acknowledgement for channel %s, sequence %d already exists", packet.DestinationChannel, packet.Sequence)
+	if k.HasPacketAcknowledgement(ctx, packet.DestinationClient, packet.Sequence) {
+		return errorsmod.Wrapf(types.ErrAcknowledgementExists, "acknowledgement for id %s, sequence %d already exists", packet.DestinationClient, packet.Sequence)
 	}
 
-	if _, found := k.GetPacketReceipt(ctx, packet.DestinationChannel, packet.Sequence); !found {
+	if _, found := k.GetPacketReceipt(ctx, packet.DestinationClient, packet.Sequence); !found {
 		return errorsmod.Wrap(types.ErrInvalidPacket, "receipt not found for packet")
-	}
-
-	// TODO: Validate Acknowledgment more thoroughly here after Issue #7472: https://github.com/cosmos/ibc-go/issues/7472
-
-	// TODO: remove this check, maybe pull it up to the handler.
-	if len(ack.AppAcknowledgements) != len(packet.Payloads) {
-		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(packet.Payloads))
 	}
 
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
-		ctx, packet.DestinationChannel, packet.Sequence,
+		ctx, packet.DestinationClient, packet.Sequence,
 		types.CommitAcknowledgement(ack),
 	)
 
-	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dest-channel", packet.DestinationChannel)
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_client_id", packet.DestinationClient)
 
 	emitWriteAcknowledgementEvents(ctx, packet, ack)
 
-	// TODO: delete the packet that has been stored in ibc-core.
+	return nil
+}
+
+// WriteAcknowledgement writes the acknowledgement and emits events for asynchronous acknowledgements
+// this is the method to be called by external apps when they want to write an acknowledgement asyncrhonously
+func (k *Keeper) WriteAcknowledgement(ctx context.Context, clientID string, sequence uint64, ack types.Acknowledgement) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	// Validate the acknowledgement
+	if err := ack.ValidateBasic(); err != nil {
+		sdkCtx.Logger().Error("write acknowledgement failed", "error", errorsmod.Wrap(err, "invalid acknowledgement"))
+		return errorsmod.Wrap(err, "invalid acknowledgement")
+	}
+
+	packet, ok := k.GetAsyncPacket(ctx, clientID, sequence)
+	if !ok {
+		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "packet with clientID (%s) and sequence (%d) not found for async acknowledgement", clientID, sequence)
+	}
+
+	// Write the acknowledgement to the store
+	if err := k.writeAcknowledgement(ctx, packet, ack); err != nil {
+		sdkCtx.Logger().Error("write acknowledgement failed", "error", errorsmod.Wrap(err, "write acknowledgement failed"))
+		return errorsmod.Wrap(err, "write acknowledgement failed")
+	}
+
+	// Delete the packet from the async store
+	k.DeleteAsyncPacket(ctx, clientID, sequence)
 
 	return nil
 }
 
 func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, acknowledgement types.Acknowledgement, proof []byte, proofHeight exported.Height) error {
-	// Lookup counterparty associated with our channel and ensure
-	// that the packet was indeed sent by our counterparty.
-	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
+	// lookup counterparty from client identifiers
+	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.SourceClient)
 	if !ok {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
+		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
 	}
 
-	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
+	if counterparty.ClientId != packet.DestinationClient {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
 	}
 
-	clientID := channel.ClientId
-
-	commitment := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
+	commitment := k.GetPacketCommitment(ctx, packet.SourceClient, packet.Sequence)
 	if len(commitment) == 0 {
-		// TODO: signal noop in events?
-		emitAcknowledgePacketEvents(ctx, packet)
-
 		// This error indicates that the acknowledgement has already been relayed
 		// or there is a misconfigured relayer attempting to prove an acknowledgement
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -245,24 +242,24 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 		return errorsmod.Wrapf(types.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)
 	}
 
-	path := hostv2.PacketAcknowledgementKey(packet.DestinationChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	path := hostv2.PacketAcknowledgementKey(packet.DestinationClient, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePrefix, path)
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		clientID,
+		packet.SourceClient,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 		types.CommitAcknowledgement(acknowledgement),
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientID)
+		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", packet.SourceClient)
 	}
 
-	k.DeletePacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
+	k.DeletePacketCommitment(ctx, packet.SourceClient, packet.Sequence)
 
-	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "source_channel_id", packet.GetSourceChannel(), "destination_channel_id", packet.GetDestinationChannel())
+	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "src_client_id", packet.GetSourceClient(), "dst_client_id", packet.GetDestinationClient())
 
 	emitAcknowledgePacketEvents(ctx, packet)
 
@@ -282,32 +279,33 @@ func (k *Keeper) timeoutPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	channel, ok := k.GetChannel(ctx, packet.SourceChannel)
+	// lookup counterparty from client identifiers
+	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.SourceClient)
 	if !ok {
-		return errorsmod.Wrap(types.ErrChannelNotFound, packet.SourceChannel)
+		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
 	}
 
-	if channel.CounterpartyChannelId != packet.DestinationChannel {
-		return errorsmod.Wrapf(types.ErrInvalidChannelIdentifier, "counterparty channel id (%s) does not match packet destination channel id (%s)", channel.CounterpartyChannelId, packet.DestinationChannel)
+	if counterparty.ClientId != packet.DestinationClient {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
 	}
 
-	clientID := channel.ClientId
-
-	// check that timeout height or timeout timestamp has passed on the other end
-	proofTimestamp, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientID, proofHeight)
+	// check that timeout timestamp has passed on the other end
+	// client timestamps are in nanoseconds while packet timeouts are in seconds
+	// so we convert client timestamp to seconds in uint64 to be consistent
+	// with IBC V2 timeout behaviour
+	proofTimestampNano, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, packet.SourceClient, proofHeight)
 	if err != nil {
 		return err
 	}
+	proofTimestamp := uint64(time.Unix(0, int64(proofTimestampNano)).Unix())
 
-	timeoutTimestamp := types.TimeoutTimestampToNanos(packet.TimeoutTimestamp)
-	if proofTimestamp < timeoutTimestamp {
-		return errorsmod.Wrapf(types.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, timeoutTimestamp)
+	if proofTimestamp < packet.TimeoutTimestamp {
+		return errorsmod.Wrapf(types.ErrTimeoutNotReached, "proof timestamp: %d, timeout timestamp: %d", proofTimestamp, packet.TimeoutTimestamp)
 	}
 
 	// check that the commitment has not been cleared and that it matches the packet sent by relayer
-	commitment := k.GetPacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
+	commitment := k.GetPacketCommitment(ctx, packet.SourceClient, packet.Sequence)
 	if len(commitment) == 0 {
-		emitTimeoutPacketEvents(ctx, packet)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -322,24 +320,24 @@ func (k *Keeper) timeoutPacket(
 	}
 
 	// verify packet receipt absence
-	path := hostv2.PacketReceiptKey(packet.SourceChannel, packet.Sequence)
-	merklePath := types.BuildMerklePath(channel.MerklePathPrefix, path)
+	path := hostv2.PacketReceiptKey(packet.DestinationClient, packet.Sequence)
+	merklePath := types.BuildMerklePath(counterparty.MerklePrefix, path)
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
-		clientID,
+		packet.SourceClient,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientID)
+		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", packet.SourceClient)
 	}
 
 	// delete packet commitment to prevent replay
-	k.DeletePacketCommitment(ctx, packet.SourceChannel, packet.Sequence)
+	k.DeletePacketCommitment(ctx, packet.SourceClient, packet.Sequence)
 
-	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_channel_id", packet.SourceChannel, "dst_channel_id", packet.DestinationChannel)
+	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_client_id", packet.SourceClient, "dst_client_id", packet.DestinationClient)
 
 	emitTimeoutPacketEvents(ctx, packet)
 

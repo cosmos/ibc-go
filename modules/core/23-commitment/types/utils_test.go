@@ -7,7 +7,7 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cometbft/cometbft/proto/tendermint/crypto"
+	crypto "github.com/cometbft/cometbft/api/cometbft/crypto/v1"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 )
@@ -26,7 +26,7 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		name      string
 		malleate  func()
 		keyExists bool
-		expPass   bool
+		expErr    error
 	}{
 		{
 			"success for ExistenceProof",
@@ -41,13 +41,13 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 
 				proofOps = res.ProofOps
 			},
-			true, true,
+			true, nil,
 		},
 		{
 			"success for NonexistenceProof",
 			func() {
 				res, err := suite.store.Query(&storetypes.RequestQuery{
-					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()),
 					Data:  []byte("NOTMYKEY"),
 					Prove: true,
 				})
@@ -56,14 +56,14 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 
 				proofOps = res.ProofOps
 			},
-			false, true,
+			false, nil,
 		},
 		{
 			"nil proofOps",
 			func() {
 				proofOps = nil
 			},
-			true, false,
+			true, types.ErrInvalidMerkleProof,
 		},
 		{
 			"proof op data is nil",
@@ -79,7 +79,7 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 				proofOps = res.ProofOps
 				proofOps.Ops[0].Data = nil
 			},
-			true, false,
+			true, types.ErrInvalidMerkleProof,
 		},
 	}
 
@@ -89,17 +89,18 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		tc.malleate()
 
 		proof, err := types.ConvertProofs(proofOps)
-		if tc.expPass {
+		if tc.expErr == nil {
 			suite.Require().NoError(err, "ConvertProofs unexpectedly returned error for case: %s", tc.name)
 			if tc.keyExists {
 				err := proof.VerifyMembership(types.GetSDKSpecs(), &root, existsPath, value)
 				suite.Require().NoError(err, "converted proof failed to verify membership for case: %s", tc.name)
 			} else {
 				err := proof.VerifyNonMembership(types.GetSDKSpecs(), &root, nonexistPath)
-				suite.Require().NoError(err, "converted proof failed to verify membership for case: %s", tc.name)
+				suite.Require().NoError(err, "converted proof failed to verify non-membership for case: %s", tc.name)
 			}
 		} else {
 			suite.Require().Error(err, "ConvertProofs passed on invalid case for case: %s", tc.name)
+			suite.Require().ErrorIs(err, tc.expErr, "unexpected error returned for case: %s", tc.name)
 		}
 	}
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/core/event"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
@@ -12,7 +14,7 @@ import (
 
 // emitIncentivizedPacketEvent emits an event containing information on the total amount of fees incentivizing
 // a specific packet. It should be emitted on every fee escrowed for the given packetID.
-func emitIncentivizedPacketEvent(ctx context.Context, packetID channeltypes.PacketId, packetFees types.PacketFees) {
+func (k Keeper) emitIncentivizedPacketEvent(ctx context.Context, packetID channeltypes.PacketId, packetFees types.PacketFees) error {
 	var (
 		totalRecvFees    sdk.Coins
 		totalAckFees     sdk.Coins
@@ -27,70 +29,71 @@ func emitIncentivizedPacketEvent(ctx context.Context, packetID channeltypes.Pack
 			totalTimeoutFees = totalTimeoutFees.Add(fee.Fee.TimeoutFee...)
 		}
 	}
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeIncentivizedPacket,
-			sdk.NewAttribute(channeltypes.AttributeKeyPortID, packetID.PortId),
-			sdk.NewAttribute(channeltypes.AttributeKeyChannelID, packetID.ChannelId),
-			sdk.NewAttribute(channeltypes.AttributeKeySequence, fmt.Sprint(packetID.Sequence)),
-			sdk.NewAttribute(types.AttributeKeyRecvFee, totalRecvFees.String()),
-			sdk.NewAttribute(types.AttributeKeyAckFee, totalAckFees.String()),
-			sdk.NewAttribute(types.AttributeKeyTimeoutFee, totalTimeoutFees.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+
+	if err := k.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeIncentivizedPacket,
+		event.NewAttribute(channeltypes.AttributeKeyPortID, packetID.PortId),
+		event.NewAttribute(channeltypes.AttributeKeyChannelID, packetID.ChannelId),
+		event.NewAttribute(channeltypes.AttributeKeySequence, fmt.Sprint(packetID.Sequence)),
+		event.NewAttribute(types.AttributeKeyRecvFee, totalRecvFees.String()),
+		event.NewAttribute(types.AttributeKeyAckFee, totalAckFees.String()),
+		event.NewAttribute(types.AttributeKeyTimeoutFee, totalTimeoutFees.String()),
+	); err != nil {
+		return err
+	}
+
+	return k.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+	)
 }
 
 // emitRegisterPayeeEvent emits an event containing information of a registered payee for a relayer on a particular channel
-func emitRegisterPayeeEvent(ctx context.Context, relayer, payee, channelID string) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeRegisterPayee,
-			sdk.NewAttribute(types.AttributeKeyRelayer, relayer),
-			sdk.NewAttribute(types.AttributeKeyPayee, payee),
-			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+func (k Keeper) emitRegisterPayeeEvent(ctx context.Context, relayer, payee, channelID string) error {
+	if err := k.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeRegisterPayee,
+		event.NewAttribute(types.AttributeKeyRelayer, relayer),
+		event.NewAttribute(types.AttributeKeyPayee, payee),
+		event.NewAttribute(types.AttributeKeyChannelID, channelID),
+	); err != nil {
+		return err
+	}
+
+	return k.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+	)
 }
 
 // emitRegisterCounterpartyPayeeEvent emits an event containing information of a registered counterparty payee for a relayer on a particular channel
-func emitRegisterCounterpartyPayeeEvent(ctx context.Context, relayer, counterpartyPayee, channelID string) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeRegisterCounterpartyPayee,
-			sdk.NewAttribute(types.AttributeKeyRelayer, relayer),
-			sdk.NewAttribute(types.AttributeKeyCounterpartyPayee, counterpartyPayee),
-			sdk.NewAttribute(types.AttributeKeyChannelID, channelID),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+func (k Keeper) emitRegisterCounterpartyPayeeEvent(ctx context.Context, relayer, counterpartyPayee, channelID string) error {
+	if err := k.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeRegisterCounterpartyPayee,
+		event.NewAttribute(types.AttributeKeyRelayer, relayer),
+		event.NewAttribute(types.AttributeKeyCounterpartyPayee, counterpartyPayee),
+		event.NewAttribute(types.AttributeKeyChannelID, channelID),
+	); err != nil {
+		return err
+	}
+
+	return k.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+	)
 }
 
 // emitDistributeFeeEvent emits an event containing a distribution fee and receiver address
-func emitDistributeFeeEvent(ctx context.Context, receiver string, fee sdk.Coins) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeDistributeFee,
-			sdk.NewAttribute(types.AttributeKeyReceiver, receiver),
-			sdk.NewAttribute(types.AttributeKeyFee, fee.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-		),
-	})
+func (k Keeper) emitDistributeFeeEvent(ctx context.Context, receiver string, fee sdk.Coins) error {
+	if err := k.EventService.EventManager(ctx).EmitKV(
+		types.EventTypeDistributeFee,
+		event.NewAttribute(types.AttributeKeyReceiver, receiver),
+		event.NewAttribute(types.AttributeKeyFee, fee.String()),
+	); err != nil {
+		return err
+	}
+
+	return k.EventService.EventManager(ctx).EmitKV(
+		sdk.EventTypeMessage,
+		event.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
+	)
 }

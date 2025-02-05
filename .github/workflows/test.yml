@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.23'
       - uses: technote-space/get-diff-action@v6.1.2
         id: git_diff
         with:
@@ -58,7 +58,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.23'
       - name: Create a file with all the pkgs
         run: go list ./... | grep -v e2e > pkgs.txt
       - name: Split pkgs into 4 files
@@ -92,7 +92,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.23'
       - uses: technote-space/get-diff-action@v6.1.2
         with:
           PATTERNS: |
@@ -146,7 +146,7 @@ jobs:
           name: '${{ github.sha }}-03-coverage'
       - name: sonarcloud
         if: ${{ env.GIT_DIFF && !github.event.pull_request.draft }}
-        uses: SonarSource/sonarcloud-github-action@v3.1.0
+        uses: SonarSource/sonarcloud-github-action@v4.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

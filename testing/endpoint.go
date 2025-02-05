@@ -7,11 +7,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	govtypesv1 "cosmossdk.io/x/gov/types/v1"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
-	abci "github.com/cometbft/cometbft/abci/types"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
@@ -541,8 +542,8 @@ func (endpoint *Endpoint) AcknowledgePacketWithResult(packet channeltypes.Packet
 	return endpoint.Chain.SendMsgs(ackMsg)
 }
 
-// TimeoutPacket sends a MsgTimeout to the channel associated with the endpoint.
-func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
+// TimeoutPacketWithResult sends a MsgTimeout to the channel associated with the endpoint.
+func (endpoint *Endpoint) TimeoutPacketWithResult(packet channeltypes.Packet) (*abci.ExecTxResult, error) {
 	// get proof for timeout based on channel order
 	var packetKey []byte
 
@@ -552,7 +553,7 @@ func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
 	case channeltypes.UNORDERED:
 		packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	default:
-		return fmt.Errorf("unsupported order type %s", endpoint.ChannelConfig.Order)
+		return nil, fmt.Errorf("unsupported order type %s", endpoint.ChannelConfig.Order)
 	}
 
 	counterparty := endpoint.Counterparty
@@ -565,7 +566,13 @@ func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
 		proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	return endpoint.Chain.sendMsgs(timeoutMsg)
+	return endpoint.Chain.SendMsgs(timeoutMsg)
+}
+
+// TimeoutPacket sends a MsgTimeout to the channel associated with the endpoint.
+func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
+	_, err := endpoint.TimeoutPacketWithResult(packet)
+	return err
 }
 
 // TimeoutOnClose sends a MsgTimeoutOnClose to the channel associated with the endpoint.
@@ -633,7 +640,7 @@ func (endpoint *Endpoint) ChanUpgradeInit() error {
 		endpoint.ChannelID,
 		"upgrade-init",
 		fmt.Sprintf("gov proposal for initialising channel upgrade: %s", endpoint.ChannelID),
-		false,
+		govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD,
 	)
 	require.NoError(endpoint.Chain.TB, err)
 

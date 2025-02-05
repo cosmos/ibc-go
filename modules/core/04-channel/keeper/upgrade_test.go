@@ -28,12 +28,12 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"success with later upgrade sequence",
@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.UpgradeSequence = 4 })
 				expSequence = 5
 			},
-			true,
+			nil,
 		},
 		{
 			"upgrade fields are identical to channel end",
@@ -49,7 +49,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				channel := path.EndpointA.GetChannel()
 				upgradeFields = types.NewUpgradeFields(channel.Ordering, channel.ConnectionHops, channel.Version)
 			},
-			false,
+			errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got {ORDER_UNORDERED [connection-0] mock-version}"),
 		},
 		{
 			"channel not found",
@@ -57,21 +57,21 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				path.EndpointA.ChannelID = "invalid-channel"
 				path.EndpointA.ChannelConfig.PortID = "invalid-port"
 			},
-			false,
+			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (invalid-port) channel ID (invalid-channel)"),
 		},
 		{
 			"channel state is not in OPEN state",
 			func() {
 				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
 			},
-			false,
+			errorsmod.Wrapf(types.ErrInvalidChannelState, "expected STATE_OPEN, got STATE_CLOSED"),
 		},
 		{
 			"proposed channel connection not found",
 			func() {
 				upgradeFields.ConnectionHops = []string{"connection-100"}
 			},
-			false,
+			errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: connection-100"),
 		},
 		{
 			"invalid proposed channel connection state",
@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.UNINITIALIZED })
 				upgradeFields.ConnectionHops = []string{"connection-100"}
 			},
-			false,
+			errorsmod.Wrapf(connectiontypes.ErrConnectionNotFound, "failed to retrieve connection: connection-100"),
 		},
 	}
 
@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgradeFields,
 			)
 
-			if tc.expPass {
+			if tc.expErr == nil {
 				ctx := suite.chainA.GetContext()
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.WriteUpgradeInitChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, upgrade, upgrade.Fields.Version)
 				channel := path.EndpointA.GetChannel()
@@ -112,6 +112,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeInit() {
 				suite.Require().Equal(types.OPEN, channel.State)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -294,7 +295,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			expPass := tc.expError == nil
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
@@ -329,7 +329,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTry() {
 				proofHeight,
 			)
 
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(upgrade)
 				suite.Require().Equal(proposedUpgrade.Fields, upgrade.Fields)
@@ -781,8 +781,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeAck() {
 				channelProof, upgradeProof, proofHeight,
 			)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 
 				channel := path.EndpointA.GetChannel()
@@ -1131,8 +1130,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeConfirm() {
 				channelProof, upgradeProof, proofHeight,
 			)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
@@ -1842,8 +1840,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCancel() {
 
 			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ChanUpgradeCancel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, errorReceipt, errorReceiptProof, proofHeight)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().ErrorIs(err, tc.expError)
@@ -2173,7 +2170,6 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			expPass := tc.expError == nil
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.Setup()
@@ -2199,7 +2195,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeTimeout() {
 				proofHeight,
 			)
 
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.assertUpgradeError(err, tc.expError)
@@ -2309,14 +2305,14 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 	tests := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			name: "change channel version",
 			malleate: func() {
 				proposedUpgrade.Version = mock.UpgradeVersion
 			},
-			expPass: true,
+			expErr: nil,
 		},
 		{
 			name: "change connection hops",
@@ -2325,12 +2321,12 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 				path.Setup()
 				proposedUpgrade.ConnectionHops = []string{path.EndpointA.ConnectionID}
 			},
-			expPass: true,
+			expErr: nil,
 		},
 		{
 			name:     "fails with unmodified fields",
 			malleate: func() {},
-			expPass:  false,
+			expErr:   errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got {ORDER_UNORDERED [connection-0] mock-version}"),
 		},
 		{
 			name: "fails when connection is not set",
@@ -2339,14 +2335,14 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 				kvStore := suite.chainA.GetContext().KVStore(storeKey)
 				kvStore.Delete(host.ConnectionKey(ibctesting.FirstConnectionID))
 			},
-			expPass: false,
+			expErr: errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got {ORDER_UNORDERED [connection-0] mock-version}"),
 		},
 		{
 			name: "fails when connection is not open",
 			malleate: func() {
 				path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.State = connectiontypes.UNINITIALIZED })
 			},
-			expPass: false,
+			expErr: errorsmod.Wrapf(types.ErrInvalidUpgrade, "existing channel end is identical to proposed upgrade channel end: got {ORDER_UNORDERED [connection-0] mock-version}"),
 		},
 		{
 			name: "fails when connection versions do not exist",
@@ -2358,7 +2354,7 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 					c.Versions = []*connectiontypes.Version{}
 				})
 			},
-			expPass: false,
+			expErr: errorsmod.Wrapf(connectiontypes.ErrInvalidVersion, "single version must be negotiated on connection before opening channel, got: []"),
 		},
 		{
 			name: "fails when connection version does not support the new ordering",
@@ -2370,7 +2366,7 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 					c.Versions = []*connectiontypes.Version{connectiontypes.NewVersion("1", []string{"ORDER_ORDERED"})}
 				})
 			},
-			expPass: false,
+			expErr: errorsmod.Wrapf(connectiontypes.ErrInvalidVersion, "connection version identifier:\"1\" features:\"ORDER_ORDERED\"  does not support channel ordering: ORDER_UNORDERED"),
 		},
 	}
 
@@ -2391,10 +2387,11 @@ func (suite *KeeperTestSuite) TestValidateUpgradeFields() {
 			tc.malleate()
 
 			err := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.ValidateSelfUpgradeFields(suite.chainA.GetContext(), *proposedUpgrade, existingChannel)
-			if tc.expPass {
+			if tc.expErr == nil {
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -2424,12 +2421,12 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 	tests := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expErr   error
 	}{
 		{
 			name:     "success",
 			malleate: func() {},
-			expPass:  true,
+			expErr:   nil,
 		},
 		{
 			name: "regular error",
@@ -2438,21 +2435,21 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 				// i.e. not an instance of `types.UpgradeError`
 				upgradeError = types.ErrInvalidUpgrade
 			},
-			expPass: true,
+			expErr: nil,
 		},
 		{
 			name: "channel does not exist",
 			malleate: func() {
 				suite.chainA.DeleteKey(host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID))
 			},
-			expPass: false,
+			expErr: types.ErrChannelNotFound,
 		},
 		{
 			name: "fails with nil upgrade error",
 			malleate: func() {
 				upgradeError = nil
 			},
-			expPass: false,
+			expErr: types.ErrInvalidUpgradeError,
 		},
 	}
 
@@ -2476,7 +2473,7 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 
 			tc.malleate()
 
-			if tc.expPass {
+			if tc.expErr == nil {
 
 				ctx := suite.chainA.GetContext()
 
@@ -2495,8 +2492,8 @@ func (suite *KeeperTestSuite) TestAbortUpgrade() {
 				errorReceipt, found := channelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 				suite.Require().True(found, "error receipt should be found")
 
-				if ue, ok := upgradeError.(*types.UpgradeError); ok {
-					suite.Require().Equal(ue.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
+				if upgradeError, ok := upgradeError.(*types.UpgradeError); ok {
+					suite.Require().Equal(upgradeError.GetErrorReceipt(), errorReceipt, "error receipt does not match expected error receipt")
 				}
 			} else {
 
@@ -2684,8 +2681,7 @@ func (suite *KeeperTestSuite) TestChanUpgradeCrossingHelloWithHistoricalProofs()
 				proofHeight,
 			)
 
-			expPass := tc.expError == nil
-			if expPass {
+			if tc.expError == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotEmpty(upgrade)
 			} else {
