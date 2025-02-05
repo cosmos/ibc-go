@@ -6,6 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+var FailedAcknowledgementCommitment = sha256.Sum256([]byte{byte(2), byte(0)})
+
 // CommitPacket returns the V2 packet commitment bytes. The commitment consists of:
 // ha256_hash(0x02 + sha256_hash(destinationClient) + sha256_hash(timeout) + sha256_hash(payload)) from a given packet.
 // This results in a fixed length preimage of 32 bytes.
@@ -53,18 +55,21 @@ func hashPayload(data Payload) []byte {
 // CommitAcknowledgement returns the V2 acknowledgement commitment bytes. The commitment consists of:
 // sha256_hash(0x02 + sha256_hash(ack1) + sha256_hash(ack2) + ...) from a given acknowledgement.
 func CommitAcknowledgement(acknowledgement Acknowledgement) []byte {
+	// return constant failed acknowledgement commitment if the acknowledgement is unsuccessful
+	// in this case, application modules are expected to only use recv success value
+	// and app acknowledgement will be nil
+	if !acknowledgement.RecvSuccess {
+		return FailedAcknowledgementCommitment[:]
+	}
 	var buf []byte
 	for _, ack := range acknowledgement.GetAppAcknowledgements() {
 		hash := sha256.Sum256(ack)
 		buf = append(buf, hash[:]...)
 	}
 
-	if acknowledgement.RecvSuccess {
-		buf = append([]byte{byte(1)}, buf...)
-	} else {
-		buf = append([]byte{byte(0)}, buf...)
-	}
-	buf = append([]byte{byte(2)}, buf...)
+	// prepend the preimage with the IBC Version and the recv success
+	// to ensure there is no possibility of hash collisions
+	buf = append([]byte{byte(2), byte(1)}, buf...)
 
 	hash := sha256.Sum256(buf)
 	return hash[:]

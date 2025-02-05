@@ -96,13 +96,6 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		cb := k.Router.Route(pd.DestinationPort)
 		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, pd, signer)
 
-		if res.Status == types.PacketStatus_Failure {
-			// Set RecvSuccess to false
-			ack.RecvSuccess = false
-			// Modify events in cached context to reflect unsuccessful acknowledgement
-			sdkCtx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
-		}
-
 		if res.Status == types.PacketStatus_Async {
 			// Set packet acknowledgement to async if any of the acknowledgements are async.
 			isAsync = true
@@ -118,6 +111,19 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 
 		// append app acknowledgement to the overall acknowledgement
 		ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
+
+		// if any of the application callbacks return a failure, the entire packet receive is considered a failure
+		// break the acknowledgement loop but keep a single non-nil acknowledgement in the acknowledgement slice
+		// so that the error acknowledgment is not equivalent to the empty acknowledgement
+		if res.Status == types.PacketStatus_Failure {
+			// Set RecvSuccess to false
+			ack.RecvSuccess = false
+			// Modify events in cached context to reflect unsuccessful acknowledgement
+			sdkCtx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
+			// break since the entire packet receive has failed and the sending side
+			// will receive a constant failed acknowledgement
+			break
+		}
 	}
 
 	if ack.RecvSuccess {
@@ -126,19 +132,17 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 	}
 
 	if !isAsync {
-		// note this should never happen as the payload would have had to be empty.
-		if len(ack.AppAcknowledgements) == 0 {
-			sdkCtx.Logger().Error("receive packet failed", "source-channel", msg.Packet.SourceClient, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
-			return &types.MsgRecvPacketResponse{Result: types.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-channel %s invalid acknowledgement results", msg.Packet.SourceClient)
-		}
+		// app acknowledgements only need to be filled in if the receive was successful
+		// if they are filled in, they must equal payloads length and be non-empty
+		if ack.RecvSuccess {
+			if len(ack.AppAcknowledgements) != len(msg.Packet.Payloads) {
+				return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(msg.Packet.Payloads))
+			}
 
-		if len(ack.AppAcknowledgements) != len(msg.Packet.Payloads) {
-			return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(msg.Packet.Payloads))
-		}
-
-		// Validate ack before forwarding to WriteAcknowledgement.
-		if err := ack.ValidateBasic(); err != nil {
-			return nil, err
+			// Validate ack before forwarding to WriteAcknowledgement.
+			if err := ack.ValidateBasic(); err != nil {
+				return nil, err
+			}
 		}
 		// Set packet acknowledgement only if the acknowledgement is not async.
 		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
@@ -181,9 +185,23 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
 	}
 
+	// acknowledgement only needs to be filled in if the receive was successful
+	// thus we only validate if receive is successful
+	if msg.Acknowledgement.RecvSuccess {
+		// Validate ack before forwarding to OnAcknowledgementPacket.
+		if err := msg.Acknowledgement.ValidateBasic(); err != nil {
+			return nil, err
+		}
+	}
+
 	for i, pd := range msg.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
-		ack := msg.Acknowledgement.AppAcknowledgements[i]
+		// Only send individual acknowledgment to callback if receive was successful
+		// otherwise it is nil and application should handle the failure with the recvSuccess boolean
+		var ack []byte
+		if msg.Acknowledgement.RecvSuccess {
+			ack = msg.Acknowledgement.AppAcknowledgements[i]
+		}
 		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, msg.Acknowledgement.RecvSuccess, ack, pd, relayer)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source client %s, destination client %s", pd.SourcePort, msg.Packet.SourceClient, msg.Packet.DestinationClient)
