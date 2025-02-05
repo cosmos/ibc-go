@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/cosmos/solidity-ibc-eureka/abigen/ics20lib"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -263,7 +262,7 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Fungi
 			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "encoding %s is only supported for ICS20-V1", EncodingABI)
 		}
 		var err error
-		data, err = decodeABIFungibleTokenPacketData(bz)
+		data, err = DecodeABIFungibleTokenPacketData(bz)
 		if err != nil {
 			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
 		}
@@ -316,22 +315,5 @@ func PacketDataV1ToV2(packetData FungibleTokenPacketData) (FungibleTokenPacketDa
 		Receiver:   packetData.Receiver,
 		Memo:       packetData.Memo,
 		Forwarding: ForwardingPacketData{},
-	}, nil
-}
-
-// decodeABIFungibleTokenPacketData decodes a solidity ABI encoded ics20lib.ICS20LibFungibleTokenPacketData
-// and converts it into an ibc-go FungibleTokenPacketData.
-func decodeABIFungibleTokenPacketData(data []byte) (*FungibleTokenPacketData, error) {
-	solidityFtpd, err := ics20lib.DecodeFungibleTokenPacketData(data)
-	if err != nil {
-		return nil, err
-	}
-
-	return &FungibleTokenPacketData{
-		Denom:    solidityFtpd.Denom,
-		Amount:   solidityFtpd.Amount.String(),
-		Sender:   solidityFtpd.Sender,
-		Receiver: solidityFtpd.Receiver,
-		Memo:     solidityFtpd.Memo,
 	}, nil
 }
