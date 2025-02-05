@@ -71,7 +71,9 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 		return err
 	}
 
-	im.keeper.EmitTransferEvent(goCtx, sender.String(), data.Receiver, data.Tokens, data.Memo, data.Forwarding.Hops)
+	if err := im.keeper.EmitTransferEvent(goCtx, sender.String(), data.Receiver, data.Tokens, data.Memo, data.Forwarding.Hops); err != nil {
+		return err
+	}
 
 	telemetry.ReportTransfer(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Tokens)
 
