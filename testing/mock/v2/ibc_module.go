@@ -1,12 +1,14 @@
 package mock
 
 import (
+	"bytes"
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
+	mockv1 "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 var _ api.IBCModule = (*IBCModule)(nil)
@@ -42,11 +44,15 @@ func (im IBCModule) OnSendPacket(ctx context.Context, sourceChannel string, dest
 	return nil
 }
 
-func (im IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, data channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+func (im IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 	if im.IBCApp.OnRecvPacket != nil {
-		return im.IBCApp.OnRecvPacket(ctx, sourceChannel, destinationChannel, sequence, data, relayer)
+		return im.IBCApp.OnRecvPacket(ctx, sourceChannel, destinationChannel, sequence, payload, relayer)
 	}
-	return MockRecvPacketResult
+	if bytes.Equal(mockv1.MockPacketData, payload.Value) {
+		return MockRecvPacketResult
+	} else {
+		return MockFailRecvPacketResult
+	}
 }
 
 func (im IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, recvSuccess bool, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {

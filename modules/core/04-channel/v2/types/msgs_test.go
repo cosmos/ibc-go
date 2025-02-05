@@ -210,13 +210,6 @@ func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
 			},
 			expError: types.ErrInvalidPacket,
 		},
-		{
-			name: "failure: invalid acknowledgement",
-			malleate: func() {
-				msg.Acknowledgement = types.NewAcknowledgement(true, []byte(""))
-			},
-			expError: types.ErrInvalidAcknowledgement,
-		},
 	}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
