@@ -136,12 +136,6 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 			return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(msg.Packet.Payloads))
 		}
 
-		// note this should never happen as the payload would have had to be empty.
-		if len(ack.AppAcknowledgements) == 0 {
-			sdkCtx.Logger().Error("receive packet failed", "source-client", msg.Packet.SourceClient, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
-			return &types.MsgRecvPacketResponse{Result: types.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-client %s invalid acknowledgement results", msg.Packet.SourceClient)
-		}
-
 		// Validate ack before forwarding to WriteAcknowledgement.
 		if err := ack.ValidateBasic(); err != nil {
 			return nil, err

@@ -5,7 +5,7 @@ import (
 )
 
 // NewAcknowledgement creates a new Acknowledgement instance
-func NewAcknowledgement(recvSuccess bool, appAcknowledgements [][]byte) Acknowledgement {
+func NewAcknowledgement(recvSuccess bool, appAcknowledgements ...[]byte) Acknowledgement {
 	return Acknowledgement{
 		RecvSuccess:         recvSuccess,
 		AppAcknowledgements: appAcknowledgements,
