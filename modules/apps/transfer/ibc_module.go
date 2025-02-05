@@ -220,7 +220,7 @@ func (im IBCModule) OnRecvPacket(
 
 	ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	telemetry.ReportOnRecvPacket(packet, data.Tokens)
+	telemetry.ReportOnRecvPacket(packet.SourcePort, packet.SourceChannel, packet.DestinationPort, packet.DestinationChannel, data.Tokens)
 
 	im.keeper.Logger.Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
 
