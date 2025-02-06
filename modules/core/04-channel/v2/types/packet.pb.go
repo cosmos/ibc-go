@@ -226,6 +226,11 @@ func (m *Payload) GetValue() []byte {
 }
 
 // Acknowledgement contains a list of all ack results associated with a single packet.
+// In the case of a successful receive, the acknowledgement will contain an app acknowledgement
+// for each application that received a payload in the same order that the payloads were sent
+// in the packet.
+// If the receive is not successful, the acknowledgement will contain a single app acknowledgment
+// which will be a constant error acknowledgment as defined by the IBC v2 protocol.
 type Acknowledgement struct {
 	AppAcknowledgements [][]byte `protobuf:"bytes,1,rep,name=app_acknowledgements,json=appAcknowledgements,proto3" json:"app_acknowledgements,omitempty"`
 }
