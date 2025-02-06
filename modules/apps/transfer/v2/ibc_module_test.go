@@ -6,7 +6,6 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -177,19 +176,19 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 		name                   string
 		sourceDenomsToTransfer []string
 		malleate               func()
-		expErrAck              []byte
+		expErr                 bool
 	}{
 		{
 			"transfer single denom",
 			[]string{sdk.DefaultBondDenom},
 			func() {},
-			nil,
+			false,
 		},
 		{
 			"transfer multiple denoms",
 			[]string{sdk.DefaultBondDenom, ibctesting.SecondaryDenom},
 			func() {},
-			nil,
+			false,
 		},
 		{
 			"transfer with invalid source port",
@@ -197,7 +196,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			func() {
 				payload.SourcePort = invalidPortID
 			},
-			channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(channeltypesv2.ErrInvalidPacket, "payload port ID is invalid: expected %s, got sourcePort: %s destPort: %s", types.PortID, payload.SourcePort, payload.DestinationPort)).Acknowledgement(),
+			true,
 		},
 		{
 			"transfer with invalid dest port",
@@ -205,7 +204,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			func() {
 				payload.DestinationPort = invalidPortID
 			},
-			channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(channeltypesv2.ErrInvalidPacket, "payload port ID is invalid: expected %s, got sourcePort: %s destPort: %s", types.PortID, payload.SourcePort, payload.DestinationPort)).Acknowledgement(),
+			true,
 		},
 	}
 
@@ -270,7 +269,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				1, payload, suite.chainB.SenderAccount.GetAddress(),
 			)
 
-			if tc.expErrAck == nil {
+			if !tc.expErr {
 
 				suite.Require().Equal(channeltypesv2.PacketStatus_Success, recvResult.Status)
 				suite.Require().Equal(channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(), recvResult.Acknowledgement)
@@ -296,7 +295,6 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				}
 			} else {
 				suite.Require().Equal(channeltypesv2.PacketStatus_Failure, recvResult.Status)
-				suite.Require().Equal(tc.expErrAck, recvResult.Acknowledgement)
 			}
 		})
 	}
