@@ -175,8 +175,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			name: "success: async recv result",
 			malleate: func() {
 				expRecvRes = types.RecvPacketResult{
-					Status:          types.PacketStatus_Async,
-					Acknowledgement: nil,
+					Status: types.PacketStatus_Async,
 				}
 			},
 			expError:      nil,
@@ -295,11 +294,13 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 	testCases := []struct {
 		name     string
 		malleate func()
+		payload  types.Payload
 		expError error
 	}{
 		{
 			name:     "success",
 			malleate: func() {},
+			payload:  mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
 		},
 		{
 			name: "success: NoOp",
@@ -312,6 +313,14 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 					return mock.MockApplicationCallbackError
 				}
 			},
+			payload: mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
+		},
+		{
+			name: "success: failed ack result",
+			malleate: func() {
+				ack.AppAcknowledgements[0] = types.ErrorAcknowledgement[:]
+			},
+			payload: mockv2.NewErrorMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
 		},
 		{
 			name: "failure: callback fails",
@@ -320,6 +329,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 					return mock.MockApplicationCallbackError
 				}
 			},
+			payload:  mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
 			expError: mock.MockApplicationCallbackError,
 		},
 		{
@@ -328,6 +338,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 				// change the source id to a non-existent channel.
 				packet.SourceClient = "not-existent-channel"
 			},
+			payload:  mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
 			expError: clienttypes.ErrCounterpartyNotFound,
 		},
 		{
@@ -335,6 +346,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			malleate: func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceClient, packet.Sequence, []byte("foo"))
 			},
+			payload:  mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
 			expError: types.ErrInvalidPacket,
 		},
 		{
@@ -342,6 +354,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			malleate: func() {
 				ack.AppAcknowledgements[0] = mock.MockFailPacketData
 			},
+			payload:  mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
 			expError: errors.New("failed packet acknowledgement verification"),
 		},
 	}
@@ -356,7 +369,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 
 			var err error
 			// Send packet from A to B
-			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, tc.payload)
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.MsgRecvPacket(packet)

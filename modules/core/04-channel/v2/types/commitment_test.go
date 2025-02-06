@@ -89,4 +89,13 @@ func TestCommitAcknowledgement(t *testing.T) {
 
 	commitment := types.CommitAcknowledgement(ack)
 	require.Equal(t, "f03b4667413e56aaf086663267913e525c442b56fa1af4fa3f3dab9f37044c5b", hex.EncodeToString(commitment))
+
+	failedAck := types.Acknowledgement{
+		AppAcknowledgements: [][]byte{
+			types.ErrorAcknowledgement[:],
+		},
+	}
+
+	failedAckCommitment := types.CommitAcknowledgement(failedAck)
+	require.Equal(t, "e2fb30dfbf7abdeaca82d426534d2b3a9d5444dd2a87fa16d38b77ba1a13ced7", hex.EncodeToString(failedAckCommitment))
 }
