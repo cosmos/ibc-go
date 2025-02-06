@@ -17,6 +17,11 @@ func (s *TypesTestSuite) Test_ValidateAcknowledgement() {
 			nil,
 		},
 		{
+			"success: valid failed ack",
+			types.NewAcknowledgement(types.ErrorAcknowledgement[:]),
+			nil,
+		},
+		{
 			"failure: more than one app acknowledgements",
 			types.NewAcknowledgement([]byte("appAck1"), []byte("appAck2")),
 			types.ErrInvalidAcknowledgement,

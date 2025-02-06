@@ -15,10 +15,6 @@ var (
 		Status:          channeltypesv2.PacketStatus_Success,
 		Acknowledgement: mockv1.MockAcknowledgement.Acknowledgement(),
 	}
-	MockFailRecvPacketResult = channeltypesv2.RecvPacketResult{
-		Status:          channeltypesv2.PacketStatus_Success,
-		Acknowledgement: mockv1.MockFailAcknowledgement.Acknowledgement(),
-	}
 )
 
 func NewMockPayload(sourcePort, destPort string) channeltypesv2.Payload {
@@ -27,6 +23,16 @@ func NewMockPayload(sourcePort, destPort string) channeltypesv2.Payload {
 		DestinationPort: destPort,
 		Encoding:        transfertypes.EncodingProtobuf,
 		Value:           mockv1.MockPacketData,
+		Version:         mockv1.Version,
+	}
+}
+
+func NewErrorMockPayload(sourcePort, destPort string) channeltypesv2.Payload {
+	return channeltypesv2.Payload{
+		SourcePort:      sourcePort,
+		DestinationPort: destPort,
+		Encoding:        transfertypes.EncodingProtobuf,
+		Value:           mockv1.MockFailPacketData,
 		Version:         mockv1.Version,
 	}
 }
