@@ -81,6 +81,10 @@ func DefaultGenesisState() GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
+	if err := gs.Params.Validate(); err != nil {
+		return fmt.Errorf("invalid genesis state params: %w", err)
+	}
+
 	// keep track of the max sequence to ensure it is less than
 	// the next sequence used in creating connection identifiers.
 	var maxSequence uint64
