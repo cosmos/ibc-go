@@ -392,7 +392,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			malleate: func() {},
 		},
 		{
-			name: "failure: no-op",
+			name: "success: no-op",
 			malleate: func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeletePacketCommitment(suite.chainA.GetContext(), packet.SourceClient, packet.Sequence)
 
@@ -402,7 +402,6 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 					return mock.MockApplicationCallbackError
 				}
 			},
-			expError: types.ErrNoOpMsg,
 		},
 		{
 			name: "failure: callback fails",

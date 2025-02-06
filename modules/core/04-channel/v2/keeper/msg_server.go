@@ -198,10 +198,7 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types
 	}
 
 	cacheCtx, writeFn := sdkCtx.CacheContext()
-	if err := k.timeoutPacket(cacheCtx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight); err != nil {
-		sdkCtx.Logger().Error("Timeout packet failed", "source-client", timeout.Packet.SourceClient, "destination-client", timeout.Packet.DestinationClient, "error", errorsmod.Wrap(err, "timeout packet failed"))
-		return nil, errorsmod.Wrapf(err, "timeout packet failed for source id: %s and destination id: %s", timeout.Packet.SourceClient, timeout.Packet.DestinationClient)
-	}
+	err = k.timeoutPacket(cacheCtx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight)
 
 	switch err {
 	case nil:
