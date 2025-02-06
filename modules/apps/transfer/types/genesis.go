@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -29,6 +31,10 @@ func DefaultGenesisState() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
+	if err := gs.Params.Validate(); err != nil {
+		return fmt.Errorf("invalid transfer genesis state parameters: %w", err)
+	}
+
 	if err := host.PortIdentifierValidator(gs.PortId); err != nil {
 		return err
 	}
