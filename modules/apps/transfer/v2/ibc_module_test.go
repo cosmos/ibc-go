@@ -388,12 +388,19 @@ func (suite *TransferTestSuite) TestOnAckPacket() {
 				suite.Require().Equal(coin, chainAEscrowBalance)
 			}
 
-			// create error ack and replay the callback to check that funds are returned to sender
-			// we can replay for simplicity here since replay protection is done in the core handlers
+			// create a custom error ack and replay the callback to ensure it fails with IBC v2 callbacks
 			errAck := channeltypes.NewErrorAcknowledgement(types.ErrInvalidAmount)
 			err = cbs.OnAcknowledgementPacket(
 				ctx, suite.pathAToB.EndpointA.ClientID, suite.pathAToB.EndpointB.ClientID,
 				1, errAck.Acknowledgement(), payload, suite.chainA.SenderAccount.GetAddress(),
+			)
+			suite.Require().Error(err)
+
+			// create the sentinel error ack and replay the callback to ensure the tokens are correctly refunded
+			// we can replay the callback here because the replay protection is handled in the IBC handler
+			err = cbs.OnAcknowledgementPacket(
+				ctx, suite.pathAToB.EndpointA.ClientID, suite.pathAToB.EndpointB.ClientID,
+				1, channeltypesv2.ErrorAcknowledgement[:], payload, suite.chainA.SenderAccount.GetAddress(),
 			)
 			suite.Require().NoError(err)
 
