@@ -34,7 +34,7 @@ require (
 	cosmossdk.io/x/staking v0.2.0-rc.1
 	cosmossdk.io/x/tx v1.0.1
 	cosmossdk.io/x/upgrade v0.1.4
-	github.com/CosmWasm/wasmvm/v2 v2.1.4
+	github.com/CosmWasm/wasmvm/v2 v2.2.2
 	github.com/cometbft/cometbft v1.0.0
 	github.com/cometbft/cometbft/api v1.0.0
 	github.com/cosmos/cosmos-db v1.1.1
