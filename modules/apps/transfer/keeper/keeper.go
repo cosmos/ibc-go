@@ -230,12 +230,10 @@ func (k Keeper) GetTotalEscrowForDenom(ctx context.Context, denom string) sdk.Co
 		return sdk.NewCoin(denom, sdkmath.ZeroInt())
 	}
 
-	amount := sdkmath.Int{}
-	if err := amount.Unmarshal(bz); err != nil {
-		panic(err)
-	}
+	amount := sdk.IntProto{}
+	k.cdc.MustUnmarshal(bz, &amount)
 
-	return sdk.NewCoin(denom, amount)
+	return sdk.NewCoin(denom, amount.Int)
 }
 
 // SetTotalEscrowForDenom stores the total amount of source chain tokens that are in escrow.
@@ -256,10 +254,8 @@ func (k Keeper) SetTotalEscrowForDenom(ctx context.Context, coin sdk.Coin) {
 		return
 	}
 
-	bz, err := coin.Amount.Marshal()
-	if err != nil {
-		panic(err)
-	}
+	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
+
 	if err := store.Set(key, bz); err != nil {
 		panic(err)
 	}
@@ -290,12 +286,12 @@ func (k Keeper) IterateTokensInEscrow(ctx context.Context, storeprefix []byte, c
 			continue // denom is empty
 		}
 
-		amount := sdkmath.Int{}
-		if err := amount.Unmarshal(iterator.Value()); err != nil {
+		amount := sdk.IntProto{}
+		if err := k.cdc.Unmarshal(iterator.Value(), &amount); err != nil {
 			continue // total escrow amount cannot be unmarshalled to integer
 		}
 
-		denomEscrow := sdk.NewCoin(denom, amount)
+		denomEscrow := sdk.NewCoin(denom, amount.Int)
 		if cb(denomEscrow) {
 			break
 		}
