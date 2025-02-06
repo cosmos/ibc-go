@@ -58,7 +58,7 @@ type CallbacksCompatibleModule interface {
 // interfaces to assert that the underlying application supports both.
 type CallbacksCompatibleModuleV2 interface {
 	api.IBCModule
-	porttypes.PacketDataUnmarshaler
+	api.PacketDataUnmarshaler
 }
 
 // CallbackData is the callback data parsed from the packet.
