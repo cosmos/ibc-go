@@ -14,7 +14,7 @@ import (
 // state.
 func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) error {
 	if err := gs.Params.Validate(); err != nil {
-		panic(fmt.Errorf("invalid ibc client genesis state parameters: %v", err))
+		return fmt.Errorf("invalid ibc client genesis state parameters: %w", err)
 	}
 	k.SetParams(ctx, gs.Params)
 
