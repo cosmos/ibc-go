@@ -10,9 +10,9 @@ import (
 
 // InitGenesis initializes the ibc channel submodule's state from a provided genesis
 // state.
-func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) {
+func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) error {
 	if err := gs.Params.Validate(); err != nil {
-		panic(fmt.Sprintf("invalid ibc channel genesis state parameters: %v", err))
+		return fmt.Errorf("invalid ibc channel genesis state parameters: %w", err)
 	}
 	k.SetParams(ctx, gs.Params)
 	for _, channel := range gs.Channels {
@@ -38,6 +38,7 @@ func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) {
 		k.SetNextSequenceAck(ctx, as.PortId, as.ChannelId, as.Sequence)
 	}
 	k.SetNextChannelSequence(ctx, gs.NextChannelSequence)
+	return nil
 }
 
 // ExportGenesis returns the ibc channel submodule's exported genesis.
