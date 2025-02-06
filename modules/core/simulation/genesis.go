@@ -57,7 +57,8 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 	bz, err := json.MarshalIndent(&ibcGenesis, "", " ")
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error marshaling IBC genesis state: %v\n", err)
+		return
 	}
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", ibcexported.ModuleName, bz)
 	simState.GenState[ibcexported.ModuleName] = simState.Cdc.MustMarshalJSON(&ibcGenesis)
