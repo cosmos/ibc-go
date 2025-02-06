@@ -10,6 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -71,11 +72,11 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 		return err
 	}
 
-	// TODO: events
-	// events.EmitTransferEvent(ctx, sender.String(), receiver, tokens, memo, hops)
+	if err := im.keeper.EmitTransferEvent(goCtx, sender.String(), data.Receiver, data.Tokens, data.Memo, data.Forwarding.Hops); err != nil {
+		return err
+	}
 
-	// TODO: telemetry
-	// telemetry.ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel, tokens)
+	telemetry.ReportTransfer(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Tokens)
 
 	return nil
 }
@@ -133,8 +134,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 
 	im.keeper.Logger.Info("successfully handled ICS-20 packet", "sequence", sequence)
 
-	// TODO: telemetry
-	// telemetry.ReportOnRecvPacket(packet, data.Tokens)
+	telemetry.ReportOnRecvPacket(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Tokens)
 
 	if data.HasForwarding() {
 		// we are now sending from the forward escrow address to the final receiver address.
