@@ -27,10 +27,10 @@ func (k Keeper) InitGenesis(ctx context.Context, gs types.GenesisState) error {
 
 // ExportGenesis returns the 08-wasm module's exported genesis. This includes the code
 // for all contracts previously stored.
-func (k Keeper) ExportGenesis(ctx context.Context) types.GenesisState {
+func (k Keeper) ExportGenesis(ctx context.Context) (types.GenesisState, error) {
 	checksums, err := k.GetAllChecksums(ctx)
 	if err != nil {
-		panic(err)
+		return types.GenesisState{}, err
 	}
 
 	// Grab code from wasmVM and add to genesis state.
@@ -38,12 +38,12 @@ func (k Keeper) ExportGenesis(ctx context.Context) types.GenesisState {
 	for _, checksum := range checksums {
 		code, err := k.GetVM().GetCode(checksum)
 		if err != nil {
-			panic(err)
+			return types.GenesisState{}, err
 		}
 		genesisState.Contracts = append(genesisState.Contracts, types.Contract{
 			CodeBytes: code,
 		})
 	}
 
-	return genesisState
+	return genesisState, nil
 }
