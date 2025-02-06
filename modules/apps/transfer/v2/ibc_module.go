@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"strings"
@@ -88,8 +89,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	// rather than just the destination port
 	if payload.SourcePort != types.PortID || payload.DestinationPort != types.PortID {
 		return channeltypesv2.RecvPacketResult{
-			Status:          channeltypesv2.PacketStatus_Failure,
-			Acknowledgement: channeltypes.NewErrorAcknowledgement(errorsmod.Wrapf(channeltypesv2.ErrInvalidPacket, "payload port ID is invalid: expected %s, got sourcePort: %s destPort: %s", types.PortID, payload.SourcePort, payload.DestinationPort)).Acknowledgement(),
+			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 	var (
@@ -112,11 +112,9 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 
 	data, ackErr = types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if ackErr != nil {
-		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
 		return channeltypesv2.RecvPacketResult{
-			Status:          channeltypesv2.PacketStatus_Failure,
-			Acknowledgement: ack.Acknowledgement(),
+			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 
@@ -128,11 +126,9 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 		payload.DestinationPort,
 		destinationChannel,
 	); ackErr != nil {
-		ack = channeltypes.NewErrorAcknowledgement(ackErr)
 		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
 		return channeltypesv2.RecvPacketResult{
-			Status:          channeltypesv2.PacketStatus_Failure,
-			Acknowledgement: ack.Acknowledgement(),
+			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 
@@ -142,10 +138,8 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 
 	if data.HasForwarding() {
 		// we are now sending from the forward escrow address to the final receiver address.
-		ack = channeltypes.NewErrorAcknowledgement(fmt.Errorf("forwarding not yet supported"))
 		return channeltypesv2.RecvPacketResult{
-			Status:          channeltypesv2.PacketStatus_Failure,
-			Acknowledgement: ack.Acknowledgement(),
+			Status: channeltypesv2.PacketStatus_Failure,
 		}
 		// TODO: handle forwarding
 		// TODO: inside this version of the function, we should fetch the packet that was stored in IBC core in order to set it for forwarding.
@@ -181,8 +175,14 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 
 func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
 	var ack channeltypes.Acknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+	// construct an error acknowledgement if the acknowledgement bytes are the sentinel error acknowledgement so we can use the shared transfer logic
+	if bytes.Equal(acknowledgement, channeltypesv2.ErrorAcknowledgement[:]) {
+		// the specific error does not matter
+		ack = channeltypes.NewErrorAcknowledgement(types.ErrReceiveFailed)
+	} else {
+		if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+			return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+		}
 	}
 
 	data, err := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
