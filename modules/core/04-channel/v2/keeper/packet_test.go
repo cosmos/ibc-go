@@ -394,7 +394,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		{
 			"failure: verify membership fails",
 			func() {
-				ack.AppAcknowledgements[0] = mockv2.MockFailRecvPacketResult.Acknowledgement
+				ack.AppAcknowledgements[0] = types.ErrorAcknowledgement[:]
 			},
 			commitmenttypes.ErrInvalidProof,
 		},

@@ -183,6 +183,9 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 		if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 			return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 		}
+		if !ack.Success() {
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot pass in a custom error acknowledgement with IBC v2")
+		}
 	}
 
 	data, err := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
