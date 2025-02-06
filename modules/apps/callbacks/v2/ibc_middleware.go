@@ -10,9 +10,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
+	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
@@ -25,7 +27,7 @@ type IBCMiddleware struct {
 	app             types.CallbacksCompatibleModuleV2
 	writeAckWrapper api.WriteAcknowledgementWrapper
 
-	contractKeeper types.ContractKeeperV2
+	contractKeeper types.ContractKeeper
 	chanKeeperV2   types.ChannelKeeperV2
 
 	// maxCallbackGas defines the maximum amount of gas that a callback actor can ask the
@@ -39,7 +41,7 @@ type IBCMiddleware struct {
 // The underlying application must implement the required callback interfaces.
 func NewIBCMiddleware(
 	app api.IBCModule, writeAckWrapper api.WriteAcknowledgementWrapper,
-	contractKeeper types.ContractKeeperV2, chanKeeperV2 types.ChannelKeeperV2, maxCallbackGas uint64,
+	contractKeeper types.ContractKeeper, chanKeeperV2 types.ChannelKeeperV2, maxCallbackGas uint64,
 ) IBCMiddleware {
 	packetDataUnmarshalerApp, ok := app.(types.CallbacksCompatibleModuleV2)
 	if !ok {
@@ -84,7 +86,7 @@ func (im IBCMiddleware) OnSendPacket(
 		return err
 	}
 
-	packetData, _, err := im.app.UnmarshalPacketData(ctx, payload.GetSourcePort(), sourceClient, payload.GetValue())
+	packetData, err := im.app.UnmarshalPacketData(payload)
 	if err != nil {
 		return err
 	}
@@ -100,7 +102,7 @@ func (im IBCMiddleware) OnSendPacket(
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
 		return im.contractKeeper.IBCSendPacketCallback(
-			cachedCtx, sourceClient, sequence, payload, cbData.CallbackAddress, cbData.SenderAddress,
+			cachedCtx, payload.SourcePort, sourceClient, clienttypes.Height{}, 0, payload.Value, cbData.CallbackAddress, cbData.SenderAddress, payload.Version,
 		)
 	}
 
@@ -135,7 +137,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		return recvResult
 	}
 
-	packetData, _, err := im.app.UnmarshalPacketData(ctx, payload.GetDestinationPort(), destinationClient, payload.GetValue())
+	packetData, err := im.app.UnmarshalPacketData(payload)
 	if err != nil {
 		return channeltypesv2.RecvPacketResult{
 			Status:          channeltypesv2.PacketStatus_Failure,
@@ -156,7 +158,30 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, destinationClient, sequence, payload, recvResult, cbData.CallbackAddress)
+		// reconstruct a channel v1 packet from the v2 packet
+		// in order to preserve the same interface for the contract keeper
+		packetv1 := channeltypes.Packet{
+			Sequence:           sequence,
+			SourcePort:         payload.SourcePort,
+			SourceChannel:      sourceClient,
+			DestinationPort:    payload.DestinationPort,
+			DestinationChannel: destinationClient,
+			Data:               payload.Value,
+			TimeoutHeight:      clienttypes.Height{},
+			TimeoutTimestamp:   0,
+		}
+		// unmarshal the acknowledgement into a v1 acknowledgement
+		// this will only work for applications that are returning v1 acknowledgement types
+		// in their v2 module callbacks. ICS-20 Transfer is an example of such an application
+		ack, err := im.app.UnmarshalAcknowledgement(recvResult.Acknowledgement, payload)
+		if err != nil {
+			return err
+		}
+		ackV1, ok := ack.(exported.Acknowledgement)
+		if !ok {
+			return errorsmod.Wrapf(channeltypes.ErrInvalidAcknowledgement, "acknowledgement must implement %T", (*exported.Acknowledgement)(nil))
+		}
+		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packetv1, ackV1, cbData.CallbackAddress, payload.Version)
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
@@ -199,8 +224,20 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
+		// reconstruct a channel v1 packet from the v2 packet
+		// in order to preserve the same interface for the contract keeper
+		packetv1 := channeltypes.Packet{
+			Sequence:           sequence,
+			SourcePort:         payload.SourcePort,
+			SourceChannel:      sourceClient,
+			DestinationPort:    payload.DestinationPort,
+			DestinationChannel: destinationClient,
+			Data:               payload.Value,
+			TimeoutHeight:      clienttypes.Height{},
+			TimeoutTimestamp:   0,
+		}
 		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(
-			cachedCtx, sourceClient, sequence, acknowledgement, payload, relayer, cbData.CallbackAddress, cbData.SenderAddress,
+			cachedCtx, packetv1, acknowledgement, relayer, cbData.CallbackAddress, cbData.SenderAddress, payload.Version,
 		)
 	}
 
@@ -243,8 +280,20 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
+		// reconstruct a channel v1 packet from the v2 packet
+		// in order to preserve the same interface for the contract keeper
+		packetv1 := channeltypes.Packet{
+			Sequence:           sequence,
+			SourcePort:         payload.SourcePort,
+			SourceChannel:      sourceClient,
+			DestinationPort:    payload.DestinationPort,
+			DestinationChannel: destinationClient,
+			Data:               payload.Value,
+			TimeoutHeight:      clienttypes.Height{},
+			TimeoutTimestamp:   0,
+		}
 		return im.contractKeeper.IBCOnTimeoutPacketCallback(
-			cachedCtx, sourceClient, sequence, payload, relayer, cbData.CallbackAddress, cbData.SenderAddress,
+			cachedCtx, packetv1, relayer, cbData.CallbackAddress, cbData.SenderAddress, payload.Version,
 		)
 	}
 
@@ -282,7 +331,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	// must reconsider if multipacket data gets supported with async packets
 	payload := packet.Payloads[0]
 
-	packetData, _, err := im.app.UnmarshalPacketData(ctx, payload.DestinationPort, clientID, payload.Value)
+	packetData, err := im.app.UnmarshalPacketData(payload)
 	if err != nil {
 		return err
 	}
@@ -302,8 +351,26 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		Acknowledgement: ack.AppAcknowledgements[0],
 	}
 	callbackExecutor := func(cachedCtx sdk.Context) error {
+		// reconstruct a channel v1 packet from the v2 packet
+		// in order to preserve the same interface for the contract keeper
+		packetv1 := channeltypes.Packet{
+			Sequence:           sequence,
+			SourcePort:         payload.SourcePort,
+			SourceChannel:      packet.SourceClient,
+			DestinationPort:    payload.DestinationPort,
+			DestinationChannel: packet.DestinationClient,
+			Data:               payload.Value,
+			TimeoutHeight:      clienttypes.Height{},
+			TimeoutTimestamp:   0,
+		}
+		var ack channeltypes.Acknowledgement
+		if recvResult.Status == channeltypesv2.PacketStatus_Failure {
+			ack = channeltypes.NewErrorAcknowledgement(channeltypes.ErrInvalidAcknowledgement)
+		} else {
+			ack = channeltypes.NewResultAcknowledgement(recvResult.Acknowledgement)
+		}
 		return im.contractKeeper.IBCReceivePacketCallback(
-			cachedCtx, clientID, sequence, payload, recvResult, cbData.CallbackAddress,
+			cachedCtx, packetv1, ack, cbData.CallbackAddress, payload.Version,
 		)
 	}
 
