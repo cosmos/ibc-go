@@ -9,7 +9,7 @@ import (
 )
 
 // InitGenesis initializes the interchain accounts host application state from a provided genesis state
-func InitGenesis(ctx context.Context, keeper Keeper, state genesistypes.HostGenesisState) {
+func InitGenesis(ctx context.Context, keeper Keeper, state genesistypes.HostGenesisState) error {
 	keeper.setPort(ctx, state.Port)
 
 	for _, ch := range state.ActiveChannels {
@@ -21,9 +21,10 @@ func InitGenesis(ctx context.Context, keeper Keeper, state genesistypes.HostGene
 	}
 
 	if err := state.Params.Validate(); err != nil {
-		panic(fmt.Errorf("could not set ica host params at genesis: %v", err))
+		return fmt.Errorf("could not set ica host params at genesis: %w", err)
 	}
 	keeper.SetParams(ctx, state.Params)
+	return nil
 }
 
 // ExportGenesis returns the interchain accounts host exported genesis
