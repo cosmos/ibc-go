@@ -47,10 +47,6 @@ func NewIBCMiddleware(
 		panic(fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)))
 	}
 
-	if writeAckWrapper == nil {
-		panic(errors.New("ICS4Wrapper cannot be nil"))
-	}
-
 	if contractKeeper == nil {
 		panic(errors.New("contract keeper cannot be nil"))
 	}
@@ -66,6 +62,16 @@ func NewIBCMiddleware(
 		chanKeeperV2:    chanKeeperV2,
 		maxCallbackGas:  maxCallbackGas,
 	}
+}
+
+// WithWriteAckWrapper sets the WriteAcknowledgementWrapper for the middleware.
+func (im IBCMiddleware) WithWriteAckWrapper(writeAckWrapper api.WriteAcknowledgementWrapper) {
+	im.writeAckWrapper = writeAckWrapper
+}
+
+// GetWriteAckWrapper returns the WriteAckWrapper
+func (im IBCMiddleware) GetWriteAckWrapper() api.WriteAcknowledgementWrapper {
+	return im.writeAckWrapper
 }
 
 // OnSendPacket implements source callbacks for sending packets.
@@ -311,7 +317,15 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	sequence uint64,
 	ack channeltypesv2.Acknowledgement,
 ) error {
-	err := im.writeAckWrapper.WriteAcknowledgement(ctx, clientID, sequence, ack)
+	// if WriteAckWrapper is wired, use the wrapper to write the acknowledgement
+	// otherwise, use the channel keeper v2 to write the acknowledgement directly
+	var writeAckWrapper api.WriteAcknowledgementWrapper
+	if im.writeAckWrapper != nil {
+		writeAckWrapper = im.writeAckWrapper
+	} else {
+		writeAckWrapper = im.chanKeeperV2
+	}
+	err := writeAckWrapper.WriteAcknowledgement(ctx, clientID, sequence, ack)
 	if err != nil {
 		return err
 	}
