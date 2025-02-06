@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"time"
 
@@ -89,6 +90,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 	}
 
 	var isAsync bool
+	isSuccess := true
 	for _, pd := range msg.Packet.Payloads {
 		// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
 		cacheCtx, writeFn = sdkCtx.CacheContext()
@@ -96,11 +98,23 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, pd, signer)
 
 		if res.Status != types.PacketStatus_Failure {
+			// successful app acknowledgement cannot equal sentinel error acknowledgement
+			if bytes.Equal(res.GetAcknowledgement(), types.ErrorAcknowledgement[:]) {
+				return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "application acknowledgement cannot be sentinel error acknowledgement")
+			}
 			// write application state changes for asynchronous and successful acknowledgements
 			writeFn()
+			// append app acknowledgement to the overall acknowledgement
+			ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
 		} else {
+			isSuccess = false
+			// construct acknowledgement with single app acknowledgement that is the sentinel error acknowledgement
+			ack = types.Acknowledgement{
+				AppAcknowledgements: [][]byte{types.ErrorAcknowledgement[:]},
+			}
 			// Modify events in cached context to reflect unsuccessful acknowledgement
 			sdkCtx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
+			break
 		}
 
 		if res.Status == types.PacketStatus_Async {
@@ -112,22 +126,16 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 				return nil, errorsmod.Wrapf(types.ErrInvalidPacket, "packet with multiple payloads cannot have async acknowledgement")
 			}
 		}
-
-		// append app acknowledgement to the overall acknowledgement
-		ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
-	}
-
-	if len(ack.AppAcknowledgements) != len(msg.Packet.Payloads) {
-		return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(msg.Packet.Payloads))
-	}
-
-	// note this should never happen as the payload would have had to be empty.
-	if len(ack.AppAcknowledgements) == 0 {
-		sdkCtx.Logger().Error("receive packet failed", "source-client", msg.Packet.SourceClient, "error", errorsmod.Wrap(err, "invalid acknowledgement results"))
-		return &types.MsgRecvPacketResponse{Result: types.FAILURE}, errorsmod.Wrapf(err, "receive packet failed source-client %s invalid acknowledgement results", msg.Packet.SourceClient)
 	}
 
 	if !isAsync {
+		// If the application callback was successful, the acknowledgement must have the same number of app acknowledgements as the packet payloads.
+		if isSuccess {
+			if len(ack.AppAcknowledgements) != len(msg.Packet.Payloads) {
+				return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(msg.Packet.Payloads))
+			}
+		}
+
 		// Validate ack before forwarding to WriteAcknowledgement.
 		if err := ack.Validate(); err != nil {
 			return nil, err
@@ -173,9 +181,18 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
 	}
 
+	recvSuccess := !bytes.Equal(msg.Acknowledgement.AppAcknowledgements[0], types.ErrorAcknowledgement[:])
 	for i, pd := range msg.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
-		ack := msg.Acknowledgement.AppAcknowledgements[i]
+		var ack []byte
+		// if recv was successful, each payload should have its own acknowledgement so we send each individual acknowledgment to the application
+		// otherwise, the acknowledgement only contains the sentinel error acknowledgement which we send to the application. The application is responsible
+		// for knowing that this is an error acknowledgement and executing the appropriate logic.
+		if recvSuccess {
+			ack = msg.Acknowledgement.AppAcknowledgements[i]
+		} else {
+			ack = types.ErrorAcknowledgement[:]
+		}
 		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, ack, pd, relayer)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source client %s, destination client %s", pd.SourcePort, msg.Packet.SourceClient, msg.Packet.DestinationClient)
@@ -198,10 +215,7 @@ func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types
 	}
 
 	cacheCtx, writeFn := sdkCtx.CacheContext()
-	if err := k.timeoutPacket(cacheCtx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight); err != nil {
-		sdkCtx.Logger().Error("Timeout packet failed", "source-client", timeout.Packet.SourceClient, "destination-client", timeout.Packet.DestinationClient, "error", errorsmod.Wrap(err, "timeout packet failed"))
-		return nil, errorsmod.Wrapf(err, "timeout packet failed for source id: %s and destination id: %s", timeout.Packet.SourceClient, timeout.Packet.DestinationClient)
-	}
+	err = k.timeoutPacket(cacheCtx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight)
 
 	switch err {
 	case nil:

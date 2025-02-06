@@ -69,7 +69,7 @@ func (k Keeper) Transfer(ctx context.Context, msg *types.MsgTransfer) (*types.Ms
 			}
 		}
 
-		tokens[i], err = k.tokenFromCoin(ctx, coin)
+		tokens[i], err = k.TokenFromCoin(ctx, coin)
 		if err != nil {
 			return nil, err
 		}
@@ -145,7 +145,7 @@ func (k Keeper) getUnwindHops(ctx context.Context, coins sdk.Coins) ([]types.Hop
 		return nil, errorsmod.Wrap(types.ErrInvalidForwarding, "coins cannot be empty")
 	}
 
-	token, err := k.tokenFromCoin(ctx, coins[0])
+	token, err := k.TokenFromCoin(ctx, coins[0])
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (k Keeper) getUnwindHops(ctx context.Context, coins sdk.Coins) ([]types.Hop
 
 	unwindTrace := token.Denom.Trace
 	for _, coin := range coins[1:] {
-		token, err := k.tokenFromCoin(ctx, coin)
+		token, err := k.TokenFromCoin(ctx, coin)
 		if err != nil {
 			return nil, err
 		}

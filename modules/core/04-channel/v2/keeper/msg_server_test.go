@@ -165,8 +165,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			name: "success: failed recv result",
 			malleate: func() {
 				expRecvRes = types.RecvPacketResult{
-					Status:          types.PacketStatus_Failure,
-					Acknowledgement: mock.MockFailPacketData,
+					Status: types.PacketStatus_Failure,
 				}
 			},
 			expError:      nil,
@@ -240,7 +239,12 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			tc.malleate()
 
 			// expectedAck is derived from the expected recv result.
-			expectedAck := types.Acknowledgement{AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement}}
+			var expectedAck types.Acknowledgement
+			if expRecvRes.Status == types.PacketStatus_Success {
+				expectedAck = types.Acknowledgement{AppAcknowledgements: [][]byte{expRecvRes.Acknowledgement}}
+			} else {
+				expectedAck = types.Acknowledgement{AppAcknowledgements: [][]byte{types.ErrorAcknowledgement[:]}}
+			}
 
 			// modify the callback to return the expected recv result.
 			path.EndpointB.Chain.GetSimApp().MockModuleV2B.IBCApp.OnRecvPacket = func(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, data types.Payload, relayer sdk.AccAddress) types.RecvPacketResult {
@@ -392,7 +396,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			malleate: func() {},
 		},
 		{
-			name: "failure: no-op",
+			name: "success: no-op",
 			malleate: func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.DeletePacketCommitment(suite.chainA.GetContext(), packet.SourceClient, packet.Sequence)
 
@@ -402,7 +406,6 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 					return mock.MockApplicationCallbackError
 				}
 			},
-			expError: types.ErrNoOpMsg,
 		},
 		{
 			name: "failure: callback fails",

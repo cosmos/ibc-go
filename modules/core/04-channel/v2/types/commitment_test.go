@@ -3,10 +3,8 @@ package types_test
 import (
 	"encoding/hex"
 	"encoding/json"
-	"math/big"
 	"testing"
 
-	"github.com/cosmos/solidity-ibc-eureka/abigen/ics20lib"
 	"github.com/stretchr/testify/require"
 
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -31,9 +29,9 @@ func TestCommitPacket(t *testing.T) {
 		{
 			"abi packet",
 			func() {
-				transferData, err := ics20lib.EncodeFungibleTokenPacketData(ics20lib.ICS20LibFungibleTokenPacketData{
+				transferData, err := transfertypes.EncodeABIFungibleTokenPacketData(&transfertypes.FungibleTokenPacketData{
 					Denom:    "uatom",
-					Amount:   big.NewInt(1000000),
+					Amount:   "1000000",
 					Sender:   "sender",
 					Receiver: "receiver",
 					Memo:     "memo",

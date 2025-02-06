@@ -1,8 +1,12 @@
 package types
 
 import (
+	"crypto/sha256"
+
 	errorsmod "cosmossdk.io/errors"
 )
+
+var ErrorAcknowledgement = sha256.Sum256([]byte("UNIVERSAL ERROR ACKNOWLEDGEMENT"))
 
 // NewAcknowledgement creates a new Acknowledgement containing the provided app acknowledgements.
 func NewAcknowledgement(appAcknowledgements ...[]byte) Acknowledgement {
