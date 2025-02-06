@@ -14,7 +14,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
@@ -140,8 +139,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	packetData, err := im.app.UnmarshalPacketData(payload)
 	if err != nil {
 		return channeltypesv2.RecvPacketResult{
-			Status:          channeltypesv2.PacketStatus_Failure,
-			Acknowledgement: channeltypes.NewErrorAcknowledgement(err).Acknowledgement(),
+			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 
@@ -152,8 +150,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	)
 	if err != nil {
 		return channeltypesv2.RecvPacketResult{
-			Status:          channeltypesv2.PacketStatus_Failure,
-			Acknowledgement: channeltypes.NewErrorAcknowledgement(err).Acknowledgement(),
+			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 
@@ -170,18 +167,14 @@ func (im IBCMiddleware) OnRecvPacket(
 			TimeoutHeight:      clienttypes.Height{},
 			TimeoutTimestamp:   0,
 		}
-		// unmarshal the acknowledgement into a v1 acknowledgement
-		// this will only work for applications that are returning v1 acknowledgement types
-		// in their v2 module callbacks. ICS-20 Transfer is an example of such an application
-		ack, err := im.app.UnmarshalAcknowledgement(recvResult.Acknowledgement, payload)
-		if err != nil {
-			return err
+		// wrap the individual acknowledgement into the channeltypesv2.Acknowledgement since it implements the exported.Acknowledgement interface
+		var ack channeltypesv2.Acknowledgement
+		if recvResult.Status == channeltypesv2.PacketStatus_Failure {
+			ack = channeltypesv2.NewAcknowledgement(channeltypesv2.ErrorAcknowledgement[:])
+		} else {
+			ack = channeltypesv2.NewAcknowledgement(recvResult.Acknowledgement)
 		}
-		ackV1, ok := ack.(exported.Acknowledgement)
-		if !ok {
-			return errorsmod.Wrapf(channeltypes.ErrInvalidAcknowledgement, "acknowledgement must implement %T", (*exported.Acknowledgement)(nil))
-		}
-		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packetv1, ackV1, cbData.CallbackAddress, payload.Version)
+		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packetv1, ack, cbData.CallbackAddress, payload.Version)
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
@@ -363,11 +356,12 @@ func (im IBCMiddleware) WriteAcknowledgement(
 			TimeoutHeight:      clienttypes.Height{},
 			TimeoutTimestamp:   0,
 		}
-		var ack channeltypes.Acknowledgement
+		// wrap the individual acknowledgement into the channeltypesv2.Acknowledgement since it implements the exported.Acknowledgement interface
+		var ack channeltypesv2.Acknowledgement
 		if recvResult.Status == channeltypesv2.PacketStatus_Failure {
-			ack = channeltypes.NewErrorAcknowledgement(channeltypes.ErrInvalidAcknowledgement)
+			ack = channeltypesv2.NewAcknowledgement(channeltypesv2.ErrorAcknowledgement[:])
 		} else {
-			ack = channeltypes.NewResultAcknowledgement(recvResult.Acknowledgement)
+			ack = channeltypesv2.NewAcknowledgement(recvResult.Acknowledgement)
 		}
 		return im.contractKeeper.IBCReceivePacketCallback(
 			cachedCtx, packetv1, ack, cbData.CallbackAddress, payload.Version,
