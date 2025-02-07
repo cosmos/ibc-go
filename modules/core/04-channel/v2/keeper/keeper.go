@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"context"
-	clientv2keeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
+
 
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clientv2keeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
 	channelkeeperv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"

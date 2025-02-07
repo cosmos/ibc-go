@@ -2,6 +2,11 @@ package keeper
 
 import (
 	"context"
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 )
 
@@ -19,7 +24,15 @@ func NewQueryServer(k *Keeper) types.QueryServer {
 		Keeper: k,
 	}
 }
+
+// CounterpartyInfo gets the CounterpartyInfo from the store corresponding to the request client ID.
 func (q queryServer) CounterpartyInfo(ctx context.Context, request *types.QueryCounterpartyInfoRequest) (*types.QueryCounterpartyInfoResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	info, found := q.GetClientCounterparty(sdkCtx, request.ClientId)
+	if !found {
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("client %s counterparty not found", request.ClientId))
+	}
+
+	return &types.QueryCounterpartyInfoResponse{CounterpartyInfo: &info}, nil
 }

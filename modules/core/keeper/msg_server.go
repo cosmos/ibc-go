@@ -51,6 +51,8 @@ func (k *Keeper) CreateClient(ctx context.Context, msg *clienttypes.MsgCreateCli
 // RegisterCounterparty will register the eureka counterparty info for the given client id
 // it must be called by the same relayer that called CreateClient
 func (k *Keeper) RegisterCounterparty(ctx context.Context, msg *clientv2types.MsgRegisterCounterparty) (*clientv2types.MsgRegisterCounterpartyResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
 	if !creator.Equals(sdk.AccAddress(msg.Signer)) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected same signer as createClient submittor %s, got %s", creator, msg.Signer)
@@ -60,7 +62,7 @@ func (k *Keeper) RegisterCounterparty(ctx context.Context, msg *clientv2types.Ms
 		MerklePrefix: msg.CounterpartyMerklePrefix,
 		ClientId:     msg.CounterpartyClientId,
 	}
-	k.ClientV2Keeper.SetClientCounterparty(ctx, msg.ClientId, counterpartyInfo)
+	k.ClientV2Keeper.SetClientCounterparty(sdkCtx, msg.ClientId, counterpartyInfo)
 
 	// initialize next sequence send to enable packet flow
 	k.ChannelKeeperV2.SetNextSequenceSend(ctx, msg.ClientId, 1)

@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -26,13 +26,13 @@ func NewKeeper(
 }
 
 // SetClientCounterparty sets counterpartyInfo for a given clientID
-func (k *Keeper) SetClientCounterparty(ctx context.Context, clientID string, counterparty types.CounterpartyInfo) {
+func (k *Keeper) SetClientCounterparty(ctx sdk.Context, clientID string, counterparty types.CounterpartyInfo) {
 	store := k.clientV1Keeper.ClientStore(ctx, clientID)
 	store.Set(types.CounterpartyKey(), k.cdc.MustMarshal(&counterparty))
 }
 
 // GetClientCounterparty gets counterpartyInfo for a given clientID
-func (k *Keeper) GetClientCounterparty(ctx context.Context, clientID string) (types.CounterpartyInfo, bool) {
+func (k *Keeper) GetClientCounterparty(ctx sdk.Context, clientID string) (types.CounterpartyInfo, bool) {
 	store := k.clientV1Keeper.ClientStore(ctx, clientID)
 	bz := store.Get(types.CounterpartyKey())
 	if len(bz) == 0 {

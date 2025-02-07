@@ -25,8 +25,10 @@ func (k *Keeper) sendPacket(
 	timeoutTimestamp uint64,
 	payloads []types.Payload,
 ) (uint64, string, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, sourceClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, sourceClient)
 	if !ok {
 		return 0, "", errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", sourceClient)
 	}
@@ -93,8 +95,10 @@ func (k *Keeper) recvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.DestinationClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, packet.DestinationClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
@@ -103,8 +107,6 @@ func (k *Keeper) recvPacket(
 		return errorsmod.Wrapf(clientv2types.ErrInvalidCounterparty, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
 	}
 
-	// check if packet timed out by comparing it with the latest height of the chain
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	currentTimestamp := uint64(sdkCtx.BlockTime().Unix())
 	if currentTimestamp >= packet.TimeoutTimestamp {
 		return errorsmod.Wrapf(types.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, packet.TimeoutTimestamp)
@@ -154,8 +156,10 @@ func (k Keeper) writeAcknowledgement(
 	packet types.Packet,
 	ack types.Acknowledgement,
 ) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.DestinationClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, packet.DestinationClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
@@ -217,8 +221,10 @@ func (k *Keeper) WriteAcknowledgement(ctx context.Context, clientID string, sequ
 }
 
 func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, acknowledgement types.Acknowledgement, proof []byte, proofHeight exported.Height) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.SourceClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, packet.SourceClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
 	}
@@ -280,8 +286,10 @@ func (k *Keeper) timeoutPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.SourceClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, packet.SourceClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
 	}

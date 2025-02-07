@@ -1,23 +1,28 @@
 package keeper_test
 
 import (
+	"math/rand"
+	"testing"
+	"time"
+
+	testifysuite "github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
 	stakingtypes "cosmossdk.io/x/staking/types"
-	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
-	cmttypes "github.com/cometbft/cometbft/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
+	cmttypes "github.com/cometbft/cometbft/types"
+
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
 	types2 "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	"github.com/cosmos/ibc-go/v9/testing/simapp"
-	testifysuite "github.com/stretchr/testify/suite"
-	"math/rand"
-	"testing"
-	"time"
 )
 
 const (
