@@ -145,10 +145,9 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	packetData, err := im.app.UnmarshalPacketData(payload)
+	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
-		return channeltypesv2.RecvPacketResult{
-			Status: channeltypesv2.PacketStatus_Failure,
-		}
+		return recvResult
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -156,10 +155,9 @@ func (im IBCMiddleware) OnRecvPacket(
 		packetData, payload.GetVersion(), payload.GetDestinationPort(),
 		sdkCtx.GasMeter().GasRemaining(), im.maxCallbackGas, types.DestinationCallbackKey,
 	)
+	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
-		return channeltypesv2.RecvPacketResult{
-			Status: channeltypesv2.PacketStatus_Failure,
-		}
+		return recvResult
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -215,8 +213,9 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	packetData, err := im.app.UnmarshalPacketData(payload)
+	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
-		return err
+		return nil
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
