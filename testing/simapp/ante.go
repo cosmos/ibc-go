@@ -3,6 +3,8 @@ package simapp
 import (
 	"errors"
 
+	circuitante "cosmossdk.io/x/circuit/ante"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante/unorderedtx"
@@ -14,6 +16,7 @@ import (
 // HandlerOptions are the options required for constructing a default SDK AnteHandler.
 type HandlerOptions struct {
 	ante.HandlerOptions
+	CircuitKeeper circuitante.CircuitBreaker
 	IBCKeeper     *keeper.Keeper
 }
 
@@ -35,6 +38,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(options.Environment, options.ConsensusKeeper), // outermost AnteDecorator. SetUpContext must be called first
+		circuitante.NewCircuitBreakerDecorator(options.CircuitKeeper),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		ante.NewValidateBasicDecorator(options.Environment),
 		ante.NewTxTimeoutHeightDecorator(options.Environment),

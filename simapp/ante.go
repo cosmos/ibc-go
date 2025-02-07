@@ -25,19 +25,15 @@ type HandlerOptions struct {
 // signer.
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
-		return nil, errors.New("account keeper is required for ante handler")
+		return nil, errors.New("account keeper is required for ante builder")
 	}
 
 	if options.BankKeeper == nil {
-		return nil, errors.New("bank keeper is required for ante handler")
+		return nil, errors.New("bank keeper is required for ante builder")
 	}
 
 	if options.SignModeHandler == nil {
-		return nil, errors.New("sign mode handler is required for ante handler")
-	}
-
-	if options.IBCKeeper == nil {
-		return nil, errors.New("ibc keeper is required for the ante handler")
+		return nil, errors.New("sign mode handler is required for ante builder")
 	}
 
 	anteDecorators := []sdk.AnteDecorator{
