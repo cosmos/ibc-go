@@ -11,6 +11,7 @@ import (
 
 	ibc "github.com/cosmos/ibc-go/v9/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -105,6 +106,12 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					false,
 					2,
 				),
+				ClientV2Genesis: clientv2types.GenesisState{
+					CounterpartyInfos: []clientv2types.CounterpartyInfo{
+						clientv2types.NewCounterpartyInfo([][]byte{{01}}, "test-0"),
+						clientv2types.NewCounterpartyInfo([][]byte{{01}}, "test-1"),
+					},
+				},
 				ConnectionGenesis: connectiontypes.NewGenesisState(
 					[]connectiontypes.IdentifiedConnection{
 						connectiontypes.NewIdentifiedConnection(connectionID, connectiontypes.NewConnectionEnd(connectiontypes.INIT, clientID, connectiontypes.NewCounterparty(clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))), []*connectiontypes.Version{ibctesting.ConnectionVersion}, 0)),
@@ -171,6 +178,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					false,
 					2,
 				),
+				ClientV2Genesis:   clientv2types.DefaultGenesisState(),
 				ConnectionGenesis: connectiontypes.DefaultGenesisState(),
 			},
 			expError: errors.New("genesis metadata key cannot be empty"),
@@ -178,7 +186,8 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 		{
 			name: "invalid connection genesis",
 			genState: &types.GenesisState{
-				ClientGenesis: clienttypes.DefaultGenesisState(),
+				ClientGenesis:   clienttypes.DefaultGenesisState(),
+				ClientV2Genesis: clientv2types.DefaultGenesisState(),
 				ConnectionGenesis: connectiontypes.NewGenesisState(
 					[]connectiontypes.IdentifiedConnection{
 						connectiontypes.NewIdentifiedConnection(connectionID, connectiontypes.NewConnectionEnd(connectiontypes.INIT, "(CLIENTIDONE)", connectiontypes.NewCounterparty(clientID, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))), []*connectiontypes.Version{connectiontypes.NewVersion("1.1", nil)}, 0)),
@@ -196,6 +205,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 			name: "invalid channel genesis",
 			genState: &types.GenesisState{
 				ClientGenesis:     clienttypes.DefaultGenesisState(),
+				ClientV2Genesis:   clientv2types.DefaultGenesisState(),
 				ConnectionGenesis: connectiontypes.DefaultGenesisState(),
 				ChannelGenesis: channeltypes.GenesisState{
 					Acknowledgements: []channeltypes.PacketState{
@@ -204,6 +214,21 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 				},
 			},
 			expError: errors.New("invalid acknowledgement"),
+		},
+		{
+			name: "invalid clientv2 genesis",
+			genState: &types.GenesisState{
+				ClientGenesis: clienttypes.DefaultGenesisState(),
+				ClientV2Genesis: clientv2types.GenesisState{
+					CounterpartyInfos: []clientv2types.CounterpartyInfo{
+						clientv2types.NewCounterpartyInfo([][]byte{{01}}, ""),
+						clientv2types.NewCounterpartyInfo([][]byte{{01}}, "test-1"),
+					},
+				},
+				ConnectionGenesis: connectiontypes.DefaultGenesisState(),
+				ChannelGenesis:    channeltypes.DefaultGenesisState(),
+			},
+			expError: errors.New("counterparty client id cannot be empty"),
 		},
 	}
 
@@ -265,6 +290,12 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 					false,
 					0,
 				),
+				ClientV2Genesis: clientv2types.GenesisState{
+					CounterpartyInfos: []clientv2types.CounterpartyInfo{
+						clientv2types.NewCounterpartyInfo([][]byte{{01}}, "test-0"),
+						clientv2types.NewCounterpartyInfo([][]byte{{01}}, "test-1"),
+					},
+				},
 				ConnectionGenesis: connectiontypes.NewGenesisState(
 					[]connectiontypes.IdentifiedConnection{
 						connectiontypes.NewIdentifiedConnection(connectionID, connectiontypes.NewConnectionEnd(connectiontypes.INIT, clientID, connectiontypes.NewCounterparty(clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))), []*connectiontypes.Version{ibctesting.ConnectionVersion}, 0)),

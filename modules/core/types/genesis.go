@@ -4,6 +4,7 @@ import (
 	gogoprotoany "github.com/cosmos/gogoproto/types/any"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
@@ -14,6 +15,7 @@ var _ gogoprotoany.UnpackInterfacesMessage = (*GenesisState)(nil)
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		ClientGenesis:     clienttypes.DefaultGenesisState(),
+		ClientV2Genesis:   clientv2types.DefaultGenesisState(),
 		ConnectionGenesis: connectiontypes.DefaultGenesisState(),
 		ChannelGenesis:    channeltypes.DefaultGenesisState(),
 	}
@@ -28,6 +30,10 @@ func (gs GenesisState) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error
 // failure.
 func (gs *GenesisState) Validate() error {
 	if err := gs.ClientGenesis.Validate(); err != nil {
+		return err
+	}
+
+	if err := gs.ClientV2Genesis.Validate(); err != nil {
 		return err
 	}
 
