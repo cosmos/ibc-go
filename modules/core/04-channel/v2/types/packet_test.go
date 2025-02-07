@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -26,6 +27,22 @@ func TestValidateBasic(t *testing.T) {
 			func() {},
 			nil,
 		},
+		{
+			"success, single payload just below MaxPayloadsSize",
+			func() {
+				packet.Payloads[0].Value = make([]byte, channeltypesv1.MaxPayloadsSize-1)
+			},
+			nil,
+		},
+		{
+			"failure: invalid single payloads size",
+			func() {
+				// bytes that are larger than MaxPayloadsSize
+				packet.Payloads[0].Value = make([]byte, channeltypesv1.MaxPayloadsSize+1)
+			},
+			types.ErrInvalidPacket,
+		},
+		// TODO: add test cases for multiple payloads when enabled (#7008)
 		{
 			"failure: payloads is nil",
 			func() {
