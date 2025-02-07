@@ -70,14 +70,14 @@ func PackClientState(clientState exported.ClientState) (*codectypes.Any, error) 
 
 // UnpackClientState unpacks an Any into a ClientState. It returns an error if the
 // client state can't be unpacked into a ClientState.
-func UnpackClientState(any *codectypes.Any) (exported.ClientState, error) {
-	if any == nil {
+func UnpackClientState(protoAny *codectypes.Any) (exported.ClientState, error) {
+	if protoAny == nil {
 		return nil, errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
 	}
 
-	clientState, ok := any.GetCachedValue().(exported.ClientState)
+	clientState, ok := protoAny.GetCachedValue().(exported.ClientState)
 	if !ok {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnpackAny, "cannot unpack Any into ClientState %T", any)
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnpackAny, "cannot unpack Any into ClientState %T", protoAny)
 	}
 
 	return clientState, nil
@@ -112,14 +112,14 @@ func MustPackConsensusState(consensusState exported.ConsensusState) *codectypes.
 
 // UnpackConsensusState unpacks an Any into a ConsensusState. It returns an error if the
 // consensus state can't be unpacked into a ConsensusState.
-func UnpackConsensusState(any *codectypes.Any) (exported.ConsensusState, error) {
-	if any == nil {
+func UnpackConsensusState(protoAny *codectypes.Any) (exported.ConsensusState, error) {
+	if protoAny == nil {
 		return nil, errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
 	}
 
-	consensusState, ok := any.GetCachedValue().(exported.ConsensusState)
+	consensusState, ok := protoAny.GetCachedValue().(exported.ConsensusState)
 	if !ok {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnpackAny, "cannot unpack Any into ConsensusState %T", any)
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnpackAny, "cannot unpack Any into ConsensusState %T", protoAny)
 	}
 
 	return consensusState, nil
@@ -144,14 +144,14 @@ func PackClientMessage(clientMessage exported.ClientMessage) (*codectypes.Any, e
 
 // UnpackClientMessage unpacks an Any into a ClientMessage. It returns an error if the
 // consensus state can't be unpacked into a ClientMessage.
-func UnpackClientMessage(any *codectypes.Any) (exported.ClientMessage, error) {
-	if any == nil {
+func UnpackClientMessage(protoAny *codectypes.Any) (exported.ClientMessage, error) {
+	if protoAny == nil {
 		return nil, errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
 	}
 
-	clientMessage, ok := any.GetCachedValue().(exported.ClientMessage)
+	clientMessage, ok := protoAny.GetCachedValue().(exported.ClientMessage)
 	if !ok {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnpackAny, "cannot unpack Any into Header %T", any)
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnpackAny, "cannot unpack Any into Header %T", protoAny)
 	}
 
 	return clientMessage, nil
