@@ -178,11 +178,11 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				packetData.GetBytes(),
 			)
 
-			// gasLimit := ctx.GasMeter().Limit()
+			ctx := s.chainA.GetContext()
+			gasLimit := ctx.GasMeter().Limit()
 
 			var err error
 			sendPacket := func() {
-				ctx := s.chainA.GetContext()
 				cbs := s.chainA.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
 
 				err = cbs.OnSendPacket(ctx, s.path.EndpointA.ClientID, s.path.EndpointB.ClientID,
@@ -195,13 +195,13 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				sendPacket()
 				s.Require().Nil(err)
 
-				// expEvent, exists := GetExpectedEvent(
-				// 	ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
-				// 	s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, seq, types.CallbackTypeSendPacket, nil,
-				// )
-				// if exists {
-				// 	s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
-				// }
+				expEvent, exists := GetExpectedEvent(
+					ctx, gasLimit, packetData.GetBytes(), transfertypes.PortID,
+					transfertypes.PortID, s.path.EndpointA.ChannelID, 1, types.CallbackTypeSendPacket, nil,
+				)
+				if exists {
+					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+				}
 
 			case tc.expPanic:
 				s.Require().PanicsWithValue(tc.expValue, sendPacket)

@@ -10,8 +10,10 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log"
+	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
@@ -144,34 +146,29 @@ func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackT
 }
 
 // GetExpectedEvent returns the expected event for a callback.
-// func GetExpectedEvent(
-// 	ctx sdk.Context, packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte, srcPortID,
-// 	eventPortID, eventChannelID string, seq uint64, callbackType types.CallbackType, expError error,
-// ) (abci.Event, bool) {
-// 	var (
-// 		callbackData types.CallbackData
-// 		err          error
-// 	)
+func GetExpectedEvent(
+	ctx sdk.Context, remainingGas uint64, data []byte, version string,
+	eventPortID, eventChannelID string, seq uint64, callbackType types.CallbackType, expError error,
+) (abci.Event, bool) {
+	var (
+		callbackData types.CallbackData
+		err          error
+	)
 
-// 	// Set up gas meter with remainingGas.
-// 	gasMeter := storetypes.NewGasMeter(remainingGas)
-// 	ctx = ctx.WithGasMeter(gasMeter)
+	callbackKey := types.SourceCallbackKey
+	if callbackType == types.CallbackTypeReceivePacket {
+		callbackKey = types.DestinationCallbackKey
+	}
+	callbackData, err = types.GetCallbackData(data, version, eventPortID, remainingGas, maxCallbackGas, callbackKey)
 
-// 	if callbackType == types.CallbackTypeReceivePacket {
-// 		packet := channeltypes.NewPacket(data, seq, "", "", eventPortID, eventChannelID, clienttypes.ZeroHeight(), 0)
-// 		callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
-// 	} else {
-// 		packet := channeltypes.NewPacket(data, seq, eventPortID, eventChannelID, "", "", clienttypes.ZeroHeight(), 0)
-// 		callbackData, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
-// 	}
-// 	if err != nil {
-// 		return abci.Event{}, false
-// 	}
+	if err != nil {
+		return abci.Event{}, false
+	}
 
-// 	newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
-// 	types.EmitCallbackEvent(newCtx, eventPortID, eventChannelID, seq, callbackType, callbackData, expError)
-// 	return newCtx.EventManager().Events().ToABCIEvents()[0], true
-// }
+	newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
+	types.EmitCallbackEvent(newCtx, eventPortID, eventChannelID, seq, callbackType, callbackData, expError)
+	return newCtx.EventManager().Events().ToABCIEvents()[0], true
+}
 
 func TestIBCCallbacksTestSuite(t *testing.T) {
 	suite.Run(t, new(CallbacksTestSuite))
