@@ -328,6 +328,11 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	sequence uint64,
 	ack channeltypesv2.Acknowledgement,
 ) error {
+	packet, found := im.chanKeeperV2.GetAsyncPacket(ctx, clientID, sequence)
+	if !found {
+		return errorsmod.Wrapf(channeltypesv2.ErrInvalidAcknowledgement, "async packet not found for clientID (%s) and sequence (%d)", clientID, sequence)
+	}
+
 	// if WriteAckWrapper is wired, use the wrapper to write the acknowledgement
 	// otherwise, use the channel keeper v2 to write the acknowledgement directly
 	var writeAckWrapper api.WriteAcknowledgementWrapper
@@ -341,10 +346,6 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	packet, found := im.chanKeeperV2.GetAsyncPacket(ctx, clientID, sequence)
-	if !found {
-		return errorsmod.Wrapf(channeltypesv2.ErrInvalidAcknowledgement, "async packet not found for clientID (%s) and sequence (%d)", clientID, sequence)
-	}
 	// NOTE: use first payload as the payload that is being handled by callbacks middleware
 	// must reconsider if multipacket data gets supported with async packets
 	payload := packet.Payloads[0]
