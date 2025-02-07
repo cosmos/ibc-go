@@ -279,4 +279,3 @@ jobs:
           name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
           path: e2e/diagnostics
           retention-days: 5
-
