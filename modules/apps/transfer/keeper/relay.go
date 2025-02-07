@@ -348,8 +348,7 @@ func (k Keeper) OnTimeoutPacket(ctx context.Context, packet channeltypes.Packet,
 func (k Keeper) refundPacketTokens(ctx context.Context, packet channeltypes.Packet, data types.FungibleTokenPacketDataV2) error {
 	// NOTE: packet data type already checked in handler.go
 
-	senderBytes, err := k.addrCdc.StringToBytes(data.Sender)
-	sender := sdk.AccAddress(senderBytes)
+	sender, err := sdk.AccAddressFromBech32(data.Sender)
 	if err != nil {
 		return err
 	}
