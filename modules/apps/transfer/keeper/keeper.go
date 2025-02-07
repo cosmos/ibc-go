@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"cosmossdk.io/core/address"
 	"cosmossdk.io/core/appmodule"
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
@@ -30,7 +29,6 @@ import (
 type Keeper struct {
 	appmodule.Environment
 
-	addrCdc        address.Codec
 	cdc            codec.BinaryCodec
 	legacySubspace types.ParamSubspace
 
@@ -47,7 +45,6 @@ type Keeper struct {
 // NewKeeper creates a new IBC transfer Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	addrCdc address.Codec,
 	env appmodule.Environment,
 	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
@@ -67,7 +64,6 @@ func NewKeeper(
 
 	return Keeper{
 		cdc:            cdc,
-		addrCdc:        addrCdc,
 		Environment:    env,
 		legacySubspace: legacySubspace,
 		ics4Wrapper:    ics4Wrapper,

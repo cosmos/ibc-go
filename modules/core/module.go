@@ -7,7 +7,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -37,11 +37,11 @@ var (
 	_ appmodule.HasBeginBlocker       = (*AppModule)(nil)
 	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
 	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
-	_ appmodule.HasMigrations         = (*AppModule)(nil)
 
 	_ module.AppModule      = (*AppModule)(nil)
 	_ module.HasGRPCGateway = (*AppModule)(nil)
 	_ module.HasGenesis     = (*AppModule)(nil)
+	_ module.HasServices    = (*AppModule)(nil)
 
 	_ module.HasLegacyProposalMsgs = (*AppModule)(nil)
 	_ module.AppModuleSimulation   = (*AppModule)(nil)
@@ -122,48 +122,43 @@ func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 	types.RegisterInterfaces(registry)
 }
 
-func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) error {
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	clienttypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	connectiontypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	clienttypes.RegisterQueryServer(cfg.QueryServer(), clientkeeper.NewQueryServer(am.keeper.ClientKeeper))
+	connectiontypes.RegisterQueryServer(cfg.QueryServer(), connectionkeeper.NewQueryServer(am.keeper.ConnectionKeeper))
+	channeltypes.RegisterQueryServer(cfg.QueryServer(), channelkeeper.NewQueryServer(am.keeper.ChannelKeeper))
+
 	clientMigrator := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
-	if err := registrar.Register(exported.ModuleName, 2, clientMigrator.Migrate2to3); err != nil {
-		return err
+	if err := cfg.RegisterMigration(exported.ModuleName, 2, clientMigrator.Migrate2to3); err != nil {
+		panic(err)
 	}
 
 	connectionMigrator := connectionkeeper.NewMigrator(am.keeper.ConnectionKeeper)
-	if err := registrar.Register(exported.ModuleName, 3, connectionMigrator.Migrate3to4); err != nil {
-		return err
+	if err := cfg.RegisterMigration(exported.ModuleName, 3, connectionMigrator.Migrate3to4); err != nil {
+		panic(err)
 	}
 
-	if err := registrar.Register(exported.ModuleName, 4, func(ctx context.Context) error {
+	if err := cfg.RegisterMigration(exported.ModuleName, 4, func(ctx sdk.Context) error {
 		if err := clientMigrator.MigrateParams(ctx); err != nil {
 			return err
 		}
 
 		return connectionMigrator.MigrateParams(ctx)
 	}); err != nil {
-		return err
+		panic(err)
 	}
 
 	channelMigrator := channelkeeper.NewMigrator(am.keeper.ChannelKeeper)
-	if err := registrar.Register(exported.ModuleName, 5, channelMigrator.MigrateParams); err != nil {
-		return err
+	if err := cfg.RegisterMigration(exported.ModuleName, 5, channelMigrator.MigrateParams); err != nil {
+		panic(err)
 	}
 
-	if err := registrar.Register(exported.ModuleName, 6, clientMigrator.MigrateToStatelessLocalhost); err != nil {
-		return err
+	if err := cfg.RegisterMigration(exported.ModuleName, 6, clientMigrator.MigrateToStatelessLocalhost); err != nil {
+		panic(err)
 	}
-
-	return nil
-}
-
-// RegisterServices registers module services.
-func (am AppModule) RegisterServices(cfg grpc.ServiceRegistrar) error {
-	clienttypes.RegisterMsgServer(cfg, am.keeper)
-	connectiontypes.RegisterMsgServer(cfg, am.keeper)
-	channeltypes.RegisterMsgServer(cfg, am.keeper)
-	clienttypes.RegisterQueryServer(cfg, clientkeeper.NewQueryServer(am.keeper.ClientKeeper))
-	connectiontypes.RegisterQueryServer(cfg, connectionkeeper.NewQueryServer(am.keeper.ConnectionKeeper))
-	channeltypes.RegisterQueryServer(cfg, channelkeeper.NewQueryServer(am.keeper.ChannelKeeper))
-	return nil
 }
 
 // InitGenesis performs genesis initialization for the ibc module. It returns

@@ -5,6 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -18,7 +20,7 @@ var _ types.MsgServer = (*Keeper)(nil)
 // the source chain from which packets originate as this is where fee distribution takes place. This function may be
 // called more than once by a relayer, in which case, the latest payee is always used.
 func (k Keeper) RegisterPayee(ctx context.Context, msg *types.MsgRegisterPayee) (*types.MsgRegisterPayeeResponse, error) {
-	payee, err := k.AddrCodec.StringToBytes(msg.Payee)
+	payee, err := sdk.AccAddressFromBech32(msg.Payee)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +87,7 @@ func (k Keeper) PayPacketFee(ctx context.Context, msg *types.MsgPayPacketFee) (*
 		return nil, types.ErrFeeModuleLocked
 	}
 
-	refundAcc, err := k.AddrCodec.StringToBytes(msg.Signer)
+	refundAcc, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +130,7 @@ func (k Keeper) PayPacketFeeAsync(ctx context.Context, msg *types.MsgPayPacketFe
 		return nil, types.ErrFeeModuleLocked
 	}
 
-	refundAcc, err := k.AddrCodec.StringToBytes(msg.PacketFee.RefundAddress)
+	refundAcc, err := sdk.AccAddressFromBech32(msg.PacketFee.RefundAddress)
 	if err != nil {
 		return nil, err
 	}

@@ -1,11 +1,7 @@
 package keeper
 
 import (
-	"context"
 	"encoding/hex"
-	"errors"
-
-	"cosmossdk.io/core/event"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -13,33 +9,31 @@ import (
 )
 
 // emitStoreWasmCodeEvent emits a store wasm code event
-func (k Keeper) emitStoreWasmCodeEvent(ctx context.Context, checksum types.Checksum) error {
-	em := k.EventService.EventManager(ctx)
-	return errors.Join(
-		em.EmitKV(
+func emitStoreWasmCodeEvent(ctx sdk.Context, checksum types.Checksum) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
 			types.EventTypeStoreWasmCode,
-			event.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(checksum)),
+			sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(checksum)),
 		),
-		em.EmitKV(
+		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			event.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		),
-	)
+	})
 }
 
 // emitMigrateContractEvent emits a migrate contract event
-func (k Keeper) emitMigrateContractEvent(ctx context.Context, clientID string, checksum, newChecksum types.Checksum) error {
-	em := k.EventService.EventManager(ctx)
-	return errors.Join(
-		em.EmitKV(
+func emitMigrateContractEvent(ctx sdk.Context, clientID string, checksum, newChecksum types.Checksum) {
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
 			types.EventTypeMigrateContract,
-			event.NewAttribute(types.AttributeKeyClientID, clientID),
-			event.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(checksum)),
-			event.NewAttribute(types.AttributeKeyNewChecksum, hex.EncodeToString(newChecksum)),
+			sdk.NewAttribute(types.AttributeKeyClientID, clientID),
+			sdk.NewAttribute(types.AttributeKeyWasmChecksum, hex.EncodeToString(checksum)),
+			sdk.NewAttribute(types.AttributeKeyNewChecksum, hex.EncodeToString(newChecksum)),
 		),
-		em.EmitKV(
+		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			event.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		),
-	)
+	})
 }

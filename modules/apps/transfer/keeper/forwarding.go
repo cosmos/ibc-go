@@ -104,8 +104,7 @@ func (k Keeper) getReceiverFromPacketData(data types.FungibleTokenPacketDataV2) 
 		return k.authKeeper.GetModuleAddress(types.ModuleName), nil
 	}
 
-	receiverBytes, err := k.addrCdc.StringToBytes(data.Receiver)
-	receiver := sdk.AccAddress(receiverBytes)
+	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
 	}
