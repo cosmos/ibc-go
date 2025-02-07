@@ -3,8 +3,6 @@ package types
 import (
 	"context"
 
-	paramtypes "cosmossdk.io/x/params/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
@@ -26,10 +24,4 @@ type ChannelKeeper interface {
 	GetNextSequenceSend(ctx context.Context, portID, channelID string) (uint64, bool)
 	GetConnection(ctx context.Context, connectionID string) (connectiontypes.ConnectionEnd, error)
 	GetAllChannelsWithPortPrefix(ctx context.Context, portPrefix string) []channeltypes.IdentifiedChannel
-}
-
-// ParamSubspace defines the expected Subspace interface for module parameters.
-type ParamSubspace interface {
-	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
-	GetParamSetIfExists(ctx sdk.Context, ps paramtypes.ParamSet)
 }

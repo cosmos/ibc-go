@@ -10,13 +10,11 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	govtypes "cosmossdk.io/x/gov/types"
-	paramsproposaltypes "cosmossdk.io/x/params/types/proposal"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 // compatibility:from_version: v7.2.0
@@ -46,7 +44,6 @@ func (s *TransferTestSuiteSendEnabled) TestSendEnabledParam() {
 	chainA, chainB := s.GetChains()
 
 	channelA := s.GetChainAChannelForTest(testName)
-	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -54,8 +51,6 @@ func (s *TransferTestSuiteSendEnabled) TestSendEnabledParam() {
 
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
-
-	isSelfManagingParams := testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion)
 
 	govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 	s.Require().NoError(err)
@@ -74,17 +69,8 @@ func (s *TransferTestSuiteSendEnabled) TestSendEnabledParam() {
 	})
 
 	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
-		if isSelfManagingParams {
-			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, true))
-			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
-		} else {
-			changes := []paramsproposaltypes.ParamChange{
-				paramsproposaltypes.NewParamChange(transfertypes.StoreKey, string(transfertypes.KeySendEnabled), "false"),
-			}
-
-			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
-		}
+		msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, true))
+		s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
 	})
 
 	t.Run("ensure transfer params are disabled", func(t *testing.T) {

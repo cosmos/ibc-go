@@ -79,7 +79,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 						suite.chainA.GetSimApp().AppCodec(),
 						address.NewBech32Codec(suite.chainA.Bech32Prefix),
 						runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), log.NewNopLogger()),
-						suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 						upgradeKeeper,
 						"", // authority
 					)
@@ -100,7 +99,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					suite.chainA.GetSimApp().AppCodec(),
 					address.NewBech32Codec(suite.chainA.Bech32Prefix),
 					runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), log.NewNopLogger()),
-					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					upgradeKeeper,
 					suite.chainA.App.GetIBCKeeper().GetAuthority(),
 				)

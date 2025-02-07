@@ -123,17 +123,7 @@ func (AppModule) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
-func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) error {
-	controllerMigrator := controllerkeeper.NewMigrator(am.controllerKeeper)
-	hostMigrator := hostkeeper.NewMigrator(am.hostKeeper)
-	if err := registrar.Register(types.ModuleName, 2, func(ctx context.Context) error {
-		if err := hostMigrator.MigrateParams(ctx); err != nil {
-			return err
-		}
-		return controllerMigrator.MigrateParams(ctx)
-	}); err != nil {
-		return fmt.Errorf("failed to migrate interchainaccounts app from version 2 to 3 (self-managed params migration): %w", err)
-	}
+func (AppModule) RegisterMigrations(_ appmodule.MigrationRegistrar) error {
 	return nil
 }
 

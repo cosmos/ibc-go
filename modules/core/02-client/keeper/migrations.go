@@ -3,10 +3,7 @@ package keeper
 import (
 	"context"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
@@ -29,21 +26,6 @@ func NewMigrator(keeper *Keeper) Migrator {
 // - asserts that existing tendermint clients are properly registered on the chain codec
 func (m Migrator) Migrate2to3(ctx context.Context) error {
 	return v7.MigrateStore(ctx, m.keeper.Logger, m.keeper.KVStoreService, m.keeper.cdc, m.keeper)
-}
-
-// MigrateParams migrates from consensus version 4 to 5.
-// This migration takes the parameters that are currently stored and managed by x/params
-// and stores them directly in the ibc module's state.
-func (m Migrator) MigrateParams(ctx context.Context) error {
-	var params types.Params
-	m.keeper.legacySubspace.GetParamSet(sdk.UnwrapSDKContext(ctx), &params)
-	if err := params.Validate(); err != nil {
-		return err
-	}
-
-	m.keeper.SetParams(ctx, params)
-	m.keeper.Logger.Info("successfully migrated client to self-manage params")
-	return nil
 }
 
 // MigrateToStatelessLocalhost deletes the localhost client state. The localhost

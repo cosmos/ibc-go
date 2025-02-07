@@ -5,7 +5,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -16,7 +15,6 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	govtypes "cosmossdk.io/x/gov/types"
-	paramsproposaltypes "cosmossdk.io/x/params/types/proposal"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
@@ -33,7 +31,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
@@ -331,70 +328,6 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		status, err := query.ClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Frozen.String(), status)
-	})
-}
-
-// TestAllowedClientsParam tests changing the AllowedClients parameter using a governance proposal
-func (s *ClientTestSuite) TestAllowedClientsParam() {
-	t := s.T()
-	ctx := context.TODO()
-
-	testName := t.Name()
-	s.CreateDefaultPaths(testName)
-
-	chainA, chainB := s.GetChains()
-	chainAVersion := chainA.Config().Images[0].Version
-	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
-
-	t.Run("ensure allowed clients are set to the default", func(t *testing.T) {
-		allowedClients := s.QueryAllowedClients(ctx, chainA)
-
-		defaultAllowedClients := clienttypes.DefaultAllowedClients
-		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(chainAVersion) {
-			defaultAllowedClients = []string{ibcexported.Solomachine, ibcexported.Tendermint, ibcexported.Localhost, wasmtypes.Wasm}
-		}
-		if !testvalues.LocalhostClientFeatureReleases.IsSupported(chainAVersion) {
-			defaultAllowedClients = slices.DeleteFunc(defaultAllowedClients, func(s string) bool { return s == ibcexported.Localhost })
-		}
-		s.Require().Equal(defaultAllowedClients, allowedClients)
-	})
-
-	allowedClient := ibcexported.Solomachine
-	t.Run("change the allowed client to only allow solomachine clients", func(t *testing.T) {
-		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
-			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
-			s.Require().NoError(err)
-			s.Require().NotNil(authority)
-
-			msg := clienttypes.NewMsgUpdateParams(authority.String(), clienttypes.NewParams(allowedClient))
-			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
-		} else {
-			value, err := cmtjson.Marshal([]string{allowedClient})
-			s.Require().NoError(err)
-			changes := []paramsproposaltypes.ParamChange{
-				paramsproposaltypes.NewParamChange(ibcexported.ModuleName, string(clienttypes.KeyAllowedClients), string(value)),
-			}
-
-			proposal := paramsproposaltypes.NewParameterChangeProposal(ibctesting.Title, ibctesting.Description, changes)
-			s.ExecuteAndPassGovV1Beta1Proposal(ctx, chainA, chainAWallet, proposal)
-		}
-	})
-
-	t.Run("validate the param was successfully changed", func(t *testing.T) {
-		allowedClients := s.QueryAllowedClients(ctx, chainA)
-		s.Require().Equal([]string{allowedClient}, allowedClients)
-	})
-
-	t.Run("ensure querying non-allowed client's status returns Unauthorized Status", func(t *testing.T) {
-		status, err := query.ClientStatus(ctx, chainA, ibctesting.FirstClientID)
-		s.Require().NoError(err)
-		s.Require().Equal(ibcexported.Unauthorized.String(), status)
-
-		status, err = query.ClientStatus(ctx, chainA, ibcexported.Localhost)
-		s.Require().NoError(err)
-		s.Require().Equal(ibcexported.Unauthorized.String(), status)
 	})
 }
 
