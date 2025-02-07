@@ -201,13 +201,8 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 func (chain *TestChain) GetContext() sdk.Context {
 	ctx := chain.App.GetBaseApp().NewUncachedContext(false, chain.ProposedHeader)
 
-	cmtHeader, err := cmttypes.HeaderFromProto(&chain.ProposedHeader)
-	require.NoError(chain.TB, err)
-
 	// since:cosmos-sdk/v0.52 when fetching time from context, it now returns from HeaderInfo
 	headerInfo := header.Info{
-		AppHash: chain.ProposedHeader.AppHash,
-		Hash:    cmtHeader.Hash(),
 		Time:    chain.ProposedHeader.Time,
 		ChainID: chain.ProposedHeader.ChainID,
 	}
@@ -342,7 +337,6 @@ func (chain *TestChain) commitBlock(res *abci.FinalizeBlockResponse) {
 
 	// increment the current header
 	chain.ProposedHeader = cmtproto.Header{
-		Version: cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 1},
 		ChainID: chain.ChainID,
 		Height:  chain.App.LastBlockHeight() + 1,
 		AppHash: chain.App.LastCommitID().Hash,
