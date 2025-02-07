@@ -37,7 +37,7 @@ func (m Migrator) Migrate1to2(ctx context.Context) error {
 		for _, packetFee := range feesInEscrow.PacketFees {
 			refundCoins := legacyTotal(packetFee.Fee).Sub(packetFee.Fee.Total()...)
 
-			refundAddr, err := m.keeper.AddrCodec.StringToBytes(packetFee.RefundAddress)
+			refundAddr, err := sdk.AccAddressFromBech32(packetFee.RefundAddress)
 			if err != nil {
 				return err
 			}
