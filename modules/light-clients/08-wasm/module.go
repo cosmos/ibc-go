@@ -7,7 +7,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
@@ -26,11 +25,11 @@ var (
 	_ appmodule.AppModule             = (*AppModule)(nil)
 	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
 	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
-	_ appmodule.HasMigrations         = (*AppModule)(nil)
 
 	_ module.AppModule      = (*AppModule)(nil)
 	_ module.HasGRPCGateway = (*AppModule)(nil)
 	_ module.HasGenesis     = (*AppModule)(nil)
+	_ module.HasServices    = (*AppModule)(nil)
 
 	_ autocli.HasCustomTxCommand    = (*AppModule)(nil)
 	_ autocli.HasCustomQueryCommand = (*AppModule)(nil)
@@ -103,18 +102,14 @@ func (AppModule) GetQueryCmd() *cobra.Command {
 }
 
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(cfg grpc.ServiceRegistrar) error {
-	types.RegisterMsgServer(cfg, am.keeper)
-	types.RegisterQueryServer(cfg, am.keeper)
-	return nil
-}
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) error {
 	wasmMigrator := keeper.NewMigrator(am.keeper)
-	if err := registrar.Register(types.ModuleName, 1, wasmMigrator.MigrateChecksums); err != nil {
-		return err
+	if err := cfg.RegisterMigration(types.ModuleName, 1, wasmMigrator.MigrateChecksums); err != nil {
+		panic(fmt.Errorf("failed to migrate 08-wasm module from version 1 to 2 (checksums migration to collections): %v", err))
 	}
-	return nil
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
