@@ -8,7 +8,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
 	coreregistry "cosmossdk.io/core/registry"
 
@@ -31,21 +30,12 @@ import (
 )
 
 var (
-	_ appmodule.AppModule             = (*AppModule)(nil)
-	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
-	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
-
-	_ module.AppModule      = (*AppModule)(nil)
-	_ module.HasGenesis     = (*AppModule)(nil)
-	_ module.HasServices    = (*AppModule)(nil)
-	_ module.HasGRPCGateway = (*AppModule)(nil)
-
-	// Sims
-	_ module.AppModuleSimulation   = (*AppModule)(nil)
-	_ module.HasLegacyProposalMsgs = (*AppModule)(nil)
-
-	_ autocli.HasCustomTxCommand    = (*AppModule)(nil)
-	_ autocli.HasCustomQueryCommand = (*AppModule)(nil)
+	_ module.AppModule           = (*AppModule)(nil)
+	_ module.AppModuleBasic      = (*AppModule)(nil)
+	_ module.AppModuleSimulation = (*AppModule)(nil)
+	_ module.HasGenesis          = (*AppModule)(nil)
+	_ module.HasServices         = (*AppModule)(nil)
+	_ appmodule.AppModule        = (*AppModule)(nil)
 
 	_ porttypes.IBCModule = (*host.IBCModule)(nil)
 )
@@ -76,6 +66,9 @@ func (AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
+
+// RegisterLegacyAminoCodec implements AppModule.
+func (AppModule) RegisterLegacyAminoCodec(cdc coreregistry.AminoRegistrar) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any
 func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
@@ -198,6 +191,11 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 // ProposalMsgs returns msgs used for governance proposals for simulations.
 func (am AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
 	return simulation.ProposalMsgs(am.controllerKeeper, am.hostKeeper)
+}
+
+// WeightedOperations is unimplemented.
+func (AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return nil
 }
 
 // RegisterStoreDecoder registers a decoder for interchain accounts module's types
