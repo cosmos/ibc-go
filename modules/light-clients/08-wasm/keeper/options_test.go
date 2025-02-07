@@ -1,13 +1,10 @@
 package keeper_test
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
-
-	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,14 +13,14 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
-func mockErrorCustomQuerier() func(context.Context, json.RawMessage) ([]byte, error) {
-	return func(_ context.Context, _ json.RawMessage) ([]byte, error) {
+func mockErrorCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
+	return func(_ sdk.Context, _ json.RawMessage) ([]byte, error) {
 		return nil, errors.New("custom querier error for TestNewKeeperWithOptions")
 	}
 }
 
-func mockErrorStargateQuerier() func(context.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
-	return func(_ context.Context, _ *wasmvmtypes.StargateQuery) ([]byte, error) {
+func mockErrorStargateQuerier() func(sdk.Context, *wasmvmtypes.StargateQuery) ([]byte, error) {
+	return func(_ sdk.Context, _ *wasmvmtypes.StargateQuery) ([]byte, error) {
 		return nil, errors.New("stargate querier error for TestNewKeeperWithOptions")
 	}
 }
@@ -39,8 +36,8 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 			"success: no options",
 			func() {
 				k = keeper.NewKeeperWithVM(
-					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).AppCodec(),
+					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -64,8 +61,8 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 					Custom: mockErrorCustomQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
-					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).AppCodec(),
+					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -90,8 +87,8 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 					Stargate: mockErrorStargateQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
-					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).AppCodec(),
+					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -117,8 +114,8 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 					Stargate: mockErrorStargateQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
-					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).AppCodec(),
+					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
