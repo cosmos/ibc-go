@@ -208,9 +208,8 @@ func (chain *TestChain) GetContext() sdk.Context {
 	headerInfo := header.Info{
 		AppHash: chain.ProposedHeader.AppHash,
 		Hash:    cmtHeader.Hash(),
-		ChainID: chain.ProposedHeader.ChainID,
-		Height:  chain.ProposedHeader.Height,
 		Time:    chain.ProposedHeader.Time,
+		ChainID: chain.ProposedHeader.ChainID,
 	}
 
 	return ctx.WithHeaderInfo(headerInfo)

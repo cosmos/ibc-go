@@ -47,13 +47,11 @@ func (k *Keeper) ConnOpenInit(
 	connection := types.NewConnectionEnd(types.INIT, clientID, counterparty, versions, delayPeriod)
 	k.SetConnection(ctx, connectionID, connection)
 
-	k.Logger.Info("connection state updated", "connection-id", connectionID, "previous-state", types.UNINITIALIZED, "new-state", types.INIT)
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.UNINITIALIZED, "new-state", types.INIT)
 
 	defer telemetry.IncrCounter(1, "ibc", "connection", "open-init")
 
-	if err := k.emitConnectionOpenInitEvent(ctx, connectionID, clientID, counterparty); err != nil {
-		return "", err
-	}
+	emitConnectionOpenInitEvent(ctx, connectionID, clientID, counterparty)
 
 	return connectionID, nil
 }
@@ -108,13 +106,11 @@ func (k *Keeper) ConnOpenTry(
 	}
 
 	k.SetConnection(ctx, connectionID, connection)
-	k.Logger.Info("connection state updated", "connection-id", connectionID, "previous-state", types.UNINITIALIZED, "new-state", types.TRYOPEN)
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.UNINITIALIZED, "new-state", types.TRYOPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "connection", "open-try")
 
-	if err := k.emitConnectionOpenTryEvent(ctx, connectionID, clientID, counterparty); err != nil {
-		return "", nil
-	}
+	emitConnectionOpenTryEvent(ctx, connectionID, clientID, counterparty)
 
 	return connectionID, nil
 }
@@ -165,7 +161,7 @@ func (k *Keeper) ConnOpenAck(
 		return err
 	}
 
-	k.Logger.Info("connection state updated", "connection-id", connectionID, "previous-state", types.INIT, "new-state", types.OPEN)
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.INIT, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "connection", "open-ack")
 
@@ -175,7 +171,9 @@ func (k *Keeper) ConnOpenAck(
 	connection.Counterparty.ConnectionId = counterpartyConnectionID
 	k.SetConnection(ctx, connectionID, connection)
 
-	return k.emitConnectionOpenAckEvent(ctx, connectionID, connection)
+	emitConnectionOpenAckEvent(ctx, connectionID, connection)
+
+	return nil
 }
 
 // ConnOpenConfirm confirms opening of a connection on chain A to chain B, after
@@ -217,9 +215,11 @@ func (k *Keeper) ConnOpenConfirm(
 	// Update ChainB's connection to Open
 	connection.State = types.OPEN
 	k.SetConnection(ctx, connectionID, connection)
-	k.Logger.Info("connection state updated", "connection-id", connectionID, "previous-state", types.TRYOPEN, "new-state", types.OPEN)
+	k.Logger(ctx).Info("connection state updated", "connection-id", connectionID, "previous-state", types.TRYOPEN, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "connection", "open-confirm")
 
-	return k.emitConnectionOpenConfirmEvent(ctx, connectionID, connection)
+	emitConnectionOpenConfirmEvent(ctx, connectionID, connection)
+
+	return nil
 }
