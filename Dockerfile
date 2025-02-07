@@ -26,7 +26,7 @@ RUN go mod download
 
 RUN make build
 
-FROM alpine:3.18
+FROM alpine:3.21
 ARG IBC_GO_VERSION
 
 LABEL "org.cosmos.ibc-go" "${IBC_GO_VERSION}"

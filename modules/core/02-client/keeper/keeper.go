@@ -56,7 +56,7 @@ func (k *Keeper) Codec() codec.BinaryCodec {
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
@@ -532,7 +532,7 @@ func (k *Keeper) ScheduleIBCSoftwareUpgrade(ctx context.Context, plan upgradetyp
 	}
 
 	// emitting an event for scheduling an upgrade plan
-	sdkContext := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkContext := sdk.UnwrapSDKContext(ctx)
 	emitScheduleIBCSoftwareUpgradeEvent(sdkContext, plan.Name, plan.Height)
 
 	return nil

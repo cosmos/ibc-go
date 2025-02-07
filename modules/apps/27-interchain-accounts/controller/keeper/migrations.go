@@ -25,7 +25,7 @@ func (m Migrator) MigrateParams(ctx context.Context) error {
 	if m.keeper != nil {
 		params := controllertypes.DefaultParams()
 		if m.keeper.legacySubspace != nil {
-			sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+			sdkCtx := sdk.UnwrapSDKContext(ctx)
 			m.keeper.legacySubspace.GetParamSetIfExists(sdkCtx, &params)
 		}
 		m.keeper.SetParams(ctx, params)

@@ -341,7 +341,7 @@ func (k *Keeper) ChanUpgradeAck(
 	}
 
 	timeout := counterpartyUpgrade.Timeout
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
 
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
@@ -464,7 +464,7 @@ func (k *Keeper) ChanUpgradeConfirm(
 	}
 
 	timeout := counterpartyUpgrade.Timeout
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
 
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
@@ -885,7 +885,7 @@ func (k *Keeper) startFlushing(ctx context.Context, portID, channelID string, up
 // getAbsoluteUpgradeTimeout returns the absolute timeout for the given upgrade.
 func (k *Keeper) getAbsoluteUpgradeTimeout(ctx context.Context) types.Timeout {
 	upgradeTimeout := k.GetParams(ctx).UpgradeTimeout
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	return types.NewTimeout(clienttypes.ZeroHeight(), uint64(sdkCtx.BlockTime().UnixNano())+upgradeTimeout.Timestamp)
 }
 

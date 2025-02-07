@@ -68,7 +68,7 @@ func (k Keeper) executeTx(ctx context.Context, sourcePort, destPort, destChannel
 
 	// CacheContext returns a new context with the multi-store branched into a cached storage object
 	// writeCache is called only if all msgs succeed, performing state transitions atomically
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	cacheCtx, writeCache := sdkCtx.CacheContext()
 	for i, msg := range msgs {
 		if m, ok := msg.(sdk.HasValidateBasic); ok {
@@ -131,7 +131,7 @@ func (k Keeper) authenticateTx(ctx context.Context, msgs []sdk.Msg, connectionID
 
 // Attempts to get the message handler from the router and if found will then execute the message.
 // If the message execution is successful, the proto marshaled message response will be returned.
-func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) { // TODO: https://github.com/cosmos/ibc-go/issues/7223
+func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) {
 	handler := k.msgRouter.Handler(msg)
 	if handler == nil {
 		return nil, icatypes.ErrInvalidRoute

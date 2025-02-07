@@ -46,7 +46,7 @@ type interchainAccountPretty struct {
 // the current block app hash, and the current block data hash. The sdk.AccAddress returned is a sub-address of the host module account.
 func GenerateAddress(ctx context.Context, connectionID, portID string) sdk.AccAddress {
 	hostModuleAcc := sdkaddress.Module(ModuleName, []byte(hostAccountsKey))
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	header := sdkCtx.BlockHeader()
 
 	buf := []byte(connectionID + portID)

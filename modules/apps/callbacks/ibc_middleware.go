@@ -101,7 +101,7 @@ func (im IBCMiddleware) SendPacket(
 	// packet is created without destination information present, GetSourceCallbackData does not use these.
 	packet := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	callbackData, err := types.GetSourceCallbackData(sdkCtx, im.app, packet, im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
@@ -141,7 +141,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	callbackData, err := types.GetSourceCallbackData(
 		sdkCtx, im.app, packet, im.maxCallbackGas,
@@ -177,7 +177,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx context.Context, channelVersion stri
 		return err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	callbackData, err := types.GetSourceCallbackData(
 		sdkCtx, im.app, packet, im.maxCallbackGas,
@@ -215,7 +215,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx context.Context, channelVersion string,
 		return ack
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	callbackData, err := types.GetDestCallbackData(
 		sdkCtx, im.app, packet, im.maxCallbackGas,
 	)
@@ -258,7 +258,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		panic(fmt.Errorf("expected type %T, got %T", &channeltypes.Packet{}, packet))
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	callbackData, err := types.GetDestCallbackData(
 		sdkCtx, im.app, chanPacket, im.maxCallbackGas,
 	)

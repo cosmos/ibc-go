@@ -43,7 +43,7 @@ func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, leg
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
@@ -158,7 +158,7 @@ func (k *Keeper) SetNextConnectionSequence(ctx context.Context, sequence uint64)
 // no paths are stored.
 func (k *Keeper) GetAllClientConnectionPaths(ctx context.Context) []types.ConnectionPaths {
 	var allConnectionPaths []types.ConnectionPaths
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	k.clientKeeper.IterateClientStates(sdkCtx, nil, func(clientID string, cs exported.ClientState) bool {
 		paths, found := k.GetClientConnectionPaths(ctx, clientID)
 		if !found {

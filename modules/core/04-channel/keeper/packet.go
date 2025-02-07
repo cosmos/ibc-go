@@ -36,7 +36,7 @@ func (k *Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -157,7 +157,7 @@ func (k *Keeper) RecvPacket(
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
 	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
@@ -207,7 +207,7 @@ func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet,
 		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	switch channel.Ordering {
 	case types.UNORDERED:
 		// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
@@ -334,7 +334,7 @@ func (k *Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	emitWriteAcknowledgementEvent(sdkCtx, packet.(types.Packet), channel, bz)
 
 	return nil
@@ -471,7 +471,7 @@ func (k *Keeper) AcknowledgePacket(
 func (k *Keeper) handleFlushState(ctx context.Context, packet types.Packet, channel types.Channel) {
 	if counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel()); found {
 		timeout := counterpartyUpgrade.Timeout
-		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
 		selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
 
 		if timeout.Elapsed(selfHeight, selfTimestamp) {

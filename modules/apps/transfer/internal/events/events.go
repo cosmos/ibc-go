@@ -52,7 +52,7 @@ func EmitOnRecvPacketEvent(ctx context.Context, packetData types.FungibleTokenPa
 		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -70,7 +70,7 @@ func EmitOnRecvPacketEvent(ctx context.Context, packetData types.FungibleTokenPa
 func EmitOnAcknowledgementPacketEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
 	tokensStr := mustMarshalJSON(packetData.Tokens)
 	forwardingHopsStr := mustMarshalJSON(packetData.Forwarding.Hops)
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePacket,
@@ -107,7 +107,7 @@ func EmitOnAcknowledgementPacketEvent(ctx context.Context, packetData types.Fung
 
 // EmitOnTimeoutEvent emits a fungible token packet event in the OnTimeoutPacket callback
 func EmitOnTimeoutEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	tokensStr := mustMarshalJSON(packetData.Tokens)
 	forwardingHopsStr := mustMarshalJSON(packetData.Forwarding.Hops)
 
@@ -128,7 +128,7 @@ func EmitOnTimeoutEvent(ctx context.Context, packetData types.FungibleTokenPacke
 
 // EmitDenomEvent emits a denomination event in the OnRecv callback.
 func EmitDenomEvent(ctx context.Context, token types.Token) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	denomStr := mustMarshalJSON(token.Denom)
 
 	sdkCtx.EventManager().EmitEvent(

@@ -66,7 +66,7 @@ func (k Keeper) registerInterchainAccount(ctx context.Context, connectionID, por
 
 	k.setPort(ctx, portID)
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	msg := channeltypes.NewMsgChannelOpenInit(portID, version, ordering, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
 	handler := k.msgRouter.Handler(msg)
 	res, err := handler(sdkCtx, msg)

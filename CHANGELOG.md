@@ -64,6 +64,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (testing)[\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update the block proposer in test chains for each block.
+
 ### Features
 
 * (apps/transfer) [\#7650](https://github.com/cosmos/ibc-go/pull/7650) Add support for transfer of entire balance for vesting accounts

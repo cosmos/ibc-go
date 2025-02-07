@@ -1,8 +1,6 @@
 module github.com/cosmos/ibc-go/modules/apps/callbacks
 
-go 1.22.7
-
-toolchain go1.22.8
+go 1.23.6
 
 replace github.com/cosmos/ibc-go/v9 => ../../../
 
