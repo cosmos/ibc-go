@@ -29,7 +29,6 @@ import (
 
 	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v9/testing/simapp"
-	ibctestingtypes "github.com/cosmos/ibc-go/v9/testing/types"
 )
 
 var DefaultTestingAppInit = SetupTestingApp
@@ -39,7 +38,6 @@ type TestingApp interface {
 
 	// ibc-go additions
 	GetBaseApp() *baseapp.BaseApp
-	GetStakingKeeper() ibctestingtypes.StakingKeeper
 	GetIBCKeeper() *keeper.Keeper
 	GetTxConfig() client.TxConfig
 
