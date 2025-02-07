@@ -295,7 +295,7 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 
 // GetExpectedEvent returns the expected event for a callback.
 func GetExpectedEvent(
-	ctx sdk.Context, packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte, srcPortID,
+	ctx sdk.Context, packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte,
 	eventPortID, eventChannelID string, seq uint64, callbackType types.CallbackType, expError error,
 ) (abci.Event, bool) {
 	var (
