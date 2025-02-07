@@ -10,6 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -190,9 +191,7 @@ func (k Keeper) OnRecvPacket(
 				k.SetDenomMetadata(ctx, token.Denom)
 			}
 
-			if err := k.EmitDenomEvent(ctx, token); err != nil {
-				return nil, err
-			}
+			events.EmitDenomEvent(ctx, token)
 
 			voucher := sdk.NewCoin(voucherDenom, transferAmount)
 

@@ -14,7 +14,7 @@ import (
 // HandlerOptions are the options required for constructing a default SDK AnteHandler.
 type HandlerOptions struct {
 	ante.HandlerOptions
-	IBCKeeper *keeper.Keeper
+	IBCKeeper     *keeper.Keeper
 }
 
 // NewAnteHandler returns an AnteHandler that checks and increments sequence

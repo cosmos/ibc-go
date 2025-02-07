@@ -10,6 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -72,9 +73,7 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 		return err
 	}
 
-	if err := im.keeper.EmitTransferEvent(goCtx, sender.String(), data.Receiver, data.Tokens, data.Memo, data.Forwarding.Hops); err != nil {
-		return err
-	}
+	events.EmitTransferEvent(goCtx, sender.String(), data.Receiver, data.Tokens, data.Memo, data.Forwarding.Hops)
 
 	telemetry.ReportTransfer(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Tokens)
 
@@ -105,9 +104,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	// we are explicitly wrapping this emit event call in an anonymous function so that
 	// the packet data is evaluated after it has been assigned a value.
 	defer func() {
-		if err := im.keeper.EmitOnRecvPacketEvent(ctx, data, ack, ackErr); err != nil {
-			im.keeper.Logger.Error(fmt.Sprintf("failed to emit %T event", channeltypesv2.EventTypeRecvPacket), "error", err)
-		}
+		events.EmitOnRecvPacketEvent(ctx, data, ack, ackErr)
 	}()
 
 	data, ackErr = types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
@@ -170,7 +167,9 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 
 	// TODO: handle forwarding
 
-	return im.keeper.EmitOnTimeoutEvent(ctx, data)
+	events.EmitOnTimeoutEvent(ctx, data)
+
+	return nil
 }
 
 func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
@@ -199,5 +198,7 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 
 	// TODO: handle forwarding
 
-	return im.keeper.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
+	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
+
+	return nil
 }

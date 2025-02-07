@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -91,9 +92,7 @@ func (k Keeper) Transfer(ctx context.Context, msg *types.MsgTransfer) (*types.Ms
 		return nil, err
 	}
 
-	if err := k.EmitTransferEvent(ctx, sender.String(), msg.Receiver, tokens, msg.Memo, hops); err != nil {
-		return nil, err
-	}
+	events.EmitTransferEvent(ctx, sender.String(), msg.Receiver, tokens, msg.Memo, hops)
 
 	destinationPort := channel.Counterparty.PortId
 	destinationChannel := channel.Counterparty.ChannelId
