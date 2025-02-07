@@ -6,7 +6,6 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	minttypes "cosmossdk.io/x/mint/types"
@@ -58,7 +57,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"success", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
+				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
@@ -70,7 +69,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"failure: transfer module account does not exist", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
+				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
@@ -82,7 +81,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"failure: empty authority", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
+				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,

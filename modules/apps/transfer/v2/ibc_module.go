@@ -69,7 +69,7 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 		}
 	}
 
-	if err := im.keeper.SendTransfer(goCtx, payload.SourcePort, sourceChannel, data.Tokens, signer); err != nil {
+	if err := im.keeper.SendTransfer(sdk.UnwrapSDKContext(goCtx), payload.SourcePort, sourceChannel, data.Tokens, signer); err != nil {
 		return err
 	}
 
@@ -109,7 +109,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 
 	data, ackErr = types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if ackErr != nil {
-		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
 		}
@@ -123,13 +123,13 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 		payload.DestinationPort,
 		destinationChannel,
 	); ackErr != nil {
-		im.keeper.Logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 
-	im.keeper.Logger.Info("successfully handled ICS-20 packet", "sequence", sequence)
+	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", sequence)
 
 	telemetry.ReportOnRecvPacket(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Tokens)
 
