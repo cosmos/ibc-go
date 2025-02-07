@@ -16,9 +16,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
 )
 
-var (
-	_ api.IBCModule = (*IBCMiddleware)(nil)
-)
+var _ api.IBCModule = (*IBCMiddleware)(nil)
 
 // IBCMiddleware implements the IBC v2 middleware interface
 // with the underlying application.

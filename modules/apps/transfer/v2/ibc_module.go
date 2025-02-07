@@ -204,6 +204,6 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 
 // UnmarshalPacketData unmarshals the ICS20 packet data based on the version and encoding
 // it implements the PacketDataUnmarshaler interface
-func (_ *IBCModule) UnmarshalPacketData(payload channeltypesv2.Payload) (interface{}, error) {
+func (*IBCModule) UnmarshalPacketData(payload channeltypesv2.Payload) (interface{}, error) {
 	return types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 }
