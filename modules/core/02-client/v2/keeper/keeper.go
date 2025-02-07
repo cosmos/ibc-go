@@ -11,7 +11,7 @@ import (
 
 type Keeper struct {
 	cdc            codec.BinaryCodec
-	clientV1Keeper *clientv1keeper.Keeper
+	ClientV1Keeper *clientv1keeper.Keeper
 }
 
 // NewKeeper creates a new client v2 keeper
@@ -21,19 +21,19 @@ func NewKeeper(
 ) *Keeper {
 	return &Keeper{
 		cdc:            cdc,
-		clientV1Keeper: clientV1Keeper,
+		ClientV1Keeper: clientV1Keeper,
 	}
 }
 
 // SetClientCounterparty sets counterpartyInfo for a given clientID
 func (k *Keeper) SetClientCounterparty(ctx sdk.Context, clientID string, counterparty types.CounterpartyInfo) {
-	store := k.clientV1Keeper.ClientStore(ctx, clientID)
+	store := k.ClientV1Keeper.ClientStore(ctx, clientID)
 	store.Set(types.CounterpartyKey(), k.cdc.MustMarshal(&counterparty))
 }
 
 // GetClientCounterparty gets counterpartyInfo for a given clientID
 func (k *Keeper) GetClientCounterparty(ctx sdk.Context, clientID string) (types.CounterpartyInfo, bool) {
-	store := k.clientV1Keeper.ClientStore(ctx, clientID)
+	store := k.ClientV1Keeper.ClientStore(ctx, clientID)
 	bz := store.Get(types.CounterpartyKey())
 	if len(bz) == 0 {
 		return types.CounterpartyInfo{}, false
