@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -78,7 +79,7 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 				suite.Require().NoError(err)
 				counterpartyInfo, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(ok)
-				suite.Require().Equal(counterpartyInfo, clienttypes.NewCounterpartyInfo(merklePrefix, path.EndpointB.ClientID))
+				suite.Require().Equal(counterpartyInfo, types.NewCounterpartyInfo(merklePrefix, path.EndpointB.ClientID))
 				nextSeqSend, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(ok)
 				suite.Require().Equal(nextSeqSend, uint64(1))

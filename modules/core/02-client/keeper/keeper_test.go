@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	types2 "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	"math/rand"
 	"testing"
 	"time"
@@ -138,7 +139,7 @@ func (suite *KeeperTestSuite) TestSetClientCreator() {
 }
 
 func (suite *KeeperTestSuite) TestSetClientCounterparty() {
-	counterparty := types.NewCounterpartyInfo([][]byte{[]byte("ibc"), []byte("channel-7")}, testClientID2)
+	counterparty := types2.NewCounterpartyInfo([][]byte{[]byte("ibc"), []byte("channel-7")}, testClientID2)
 	suite.keeper.SetClientCounterparty(suite.ctx, testClientID, counterparty)
 
 	retrievedCounterparty, found := suite.keeper.GetClientCounterparty(suite.ctx, testClientID)
