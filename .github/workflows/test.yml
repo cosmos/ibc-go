@@ -34,6 +34,8 @@ jobs:
             **/**.go
             go.mod
             go.sum
+            **/go.mod
+            **/go.sum
       - name: Install compiler for arm64.
         if: matrix.go-arch == 'arm64'
         run: |
@@ -99,6 +101,8 @@ jobs:
             **/**.go
             go.mod
             go.sum
+            **/go.mod
+            **/go.sum
       - uses: actions/download-artifact@v4
         with:
           name: '${{ github.sha }}-${{ matrix.part }}'
