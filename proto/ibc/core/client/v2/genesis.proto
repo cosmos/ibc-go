@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package ibc.core.client.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types";
+
+import "ibc/core/client/v2/counterparty.proto";
+import "gogoproto/gogo.proto";
+
+// GenesisState defines the ibc client v2 submodule's genesis state.
+message GenesisState {
+  // counterparty info for each client
+  repeated CounterpartyInfo counterparty_infos = 1 [(gogoproto.nullable) = false];
+}
