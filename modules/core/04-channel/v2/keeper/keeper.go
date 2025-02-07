@@ -1,12 +1,15 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
+	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
@@ -50,7 +53,7 @@ func NewKeeper(
 }
 
 // Logger returns a module-specific logger.
-func (Keeper) Logger(ctx context.Context) log.Logger {
+func (*Keeper) Logger(ctx context.Context) log.Logger {
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
@@ -193,4 +196,58 @@ func (k *Keeper) DeleteAsyncPacket(ctx context.Context, clientID string, sequenc
 	if err := store.Delete(types.AsyncPacketKey(clientID, sequence)); err != nil {
 		panic(err)
 	}
+}
+
+// GetAllPacketCommitmentsForClient returns all stored PacketCommitments objects for a specified
+// client ID.
+func (k *Keeper) GetAllPacketCommitmentsForClient(ctx context.Context, clientID string) []types.PacketState {
+	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
+	storePrefix := hostv2.PacketCommitmentPrefixKey(clientID)
+	iterator := storetypes.KVStorePrefixIterator(store, storePrefix)
+
+	var commitments []types.PacketState
+	for ; iterator.Valid(); iterator.Next() {
+		sequenceBz := bytes.TrimPrefix(iterator.Key(), storePrefix)
+		sequence := sdk.BigEndianToUint64(sequenceBz)
+		state := types.NewPacketState(clientID, sequence, iterator.Value())
+
+		commitments = append(commitments, state)
+	}
+	return commitments
+}
+
+// GetAllPacketAcknowledgementsForClient returns all stored PacketAcknowledgements objects for a specified
+// client ID.
+func (k *Keeper) GetAllPacketAcknowledgementsForClient(ctx context.Context, clientID string) []types.PacketState {
+	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
+	storePrefix := hostv2.PacketAcknowledgementPrefixKey(clientID)
+	iterator := storetypes.KVStorePrefixIterator(store, storePrefix)
+
+	var acknowledgements []types.PacketState
+	for ; iterator.Valid(); iterator.Next() {
+		sequenceBz := bytes.TrimPrefix(iterator.Key(), storePrefix)
+		sequence := sdk.BigEndianToUint64(sequenceBz)
+		state := types.NewPacketState(clientID, sequence, iterator.Value())
+
+		acknowledgements = append(acknowledgements, state)
+	}
+	return acknowledgements
+}
+
+// GetAllPacketReceiptsForClient returns all stored PacketReceipts objects for a specified
+// client ID.
+func (k *Keeper) GetAllPacketReceiptsForClient(ctx context.Context, clientID string) []types.PacketState {
+	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
+	storePrefix := hostv2.PacketReceiptPrefixKey(clientID)
+	iterator := storetypes.KVStorePrefixIterator(store, storePrefix)
+
+	var receipts []types.PacketState
+	for ; iterator.Valid(); iterator.Next() {
+		sequenceBz := bytes.TrimPrefix(iterator.Key(), storePrefix)
+		sequence := sdk.BigEndianToUint64(sequenceBz)
+		state := types.NewPacketState(clientID, sequence, iterator.Value())
+
+		receipts = append(receipts, state)
+	}
+	return receipts
 }
