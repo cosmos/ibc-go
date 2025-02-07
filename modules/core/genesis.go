@@ -4,6 +4,7 @@ import (
 	"context"
 
 	client "github.com/cosmos/ibc-go/v9/modules/core/02-client"
+	clientv2 "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2"
 	connection "github.com/cosmos/ibc-go/v9/modules/core/03-connection"
 	channel "github.com/cosmos/ibc-go/v9/modules/core/04-channel"
 	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
@@ -18,17 +19,20 @@ func InitGenesis(ctx context.Context, k keeper.Keeper, gs *types.GenesisState) e
 	}
 	connection.InitGenesis(ctx, k.ConnectionKeeper, gs.ConnectionGenesis)
 	channel.InitGenesis(ctx, k.ChannelKeeper, gs.ChannelGenesis)
-	return nil
+
+	return clientv2.InitGenesis(ctx, k.ClientV2Keeper, gs.ClientV2Genesis)
 }
 
 // ExportGenesis returns the ibc exported genesis.
 func ExportGenesis(ctx context.Context, k keeper.Keeper) (*types.GenesisState, error) {
-	gs, err := client.ExportGenesis(ctx, k.ClientKeeper)
+	clientGenState, err := client.ExportGenesis(ctx, k.ClientKeeper)
 	if err != nil {
 		return nil, err
 	}
+
 	return &types.GenesisState{
-		ClientGenesis:     gs,
+		ClientGenesis:     clientGenState,
+		ClientV2Genesis:   clientv2.ExportGenesis(ctx, k.ClientV2Keeper),
 		ConnectionGenesis: connection.ExportGenesis(ctx, k.ConnectionKeeper),
 		ChannelGenesis:    channel.ExportGenesis(ctx, k.ChannelKeeper),
 	}, nil
