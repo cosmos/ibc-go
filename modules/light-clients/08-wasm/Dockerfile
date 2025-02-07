@@ -1,4 +1,4 @@
-FROM golang:1.23.4-alpine as builder-base
+FROM golang:1.23.4-alpine as builder
 
 ARG LIBWASM_VERSION
 ARG TARGETARCH
@@ -23,12 +23,12 @@ RUN go mod download
 
 # Since it is not easy to fully cache a RUN script download of libwasmvm, we use two different stages
 # and copy the correct file in the final stage. The multistage setup also helps speed up the build process
-FROM alpine:3.21 AS amd64-stage
+FROM alpine:3.18 AS amd64-stage
 ARG LIBWASM_VERSION
 ADD https://github.com/CosmWasm/wasmvm/releases/download/${LIBWASM_VERSION}/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
 
 
-FROM alpine:3.21 AS arm64-stage
+FROM alpine:3.18 AS arm64-stage
 ARG LIBWASM_VERSION
 ADD https://github.com/CosmWasm/wasmvm/releases/download/${LIBWASM_VERSION}/libwasmvm_muslc.aarch64.a /lib/libwasmvm_muslc.aarch64.a
 
@@ -44,6 +44,6 @@ COPY --from=libwasm-stage /lib/libwasmvm_muslc.* /lib/
 RUN go build -mod=readonly -tags "netgo ledger muslc" -ldflags '-X github.com/cosmos/cosmos-sdk/version.Name=sim -X github.com/cosmos/cosmos-sdk/version.AppName=simd -X github.com/cosmos/cosmos-sdk/version.Version= -X github.com/cosmos/cosmos-sdk/version.Commit= -X "github.com/cosmos/cosmos-sdk/version.BuildTags=netgo ledger muslc," -w -s -linkmode=external -extldflags "-Wl,-z,muldefs -static"' -trimpath -o /go/build/ ./...
 
 
-FROM alpine:3.21
+FROM alpine:3.18
 COPY --from=builder /go/build/simd /bin/simd
 ENTRYPOINT ["simd"]
