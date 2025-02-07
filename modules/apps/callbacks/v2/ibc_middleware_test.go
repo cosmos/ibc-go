@@ -2,7 +2,6 @@ package v2_test
 
 import (
 	"fmt"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -11,7 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	v2 "github.com/cosmos/ibc-go/modules/apps/callbacks/v2"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -81,9 +79,9 @@ func (s *CallbacksTestSuite) TestWithWriteAckWrapper() {
 	s.Require().Nil(cbsMiddleware.GetWriteAckWrapper())
 
 	cbsMiddleware.WithWriteAckWrapper(s.chainA.App.GetIBCKeeper().ChannelKeeperV2)
-	ics4Wrapper := cbsMiddleware.GetWriteAckWrapper()
+	writeAckWrapper := cbsMiddleware.GetWriteAckWrapper()
 
-	s.Require().IsType((*channelkeeperv2.Keeper)(nil), ics4Wrapper)
+	s.Require().IsType((*channelkeeperv2.Keeper)(nil), writeAckWrapper)
 }
 
 func (s *CallbacksTestSuite) TestSendPacket() {
@@ -124,15 +122,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			"none", // improperly formatted callback data should result in no callback execution
 			false,
 			nil,
-		},
-		{
-			"failure: ics4Wrapper SendPacket call fails",
-			func() {
-				s.path.EndpointA.ChannelID = "invalid-channel"
-			},
-			"none", // ics4wrapper failure should result in no callback execution
-			false,
-			channeltypes.ErrChannelNotFound,
 		},
 		{
 			"failure: callback execution fails",
@@ -180,25 +169,24 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
 				ibctesting.EmptyForwardingPacketData,
 			)
+
+			tc.malleate()
+
 			payload := channeltypesv2.NewPayload(
 				transfertypes.PortID, transfertypes.PortID,
 				transfertypes.V2, transfertypes.EncodingProtobuf,
 				packetData.GetBytes(),
 			)
 
-			tc.malleate()
-
 			// gasLimit := ctx.GasMeter().Limit()
-			timeoutTimestamp := uint64(s.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
 
-			var (
-				seq uint64
-				err error
-			)
+			var err error
 			sendPacket := func() {
-				packet, sendErr := s.path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
-				seq = packet.Sequence
-				err = sendErr
+				ctx := s.chainA.GetContext()
+				cbs := s.chainA.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
+
+				err = cbs.OnSendPacket(ctx, s.path.EndpointA.ClientID, s.path.EndpointB.ClientID,
+					1, payload, s.chainA.SenderAccount.GetAddress())
 			}
 
 			expPass := tc.expValue == nil
@@ -206,7 +194,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			case expPass:
 				sendPacket()
 				s.Require().Nil(err)
-				s.Require().Equal(uint64(1), seq)
 
 				// expEvent, exists := GetExpectedEvent(
 				// 	ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
@@ -222,7 +209,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			default:
 				sendPacket()
 				s.Require().ErrorIs(err, tc.expValue.(error))
-				s.Require().Equal(uint64(0), seq)
 			}
 
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)

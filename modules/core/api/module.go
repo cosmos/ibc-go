@@ -70,7 +70,4 @@ type PacketDataUnmarshaler interface {
 	// UnmarshalPacketData unmarshals the packet data into a concrete type
 	// the payload is provided and the packet data interface is returned
 	UnmarshalPacketData(payload channeltypesv2.Payload) (interface{}, error)
-	// UnmarshalAcknowledgment unmarshals the acknowledgement into a concrete type
-	// the acknowledgment bytes is provided along with the payload
-	UnmarshalAcknowledgement(acknowledgement []byte, payload channeltypesv2.Payload) (interface{}, error)
 }
