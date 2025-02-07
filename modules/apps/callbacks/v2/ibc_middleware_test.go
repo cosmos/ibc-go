@@ -6,12 +6,15 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	v2 "github.com/cosmos/ibc-go/modules/apps/callbacks/v2"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
 	ibcmockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
@@ -196,8 +199,8 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				s.Require().Nil(err)
 
 				expEvent, exists := GetExpectedEvent(
-					ctx, gasLimit, packetData.GetBytes(), transfertypes.PortID,
-					transfertypes.PortID, s.path.EndpointA.ChannelID, 1, types.CallbackTypeSendPacket, nil,
+					ctx, packetData, gasLimit, payload.Version,
+					transfertypes.PortID, s.path.EndpointA.ClientID, 1, types.CallbackTypeSendPacket, nil,
 				)
 				if exists {
 					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
@@ -216,175 +219,165 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 	}
 }
 
-// func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
-// 	type expResult uint8
-// 	const (
-// 		noExecution expResult = iota
-// 		callbackFailed
-// 		callbackSuccess
-// 	)
+func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
+	type expResult uint8
+	const (
+		noExecution expResult = iota
+		callbackFailed
+		callbackSuccess
+	)
 
-// 	var (
-// 		packetData   transfertypes.FungibleTokenPacketDataV2
-// 		packet       channeltypes.Packet
-// 		ack          []byte
-// 		ctx          sdk.Context
-// 		userGasLimit uint64
-// 	)
+	var (
+		packetData   transfertypes.FungibleTokenPacketDataV2
+		ack          []byte
+		ctx          sdk.Context
+		userGasLimit uint64
+	)
 
-// 	panicError := fmt.Errorf("panic error")
+	panicError := fmt.Errorf("panic error")
 
-// 	testCases := []struct {
-// 		name      string
-// 		malleate  func()
-// 		expResult expResult
-// 		expError  error
-// 	}{
-// 		{
-// 			"success",
-// 			func() {},
-// 			callbackSuccess,
-// 			nil,
-// 		},
-// 		{
-// 			"failure: underlying app OnAcknowledgePacket fails",
-// 			func() {
-// 				ack = []byte("invalid ack")
-// 			},
-// 			noExecution,
-// 			ibcerrors.ErrUnknownRequest,
-// 		},
-// 		{
-// 			"success: no-op on callback data is not valid",
-// 			func() {
-// 				//nolint:goconst
-// 				packetData.Memo = `{"src_callback": {"address": ""}}`
-// 				packet.Data = packetData.GetBytes()
-// 			},
-// 			noExecution,
-// 			nil,
-// 		},
-// 		{
-// 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
-// 			func() {
-// 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.OogPanicContract, userGasLimit)
-// 				packet.Data = packetData.GetBytes()
-// 			},
-// 			callbackFailed,
-// 			nil,
-// 		},
-// 		{
-// 			"failure: callback execution panics on insufficient gas provided by relayer",
-// 			func() {
-// 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.OogPanicContract, userGasLimit)
-// 				packet.Data = packetData.GetBytes()
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expResult expResult
+		expError  error
+	}{
+		{
+			"success",
+			func() {},
+			callbackSuccess,
+			nil,
+		},
+		{
+			"failure: underlying app OnAcknowledgePacket fails",
+			func() {
+				ack = []byte("invalid ack")
+			},
+			noExecution,
+			ibcerrors.ErrUnknownRequest,
+		},
+		{
+			"success: no-op on callback data is not valid",
+			func() {
+				//nolint:goconst
+				packetData.Memo = `{"src_callback": {"address": ""}}`
+			},
+			noExecution,
+			nil,
+		},
+		{
+			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.OogPanicContract, userGasLimit)
+			},
+			callbackFailed,
+			nil,
+		},
+		{
+			"failure: callback execution panics on insufficient gas provided by relayer",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.OogPanicContract, userGasLimit)
 
-// 				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
-// 			},
-// 			callbackFailed,
-// 			panicError,
-// 		},
-// 		{
-// 			"failure: callback execution fails",
-// 			func() {
-// 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.ErrorContract)
-// 				packet.Data = packetData.GetBytes()
-// 			},
-// 			callbackFailed,
-// 			nil, // execution failure in OnAcknowledgement should not block acknowledgement processing
-// 		},
-// 	}
+				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
+			},
+			callbackFailed,
+			panicError,
+		},
+		{
+			"failure: callback execution fails",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.ErrorContract)
+			},
+			callbackFailed,
+			nil, // execution failure in OnAcknowledgement should not block acknowledgement processing
+		},
+	}
 
-// 	for _, tc := range testCases {
-// 		tc := tc
-// 		s.Run(tc.name, func() {
-// 			s.SetupTransferTest()
+	for _, tc := range testCases {
+		tc := tc
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-// 			userGasLimit = 600000
-// 			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-// 				[]transfertypes.Token{
-// 					{
-// 						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
-// 						Amount: ibctesting.TestCoin.Amount.String(),
-// 					},
-// 				},
-// 				ibctesting.TestAccAddress,
-// 				ibctesting.TestAccAddress,
-// 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.SuccessContract, userGasLimit),
-// 				ibctesting.EmptyForwardingPacketData,
-// 			)
+			userGasLimit = 600000
+			packetData = transfertypes.NewFungibleTokenPacketDataV2(
+				[]transfertypes.Token{
+					{
+						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
+						Amount: ibctesting.TestCoin.Amount.String(),
+					},
+				},
+				ibctesting.TestAccAddress,
+				ibctesting.TestAccAddress,
+				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.SuccessContract, userGasLimit),
+				ibctesting.EmptyForwardingPacketData,
+			)
 
-// 			packet = channeltypes.Packet{
-// 				Sequence:           1,
-// 				SourcePort:         s.path.EndpointA.ChannelConfig.PortID,
-// 				SourceChannel:      s.path.EndpointA.ChannelID,
-// 				DestinationPort:    s.path.EndpointB.ChannelConfig.PortID,
-// 				DestinationChannel: s.path.EndpointB.ChannelID,
-// 				Data:               packetData.GetBytes(),
-// 				TimeoutHeight:      s.chainB.GetTimeoutHeight(),
-// 				TimeoutTimestamp:   0,
-// 			}
+			ack = channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement()
+			ctx = s.chainA.GetContext()
 
-// 			ack = channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement()
+			// may malleate packetData, ack, and ctx
+			tc.malleate()
 
-// 			ctx = s.chainA.GetContext()
-// 			gasLimit := ctx.GasMeter().Limit()
+			payload := channeltypesv2.NewPayload(
+				transfertypes.PortID, transfertypes.PortID,
+				transfertypes.V2, transfertypes.EncodingProtobuf,
+				packetData.GetBytes(),
+			)
 
-// 			tc.malleate()
+			gasLimit := ctx.GasMeter().Limit()
 
-// 			// callbacks module is routed as top level middleware
-// 			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
-// 			s.Require().True(ok)
+			// callbacks module is routed as top level middleware
+			cbs := s.chainA.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
 
-// 			onAcknowledgementPacket := func() error {
-// 				return transferStack.OnAcknowledgementPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, ack, s.chainA.SenderAccount.GetAddress())
-// 			}
+			onAcknowledgementPacket := func() error {
+				return cbs.OnAcknowledgementPacket(ctx, s.path.EndpointA.ClientID, s.path.EndpointB.ClientID, 1, ack, payload, s.chainA.SenderAccount.GetAddress())
+			}
 
-// 			switch tc.expError {
-// 			case nil:
-// 				err := onAcknowledgementPacket()
-// 				s.Require().Nil(err)
+			switch tc.expError {
+			case nil:
+				err := onAcknowledgementPacket()
+				s.Require().Nil(err)
 
-// 			case panicError:
-// 				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
-// 					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit),
-// 				}, func() {
-// 					_ = onAcknowledgementPacket()
-// 				})
+			case panicError:
+				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
+					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit),
+				}, func() {
+					_ = onAcknowledgementPacket()
+				})
 
-// 			default:
-// 				err := onAcknowledgementPacket()
-// 				s.Require().ErrorIs(err, tc.expError)
-// 			}
+			default:
+				err := onAcknowledgementPacket()
+				s.Require().ErrorIs(err, tc.expError)
+			}
 
-// 			sourceStatefulCounter := GetSimApp(s.chainA).MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
-// 			sourceCounters := GetSimApp(s.chainA).MockContractKeeper.Counters
+			sourceStatefulCounter := GetSimApp(s.chainA).MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
+			sourceCounters := GetSimApp(s.chainA).MockContractKeeper.Counters
 
-// 			switch tc.expResult {
-// 			case noExecution:
-// 				s.Require().Len(sourceCounters, 0)
-// 				s.Require().Equal(uint8(0), sourceStatefulCounter)
+			switch tc.expResult {
+			case noExecution:
+				s.Require().Len(sourceCounters, 0)
+				s.Require().Equal(uint8(0), sourceStatefulCounter)
 
-// 			case callbackFailed:
-// 				s.Require().Len(sourceCounters, 1)
-// 				s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgementPacket])
-// 				s.Require().Equal(uint8(0), sourceStatefulCounter)
+			case callbackFailed:
+				s.Require().Len(sourceCounters, 1)
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgementPacket])
+				s.Require().Equal(uint8(0), sourceStatefulCounter)
 
-// 			case callbackSuccess:
-// 				s.Require().Len(sourceCounters, 1)
-// 				s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgementPacket])
-// 				s.Require().Equal(uint8(1), sourceStatefulCounter)
+			case callbackSuccess:
+				s.Require().Len(sourceCounters, 1)
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgementPacket])
+				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
-// 				expEvent, exists := GetExpectedEvent(
-// 					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
-// 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeAcknowledgementPacket, nil,
-// 				)
-// 				s.Require().True(exists)
-// 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
-// 			}
-// 		})
-// 	}
-// }
+				expEvent, exists := GetExpectedEvent(
+					ctx, packetData, gasLimit, payload.Version,
+					payload.SourcePort, s.path.EndpointA.ClientID, 1, types.CallbackTypeAcknowledgementPacket, nil,
+				)
+				s.Require().True(exists)
+				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+			}
+		})
+	}
+}
 
 // func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 // 	type expResult uint8

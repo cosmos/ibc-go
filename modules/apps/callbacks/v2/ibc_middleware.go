@@ -154,7 +154,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	cbData, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetDestinationPort(),
-		sdkCtx.GasMeter().GasConsumed(), im.maxCallbackGas, types.DestinationCallbackKey,
+		sdkCtx.GasMeter().GasRemaining(), im.maxCallbackGas, types.DestinationCallbackKey,
 	)
 	if err != nil {
 		return channeltypesv2.RecvPacketResult{
@@ -214,10 +214,15 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
+	packetData, err := im.app.UnmarshalPacketData(payload)
+	if err != nil {
+		return err
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	cbData, err := types.GetCallbackData(
-		payload.GetValue(), payload.GetVersion(), payload.GetSourcePort(),
-		sdkCtx.GasMeter().GasConsumed(), im.maxCallbackGas, types.SourceCallbackKey,
+		packetData, payload.GetVersion(), payload.GetSourcePort(),
+		sdkCtx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
 	)
 	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
@@ -270,10 +275,15 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
+	packetData, err := im.app.UnmarshalPacketData(payload)
+	if err != nil {
+		return err
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
 	cbData, err := types.GetCallbackData(
-		payload.GetValue(), payload.GetVersion(), payload.GetSourcePort(),
-		sdkCtx.GasMeter().GasConsumed(), im.maxCallbackGas, types.SourceCallbackKey,
+		packetData, payload.GetVersion(), payload.GetSourcePort(),
+		sdkCtx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
 	)
 	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
@@ -348,7 +358,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	cbData, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetDestinationPort(),
-		sdkCtx.GasMeter().GasConsumed(), im.maxCallbackGas, types.DestinationCallbackKey,
+		sdkCtx.GasMeter().GasRemaining(), im.maxCallbackGas, types.DestinationCallbackKey,
 	)
 	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
