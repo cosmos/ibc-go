@@ -3,9 +3,11 @@ package v2
 import (
 	"context"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+
 
 	"github.com/spf13/cobra"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"

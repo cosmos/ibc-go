@@ -21,10 +21,10 @@ func TestGenesisState_Validate(t *testing.T) {
 			name: "valid genesis",
 			genState: types.GenesisState{
 				CounterpartyInfos: []types.CounterpartyInfo{
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-0"),
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-1"),
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-2"),
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-3"),
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-0"),
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-2"),
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-3"),
 				},
 			},
 			wantErr: false,
@@ -33,8 +33,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			name: "invalid - duplicate client IDs",
 			genState: types.GenesisState{
 				CounterpartyInfos: []types.CounterpartyInfo{
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-0"), // test-0 ID duplicated
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-0"),
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-0"), // test-0 ID duplicated
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-0"),
 				},
 			},
 			wantErr: true,
@@ -43,10 +43,10 @@ func TestGenesisState_Validate(t *testing.T) {
 			name: "invalid - invalid client ID",
 			genState: types.GenesisState{
 				CounterpartyInfos: []types.CounterpartyInfo{
-					types.NewCounterpartyInfo([][]byte{{01}}, ""), // empty client ID
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-1"),
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-2"),
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-3"),
+					types.NewCounterpartyInfo([][]byte{{0o1}}, ""), // empty client ID
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-2"),
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-3"),
 				},
 			},
 			wantErr: true,
@@ -56,9 +56,9 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: types.GenesisState{
 				CounterpartyInfos: []types.CounterpartyInfo{
 					types.NewCounterpartyInfo(nil, "test-0"), // nil prefix
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-1"),
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-2"),
-					types.NewCounterpartyInfo([][]byte{{01}}, "test-3"),
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-2"),
+					types.NewCounterpartyInfo([][]byte{{0o1}}, "test-3"),
 				},
 			},
 			wantErr: true,

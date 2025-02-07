@@ -108,8 +108,8 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 				),
 				ClientV2Genesis: clientv2types.GenesisState{
 					CounterpartyInfos: []clientv2types.CounterpartyInfo{
-						clientv2types.NewCounterpartyInfo([][]byte{{01}}, "test-0"),
-						clientv2types.NewCounterpartyInfo([][]byte{{01}}, "test-1"),
+						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-0"),
+						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
 					},
 				},
 				ConnectionGenesis: connectiontypes.NewGenesisState(
@@ -221,8 +221,8 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 				ClientGenesis: clienttypes.DefaultGenesisState(),
 				ClientV2Genesis: clientv2types.GenesisState{
 					CounterpartyInfos: []clientv2types.CounterpartyInfo{
-						clientv2types.NewCounterpartyInfo([][]byte{{01}}, ""),
-						clientv2types.NewCounterpartyInfo([][]byte{{01}}, "test-1"),
+						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, ""),
+						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
 					},
 				},
 				ConnectionGenesis: connectiontypes.DefaultGenesisState(),
@@ -292,8 +292,8 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 				),
 				ClientV2Genesis: clientv2types.GenesisState{
 					CounterpartyInfos: []clientv2types.CounterpartyInfo{
-						clientv2types.NewCounterpartyInfo([][]byte{{01}}, "test-0"),
-						clientv2types.NewCounterpartyInfo([][]byte{{01}}, "test-1"),
+						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-0"),
+						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
 					},
 				},
 				ConnectionGenesis: connectiontypes.NewGenesisState(
