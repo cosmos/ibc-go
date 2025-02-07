@@ -8,37 +8,95 @@ on:
         type: string
 
 env:
-   REGISTRY: ghcr.io
-   ORG: cosmos
-   IMAGE_NAME: ibc-go-wasm-simd
-   GIT_TAG: "${{ inputs.tag }}"
+  REGISTRY: ghcr.io
+  ORG: cosmos
+  IMAGE_NAME: ibc-go-wasm-simd
+  GIT_TAG: "${{ inputs.tag }}"
 
 jobs:
-   build-image-at-tag:
-      runs-on: ubuntu-latest
-      steps:
-         - uses: actions/checkout@v4
-           with:
-            ref: "${{ env.GIT_TAG }}"
-            fetch-depth: 0
-         - uses: actions/setup-python@v5
-           with:
-             python-version: '3.10'
-         - name: Install dependencies
-           run: make python-install-deps
-         - name: Log in to the Container registry
-           uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
-           with:
-              registry: ${{ env.REGISTRY }}
-              username: ${{ github.actor }}
-              password: ${{ secrets.GITHUB_TOKEN }}
-         - name: Build image
-           run: | 
-            version="$(scripts/get-libwasm-version.py --get-version)"
-            checksum="$(scripts/get-libwasm-version.py --get-checksum)"
-             
-            # remove all `/` or `+` characters from the docker tag and replace them with a -.
-            # this ensures the docker tag is valid.
-            docker_tag="$(echo $GIT_TAG | sed 's/[^a-zA-Z0-9\.]/-/g')"
-            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}" -f modules/light-clients/08-wasm/Dockerfile --build-arg LIBWASM_VERSION=${version} --build-arg LIBWASM_CHECKSUM=${checksum}
-            docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
+  build-image-at-tag:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            platform: linux/amd64
+          - os: ubuntu-24.04-arm
+            platform: linux/arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+         ref: "${{ env.GIT_TAG }}"
+         fetch-depth: 0
+
+      # TODO: #7885 Get rid of this script, it is super unecessary and can probably be done in the Dockerfile or a bash script
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: make python-install-deps
+      - name: Get arguments
+        run: echo "LIBWASM_VERSION=$(scripts/get-libwasm-version.py --get-version)" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+        with:
+           registry: ${{ env.REGISTRY }}
+           username: ${{ github.actor }}
+           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          platforms: ${{ matrix.platform }}
+          file: modules/light-clients/08-wasm/Dockerfile
+          build-args: LIBWASM_VERSION=${{ env.LIBWASM_VERSION }}
+          outputs: type=image,"name=${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}",push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.os }} # If we end up running more builds on the same OS, we need to differentiate more here
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    runs-on: ubuntu-latest
+    needs:
+      - build-image-at-tag
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Get docker tag
+         # remove all `/` or `+` characters from the docker tag and replace them with a -.
+         # this ensures the docker tag is valid.
+        run: echo "DOCKER_TAG=$(echo $GIT_TAG | sed 's/[^a-zA-Z0-9\.]/-/g')" >> $GITHUB_ENV
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+        with:
+           registry: ${{ env.REGISTRY }}
+           username: ${{ github.actor }}
+           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          docker buildx imagetools create --tag ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }} $(printf '${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)

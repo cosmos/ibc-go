@@ -36,6 +36,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Testing
+
+* [\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update the block proposer in test chains for each block.
+* [\#7688](https://github.com/cosmos/ibc-go/pull/7688) Added `SendMsgsWithSender` to `TestChain`.
+
 ### Dependencies
 
 * [\#7261](https://github.com/cosmos/ibc-go/pull/7261) Bump CometBFT to v1.0.0.

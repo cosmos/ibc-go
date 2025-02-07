@@ -22,10 +22,12 @@ import (
 )
 
 const (
-	FirstClientID     = "07-tendermint-0"
-	SecondClientID    = "07-tendermint-1"
-	FirstChannelID    = "channel-0"
-	FirstConnectionID = "connection-0"
+	FirstClientID      = "07-tendermint-0"
+	SecondClientID     = "07-tendermint-1"
+	FirstChannelID     = "channel-0"
+	SecondChannelID    = "channel-1"
+	FirstConnectionID  = "connection-0"
+	SecondConnectionID = "connection-1"
 
 	// Default params constants used to create a TM client
 	TrustingPeriod     time.Duration = time.Hour * 24 * 7 * 2
@@ -77,4 +79,5 @@ var (
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
 	// unusedHash is a placeholder hash used for testing.
 	unusedHash = tmhash.Sum([]byte{0x00})
+	MerklePath = commitmenttypes.NewMerklePath([]byte("ibc"), []byte(""))
 )

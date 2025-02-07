@@ -73,7 +73,7 @@ var xxx_messageInfo_ClientState proto.InternalMessageInfo
 type ConsensusState struct {
 	// public key of the solo machine
 	PublicKey *any.Any `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
-	// diversifier allows the same public key to be re-used across different solo
+	// diversifier allows the same public key to be reused across different solo
 	// machine clients (potentially on different chains) without being considered
 	// misbehaviour.
 	Diversifier string `protobuf:"bytes,2,opt,name=diversifier,proto3" json:"diversifier,omitempty"`

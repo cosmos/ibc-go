@@ -25,6 +25,8 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
+	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/client/cli"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
@@ -105,6 +107,10 @@ func (AppModule) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtim
 	if err != nil {
 		panic(err)
 	}
+	err = channeltypesv2.RegisterQueryHandlerClient(context.Background(), mux, channeltypesv2.NewQueryClient(clientCtx))
+	if err != nil {
+		panic(err)
+	}
 }
 
 // GetTxCmd returns the root tx command for the ibc module.
@@ -125,11 +131,15 @@ func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	clienttypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	clienttypes.RegisterCounterpartyMsgServer(cfg.MsgServer(), am.keeper)
 	connectiontypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	channeltypesv2.RegisterMsgServer(cfg.MsgServer(), am.keeper.ChannelKeeperV2)
+
 	clienttypes.RegisterQueryServer(cfg.QueryServer(), clientkeeper.NewQueryServer(am.keeper.ClientKeeper))
 	connectiontypes.RegisterQueryServer(cfg.QueryServer(), connectionkeeper.NewQueryServer(am.keeper.ConnectionKeeper))
 	channeltypes.RegisterQueryServer(cfg.QueryServer(), channelkeeper.NewQueryServer(am.keeper.ChannelKeeper))
+	channeltypesv2.RegisterQueryServer(cfg.QueryServer(), channelkeeperv2.NewQueryServer(am.keeper.ChannelKeeperV2))
 
 	clientMigrator := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
 	if err := cfg.RegisterMigration(exported.ModuleName, 2, clientMigrator.Migrate2to3); err != nil {

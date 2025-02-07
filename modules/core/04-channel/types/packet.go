@@ -5,7 +5,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -16,8 +15,10 @@ import (
 // CommitPacket returns the packet commitment bytes. The commitment consists of:
 // sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight + sha256_hash(data))
 // from a given packet. This results in a fixed length preimage.
+// NOTE: A fixed length preimage is ESSENTIAL to prevent relayers from being able
+// to malleate the packet fields and create a commitment hash that matches the original packet.
 // NOTE: sdk.Uint64ToBigEndian sets the uint64 to a slice of length 8.
-func CommitPacket(cdc codec.BinaryCodec, packet Packet) []byte {
+func CommitPacket(packet Packet) []byte {
 	timeoutHeight := packet.GetTimeoutHeight()
 
 	buf := sdk.Uint64ToBigEndian(packet.GetTimeoutTimestamp())
@@ -108,6 +109,7 @@ func (p Packet) ValidateBasic() error {
 	if len(p.Data) == 0 {
 		return errorsmod.Wrap(ErrInvalidPacket, "packet data bytes cannot be empty")
 	}
+
 	return nil
 }
 

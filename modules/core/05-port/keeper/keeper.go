@@ -4,11 +4,13 @@ import (
 	"strings"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/api"
 )
 
 // Keeper defines the IBC connection keeper
 type Keeper struct {
-	Router *types.Router
+	Router   *types.Router
+	RouterV2 *api.Router
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
