@@ -31,7 +31,6 @@ var (
 	_ module.HasGenesis          = (*AppModule)(nil)
 	_ module.HasName             = (*AppModule)(nil)
 	_ module.HasConsensusVersion = (*AppModule)(nil)
-	_ module.HasInvariants       = (*AppModule)(nil)
 	_ module.HasServices         = (*AppModule)(nil)
 	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
@@ -111,11 +110,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,
 	}
-}
-
-// RegisterInvariants implements the AppModule interface
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	keeper.RegisterInvariants(ir, &am.keeper)
 }
 
 // RegisterServices registers module services.
