@@ -38,10 +38,7 @@ func (ack Acknowledgement) Validate() error {
 // Success returns true if the acknowledgement is successful
 // it implements the exported.Acknowledgement interface
 func (ack Acknowledgement) Success() bool {
-	if bytes.Equal(ack.AppAcknowledgements[0], ErrorAcknowledgement[:]) {
-		return false
-	}
-	return true
+	return !bytes.Equal(ack.AppAcknowledgements[0], ErrorAcknowledgement[:])
 }
 
 // Acknowledgement returns the acknowledgement bytes to implement the acknowledgement interface

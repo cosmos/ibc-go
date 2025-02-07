@@ -106,7 +106,7 @@ type ChannelKeeperV2 interface {
 	api.WriteAcknowledgementWrapper
 	GetAsyncPacket(
 		ctx context.Context,
-		clientId string,
+		clientID string,
 		sequence uint64,
 	) (channeltypesv2.Packet, bool)
 }

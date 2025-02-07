@@ -554,7 +554,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	)
 	const (
 		success expRecvStatus = iota
-		panic
+		panics
 		failure
 	)
 
@@ -609,7 +609,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
 			},
 			callbackFailed,
-			panic,
+			panics,
 		},
 		{
 			"failure: callback execution fails",
@@ -667,7 +667,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				recvResult := onRecvPacket()
 				s.Require().Equal(channeltypesv2.PacketStatus_Success, recvResult.Status)
 
-			case panic:
+			case panics:
 				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
 					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeReceivePacket, userGasLimit),
 				}, func() {
