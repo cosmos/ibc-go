@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -25,9 +26,9 @@ func (k *Keeper) sendPacket(
 	payloads []types.Payload,
 ) (uint64, string, error) {
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, sourceClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, sourceClient)
 	if !ok {
-		return 0, "", errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", sourceClient)
+		return 0, "", errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", sourceClient)
 	}
 
 	sequence, found := k.GetNextSequenceSend(ctx, sourceClient)
@@ -93,13 +94,13 @@ func (k *Keeper) recvPacket(
 	proofHeight exported.Height,
 ) error {
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.DestinationClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
+		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
 
 	if counterparty.ClientId != packet.SourceClient {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
+		return errorsmod.Wrapf(clientv2types.ErrInvalidCounterparty, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
@@ -154,13 +155,13 @@ func (k Keeper) writeAcknowledgement(
 	ack types.Acknowledgement,
 ) error {
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.DestinationClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
+		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
 
 	if counterparty.ClientId != packet.SourceClient {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
+		return errorsmod.Wrapf(clientv2types.ErrInvalidCounterparty, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
 	}
 
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
@@ -217,13 +218,13 @@ func (k *Keeper) WriteAcknowledgement(ctx context.Context, clientID string, sequ
 
 func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, acknowledgement types.Acknowledgement, proof []byte, proofHeight exported.Height) error {
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.SourceClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.SourceClient)
 	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
+		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
 	}
 
 	if counterparty.ClientId != packet.DestinationClient {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
+		return errorsmod.Wrapf(clientv2types.ErrInvalidCounterparty, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
 	}
 
 	commitment := k.GetPacketCommitment(ctx, packet.SourceClient, packet.Sequence)
@@ -280,13 +281,13 @@ func (k *Keeper) timeoutPacket(
 	proofHeight exported.Height,
 ) error {
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.ClientKeeper.GetClientCounterparty(ctx, packet.SourceClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.SourceClient)
 	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
+		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
 	}
 
 	if counterparty.ClientId != packet.DestinationClient {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidCounterparty, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
+		return errorsmod.Wrapf(clientv2types.ErrInvalidCounterparty, "counterparty id (%s) does not match packet destination id (%s)", counterparty.ClientId, packet.DestinationClient)
 	}
 
 	// check that timeout timestamp has passed on the other end

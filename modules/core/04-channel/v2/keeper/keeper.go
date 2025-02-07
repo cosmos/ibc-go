@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	clientv2keeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
 
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
@@ -23,6 +24,9 @@ type Keeper struct {
 
 	cdc          codec.BinaryCodec
 	ClientKeeper types.ClientKeeper
+	// clientV2Keeper is used for counterparty access.
+	clientV2Keeper *clientv2keeper.Keeper
+
 	// channelKeeperV1 is used for channel aliasing only.
 	channelKeeperV1  *channelkeeperv1.Keeper
 	connectionKeeper *connectionkeeper.Keeper
@@ -37,6 +41,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	env appmodule.Environment,
 	clientKeeper types.ClientKeeper,
+	clientV2Keeper *clientv2keeper.Keeper,
 	channelKeeperV1 *channelkeeperv1.Keeper,
 	connectionKeeper *connectionkeeper.Keeper,
 ) *Keeper {
@@ -44,6 +49,7 @@ func NewKeeper(
 		Environment:      env,
 		cdc:              cdc,
 		channelKeeperV1:  channelKeeperV1,
+		clientV2Keeper:   clientV2Keeper,
 		connectionKeeper: connectionKeeper,
 		ClientKeeper:     clientKeeper,
 	}

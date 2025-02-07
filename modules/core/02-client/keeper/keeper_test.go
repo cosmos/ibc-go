@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"fmt"
-	types2 "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	"math/rand"
 	"testing"
 	"time"
@@ -136,15 +135,6 @@ func (suite *KeeperTestSuite) TestSetClientCreator() {
 	suite.keeper.DeleteClientCreator(suite.ctx, testClientID)
 	getCreator = suite.keeper.GetClientCreator(suite.ctx, testClientID)
 	suite.Require().Equal(sdk.AccAddress(nil), getCreator)
-}
-
-func (suite *KeeperTestSuite) TestSetClientCounterparty() {
-	counterparty := types2.NewCounterpartyInfo([][]byte{[]byte("ibc"), []byte("channel-7")}, testClientID2)
-	suite.keeper.SetClientCounterparty(suite.ctx, testClientID, counterparty)
-
-	retrievedCounterparty, found := suite.keeper.GetClientCounterparty(suite.ctx, testClientID)
-	suite.Require().True(found, "GetCounterparty failed")
-	suite.Require().Equal(counterparty, retrievedCounterparty, "Counterparties are not equal")
 }
 
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {

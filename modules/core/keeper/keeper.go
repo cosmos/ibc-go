@@ -11,6 +11,7 @@ import (
 
 	clientkeeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	clientv2keeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
@@ -25,6 +26,7 @@ type Keeper struct {
 	appmodule.Environment
 
 	ClientKeeper     *clientkeeper.Keeper
+	ClientV2Keeper   *clientv2keeper.Keeper
 	ConnectionKeeper *connectionkeeper.Keeper
 	ChannelKeeper    *channelkeeper.Keeper
 	ChannelKeeperV2  *channelkeeperv2.Keeper
@@ -50,15 +52,17 @@ func NewKeeper(
 	}
 
 	clientKeeper := clientkeeper.NewKeeper(cdc, env, paramSpace, upgradeKeeper)
+	clientV2Keeper := clientv2keeper.NewKeeper(cdc, clientKeeper)
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, env, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper()
 	channelKeeper := channelkeeper.NewKeeper(cdc, env, clientKeeper, connectionKeeper)
-	channelKeeperV2 := channelkeeperv2.NewKeeper(cdc, env, clientKeeper, channelKeeper, connectionKeeper)
+	channelKeeperV2 := channelkeeperv2.NewKeeper(cdc, env, clientKeeper, clientV2Keeper, channelKeeper, connectionKeeper)
 
 	return &Keeper{
 		Environment:      env,
 		cdc:              cdc,
 		ClientKeeper:     clientKeeper,
+		ClientV2Keeper:   clientV2Keeper,
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
 		ChannelKeeperV2:  channelKeeperV2,

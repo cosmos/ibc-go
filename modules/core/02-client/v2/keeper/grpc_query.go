@@ -13,6 +13,12 @@ type queryServer struct {
 	*Keeper
 }
 
+// NewQueryServer returns a new 02-client/v2 types.QueryServer implementation.
+func NewQueryServer(k *Keeper) types.QueryServer {
+	return &queryServer{
+		Keeper: k,
+	}
+}
 func (q queryServer) CounterpartyInfo(ctx context.Context, request *types.QueryCounterpartyInfoRequest) (*types.QueryCounterpartyInfoResponse, error) {
 	//TODO implement me
 	panic("implement me")
