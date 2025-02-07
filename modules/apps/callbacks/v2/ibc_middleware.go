@@ -65,12 +65,12 @@ func NewIBCMiddleware(
 }
 
 // WithWriteAckWrapper sets the WriteAcknowledgementWrapper for the middleware.
-func (im IBCMiddleware) WithWriteAckWrapper(writeAckWrapper api.WriteAcknowledgementWrapper) {
+func (im *IBCMiddleware) WithWriteAckWrapper(writeAckWrapper api.WriteAcknowledgementWrapper) {
 	im.writeAckWrapper = writeAckWrapper
 }
 
 // GetWriteAckWrapper returns the WriteAckWrapper
-func (im IBCMiddleware) GetWriteAckWrapper() api.WriteAcknowledgementWrapper {
+func (im *IBCMiddleware) GetWriteAckWrapper() api.WriteAcknowledgementWrapper {
 	return im.writeAckWrapper
 }
 
@@ -92,17 +92,19 @@ func (im IBCMiddleware) OnSendPacket(
 	}
 
 	packetData, err := im.app.UnmarshalPacketData(payload)
+	// OnSendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
-		return err
+		return nil
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	cbData, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetSourcePort(),
-		sdkCtx.GasMeter().GasConsumed(), im.maxCallbackGas, types.SourceCallbackKey,
+		sdkCtx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
 	)
+	// OnSendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
-		return err
+		return nil
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {

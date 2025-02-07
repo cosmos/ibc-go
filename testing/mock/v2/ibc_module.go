@@ -1,12 +1,14 @@
 package mock
 
 import (
+	"bytes"
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/api"
+	mockv1 "github.com/cosmos/ibc-go/v9/testing/mock"
 )
 
 var _ api.IBCModule = (*IBCModule)(nil)
@@ -61,4 +63,11 @@ func (im IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, d
 		return im.IBCApp.OnTimeoutPacket(ctx, sourceChannel, destinationChannel, sequence, payload, relayer)
 	}
 	return nil
+}
+
+func (im IBCModule) UnmarshalPacketData(payload channeltypesv2.Payload) (interface{}, error) {
+	if bytes.Equal(payload.Value, mockv1.MockPacketData) {
+		return mockv1.MockPacketData, nil
+	}
+	return nil, mockv1.MockApplicationCallbackError
 }
