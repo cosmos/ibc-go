@@ -10,12 +10,10 @@ const (
 	ModuleName = "mockv2"
 )
 
-var (
-	MockRecvPacketResult = channeltypesv2.RecvPacketResult{
-		Status:          channeltypesv2.PacketStatus_Success,
-		Acknowledgement: mockv1.MockAcknowledgement.Acknowledgement(),
-	}
-)
+var MockRecvPacketResult = channeltypesv2.RecvPacketResult{
+	Status:          channeltypesv2.PacketStatus_Success,
+	Acknowledgement: mockv1.MockAcknowledgement.Acknowledgement(),
+}
 
 func NewMockPayload(sourcePort, destPort string) channeltypesv2.Payload {
 	return channeltypesv2.Payload{
