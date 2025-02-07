@@ -42,9 +42,7 @@ func (k Keeper) RegisterPayee(ctx context.Context, msg *types.MsgRegisterPayee) 
 
 	k.Logger.Info("registering payee address for relayer", "relayer", msg.Relayer, "payee", msg.Payee, "channel", msg.ChannelId)
 
-	if err := k.emitRegisterPayeeEvent(ctx, msg.Relayer, msg.Payee, msg.ChannelId); err != nil {
-		return nil, err
-	}
+	emitRegisterPayeeEvent(ctx, msg.Relayer, msg.Payee, msg.ChannelId)
 
 	return &types.MsgRegisterPayeeResponse{}, nil
 }
@@ -68,9 +66,7 @@ func (k Keeper) RegisterCounterpartyPayee(ctx context.Context, msg *types.MsgReg
 
 	k.Logger.Info("registering counterparty payee for relayer", "relayer", msg.Relayer, "counterparty payee", msg.CounterpartyPayee, "channel", msg.ChannelId)
 
-	if err := k.emitRegisterCounterpartyPayeeEvent(ctx, msg.Relayer, msg.CounterpartyPayee, msg.ChannelId); err != nil {
-		return nil, err
-	}
+	emitRegisterCounterpartyPayeeEvent(ctx, msg.Relayer, msg.CounterpartyPayee, msg.ChannelId)
 
 	return &types.MsgRegisterCounterpartyPayeeResponse{}, nil
 }
