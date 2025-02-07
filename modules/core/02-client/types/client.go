@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
-	gogoprotoany "github.com/cosmos/gogoproto/types/any"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -18,8 +17,8 @@ import (
 )
 
 var (
-	_ gogoprotoany.UnpackInterfacesMessage = (*IdentifiedClientState)(nil)
-	_ gogoprotoany.UnpackInterfacesMessage = (*ConsensusStateWithHeight)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*IdentifiedClientState)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*ConsensusStateWithHeight)(nil)
 )
 
 // NewIdentifiedClientState creates a new IdentifiedClientState instance
@@ -41,7 +40,7 @@ func NewIdentifiedClientState(clientID string, clientState exported.ClientState)
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (ics IdentifiedClientState) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
+func (ics IdentifiedClientState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return unpacker.UnpackAny(ics.ClientState, new(exported.ClientState))
 }
 
@@ -84,7 +83,7 @@ func NewConsensusStateWithHeight(height Height, consensusState exported.Consensu
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (cswh ConsensusStateWithHeight) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
+func (cswh ConsensusStateWithHeight) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return unpacker.UnpackAny(cswh.ConsensusState, new(exported.ConsensusState))
 }
 

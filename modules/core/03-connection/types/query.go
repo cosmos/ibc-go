@@ -1,15 +1,15 @@
 package types
 
 import (
-	gogoprotoany "github.com/cosmos/gogoproto/types/any"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var (
-	_ gogoprotoany.UnpackInterfacesMessage = (*QueryConnectionClientStateResponse)(nil)
-	_ gogoprotoany.UnpackInterfacesMessage = (*QueryConnectionConsensusStateResponse)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*QueryConnectionClientStateResponse)(nil)
+	_ codectypes.UnpackInterfacesMessage = (*QueryConnectionConsensusStateResponse)(nil)
 )
 
 // NewQueryConnectionResponse creates a new QueryConnectionResponse instance
@@ -51,12 +51,12 @@ func NewQueryConnectionClientStateResponse(identifiedClientState clienttypes.Ide
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (qccsr QueryConnectionClientStateResponse) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
+func (qccsr QueryConnectionClientStateResponse) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return qccsr.IdentifiedClientState.UnpackInterfaces(unpacker)
 }
 
 // NewQueryConnectionConsensusStateResponse creates a newQueryConnectionConsensusStateResponse instance
-func NewQueryConnectionConsensusStateResponse(clientID string, anyConsensusState *gogoprotoany.Any, consensusStateHeight exported.Height, proof []byte, height clienttypes.Height) *QueryConnectionConsensusStateResponse {
+func NewQueryConnectionConsensusStateResponse(clientID string, anyConsensusState *codectypes.Any, consensusStateHeight exported.Height, proof []byte, height clienttypes.Height) *QueryConnectionConsensusStateResponse {
 	return &QueryConnectionConsensusStateResponse{
 		ConsensusState: anyConsensusState,
 		ClientId:       clientID,
@@ -66,6 +66,6 @@ func NewQueryConnectionConsensusStateResponse(clientID string, anyConsensusState
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (qccsr QueryConnectionConsensusStateResponse) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
+func (qccsr QueryConnectionConsensusStateResponse) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return unpacker.UnpackAny(qccsr.ConsensusState, new(exported.ConsensusState))
 }

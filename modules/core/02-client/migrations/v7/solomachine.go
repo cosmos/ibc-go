@@ -4,12 +4,10 @@ import (
 	"context"
 	"errors"
 
-	gogoprotoany "github.com/cosmos/gogoproto/types/any"
-
-	coreregistry "cosmossdk.io/core/registry"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -27,13 +25,13 @@ import (
 
 // Interface implementation checks.
 var (
-	_, _ gogoprotoany.UnpackInterfacesMessage = (*ClientState)(nil), (*ConsensusState)(nil)
-	_    exported.ClientState                 = (*ClientState)(nil)
-	_    exported.ConsensusState              = (*ConsensusState)(nil)
+	_, _ codectypes.UnpackInterfacesMessage = (*ClientState)(nil), (*ConsensusState)(nil)
+	_    exported.ClientState               = (*ClientState)(nil)
+	_    exported.ConsensusState            = (*ConsensusState)(nil)
 )
 
 // RegisterInterfaces registers the solomachine v2 ClientState and ConsensusState types in the interface registry.
-func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*exported.ClientState)(nil),
 		&ClientState{},
@@ -45,12 +43,12 @@ func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 }
 
 // UnpackInterfaces implements the UnpackInterfaceMessages.UnpackInterfaces method
-func (cs ClientState) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
+func (cs ClientState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return cs.ConsensusState.UnpackInterfaces(unpacker)
 }
 
 // UnpackInterfaces implements the UnpackInterfaceMessages.UnpackInterfaces method
-func (cs ConsensusState) UnpackInterfaces(unpacker gogoprotoany.AnyUnpacker) error {
+func (cs ConsensusState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return unpacker.UnpackAny(cs.PublicKey, new(cryptotypes.PubKey))
 }
 

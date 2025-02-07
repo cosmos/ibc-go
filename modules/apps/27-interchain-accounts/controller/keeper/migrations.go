@@ -25,11 +25,11 @@ func (m Migrator) MigrateParams(ctx context.Context) error {
 	if m.keeper != nil {
 		params := controllertypes.DefaultParams()
 		if m.keeper.legacySubspace != nil {
-			// NOTE: legacy params still rely on sdk context
-			m.keeper.legacySubspace.GetParamSetIfExists(sdk.UnwrapSDKContext(ctx), &params)
+			sdkCtx := sdk.UnwrapSDKContext(ctx)
+			m.keeper.legacySubspace.GetParamSetIfExists(sdkCtx, &params)
 		}
 		m.keeper.SetParams(ctx, params)
-		m.keeper.Logger.Info("successfully migrated ica/controller submodule to self-manage params")
+		m.keeper.Logger(ctx).Info("successfully migrated ica/controller submodule to self-manage params")
 	}
 	return nil
 }
