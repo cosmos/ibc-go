@@ -20,11 +20,10 @@ func (k Keeper) Transfer(ctx context.Context, msg *types.MsgTransfer) (*types.Ms
 		return nil, types.ErrSendDisabled
 	}
 
-	senderBytes, err := k.addrCdc.StringToBytes(msg.Sender)
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return nil, err
 	}
-	sender := sdk.AccAddress(senderBytes)
 
 	coins := msg.GetCoins()
 
