@@ -26,7 +26,7 @@ func GetQueryCmd() *cobra.Command {
 	return nil // TODO
 }
 
-// InitGenesis initializes the ibc client submodule's state from a provided genesis
+// InitGenesis initializes the ibc client/v2 submodule's state from a provided genesis
 // state.
 func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -42,6 +42,7 @@ func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) e
 	return nil
 }
 
+// ExportGenesis returns the ibc client/v2 submodule's exported genesis.
 func ExportGenesis(ctx context.Context, k *keeper.Keeper) (types.GenesisState, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
