@@ -379,168 +379,168 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 	}
 }
 
-// func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
-// 	type expResult uint8
-// 	const (
-// 		noExecution expResult = iota
-// 		callbackFailed
-// 		callbackSuccess
-// 	)
+func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
+	type expResult uint8
+	const (
+		noExecution expResult = iota
+		callbackFailed
+		callbackSuccess
+	)
 
-// 	var (
-// 		packetData transfertypes.FungibleTokenPacketDataV2
-// 		packet     channeltypes.Packet
-// 		ctx        sdk.Context
-// 	)
+	var (
+		packetData transfertypes.FungibleTokenPacketDataV2
+		ctx        sdk.Context
+	)
 
-// 	testCases := []struct {
-// 		name      string
-// 		malleate  func()
-// 		expResult expResult
-// 		expValue  interface{}
-// 	}{
-// 		{
-// 			"success",
-// 			func() {},
-// 			callbackSuccess,
-// 			nil,
-// 		},
-// 		{
-// 			"failure: underlying app OnTimeoutPacket fails",
-// 			func() {
-// 				packet.Data = []byte("invalid packet data")
-// 			},
-// 			noExecution,
-// 			ibcerrors.ErrInvalidType,
-// 		},
-// 		{
-// 			"success: no-op on callback data is not valid",
-// 			func() {
-// 				//nolint:goconst
-// 				packetData.Memo = `{"src_callback": {"address": ""}}`
-// 				packet.Data = packetData.GetBytes()
-// 			},
-// 			noExecution,
-// 			nil,
-// 		},
-// 		{
-// 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
-// 			func() {
-// 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, simapp.OogPanicContract)
-// 				packet.Data = packetData.GetBytes()
-// 			},
-// 			callbackFailed,
-// 			nil,
-// 		},
-// 		{
-// 			"failure: callback execution panics on insufficient gas provided by relayer",
-// 			func() {
-// 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.OogPanicContract)
-// 				packet.Data = packetData.GetBytes()
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expResult expResult
+		expValue  interface{}
+	}{
+		{
+			"success",
+			func() {},
+			callbackSuccess,
+			nil,
+		},
+		{
+			"failure: underlying app OnTimeoutPacket fails",
+			func() {
+				packetData.Tokens = nil
+			},
+			noExecution,
+			transfertypes.ErrInvalidAmount,
+		},
+		{
+			"success: no-op on callback data is not valid",
+			func() {
+				//nolint:goconst
+				packetData.Memo = `{"src_callback": {"address": ""}}`
+			},
+			noExecution,
+			nil,
+		},
+		{
+			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"400000"}}`, simapp.OogPanicContract)
+			},
+			callbackFailed,
+			nil,
+		},
+		{
+			"failure: callback execution panics on insufficient gas provided by relayer",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.OogPanicContract)
 
-// 				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
-// 			},
-// 			callbackFailed,
-// 			storetypes.ErrorOutOfGas{
-// 				Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeTimeoutPacket, maxCallbackGas),
-// 			},
-// 		},
-// 		{
-// 			"failure: callback execution fails",
-// 			func() {
-// 				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.ErrorContract)
-// 				packet.Data = packetData.GetBytes()
-// 			},
-// 			callbackFailed,
-// 			nil, // execution failure in OnTimeout should not block timeout processing
-// 		},
-// 	}
+				ctx = ctx.WithGasMeter(storetypes.NewGasMeter(300_000))
+			},
+			callbackFailed,
+			storetypes.ErrorOutOfGas{
+				Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeTimeoutPacket, maxCallbackGas),
+			},
+		},
+		{
+			"failure: callback execution fails",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s"}}`, simapp.ErrorContract)
+			},
+			callbackFailed,
+			nil, // execution failure in OnTimeout should not block timeout processing
+		},
+	}
 
-// 	for _, tc := range testCases {
-// 		tc := tc
-// 		s.Run(tc.name, func() {
-// 			s.SetupTransferTest()
+	for _, tc := range testCases {
+		tc := tc
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-// 			// NOTE: we call send packet so transfer is setup with the correct logic to
-// 			// succeed on timeout
-// 			userGasLimit := 600_000
-// 			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().UnixNano())
-// 			msg := transfertypes.NewMsgTransfer(
-// 				s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID,
-// 				sdk.NewCoins(ibctesting.TestCoin), s.chainA.SenderAccount.GetAddress().String(),
-// 				s.chainB.SenderAccount.GetAddress().String(), clienttypes.ZeroHeight(), timeoutTimestamp,
-// 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit), // set user gas limit above panic level in mock contract keeper
-// 				nil,
-// 			)
+			// NOTE: we call send packet so transfer is setup with the correct logic to
+			// succeed on timeout
+			userGasLimit := 600_000
+			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Unix())
+			packetData = transfertypes.NewFungibleTokenPacketDataV2(
+				[]transfertypes.Token{
+					{
+						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
+						Amount: ibctesting.TestCoin.Amount.String(),
+					},
+				},
+				s.chainA.SenderAccount.GetAddress().String(),
+				ibctesting.TestAccAddress,
+				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.SuccessContract, userGasLimit),
+				ibctesting.EmptyForwardingPacketData,
+			)
 
-// 			res, err := s.chainA.SendMsgs(msg)
-// 			s.Require().NoError(err)
-// 			s.Require().NotNil(res)
+			payload := channeltypesv2.NewPayload(
+				transfertypes.PortID, transfertypes.PortID,
+				transfertypes.V2, transfertypes.EncodingProtobuf,
+				packetData.GetBytes(),
+			)
 
-// 			packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
-// 			s.Require().NoError(err)
-// 			s.Require().NotNil(packet)
+			packet, err := s.path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
+			s.Require().NoError(err)
 
-// 			err = proto.Unmarshal(packet.Data, &packetData)
-// 			s.Require().NoError(err)
+			ctx = s.chainA.GetContext()
+			gasLimit := ctx.GasMeter().Limit()
 
-// 			ctx = s.chainA.GetContext()
-// 			gasLimit := ctx.GasMeter().Limit()
+			tc.malleate()
 
-// 			tc.malleate()
+			// update packet data in payload after malleate
+			payload.Value = packetData.GetBytes()
 
-// 			// callbacks module is routed as top level middleware
-// 			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
-// 			s.Require().True(ok)
+			// callbacks module is routed as top level middleware
+			cbs := s.chainA.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
 
-// 			onTimeoutPacket := func() error {
-// 				return transferStack.OnTimeoutPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, s.chainA.SenderAccount.GetAddress())
-// 			}
+			onTimeoutPacket := func() error {
+				return cbs.OnTimeoutPacket(ctx, s.path.EndpointA.ClientID, s.path.EndpointB.ClientID, 1, payload, s.chainA.SenderAccount.GetAddress())
+			}
 
-// 			switch expValue := tc.expValue.(type) {
-// 			case nil:
-// 				err := onTimeoutPacket()
-// 				s.Require().Nil(err)
-// 			case error:
-// 				err := onTimeoutPacket()
-// 				s.Require().ErrorIs(err, expValue)
-// 			default:
-// 				s.Require().PanicsWithValue(tc.expValue, func() {
-// 					_ = onTimeoutPacket()
-// 				})
-// 			}
+			switch expValue := tc.expValue.(type) {
+			case nil:
+				err := onTimeoutPacket()
+				s.Require().Nil(err)
+			case error:
+				err := onTimeoutPacket()
+				s.Require().ErrorIs(err, expValue)
+			default:
+				s.Require().PanicsWithValue(tc.expValue, func() {
+					_ = onTimeoutPacket()
+				})
+			}
 
-// 			sourceStatefulCounter := GetSimApp(s.chainA).MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
-// 			sourceCounters := GetSimApp(s.chainA).MockContractKeeper.Counters
+			sourceStatefulCounter := GetSimApp(s.chainA).MockContractKeeper.GetStateEntryCounter(s.chainA.GetContext())
+			sourceCounters := GetSimApp(s.chainA).MockContractKeeper.Counters
 
-// 			// account for SendPacket succeeding
-// 			switch tc.expResult {
-// 			case noExecution:
-// 				s.Require().Len(sourceCounters, 1)
-// 				s.Require().Equal(uint8(1), sourceStatefulCounter)
+			// account for SendPacket succeeding
+			switch tc.expResult {
+			case noExecution:
+				s.Require().Len(sourceCounters, 1)
+				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
-// 			case callbackFailed:
-// 				s.Require().Len(sourceCounters, 2)
-// 				s.Require().Equal(1, sourceCounters[types.CallbackTypeTimeoutPacket])
-// 				s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
-// 				s.Require().Equal(uint8(1), sourceStatefulCounter)
+			case callbackFailed:
+				s.Require().Len(sourceCounters, 2)
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeTimeoutPacket])
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
+				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
-// 			case callbackSuccess:
-// 				s.Require().Len(sourceCounters, 2)
-// 				s.Require().Equal(1, sourceCounters[types.CallbackTypeTimeoutPacket])
-// 				s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
-// 				s.Require().Equal(uint8(2), sourceStatefulCounter)
+			case callbackSuccess:
+				s.Require().Len(sourceCounters, 2)
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeTimeoutPacket])
+				s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
+				s.Require().Equal(uint8(2), sourceStatefulCounter)
 
-// 				expEvent, exists := GetExpectedEvent(
-// 					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
-// 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeTimeoutPacket, nil,
-// 				)
-// 				s.Require().True(exists)
-// 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
-// 			}
-// 		})
-// 	}
-// }
+				expEvent, exists := GetExpectedEvent(
+					ctx, packetData, gasLimit, payload.Version,
+					payload.SourcePort, s.path.EndpointA.ClientID, packet.Sequence, types.CallbackTypeTimeoutPacket, nil,
+				)
+				s.Require().True(exists)
+				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+			}
+		})
+	}
+}
 
 // func (s *CallbacksTestSuite) TestOnRecvPacket() {
 // 	type expResult uint8
