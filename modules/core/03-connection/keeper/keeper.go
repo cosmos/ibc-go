@@ -18,7 +18,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Keeper defines the IBC connection keeper
@@ -182,7 +181,7 @@ func (k *Keeper) IterateConnections(ctx context.Context, cb func(types.Identifie
 
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyConnectionPrefix))
 
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var connection types.ConnectionEnd
 		k.cdc.MustUnmarshal(iterator.Value(), &connection)

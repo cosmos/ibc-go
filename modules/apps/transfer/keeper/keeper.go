@@ -8,14 +8,14 @@ import (
 
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
-	banktypes "cosmossdk.io/x/bank/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
@@ -24,7 +24,6 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Keeper defines the IBC fungible transfer keeper
@@ -35,7 +34,7 @@ type Keeper struct {
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
-	AuthKeeper    types.AuthKeeper
+	AuthKeeper    types.AccountKeeper
 	BankKeeper    types.BankKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
@@ -50,7 +49,7 @@ func NewKeeper(
 	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
-	authKeeper types.AuthKeeper,
+	authKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	authority string,
 ) Keeper {
@@ -185,7 +184,7 @@ func (k Keeper) IterateDenoms(ctx context.Context, cb func(denom types.Denom) bo
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, types.DenomKey)
 
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var denom types.Denom
 		k.cdc.MustUnmarshal(iterator.Value(), &denom)
@@ -230,15 +229,13 @@ func (k Keeper) GetTotalEscrowForDenom(ctx context.Context, denom string) sdk.Co
 		panic(err)
 	}
 	if len(bz) == 0 {
-		return sdk.NewCoin(denom, math.ZeroInt())
+		return sdk.NewCoin(denom, sdkmath.ZeroInt())
 	}
 
-	amount := math.Int{}
-	if err := amount.Unmarshal(bz); err != nil {
-		panic(err)
-	}
+	amount := sdk.IntProto{}
+	k.cdc.MustUnmarshal(bz, &amount)
 
-	return sdk.NewCoin(denom, amount)
+	return sdk.NewCoin(denom, amount.Int)
 }
 
 // SetTotalEscrowForDenom stores the total amount of source chain tokens that are in escrow.
@@ -259,10 +256,7 @@ func (k Keeper) SetTotalEscrowForDenom(ctx context.Context, coin sdk.Coin) {
 		return
 	}
 
-	bz, err := coin.Amount.Marshal()
-	if err != nil {
-		panic(err)
-	}
+	bz := k.cdc.MustMarshal(&sdk.IntProto{Int: coin.Amount})
 	if err := store.Set(key, bz); err != nil {
 		panic(err)
 	}
@@ -286,19 +280,19 @@ func (k Keeper) IterateTokensInEscrow(ctx context.Context, storeprefix []byte, c
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, storeprefix)
 
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		denom := strings.TrimPrefix(string(iterator.Key()), fmt.Sprintf("%s/", types.KeyTotalEscrowPrefix))
 		if strings.TrimSpace(denom) == "" {
 			continue // denom is empty
 		}
 
-		amount := math.Int{}
-		if err := amount.Unmarshal(iterator.Value()); err != nil {
+		amount := sdk.IntProto{}
+		if err := k.cdc.Unmarshal(iterator.Value(), &amount); err != nil {
 			continue // total escrow amount cannot be unmarshalled to integer
 		}
 
-		denomEscrow := sdk.NewCoin(denom, amount)
+		denomEscrow := sdk.NewCoin(denom, amount.Int)
 		if cb(denomEscrow) {
 			break
 		}
@@ -357,7 +351,7 @@ func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet type
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, types.ForwardedPacketKey)
 
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var forwardPacket types.ForwardedPacket
 		k.cdc.MustUnmarshal(iterator.Value(), &forwardPacket.Packet)

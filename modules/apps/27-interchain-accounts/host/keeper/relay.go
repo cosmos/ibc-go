@@ -111,7 +111,7 @@ func (k Keeper) authenticateTx(ctx context.Context, msgs []sdk.Msg, connectionID
 
 		// obtain the message signers using the proto signer annotations
 		// the msgv2 return value is discarded as it is not used
-		signers, _, err := k.cdc.GetMsgSigners(msg)
+		signers, _, err := k.cdc.GetMsgV1Signers(msg)
 		if err != nil {
 			return errorsmod.Wrapf(err, "failed to obtain message signers for message type %s", sdk.MsgTypeURL(msg))
 		}

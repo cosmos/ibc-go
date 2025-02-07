@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
-	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -27,7 +26,7 @@ func NewMigrator(keeper Keeper) Migrator {
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	store := runtime.KVStoreAdapter(m.keeper.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.FeesInEscrowPrefix))
-	defer coretypes.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
 
 	for ; iterator.Valid(); iterator.Next() {
 		feesInEscrow := m.keeper.MustUnmarshalFees(iterator.Value())

@@ -9,10 +9,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/appmodule"
-	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
@@ -31,33 +31,23 @@ import (
 
 var (
 	_ module.AppModule           = (*AppModule)(nil)
-	_ module.AppModuleBasic      = (*AppModule)(nil)
+	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
 	_ module.AppModuleSimulation = (*AppModule)(nil)
 	_ module.HasGenesis          = (*AppModule)(nil)
+	_ module.HasName             = (*AppModule)(nil)
+	_ module.HasConsensusVersion = (*AppModule)(nil)
 	_ module.HasServices         = (*AppModule)(nil)
+	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 
 	_ porttypes.IBCModule = (*host.IBCModule)(nil)
 )
 
-// AppModule is the application module for the IBC interchain accounts module
-type AppModule struct {
-	cdc              codec.Codec
-	controllerKeeper *controllerkeeper.Keeper
-	hostKeeper       *hostkeeper.Keeper
-}
-
-// NewAppModule creates a new IBC interchain accounts module
-func NewAppModule(cdc codec.Codec, controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) AppModule {
-	return AppModule{
-		cdc:              cdc,
-		controllerKeeper: controllerKeeper,
-		hostKeeper:       hostKeeper,
-	}
-}
+// AppModuleBasic is the IBC interchain accounts AppModuleBasic
+type AppModuleBasic struct{}
 
 // Name implements AppModuleBasic interface
-func (AppModule) Name() string {
+func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
@@ -67,11 +57,11 @@ func (AppModule) IsOnePerModuleType() {}
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
 
-// RegisterLegacyAminoCodec implements AppModule.
-func (AppModule) RegisterLegacyAminoCodec(cdc coreregistry.AminoRegistrar) {}
+// RegisterLegacyAminoCodec implements AppModuleBasic.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // RegisterInterfaces registers module concrete types into protobuf Any
-func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	controllertypes.RegisterInterfaces(registry)
 	hosttypes.RegisterInterfaces(registry)
 	types.RegisterInterfaces(registry)
@@ -79,14 +69,14 @@ func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 
 // DefaultGenesis returns default genesis state as raw bytes for the IBC
 // interchain accounts module
-func (am AppModule) DefaultGenesis() json.RawMessage {
-	return am.cdc.MustMarshalJSON(genesistypes.DefaultGenesis())
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	return cdc.MustMarshalJSON(genesistypes.DefaultGenesis())
 }
 
 // ValidateGenesis performs genesis state validation for the IBC interchain accounts module
-func (am AppModule) ValidateGenesis(bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var gs genesistypes.GenesisState
-	if err := am.cdc.UnmarshalJSON(bz, &gs); err != nil {
+	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
 
@@ -94,7 +84,7 @@ func (am AppModule) ValidateGenesis(bz json.RawMessage) error {
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the interchain accounts module.
-func (AppModule) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	err := controllertypes.RegisterQueryHandlerClient(context.Background(), mux, controllertypes.NewQueryClient(clientCtx))
 	if err != nil {
 		panic(err)
@@ -106,14 +96,29 @@ func (AppModule) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtim
 	}
 }
 
-// GetTxCmd implements AppModule interface
-func (AppModule) GetTxCmd() *cobra.Command {
+// GetTxCmd implements AppModuleBasic interface
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
 }
 
-// GetQueryCmd implements AppModule interface
-func (AppModule) GetQueryCmd() *cobra.Command {
+// GetQueryCmd implements AppModuleBasic interface
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
+}
+
+// AppModule is the application module for the IBC interchain accounts module
+type AppModule struct {
+	AppModuleBasic
+	controllerKeeper *controllerkeeper.Keeper
+	hostKeeper       *hostkeeper.Keeper
+}
+
+// NewAppModule creates a new IBC interchain accounts module
+func NewAppModule(controllerKeeper *controllerkeeper.Keeper, hostKeeper *hostkeeper.Keeper) AppModule {
+	return AppModule{
+		controllerKeeper: controllerKeeper,
+		hostKeeper:       hostKeeper,
+	}
 }
 
 // RegisterServices registers module services
@@ -142,11 +147,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // InitGenesis performs genesis initialization for the interchain accounts module.
 // It returns no validator updates.
-func (am AppModule) InitGenesis(ctx context.Context, data json.RawMessage) error {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
 	var genesisState genesistypes.GenesisState
-	if err := am.cdc.UnmarshalJSON(data, &genesisState); err != nil {
-		return err
-	}
+	cdc.MustUnmarshalJSON(data, &genesisState)
 
 	if am.controllerKeeper != nil {
 		controllerkeeper.InitGenesis(ctx, *am.controllerKeeper, genesisState.ControllerGenesisState)
@@ -155,11 +158,10 @@ func (am AppModule) InitGenesis(ctx context.Context, data json.RawMessage) error
 	if am.hostKeeper != nil {
 		hostkeeper.InitGenesis(ctx, *am.hostKeeper, genesisState.HostGenesisState)
 	}
-	return nil
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the interchain accounts module
-func (am AppModule) ExportGenesis(ctx context.Context) (json.RawMessage, error) {
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	var (
 		controllerGenesisState = genesistypes.DefaultControllerGenesis()
 		hostGenesisState       = genesistypes.DefaultHostGenesis()
@@ -175,7 +177,7 @@ func (am AppModule) ExportGenesis(ctx context.Context) (json.RawMessage, error) 
 
 	gs := genesistypes.NewGenesisState(controllerGenesisState, hostGenesisState)
 
-	return am.cdc.MarshalJSON(gs)
+	return cdc.MustMarshalJSON(gs)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

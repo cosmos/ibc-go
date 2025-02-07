@@ -89,7 +89,7 @@ func (k Keeper) SendTransfer(
 			}
 
 			if err := k.BankKeeper.BurnCoins(
-				ctx, k.AuthKeeper.GetModuleAddress(types.ModuleName), sdk.NewCoins(coin),
+				ctx, types.ModuleName, sdk.NewCoins(coin),
 			); err != nil {
 				// NOTE: should not happen as the module account was
 				// retrieved on the step above and it has enough balance

@@ -3,6 +3,4 @@
 ---
 chains:
   - tag: main # override with CHAIN_A_TAG
-    chainId: chainA-1
   - tag: main # override with CHAIN_B_TAG
-    chainId: chainB-1

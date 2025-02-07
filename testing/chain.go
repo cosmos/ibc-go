@@ -7,10 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cosmossdk.io/core/header"
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	banktypes "cosmossdk.io/x/bank/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -18,11 +16,12 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
-	cmtprotoversion "github.com/cometbft/cometbft/api/cometbft/version/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto/tmhash"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	cmttypes "github.com/cometbft/cometbft/types"
 	cmtversion "github.com/cometbft/cometbft/version"
 
@@ -199,15 +198,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (chain *TestChain) GetContext() sdk.Context {
-	ctx := chain.App.GetBaseApp().NewUncachedContext(false, chain.ProposedHeader)
-
-	// since:cosmos-sdk/v0.52 when fetching time from context, it now returns from HeaderInfo
-	headerInfo := header.Info{
-		Time:    chain.ProposedHeader.Time,
-		ChainID: chain.ProposedHeader.ChainID,
-	}
-
-	return ctx.WithHeaderInfo(headerInfo)
+	return chain.App.GetBaseApp().NewUncachedContext(false, chain.ProposedHeader)
 }
 
 // GetSimApp returns the SimApp to allow usage ofnon-interface fields.
@@ -238,7 +229,7 @@ func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, cl
 func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height int64) ([]byte, clienttypes.Height) {
 	res, err := chain.App.Query(
 		chain.GetContext().Context(),
-		&abci.QueryRequest{
+		&abci.RequestQuery{
 			Path:   fmt.Sprintf("store/%s/key", storeKey),
 			Height: height - 1,
 			Data:   key,
@@ -265,7 +256,7 @@ func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height i
 func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, clienttypes.Height) {
 	res, err := chain.App.Query(
 		chain.GetContext().Context(),
-		&abci.QueryRequest{
+		&abci.RequestQuery{
 			Path:   "store/upgrade/key",
 			Height: int64(height - 1),
 			Data:   key,
@@ -305,7 +296,7 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // returned on block `n` to the validators of block `n+2`.
 // It calls BeginBlock with the new block created before returning.
 func (chain *TestChain) NextBlock() {
-	res, err := chain.App.FinalizeBlock(&abci.FinalizeBlockRequest{
+	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{
 		Height:             chain.ProposedHeader.Height,
 		Time:               chain.ProposedHeader.GetTime(),
 		NextValidatorsHash: chain.NextVals.Hash(),
@@ -314,7 +305,7 @@ func (chain *TestChain) NextBlock() {
 	chain.commitBlock(res)
 }
 
-func (chain *TestChain) commitBlock(res *abci.FinalizeBlockResponse) {
+func (chain *TestChain) commitBlock(res *abci.ResponseFinalizeBlock) {
 	_, err := chain.App.Commit()
 	require.NoError(chain.TB, err)
 
@@ -372,6 +363,7 @@ func (chain *TestChain) SendMsgsWithSender(sender SenderAccount, msgs ...sdk.Msg
 	if chain.SendMsgsOverride != nil {
 		return chain.SendMsgsOverride(msgs...)
 	}
+
 	// ensure the chain has the latest time
 	chain.Coordinator.UpdateTimeForChain(chain)
 
@@ -382,6 +374,7 @@ func (chain *TestChain) SendMsgsWithSender(sender SenderAccount, msgs ...sdk.Msg
 			panic(err)
 		}
 	}()
+
 	resp, err := simapp.SignAndDeliver(
 		chain.TB,
 		chain.TxConfig,
@@ -613,7 +606,7 @@ func (chain *TestChain) IBCClientHeader(header *ibctm.Header, trustedHeight clie
 
 // GetSenderAccount returns the sender account associated with the provided private key.
 func (chain *TestChain) GetSenderAccount(privKey cryptotypes.PrivKey) SenderAccount {
-	account := chain.GetSimApp().AuthKeeper.GetAccount(chain.GetContext(), sdk.AccAddress(privKey.PubKey().Address()))
+	account := chain.GetSimApp().AccountKeeper.GetAccount(chain.GetContext(), sdk.AccAddress(privKey.PubKey().Address()))
 
 	return SenderAccount{
 		SenderPrivKey: privKey,

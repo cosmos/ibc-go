@@ -1,10 +1,9 @@
 package keeper_test
 
 import (
-	banktypes "cosmossdk.io/x/bank/types"
-	stakingtypes "cosmossdk.io/x/staking/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
@@ -25,7 +24,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 		{
 			"success",
 			func() {
-				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress().String(), sdk.DefaultBondDenom).Marshal()
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
 				suite.Require().NoError(err)
 
 				queryReq := types.QueryRequest{
@@ -48,7 +47,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 		{
 			"success: multiple queries",
 			func() {
-				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress().String(), sdk.DefaultBondDenom).Marshal()
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
 				suite.Require().NoError(err)
 
 				queryReq := types.QueryRequest{
@@ -73,7 +72,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 				expRespBz, err := expResp.Marshal()
 				suite.Require().NoError(err)
 
-				params, err := suite.chainA.GetSimApp().StakingKeeper.Params.Get(suite.chainA.GetContext())
+				params, err := suite.chainA.GetSimApp().StakingKeeper.GetParams(suite.chainA.GetContext())
 				suite.Require().NoError(err)
 				expParamsResp := stakingtypes.QueryParamsResponse{Params: params}
 				expParamsRespBz, err := expParamsResp.Marshal()
@@ -86,7 +85,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 		{
 			"failure: not module query safe",
 			func() {
-				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress().String(), sdk.DefaultBondDenom).Marshal()
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
 				suite.Require().NoError(err)
 
 				queryReq := types.QueryRequest{
@@ -110,7 +109,7 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 		{
 			"failure: invalid query path",
 			func() {
-				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress().String(), sdk.DefaultBondDenom).Marshal()
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
 				suite.Require().NoError(err)
 
 				queryReq := types.QueryRequest{

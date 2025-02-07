@@ -147,12 +147,13 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgI
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	upgradedClientState, err := clienttypes.UnpackClientState(msg.UpgradedClientState)
 	if err != nil {
 		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "cannot unpack client state: %s", err)
 	}
 
-	if err := k.ClientKeeper.ScheduleIBCSoftwareUpgrade(goCtx, msg.Plan, upgradedClientState); err != nil {
+	if err = k.ClientKeeper.ScheduleIBCSoftwareUpgrade(ctx, msg.Plan, upgradedClientState); err != nil {
 		return nil, errorsmod.Wrap(err, "failed to schedule upgrade")
 	}
 

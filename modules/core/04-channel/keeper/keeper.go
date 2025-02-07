@@ -23,7 +23,6 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 var _ porttypes.ICS4Wrapper = (*Keeper)(nil)
@@ -320,7 +319,7 @@ func (k *Keeper) deletePacketAcknowledgement(ctx context.Context, portID, channe
 // For each sequence, cb will be called. If the cb returns true, the iterator
 // will close and stop.
 func (k *Keeper) IteratePacketSequence(ctx context.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64) bool) {
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		portID, channelID, err := host.ParseChannelPath(string(iterator.Key()))
 		if err != nil {
@@ -456,7 +455,7 @@ func (k *Keeper) IterateChannels(ctx context.Context, cb func(types.IdentifiedCh
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyChannelEndPrefix))
 
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var channel types.Channel
 		k.cdc.MustUnmarshal(iterator.Value(), &channel)
@@ -477,7 +476,7 @@ func (k *Keeper) GetAllChannelsWithPortPrefix(ctx context.Context, portPrefix st
 	}
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, types.FilteredPortPrefix(portPrefix))
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 
 	var filteredChannels []types.IdentifiedChannel
 	for ; iterator.Valid(); iterator.Next() {
@@ -698,7 +697,7 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 
 // common functionality for IteratePacketCommitment and IteratePacketAcknowledgement
 func (k *Keeper) iterateHashes(ctx context.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64, hash []byte) bool) {
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 
 	for ; iterator.Valid(); iterator.Next() {
 		keySplit := strings.Split(string(iterator.Key()), "/")
@@ -721,7 +720,7 @@ func (k *Keeper) iterateHashes(ctx context.Context, iterator db.Iterator, cb fun
 func (k *Keeper) HasInflightPackets(ctx context.Context, portID, channelID string) bool {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, host.PacketCommitmentPrefixKey(portID, channelID))
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 
 	return iterator.Valid()
 }

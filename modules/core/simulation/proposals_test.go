@@ -7,10 +7,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
@@ -23,7 +24,7 @@ func TestProposalMsgs(t *testing.T) {
 	s := rand.NewSource(1)
 	r := rand.New(s)
 
-	ctx := sdk.NewContext(nil, true, nil)
+	ctx := sdk.NewContext(nil, cmtproto.Header{}, true, nil)
 	accounts := simtypes.RandomAccounts(r, 3)
 
 	// execute ProposalMsgs function
@@ -35,9 +36,7 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, simulation.OpWeightMsgUpdateParams, w0.AppParamsKey())
 	require.Equal(t, simulation.DefaultWeight, w0.DefaultWeight())
 
-	codec := codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
-	msg, err := w0.MsgSimulatorFn()(ctx, r, accounts, codec)
-	require.NoError(t, err)
+	msg := w0.MsgSimulatorFn()(r, ctx, accounts)
 	msgUpdateParams, ok := msg.(*clienttypes.MsgUpdateParams)
 	require.True(t, ok)
 
@@ -49,8 +48,7 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, simulation.OpWeightMsgUpdateParams, w1.AppParamsKey())
 	require.Equal(t, simulation.DefaultWeight, w1.DefaultWeight())
 
-	msg1, err := w1.MsgSimulatorFn()(ctx, r, accounts, nil)
-	require.NoError(t, err)
+	msg1 := w1.MsgSimulatorFn()(r, ctx, accounts)
 	msgUpdateConnectionParams, ok := msg1.(*connectiontypes.MsgUpdateParams)
 	require.True(t, ok)
 
@@ -62,8 +60,7 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, simulation.OpWeightMsgRecoverClient, w2.AppParamsKey())
 	require.Equal(t, simulation.DefaultWeight, w2.DefaultWeight())
 
-	msg2, err := w2.MsgSimulatorFn()(ctx, r, accounts, nil)
-	require.NoError(t, err)
+	msg2 := w2.MsgSimulatorFn()(r, ctx, accounts)
 	msgRecoverClient, ok := msg2.(*clienttypes.MsgRecoverClient)
 	require.True(t, ok)
 
@@ -75,8 +72,7 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, simulation.OpWeightMsgIBCSoftwareUpgrade, w3.AppParamsKey())
 	require.Equal(t, simulation.DefaultWeight, w3.DefaultWeight())
 
-	msg3, err := w3.MsgSimulatorFn()(ctx, r, accounts, nil)
-	require.NoError(t, err)
+	msg3 := w3.MsgSimulatorFn()(r, ctx, accounts)
 	msgIBCSoftwareUpgrade, ok := msg3.(*clienttypes.MsgIBCSoftwareUpgrade)
 	require.True(t, ok)
 

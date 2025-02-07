@@ -28,7 +28,6 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Keeper defines the IBC interchain accounts host keeper
@@ -39,7 +38,7 @@ type Keeper struct {
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
-	authKeeper    icatypes.AuthKeeper
+	accountKeeper icatypes.AccountKeeper
 
 	msgRouter   icatypes.MessageRouter
 	queryRouter icatypes.QueryRouter
@@ -56,10 +55,10 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.Codec, storeService corestore.KVStoreService, legacySubspace icatypes.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper,
-	authKeeper icatypes.AuthKeeper, msgRouter icatypes.MessageRouter, queryRouter icatypes.QueryRouter, authority string,
+	accountKeeper icatypes.AccountKeeper, msgRouter icatypes.MessageRouter, queryRouter icatypes.QueryRouter, authority string,
 ) Keeper {
 	// ensure ibc interchain accounts module account is set
-	if addr := authKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
+	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
 		panic(errors.New("the Interchain Accounts module account has not been set"))
 	}
 
@@ -73,7 +72,7 @@ func NewKeeper(
 		legacySubspace: legacySubspace,
 		ics4Wrapper:    ics4Wrapper,
 		channelKeeper:  channelKeeper,
-		authKeeper:     authKeeper,
+		accountKeeper:  accountKeeper,
 		msgRouter:      msgRouter,
 		queryRouter:    queryRouter,
 		mqsAllowList:   newModuleQuerySafeAllowList(),
@@ -167,7 +166,7 @@ func (k Keeper) GetOpenActiveChannel(ctx context.Context, connectionID, portID s
 func (k Keeper) GetAllActiveChannels(ctx context.Context) []genesistypes.ActiveChannel {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(icatypes.ActiveChannelKeyPrefix))
-	defer coretypes.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 
 	var activeChannels []genesistypes.ActiveChannel
 	for ; iterator.Valid(); iterator.Next() {

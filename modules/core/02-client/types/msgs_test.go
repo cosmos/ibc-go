@@ -13,7 +13,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -708,8 +707,8 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 		msg := types.MsgRecoverClient{
 			Signer: tc.address.String(),
 		}
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
-		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expError == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
@@ -796,9 +795,8 @@ func TestMsgIBCSoftwareUpgrade_GetSigners(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
-		signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
-
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 		if tc.expErr == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
@@ -969,9 +967,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),
 		}
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
-		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
-
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expErr == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])

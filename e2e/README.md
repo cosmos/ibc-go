@@ -190,7 +190,7 @@ And providing the git tag.
 To trigger the compatibility tests for a release branch, you can trigger these manually from the Github UI.
 
 This will build an image from the tip of the release branch and run all tests specified in the corresponding
-E2E test annotations.
+json matrix files under [.github/compatibility-test-matrices](../.github/compatibility-test-matrices).
 
 Navigate to `Actions` -> `Compatibility E2E` -> `Run Workflow` -> `release/v8.0.x`
 
