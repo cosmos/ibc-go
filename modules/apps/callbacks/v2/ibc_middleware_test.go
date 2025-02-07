@@ -711,7 +711,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 	var (
 		packetData transfertypes.FungibleTokenPacketDataV2
-		packet     channeltypes.Packet
+		destClient string
 		ctx        sdk.Context
 		ack        channeltypesv2.Acknowledgement
 	)
@@ -736,7 +736,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			"success: no-op on callback data is not valid",
 			func() {
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
-				packet.Data = packetData.GetBytes()
 			},
 			"none", // improperly formatted callback data should result in no callback execution
 			nil,
@@ -744,10 +743,10 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 		{
 			"failure: ics4Wrapper WriteAcknowledgement call fails",
 			func() {
-				packet.DestinationChannel = "invalid-channel"
+				destClient = "invalid-client"
 			},
 			"none",
-			channeltypes.ErrChannelNotFound,
+			channeltypesv2.ErrInvalidAcknowledgement,
 		},
 	}
 
@@ -772,6 +771,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 
 			ctx = s.chainB.GetContext()
 			gasLimit := ctx.GasMeter().Limit()
+			destClient = s.path.EndpointB.ClientID
 
 			tc.malleate()
 
@@ -794,7 +794,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			mw, ok := cbs.(api.WriteAcknowledgementWrapper)
 			s.Require().True(ok)
 
-			err := mw.WriteAcknowledgement(ctx, s.path.EndpointB.ClientID, 1, ack)
+			err := mw.WriteAcknowledgement(ctx, destClient, packet.Sequence, ack)
 
 			expPass := tc.expError == nil
 			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
