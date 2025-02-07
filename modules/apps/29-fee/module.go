@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
-
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/client/cli"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
