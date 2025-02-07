@@ -8,6 +8,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -166,8 +167,9 @@ func (LightClientModule) LatestHeight(ctx context.Context, _ string) exported.He
 
 // TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
 // cannot provide a timestamp for the provided height.
-func (l LightClientModule) TimestampAtHeight(ctx context.Context, _ string, _ exported.Height) (uint64, error) {
-	return uint64(l.HeaderService.HeaderInfo(ctx).Time.UnixNano()), nil
+func (LightClientModule) TimestampAtHeight(ctx context.Context, _ string, _ exported.Height) (uint64, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	return uint64(sdkCtx.BlockTime().UnixNano()), nil
 }
 
 // RecoverClient returns an error. The localhost cannot be modified by proposals.
