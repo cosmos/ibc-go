@@ -30,7 +30,7 @@ func TestValidateBasic(t *testing.T) {
 		{
 			"success, single payload just below MaxPayloadsSize",
 			func() {
-				packet.Payloads[0].Value = make([]byte, channeltypesv1.MaxPayloadsSize-1)
+				packet.Payloads[0].Value = make([]byte, channeltypesv1.MaximumPayloadsSize-1)
 			},
 			nil,
 		},
@@ -38,7 +38,7 @@ func TestValidateBasic(t *testing.T) {
 			"failure: invalid single payloads size",
 			func() {
 				// bytes that are larger than MaxPayloadsSize
-				packet.Payloads[0].Value = make([]byte, channeltypesv1.MaxPayloadsSize+1)
+				packet.Payloads[0].Value = make([]byte, channeltypesv1.MaximumPayloadsSize+1)
 			},
 			types.ErrInvalidPacket,
 		},

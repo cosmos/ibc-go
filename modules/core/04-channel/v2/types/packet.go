@@ -45,8 +45,8 @@ func (p Packet) ValidateBasic() error {
 		totalPayloadsSize += len(pd.Value)
 	}
 
-	if totalPayloadsSize > channeltypesv1.MaxPayloadsSize {
-		return errorsmod.Wrapf(ErrInvalidPacket, "packet data bytes cannot exceed %d bytes", channeltypesv1.MaxPayloadsSize)
+	if totalPayloadsSize > channeltypesv1.MaximumPayloadsSize {
+		return errorsmod.Wrapf(ErrInvalidPacket, "packet data bytes cannot exceed %d bytes", channeltypesv1.MaximumPayloadsSize)
 	}
 
 	if err := host.ChannelIdentifierValidator(p.SourceClient); err != nil {
