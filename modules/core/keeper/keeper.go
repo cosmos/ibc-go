@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"cosmossdk.io/core/appmodule"
+	corestore "cosmossdk.io/core/store"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -23,8 +23,6 @@ import (
 
 // Keeper defines each ICS keeper for IBC
 type Keeper struct {
-	appmodule.Environment
-
 	ClientKeeper     *clientkeeper.Keeper
 	ClientV2Keeper   *clientv2keeper.Keeper
 	ConnectionKeeper *connectionkeeper.Keeper
@@ -39,7 +37,7 @@ type Keeper struct {
 
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
-	cdc codec.BinaryCodec, env appmodule.Environment, paramSpace types.ParamSubspace,
+	cdc codec.BinaryCodec, storeService corestore.KVStoreService, paramSpace types.ParamSubspace,
 	upgradeKeeper clienttypes.UpgradeKeeper, authority string,
 ) *Keeper {
 	// panic if any of the keepers passed in is empty
@@ -51,15 +49,14 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	clientKeeper := clientkeeper.NewKeeper(cdc, env, paramSpace, upgradeKeeper)
+	clientKeeper := clientkeeper.NewKeeper(cdc, storeService, paramSpace, upgradeKeeper)
 	clientV2Keeper := clientv2keeper.NewKeeper(cdc, clientKeeper)
-	connectionKeeper := connectionkeeper.NewKeeper(cdc, env, paramSpace, clientKeeper)
+	connectionKeeper := connectionkeeper.NewKeeper(cdc, storeService, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper()
-	channelKeeper := channelkeeper.NewKeeper(cdc, env, clientKeeper, connectionKeeper)
-	channelKeeperV2 := channelkeeperv2.NewKeeper(cdc, env, clientKeeper, clientV2Keeper, channelKeeper, connectionKeeper)
+	channelKeeper := channelkeeper.NewKeeper(cdc, storeService, clientKeeper, connectionKeeper)
+	channelKeeperV2 := channelkeeperv2.NewKeeper(cdc, storeService, clientKeeper, clientV2Keeper, channelKeeper, connectionKeeper)
 
 	return &Keeper{
-		Environment:      env,
 		cdc:              cdc,
 		ClientKeeper:     clientKeeper,
 		ClientV2Keeper:   clientV2Keeper,

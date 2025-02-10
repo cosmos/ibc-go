@@ -5,7 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	crypto "github.com/cometbft/cometbft/api/cometbft/crypto/v1"
+	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 )
 
 // ConvertProofs converts crypto.ProofOps into MerkleProof

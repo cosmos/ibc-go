@@ -9,14 +9,13 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
-	govtypesv1 "cosmossdk.io/x/gov/types/v1"
-	stakingtypes "cosmossdk.io/x/staking/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -109,6 +108,9 @@ func (suite *KeeperTestSuite) SetupTest() {
 		val.Tokens = sdkmath.NewInt(rand.Int63())
 		validators.Validators = append(validators.Validators, val)
 
+		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
+		err = app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
+		suite.Require().NoError(err)
 	}
 
 	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
@@ -780,60 +782,4 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 			}
 		})
 	}
-}
-
-func (suite *KeeperTestSuite) TestIBCScheduleUpgradeProposal() {
-	suite.SetupTest()
-
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	path.SetupClients()
-
-	tmClientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
-	suite.Require().True(ok)
-
-	// bump the chain id revision number for the ibc client upgrade
-	chainID := tmClientState.ChainId
-	revisionNumber := types.ParseChainID(chainID)
-
-	newChainID, err := types.SetRevisionNumber(chainID, revisionNumber+1)
-	suite.Require().NoError(err)
-	suite.Require().NotEqual(chainID, newChainID)
-
-	tmClientState.ChainId = newChainID
-	upgradedClientState := tmClientState.ZeroCustomFields()
-
-	msg, err := types.NewMsgIBCSoftwareUpgrade(
-		suite.chainA.GetSimApp().IBCKeeper.GetAuthority(),
-		upgradetypes.Plan{
-			Name:   "upgrade-client",
-			Height: 1000,
-		},
-		upgradedClientState,
-	)
-	suite.Require().NoError(err)
-
-	proposal, err := govtypesv1.NewMsgSubmitProposal(
-		[]sdk.Msg{msg},
-		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, govtypesv1.DefaultMinDepositTokens)),
-		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
-		"metadata",
-		"ibc client upgrade",
-		"gov proposal for initialising ibc client upgrade",
-		govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD,
-	)
-	suite.Require().NoError(err)
-
-	res, err := suite.chainA.SendMsgs(proposal)
-	suite.Require().NoError(err)
-
-	proposalID, err := ibctesting.ParseProposalIDFromEvents(res.Events)
-	suite.Require().NoError(err)
-
-	// vote and pass proposal, trigger msg execution
-	err = ibctesting.VoteAndCheckProposalStatus(path.EndpointA, proposalID)
-	suite.Require().NoError(err)
-
-	storedPlan, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
-	suite.Require().NoError(err)
-	suite.Require().Equal(msg.Plan, storedPlan)
 }

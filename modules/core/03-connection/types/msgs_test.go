@@ -15,7 +15,6 @@ import (
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
@@ -264,8 +263,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			Params: types.DefaultParams(),
 		}
 
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
-		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.errMsg == "" {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
