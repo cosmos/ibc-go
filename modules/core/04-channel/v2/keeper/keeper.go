@@ -3,7 +3,6 @@ package keeper
 import (
 	"bytes"
 	"context"
-
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
@@ -198,56 +197,59 @@ func (k *Keeper) DeleteAsyncPacket(ctx context.Context, clientID string, sequenc
 	}
 }
 
+// extractSequenceFromKey takes the full store key as well as a packet store prefix and extracts
+// the encoded sequence number from the key.
+//
+// This function panics of the provided key once trimmed is larger than 8 bytes as the expected
+// sequence byte length is always 8.
+func extractSequenceFromKey(key, storePrefix []byte) uint64 {
+	sequenceBz := bytes.TrimPrefix(key, storePrefix)
+	if len(sequenceBz) > 8 {
+		panic("sequence is too long - expected 8 bytes")
+	}
+	return sdk.BigEndianToUint64(sequenceBz)
+}
+
 // GetAllPacketCommitmentsForClient returns all stored PacketCommitments objects for a specified
 // client ID.
 func (k *Keeper) GetAllPacketCommitmentsForClient(ctx context.Context, clientID string) []types.PacketState {
-	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
-	storePrefix := hostv2.PacketCommitmentPrefixKey(clientID)
-	iterator := storetypes.KVStorePrefixIterator(store, storePrefix)
+	return k.getAllPacketsForClientStore(ctx, clientID, hostv2.PacketCommitmentPrefixKey)
 
-	var commitments []types.PacketState
-	for ; iterator.Valid(); iterator.Next() {
-		sequenceBz := bytes.TrimPrefix(iterator.Key(), storePrefix)
-		sequence := sdk.BigEndianToUint64(sequenceBz)
-		state := types.NewPacketState(clientID, sequence, iterator.Value())
-
-		commitments = append(commitments, state)
-	}
-	return commitments
 }
 
 // GetAllPacketAcknowledgementsForClient returns all stored PacketAcknowledgements objects for a specified
 // client ID.
 func (k *Keeper) GetAllPacketAcknowledgementsForClient(ctx context.Context, clientID string) []types.PacketState {
-	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
-	storePrefix := hostv2.PacketAcknowledgementPrefixKey(clientID)
-	iterator := storetypes.KVStorePrefixIterator(store, storePrefix)
+	return k.getAllPacketsForClientStore(ctx, clientID, hostv2.PacketAcknowledgementPrefixKey)
 
-	var acknowledgements []types.PacketState
-	for ; iterator.Valid(); iterator.Next() {
-		sequenceBz := bytes.TrimPrefix(iterator.Key(), storePrefix)
-		sequence := sdk.BigEndianToUint64(sequenceBz)
-		state := types.NewPacketState(clientID, sequence, iterator.Value())
-
-		acknowledgements = append(acknowledgements, state)
-	}
-	return acknowledgements
 }
 
 // GetAllPacketReceiptsForClient returns all stored PacketReceipts objects for a specified
 // client ID.
 func (k *Keeper) GetAllPacketReceiptsForClient(ctx context.Context, clientID string) []types.PacketState {
+	return k.getAllPacketsForClientStore(ctx, clientID, hostv2.PacketReceiptPrefixKey)
+}
+
+// prefixKeyConstructor is a function that constructs a store key for a specific packet store using the provided
+// clientID.
+type prefixKeyConstructor func(clientID string) []byte
+
+// getAllPacketsForClientStore gets all PacketState objects for the specified clientID using a provided
+// function for constructing the key prefix for the store.
+//
+// For example, to get all PacketReceipts for a clientID the hostv2.PacketReceiptPrefixKey function can be
+// passed to get the PacketReceipt store key prefix.
+func (k *Keeper) getAllPacketsForClientStore(ctx context.Context, clientID string, prefixFn prefixKeyConstructor) []types.PacketState {
 	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
-	storePrefix := hostv2.PacketReceiptPrefixKey(clientID)
+	storePrefix := prefixFn(clientID)
 	iterator := storetypes.KVStorePrefixIterator(store, storePrefix)
 
-	var receipts []types.PacketState
+	var packets []types.PacketState
 	for ; iterator.Valid(); iterator.Next() {
-		sequenceBz := bytes.TrimPrefix(iterator.Key(), storePrefix)
-		sequence := sdk.BigEndianToUint64(sequenceBz)
+		sequence := extractSequenceFromKey(iterator.Key(), storePrefix)
 		state := types.NewPacketState(clientID, sequence, iterator.Value())
 
-		receipts = append(receipts, state)
+		packets = append(packets, state)
 	}
-	return receipts
+	return packets
 }
