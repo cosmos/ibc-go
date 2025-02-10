@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"crypto/sha256"
 
-	errorsmod "cosmossdk.io/errors"
 	proto "github.com/cosmos/gogoproto/proto"
+
+	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
