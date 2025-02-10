@@ -1,10 +1,7 @@
 package simulation
 
 import (
-	"context"
 	"math/rand"
-
-	coreaddress "cosmossdk.io/core/address"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
@@ -24,7 +21,7 @@ const (
 // ProposalMsgs defines the module weighted proposals' contents
 func ProposalMsgs() []simtypes.WeightedProposalMsg {
 	return []simtypes.WeightedProposalMsg{
-		simulation.NewWeightedProposalMsgX(
+		simulation.NewWeightedProposalMsg(
 			OpWeightMsgStoreCode,
 			DefaultWeightMsgStoreCode,
 			SimulateMsgStoreCode,
@@ -33,11 +30,11 @@ func ProposalMsgs() []simtypes.WeightedProposalMsg {
 }
 
 // SimulateMsgStoreCode returns a random MsgStoreCode for the 08-wasm module
-func SimulateMsgStoreCode(ctx context.Context, r *rand.Rand, _ []simtypes.Account, addrCdc coreaddress.Codec) (sdk.Msg, error) {
+func SimulateMsgStoreCode(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
 	var signer sdk.AccAddress = address.Module("gov")
 
 	return &types.MsgStoreCode{
 		Signer:       signer.String(),
 		WasmByteCode: []byte{0x01},
-	}, nil
+	}
 }

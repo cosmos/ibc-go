@@ -10,6 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -49,8 +50,8 @@ import (
 // 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
 func (k Keeper) SendTransfer(
-	ctx context.Context,
-	sourcePort string,
+	ctx sdk.Context,
+	sourcePort,
 	sourceChannel string,
 	tokens types.Tokens,
 	sender sdk.AccAddress,
@@ -88,7 +89,7 @@ func (k Keeper) SendTransfer(
 			}
 
 			if err := k.BankKeeper.BurnCoins(
-				ctx, k.AuthKeeper.GetModuleAddress(types.ModuleName), sdk.NewCoins(coin),
+				ctx, types.ModuleName, sdk.NewCoins(coin),
 			); err != nil {
 				// NOTE: should not happen as the module account was
 				// retrieved on the step above and it has enough balance
@@ -190,9 +191,7 @@ func (k Keeper) OnRecvPacket(
 				k.SetDenomMetadata(ctx, token.Denom)
 			}
 
-			if err := k.EmitDenomEvent(ctx, token); err != nil {
-				return nil, err
-			}
+			events.EmitDenomEvent(ctx, token)
 
 			voucher := sdk.NewCoin(voucherDenom, transferAmount)
 
@@ -390,7 +389,7 @@ func (k Keeper) UnescrowCoin(ctx context.Context, escrowAddress, receiver sdk.Ac
 }
 
 // tokenFromCoin constructs an IBC token given an SDK coin.
-func (k Keeper) TokenFromCoin(ctx context.Context, coin sdk.Coin) (types.Token, error) {
+func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
 	// if the coin does not have an IBC denom, return as is
 	if !strings.HasPrefix(coin.Denom, "ibc/") {
 		return types.Token{

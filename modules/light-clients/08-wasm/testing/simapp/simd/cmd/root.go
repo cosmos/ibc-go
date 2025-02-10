@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime/debug"
 	"strings"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
@@ -12,18 +13,14 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	apisigning "cosmossdk.io/api/cosmos/tx/signing/v1beta1"
-	"cosmossdk.io/client/v2/offchain"
-	corestore "cosmossdk.io/core/store"
+	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/log"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
-	txsigning "cosmossdk.io/x/tx/signing"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	sdkdebug "github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
@@ -36,13 +33,13 @@ import (
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	cmtcfg "github.com/cometbft/cometbft/config"
 
@@ -66,17 +63,11 @@ func NewRootCmd() *cobra.Command {
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
-		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
-		WithAddressCodec(addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())).
-		WithValidatorAddressCodec(addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix())).
-		WithConsensusAddressCodec(addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix())).
 		WithHomeDir(simapp.DefaultNodeHome).
-		WithViper(""). // uses by default the binary name as prefix
-		WithAddressPrefix(sdk.GetConfig().GetBech32AccountAddrPrefix()).
-		WithValidatorPrefix(sdk.GetConfig().GetBech32ValidatorAddrPrefix())
+		WithViper("") // In simapp, we don't use any prefix for env variables.
 
 	rootCmd := &cobra.Command{
 		Use:           "simd",
@@ -100,14 +91,10 @@ func NewRootCmd() *cobra.Command {
 
 			// This needs to go after ReadFromClientConfig, as that function
 			// sets the RPC client needed for SIGN_MODE_TEXTUAL.
-			enabledSignModes := append(tx.DefaultSignModes, apisigning.SignMode_SIGN_MODE_TEXTUAL) //nolint:gocritic // we know we aren't appending to the same slice
+			enabledSignModes := append(tx.DefaultSignModes, signing.SignMode_SIGN_MODE_TEXTUAL) //nolint:gocritic // we know we aren't appending to the same slice
 			txConfigOpts := tx.ConfigOptions{
 				EnabledSignModes:           enabledSignModes,
 				TextualCoinMetadataQueryFn: txmodule.NewGRPCCoinMetadataQueryFn(initClientCtx),
-				SigningOptions: &txsigning.Options{
-					AddressCodec:          initClientCtx.InterfaceRegistry.SigningContext().AddressCodec(),
-					ValidatorAddressCodec: initClientCtx.InterfaceRegistry.SigningContext().ValidatorAddressCodec(),
-				},
 			}
 			txConfigWithTextual, err := tx.NewTxConfigWithOptions(
 				codec.NewProtoCodec(encodingConfig.InterfaceRegistry),
@@ -129,22 +116,34 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 
-	initRootCmd(rootCmd, tempApp.ModuleManager)
+	initRootCmd(rootCmd, encodingConfig, tempApp.BasicModuleManager)
 
-	autoCliOpts := tempApp.AutoCliOpts()
-	autoCliOpts.AddressCodec = initClientCtx.AddressCodec
-	autoCliOpts.ValidatorAddressCodec = initClientCtx.ValidatorAddressCodec
-	autoCliOpts.ConsensusAddressCodec = initClientCtx.ConsensusAddressCodec
-	autoCliOpts.Cdc = initClientCtx.Codec
-
-	nodeCmds := nodeservice.NewNodeCommands()
-	autoCliOpts.ModuleOptions[nodeCmds.Name()] = nodeCmds.AutoCLIOptions()
+	autoCliOpts, err := enrichAutoCliOpts(tempApp.AutoCliOpts(), initClientCtx)
+	if err != nil {
+		panic(err)
+	}
 
 	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
 		panic(err)
 	}
 
 	return rootCmd
+}
+
+func enrichAutoCliOpts(autoCliOpts autocli.AppOptions, clientCtx client.Context) (autocli.AppOptions, error) {
+	autoCliOpts.AddressCodec = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+	autoCliOpts.ValidatorAddressCodec = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix())
+	autoCliOpts.ConsensusAddressCodec = addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix())
+
+	var err error
+	clientCtx, err = config.ReadFromClientConfig(clientCtx)
+	if err != nil {
+		return autocli.AppOptions{}, err
+	}
+
+	autoCliOpts.ClientCtx = clientCtx
+
+	return autoCliOpts, nil
 }
 
 // initCometBFTConfig helps to override default CometBFT Config values.
@@ -216,30 +215,37 @@ lru_size = 0`
 	return customAppTemplate, customAppConfig
 }
 
-func initRootCmd(rootCmd *cobra.Command, moduleManager *module.Manager) {
+func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, basicManager module.BasicManager) {
 	cfg := sdk.GetConfig()
 	cfg.Seal()
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(moduleManager),
+		genutilcli.InitCmd(basicManager, simapp.DefaultNodeHome),
 		sdkdebug.Cmd(),
 		confixcmd.ConfigCommand(),
-		pruning.Cmd(newApp),
+		pruning.Cmd(newApp, simapp.DefaultNodeHome),
 		snapshot.Cmd(newApp),
 		server.QueryBlockResultsCmd(),
 	)
 
-	server.AddCommands(rootCmd, newApp, server.StartCmdOptions[servertypes.Application]{})
+	server.AddCommands(rootCmd, simapp.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
 
 	// add keybase, auxiliary RPC, query, genesis, and tx child commands
 	rootCmd.AddCommand(
 		server.StatusCommand(),
-		genesisCommand(moduleManager, appExport),
-		queryCommand(),
+		genesisCommand(encodingConfig, basicManager),
 		txCommand(),
+		queryCommand(),
 		keys.Commands(),
-		offchain.OffChain(),
 	)
+}
+
+func addModuleInitFlags(startCmd *cobra.Command) {
+	crisis.AddModuleInitFlags(startCmd)
+	preCheck := func(cmd *cobra.Command, _ []string) error {
+		return CheckLibwasmVersion(getExpectedLibwasmVersion())
+	}
+	startCmd.PreRunE = chainPreRuns(preCheck, startCmd.PreRunE)
 }
 
 func queryCommand() *cobra.Command {
@@ -253,7 +259,7 @@ func queryCommand() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		rpc.WaitTxCmd(),
+		rpc.ValidatorCommand(),
 		server.QueryBlockCmd(),
 		authcmd.QueryTxsByEventsCmd(),
 		server.QueryBlocksCmd(),
@@ -289,8 +295,9 @@ func txCommand() *cobra.Command {
 }
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
-func genesisCommand(moduleManager *module.Manager, appExport servertypes.AppExporter, cmds ...*cobra.Command) *cobra.Command {
-	cmd := genutilcli.Commands(moduleManager.Modules[genutiltypes.ModuleName].(genutil.AppModule), moduleManager, appExport)
+func genesisCommand(encodingConfig params.EncodingConfig, basicManager module.BasicManager, cmds ...*cobra.Command) *cobra.Command {
+	cmd := genutilcli.Commands(encodingConfig.TxConfig, basicManager, simapp.DefaultNodeHome)
+
 	for _, subCmd := range cmds {
 		cmd.AddCommand(subCmd)
 	}
@@ -300,7 +307,7 @@ func genesisCommand(moduleManager *module.Manager, appExport servertypes.AppExpo
 // newApp creates the application
 func newApp(
 	logger log.Logger,
-	db corestore.KVStoreWithBatch,
+	db dbm.DB,
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
@@ -316,7 +323,7 @@ func newApp(
 // appExport creates a new simapp (optionally at a given height) and exports state.
 func appExport(
 	logger log.Logger,
-	db corestore.KVStoreWithBatch,
+	db dbm.DB,
 	traceStore io.Writer,
 	height int64,
 	forZeroHeight bool,
@@ -380,4 +387,36 @@ func CheckLibwasmVersion(wasmExpectedVersion string) error {
 		return fmt.Errorf("libwasmversion mismatch. got: %s; expected: %s", wasmVersion, wasmExpectedVersion)
 	}
 	return nil
+}
+
+type preRunFn func(cmd *cobra.Command, args []string) error
+
+func chainPreRuns(pfns ...preRunFn) preRunFn {
+	return func(cmd *cobra.Command, args []string) error {
+		for _, pfn := range pfns {
+			if pfn != nil {
+				if err := pfn(cmd, args); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+}
+
+func getExpectedLibwasmVersion() string {
+	buildInfo, ok := debug.ReadBuildInfo()
+	if !ok {
+		panic("can't read build info")
+	}
+	for _, d := range buildInfo.Deps {
+		if d.Path != "github.com/CosmWasm/wasmvm/v2" {
+			continue
+		}
+		if d.Replace != nil {
+			return d.Replace.Version
+		}
+		return d.Version
+	}
+	return ""
 }

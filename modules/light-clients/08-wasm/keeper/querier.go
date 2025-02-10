@@ -12,7 +12,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -146,7 +146,7 @@ func AcceptListStargateQuerier(acceptedQueries []string, queryRouter types.Query
 			return nil, wasmvmtypes.UnsupportedRequest{Kind: fmt.Sprintf("No route to query '%s'", request.Path)}
 		}
 
-		res, err := route(ctx, &abci.QueryRequest{
+		res, err := route(ctx, &abci.RequestQuery{
 			Data: request.Data,
 			Path: request.Path,
 		})

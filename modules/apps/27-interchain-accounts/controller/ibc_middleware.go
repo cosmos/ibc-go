@@ -174,17 +174,15 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCMiddleware interface
-func (im IBCMiddleware) OnRecvPacket(
+func (IBCMiddleware) OnRecvPacket(
 	ctx context.Context,
 	_ string,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {
-	errInvalidFlow := errorsmod.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
-	ack := channeltypes.NewErrorAcknowledgement(errInvalidFlow)
-	if err := im.keeper.EmitAcknowledgementEvent(ctx, packet, ack, errInvalidFlow); err != nil {
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, errInvalidFlow.Error()))
-	}
+	err := errorsmod.Wrapf(icatypes.ErrInvalidChannelFlow, "cannot receive packet on controller chain")
+	ack := channeltypes.NewErrorAcknowledgement(err)
+	keeper.EmitAcknowledgementEvent(ctx, packet, ack, err)
 	return ack
 }
 

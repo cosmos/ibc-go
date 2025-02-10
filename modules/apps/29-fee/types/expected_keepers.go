@@ -8,8 +8,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
-// AuthKeeper defines the contract required for the x/auth keeper.
-type AuthKeeper interface {
+// AccountKeeper defines the contract required for account APIs.
+type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetAccount(context.Context, sdk.AccAddress) sdk.AccountI
 }
