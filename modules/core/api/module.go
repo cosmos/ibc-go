@@ -58,7 +58,7 @@ type WriteAcknowledgementWrapper interface {
 	// WriteAcknowledgement writes the acknowledgement for an async acknowledgement
 	WriteAcknowledgement(
 		ctx context.Context,
-		clientID string,
+		srcClientID string,
 		sequence uint64,
 		ack channeltypesv2.Acknowledgement,
 	) error
