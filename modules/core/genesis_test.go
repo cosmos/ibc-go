@@ -107,9 +107,15 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					2,
 				),
 				ClientV2Genesis: clientv2types.GenesisState{
-					CounterpartyInfos: []clientv2types.CounterpartyInfo{
-						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-0"),
-						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
+					CounterpartyInfos: []clientv2types.GenesisCounterpartyInfo{
+						{
+							ClientId:         "test-1",
+							CounterpartyInfo: clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-0"),
+						},
+						{
+							ClientId:         "test-0",
+							CounterpartyInfo: clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
+						},
 					},
 				},
 				ConnectionGenesis: connectiontypes.NewGenesisState(
@@ -220,9 +226,15 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 			genState: &types.GenesisState{
 				ClientGenesis: clienttypes.DefaultGenesisState(),
 				ClientV2Genesis: clientv2types.GenesisState{
-					CounterpartyInfos: []clientv2types.CounterpartyInfo{
-						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, ""),
-						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
+					CounterpartyInfos: []clientv2types.GenesisCounterpartyInfo{
+						{
+							ClientId:         "",
+							CounterpartyInfo: clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-0"),
+						},
+						{
+							ClientId:         "test-0",
+							CounterpartyInfo: clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
+						},
 					},
 				},
 				ConnectionGenesis: connectiontypes.DefaultGenesisState(),
@@ -291,9 +303,15 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 					0,
 				),
 				ClientV2Genesis: clientv2types.GenesisState{
-					CounterpartyInfos: []clientv2types.CounterpartyInfo{
-						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-0"),
-						clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
+					CounterpartyInfos: []clientv2types.GenesisCounterpartyInfo{
+						{
+							ClientId:         "test-1",
+							CounterpartyInfo: clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-0"),
+						},
+						{
+							ClientId:         "test-0",
+							CounterpartyInfo: clientv2types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
+						},
 					},
 				},
 				ConnectionGenesis: connectiontypes.NewGenesisState(

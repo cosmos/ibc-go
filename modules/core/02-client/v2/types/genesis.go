@@ -5,7 +5,7 @@ import "errors"
 // DefaultGenesisState returns the ibc client submodule's default genesis state.
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		CounterpartyInfos: []CounterpartyInfo{},
+		CounterpartyInfos: []GenesisCounterpartyInfo{},
 	}
 }
 
@@ -13,19 +13,23 @@ func DefaultGenesisState() GenesisState {
 func (gs GenesisState) Validate() error {
 	seenIDs := make(map[string]struct{})
 
-	for _, counterparty := range gs.CounterpartyInfos {
-		if len(counterparty.ClientId) == 0 {
+	for _, genInfo := range gs.CounterpartyInfos {
+		if len(genInfo.ClientId) == 0 {
 			return errors.New("counterparty client id cannot be empty")
 		}
 
-		if len(counterparty.MerklePrefix) == 0 {
+		if genInfo.ClientId == genInfo.CounterpartyInfo.ClientId {
+			return errors.New("counterparty client id and client id cannot be the same")
+		}
+
+		if len(genInfo.CounterpartyInfo.MerklePrefix) == 0 {
 			return errors.New("counterparty merkle prefix cannot be empty")
 		}
 
-		if _, ok := seenIDs[counterparty.ClientId]; ok {
+		if _, ok := seenIDs[genInfo.ClientId]; ok {
 			return errors.New("duplicate counterparty client id %s found")
 		}
-		seenIDs[counterparty.ClientId] = struct{}{}
+		seenIDs[genInfo.ClientId] = struct{}{}
 	}
 
 	return nil

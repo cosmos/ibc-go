@@ -19,8 +19,8 @@ func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) {
 		panic(fmt.Errorf("invalid genesis state: %w", err))
 	}
 
-	for _, counterparty := range gs.CounterpartyInfos {
-		k.SetClientCounterparty(sdkCtx, counterparty.ClientId, counterparty)
+	for _, info := range gs.CounterpartyInfos {
+		k.SetClientCounterparty(sdkCtx, info.ClientId, info.CounterpartyInfo)
 	}
 }
 
@@ -30,12 +30,15 @@ func ExportGenesis(ctx context.Context, k *keeper.Keeper) types.GenesisState {
 
 	clients := k.ClientV1Keeper.GetAllGenesisClients(ctx)
 	gs := types.GenesisState{
-		CounterpartyInfos: make([]types.CounterpartyInfo, 0),
+		CounterpartyInfos: make([]types.GenesisCounterpartyInfo, 0),
 	}
 	for _, client := range clients {
 		counterpartyInfo, found := k.GetClientCounterparty(sdkCtx, client.ClientId)
 		if found {
-			gs.CounterpartyInfos = append(gs.CounterpartyInfos, counterpartyInfo)
+			gs.CounterpartyInfos = append(gs.CounterpartyInfos, types.GenesisCounterpartyInfo{
+				ClientId:         client.ClientId,
+				CounterpartyInfo: counterpartyInfo,
+			})
 		}
 	}
 

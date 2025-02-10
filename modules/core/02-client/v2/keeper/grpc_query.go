@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"fmt"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -11,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
 var _ types.QueryServer = (*queryServer)(nil)
