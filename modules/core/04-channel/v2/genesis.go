@@ -1,36 +1,35 @@
-package keeper
+package channelv2
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"context"
 
+	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 )
 
-// InitGenesis sets the genesis state in the store.
-func (k *Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
+func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) {
 	// set acks
-	for _, ack := range data.Acknowledgements {
+	for _, ack := range gs.Acknowledgements {
 		k.SetPacketAcknowledgement(ctx, ack.ClientId, ack.Sequence, ack.Data)
 	}
 
 	// set commits
-	for _, commitment := range data.Commitments {
+	for _, commitment := range gs.Commitments {
 		k.SetPacketCommitment(ctx, commitment.ClientId, commitment.Sequence, commitment.Data)
 	}
 
 	// set receipts
-	for _, receipt := range data.Receipts {
+	for _, receipt := range gs.Receipts {
 		k.SetPacketReceipt(ctx, receipt.ClientId, receipt.Sequence)
 	}
 
 	// set send sequences
-	for _, seq := range data.SendSequences {
+	for _, seq := range gs.SendSequences {
 		k.SetNextSequenceSend(ctx, seq.ClientId, seq.Sequence)
 	}
 }
 
-// ExportGenesis exports the current state to a genesis state.
-func (k *Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
+func ExportGenesis(ctx context.Context, k *keeper.Keeper) types.GenesisState {
 	clientStates := k.ClientKeeper.GetAllGenesisClients(ctx)
 	gs := types.GenesisState{
 		Acknowledgements: make([]types.PacketState, 0),

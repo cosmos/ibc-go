@@ -1,12 +1,14 @@
-package keeper_test
+package channelv2_test
 
 import (
+	channelv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 // TestInitExportGenesis tests the import and export flow for the channel v2 keeper.
-func (suite *KeeperTestSuite) TestInitExportGenesis() {
+func (suite *ModuleTestSuite) TestInitExportGenesis() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupV2()
 
@@ -49,9 +51,11 @@ func (suite *KeeperTestSuite) TestInitExportGenesis() {
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			app.GetIBCKeeper().ChannelKeeperV2.InitGenesis(suite.chainA.GetContext(), tt.genState)
+			channelV2Keeper := app.GetIBCKeeper().ChannelKeeperV2
 
-			exported := app.GetIBCKeeper().ChannelKeeperV2.ExportGenesis(suite.chainA.GetContext())
+			channelv2.InitGenesis(suite.chainA.GetContext(), channelV2Keeper, tt.genState)
+
+			exported := channelv2.ExportGenesis(suite.chainA.GetContext(), channelV2Keeper)
 			suite.Require().Equal(tt.genState, exported)
 		})
 	}
