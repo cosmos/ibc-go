@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -28,12 +29,20 @@ func NewQueryServer(k *Keeper) types.QueryServer {
 }
 
 // CounterpartyInfo gets the CounterpartyInfo from the store corresponding to the request client ID.
-func (q queryServer) CounterpartyInfo(ctx context.Context, request *types.QueryCounterpartyInfoRequest) (*types.QueryCounterpartyInfoResponse, error) {
+func (q queryServer) CounterpartyInfo(ctx context.Context, req *types.QueryCounterpartyInfoRequest) (*types.QueryCounterpartyInfoResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	info, found := q.GetClientCounterparty(sdkCtx, request.ClientId)
+	info, found := q.GetClientCounterparty(sdkCtx, req.ClientId)
 	if !found {
-		return nil, status.Error(codes.NotFound, fmt.Sprintf("client %s counterparty not found", request.ClientId))
+		return nil, status.Error(codes.NotFound, fmt.Sprintf("client %s counterparty not found", req.ClientId))
 	}
 
 	return &types.QueryCounterpartyInfoResponse{CounterpartyInfo: &info}, nil
