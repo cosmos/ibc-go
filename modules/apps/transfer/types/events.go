@@ -12,7 +12,7 @@ const (
 	AttributeKeyReceiver       = "receiver"
 	AttributeKeyDenom          = "denom"
 	AttributeKeyDenomHash      = "denom_hash"
-	AttributeKeyTokens         = "tokens"
+	AttributeKeyAmount         = "amount"
 	AttributeKeyRefundReceiver = "refund_receiver"
 	AttributeKeyRefundTokens   = "refund_tokens"
 	AttributeKeyAckSuccess     = "success"

@@ -43,10 +43,6 @@ func DefaultTransferAmount(denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(IBCTransferAmount)}
 }
 
-func DefaultTransferCoins(denom string) sdk.Coins {
-	return sdk.NewCoins(DefaultTransferAmount(denom))
-}
-
 func TransferAmount(amount int64, denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(amount)}
 }
@@ -134,9 +130,4 @@ var CapitalEfficientFeeEscrowFeatureReleases = semverutil.FeatureReleases{
 // in "query txs" for searching transactions that match exact events (since Cosmos SDK v0.50) was released in.
 var TransactionEventQueryFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
-}
-
-// ICS20v2FeatureReleases represents the releases the support for ICS20 v2 was released in.
-var ICS20v2FeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v9",
 }

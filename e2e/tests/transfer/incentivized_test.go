@@ -200,7 +200,7 @@ func (s *IncentivizedTransferTestSuite) TestMsgPayPacketFee_InvalidReceiverAccou
 	transferAmount := testvalues.DefaultTransferAmount(chainADenom)
 
 	t.Run("send IBC transfer", func(t *testing.T) {
-		resp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, sdk.NewCoins(transferAmount), chainAWallet.FormattedAddress(), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "", nil)
+		resp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, transferAmount, chainAWallet.FormattedAddress(), testvalues.InvalidAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		// this message should be successful, as receiver account is not validated on the sending chain.
 		s.AssertTxSuccess(resp)
 	})
@@ -329,13 +329,12 @@ func (s *IncentivizedTransferTestSuite) TestMultiMsg_MsgPayPacketFeeSingleSender
 		channelA.PortID,
 		channelA.ChannelID,
 		version.AppVersion,
-		sdk.NewCoins(transferAmount),
+		transferAmount,
 		chainAWallet.FormattedAddress(),
 		chainBWallet.FormattedAddress(),
 		s.GetTimeoutHeight(ctx, chainB),
 		0,
 		"",
-		nil,
 	)
 	resp := s.BroadcastMessages(ctx, chainA, chainAWallet, msgPayPacketFee, msgTransfer)
 	s.AssertTxSuccess(resp)
