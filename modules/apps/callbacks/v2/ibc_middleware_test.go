@@ -31,35 +31,42 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"success",
 			func() {
-				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, nil, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
-			},
-			nil,
-		},
-		{
-			"success with non-nil ics4wrapper",
-			func() {
 				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
 			nil,
 		},
 		{
+			"panics with nil ics4wrapper",
+			func() {
+				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, nil, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
+			},
+			fmt.Errorf("write acknowledgement wrapper cannot be nil"),
+		},
+		{
 			"panics with nil underlying app",
 			func() {
-				_ = v2.NewIBCMiddleware(nil, nil, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
+				_ = v2.NewIBCMiddleware(nil, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
 			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
 		},
 		{
 			"panics with nil contract keeper",
 			func() {
-				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, nil, nil, &channelkeeperv2.Keeper{}, maxCallbackGas)
+				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, nil, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
 			fmt.Errorf("contract keeper cannot be nil"),
 		},
 		{
+			"panics with nil channel v2 keeper",
+			func() {
+				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, nil, maxCallbackGas)
+			},
+			fmt.Errorf("channel keeper v2 cannot be nil"),
+		},
+		{
 			"panics with zero maxCallbackGas",
 			func() {
-				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, nil, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, uint64(0))
+				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, uint64(0))
 			},
 			fmt.Errorf("maxCallbackGas cannot be zero"),
 		},
@@ -711,10 +718,11 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 
 func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 	var (
-		packetData transfertypes.FungibleTokenPacketDataV2
-		destClient string
-		ctx        sdk.Context
-		ack        channeltypesv2.Acknowledgement
+		packetData   transfertypes.FungibleTokenPacketDataV2
+		destClient   string
+		ctx          sdk.Context
+		ack          channeltypesv2.Acknowledgement
+		multiPayload bool
 	)
 
 	successAck := channeltypesv2.NewAcknowledgement(channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement())
@@ -745,6 +753,14 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			"failure: ics4Wrapper WriteAcknowledgement call fails",
 			func() {
 				destClient = "invalid-client"
+			},
+			"none",
+			channeltypesv2.ErrInvalidAcknowledgement,
+		},
+		{
+			"failure: multipayload should fail",
+			func() {
+				multiPayload = true
 			},
 			"none",
 			channeltypesv2.ErrInvalidAcknowledgement,
@@ -782,10 +798,18 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				packetData.GetBytes(),
 			)
 			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Unix())
-			packet := channeltypesv2.NewPacket(
-				1, s.path.EndpointA.ClientID, s.path.EndpointB.ClientID,
-				timeoutTimestamp, payload,
-			)
+			var packet channeltypesv2.Packet
+			if multiPayload {
+				packet = channeltypesv2.NewPacket(
+					1, s.path.EndpointA.ClientID, s.path.EndpointB.ClientID,
+					timeoutTimestamp, payload, payload,
+				)
+			} else {
+				packet = channeltypesv2.NewPacket(
+					1, s.path.EndpointA.ClientID, s.path.EndpointB.ClientID,
+					timeoutTimestamp, payload,
+				)
+			}
 			// mock async receive manually so WriteAcknowledgement can pass
 			s.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetAsyncPacket(ctx, packet.DestinationClient, packet.Sequence, packet)
 			s.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(ctx, packet.DestinationClient, packet.Sequence)

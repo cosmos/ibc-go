@@ -486,7 +486,7 @@ func NewSimApp(
 	ibcRouter.AddRoute(MockFeePort, feeWithMockModule)
 
 	// add transfer v2 module wrapped by callbacks v2 middleware
-	cbTransferModulev2 := ibccallbacksv2.NewIBCMiddleware(transferv2.NewIBCModule(app.TransferKeeper), nil, app.MockContractKeeper, app.IBCKeeper.ChannelKeeperV2, maxCallbackGas)
+	cbTransferModulev2 := ibccallbacksv2.NewIBCMiddleware(transferv2.NewIBCModule(app.TransferKeeper), app.IBCKeeper.ChannelKeeperV2, app.MockContractKeeper, app.IBCKeeper.ChannelKeeperV2, maxCallbackGas)
 	ibcRouterV2.AddRoute(ibctransfertypes.PortID, cbTransferModulev2)
 
 	// Seal the IBC Router

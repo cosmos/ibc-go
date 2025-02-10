@@ -9,6 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/internal"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -47,6 +48,14 @@ func NewIBCMiddleware(
 
 	if contractKeeper == nil {
 		panic(errors.New("contract keeper cannot be nil"))
+	}
+
+	if writeAckWrapper == nil {
+		panic(errors.New("write acknowledgement wrapper cannot be nil"))
+	}
+
+	if chanKeeperV2 == nil {
+		panic(errors.New("channel keeper v2 cannot be nil"))
 	}
 
 	if maxCallbackGas == 0 {
@@ -111,7 +120,7 @@ func (im IBCMiddleware) OnSendPacket(
 		)
 	}
 
-	err = types.ProcessCallback(sdkCtx, types.CallbackTypeSendPacket, cbData, callbackExecutor)
+	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeSendPacket, cbData, callbackExecutor)
 	// contract keeper is allowed to reject the packet send.
 	if err != nil {
 		return err
@@ -172,17 +181,13 @@ func (im IBCMiddleware) OnRecvPacket(
 			TimeoutTimestamp:   0,
 		}
 		// wrap the individual acknowledgement into the channeltypesv2.Acknowledgement since it implements the exported.Acknowledgement interface
-		var ack channeltypesv2.Acknowledgement
-		if recvResult.Status == channeltypesv2.PacketStatus_Failure {
-			ack = channeltypesv2.NewAcknowledgement(channeltypesv2.ErrorAcknowledgement[:])
-		} else {
-			ack = channeltypesv2.NewAcknowledgement(recvResult.Acknowledgement)
-		}
+		// since we return early on failure, we are guaranteed that the ack is a successful acknowledgement
+		ack := channeltypesv2.NewAcknowledgement(recvResult.Acknowledgement)
 		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packetv1, ack, cbData.CallbackAddress, payload.Version)
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = types.ProcessCallback(sdkCtx, types.CallbackTypeReceivePacket, cbData, callbackExecutor)
+	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeReceivePacket, cbData, callbackExecutor)
 	types.EmitCallbackEvent(
 		sdkCtx, payload.DestinationPort, destinationClient, sequence,
 		types.CallbackTypeReceivePacket, cbData, err,
@@ -239,13 +244,18 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 			TimeoutHeight:      clienttypes.Height{},
 			TimeoutTimestamp:   0,
 		}
+		// NOTE: The callback is receiving the acknowledgement that the application received for its particular payload.
+		// In the case of a successful acknowledgement, this will be the acknowledgement sent by the counterparty application for the given payload
+		// In the case of an error acknowledgement, this will be the sentinel error acknowledgement bytes defined by IBC v2 protocol.
+		// Thus, the contract must be aware that the sentinel error acknowledgement signals a failed receive
+		// and the contract must handle this error case and the corresponding success case (ie ack != ErrorAcknowledgement) accordingly.
 		return im.contractKeeper.IBCOnAcknowledgementPacketCallback(
 			cachedCtx, packetv1, acknowledgement, relayer, cbData.CallbackAddress, cbData.SenderAddress, payload.Version,
 		)
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = types.ProcessCallback(sdkCtx, types.CallbackTypeAcknowledgementPacket, cbData, callbackExecutor)
+	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeAcknowledgementPacket, cbData, callbackExecutor)
 	types.EmitCallbackEvent(
 		sdkCtx, payload.SourcePort, sourceClient, sequence,
 		types.CallbackTypeAcknowledgementPacket, cbData, err,
@@ -306,7 +316,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = types.ProcessCallback(sdkCtx, types.CallbackTypeTimeoutPacket, cbData, callbackExecutor)
+	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeTimeoutPacket, cbData, callbackExecutor)
 	types.EmitCallbackEvent(
 		sdkCtx, payload.SourcePort, sourceClient, sequence,
 		types.CallbackTypeTimeoutPacket, cbData, err,
@@ -331,21 +341,17 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return errorsmod.Wrapf(channeltypesv2.ErrInvalidAcknowledgement, "async packet not found for clientID (%s) and sequence (%d)", clientID, sequence)
 	}
 
-	// if WriteAckWrapper is wired, use the wrapper to write the acknowledgement
-	// otherwise, use the channel keeper v2 to write the acknowledgement directly
-	var writeAckWrapper api.WriteAcknowledgementWrapper
-	if im.writeAckWrapper != nil {
-		writeAckWrapper = im.writeAckWrapper
-	} else {
-		writeAckWrapper = im.chanKeeperV2
-	}
-	err := writeAckWrapper.WriteAcknowledgement(ctx, clientID, sequence, ack)
+	err := im.writeAckWrapper.WriteAcknowledgement(ctx, clientID, sequence, ack)
 	if err != nil {
 		return err
 	}
 
 	// NOTE: use first payload as the payload that is being handled by callbacks middleware
 	// must reconsider if multipacket data gets supported with async packets
+	// TRACKING ISSUE: https://github.com/cosmos/ibc-go/issues/7950
+	if len(packet.Payloads) != 1 {
+		return errorsmod.Wrapf(channeltypesv2.ErrInvalidAcknowledgement, "async packet has multiple payloads")
+	}
 	payload := packet.Payloads[0]
 
 	packetData, err := im.app.UnmarshalPacketData(payload)
@@ -393,7 +399,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = types.ProcessCallback(sdkCtx, types.CallbackTypeReceivePacket, cbData, callbackExecutor)
+	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeReceivePacket, cbData, callbackExecutor)
 	types.EmitCallbackEvent(
 		sdkCtx, payload.DestinationPort, clientID, sequence,
 		types.CallbackTypeReceivePacket, cbData, err,

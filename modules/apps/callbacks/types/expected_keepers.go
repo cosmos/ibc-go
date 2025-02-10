@@ -8,7 +8,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -103,7 +102,6 @@ type ContractKeeper interface {
 }
 
 type ChannelKeeperV2 interface {
-	api.WriteAcknowledgementWrapper
 	GetAsyncPacket(
 		ctx context.Context,
 		clientID string,

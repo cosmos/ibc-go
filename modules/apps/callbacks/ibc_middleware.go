@@ -9,6 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/internal"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -113,7 +114,7 @@ func (im IBCMiddleware) SendPacket(
 		)
 	}
 
-	err = types.ProcessCallback(sdkCtx, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
+	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
 	// contract keeper is allowed to reject the packet send.
 	if err != nil {
 		return 0, err
@@ -157,7 +158,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = types.ProcessCallback(sdkCtx, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
+	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(
 		sdkCtx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
 		types.CallbackTypeAcknowledgementPacket, callbackData, err,
@@ -191,7 +192,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx context.Context, channelVersion stri
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = types.ProcessCallback(sdkCtx, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
+	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(
 		sdkCtx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
 		types.CallbackTypeTimeoutPacket, callbackData, err,
@@ -228,7 +229,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx context.Context, channelVersion string,
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = types.ProcessCallback(sdkCtx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(
 		sdkCtx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		types.CallbackTypeReceivePacket, callbackData, err,
@@ -271,7 +272,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = types.ProcessCallback(sdkCtx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(
 		sdkCtx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		types.CallbackTypeReceivePacket, callbackData, err,
