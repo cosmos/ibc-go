@@ -12,6 +12,8 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
+const MaximumPayloadsSize = 262144 // 256 KiB. This is the maximum size of all payloads combined
+
 // CommitPacket returns the packet commitment bytes. The commitment consists of:
 // sha256_hash(timeout_timestamp + timeout_height.RevisionNumber + timeout_height.RevisionHeight + sha256_hash(data))
 // from a given packet. This results in a fixed length preimage.
@@ -108,6 +110,10 @@ func (p Packet) ValidateBasic() error {
 	}
 	if len(p.Data) == 0 {
 		return errorsmod.Wrap(ErrInvalidPacket, "packet data bytes cannot be empty")
+	}
+
+	if len(p.Data) > MaximumPayloadsSize {
+		return errorsmod.Wrapf(ErrInvalidPacket, "packet data bytes cannot exceed %d bytes", MaximumPayloadsSize)
 	}
 
 	return nil

@@ -5,12 +5,11 @@ import (
 	"errors"
 	"strings"
 
-	banktypes "cosmossdk.io/x/bank/types"
-	minttypes "cosmossdk.io/x/mint/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -79,7 +78,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 		{
 			"failure: sender is a blocked address",
 			func() {
-				msg.Sender = suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(minttypes.ModuleName).String()
+				msg.Sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
 		},

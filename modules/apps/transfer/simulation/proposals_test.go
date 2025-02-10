@@ -6,10 +6,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	codecaddress "github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	typesaddress "github.com/cosmos/cosmos-sdk/types/address"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/simulation"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -20,7 +21,7 @@ func TestProposalMsgs(t *testing.T) {
 	s := rand.NewSource(1)
 	r := rand.New(s)
 
-	ctx := sdk.NewContext(nil, true, nil)
+	ctx := sdk.NewContext(nil, cmtproto.Header{}, true, nil)
 	accounts := simtypes.RandomAccounts(r, 3)
 
 	// execute ProposalMsgs function
@@ -29,12 +30,14 @@ func TestProposalMsgs(t *testing.T) {
 
 	w0 := weightedProposalMsgs[0]
 
-	codec := codecaddress.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
-	msg, err := w0.MsgSimulatorFn()(ctx, r, accounts, codec)
-	require.NoError(t, err)
+	// tests w0 interface:
+	require.Equal(t, simulation.OpWeightMsgUpdateParams, w0.AppParamsKey())
+	require.Equal(t, simulation.DefaultWeightMsgUpdateParams, w0.DefaultWeight())
+
+	msg := w0.MsgSimulatorFn()(r, ctx, accounts)
 	msgUpdateParams, ok := msg.(*types.MsgUpdateParams)
 	require.True(t, ok)
 
-	require.Equal(t, sdk.AccAddress(typesaddress.Module("gov")).String(), msgUpdateParams.Signer)
+	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Signer)
 	require.EqualValues(t, msgUpdateParams.Params.SendEnabled, false)
 }

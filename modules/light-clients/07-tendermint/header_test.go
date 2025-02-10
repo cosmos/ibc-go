@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	cmtprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
+
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
@@ -49,7 +51,7 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 			header.ValidatorSet = nil
 		}, errors.New("invalid client header")},
 		{"ValidatorSetFromProto failed", func() {
-			header.ValidatorSet.Validators[0].VotingPower = -1
+			header.ValidatorSet.Validators[0].PubKey = cmtprotocrypto.PublicKey{}
 		}, errors.New("validator set is not tendermint validator set")},
 		{"header validator hash does not equal hash of validator set", func() {
 			// use chainB's randomly generated validator set

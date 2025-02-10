@@ -60,6 +60,7 @@ func TestPacketValidateBasic(t *testing.T) {
 		{types.NewPacket(validPacketData, 1, portid, chanid, invalidPort, cpchanid, timeoutHeight, timeoutTimestamp), errors.New("invalid destination port")},
 		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, invalidChannel, timeoutHeight, timeoutTimestamp), errors.New("invalid destination channel")},
 		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, disabledTimeout, 0), errors.New("packet timeout height and packet timeout timestamp cannot both be 0: invalid packet")},
+		{types.NewPacket(make([]byte, types.MaximumPayloadsSize+1), 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), errors.New("packet data bytes cannot exceed 262144 bytes: invalid packet")},
 	}
 
 	for _, tc := range testCases {

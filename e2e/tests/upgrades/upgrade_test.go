@@ -10,18 +10,18 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v9"
-	"github.com/strangelove-ventures/interchaintest/v9/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v9/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
-	govtypes "cosmossdk.io/x/gov/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	e2erelayer "github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -74,12 +74,17 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 		Info:   fmt.Sprintf("upgrade version test from %s to %s", currentVersion, upgradeVersion),
 	}
 
-	msgSoftwareUpgrade := &upgradetypes.MsgSoftwareUpgrade{
-		Plan:      plan,
-		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	}
+	if testvalues.GovV1MessagesFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
+		msgSoftwareUpgrade := &upgradetypes.MsgSoftwareUpgrade{
+			Plan:      plan,
+			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		}
 
-	s.ExecuteAndPassGovV1Proposal(ctx, msgSoftwareUpgrade, chain, wallet)
+		s.ExecuteAndPassGovV1Proposal(ctx, msgSoftwareUpgrade, chain, wallet)
+	} else {
+		upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal(fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion), "upgrade chain E2E test", plan)
+		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
+	}
 
 	err = test.WaitForCondition(time.Minute*2, time.Second*2, func() (bool, error) {
 		status, err := chain.GetNode().Client.Status(ctx)
