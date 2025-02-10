@@ -16,8 +16,8 @@ type IBCModule interface {
 	// for this specific application.
 	OnSendPacket(
 		ctx context.Context,
-		sourceChannel string,
-		destinationChannel string,
+		sourceClient string,
+		destinationClient string,
 		sequence uint64,
 		payload channeltypesv2.Payload,
 		signer sdk.AccAddress,
@@ -25,8 +25,8 @@ type IBCModule interface {
 
 	OnRecvPacket(
 		ctx context.Context,
-		sourceChannel string,
-		destinationChannel string,
+		sourceClient string,
+		destinationClient string,
 		sequence uint64,
 		payload channeltypesv2.Payload,
 		relayer sdk.AccAddress,
@@ -35,8 +35,8 @@ type IBCModule interface {
 	// OnTimeoutPacket is executed when a packet has timed out on the receiving chain.
 	OnTimeoutPacket(
 		ctx context.Context,
-		sourceChannel string,
-		destinationChannel string,
+		sourceClient string,
+		destinationClient string,
 		sequence uint64,
 		payload channeltypesv2.Payload,
 		relayer sdk.AccAddress,
@@ -45,11 +45,29 @@ type IBCModule interface {
 	// OnAcknowledgementPacket is executed when a packet gets acknowledged
 	OnAcknowledgementPacket(
 		ctx context.Context,
-		sourceChannel string,
-		destinationChannel string,
+		sourceClient string,
+		destinationClient string,
 		sequence uint64,
 		acknowledgement []byte,
 		payload channeltypesv2.Payload,
 		relayer sdk.AccAddress,
 	) error
+}
+
+type WriteAcknowledgementWrapper interface {
+	// WriteAcknowledgement writes the acknowledgement for an async acknowledgement
+	WriteAcknowledgement(
+		ctx context.Context,
+		srcClientID string,
+		sequence uint64,
+		ack channeltypesv2.Acknowledgement,
+	) error
+}
+
+// PacketDataUnmarshaler defines an optional interface which allows a middleware
+// to request the packet data to be unmarshaled by the base application.
+type PacketDataUnmarshaler interface {
+	// UnmarshalPacketData unmarshals the packet data into a concrete type
+	// the payload is provided and the packet data interface is returned
+	UnmarshalPacketData(payload channeltypesv2.Payload) (interface{}, error)
 }

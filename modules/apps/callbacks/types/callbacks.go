@@ -10,6 +10,7 @@ import (
 
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -51,6 +52,13 @@ type CallbacksCompatibleModule interface {
 	porttypes.PacketDataUnmarshaler
 }
 
+// CallbacksCompatibleModuleV2 is an interface that combines the IBCModuleV2 and PacketDataUnmarshaler
+// interfaces to assert that the underlying application supports both.
+type CallbacksCompatibleModuleV2 interface {
+	api.IBCModule
+	api.PacketDataUnmarshaler
+}
+
 // CallbackData is the callback data parsed from the packet.
 type CallbackData struct {
 	// CallbackAddress is the address of the callback actor.
@@ -82,7 +90,7 @@ func GetSourceCallbackData(
 		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
 	}
 
-	return getCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, SourceCallbackKey)
+	return GetCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, SourceCallbackKey)
 }
 
 // GetDestCallbackData parses the packet data and returns the destination callback data.
@@ -96,14 +104,14 @@ func GetDestCallbackData(
 		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
 	}
 
-	return getCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, DestinationCallbackKey)
+	return GetCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, DestinationCallbackKey)
 }
 
-// getCallbackData parses the packet data and returns the callback data.
+// GetCallbackData parses the packet data and returns the callback data.
 // It also checks that the remaining gas is greater than the gas limit specified in the packet data.
 // The addressGetter and gasLimitGetter functions are used to retrieve the callback
 // address and gas limit from the callback data.
-func getCallbackData(
+func GetCallbackData(
 	packetData interface{},
 	version, srcPortID string,
 	remainingGas, maxGas uint64,
