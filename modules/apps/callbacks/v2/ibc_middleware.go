@@ -216,7 +216,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return nil
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	cbData, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetSourcePort(),
 		sdkCtx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
@@ -277,7 +277,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	cbData, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetSourcePort(),
 		sdkCtx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
