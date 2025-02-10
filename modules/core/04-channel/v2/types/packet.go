@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	channeltypesv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
@@ -36,10 +37,16 @@ func (p Packet) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidPacket, "payloads must contain exactly one payload")
 	}
 
+	totalPayloadsSize := 0
 	for _, pd := range p.Payloads {
 		if err := pd.ValidateBasic(); err != nil {
 			return errorsmod.Wrap(err, "invalid Payload")
 		}
+		totalPayloadsSize += len(pd.Value)
+	}
+
+	if totalPayloadsSize > channeltypesv1.MaximumPayloadsSize {
+		return errorsmod.Wrapf(ErrInvalidPacket, "packet data bytes cannot exceed %d bytes", channeltypesv1.MaximumPayloadsSize)
 	}
 
 	if err := host.ChannelIdentifierValidator(p.SourceClient); err != nil {

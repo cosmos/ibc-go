@@ -25,4 +25,6 @@ type ClientKeeper interface {
 	GetClientConsensusState(ctx context.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 	// GetClientCounterparty returns the counterpartyInfo given a clientID
 	GetClientCounterparty(ctx context.Context, clientID string) (clienttypes.CounterpartyInfo, bool)
+	// GetAllGenesisClients returns all the clients in state with their client ids returned as IdentifiedClientState
+	GetAllGenesisClients(ctx context.Context) clienttypes.IdentifiedClientStates
 }
