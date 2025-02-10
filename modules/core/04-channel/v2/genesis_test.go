@@ -3,7 +3,6 @@ package channelv2_test
 import (
 	channelv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
