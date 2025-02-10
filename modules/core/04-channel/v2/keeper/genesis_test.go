@@ -10,6 +10,9 @@ func (suite *KeeperTestSuite) TestInitExportGenesis() {
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
 	path.SetupV2()
 
+	path2 := ibctesting.NewPath(suite.chainA, suite.chainC)
+	path2.SetupV2()
+
 	app := suite.chainA.App
 
 	emptyGenesis := types.DefaultGenesisState()
