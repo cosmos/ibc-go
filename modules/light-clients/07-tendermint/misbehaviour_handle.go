@@ -110,7 +110,7 @@ func (cs *ClientState) verifyMisbehaviour(ctx context.Context, clientStore store
 	// NOTE: header height and commitment root assertions are checked in
 	// misbehaviour.ValidateBasic by the client keeper and msg.ValidateBasic
 	// by the base application.
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	if err := checkMisbehaviourHeader(
 		cs, tmConsensusState1, misbehaviour.Header1, sdkCtx.BlockTime(),
 	); err != nil {

@@ -9,12 +9,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	govtypesv1 "cosmossdk.io/x/gov/types/v1"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
 
@@ -88,6 +87,7 @@ func UnmarshalMsgResponses(cdc codec.Codec, data []byte, msgs ...codec.ProtoMars
 // RequireErrorIsOrContains verifies that the passed error is either a target error or contains its error message.
 func RequireErrorIsOrContains(t *testing.T, err, targetError error, msgAndArgs ...interface{}) {
 	t.Helper()
+	require.Error(t, err)
 	require.True(
 		t,
 		errors.Is(err, targetError) ||

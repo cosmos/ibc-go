@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -89,7 +89,7 @@ func (path *Path) RelayPacket(packet channeltypes.Packet) error {
 // - An error if a relay step fails or the packet commitment does not exist on either endpoint.
 func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.ExecTxResult, []byte, error) {
 	pc := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	if bytes.Equal(pc, channeltypes.CommitPacket(path.EndpointA.Chain.App.AppCodec(), packet)) {
+	if bytes.Equal(pc, channeltypes.CommitPacket(packet)) {
 		// packet found, relay from A to B
 		if err := path.EndpointB.UpdateClient(); err != nil {
 			return nil, nil, err
@@ -113,8 +113,7 @@ func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.Exec
 	}
 
 	pc = path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointB.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	if bytes.Equal(pc, channeltypes.CommitPacket(path.EndpointB.Chain.App.AppCodec(), packet)) {
-
+	if bytes.Equal(pc, channeltypes.CommitPacket(packet)) {
 		// packet found, relay B to A
 		if err := path.EndpointA.UpdateClient(); err != nil {
 			return nil, nil, err
@@ -140,6 +139,13 @@ func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.Exec
 	return nil, nil, errors.New("packet commitment does not exist on either endpoint for provided packet")
 }
 
+// Reversed returns a new path with endpoints reversed.
+func (path *Path) Reversed() *Path {
+	reversedPath := *path
+	reversedPath.EndpointA, reversedPath.EndpointB = path.EndpointB, path.EndpointA
+	return &reversedPath
+}
+
 // Setup constructs a TM client, connection, and channel on both chains provided. It will
 // fail if any error occurs.
 func (path *Path) Setup() {
@@ -147,6 +153,14 @@ func (path *Path) Setup() {
 
 	// channels can also be referenced through the returned connections
 	path.CreateChannels()
+}
+
+// SetupV2 constructs clients on both sides and then provides the counterparties for both sides
+// This is all that is necessary for path setup with the Eureka (V2) protocol
+func (path *Path) SetupV2() {
+	path.SetupClients()
+
+	path.SetupCounterparties()
 }
 
 // SetupClients is a helper function to create clients on both chains. It assumes the
@@ -159,6 +173,18 @@ func (path *Path) SetupClients() {
 
 	err = path.EndpointB.CreateClient()
 	if err != nil {
+		panic(err)
+	}
+}
+
+// SetupCounterparties is a helper function to set the counterparties supporting ibc-eureka on both
+// chains. It assumes the caller does not anticipate any errors.
+func (path *Path) SetupCounterparties() {
+	if err := path.EndpointB.RegisterCounterparty(); err != nil {
+		panic(err)
+	}
+
+	if err := path.EndpointA.RegisterCounterparty(); err != nil {
 		panic(err)
 	}
 }

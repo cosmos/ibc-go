@@ -6,22 +6,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 )
 
 func TestCommitPacket(t *testing.T) {
-	registry := codectypes.NewInterfaceRegistry()
-	clienttypes.RegisterInterfaces(registry)
-	types.RegisterInterfaces(registry)
-
-	cdc := codec.NewProtoCodec(registry)
-
 	packet := types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp)
-	commitment := types.CommitPacket(cdc, packet)
+	commitment := types.CommitPacket(packet)
 	require.NotNil(t, commitment)
 
 	testCases := []struct {
@@ -47,7 +38,7 @@ func TestCommitPacket(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		testCommitment := types.CommitPacket(cdc, tc.packet)
+		testCommitment := types.CommitPacket(tc.packet)
 		require.NotNil(t, testCommitment)
 
 		require.NotEqual(t, commitment, testCommitment)
@@ -69,6 +60,7 @@ func TestPacketValidateBasic(t *testing.T) {
 		{types.NewPacket(validPacketData, 1, portid, chanid, invalidPort, cpchanid, timeoutHeight, timeoutTimestamp), errors.New("invalid destination port")},
 		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, invalidChannel, timeoutHeight, timeoutTimestamp), errors.New("invalid destination channel")},
 		{types.NewPacket(validPacketData, 1, portid, chanid, cpportid, cpchanid, disabledTimeout, 0), errors.New("packet timeout height and packet timeout timestamp cannot both be 0: invalid packet")},
+		{types.NewPacket(make([]byte, types.MaximumPayloadsSize+1), 1, portid, chanid, cpportid, cpchanid, timeoutHeight, timeoutTimestamp), errors.New("packet data bytes cannot exceed 262144 bytes: invalid packet")},
 	}
 
 	for _, tc := range testCases {

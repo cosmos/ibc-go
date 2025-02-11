@@ -1,8 +1,6 @@
 package types
 
 import (
-	coreregistry "cosmossdk.io/core/registry"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -12,7 +10,7 @@ import (
 
 // RegisterLegacyAminoCodec registers the necessary x/ibc 29-fee interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
-func RegisterLegacyAminoCodec(cdc coreregistry.AminoRegistrar) {
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgPayPacketFee{}, "cosmos-sdk/MsgPayPacketFee")
 	legacy.RegisterAminoMsg(cdc, &MsgPayPacketFeeAsync{}, "cosmos-sdk/MsgPayPacketFeeAsync")
 	legacy.RegisterAminoMsg(cdc, &MsgRegisterPayee{}, "cosmos-sdk/MsgRegisterPayee")
@@ -21,7 +19,7 @@ func RegisterLegacyAminoCodec(cdc coreregistry.AminoRegistrar) {
 
 // RegisterInterfaces register the 29-fee module interfaces to protobuf
 // Any.
-func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgPayPacketFee{},

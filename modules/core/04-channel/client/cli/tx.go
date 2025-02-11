@@ -9,13 +9,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	govcli "cosmossdk.io/x/gov/client/cli"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
@@ -24,6 +23,7 @@ import (
 const (
 	flagJSON        = "json"
 	flagPortPattern = "port-pattern"
+	flagExpedited   = "expedited"
 	flagChannelIDs  = "channel-ids"
 )
 
@@ -144,6 +144,7 @@ func newUpgradeChannelsTxCmd() *cobra.Command {
 	cmd.Flags().Bool(flagJSON, false, "specify true to output valid proposal.json contents, instead of submitting a governance proposal.")
 	cmd.Flags().String(flagPortPattern, "transfer", "The pattern to use to match port ids.")
 	cmd.Flags().String(flagChannelIDs, "", "a comma separated list of channel IDs to upgrade.")
+	cmd.Flags().Bool(flagExpedited, false, "set the expedited value for the governance proposal.")
 
 	return cmd
 }

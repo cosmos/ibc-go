@@ -1,4 +1,4 @@
-FROM golang:1.23.4-alpine as builder
+FROM golang:1.23.6-alpine AS builder
 ARG IBC_GO_VERSION
 
 RUN set -eux; apk add --no-cache gcc git libusb-dev linux-headers make musl-dev;
@@ -26,10 +26,10 @@ RUN go mod download
 
 RUN make build
 
-FROM alpine:3.18
+FROM alpine:3.21
 ARG IBC_GO_VERSION
 
-LABEL "org.cosmos.ibc-go" "${IBC_GO_VERSION}"
+LABEL "org.cosmos.ibc-go"="${IBC_GO_VERSION}"
 
 COPY --from=builder /go/build/simd /bin/simd
 

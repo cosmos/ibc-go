@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
@@ -20,7 +20,7 @@ import (
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
+	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
@@ -30,6 +30,64 @@ var (
 	timeoutHeight = clienttypes.NewHeight(1, 10000)
 	maxSequence   = uint64(10)
 )
+
+// TestRegisterCounterparty tests that counterpartyInfo is correctly stored
+// and only if the submittor is the same submittor as prior createClient msg
+func (suite *KeeperTestSuite) TestRegisterCounterparty() {
+	var path *ibctesting.Path
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {
+				path.SetupClients()
+			},
+			nil,
+		},
+		{
+			"client not created first",
+			func() {},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"creator is different than expected",
+			func() {
+				path.SetupClients()
+				path.EndpointA.Chain.App.GetIBCKeeper().ClientKeeper.SetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID, sdk.AccAddress(ibctesting.TestAccAddress))
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+	}
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			tc.malleate()
+			merklePrefix := [][]byte{[]byte("ibc"), []byte("channel-7")}
+			msg := clienttypes.NewMsgRegisterCounterparty(path.EndpointA.ClientID, merklePrefix, path.EndpointB.ClientID, suite.chainA.SenderAccount.GetAddress().String())
+			_, err := suite.chainA.App.GetIBCKeeper().RegisterCounterparty(suite.chainA.GetContext(), msg)
+			if tc.expError != nil {
+				suite.Require().Error(err)
+				suite.Require().True(errors.Is(err, tc.expError))
+			} else {
+				suite.Require().NoError(err)
+				counterpartyInfo, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().True(ok)
+				suite.Require().Equal(counterpartyInfo, clienttypes.NewCounterpartyInfo(merklePrefix, path.EndpointB.ClientID))
+				nextSeqSend, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().True(ok)
+				suite.Require().Equal(nextSeqSend, uint64(1))
+				creator := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().Empty(creator)
+			}
+		})
+	}
+}
 
 // tests the IBC handler receiving a packet on ordered and unordered channels.
 // It verifies that the storing of an acknowledgement on success occurs. It
@@ -185,13 +243,13 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 
 				if tc.expRevert {
 					// context events should contain error events
-					suite.Require().Contains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+					suite.Require().Contains(events, internalerrors.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
 				} else {
 					if tc.replay {
 						// context should not contain application events
 						suite.Require().NotContains(events, ibcmock.NewMockRecvPacketEvent())
-						suite.Require().NotContains(events, keeper.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
+						suite.Require().NotContains(events, internalerrors.ConvertToErrorEvents(sdk.Events{ibcmock.NewMockRecvPacketEvent()})[0])
 					} else {
 						// context events should contain application events
 						suite.Require().Contains(events, ibcmock.NewMockRecvPacketEvent())
@@ -1005,13 +1063,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 				)
 
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeInit = func(ctx context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
-					store := suite.chainA.GetSimApp().GetIBCKeeper().KVStoreService.OpenKVStore(ctx)
-					err := store.Set(ibcmock.TestKey, ibcmock.TestValue)
-					suite.Require().NoError(err)
+					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
+					sdkCtx := sdk.UnwrapSDKContext(ctx)
+					store := sdkCtx.KVStore(storeKey)
+					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					eventService := suite.chainA.GetSimApp().GetIBCKeeper().EventService
-					err = eventService.EventManager(ctx).EmitKV(ibcmock.MockEventType)
-					suite.Require().NoError(err)
+					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return ibcmock.UpgradeVersion, nil
 				}
 			},
@@ -1154,13 +1211,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			"ibc application does not commit state changes in callback",
 			func() {
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(ctx context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
-					store := suite.chainA.GetSimApp().GetIBCKeeper().KVStoreService.OpenKVStore(ctx)
-					err := store.Set(ibcmock.TestKey, ibcmock.TestValue)
-					suite.Require().NoError(err)
+					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
+					sdkCtx := sdk.UnwrapSDKContext(ctx)
+					store := sdkCtx.KVStore(storeKey)
+					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					eventService := suite.chainA.GetSimApp().GetIBCKeeper().EventService
-					err = eventService.EventManager(ctx).EmitKV(ibcmock.MockEventType)
-					suite.Require().NoError(err)
+					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return ibcmock.UpgradeVersion, nil
 				}
 			},
@@ -1363,9 +1419,9 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 					ctx context.Context, portID, channelID, counterpartyVersion string,
 				) error {
 					// set arbitrary value in store to mock application state changes
-					store := suite.chainA.GetSimApp().GetIBCKeeper().KVStoreService.OpenKVStore(ctx)
-					err := store.Set(ibcmock.TestKey, ibcmock.TestValue)
-					suite.Require().NoError(err)
+					sdkCtx := sdk.UnwrapSDKContext(ctx)
+					store := sdkCtx.KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
+					store.Set([]byte("foo"), []byte("bar"))
 					return fmt.Errorf("mock app callback failed")
 				}
 			},
@@ -1437,13 +1493,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			"ibc application does not commit state changes in callback",
 			func() {
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx context.Context, portID, channelID, counterpartyVersion string) error {
-					store := suite.chainA.GetSimApp().GetIBCKeeper().KVStoreService.OpenKVStore(ctx)
-					err := store.Set(ibcmock.TestKey, ibcmock.TestValue)
-					suite.Require().NoError(err)
+					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
+					sdkCtx := sdk.UnwrapSDKContext(ctx)
+					store := sdkCtx.KVStore(storeKey)
+					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					eventService := suite.chainA.GetSimApp().GetIBCKeeper().EventService
-					err = eventService.EventManager(ctx).EmitKV(ibcmock.MockEventType)
-					suite.Require().NoError(err)
+					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return nil
 				}
 			},
@@ -2528,7 +2583,7 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				suite.Require().NoError(err)
 				suite.Require().Equal(clientState.ZeroCustomFields(), upgradedClientState)
 			} else {
-				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().True(errors.Is(err, tc.expError))
 			}
 		})
 	}

@@ -1,7 +1,6 @@
 package mock
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,11 +9,14 @@ import (
 	"github.com/spf13/cobra"
 
 	"cosmossdk.io/core/appmodule"
-	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -51,23 +53,23 @@ var (
 )
 
 var (
-	_ appmodule.AppModule = (*AppModule)(nil)
+	_ module.AppModuleBasic = (*AppModuleBasic)(nil)
+	_ appmodule.AppModule   = (*AppModule)(nil)
 
 	_ porttypes.IBCModule = (*IBCModule)(nil)
 )
 
-// AppModule represents the AppModule for the mock module.
-type AppModule struct {
-	ibcApps []*IBCApp
-}
+// AppModuleBasic is the mock AppModuleBasic.
+type AppModuleBasic struct{}
 
-// NewAppModule returns a mock AppModule instance.
-func NewAppModule() AppModule {
-	return AppModule{}
-}
+// IsOnePerModuleType implements the depinject.OnePerModuleType interface.
+func (AppModuleBasic) IsOnePerModuleType() {}
 
-// Name implements AppModule interface.
-func (AppModule) Name() string {
+// IsAppModule implements the appmodule.AppModule interface.
+func (AppModuleBasic) IsAppModule() {}
+
+// Name implements AppModuleBasic interface.
+func (AppModuleBasic) Name() string {
 	return ModuleName
 }
 
@@ -78,32 +80,43 @@ func (AppModule) IsOnePerModuleType() {}
 func (AppModule) IsAppModule() {}
 
 // RegisterLegacyAminoCodec implements AppModuleBasic interface.
-func (AppModule) RegisterLegacyAminoCodec(coreregistry.AminoRegistrar) {}
+func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
 
 // RegisterInterfaces implements AppModuleBasic interface.
-func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {}
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {}
 
 // DefaultGenesis implements AppModuleBasic interface.
-func (AppModule) DefaultGenesis() json.RawMessage {
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return nil
 }
 
 // ValidateGenesis implements the AppModuleBasic interface.
-func (AppModule) ValidateGenesis(json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(codec.JSONCodec, client.TxEncodingConfig, json.RawMessage) error {
 	return nil
 }
 
 // RegisterGRPCGatewayRoutes implements AppModuleBasic interface.
-func (AppModule) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(_ client.Context, _ *runtime.ServeMux) {}
 
 // GetTxCmd implements AppModuleBasic interface.
-func (AppModule) GetTxCmd() *cobra.Command {
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return nil
 }
 
 // GetQueryCmd implements AppModuleBasic interface.
-func (AppModule) GetQueryCmd() *cobra.Command {
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return nil
+}
+
+// AppModule represents the AppModule for the mock module.
+type AppModule struct {
+	AppModuleBasic
+	ibcApps []*IBCApp
+}
+
+// NewAppModule returns a mock AppModule instance.
+func NewAppModule() AppModule {
+	return AppModule{}
 }
 
 // RegisterInvariants implements the AppModule interface.
@@ -113,13 +126,13 @@ func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 func (AppModule) RegisterServices(module.Configurator) {}
 
 // InitGenesis implements the AppModule interface.
-func (AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) error {
-	return nil
+func (AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis implements the AppModule interface.
-func (AppModule) ExportGenesis(ctx context.Context) (json.RawMessage, error) {
-	return nil, nil
+func (AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	return nil
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.

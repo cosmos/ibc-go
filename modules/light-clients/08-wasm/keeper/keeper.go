@@ -86,11 +86,10 @@ func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *queryHandler 
 // contract code before storing:
 // - Size bounds are checked. Contract length must not be 0 or exceed a specific size (maxWasmSize).
 // - The contract must not have already been stored in store.
-func (k Keeper) storeWasmCode(ctx context.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
-		sdkCtx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
+		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
 		code, err = types.Uncompress(code, types.MaxWasmSize)
 		if err != nil {
 			return nil, errorsmod.Wrap(err, "failed to store contract")
@@ -113,9 +112,9 @@ func (k Keeper) storeWasmCode(ctx context.Context, code []byte, storeFn func(cod
 	}
 
 	// create the code in the vm
-	gasLeft := types.VMGasRegister.RuntimeGasForContract(sdkCtx)
+	gasLeft := types.VMGasRegister.RuntimeGasForContract(ctx)
 	vmChecksum, gasUsed, err := storeFn(code, gasLeft)
-	types.VMGasRegister.ConsumeRuntimeGas(sdkCtx, gasUsed)
+	types.VMGasRegister.ConsumeRuntimeGas(ctx, gasUsed)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store contract")
 	}

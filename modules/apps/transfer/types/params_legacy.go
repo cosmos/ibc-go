@@ -9,7 +9,7 @@ package types
 import (
 	"fmt"
 
-	paramtypes "cosmossdk.io/x/params/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 var (

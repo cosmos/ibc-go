@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v9/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -592,7 +592,6 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 	})
 
 	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
-
 	t.Run("packets relayed", func(t *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
 		actualBalance, err := query.Balance(ctx, chainB, chainBAddress, chainBIBCToken.IBCDenom())
@@ -619,7 +618,7 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 	chainAIBCToken := testsuite.GetIBCToken(chainB.Config().Denom, channelA.PortID, channelA.ChannelID)
 	t.Run("packets relayed", func(t *testing.T) {
 		// test that chainA has the entire balance back of its native token.
-		s.AssertPacketRelayed(ctx, chainA, channelA.PortID, channelA.ChannelID, 1)
+		s.AssertPacketRelayed(ctx, chainB, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 		actualBalance, err := query.Balance(ctx, chainA, chainAAddress, chainADenom)
 
 		s.Require().NoError(err)

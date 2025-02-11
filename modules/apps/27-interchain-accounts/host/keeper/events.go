@@ -4,8 +4,6 @@ import (
 	"context"
 	"strconv"
 
-	"cosmossdk.io/core/event"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
@@ -16,30 +14,35 @@ import (
 
 // EmitAcknowledgementEvent emits an event signalling a successful or failed acknowledgement and including the error
 // details if any.
-func (k *Keeper) EmitAcknowledgementEvent(ctx context.Context, packet channeltypes.Packet, ack exported.Acknowledgement, err error) error {
-	attributes := []event.Attribute{
-		event.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
-		event.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
-		event.NewAttribute(icatypes.AttributeKeyAckSuccess, strconv.FormatBool(ack.Success())),
+func EmitAcknowledgementEvent(ctx context.Context, packet channeltypes.Packet, ack exported.Acknowledgement, err error) {
+	attributes := []sdk.Attribute{
+		sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
+		sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
+		sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, strconv.FormatBool(ack.Success())),
 	}
 
 	if err != nil {
-		attributes = append(attributes, event.NewAttribute(icatypes.AttributeKeyAckError, err.Error()))
+		attributes = append(attributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, err.Error()))
 	}
-
-	return k.EventService.EventManager(ctx).EmitKV(
-		icatypes.EventTypePacket,
-		attributes...,
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			icatypes.EventTypePacket,
+			attributes...,
+		),
 	)
 }
 
 // EmitHostDisabledEvent emits an event signalling that the host submodule is disabled.
-func (k *Keeper) EmitHostDisabledEvent(ctx context.Context, packet channeltypes.Packet) error {
-	return k.EventService.EventManager(ctx).EmitKV(
-		icatypes.EventTypePacket,
-		event.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
-		event.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
-		event.NewAttribute(icatypes.AttributeKeyAckError, types.ErrHostSubModuleDisabled.Error()),
-		event.NewAttribute(icatypes.AttributeKeyAckSuccess, "false"),
+func EmitHostDisabledEvent(ctx context.Context, packet channeltypes.Packet) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	sdkCtx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			icatypes.EventTypePacket,
+			sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
+			sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
+			sdk.NewAttribute(icatypes.AttributeKeyAckError, types.ErrHostSubModuleDisabled.Error()),
+			sdk.NewAttribute(icatypes.AttributeKeyAckSuccess, "false"),
+		),
 	)
 }

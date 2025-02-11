@@ -12,12 +12,12 @@ import (
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
-	banktypes "cosmossdk.io/x/bank/types"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
@@ -40,7 +40,7 @@ func init() {
 // SetupTestingApp provides the duplicated simapp which is specific to the callbacks module on chain creation.
 func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.AppOptionsMap{})
+	app := simapp.NewSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{})
 	return app, app.DefaultGenesis()
 }
 
@@ -295,7 +295,7 @@ func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
 
 // GetExpectedEvent returns the expected event for a callback.
 func GetExpectedEvent(
-	ctx sdk.Context, packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte, srcPortID,
+	ctx sdk.Context, packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte,
 	eventPortID, eventChannelID string, seq uint64, callbackType types.CallbackType, expError error,
 ) (abci.Event, bool) {
 	var (

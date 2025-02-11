@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/internal"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
@@ -210,7 +211,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				s.Require().Equal(uint64(1), seq)
 
 				expEvent, exists := GetExpectedEvent(
-					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(), s.path.EndpointA.ChannelConfig.PortID,
+					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packetData.GetBytes(),
 					s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID, seq, types.CallbackTypeSendPacket, nil,
 				)
 				if exists {
@@ -391,7 +392,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				s.Require().Equal(uint8(1), sourceStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data,
 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeAcknowledgementPacket, nil,
 				)
 				s.Require().True(exists)
@@ -554,7 +555,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				s.Require().Equal(uint8(2), sourceStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data,
 					packet.SourcePort, packet.SourceChannel, packet.Sequence, types.CallbackTypeTimeoutPacket, nil,
 				)
 				s.Require().True(exists)
@@ -723,7 +724,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				s.Require().Equal(uint8(1), destStatefulCounter)
 
 				expEvent, exists := GetExpectedEvent(
-					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferStack.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data,
 					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
 				)
 				s.Require().True(exists)
@@ -823,7 +824,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				s.Require().NoError(err)
 
 				expEvent, exists := GetExpectedEvent(
-					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data, packet.SourcePort,
+					ctx, transferICS4Wrapper.(porttypes.PacketDataUnmarshaler), gasLimit, packet.Data,
 					packet.DestinationPort, packet.DestinationChannel, packet.Sequence, types.CallbackTypeReceivePacket, nil,
 				)
 				if exists {
@@ -953,13 +954,8 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 			tc.malleate()
 			var err error
 
-			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
-			s.Require().True(ok)
-			mockCallbackStack, ok := cbs.(ibccallbacks.IBCMiddleware)
-			s.Require().True(ok)
-
 			processCallback := func() {
-				err = mockCallbackStack.ProcessCallback(ctx, callbackType, callbackData, callbackExecutor)
+				err = internal.ProcessCallback(ctx, callbackType, callbackData, callbackExecutor)
 			}
 
 			expPass := tc.expValue == nil

@@ -3,7 +3,7 @@ package testsuite
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 )
 
 // ABCIToSDKEvents converts a list of ABCI events to Cosmos SDK events.

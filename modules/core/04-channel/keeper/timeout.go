@@ -70,9 +70,7 @@ func (k *Keeper) TimeoutPacket(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		if err := k.emitTimeoutPacketEvent(ctx, packet, channel); err != nil {
-			return "", err
-		}
+		emitTimeoutPacketEvent(ctx, packet, channel)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -80,7 +78,7 @@ func (k *Keeper) TimeoutPacket(
 		return "", types.ErrNoOpMsg
 	}
 
-	packetCommitment := types.CommitPacket(k.cdc, packet)
+	packetCommitment := types.CommitPacket(packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
@@ -115,26 +113,25 @@ func (k *Keeper) TimeoutPacket(
 		return "", err
 	}
 
-	// NOTE: the remaining code is located in the TimeoutExecuted function
+	if err = k.timeoutExecuted(ctx, channel, packet); err != nil {
+		return "", err
+	}
+
 	return channel.Version, nil
 }
 
-// TimeoutExecuted deletes the commitment send from this chain after it verifies timeout.
+// timeoutExecuted deletes the commitment send from this chain after it verifies timeout.
 // If the timed-out packet came from an ORDERED channel then this channel will be closed.
 // If the channel is in the FLUSHING state and there is a counterparty upgrade, then the
 // upgrade will be aborted if the upgrade has timed out. Otherwise, if there are no more inflight packets,
 // then the channel will be set to the FLUSHCOMPLETE state.
 //
 // CONTRACT: this function must be called in the IBC handler
-func (k *Keeper) TimeoutExecuted(
+func (k *Keeper) timeoutExecuted(
 	ctx context.Context,
+	channel types.Channel,
 	packet types.Packet,
 ) error {
-	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-	if !found {
-		return errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", packet.GetSourcePort(), packet.GetSourceChannel())
-	}
-
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
@@ -147,7 +144,7 @@ func (k *Keeper) TimeoutExecuted(
 		// all upgrade information is deleted and the channel is set to CLOSED.
 		if channel.State == types.FLUSHING {
 			k.deleteUpgradeInfo(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-			k.Logger.Info(
+			k.Logger(ctx).Info(
 				"upgrade info deleted",
 				"port_id", packet.GetSourcePort(),
 				"channel_id", packet.GetSourceChannel(),
@@ -157,12 +154,10 @@ func (k *Keeper) TimeoutExecuted(
 
 		channel.State = types.CLOSED
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-		if err := k.emitChannelClosedEvent(ctx, packet, channel); err != nil {
-			return err
-		}
+		emitChannelClosedEvent(ctx, packet, channel)
 	}
 
-	k.Logger.Info(
+	k.Logger(ctx).Info(
 		"packet timed-out",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", packet.GetSourcePort(),
@@ -172,7 +167,9 @@ func (k *Keeper) TimeoutExecuted(
 	)
 
 	// emit an event marking that we have processed the timeout
-	return k.emitTimeoutPacketEvent(ctx, packet, channel)
+	emitTimeoutPacketEvent(ctx, packet, channel)
+
+	return nil
 }
 
 // TimeoutOnClose is called by a module in order to prove that the channel to
@@ -214,9 +211,7 @@ func (k *Keeper) TimeoutOnClose(
 	commitment := k.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	if len(commitment) == 0 {
-		if err := k.emitTimeoutPacketEvent(ctx, packet, channel); err != nil {
-			return "", err
-		}
+		emitTimeoutPacketEvent(ctx, packet, channel)
 		// This error indicates that the timeout has already been relayed
 		// or there is a misconfigured relayer attempting to prove a timeout
 		// for a packet never sent. Core IBC will treat this error as a no-op in order to
@@ -224,7 +219,7 @@ func (k *Keeper) TimeoutOnClose(
 		return "", types.ErrNoOpMsg
 	}
 
-	packetCommitment := types.CommitPacket(k.cdc, packet)
+	packetCommitment := types.CommitPacket(packet)
 
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
@@ -278,6 +273,9 @@ func (k *Keeper) TimeoutOnClose(
 		return "", err
 	}
 
-	// NOTE: the remaining code is located in the TimeoutExecuted function
+	if err = k.timeoutExecuted(ctx, channel, packet); err != nil {
+		return "", err
+	}
+
 	return channel.Version, nil
 }

@@ -37,17 +37,38 @@ func (suite *TransferTestSuite) SetupTest() {
 // 2 - from chainB to chainC
 // 3 - from chainC to chainB
 func (suite *TransferTestSuite) TestHandleMsgTransfer() {
-	testCases := []struct {
-		name                   string
+	var (
 		sourceDenomsToTransfer []string
+		msgAmount              sdkmath.Int
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
 	}{
 		{
 			"transfer single denom",
-			[]string{sdk.DefaultBondDenom},
+			func() {},
+		},
+		{
+			"transfer amount larger than int64",
+			func() {
+				var ok bool
+				msgAmount, ok = sdkmath.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
+				suite.Require().True(ok)
+			},
 		},
 		{
 			"transfer multiple denoms",
-			[]string{sdk.DefaultBondDenom, ibctesting.SecondaryDenom},
+			func() {
+				sourceDenomsToTransfer = []string{sdk.DefaultBondDenom, ibctesting.SecondaryDenom}
+			},
+		},
+		{
+			"transfer entire balance",
+			func() {
+				msgAmount = types.UnboundedSpendLimit()
+			},
 		},
 	}
 
@@ -63,19 +84,22 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			pathAToB.Setup()
 			traceAToB := types.NewHop(pathAToB.EndpointB.ChannelConfig.PortID, pathAToB.EndpointB.ChannelID)
 
+			sourceDenomsToTransfer = []string{sdk.DefaultBondDenom}
+			msgAmount = ibctesting.DefaultCoinAmount
+
+			tc.malleate()
+
 			originalBalances := sdk.NewCoins()
-			for _, denom := range tc.sourceDenomsToTransfer {
+			for _, denom := range sourceDenomsToTransfer {
 				originalBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom)
 				originalBalances = originalBalances.Add(originalBalance)
 			}
 
 			timeoutHeight := clienttypes.NewHeight(1, 110)
 
-			amount, ok := sdkmath.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
-			suite.Require().True(ok)
 			originalCoins := sdk.NewCoins()
-			for _, denom := range tc.sourceDenomsToTransfer {
-				coinToSendToB := sdk.NewCoin(denom, amount)
+			for _, denom := range sourceDenomsToTransfer {
+				coinToSendToB := sdk.NewCoin(denom, msgAmount)
 				originalCoins = originalCoins.Add(coinToSendToB)
 			}
 
@@ -87,6 +111,12 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			packet, err := ibctesting.ParsePacketFromEvents(res.Events)
 			suite.Require().NoError(err)
 
+			// Get the packet data to determine the amount of tokens being transferred (needed for sending entire balance)
+			packetData, err := types.UnmarshalPacketData(packet.GetData(), pathAToB.EndpointA.GetChannel().Version, "")
+			suite.Require().NoError(err)
+			transferAmount, ok := sdkmath.NewIntFromString(packetData.Tokens[0].Amount)
+			suite.Require().True(ok)
+
 			// relay send
 			err = pathAToB.RelayPacket(packet)
 			suite.Require().NoError(err) // relay committed
@@ -96,16 +126,16 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			for _, coin := range originalCoins {
 				// check that the balance for chainA is updated
 				chainABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), coin.Denom)
-				suite.Require().Equal(originalBalances.AmountOf(coin.Denom).Sub(amount).Int64(), chainABalance.Amount.Int64())
+				suite.Require().True(originalBalances.AmountOf(coin.Denom).Sub(transferAmount).Equal(chainABalance.Amount))
 
 				// check that module account escrow address has locked the tokens
 				chainAEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, coin.Denom)
-				suite.Require().Equal(coin, chainAEscrowBalance)
+				suite.Require().True(transferAmount.Equal(chainAEscrowBalance.Amount))
 
 				// check that voucher exists on chain B
 				chainBDenom := types.NewDenom(coin.Denom, traceAToB)
 				chainBBalance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), chainBDenom.IBCDenom())
-				coinSentFromAToB := sdk.NewCoin(chainBDenom.IBCDenom(), amount)
+				coinSentFromAToB := sdk.NewCoin(chainBDenom.IBCDenom(), transferAmount)
 				suite.Require().Equal(coinSentFromAToB, chainBBalance)
 
 				coinsSentFromAToB = coinsSentFromAToB.Add(coinSentFromAToB)
@@ -137,7 +167,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 				chainCDenom := types.NewDenom(coin.Denom, traceBToC, traceAToB)
 
 				// check that the balance is updated on chainC
-				coinSentFromBToC := sdk.NewCoin(chainCDenom.IBCDenom(), amount)
+				coinSentFromBToC := sdk.NewCoin(chainCDenom.IBCDenom(), transferAmount)
 				chainCBalance := suite.chainC.GetSimApp().BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccount.GetAddress(), coinSentFromBToC.Denom)
 				suite.Require().Equal(coinSentFromBToC, chainCBalance)
 
@@ -182,12 +212,12 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			for _, coin := range originalCoins {
 				// check that the balance is unchanged
 				chainABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), coin.Denom)
-				suite.Require().Equal(originalBalances.AmountOf(coin.Denom).Sub(amount).Int64(), chainABalance.Amount.Int64())
+				suite.Require().True(originalBalances.AmountOf(coin.Denom).Sub(transferAmount).Equal(chainABalance.Amount))
 
 				// check that module account escrow address is unchanged
 				escrowAddress = types.GetEscrowAddress(pathAToB.EndpointA.ChannelConfig.PortID, pathAToB.EndpointA.ChannelID)
 				chainAEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, coin.Denom)
-				suite.Require().Equal(coin, chainAEscrowBalance)
+				suite.Require().True(transferAmount.Equal(chainAEscrowBalance.Amount))
 			}
 		})
 	}

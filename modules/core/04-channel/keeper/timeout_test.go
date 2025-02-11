@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
@@ -145,6 +145,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
 
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
+
 			suite.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, timeoutTimestamp)
 			err = path.EndpointA.UpdateClient()
@@ -275,22 +276,6 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 				// Check channel has been closed
 				channel := path.EndpointA.GetChannel()
 				suite.Require().Equal(channel.State, types.CLOSED)
-			},
-			nil,
-		},
-		{
-			"channel not found",
-			func() {
-				// use wrong channel naming
-				path.Setup()
-				packet = types.NewPacket(ibctesting.MockPacketData, 1, ibctesting.InvalidID, ibctesting.InvalidID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
-			},
-			func(packetCommitment []byte, err error) {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, types.ErrChannelNotFound)
-
-				// packet never sent.
-				suite.Require().Nil(packetCommitment)
 			},
 			nil,
 		},
@@ -493,7 +478,7 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 
 			tc.malleate()
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutExecuted(ctx, packet)
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutExecuted(ctx, path.EndpointA.GetChannel(), packet)
 			pc := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 			tc.expResult(pc, err)

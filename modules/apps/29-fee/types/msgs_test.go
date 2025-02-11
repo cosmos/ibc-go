@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
@@ -97,8 +96,8 @@ func TestRegisterPayeeGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
 
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, modulefee.AppModule{})
-	signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 	require.NoError(t, err)
 	require.Equal(t, accAddress.Bytes(), signers[0])
 }
@@ -185,8 +184,8 @@ func TestRegisterCountepartyAddressGetSigners(t *testing.T) {
 	accAddress := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	msg := types.NewMsgRegisterCounterpartyPayee(ibctesting.MockPort, ibctesting.FirstChannelID, accAddress.String(), defaultAccAddress)
 
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, modulefee.AppModule{})
-	signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 	require.NoError(t, err)
 	require.Equal(t, accAddress.Bytes(), signers[0])
 }
@@ -264,8 +263,8 @@ func TestPayPacketFeeGetSigners(t *testing.T) {
 	fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 	msg := types.NewMsgPayPacketFee(fee, ibctesting.MockFeePort, ibctesting.FirstChannelID, refundAddr.String(), nil)
 
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, modulefee.AppModule{})
-	signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 	require.NoError(t, err)
 	require.Equal(t, refundAddr.Bytes(), signers[0])
 }
@@ -403,8 +402,8 @@ func TestPayPacketFeeAsyncGetSigners(t *testing.T) {
 	packetFee := types.NewPacketFee(fee, refundAddr.String(), nil)
 	msg := types.NewMsgPayPacketFeeAsync(packetID, packetFee)
 
-	encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, modulefee.AppModule{})
-	signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
+	encodingCfg := moduletestutil.MakeTestEncodingConfig(modulefee.AppModuleBasic{})
+	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 	require.NoError(t, err)
 	require.Equal(t, refundAddr.Bytes(), signers[0])
 }

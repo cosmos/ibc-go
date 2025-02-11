@@ -8,10 +8,9 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/x/authz"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authztypes "github.com/cosmos/cosmos-sdk/types/authz"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
@@ -37,29 +36,29 @@ func (TransferAuthorization) MsgTypeURL() string {
 }
 
 // Accept implements Authorization.Accept.
-func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) (authztypes.AcceptResponse, error) {
+func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) (authz.AcceptResponse, error) {
 	msgTransfer, ok := msg.(*MsgTransfer)
 	if !ok {
-		return authztypes.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
+		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
 	}
 
 	index := getAllocationIndex(*msgTransfer, a.Allocations)
 	if index == allocationNotFound {
-		return authztypes.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
+		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 	}
 
 	if err := validateForwarding(msgTransfer.Forwarding, a.Allocations[index].AllowedForwarding); err != nil {
-		return authztypes.AcceptResponse{}, err
+		return authz.AcceptResponse{}, err
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !isAllowedAddress(ctx, msgTransfer.Receiver, a.Allocations[index].AllowList) {
-		return authztypes.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
+		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "not allowed receiver address for transfer")
 	}
 
 	if err := validateMemo(ctx, msgTransfer.Memo, a.Allocations[index].AllowedPacketData); err != nil {
-		return authztypes.AcceptResponse{}, err
+		return authz.AcceptResponse{}, err
 	}
 
 	// bool flag to see if we have updated any of the allocations
@@ -75,7 +74,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 
 		limitLeft, isNegative := a.Allocations[index].SpendLimit.SafeSub(coin)
 		if isNegative {
-			return authztypes.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", coin.Denom)
+			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", coin.Denom)
 		}
 
 		allocationModified = true
@@ -92,14 +91,14 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 	}
 
 	if len(a.Allocations) == 0 {
-		return authztypes.AcceptResponse{Accept: true, Delete: true}, nil
+		return authz.AcceptResponse{Accept: true, Delete: true}, nil
 	}
 
 	if !allocationModified {
-		return authztypes.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
+		return authz.AcceptResponse{Accept: true, Delete: false, Updated: nil}, nil
 	}
 
-	return authztypes.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
+	return authz.AcceptResponse{Accept: true, Delete: false, Updated: &TransferAuthorization{
 		Allocations: a.Allocations,
 	}}, nil
 }
