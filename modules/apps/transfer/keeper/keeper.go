@@ -32,8 +32,9 @@ type Keeper struct {
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
-	AuthKeeper    types.AccountKeeper
-	BankKeeper    types.BankKeeper
+
+	AuthKeeper types.AccountKeeper
+	BankKeeper types.BankKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
