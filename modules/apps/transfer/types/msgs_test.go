@@ -59,8 +59,10 @@ func TestMsgTransferValidation(t *testing.T) {
 	}{
 		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
 		{"valid eureka msg with base denom", types.NewMsgTransfer(validPort, eurekaClient, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
+		{"valid eureka msg with base denom and encoding", types.NewMsgTransferWithEncoding(validPort, eurekaClient, coin, sender, receiver, clienttypes.ZeroHeight(), 100, "", "application/json"), nil},
 		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
 		{"valid eureka msg with trace hash", types.NewMsgTransfer(validPort, eurekaClient, ibcCoin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
+		{"valid eureka msg with trace hash", types.NewMsgTransferWithEncoding(validPort, eurekaClient, ibcCoin, sender, receiver, clienttypes.ZeroHeight(), 100, "", "application/json"), nil},
 		{"invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, invalidIBCCoin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), ibcerrors.ErrInvalidCoins},
 		{"too short port id", types.NewMsgTransfer(invalidShortPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), host.ErrInvalidID},
 		{"too long port id", types.NewMsgTransfer(invalidLongPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), host.ErrInvalidID},

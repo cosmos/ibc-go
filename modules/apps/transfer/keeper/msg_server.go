@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	clienttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -34,13 +33,10 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	// if a eurela counterparty exists with source channel, then use IBC V2 protocol
 	// otherwise use IBC V1 protocol
 	var (
-		channel            channeltypes.Channel
-		counterparty       clienttypesv2.CounterpartyInfo
-		isIBCV2            bool
-		destinationPort    string
-		destinationChannel string
+		channel channeltypes.Channel
+		isIBCV2 bool
 	)
-	counterparty, isIBCV2 = k.clientKeeperV2.GetClientCounterparty(ctx, msg.SourceChannel)
+	_, isIBCV2 = k.clientKeeperV2.GetClientCounterparty(ctx, msg.SourceChannel)
 	if !isIBCV2 {
 		var found bool
 		channel, found = k.channelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel)
@@ -72,25 +68,31 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	var sequence uint64
 	if isIBCV2 {
-		data, err := types.MarshalPacketData(packetData, types.V1, msg.Encoding)
+		encoding := msg.Encoding
+		if encoding == "" {
+			encoding = types.EncodingJSON
+		}
+
+		data, err := types.MarshalPacketData(packetData, types.V1, encoding)
 		if err != nil {
 			return nil, err
 		}
+
 		payload := channeltypesv2.NewPayload(
 			types.PortID, types.PortID,
-			types.V1, msg.Encoding, data,
+			types.V1, encoding, data,
 		)
 		msg := channeltypesv2.NewMsgSendPacket(
 			msg.SourceChannel, msg.TimeoutTimestamp,
 			sender.String(), payload,
 		)
+
 		res, err := k.channelKeeperV2.SendPacket(ctx, msg)
 		if err != nil {
 			return nil, err
 		}
+
 		sequence = res.Sequence
-		destinationPort = types.PortID
-		destinationChannel = counterparty.ClientId
 	} else {
 
 		if err := k.SendTransfer(ctx, msg.SourcePort, msg.SourceChannel, token, sender); err != nil {
@@ -110,11 +112,10 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		}
 
 		events.EmitTransferEvent(ctx, sender.String(), msg.Receiver, token, msg.Memo)
-		destinationPort = channel.Counterparty.PortId
-		destinationChannel = channel.Counterparty.ChannelId
+		destinationPort := channel.Counterparty.PortId
+		destinationChannel := channel.Counterparty.ChannelId
+		telemetry.ReportTransfer(msg.SourcePort, msg.SourceChannel, destinationPort, destinationChannel, token)
 	}
-
-	telemetry.ReportTransfer(msg.SourcePort, msg.SourceChannel, destinationPort, destinationChannel, token)
 
 	k.Logger(ctx).Info("IBC fungible token transfer", "token", coin, "sender", msg.Sender, "receiver", msg.Receiver)
 

@@ -7,7 +7,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
+	clienttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
@@ -49,7 +49,7 @@ type ChannelKeeperV2 interface {
 
 // ClientKeeper defines the expected IBC client keeper
 type ClientKeeperV2 interface {
-	GetClientCounterparty(ctx sdk.Context, clientID string) (counterparty clienttypes.CounterpartyInfo, found bool)
+	GetClientCounterparty(ctx sdk.Context, clientID string) (counterparty clienttypesv2.CounterpartyInfo, found bool)
 }
 
 // ConnectionKeeper defines the expected IBC connection keeper
