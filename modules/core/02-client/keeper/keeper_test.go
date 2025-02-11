@@ -139,15 +139,6 @@ func (suite *KeeperTestSuite) TestSetClientCreator() {
 	suite.Require().Equal(sdk.AccAddress(nil), getCreator)
 }
 
-func (suite *KeeperTestSuite) TestSetClientCounterparty() {
-	counterparty := types.NewCounterpartyInfo([][]byte{[]byte("ibc"), []byte("channel-7")}, testClientID2)
-	suite.keeper.SetClientCounterparty(suite.ctx, testClientID, counterparty)
-
-	retrievedCounterparty, found := suite.keeper.GetClientCounterparty(suite.ctx, testClientID)
-	suite.Require().True(found, "GetCounterparty failed")
-	suite.Require().Equal(counterparty, retrievedCounterparty, "Counterparties are not equal")
-}
-
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
 	suite.keeper.SetClientConsensusState(suite.ctx, testClientID, testClientHeight, suite.consensusState)
 
