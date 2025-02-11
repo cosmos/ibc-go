@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	proto "github.com/cosmos/gogoproto/proto"
-
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec"

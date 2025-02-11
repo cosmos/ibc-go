@@ -213,37 +213,37 @@ func extractSequenceFromKey(key, storePrefix []byte) uint64 {
 // GetAllPacketCommitmentsForClient returns all stored PacketCommitments objects for a specified
 // client ID.
 func (k *Keeper) GetAllPacketCommitmentsForClient(ctx context.Context, clientID string) []types.PacketState {
-	return k.getAllPacketsForChannelStore(ctx, clientID, hostv2.PacketCommitmentPrefixKey)
+	return k.getAllPacketStateForClient(ctx, clientID, hostv2.PacketCommitmentPrefixKey)
 }
 
 // GetAllPacketAcknowledgementsForClient returns all stored PacketAcknowledgements objects for a specified
 // client ID.
 func (k *Keeper) GetAllPacketAcknowledgementsForClient(ctx context.Context, clientID string) []types.PacketState {
-	return k.getAllPacketsForChannelStore(ctx, clientID, hostv2.PacketAcknowledgementPrefixKey)
+	return k.getAllPacketStateForClient(ctx, clientID, hostv2.PacketAcknowledgementPrefixKey)
 }
 
 // GetAllPacketReceiptsForClient returns all stored PacketReceipts objects for a specified
 // client ID.
 func (k *Keeper) GetAllPacketReceiptsForClient(ctx context.Context, clientID string) []types.PacketState {
-	return k.getAllPacketsForChannelStore(ctx, clientID, hostv2.PacketReceiptPrefixKey)
+	return k.getAllPacketStateForClient(ctx, clientID, hostv2.PacketReceiptPrefixKey)
 }
 
 // GetAllAsyncPacketsForClient returns all stored AsyncPackets objects for a specified
 // client ID.
 func (k *Keeper) GetAllAsyncPacketsForClient(ctx context.Context, clientID string) []types.PacketState {
-	return k.getAllPacketsForChannelStore(ctx, clientID, types.AsyncPacketPrefixKey)
+	return k.getAllPacketStateForClient(ctx, clientID, types.AsyncPacketPrefixKey)
 }
 
 // prefixKeyConstructor is a function that constructs a store key for a specific packet store using the provided
 // clientID.
 type prefixKeyConstructor func(clientID string) []byte
 
-// getAllPacketsForChannelStore gets all PacketState objects for the specified clientID using a provided
+// getAllPacketStateForClient gets all PacketState objects for the specified clientID using a provided
 // function for constructing the key prefix for the store.
 //
 // For example, to get all PacketReceipts for a clientID the hostv2.PacketReceiptPrefixKey function can be
 // passed to get the PacketReceipt store key prefix.
-func (k *Keeper) getAllPacketsForChannelStore(ctx context.Context, clientID string, prefixFn prefixKeyConstructor) []types.PacketState {
+func (k *Keeper) getAllPacketStateForClient(ctx context.Context, clientID string, prefixFn prefixKeyConstructor) []types.PacketState {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	storePrefix := prefixFn(clientID)
 	iterator := storetypes.KVStorePrefixIterator(store, storePrefix)
