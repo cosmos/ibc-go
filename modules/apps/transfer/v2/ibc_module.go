@@ -107,7 +107,6 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 
 	data, ackErr = types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if ackErr != nil {
-		fmt.Printf("error: %v\n", ackErr)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
