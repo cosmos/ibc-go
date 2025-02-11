@@ -91,7 +91,7 @@ func (suite *KeeperTestSuite) TestIncentivizePacketEvent() {
 func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 	// create an incentivized transfer path
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V2}))
+	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V1}))
 	path.EndpointA.ChannelConfig.Version = feeTransferVersion
 	path.EndpointB.ChannelConfig.Version = feeTransferVersion
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
@@ -111,9 +111,8 @@ func (suite *KeeperTestSuite) TestDistributeFeeEvent() {
 
 	msgTransfer := transfertypes.NewMsgTransfer(
 		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
-		sdk.NewCoins(ibctesting.TestCoin), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
+		ibctesting.TestCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, "",
-		nil,
 	)
 
 	res, err := suite.chainA.SendMsgs(msgPayPacketFee, msgTransfer)

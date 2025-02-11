@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
@@ -19,10 +20,10 @@ import (
 )
 
 var (
-	_ clienttypes.MsgServer             = (*Keeper)(nil)
-	_ clienttypes.CounterpartyMsgServer = (*Keeper)(nil)
-	_ connectiontypes.MsgServer         = (*Keeper)(nil)
-	_ channeltypes.MsgServer            = (*Keeper)(nil)
+	_ clienttypes.MsgServer     = (*Keeper)(nil)
+	_ clientv2types.MsgServer   = (*Keeper)(nil)
+	_ connectiontypes.MsgServer = (*Keeper)(nil)
+	_ channeltypes.MsgServer    = (*Keeper)(nil)
 )
 
 // CreateClient defines a rpc handler method for MsgCreateClient.
@@ -52,23 +53,25 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 
 // RegisterCounterparty will register the eureka counterparty info for the given client id
 // it must be called by the same relayer that called CreateClient
-func (k *Keeper) RegisterCounterparty(ctx context.Context, msg *clienttypes.MsgRegisterCounterparty) (*clienttypes.MsgRegisterCounterpartyResponse, error) {
+func (k *Keeper) RegisterCounterparty(ctx context.Context, msg *clientv2types.MsgRegisterCounterparty) (*clientv2types.MsgRegisterCounterpartyResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
 	if !creator.Equals(sdk.AccAddress(msg.Signer)) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected same signer as createClient submittor %s, got %s", creator, msg.Signer)
 	}
 
-	counterpartyInfo := clienttypes.CounterpartyInfo{
+	counterpartyInfo := clientv2types.CounterpartyInfo{
 		MerklePrefix: msg.CounterpartyMerklePrefix,
 		ClientId:     msg.CounterpartyClientId,
 	}
-	k.ClientKeeper.SetClientCounterparty(ctx, msg.ClientId, counterpartyInfo)
+	k.ClientV2Keeper.SetClientCounterparty(sdkCtx, msg.ClientId, counterpartyInfo)
 
 	// initialize next sequence send to enable packet flow
 	k.ChannelKeeperV2.SetNextSequenceSend(ctx, msg.ClientId, 1)
 
 	k.ClientKeeper.DeleteClientCreator(ctx, msg.ClientId)
-	return &clienttypes.MsgRegisterCounterpartyResponse{}, nil
+	return &clientv2types.MsgRegisterCounterpartyResponse{}, nil
 }
 
 // UpdateClient defines a rpc handler method for MsgUpdateClient.

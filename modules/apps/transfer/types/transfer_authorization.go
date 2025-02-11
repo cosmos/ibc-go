@@ -47,10 +47,6 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrNotFound, "requested port and channel allocation does not exist")
 	}
 
-	if err := validateForwarding(msgTransfer.Forwarding, a.Allocations[index].AllowedForwarding); err != nil {
-		return authz.AcceptResponse{}, err
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !isAllowedAddress(ctx, msgTransfer.Receiver, a.Allocations[index].AllowList) {
@@ -64,17 +60,13 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 	// bool flag to see if we have updated any of the allocations
 	allocationModified := false
 
-	// update spend limit for each token in the MsgTransfer
-	for _, coin := range msgTransfer.GetCoins() {
-		// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
-		// if there is no unlimited spend, then we need to subtract the amount from the spend limit to get the limit left
-		if a.Allocations[index].SpendLimit.AmountOf(coin.Denom).Equal(UnboundedSpendLimit()) {
-			continue
-		}
-
-		limitLeft, isNegative := a.Allocations[index].SpendLimit.SafeSub(coin)
+	// update spend limit the token token in the MsgTransfer
+	// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
+	// if there is no unlimited spend, then we need to subtract the amount from the spend limit to get the limit left
+	if !a.Allocations[index].SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(UnboundedSpendLimit()) {
+		limitLeft, isNegative := a.Allocations[index].SpendLimit.SafeSub(msgTransfer.Token)
 		if isNegative {
-			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", coin.Denom)
+			return authz.AcceptResponse{}, errorsmod.Wrapf(ibcerrors.ErrInsufficientFunds, "requested amount of token %s is more than spend limit", msgTransfer.Token.Denom)
 		}
 
 		allocationModified = true
@@ -141,14 +133,6 @@ func (a TransferAuthorization) ValidateBasic() error {
 			}
 			found[allocation.AllowList[i]] = true
 		}
-
-		for i := 0; i < len(allocation.AllowedForwarding); i++ {
-			for _, hop := range allocation.AllowedForwarding[i].Hops {
-				if err := hop.Validate(); err != nil {
-					return errorsmod.Wrap(err, "invalid forwarding hop")
-				}
-			}
-		}
 	}
 
 	return nil
@@ -169,42 +153,6 @@ func isAllowedAddress(ctx sdk.Context, receiver string, allowedAddrs []string) b
 			return true
 		}
 	}
-	return false
-}
-
-// validateForwarding performs the validation of forwarding info.
-func validateForwarding(forwarding *Forwarding, allowedForwarding []AllowedForwarding) error {
-	if forwarding == nil {
-		return nil
-	}
-
-	if forwarding.GetUnwind() {
-		return errorsmod.Wrap(ErrInvalidForwarding, "not allowed automatic unwind")
-	}
-
-	if !isAllowedForwarding(forwarding.GetHops(), allowedForwarding) {
-		return errorsmod.Wrapf(ErrInvalidForwarding, "not allowed hops %s", forwarding.Hops)
-	}
-
-	return nil
-}
-
-// isAllowedForwarding returns whether the provided slice of Hop matches one of the allowed ones.
-func isAllowedForwarding(hops []Hop, allowed []AllowedForwarding) bool {
-	if len(hops) == 0 {
-		return true
-	}
-
-	// We want to ensure that at least one of the Hops in "allowed"
-	// is equal to "hops".
-	// Note that we can't use slices.Contains() as that is a generic
-	// function that requires the type Hop to satisfy the "comparable" constraint.
-	for _, allowedHops := range allowed {
-		if slices.Equal(hops, allowedHops.Hops) {
-			return true
-		}
-	}
-
 	return false
 }
 

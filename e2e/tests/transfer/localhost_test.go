@@ -6,7 +6,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -39,7 +38,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	chainA, _ := s.GetChains()
 
-	channelVersion := testsuite.DetermineDefaultTransferVersion([]ibc.Chain{chainA})
+	channelVersion := transfertypes.V1
 
 	chainADenom := chainA.Config().Denom
 
@@ -120,7 +119,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 
 	t.Run("send packet localhost ibc transfer", func(t *testing.T) {
 		var err error
-		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, testvalues.DefaultTransferCoins(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 500), 0, "", nil)
+		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 500), 0, "")
 		s.AssertTxSuccess(txResp)
 
 		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)

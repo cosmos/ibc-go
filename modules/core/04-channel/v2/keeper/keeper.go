@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clientv2keeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
 	channelkeeperv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
@@ -25,6 +26,9 @@ type Keeper struct {
 	storeService corestore.KVStoreService
 	cdc          codec.BinaryCodec
 	ClientKeeper types.ClientKeeper
+	// clientV2Keeper is used for counterparty access.
+	clientV2Keeper *clientv2keeper.Keeper
+
 	// channelKeeperV1 is used for channel aliasing only.
 	channelKeeperV1  *channelkeeperv1.Keeper
 	connectionKeeper *connectionkeeper.Keeper
@@ -39,6 +43,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService corestore.KVStoreService,
 	clientKeeper types.ClientKeeper,
+	clientV2Keeper *clientv2keeper.Keeper,
 	channelKeeperV1 *channelkeeperv1.Keeper,
 	connectionKeeper *connectionkeeper.Keeper,
 ) *Keeper {
@@ -46,6 +51,7 @@ func NewKeeper(
 		storeService:     storeService,
 		cdc:              cdc,
 		channelKeeperV1:  channelKeeperV1,
+		clientV2Keeper:   clientV2Keeper,
 		connectionKeeper: connectionKeeper,
 		ClientKeeper:     clientKeeper,
 	}

@@ -116,7 +116,6 @@ func (gs GenesisState) Validate() error {
 	}
 
 	validClients := make(map[string]string)
-
 	for i, client := range gs.Clients {
 		if err := host.ClientIdentifierValidator(client.ClientId); err != nil {
 			return fmt.Errorf("invalid client consensus state identifier %s index %d: %w", client.ClientId, i, err)
