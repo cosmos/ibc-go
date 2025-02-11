@@ -30,11 +30,12 @@ type Keeper struct {
 	cdc            codec.BinaryCodec
 	legacySubspace types.ParamSubspace
 
-	ics4Wrapper   porttypes.ICS4Wrapper
-	channelKeeper types.ChannelKeeper
-
-	AuthKeeper types.AccountKeeper
-	BankKeeper types.BankKeeper
+	ics4Wrapper     porttypes.ICS4Wrapper
+	channelKeeper   types.ChannelKeeper
+	channelKeeperV2 types.ChannelKeeperV2
+	clientKeeperV2  types.ClientKeeperV2
+	AuthKeeper      types.AccountKeeper
+	BankKeeper      types.BankKeeper
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -48,6 +49,8 @@ func NewKeeper(
 	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
+	channelKeeperV2 types.ChannelKeeperV2,
+	clientKeeperV2 types.ClientKeeperV2,
 	authKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	authority string,
@@ -62,14 +65,16 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:            cdc,
-		storeService:   storeService,
-		legacySubspace: legacySubspace,
-		ics4Wrapper:    ics4Wrapper,
-		channelKeeper:  channelKeeper,
-		AuthKeeper:     authKeeper,
-		BankKeeper:     bankKeeper,
-		authority:      authority,
+		cdc:             cdc,
+		storeService:    storeService,
+		legacySubspace:  legacySubspace,
+		ics4Wrapper:     ics4Wrapper,
+		channelKeeper:   channelKeeper,
+		channelKeeperV2: channelKeeperV2,
+		clientKeeperV2:  clientKeeperV2,
+		AuthKeeper:      authKeeper,
+		BankKeeper:      bankKeeper,
+		authority:       authority,
 	}
 }
 
