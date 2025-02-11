@@ -69,17 +69,6 @@ jobs:
       test: "TestV8ToV8_1ChainUpgrade_FeeMiddlewareChannelUpgrade"
       upload-logs: true
 
-  upgrade-ibcwasm-v8:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-wasm-simd
-      chain-a-tag: v7.3.0-e2e-upgrade
-      chain-b-tag: v7.3.0-e2e-upgrade
-      upgrade-plan-name: "ibcwasm-v8"
-      test-entry-point:  "TestIBCWasmUpgradeTestSuite"
-      test: "TestIBCWasmChainUpgrade"
-      upload-logs: true
-
   upgrade-v9:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     with:
@@ -102,13 +91,3 @@ jobs:
       test: "TestV8ToV9ChainUpgrade_Localhost"
       upload-logs: true
 
-  upgrade-v9-channel-upgrades:
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    with:
-      chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-a-tag: v8.4.0
-      chain-b-tag: v9.0.0
-      upgrade-plan-name: "v9"
-      test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV8ToV9ChainUpgrade_ICS20v2ChannelUpgrade"
-      upload-logs: true

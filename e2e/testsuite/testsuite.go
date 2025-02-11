@@ -29,7 +29,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
 	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -663,9 +662,9 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 }
 
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func (s *E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
+func (*E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
 	opts := ibc.DefaultChannelOpts()
-	opts.Version = DetermineDefaultTransferVersion(s.GetAllChains())
+	opts.Version = transfertypes.V1
 	return opts
 }
 
@@ -673,7 +672,7 @@ func (s *E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
 func (s *E2ETestSuite) FeeTransferChannelOptions() ibc.CreateChannelOptions {
 	versionMetadata := feetypes.Metadata{
 		FeeVersion: feetypes.Version,
-		AppVersion: DetermineDefaultTransferVersion(s.GetAllChains()),
+		AppVersion: transfertypes.V1,
 	}
 	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
 	s.Require().NoError(err)
@@ -740,27 +739,20 @@ func getValidatorsAndFullNodes(chainIdx int) (int, int) {
 }
 
 // GetMsgTransfer returns a MsgTransfer that is constructed based on the channel version
-func GetMsgTransfer(portID, channelID, version string, tokens sdk.Coins, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string, forwarding *transfertypes.Forwarding) *transfertypes.MsgTransfer {
-	if len(tokens) == 0 {
-		panic(errors.New("tokens cannot be empty"))
-	}
-
+func GetMsgTransfer(portID, channelID, version string, token sdk.Coin, sender, receiver string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, memo string) *transfertypes.MsgTransfer {
 	var msg *transfertypes.MsgTransfer
 	switch version {
 	case transfertypes.V1:
 		msg = &transfertypes.MsgTransfer{
 			SourcePort:       portID,
 			SourceChannel:    channelID,
-			Token:            tokens[0],
+			Token:            token,
 			Sender:           sender,
 			Receiver:         receiver,
 			TimeoutHeight:    timeoutHeight,
 			TimeoutTimestamp: timeoutTimestamp,
 			Memo:             memo,
-			Tokens:           sdk.NewCoins(),
 		}
-	case transfertypes.V2:
-		msg = transfertypes.NewMsgTransfer(portID, channelID, tokens, sender, receiver, timeoutHeight, timeoutTimestamp, memo, forwarding)
 	default:
 		panic(fmt.Errorf("unsupported transfer version: %s", version))
 	}
@@ -789,18 +781,6 @@ func ThreeChainSetup() ChainOptionConfiguration {
 // DefaultChannelOpts returns the default chain options for the test suite based on the provided chains.
 func DefaultChannelOpts(chains []ibc.Chain) ibc.CreateChannelOptions {
 	channelOptions := ibc.DefaultChannelOpts()
-	channelOptions.Version = DetermineDefaultTransferVersion(chains)
+	channelOptions.Version = transfertypes.V1
 	return channelOptions
-}
-
-// DetermineDefaultTransferVersion determines the version of transfer that should be used with an arbitrary number of chains.
-// the default is V2, but if any chain does not support V2, then V1 is used.
-func DetermineDefaultTransferVersion(chains []ibc.Chain) string {
-	for _, chain := range chains {
-		chainVersion := chain.Config().Images[0].Version
-		if !testvalues.ICS20v2FeatureReleases.IsSupported(chainVersion) {
-			return transfertypes.V1
-		}
-	}
-	return transfertypes.V2
 }

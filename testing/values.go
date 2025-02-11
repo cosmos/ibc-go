@@ -74,8 +74,6 @@ var (
 	MockPacketData      = mock.MockPacketData
 	MockFailPacketData  = mock.MockFailPacketData
 
-	EmptyForwardingPacketData = ibctransfertypes.ForwardingPacketData{}
-
 	prefix = commitmenttypes.NewMerklePrefix([]byte("ibc"))
 	// unusedHash is a placeholder hash used for testing.
 	unusedHash = tmhash.Sum([]byte{0x00})

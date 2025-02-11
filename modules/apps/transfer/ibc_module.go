@@ -87,7 +87,7 @@ func (im IBCModule) OnChanOpenInit(
 
 	// default to latest supported version
 	if strings.TrimSpace(version) == "" {
-		version = types.V2
+		version = types.V1
 	}
 
 	if !slices.Contains(types.SupportedVersions, version) {
@@ -112,8 +112,8 @@ func (im IBCModule) OnChanOpenTry(
 	}
 
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V2)
-		return types.V2, nil
+		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V1)
+		return types.V1, nil
 	}
 
 	return counterpartyVersion, nil
@@ -165,7 +165,6 @@ func (IBCModule) OnChanCloseConfirm(
 // OnRecvPacket implements the IBCModule interface. A successful acknowledgement
 // is returned if the packet data is successfully decoded and the receive application
 // logic returns without error.
-// A nil acknowledgement may be returned when using the packet forwarding feature. This signals to core IBC that the acknowledgement will be written asynchronously.
 func (im IBCModule) OnRecvPacket(
 	ctx context.Context,
 	channelVersion string,
@@ -191,7 +190,8 @@ func (im IBCModule) OnRecvPacket(
 		return ack
 	}
 
-	receivedCoins, ackErr := im.keeper.OnRecvPacket(
+	// NOTE: this needs to set the ackErr variable and not do if ackErr := ... because the ackErr variable is used in the defer function
+	ackErr = im.keeper.OnRecvPacket(
 		ctx,
 		data,
 		packet.SourcePort,
@@ -205,28 +205,11 @@ func (im IBCModule) OnRecvPacket(
 		return ack
 	}
 
-	if data.HasForwarding() {
-		// we are now sending from the forward escrow address to the final receiver address.
-		if ackErr = im.keeper.ForwardPacket(ctx, data, packet, receivedCoins); ackErr != nil {
-			ack = channeltypes.NewErrorAcknowledgement(ackErr)
-			im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
-			return ack
-
-		}
-
-		ack = nil
-	}
-
 	ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
 
-	telemetry.ReportOnRecvPacket(packet.SourcePort, packet.SourceChannel, packet.DestinationPort, packet.DestinationChannel, data.Tokens)
+	telemetry.ReportOnRecvPacket(packet.SourcePort, packet.SourceChannel, packet.DestinationPort, packet.DestinationChannel, data.Token)
 
 	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
-
-	if data.HasForwarding() {
-		// NOTE: acknowledgement will be written asynchronously
-		return nil
-	}
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -254,12 +237,6 @@ func (im IBCModule) OnAcknowledgementPacket(
 		return err
 	}
 
-	if forwardedPacket, isForwarded := im.keeper.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); isForwarded {
-		if err := im.keeper.HandleForwardedPacketAcknowledgement(ctx, packet, forwardedPacket, data, ack); err != nil {
-			return err
-		}
-	}
-
 	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 
 	return nil
@@ -280,12 +257,6 @@ func (im IBCModule) OnTimeoutPacket(
 	// refund tokens
 	if err := im.keeper.OnTimeoutPacket(ctx, packet.SourcePort, packet.SourceChannel, data); err != nil {
 		return err
-	}
-
-	if forwardedPacket, isForwarded := im.keeper.GetForwardedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.Sequence); isForwarded {
-		if err := im.keeper.HandleForwardedPacketTimeout(ctx, packet, forwardedPacket, data); err != nil {
-			return err
-		}
 	}
 
 	events.EmitOnTimeoutEvent(ctx, data)
@@ -313,8 +284,8 @@ func (im IBCModule) OnChanUpgradeTry(ctx context.Context, portID, channelID stri
 	}
 
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V2)
-		return types.V2, nil
+		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V1)
+		return types.V1, nil
 	}
 
 	return counterpartyVersion, nil

@@ -12,16 +12,12 @@ import (
 // Integration test to ensure ics29 works with ics20
 func (suite *FeeTestSuite) TestFeeTransfer() {
 	testCases := []struct {
-		name            string
-		coinsToTransfer sdk.Coins
+		name           string
+		coinToTransfer sdk.Coin
 	}{
 		{
 			"transfer single denom",
-			sdk.NewCoins(ibctesting.TestCoin),
-		},
-		{
-			"transfer multiple denoms",
-			sdk.NewCoins(ibctesting.TestCoin, ibctesting.SecondaryTestCoin),
+			ibctesting.TestCoin,
 		},
 	}
 
@@ -30,7 +26,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 			suite.SetupTest() // reset
 
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
-			feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V2}))
+			feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V1}))
 			path.EndpointA.ChannelConfig.Version = feeTransferVersion
 			path.EndpointB.ChannelConfig.Version = feeTransferVersion
 			path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
@@ -46,7 +42,7 @@ func (suite *FeeTestSuite) TestFeeTransfer() {
 
 			msgs := []sdk.Msg{
 				types.NewMsgPayPacketFee(fee, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetAddress().String(), nil),
-				transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, tc.coinsToTransfer, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 100), 0, "", nil),
+				transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, tc.coinToTransfer, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 100), 0, ""),
 			}
 
 			res, err := suite.chainA.SendMsgs(msgs...)
@@ -112,13 +108,13 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 			// configure the initial path to create a regular transfer channel
 			path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
 			path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
-			path.EndpointA.ChannelConfig.Version = transfertypes.V2
-			path.EndpointB.ChannelConfig.Version = transfertypes.V2
+			path.EndpointA.ChannelConfig.Version = transfertypes.V1
+			path.EndpointB.ChannelConfig.Version = transfertypes.V1
 
 			path.Setup()
 
 			// configure the channel upgrade to an incentivized fee enabled transfer channel
-			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V2}))
+			upgradeVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V1}))
 			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = upgradeVersion
 
@@ -155,7 +151,7 @@ func (suite *FeeTestSuite) TestTransferFeeUpgrade() {
 				fee := types.NewFee(defaultRecvFee, defaultAckFee, defaultTimeoutFee)
 				msgs := []sdk.Msg{
 					types.NewMsgPayPacketFee(fee, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, suite.chainA.SenderAccount.GetAddress().String(), nil),
-					transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, sdk.NewCoins(ibctesting.TestCoin), suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 100), 0, "", nil),
+					transfertypes.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, ibctesting.TestCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.NewHeight(1, 100), 0, ""),
 				}
 
 				res, err := suite.chainA.SendMsgs(msgs...)
@@ -185,7 +181,7 @@ func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareTransferHandshake() {
 	RemoveFeeMiddleware(suite.chainB) // remove fee middleware from chainB
 
 	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V2}))
+	feeTransferVersion := string(types.ModuleCdc.MustMarshalJSON(&types.Metadata{FeeVersion: types.Version, AppVersion: transfertypes.V1}))
 	path.EndpointA.ChannelConfig.Version = feeTransferVersion // this will be renegotiated by the Try step
 	path.EndpointB.ChannelConfig.Version = ""                 // this will be overwritten by the Try step
 	path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
@@ -193,6 +189,6 @@ func (suite *FeeTestSuite) TestOnesidedFeeMiddlewareTransferHandshake() {
 
 	path.Setup()
 
-	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, transfertypes.V2)
-	suite.Require().Equal(path.EndpointB.ChannelConfig.Version, transfertypes.V2)
+	suite.Require().Equal(path.EndpointA.ChannelConfig.Version, transfertypes.V1)
+	suite.Require().Equal(path.EndpointB.ChannelConfig.Version, transfertypes.V1)
 }
