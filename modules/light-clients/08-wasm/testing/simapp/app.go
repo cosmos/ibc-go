@@ -106,8 +106,8 @@ import (
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp/customquery"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ica "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller"
@@ -437,7 +437,7 @@ func NewSimApp(
 		)
 	} else {
 		querierOption := wasmkeeper.WithQueryPlugins(&wasmkeeper.QueryPlugins{
-			Custom: customquery.CustomQuerier(),
+			Custom: blsverifier.CustomQuerier(),
 			Stargate: wasmkeeper.AcceptListStargateQuerier(
 				[]string{"/cosmos.base.tendermint.v1beta1.Service/ABCIQuery"},
 				app.GRPCQueryRouter(),

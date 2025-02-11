@@ -1,4 +1,4 @@
-package customquery
+package blsverifier
 
 import (
 	"fmt"

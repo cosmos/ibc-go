@@ -1,4 +1,4 @@
-package customquery
+package blsverifier
 
 /*
  * This custom query handler is used to aggregate public keys and verify a signature using BLS.
