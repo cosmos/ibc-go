@@ -675,7 +675,6 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 					Memo:     "some memo",
 				}
 				data = initialPacketData.(types.FungibleTokenPacketData).GetBytes()
-
 			},
 			nil,
 		},

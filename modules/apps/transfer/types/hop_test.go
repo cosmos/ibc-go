@@ -3,10 +3,11 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	"github.com/stretchr/testify/require"
 )
 
 func TestValidateHop(t *testing.T) {
@@ -64,13 +65,4 @@ func TestValidateHop(t *testing.T) {
 			}
 		})
 	}
-}
-
-// generateHops generates a slice of n correctly initialized hops.
-func generateHops(n int) []types.Hop {
-	hops := make([]types.Hop, n)
-	for i := 0; i < n; i++ {
-		hops[i] = types.NewHop(types.PortID, ibctesting.FirstChannelID)
-	}
-	return hops
 }

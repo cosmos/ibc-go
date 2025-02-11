@@ -662,7 +662,7 @@ func (s *E2ETestSuite) GetRelayerExecReporter() *testreporter.RelayerExecReporte
 }
 
 // TransferChannelOptions configures both of the chains to have non-incentivized transfer channels.
-func (s *E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
+func (*E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
 	opts := ibc.DefaultChannelOpts()
 	opts.Version = transfertypes.V1
 	return opts

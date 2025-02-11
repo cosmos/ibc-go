@@ -4,6 +4,7 @@ import (
 	fmt "fmt"
 
 	errorsmod "cosmossdk.io/errors"
+
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )
 
@@ -28,17 +29,4 @@ func (h Hop) Validate() error {
 // <portID>/<channelID>
 func (h Hop) String() string {
 	return fmt.Sprintf("%s/%s", h.PortId, h.ChannelId)
-}
-
-// validateHops performs a basic validation of the hops.
-// It checks that the number of hops does not exceed the maximum allowed and that each hop is valid.
-// It will not return any errors if hops is empty.
-func validateHops(hops []Hop) error {
-	for _, hop := range hops {
-		if err := hop.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
