@@ -80,8 +80,8 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 
 	s.path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
 	s.path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
-	s.path.EndpointA.ChannelConfig.Version = transfertypes.V2
-	s.path.EndpointB.ChannelConfig.Version = transfertypes.V2
+	s.path.EndpointA.ChannelConfig.Version = transfertypes.V1
+	s.path.EndpointB.ChannelConfig.Version = transfertypes.V1
 
 	s.path.Setup()
 }
@@ -90,7 +90,7 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 func (s *CallbacksTestSuite) SetupFeeTransferTest() {
 	s.setupChains()
 
-	feeTransferVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: transfertypes.V2}))
+	feeTransferVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: transfertypes.V1}))
 	s.path.EndpointA.ChannelConfig.Version = feeTransferVersion
 	s.path.EndpointB.ChannelConfig.Version = feeTransferVersion
 	s.path.EndpointA.ChannelConfig.PortID = transfertypes.PortID

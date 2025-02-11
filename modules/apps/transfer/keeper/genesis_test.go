@@ -8,9 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
 )
 
 func (suite *KeeperTestSuite) TestGenesis() {
@@ -31,7 +28,6 @@ func (suite *KeeperTestSuite) TestGenesis() {
 			{[]types.Hop{getHop(3), getHop(2), getHop(1), getHop(0)}, "1000000000000000"},
 			{[]types.Hop{getHop(4), getHop(3), getHop(2), getHop(1), getHop(0)}, "100000000000000000000"},
 		}
-		forwardPackets []types.ForwardedPacket
 	)
 
 	for _, traceAndEscrowAmount := range traceAndEscrowAmounts {
@@ -44,17 +40,6 @@ func (suite *KeeperTestSuite) TestGenesis() {
 		escrow := sdk.NewCoin(denom.IBCDenom(), amount)
 		escrows = append(escrows, escrow)
 		suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), escrow)
-	}
-
-	// Store forward packets on transfer/channel-1 and transfer/channel-2
-	for _, channelID := range []string{"channel-1", "channel-2"} {
-		// go across '10' to test numerical order
-		for sequence := uint64(5); sequence <= 15; sequence++ {
-			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, ibctesting.TransferPort, channelID, "", "", clienttypes.ZeroHeight(), 0)
-			forwardPackets = append(forwardPackets, types.ForwardedPacket{ForwardKey: channeltypes.NewPacketID(ibctesting.TransferPort, channelID, sequence), Packet: packet})
-
-			suite.chainA.GetSimApp().TransferKeeper.SetForwardedPacket(suite.chainA.GetContext(), ibctesting.TransferPort, channelID, sequence, packet)
-		}
 	}
 
 	genesis := suite.chainA.GetSimApp().TransferKeeper.ExportGenesis(suite.chainA.GetContext())
@@ -71,7 +56,4 @@ func (suite *KeeperTestSuite) TestGenesis() {
 		_, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainA.GetContext(), denom.IBCDenom())
 		suite.Require().True(found)
 	}
-
-	storedForwardedPackets := suite.chainA.GetSimApp().TransferKeeper.GetAllForwardedPackets(suite.chainA.GetContext())
-	suite.Require().Equal(storedForwardedPackets, forwardPackets)
 }

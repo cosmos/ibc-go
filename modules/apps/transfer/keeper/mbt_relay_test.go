@@ -150,16 +150,13 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 		DestChannel:   packet.DestChannel,
 		DestPort:      packet.DestPort,
 		Data: types.NewFungibleTokenPacketDataV2(
-			[]types.Token{
-				{
-					Denom:  denom,
-					Amount: packet.Data.Amount,
-				},
+			types.Token{
+				Denom:  denom,
+				Amount: packet.Data.Amount,
 			},
 			AddressFromString(packet.Data.Sender),
 			AddressFromString(packet.Data.Receiver),
 			"",
-			ibctesting.EmptyForwardingPacketData,
 		),
 	}
 }
@@ -317,8 +314,8 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 		for i, tlaTc := range tlaTestCases {
 			tc := OnRecvPacketTestCaseFromTla(tlaTc)
 			registerDenomFn := func() {
-				if !suite.chainB.GetSimApp().TransferKeeper.HasDenom(suite.chainB.GetContext(), tc.packet.Data.Tokens[0].Denom.Hash()) {
-					suite.chainB.GetSimApp().TransferKeeper.SetDenom(suite.chainB.GetContext(), tc.packet.Data.Tokens[0].Denom)
+				if !suite.chainB.GetSimApp().TransferKeeper.HasDenom(suite.chainB.GetContext(), tc.packet.Data.Token.Denom.Hash()) {
+					suite.chainB.GetSimApp().TransferKeeper.SetDenom(suite.chainB.GetContext(), tc.packet.Data.Token.Denom)
 				}
 			}
 
@@ -342,10 +339,10 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						panic(errors.New("MBT failed to convert sender address"))
 					}
 					registerDenomFn()
-					denom := tc.packet.Data.Tokens[0].Denom.IBCDenom()
+					denom := tc.packet.Data.Token.Denom.IBCDenom()
 					err = sdk.ValidateDenom(denom)
 					if err == nil {
-						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Tokens[0].Amount)
+						amount, ok := sdkmath.NewIntFromString(tc.packet.Data.Token.Amount)
 						if !ok {
 							panic(errors.New("MBT failed to parse amount from string"))
 						}
@@ -353,19 +350,18 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						msg := types.NewMsgTransfer(
 							tc.packet.SourcePort,
 							tc.packet.SourceChannel,
-							sdk.NewCoins(sdk.NewCoin(denom, amount)),
+							sdk.NewCoin(denom, amount),
 							sender.String(),
 							tc.packet.Data.Receiver,
 							suite.chainA.GetTimeoutHeight(), 0, // only use timeout height
 							"",
-							nil,
 						)
 
 						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)
 
 					}
 				case "OnRecvPacket":
-					_, err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(
+					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(
 						suite.chainB.GetContext(),
 						tc.packet.Data,
 						packet.SourcePort,

@@ -698,6 +698,7 @@ func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte
 
 	simdSupportsGovV1Genesis := binary == defaultBinary && testvalues.GovGenesisFeatureReleases.IsSupported(version)
 
+	// TODO: Remove after we drop v7 support (this is only needed right now because of v6 -> v7 upgrade tests)
 	if simdSupportsGovV1Genesis {
 		return defaultGovv1ModifyGenesis(version)
 	}
@@ -736,6 +737,14 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 
 		if !testvalues.ChannelParamsFeatureReleases.IsSupported(version) {
 			ibcGenBz, err := modifyChannelGenesisAppState(appState[ibcexported.ModuleName])
+			if err != nil {
+				return nil, err
+			}
+			appState[ibcexported.ModuleName] = ibcGenBz
+		}
+
+		if !testvalues.ChannelsV2FeatureReleases.IsSupported(version) {
+			ibcGenBz, err := modifyChannelV2GenesisAppState(appState[ibcexported.ModuleName])
 			if err != nil {
 				return nil, err
 			}
@@ -812,6 +821,46 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 			if err != nil {
 				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
 			}
+			appStateMap[ibcexported.ModuleName] = ibcModuleGenesisMap
+		}
+
+		if !testvalues.ChannelParamsFeatureReleases.IsSupported(version) {
+			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
+			if err != nil {
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+			}
+
+			ibcGenesisBytes, err := modifyChannelGenesisAppState(ibcModuleBytes)
+			if err != nil {
+				return nil, err
+			}
+
+			ibcModuleGenesisMap := map[string]interface{}{}
+			err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
+			}
+			appStateMap[ibcexported.ModuleName] = ibcModuleGenesisMap
+
+		}
+
+		if !testvalues.ChannelsV2FeatureReleases.IsSupported(version) {
+			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
+			if err != nil {
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+			}
+
+			ibcGenesisBytes, err := modifyChannelV2GenesisAppState(ibcModuleBytes)
+			if err != nil {
+				return nil, err
+			}
+
+			ibcModuleGenesisMap := map[string]interface{}{}
+			err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
+			}
+			appStateMap[ibcexported.ModuleName] = ibcModuleGenesisMap
 		}
 
 		appStateMap[govtypes.ModuleName] = govModuleGenesisMap
@@ -913,6 +962,16 @@ func modifyChannelGenesisAppState(ibcAppState []byte) ([]byte, error) {
 		return nil, fmt.Errorf("can't convert IBC genesis map entry into type %T", &channelGenesis)
 	}
 	delete(channelGenesis, "params")
+
+	return json.Marshal(ibcGenesisMap)
+}
+
+func modifyChannelV2GenesisAppState(ibcAppState []byte) ([]byte, error) {
+	var ibcGenesisMap map[string]interface{}
+	if err := json.Unmarshal(ibcAppState, &ibcGenesisMap); err != nil {
+		return nil, err
+	}
+	delete(ibcGenesisMap, "channel_v2_genesis")
 
 	return json.Marshal(ibcGenesisMap)
 }
