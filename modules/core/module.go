@@ -197,7 +197,9 @@ func (AppModule) ConsensusVersion() uint64 { return 7 }
 
 // BeginBlock returns the begin blocker for the ibc module.
 func (am AppModule) BeginBlock(ctx context.Context) error {
-	ibcclient.BeginBlocker(sdk.UnwrapSDKContext(ctx), am.keeper.ClientKeeper)
+	if err := ibcclient.BeginBlocker(sdk.UnwrapSDKContext(ctx), am.keeper.ClientKeeper); err != nil {
+		return fmt.Errorf("failed to begin block for IBC client: %w", err)
+	}
 	return nil
 }
 
