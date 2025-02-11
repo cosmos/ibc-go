@@ -19,5 +19,4 @@ const (
 	AttributeKeyAck            = "acknowledgement"
 	AttributeKeyAckError       = "error"
 	AttributeKeyMemo           = "memo"
-	AttributeKeyForwardingHops = "forwarding_hops"
 )

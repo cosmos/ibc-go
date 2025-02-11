@@ -147,8 +147,6 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 		return err
 	}
 
-	// TODO: handle forwarding
-
 	events.EmitOnTimeoutEvent(ctx, data)
 
 	return nil
@@ -177,8 +175,6 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 	if err := im.keeper.OnAcknowledgementPacket(ctx, payload.SourcePort, sourceChannel, data, ack); err != nil {
 		return err
 	}
-
-	// TODO: handle forwarding
 
 	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 
