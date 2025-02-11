@@ -28,6 +28,7 @@ const (
 	invalidLongPort = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis eros neque, ultricies vel ligula ac, convallis porttitor elit. Maecenas tincidunt turpis elit, vel faucibus nisl pellentesque sodales"
 
 	validChannel        = "testchannel"
+	eurekaClient        = "07-tendermint-0"
 	invalidChannel      = "(invalidchannel1)"
 	invalidShortChannel = "invalid"
 	invalidLongChannel  = "invalidlongchannelinvalidlongchannelinvalidlongchannelinvalidlongchannel"
@@ -57,7 +58,9 @@ func TestMsgTransferValidation(t *testing.T) {
 		expError error
 	}{
 		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
+		{"valid eureka msg with base denom", types.NewMsgTransfer(validPort, eurekaClient, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
 		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
+		{"valid eureka msg with trace hash", types.NewMsgTransfer(validPort, eurekaClient, ibcCoin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
 		{"invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, invalidIBCCoin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), ibcerrors.ErrInvalidCoins},
 		{"too short port id", types.NewMsgTransfer(invalidShortPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), host.ErrInvalidID},
 		{"too long port id", types.NewMsgTransfer(invalidLongPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), host.ErrInvalidID},

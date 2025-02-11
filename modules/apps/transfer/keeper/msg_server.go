@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 var _ types.MsgServer = (*Keeper)(nil)
@@ -29,10 +30,15 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	channel, found := k.channelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel)
-	if !found {
-		return nil, errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", msg.SourcePort, msg.SourceChannel)
-	}
+	// if a channel exists with source channel, then use IBC V1 protocol
+	// otherwise use IBC V2 protocol
+	var (
+		channel channeltypes.Channel
+		isV1    bool
+		client  exported.ClientState
+		isV2    bool
+	)
+	channel, isV1 = k.channelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel)
 
 	appVersion, found := k.ics4Wrapper.GetAppVersion(ctx, msg.SourcePort, msg.SourceChannel)
 	if !found {
