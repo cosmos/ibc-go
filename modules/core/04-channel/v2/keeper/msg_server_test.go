@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
@@ -88,7 +89,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			malleate: func() {
 				path.EndpointA.ClientID = ibctesting.InvalidID
 			},
-			expError: clienttypes.ErrCounterpartyNotFound,
+			expError: clientv2types.ErrCounterpartyNotFound,
 		},
 		{
 			name: "failure: route to non existing app",
@@ -195,7 +196,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				// change the destination id to a non-existent channel.
 				packet.DestinationClient = ibctesting.InvalidID
 			},
-			expError: clienttypes.ErrCounterpartyNotFound,
+			expError: clientv2types.ErrCounterpartyNotFound,
 		},
 		{
 			name: "failure: invalid proof",
@@ -339,7 +340,7 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 				packet.SourceClient = "not-existent-channel"
 			},
 			payload:  mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-			expError: clienttypes.ErrCounterpartyNotFound,
+			expError: clientv2types.ErrCounterpartyNotFound,
 		},
 		{
 			name: "failure: invalid commitment",
@@ -435,7 +436,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 				// change the source id to a non-existent client.
 				packet.SourceClient = "not-existent-client"
 			},
-			expError: clienttypes.ErrCounterpartyNotFound,
+			expError: clientv2types.ErrCounterpartyNotFound,
 		},
 		{
 			name: "failure: invalid commitment",

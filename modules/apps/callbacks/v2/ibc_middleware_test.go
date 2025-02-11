@@ -97,7 +97,7 @@ func (s *CallbacksTestSuite) TestWithWriteAckWrapper() {
 }
 
 func (s *CallbacksTestSuite) TestSendPacket() {
-	var packetData transfertypes.FungibleTokenPacketDataV2
+	var packetData transfertypes.FungibleTokenPacketData
 
 	testCases := []struct {
 		name         string
@@ -109,18 +109,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		{
 			"success",
 			func() {},
-			types.CallbackTypeSendPacket,
-			false,
-			nil,
-		},
-		{
-			"success: multiple denoms",
-			func() {
-				packetData.Tokens = append(packetData.Tokens, transfertypes.Token{
-					Denom:  transfertypes.NewDenom(ibctesting.SecondaryDenom),
-					Amount: ibctesting.SecondaryTestCoin.Amount.String(),
-				})
-			},
 			types.CallbackTypeSendPacket,
 			false,
 			nil,
@@ -169,24 +157,19 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
-			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]transfertypes.Token{
-					{
-						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
-						Amount: ibctesting.TestCoin.Amount.String(),
-					},
-				},
+			packetData = transfertypes.NewFungibleTokenPacketData(
+				ibctesting.TestCoin.Denom,
+				ibctesting.TestCoin.Amount.String(),
 				s.chainA.SenderAccount.GetAddress().String(),
 				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
-				ibctesting.EmptyForwardingPacketData,
 			)
 
 			tc.malleate()
 
 			payload := channeltypesv2.NewPayload(
 				transfertypes.PortID, transfertypes.PortID,
-				transfertypes.V2, transfertypes.EncodingProtobuf,
+				transfertypes.V1, transfertypes.EncodingJSON,
 				packetData.GetBytes(),
 			)
 
@@ -237,7 +220,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 	)
 
 	var (
-		packetData   transfertypes.FungibleTokenPacketDataV2
+		packetData   transfertypes.FungibleTokenPacketData
 		ack          []byte
 		ctx          sdk.Context
 		userGasLimit uint64
@@ -308,17 +291,12 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			s.SetupTest()
 
 			userGasLimit = 600000
-			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]transfertypes.Token{
-					{
-						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
-						Amount: ibctesting.TestCoin.Amount.String(),
-					},
-				},
+			packetData = transfertypes.NewFungibleTokenPacketData(
+				ibctesting.TestCoin.Denom,
+				ibctesting.TestCoin.Amount.String(),
 				ibctesting.TestAccAddress,
 				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.SuccessContract, userGasLimit),
-				ibctesting.EmptyForwardingPacketData,
 			)
 
 			ack = channeltypes.NewResultAcknowledgement([]byte{1}).Acknowledgement()
@@ -329,7 +307,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 
 			payload := channeltypesv2.NewPayload(
 				transfertypes.PortID, transfertypes.PortID,
-				transfertypes.V2, transfertypes.EncodingProtobuf,
+				transfertypes.V1, transfertypes.EncodingJSON,
 				packetData.GetBytes(),
 			)
 
@@ -397,7 +375,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 	)
 
 	var (
-		packetData transfertypes.FungibleTokenPacketDataV2
+		packetData transfertypes.FungibleTokenPacketData
 		ctx        sdk.Context
 	)
 
@@ -416,7 +394,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"failure: underlying app OnTimeoutPacket fails",
 			func() {
-				packetData.Tokens = nil
+				packetData.Amount = "invalid amount"
 			},
 			noExecution,
 			transfertypes.ErrInvalidAmount,
@@ -469,22 +447,17 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			// succeed on timeout
 			userGasLimit := 600_000
 			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Unix())
-			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]transfertypes.Token{
-					{
-						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
-						Amount: ibctesting.TestCoin.Amount.String(),
-					},
-				},
+			packetData = transfertypes.NewFungibleTokenPacketData(
+				ibctesting.TestCoin.Denom,
+				ibctesting.TestCoin.Amount.String(),
 				s.chainA.SenderAccount.GetAddress().String(),
 				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.SuccessContract, userGasLimit),
-				ibctesting.EmptyForwardingPacketData,
 			)
 
 			payload := channeltypesv2.NewPayload(
 				transfertypes.PortID, transfertypes.PortID,
-				transfertypes.V2, transfertypes.EncodingProtobuf,
+				transfertypes.V1, transfertypes.EncodingJSON,
 				packetData.GetBytes(),
 			)
 
@@ -567,7 +540,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	)
 
 	var (
-		packetData   transfertypes.FungibleTokenPacketDataV2
+		packetData   transfertypes.FungibleTokenPacketData
 		ctx          sdk.Context
 		userGasLimit uint64
 	)
@@ -587,7 +560,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"failure: underlying app OnRecvPacket fails",
 			func() {
-				packetData.Tokens = nil
+				packetData.Denom = ""
 			},
 			noExecution,
 			failure,
@@ -636,22 +609,17 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 
 			// set user gas limit above panic level in mock contract keeper
 			userGasLimit = 600_000
-			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]transfertypes.Token{
-					{
-						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
-						Amount: ibctesting.TestCoin.Amount.String(),
-					},
-				},
+			packetData = transfertypes.NewFungibleTokenPacketData(
+				ibctesting.TestCoin.Denom,
+				ibctesting.TestCoin.Amount.String(),
 				ibctesting.TestAccAddress,
 				s.chainB.SenderAccount.GetAddress().String(),
 				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, ibctesting.TestAccAddress, userGasLimit),
-				ibctesting.EmptyForwardingPacketData,
 			)
 
 			payload := channeltypesv2.NewPayload(
 				transfertypes.PortID, transfertypes.PortID,
-				transfertypes.V2, transfertypes.EncodingProtobuf,
+				transfertypes.V1, transfertypes.EncodingJSON,
 				packetData.GetBytes(),
 			)
 
@@ -718,7 +686,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 
 func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 	var (
-		packetData   transfertypes.FungibleTokenPacketDataV2
+		packetData   transfertypes.FungibleTokenPacketData
 		destClient   string
 		ctx          sdk.Context
 		ack          channeltypesv2.Acknowledgement
@@ -773,17 +741,12 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			s.SetupTest()
 
 			// set user gas limit above panic level in mock contract keeper
-			packetData = transfertypes.NewFungibleTokenPacketDataV2(
-				[]transfertypes.Token{
-					{
-						Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
-						Amount: ibctesting.TestCoin.Amount.String(),
-					},
-				},
+			packetData = transfertypes.NewFungibleTokenPacketData(
+				ibctesting.TestCoin.Denom,
+				ibctesting.TestCoin.Amount.String(),
 				ibctesting.TestAccAddress,
 				s.chainB.SenderAccount.GetAddress().String(),
 				fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"600000"}}`, ibctesting.TestAccAddress),
-				ibctesting.EmptyForwardingPacketData,
 			)
 
 			ctx = s.chainB.GetContext()
@@ -794,7 +757,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 
 			payload := channeltypesv2.NewPayload(
 				transfertypes.PortID, transfertypes.PortID,
-				transfertypes.V2, transfertypes.EncodingProtobuf,
+				transfertypes.V1, transfertypes.EncodingJSON,
 				packetData.GetBytes(),
 			)
 			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Unix())

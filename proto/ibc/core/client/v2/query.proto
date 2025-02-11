@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package ibc.core.client.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types";
+
+import "ibc/core/client/v2/counterparty.proto";
+import "google/api/annotations.proto";
+
+// Query provides defines the gRPC querier service
+service Query {
+  // CounterpartyInfo queries an IBC light counter party info.
+  rpc CounterpartyInfo(QueryCounterpartyInfoRequest) returns (QueryCounterpartyInfoResponse) {
+    option (google.api.http).get = "/ibc/core/client/v2/counterparty_info/{client_id}";
+  }
+}
+
+// QueryCounterpartyInfoRequest is the request type for the Query/CounterpartyInfo RPC
+// method
+message QueryCounterpartyInfoRequest {
+  // client state unique identifier
+  string client_id = 1;
+}
+
+// QueryCounterpartyInfoResponse is the response type for the
+// Query/CounterpartyInfo RPC method.
+message QueryCounterpartyInfoResponse {
+  CounterpartyInfo counterparty_info = 1;
+}

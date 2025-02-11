@@ -129,13 +129,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			channelA.PortID,
 			channelA.ChannelID,
 			channelA.Version,
-			testvalues.DefaultTransferCoins(chainADenom),
+			testvalues.DefaultTransferAmount(chainADenom),
 			granterAddress,
 			receiverWalletAddress,
 			suite.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
-			nil,
 		)
 
 		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -190,13 +189,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			channelA.PortID,
 			channelA.ChannelID,
 			channelA.Version,
-			testvalues.DefaultTransferCoins(chainADenom),
+			testvalues.DefaultTransferAmount(chainADenom),
 			granterAddress,
 			receiverWalletAddress,
 			suite.GetTimeoutHeight(ctx, chainB),
 			0,
 			"",
-			nil,
 		)
 
 		protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -276,13 +274,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				channelA.PortID,
 				channelA.ChannelID,
 				channelA.Version,
-				sdk.NewCoins(sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(invalidSpendAmount)}),
+				sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(invalidSpendAmount)},
 				granterAddress,
 				receiverWalletAddress,
 				suite.GetTimeoutHeight(ctx, chainB),
 				0,
 				"",
-				nil,
 			)
 
 			protoAny, err := codectypes.NewAnyWithValue(transferMsg)
@@ -337,13 +334,12 @@ func (suite *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				channelA.PortID,
 				channelA.ChannelID,
 				channelA.Version,
-				sdk.NewCoins(sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(spendLimit)}),
+				sdk.Coin{Denom: chainADenom, Amount: sdkmath.NewInt(spendLimit)},
 				granterAddress,
 				invalidWalletAddress,
 				suite.GetTimeoutHeight(ctx, chainB),
 				0,
 				"",
-				nil,
 			)
 
 			protoAny, err := codectypes.NewAnyWithValue(transferMsg)

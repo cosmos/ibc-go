@@ -13,19 +13,17 @@ import (
 )
 
 // EmitTransferEvent emits a ibc transfer event on successful transfers.
-func EmitTransferEvent(ctx context.Context, sender, receiver string, tokens types.Tokens, memo string, forwardingHops []types.Hop) {
+func EmitTransferEvent(ctx context.Context, sender, receiver string, token types.Token, memo string) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	tokensStr := mustMarshalJSON(tokens)
-	forwardingHopsStr := mustMarshalJSON(forwardingHops)
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTransfer,
 			sdk.NewAttribute(types.AttributeKeySender, sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, receiver),
-			sdk.NewAttribute(types.AttributeKeyTokens, tokensStr),
+			sdk.NewAttribute(types.AttributeKeyDenom, token.Denom.Path()),
+			sdk.NewAttribute(types.AttributeKeyAmount, token.Amount),
 			sdk.NewAttribute(types.AttributeKeyMemo, memo),
-			sdk.NewAttribute(types.AttributeKeyForwardingHops, forwardingHopsStr),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -36,15 +34,12 @@ func EmitTransferEvent(ctx context.Context, sender, receiver string, tokens type
 
 // EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback
 func EmitOnRecvPacketEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2, ack ibcexported.Acknowledgement, ackErr error) {
-	tokensStr := mustMarshalJSON(packetData.Tokens)
-	forwardingHopStr := mustMarshalJSON(packetData.Forwarding.Hops)
-
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
-		sdk.NewAttribute(types.AttributeKeyTokens, tokensStr),
+		sdk.NewAttribute(types.AttributeKeyDenom, packetData.Token.Denom.Path()),
+		sdk.NewAttribute(types.AttributeKeyAmount, packetData.Token.Amount),
 		sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
-		sdk.NewAttribute(types.AttributeKeyForwardingHops, forwardingHopStr),
 		sdk.NewAttribute(types.AttributeKeyAckSuccess, strconv.FormatBool(ack.Success())),
 	}
 
@@ -68,17 +63,15 @@ func EmitOnRecvPacketEvent(ctx context.Context, packetData types.FungibleTokenPa
 
 // EmitOnAcknowledgementPacketEvent emits a fungible token packet event in the OnAcknowledgementPacket callback
 func EmitOnAcknowledgementPacketEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
-	tokensStr := mustMarshalJSON(packetData.Tokens)
-	forwardingHopsStr := mustMarshalJSON(packetData.Forwarding.Hops)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeySender, packetData.Sender),
 			sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
-			sdk.NewAttribute(types.AttributeKeyTokens, tokensStr),
+			sdk.NewAttribute(types.AttributeKeyDenom, packetData.Token.Denom.Path()),
+			sdk.NewAttribute(types.AttributeKeyAmount, packetData.Token.Amount),
 			sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
-			sdk.NewAttribute(types.AttributeKeyForwardingHops, forwardingHopsStr),
 			sdk.NewAttribute(types.AttributeKeyAck, ack.String()),
 		),
 		sdk.NewEvent(
@@ -108,16 +101,14 @@ func EmitOnAcknowledgementPacketEvent(ctx context.Context, packetData types.Fung
 // EmitOnTimeoutEvent emits a fungible token packet event in the OnTimeoutPacket callback
 func EmitOnTimeoutEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	tokensStr := mustMarshalJSON(packetData.Tokens)
-	forwardingHopsStr := mustMarshalJSON(packetData.Forwarding.Hops)
+	tokenStr := mustMarshalJSON(packetData.Token)
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeout,
 			sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Sender),
-			sdk.NewAttribute(types.AttributeKeyRefundTokens, tokensStr),
+			sdk.NewAttribute(types.AttributeKeyRefundTokens, tokenStr),
 			sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
-			sdk.NewAttribute(types.AttributeKeyForwardingHops, forwardingHopsStr),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

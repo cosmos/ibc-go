@@ -63,19 +63,17 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 	// This prevents such denominations from being sent with IBCV v2 packets, however we can still support them in IBC v1 packets
 	// If we enforce that IBC v2 packets are sent with ICS20 v2 and above versions that separate the trace from the base denomination
 	// in the packet data, then we can remove this restriction.
-	for _, token := range data.Tokens {
-		if strings.Contains(token.Denom.Base, "/") {
-			return errorsmod.Wrapf(types.ErrInvalidDenomForTransfer, "base denomination %s cannot contain slashes for IBC v2 packet", token.Denom.Base)
-		}
+	if strings.Contains(data.Token.Denom.Base, "/") {
+		return errorsmod.Wrapf(types.ErrInvalidDenomForTransfer, "base denomination %s cannot contain slashes for IBC v2 packet", data.Token.Denom.Base)
 	}
 
-	if err := im.keeper.SendTransfer(sdk.UnwrapSDKContext(goCtx), payload.SourcePort, sourceChannel, data.Tokens, signer); err != nil {
+	if err := im.keeper.SendTransfer(sdk.UnwrapSDKContext(goCtx), payload.SourcePort, sourceChannel, data.Token, signer); err != nil {
 		return err
 	}
 
-	events.EmitTransferEvent(goCtx, sender.String(), data.Receiver, data.Tokens, data.Memo, data.Forwarding.Hops)
+	events.EmitTransferEvent(goCtx, sender.String(), data.Receiver, data.Token, data.Memo)
 
-	telemetry.ReportTransfer(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Tokens)
+	telemetry.ReportTransfer(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Token)
 
 	return nil
 }
@@ -115,7 +113,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 		}
 	}
 
-	if _, ackErr = im.keeper.OnRecvPacket(
+	if ackErr = im.keeper.OnRecvPacket(
 		ctx,
 		data,
 		payload.SourcePort,
@@ -131,24 +129,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 
 	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", sequence)
 
-	telemetry.ReportOnRecvPacket(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Tokens)
-
-	if data.HasForwarding() {
-		// we are now sending from the forward escrow address to the final receiver address.
-		return channeltypesv2.RecvPacketResult{
-			Status: channeltypesv2.PacketStatus_Failure,
-		}
-		// TODO: handle forwarding
-		// TODO: inside this version of the function, we should fetch the packet that was stored in IBC core in order to set it for forwarding.
-		//	if err := k.forwardPacket(ctx, data, packet, receivedCoins); err != nil {
-		//		return err
-		//	}
-
-		// NOTE: acknowledgement will be written asynchronously
-		// return types.RecvPacketResult{
-		// 	Status: types.PacketStatus_Async,
-		// }
-	}
+	telemetry.ReportOnRecvPacket(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Token)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return recvResult
@@ -164,8 +145,6 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 	if err := im.keeper.OnTimeoutPacket(ctx, payload.SourcePort, sourceChannel, data); err != nil {
 		return err
 	}
-
-	// TODO: handle forwarding
 
 	events.EmitOnTimeoutEvent(ctx, data)
 
@@ -195,8 +174,6 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel 
 	if err := im.keeper.OnAcknowledgementPacket(ctx, payload.SourcePort, sourceChannel, data, ack); err != nil {
 		return err
 	}
-
-	// TODO: handle forwarding
 
 	events.EmitOnAcknowledgementPacketEvent(ctx, data, ack)
 

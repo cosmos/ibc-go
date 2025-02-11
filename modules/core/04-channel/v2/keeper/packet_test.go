@@ -5,6 +5,7 @@ import (
 	"time"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
@@ -47,7 +48,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			func() {
 				packet.SourceClient = ibctesting.InvalidID
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			clientv2types.ErrCounterpartyNotFound,
 		},
 		{
 			"packet failed basic validation",
@@ -153,7 +154,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {
 				packet.DestinationClient = ibctesting.InvalidID
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			clientv2types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: client is not active",
@@ -167,7 +168,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 			func() {
 				packet.SourceClient = unusedChannel
 			},
-			clienttypes.ErrInvalidCounterparty,
+			clientv2types.ErrInvalidCounterparty,
 		},
 		{
 			"failure: packet has timed out",
@@ -256,7 +257,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
 				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetAsyncPacket(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, packet)
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			clientv2types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than source client",
@@ -265,7 +266,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
 				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetAsyncPacket(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, packet)
 			},
-			clienttypes.ErrInvalidCounterparty,
+			clientv2types.ErrInvalidCounterparty,
 		},
 		{
 			"failure: ack already exists",
@@ -360,14 +361,14 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			func() {
 				packet.SourceClient = ibctesting.InvalidID
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			clientv2types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than destination client",
 			func() {
 				packet.DestinationClient = unusedChannel
 			},
-			clienttypes.ErrInvalidCounterparty,
+			clientv2types.ErrInvalidCounterparty,
 		},
 		{
 			"failure: packet commitment doesn't exist.",
@@ -478,7 +479,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 				packet.SourceClient = ibctesting.InvalidID
 			},
-			clienttypes.ErrCounterpartyNotFound,
+			clientv2types.ErrCounterpartyNotFound,
 		},
 		{
 			"failure: counterparty client identifier different than destination client",
@@ -490,7 +491,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 
 				packet.DestinationClient = unusedChannel
 			},
-			clienttypes.ErrInvalidCounterparty,
+			clientv2types.ErrInvalidCounterparty,
 		},
 		{
 			"failure: packet has not timed out yet",
