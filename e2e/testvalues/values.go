@@ -131,3 +131,7 @@ var CapitalEfficientFeeEscrowFeatureReleases = semverutil.FeatureReleases{
 var TransactionEventQueryFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
+
+var ChannelsV2FeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v10",
+}
