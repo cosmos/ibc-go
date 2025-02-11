@@ -1,6 +1,8 @@
 package v2_test
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"testing"
 	"time"
 
@@ -94,6 +96,12 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			func() {},
 			types.ErrInvalidDenomForTransfer,
 		},
+		{
+			"transfer with slashes in ibc denom",
+			fmt.Sprintf("ibc/%x", sha256.Sum256([]byte("coin"))),
+			func() {},
+			types.ErrInvalidDenomForTransfer,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -106,8 +114,10 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			suite.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
-			token, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(suite.chainA.GetContext(), originalCoin)
-			suite.Require().NoError(err)
+			token := types.Token{
+				Denom:  types.Denom{Base: originalCoin.Denom},
+				Amount: originalCoin.Amount.String(),
+			}
 
 			transferData := types.NewFungibleTokenPacketData(
 				token.Denom.Path(),
@@ -128,7 +138,7 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			ctx := suite.chainA.GetContext()
 			cbs := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
 
-			err = cbs.OnSendPacket(ctx, suite.pathAToB.EndpointA.ClientID, suite.pathAToB.EndpointB.ClientID, 1, payload, suite.chainA.SenderAccount.GetAddress())
+			err := cbs.OnSendPacket(ctx, suite.pathAToB.EndpointA.ClientID, suite.pathAToB.EndpointB.ClientID, 1, payload, suite.chainA.SenderAccount.GetAddress())
 
 			if tc.expError != nil {
 				suite.Require().Contains(err.Error(), tc.expError.Error())
