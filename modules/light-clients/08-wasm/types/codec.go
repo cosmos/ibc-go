@@ -1,8 +1,7 @@
 package types
 
 import (
-	coreregistry "cosmossdk.io/core/registry"
-
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 
@@ -11,7 +10,7 @@ import (
 
 // RegisterInterfaces registers the Wasm concrete client-related
 // implementations and interfaces.
-func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*exported.ClientState)(nil),
 		&ClientState{},

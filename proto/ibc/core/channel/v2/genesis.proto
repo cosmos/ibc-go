@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package ibc.core.channel.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types";
+
+import "gogoproto/gogo.proto";
+
+// GenesisState defines the ibc channel/v2 submodule's genesis state.
+message GenesisState {
+  repeated PacketState    acknowledgements = 2 [(gogoproto.nullable) = false];
+  repeated PacketState    commitments      = 3 [(gogoproto.nullable) = false];
+  repeated PacketState    receipts         = 4 [(gogoproto.nullable) = false];
+  repeated PacketSequence send_sequences   = 5 [(gogoproto.nullable) = false];
+}
+
+// PacketState defines the generic type necessary to retrieve and store
+// packet commitments, acknowledgements, and receipts.
+// Caller is responsible for knowing the context necessary to interpret this
+// state as a commitment, acknowledgement, or a receipt.
+message PacketState {
+  option (gogoproto.goproto_getters) = false;
+
+  // client unique identifier.
+  string client_id = 1;
+  // packet sequence.
+  uint64 sequence = 2;
+  // embedded data that represents packet state.
+  bytes data = 3;
+}
+
+// PacketSequence defines the genesis type necessary to retrieve and store next send sequences.
+message PacketSequence {
+  // client unique identifier.
+  string client_id = 1;
+  // packet sequence
+  uint64 sequence = 2;
+}

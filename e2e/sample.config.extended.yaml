@@ -44,9 +44,6 @@ relayers:
   - id: rly
     image: ghcr.io/cosmos/relayer
     tag: "latest" # override with RELAYER_TAG
-  - id: hyperspace
-    image: ghcr.io/misko9/hyperspace
-    tag: "20231122v39" # override with RELAYER_TAG
 
 cometbft:
   logLevel: info

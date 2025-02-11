@@ -14,6 +14,14 @@ func NewTimeout(height clienttypes.Height, timestamp uint64) Timeout {
 	}
 }
 
+// NewTimeoutWithTimestamp creates a new Timeout with only the timestamp set.
+func NewTimeoutWithTimestamp(timestamp uint64) Timeout {
+	return Timeout{
+		Height:    clienttypes.ZeroHeight(),
+		Timestamp: timestamp,
+	}
+}
+
 // IsValid returns true if either the height or timestamp is non-zero.
 func (t Timeout) IsValid() bool {
 	return !t.Height.IsZero() || t.Timestamp != 0
@@ -23,6 +31,11 @@ func (t Timeout) IsValid() bool {
 // respective absolute timeout values.
 func (t Timeout) Elapsed(height clienttypes.Height, timestamp uint64) bool {
 	return t.heightElapsed(height) || t.timestampElapsed(timestamp)
+}
+
+// TimestampElapsed returns true if the provided timestamp is past the timeout timestamp.
+func (t Timeout) TimestampElapsed(timestamp uint64) bool {
+	return t.timestampElapsed(timestamp)
 }
 
 // ErrTimeoutElapsed returns a timeout elapsed error indicating which timeout value

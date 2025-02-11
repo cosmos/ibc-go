@@ -1,19 +1,33 @@
 package keeper
 
 import (
+	"context"
 	"strings"
 
+	"cosmossdk.io/log"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/api"
+	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper
 type Keeper struct {
-	Router *types.Router
+	Router   *types.Router
+	RouterV2 *api.Router
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
 func NewKeeper() *Keeper {
 	return &Keeper{}
+}
+
+// Logger returns a module-specific logger.
+func (Keeper) Logger(ctx context.Context) log.Logger {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // Route returns a IBCModule for a given module, and a boolean indicating

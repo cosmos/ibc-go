@@ -11,19 +11,19 @@ import (
 	"sync"
 
 	dockerclient "github.com/docker/docker/client"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v9"
-	"github.com/strangelove-ventures/interchaintest/v9/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v9/ibc"
-	"github.com/strangelove-ventures/interchaintest/v9/testreporter"
-	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
 	sdkmath "cosmossdk.io/math"
-	banktypes "cosmossdk.io/x/bank/types"
-	govtypes "cosmossdk.io/x/gov/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"github.com/cosmos/ibc-go/e2e/relayer"
@@ -42,7 +42,7 @@ const (
 	// ChainBRelayerName is the name given to the relayer wallet on ChainB
 	ChainBRelayerName = "rlyB"
 	// DefaultGasValue is the default gas value used to configure tx.Factory
-	DefaultGasValue = 100_000_00
+	DefaultGasValue = 500_000_0000
 )
 
 // E2ETestSuite has methods and functionality which can be shared among all test suites.
@@ -558,18 +558,6 @@ func (s *E2ETestSuite) createWalletOnChainIndex(ctx context.Context, amount, cha
 	wallet := interchaintest.GetAndFundTestUsers(s.T(), ctx, strings.ReplaceAll(s.T().Name(), " ", "-"), sdkmath.NewInt(amount), chain)[0]
 	// note the GetAndFundTestUsers requires the caller to wait for some blocks before the funds are accessible.
 	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
-
-	// in order to ensure that the underlying account is created, we need to perform an operation on its behalf.
-	// in this case we just send 1 token to itself so the account gets created.
-	err := chain.SendFunds(ctx, wallet.KeyName(), ibc.WalletAmount{
-		Address: wallet.FormattedAddress(),
-		Denom:   chain.Config().Denom,
-		Amount:  sdkmath.NewInt(1),
-	})
-
-	s.Require().NoError(err)
-	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
-
 	return wallet
 }
 

@@ -2,15 +2,13 @@ package keeper
 
 import (
 	"context"
-	"fmt"
-	"reflect"
 	"slices"
-	"strings"
-
-	gogoproto "github.com/cosmos/gogoproto/proto"
-	"google.golang.org/protobuf/reflect/protoreflect"
 
 	errorsmod "cosmossdk.io/errors"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -30,7 +28,9 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 
 // ModuleQuerySafe routes the queries to the keeper's query router if they are module_query_safe.
 // This handler doesn't use the signer.
-func (m msgServer) ModuleQuerySafe(ctx context.Context, msg *types.MsgModuleQuerySafe) (*types.MsgModuleQuerySafeResponse, error) {
+func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQuerySafe) (*types.MsgModuleQuerySafeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	responses := make([][]byte, len(msg.Requests))
 	for i, query := range msg.Requests {
 		isModuleQuerySafe := slices.Contains(m.mqsAllowList, query.Path)
@@ -38,65 +38,36 @@ func (m msgServer) ModuleQuerySafe(ctx context.Context, msg *types.MsgModuleQuer
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "not module query safe: %s", query.Path)
 		}
 
-		path := strings.TrimPrefix(query.Path, "/")
-		pathFullName := protoreflect.FullName(strings.ReplaceAll(path, "/", "."))
+		route := m.queryRouter.Route(query.Path)
+		if route == nil {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no route to query: %s", query.Path)
+		}
 
-		desc, err := gogoproto.GogoResolver.FindDescriptorByName(pathFullName)
+		res, err := route(ctx, &abci.RequestQuery{
+			Path: query.Path,
+			Data: query.Data,
+		})
 		if err != nil {
+			m.Logger(ctx).Debug("query failed", "path", query.Path, "error", err)
 			return nil, err
 		}
-
-		md, isGRPC := desc.(protoreflect.MethodDescriptor)
-		if !isGRPC {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no descriptor found for query path: %s", string(desc.FullName()))
-		}
-
-		msg, err := forgeProtoTypeFromName(string(md.Input().FullName()))
-		if err != nil {
-			return nil, err
-		}
-
-		if err := m.cdc.Unmarshal(query.Data, msg); err != nil {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal query request data to: %s", md.Input().FullName())
-		}
-
-		res, err := m.QueryRouterService.Invoke(ctx, msg)
-		if err != nil {
-			m.Logger.Debug("query failed", "path", query.Path, "error", err)
-			return nil, err
-		}
-		if res == nil {
+		if res == nil || res.Value == nil {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "no response for query: %s", query.Path)
 		}
 
-		responses[i] = m.cdc.MustMarshal(res)
+		responses[i] = res.Value
 	}
 
-	height := m.HeaderService.HeaderInfo(ctx).Height
-	return &types.MsgModuleQuerySafeResponse{Responses: responses, Height: uint64(height)}, nil
-}
-
-// see: https://github.com/cosmos/cosmos-sdk/issues/22833
-func forgeProtoTypeFromName(msgName string) (gogoproto.Message, error) {
-	typ := gogoproto.MessageType(msgName)
-	if typ == nil {
-		return nil, fmt.Errorf("no message type found for %s", msgName)
-	}
-
-	msg, ok := reflect.New(typ.Elem()).Interface().(gogoproto.Message)
-	if !ok {
-		return nil, fmt.Errorf("could not create response message %s", msgName)
-	}
-
-	return msg, nil
+	return &types.MsgModuleQuerySafeResponse{Responses: responses, Height: uint64(ctx.BlockHeight())}, nil
 }
 
 // UpdateParams updates the host submodule's params.
-func (m msgServer) UpdateParams(ctx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+func (m msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if m.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", m.GetAuthority(), msg.Signer)
 	}
 
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	m.SetParams(ctx, msg.Params)
 
 	return &types.MsgUpdateParamsResponse{}, nil

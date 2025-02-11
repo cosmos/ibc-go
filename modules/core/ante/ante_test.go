@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -13,12 +14,15 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v9/modules/core/ante"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v9/testing/mock/v2"
 )
 
 type AnteTestSuite struct {
@@ -74,6 +78,25 @@ func (suite *AnteTestSuite) createRecvPacketMessage(isRedundant bool) *channelty
 	return channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
+// createRecvPacketMessageV2 creates a V2 RecvPacket message for a packet sent from chain A to chain B.
+func (suite *AnteTestSuite) createRecvPacketMessageV2(isRedundant bool) *channeltypesv2.MsgRecvPacket {
+	packet, err := suite.path.EndpointA.MsgSendPacket(suite.chainA.GetTimeoutTimestampSecs(), mock.NewMockPayload(mock.ModuleNameA, mock.ModuleNameB))
+	suite.Require().NoError(err)
+
+	if isRedundant {
+		err = suite.path.EndpointB.MsgRecvPacket(packet)
+		suite.Require().NoError(err)
+	}
+
+	err = suite.path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	packetKey := hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence)
+	proof, proofHeight := suite.chainA.QueryProof(packetKey)
+
+	return channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+}
+
 // createAcknowledgementMessage creates an Acknowledgement message for a packet sent from chain B to chain A.
 func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.Msg {
 	sequence, err := suite.path.EndpointB.SendPacket(clienttypes.NewHeight(2, 0), 0, ibctesting.MockPacketData)
@@ -95,6 +118,26 @@ func (suite *AnteTestSuite) createAcknowledgementMessage(isRedundant bool) sdk.M
 	proof, proofHeight := suite.chainA.QueryProof(packetKey)
 
 	return channeltypes.NewMsgAcknowledgement(packet, ibctesting.MockAcknowledgement, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+}
+
+// createAcknowledgementMessageV2 creates a V2 Acknowledgement message for a packet sent from chain B to chain A.
+func (suite *AnteTestSuite) createAcknowledgementMessageV2(isRedundant bool) *channeltypesv2.MsgAcknowledgement {
+	packet, err := suite.path.EndpointB.MsgSendPacket(suite.chainB.GetTimeoutTimestampSecs(), mock.NewMockPayload(mock.ModuleNameA, mock.ModuleNameB))
+	suite.Require().NoError(err)
+
+	err = suite.path.EndpointA.MsgRecvPacket(packet)
+	suite.Require().NoError(err)
+
+	ack := channeltypesv2.Acknowledgement{AppAcknowledgements: [][]byte{mock.MockRecvPacketResult.Acknowledgement}}
+	if isRedundant {
+		err = suite.path.EndpointB.MsgAcknowledgePacket(packet, ack)
+		suite.Require().NoError(err)
+	}
+
+	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationClient, packet.Sequence)
+	proof, proofHeight := suite.chainA.QueryProof(packetKey)
+
+	return channeltypesv2.NewMsgAcknowledgement(packet, ack, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
 // createTimeoutMessage creates an Timeout message for a packet sent from chain B to chain A.
@@ -124,6 +167,27 @@ func (suite *AnteTestSuite) createTimeoutMessage(isRedundant bool) sdk.Msg {
 	proof, proofHeight := suite.chainA.QueryProof(packetKey)
 
 	return channeltypes.NewMsgTimeout(packet, sequence, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
+}
+
+// createTimeoutMessageV2 creates a V2 Timeout message for a packet sent from chain B to chain A.
+func (suite *AnteTestSuite) createTimeoutMessageV2(isRedundant bool) *channeltypesv2.MsgTimeout {
+	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Unix())
+	packet, err := suite.path.EndpointB.MsgSendPacket(timeoutTimestamp, mock.NewMockPayload(mock.ModuleNameA, mock.ModuleNameB))
+	suite.Require().NoError(err)
+
+	suite.coordinator.IncrementTimeBy(time.Hour)
+	err = suite.path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	if isRedundant {
+		err = suite.path.EndpointB.MsgTimeoutPacket(packet)
+		suite.Require().NoError(err)
+	}
+
+	packetKey := hostv2.PacketReceiptKey(packet.SourceClient, packet.Sequence)
+	proof, proofHeight := suite.chainA.QueryProof(packetKey)
+
+	return channeltypesv2.NewMsgTimeout(packet, proof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
 // createTimeoutOnCloseMessage creates an TimeoutOnClose message for a packet sent from chain B to chain A.
@@ -194,6 +258,15 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 			nil,
 		},
 		{
+			"success on one new V2 RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.path.SetupV2()
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createRecvPacketMessageV2(false)}
+			},
+			nil,
+		},
+		{
 			"success on one new Acknowledgement message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
@@ -202,10 +275,28 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 			nil,
 		},
 		{
+			"success on one new V2 Acknowledgement message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.path.SetupV2()
+				// the Acknowledgement message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createAcknowledgementMessageV2(false)}
+			},
+			nil,
+		},
+		{
 			"success on one new Timeout message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				// the Timeout message has not been submitted to the chain yet, so it will succeed
 				return []sdk.Msg{suite.createTimeoutMessage(false)}
+			},
+			nil,
+		},
+		{
+			"success on one new Timeout V2 message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.path.SetupV2()
+				// the Timeout message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createTimeoutMessageV2(false)}
 			},
 			nil,
 		},
@@ -342,7 +433,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				}
 
 				// append non packet and update message to msgs to ensure multimsg tx should pass
-				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{Signer: ibctesting.TestAccAddress}) //nolint:staticcheck // we're using the deprecated message for testing
+				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{}) //nolint:staticcheck // we're using the deprecated message for testing
 				return msgs
 			},
 			nil,
@@ -365,6 +456,14 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 			"no success on one redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createRecvPacketMessage(true)}
+			},
+			channeltypes.ErrRedundantTx,
+		},
+		{
+			"no success on one redundant V2 RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.path.SetupV2()
+				return []sdk.Msg{suite.createRecvPacketMessageV2(true)}
 			},
 			channeltypes.ErrRedundantTx,
 		},
@@ -412,7 +511,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
 				suite.Require().NoError(err)
 
-				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: ibctesting.InvalidID, ClientMessage: clientMsg, Signer: ibctesting.TestAccAddress}}
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: ibctesting.InvalidID, ClientMessage: clientMsg}}
 				return msgs
 			},
 			clienttypes.ErrClientNotActive,
@@ -423,7 +522,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{})
 				suite.Require().NoError(err)
 
-				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: clienttypes.FormatClientIdentifier("08-wasm", 1), ClientMessage: clientMsg, Signer: ibctesting.TestAccAddress}}
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: clienttypes.FormatClientIdentifier("08-wasm", 1), ClientMessage: clientMsg}}
 				return msgs
 			},
 			clienttypes.ErrClientNotActive,
@@ -434,7 +533,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				clientMsg, err := codectypes.NewAnyWithValue(&ibctm.Header{TrustedHeight: clienttypes.NewHeight(1, 10000)})
 				suite.Require().NoError(err)
 
-				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: suite.path.EndpointA.ClientID, ClientMessage: clientMsg, Signer: ibctesting.TestAccAddress}}
+				msgs := []sdk.Msg{&clienttypes.MsgUpdateClient{ClientId: suite.path.EndpointA.ClientID, ClientMessage: clientMsg}}
 				return msgs
 			},
 			clienttypes.ErrConsensusStateNotFound,
@@ -474,7 +573,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 
 				return []sdk.Msg{
 					suite.createRecvPacketMessage(false),
-					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), ibctesting.TestAccAddress),
+					channeltypes.NewMsgRecvPacket(packet, []byte("proof"), clienttypes.NewHeight(1, 1), "signer"),
 				}
 			},
 			commitmenttypes.ErrInvalidProof,
@@ -556,6 +655,15 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 			nil,
 		},
 		{
+			"success on one new V2 RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.path.SetupV2()
+				// the RecvPacket message has not been submitted to the chain yet, so it will succeed
+				return []sdk.Msg{suite.createRecvPacketMessageV2(false)}
+			},
+			nil,
+		},
+		{
 			"success on one redundant and one new RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{
@@ -592,6 +700,14 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 			"no success on one redundant RecvPacket message",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				return []sdk.Msg{suite.createRecvPacketMessage(true)}
+			},
+			channeltypes.ErrRedundantTx,
+		},
+		{
+			"no success on one redundant V2 RecvPacket message",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				suite.path.SetupV2()
+				return []sdk.Msg{suite.createRecvPacketMessageV2(true)}
 			},
 			channeltypes.ErrRedundantTx,
 		},

@@ -2,9 +2,7 @@ package types
 
 import (
 	"github.com/cosmos/gogoproto/proto"
-	gogoprotoany "github.com/cosmos/gogoproto/types/any"
 
-	coreregistry "cosmossdk.io/core/registry"
 	errorsmod "cosmossdk.io/errors"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -16,7 +14,7 @@ import (
 )
 
 // RegisterInterfaces registers the client interfaces to protobuf Any.
-func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterInterface(
 		"ibc.core.client.v1.ClientState",
 		(*exported.ClientState)(nil),
@@ -47,6 +45,7 @@ func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 		&MsgRecoverClient{},
 		&MsgIBCSoftwareUpgrade{},
 		&MsgUpdateParams{},
+		&MsgRegisterCounterparty{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
@@ -55,7 +54,7 @@ func RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
 // PackClientState constructs a new Any packed with the given client state value. It returns
 // an error if the client state can't be casted to a protobuf message or if the concrete
 // implementation is not registered to the protobuf codec.
-func PackClientState(clientState exported.ClientState) (*gogoprotoany.Any, error) {
+func PackClientState(clientState exported.ClientState) (*codectypes.Any, error) {
 	msg, ok := clientState.(proto.Message)
 	if !ok {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrPackAny, "cannot proto marshal %T", clientState)
@@ -71,7 +70,7 @@ func PackClientState(clientState exported.ClientState) (*gogoprotoany.Any, error
 
 // UnpackClientState unpacks an Any into a ClientState. It returns an error if the
 // client state can't be unpacked into a ClientState.
-func UnpackClientState(protoAny *gogoprotoany.Any) (exported.ClientState, error) {
+func UnpackClientState(protoAny *codectypes.Any) (exported.ClientState, error) {
 	if protoAny == nil {
 		return nil, errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
 	}
@@ -87,7 +86,7 @@ func UnpackClientState(protoAny *gogoprotoany.Any) (exported.ClientState, error)
 // PackConsensusState constructs a new Any packed with the given consensus state value. It returns
 // an error if the consensus state can't be casted to a protobuf message or if the concrete
 // implementation is not registered to the protobuf codec.
-func PackConsensusState(consensusState exported.ConsensusState) (*gogoprotoany.Any, error) {
+func PackConsensusState(consensusState exported.ConsensusState) (*codectypes.Any, error) {
 	msg, ok := consensusState.(proto.Message)
 	if !ok {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrPackAny, "cannot proto marshal %T", consensusState)
@@ -102,7 +101,7 @@ func PackConsensusState(consensusState exported.ConsensusState) (*gogoprotoany.A
 }
 
 // MustPackConsensusState calls PackConsensusState and panics on error.
-func MustPackConsensusState(consensusState exported.ConsensusState) *gogoprotoany.Any {
+func MustPackConsensusState(consensusState exported.ConsensusState) *codectypes.Any {
 	anyConsensusState, err := PackConsensusState(consensusState)
 	if err != nil {
 		panic(err)
@@ -113,7 +112,7 @@ func MustPackConsensusState(consensusState exported.ConsensusState) *gogoprotoan
 
 // UnpackConsensusState unpacks an Any into a ConsensusState. It returns an error if the
 // consensus state can't be unpacked into a ConsensusState.
-func UnpackConsensusState(protoAny *gogoprotoany.Any) (exported.ConsensusState, error) {
+func UnpackConsensusState(protoAny *codectypes.Any) (exported.ConsensusState, error) {
 	if protoAny == nil {
 		return nil, errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
 	}
@@ -129,7 +128,7 @@ func UnpackConsensusState(protoAny *gogoprotoany.Any) (exported.ConsensusState, 
 // PackClientMessage constructs a new Any packed with the given value. It returns
 // an error if the value can't be casted to a protobuf message or if the concrete
 // implementation is not registered to the protobuf codec.
-func PackClientMessage(clientMessage exported.ClientMessage) (*gogoprotoany.Any, error) {
+func PackClientMessage(clientMessage exported.ClientMessage) (*codectypes.Any, error) {
 	msg, ok := clientMessage.(proto.Message)
 	if !ok {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrPackAny, "cannot proto marshal %T", clientMessage)
@@ -145,7 +144,7 @@ func PackClientMessage(clientMessage exported.ClientMessage) (*gogoprotoany.Any,
 
 // UnpackClientMessage unpacks an Any into a ClientMessage. It returns an error if the
 // consensus state can't be unpacked into a ClientMessage.
-func UnpackClientMessage(protoAny *gogoprotoany.Any) (exported.ClientMessage, error) {
+func UnpackClientMessage(protoAny *codectypes.Any) (exported.ClientMessage, error) {
 	if protoAny == nil {
 		return nil, errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil")
 	}

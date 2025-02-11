@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"cosmossdk.io/core/appmodule"
+	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -17,26 +18,33 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Keeper defines the IBC connection keeper
 type Keeper struct {
-	appmodule.Environment
+	// implements gRPC QueryServer interface
+	types.QueryServer
 
+	storeService   corestore.KVStoreService
+	legacySubspace types.ParamSubspace
 	cdc            codec.BinaryCodec
 	clientKeeper   types.ClientKeeper
-	legacySubspace types.ParamSubspace
 }
 
 // NewKeeper creates a new IBC connection Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, env appmodule.Environment, legacySubspace types.ParamSubspace, ck types.ClientKeeper) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, legacySubspace types.ParamSubspace, ck types.ClientKeeper) *Keeper {
 	return &Keeper{
-		Environment:    env,
+		storeService:   storeService,
 		cdc:            cdc,
 		legacySubspace: legacySubspace,
 		clientKeeper:   ck,
 	}
+}
+
+// Logger returns a module-specific logger.
+func (Keeper) Logger(ctx context.Context) log.Logger {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // GetCommitmentPrefix returns the IBC connection store prefix as a commitment
@@ -57,7 +65,7 @@ func (k *Keeper) GenerateConnectionIdentifier(ctx context.Context) string {
 
 // GetConnection returns a connection with a particular identifier
 func (k *Keeper) GetConnection(ctx context.Context, connectionID string) (types.ConnectionEnd, bool) {
-	store := k.KVStoreService.OpenKVStore(ctx)
+	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ConnectionKey(connectionID))
 	if err != nil {
 		panic(err)
@@ -76,7 +84,7 @@ func (k *Keeper) GetConnection(ctx context.Context, connectionID string) (types.
 // HasConnection returns a true if the connection with the given identifier
 // exists in the store.
 func (k *Keeper) HasConnection(ctx context.Context, connectionID string) bool {
-	store := k.KVStoreService.OpenKVStore(ctx)
+	store := k.storeService.OpenKVStore(ctx)
 	has, err := store.Has(host.ConnectionKey(connectionID))
 	if err != nil {
 		return false
@@ -86,7 +94,7 @@ func (k *Keeper) HasConnection(ctx context.Context, connectionID string) bool {
 
 // SetConnection sets a connection to the store
 func (k *Keeper) SetConnection(ctx context.Context, connectionID string, connection types.ConnectionEnd) {
-	store := k.KVStoreService.OpenKVStore(ctx)
+	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&connection)
 	if err := store.Set(host.ConnectionKey(connectionID), bz); err != nil {
 		panic(err)
@@ -96,7 +104,7 @@ func (k *Keeper) SetConnection(ctx context.Context, connectionID string, connect
 // GetClientConnectionPaths returns all the connection paths stored under a
 // particular client
 func (k *Keeper) GetClientConnectionPaths(ctx context.Context, clientID string) ([]string, bool) {
-	store := k.KVStoreService.OpenKVStore(ctx)
+	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(host.ClientConnectionsKey(clientID))
 	if err != nil {
 		panic(err)
@@ -113,7 +121,7 @@ func (k *Keeper) GetClientConnectionPaths(ctx context.Context, clientID string) 
 
 // SetClientConnectionPaths sets the connections paths for client
 func (k *Keeper) SetClientConnectionPaths(ctx context.Context, clientID string, paths []string) {
-	store := k.KVStoreService.OpenKVStore(ctx)
+	store := k.storeService.OpenKVStore(ctx)
 	clientPaths := types.ClientPaths{Paths: paths}
 	bz := k.cdc.MustMarshal(&clientPaths)
 	if err := store.Set(host.ClientConnectionsKey(clientID), bz); err != nil {
@@ -123,7 +131,7 @@ func (k *Keeper) SetClientConnectionPaths(ctx context.Context, clientID string, 
 
 // GetNextConnectionSequence gets the next connection sequence from the store.
 func (k *Keeper) GetNextConnectionSequence(ctx context.Context) uint64 {
-	store := k.KVStoreService.OpenKVStore(ctx)
+	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get([]byte(types.KeyNextConnectionSequence))
 	if err != nil {
 		panic(err)
@@ -138,7 +146,7 @@ func (k *Keeper) GetNextConnectionSequence(ctx context.Context) uint64 {
 
 // SetNextConnectionSequence sets the next connection sequence to the store.
 func (k *Keeper) SetNextConnectionSequence(ctx context.Context, sequence uint64) {
-	store := k.KVStoreService.OpenKVStore(ctx)
+	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
 	if err := store.Set([]byte(types.KeyNextConnectionSequence), bz); err != nil {
 		panic(err)
@@ -150,7 +158,8 @@ func (k *Keeper) SetNextConnectionSequence(ctx context.Context, sequence uint64)
 // no paths are stored.
 func (k *Keeper) GetAllClientConnectionPaths(ctx context.Context) []types.ConnectionPaths {
 	var allConnectionPaths []types.ConnectionPaths
-	k.clientKeeper.IterateClientStates(ctx, nil, func(clientID string, cs exported.ClientState) bool {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	k.clientKeeper.IterateClientStates(sdkCtx, nil, func(clientID string, cs exported.ClientState) bool {
 		paths, found := k.GetClientConnectionPaths(ctx, clientID)
 		if !found {
 			// continue when connection handshake is not initialized
@@ -168,11 +177,11 @@ func (k *Keeper) GetAllClientConnectionPaths(ctx context.Context) []types.Connec
 // For each ConnectionEnd, cb will be called. If the cb returns true, the
 // iterator will close and stop.
 func (k *Keeper) IterateConnections(ctx context.Context, cb func(types.IdentifiedConnection) bool) {
-	store := runtime.KVStoreAdapter(k.KVStoreService.OpenKVStore(ctx))
+	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyConnectionPrefix))
 
-	defer coretypes.LogDeferred(k.Logger, func() error { return iterator.Close() })
+	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
 		var connection types.ConnectionEnd
 		k.cdc.MustUnmarshal(iterator.Value(), &connection)
@@ -222,7 +231,7 @@ func (k *Keeper) addConnectionToClient(ctx context.Context, clientID, connection
 
 // GetParams returns the total set of ibc-connection parameters.
 func (k *Keeper) GetParams(ctx context.Context) types.Params {
-	store := k.KVStoreService.OpenKVStore(ctx)
+	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get([]byte(types.ParamsKey))
 	if err != nil {
 		panic(err)
@@ -239,7 +248,7 @@ func (k *Keeper) GetParams(ctx context.Context) types.Params {
 
 // SetParams sets the total set of ibc-connection parameters.
 func (k *Keeper) SetParams(ctx context.Context, params types.Params) {
-	store := k.KVStoreService.OpenKVStore(ctx)
+	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
 	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
 		panic(err)

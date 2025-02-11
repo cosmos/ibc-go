@@ -4,10 +4,10 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 
 	sdkmath "cosmossdk.io/math"
-	banktypes "cosmossdk.io/x/bank/types"
-	stakingtypes "cosmossdk.io/x/staking/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	icahosttypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
@@ -166,7 +166,7 @@ func (suite *FeeTestSuite) TestFeeInterchainAccounts() {
 		packet := buildInterchainAccountsPacket(path, icaPacketData.GetBytes(), 1)
 
 		// write packet commitment to state on chainA and commit state
-		commitment := channeltypes.CommitPacket(suite.chainA.GetSimApp().AppCodec(), packet)
+		commitment := channeltypes.CommitPacket(packet)
 		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, 1, commitment)
 		suite.chainA.NextBlock()
 
