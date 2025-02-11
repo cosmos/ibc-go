@@ -326,11 +326,10 @@ func (s *CallbacksTestSuite) ExecuteFailedTransfer(memo string) {
 	msg := transfertypes.NewMsgTransfer(
 		s.path.EndpointA.ChannelConfig.PortID,
 		s.path.EndpointA.ChannelID,
-		sdk.NewCoins(amount),
+		amount,
 		s.chainA.SenderAccount.GetAddress().String(),
 		s.chainB.SenderAccount.GetAddress().String(),
 		clienttypes.NewHeight(1, 100), 0, memo,
-		nil,
 	)
 
 	res, err := s.chainA.SendMsgs(msg)
