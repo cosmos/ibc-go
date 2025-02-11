@@ -11,7 +11,8 @@ message GenesisState {
   repeated PacketState    acknowledgements = 2 [(gogoproto.nullable) = false];
   repeated PacketState    commitments      = 3 [(gogoproto.nullable) = false];
   repeated PacketState    receipts         = 4 [(gogoproto.nullable) = false];
-  repeated PacketSequence send_sequences   = 5 [(gogoproto.nullable) = false];
+  repeated PacketState    async_packets    = 5 [(gogoproto.nullable) = false];
+  repeated PacketSequence send_sequences   = 6 [(gogoproto.nullable) = false];
 }
 
 // PacketState defines the generic type necessary to retrieve and store

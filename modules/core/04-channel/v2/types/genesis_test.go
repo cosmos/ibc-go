@@ -27,6 +27,7 @@ func TestValidateGenesis(t *testing.T) {
 				[]types.PacketState{types.NewPacketState(ibctesting.FirstChannelID, 1, []byte("ack"))},
 				[]types.PacketState{types.NewPacketState(ibctesting.SecondChannelID, 1, []byte(""))},
 				[]types.PacketState{types.NewPacketState(ibctesting.FirstChannelID, 1, []byte("commit_hash"))},
+				[]types.PacketState{types.NewPacketState(ibctesting.SecondChannelID, 1, []byte("async_packet"))},
 				[]types.PacketSequence{types.NewPacketSequence(ibctesting.SecondChannelID, 1)},
 			),
 			nil,
@@ -44,6 +45,15 @@ func TestValidateGenesis(t *testing.T) {
 			"invalid commitment",
 			types.GenesisState{
 				Commitments: []types.PacketState{
+					types.NewPacketState(ibctesting.FirstChannelID, 1, nil),
+				},
+			},
+			errors.New("data bytes cannot be nil"),
+		},
+		{
+			"invalid async packet",
+			types.GenesisState{
+				AsyncPackets: []types.PacketState{
 					types.NewPacketState(ibctesting.FirstChannelID, 1, nil),
 				},
 			},

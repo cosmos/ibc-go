@@ -39,13 +39,14 @@ func (ps PacketSequence) Validate() error {
 
 // NewGenesisState creates a GenesisState instance.
 func NewGenesisState(
-	acks, receipts, commitments []PacketState,
+	acks, receipts, commitments, asyncPackets []PacketState,
 	sendSeqs []PacketSequence,
 ) GenesisState {
 	return GenesisState{
 		Acknowledgements: acks,
 		Receipts:         receipts,
 		Commitments:      commitments,
+		AsyncPackets:     asyncPackets,
 		SendSequences:    sendSeqs,
 	}
 }
@@ -56,6 +57,7 @@ func DefaultGenesisState() GenesisState {
 		Acknowledgements: []PacketState{},
 		Receipts:         []PacketState{},
 		Commitments:      []PacketState{},
+		AsyncPackets:     []PacketState{},
 		SendSequences:    []PacketSequence{},
 	}
 }
@@ -83,6 +85,15 @@ func (gs GenesisState) Validate() error {
 		}
 		if len(commitment.Data) == 0 {
 			return fmt.Errorf("invalid acknowledgement %v ack index %d: data bytes cannot be empty", commitment, i)
+		}
+	}
+
+	for i, ap := range gs.AsyncPackets {
+		if err := ap.Validate(); err != nil {
+			return fmt.Errorf("invalid async packet %v index %d: %w", ap, i, err)
+		}
+		if len(ap.Data) == 0 {
+			return fmt.Errorf("invalid async packet %v index %d: data bytes cannot be empty", ap, i)
 		}
 	}
 
