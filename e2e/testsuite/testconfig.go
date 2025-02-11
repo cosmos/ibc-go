@@ -693,8 +693,17 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 // getGenesisModificationFunction returns a genesis modification function that handles the GenesisState type
 // correctly depending on if the govv1beta1 gov module is used or if govv1 is being used.
 func getGenesisModificationFunction(cc ChainConfig) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	binary := cc.Binary
 	version := cc.Tag
-	return defaultGovv1ModifyGenesis(version)
+
+	simdSupportsGovV1Genesis := binary == defaultBinary && testvalues.GovGenesisFeatureReleases.IsSupported(version)
+
+	// TODO: Remove after we drop v7 support (this is only needed right now because of v6 -> v7 upgrade tests)
+	if simdSupportsGovV1Genesis {
+		return defaultGovv1ModifyGenesis(version)
+	}
+
+	return defaultGovv1Beta1ModifyGenesis(version)
 }
 
 // defaultGovv1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
@@ -764,6 +773,108 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 	}
 }
 
+// defaultGovv1Beta1ModifyGenesis will only modify governance params to ensure the voting period and minimum deposit
+// // are functional for e2e testing purposes.
+func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
+	const appStateKey = "app_state"
+	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
+		genesisDocMap := map[string]interface{}{}
+		err := json.Unmarshal(genbz, &genesisDocMap)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
+		}
+
+		appStateMap, ok := genesisDocMap[appStateKey].(map[string]interface{})
+		if !ok {
+			return nil, errors.New("failed to extract to app_state")
+		}
+
+		govModuleBytes, err := json.Marshal(appStateMap[govtypes.ModuleName])
+		if err != nil {
+			return nil, fmt.Errorf("failed to extract gov genesis bytes: %s", err)
+		}
+
+		govModuleGenesisBytes, err := modifyGovv1Beta1AppState(chainConfig, govModuleBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		govModuleGenesisMap := map[string]interface{}{}
+		err = json.Unmarshal(govModuleGenesisBytes, &govModuleGenesisMap)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
+		}
+
+		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(version) {
+			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
+			if err != nil {
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+			}
+
+			ibcGenesisBytes, err := modifyClientGenesisAppState(ibcModuleBytes)
+			if err != nil {
+				return nil, err
+			}
+
+			ibcModuleGenesisMap := map[string]interface{}{}
+			err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
+			}
+			appStateMap[ibcexported.ModuleName] = ibcModuleGenesisMap
+		}
+
+		if !testvalues.ChannelParamsFeatureReleases.IsSupported(version) {
+			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
+			if err != nil {
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+			}
+
+			ibcGenesisBytes, err := modifyChannelGenesisAppState(ibcModuleBytes)
+			if err != nil {
+				return nil, err
+			}
+
+			ibcModuleGenesisMap := map[string]interface{}{}
+			err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
+			}
+			appStateMap[ibcexported.ModuleName] = ibcModuleGenesisMap
+
+		}
+
+		if !testvalues.ChannelsV2FeatureReleases.IsSupported(version) {
+			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
+			if err != nil {
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+			}
+
+			ibcGenesisBytes, err := modifyChannelV2GenesisAppState(ibcModuleBytes)
+			if err != nil {
+				return nil, err
+			}
+
+			ibcModuleGenesisMap := map[string]interface{}{}
+			err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
+			}
+			appStateMap[ibcexported.ModuleName] = ibcModuleGenesisMap
+		}
+
+		appStateMap[govtypes.ModuleName] = govModuleGenesisMap
+		genesisDocMap[appStateKey] = appStateMap
+
+		finalGenesisDocBytes, err := json.MarshalIndent(genesisDocMap, "", " ")
+		if err != nil {
+			return nil, err
+		}
+
+		return finalGenesisDocBytes, nil
+	}
+}
+
 // modifyGovV1AppState takes the existing gov app state and marshals it to a govv1 GenesisState.
 func modifyGovV1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
 	cfg := testutil.MakeTestEncodingConfig()
@@ -788,6 +899,29 @@ func modifyGovV1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byt
 	govGenesisState.Params.VotingPeriod = &vp
 
 	govGenBz := MustProtoMarshalJSON(govGenesisState)
+
+	return govGenBz, nil
+}
+
+// modifyGovv1Beta1AppState takes the existing gov app state and marshals it to a govv1beta1 GenesisState.
+func modifyGovv1Beta1AppState(chainConfig ibc.ChainConfig, govAppState []byte) ([]byte, error) {
+	cfg := testutil.MakeTestEncodingConfig()
+
+	cdc := codec.NewProtoCodec(cfg.InterfaceRegistry)
+	govv1beta1.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	govGenesisState := &govv1beta1.GenesisState{}
+	if err := cdc.UnmarshalJSON(govAppState, govGenesisState); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal genesis bytes into govv1beta1 genesis state: %w", err)
+	}
+
+	govGenesisState.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(chainConfig.Denom, govv1beta1.DefaultMinDepositTokens))
+	govGenesisState.VotingParams.VotingPeriod = testvalues.VotingPeriod
+
+	govGenBz, err := cdc.MarshalJSON(govGenesisState)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+	}
 
 	return govGenBz, nil
 }
