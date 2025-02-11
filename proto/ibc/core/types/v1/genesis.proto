@@ -9,6 +9,7 @@ import "ibc/core/client/v1/genesis.proto";
 import "ibc/core/client/v2/genesis.proto";
 import "ibc/core/connection/v1/genesis.proto";
 import "ibc/core/channel/v1/genesis.proto";
+import "ibc/core/channel/v2/genesis.proto";
 
 // GenesisState defines the ibc module's genesis state.
 message GenesisState {
@@ -20,4 +21,6 @@ message GenesisState {
   ibc.core.channel.v1.GenesisState channel_genesis = 3 [(gogoproto.nullable) = false];
   // ICS002 - Clients/v2 genesis state
   ibc.core.client.v2.GenesisState client_v2_genesis = 4 [(gogoproto.nullable) = false];
+  // ICS004 - Channel/v2 genesis state
+  ibc.core.channel.v2.GenesisState channel_v2_genesis = 5 [(gogoproto.nullable) = false];
 }

@@ -1,4 +1,4 @@
-package client
+package channelv2
 
 import (
 	"github.com/spf13/cobra"
@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 )
 
-// Name returns the IBC channel/v2 name
 func Name() string {
 	return types.SubModuleName
 }
