@@ -64,8 +64,6 @@ const (
 	// all images are here https://github.com/cosmos/relayer/pkgs/container/relayer/versions
 	defaultRlyTag = "latest"
 
-	// TODO: https://github.com/cosmos/ibc-go/issues/4965
-	defaultHyperspaceTag = "20231122v39"
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
 	defaultHermesTag = "1.10.4"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
@@ -423,7 +421,6 @@ func populateDefaults(tc TestConfig) TestConfig {
 		tc.RelayerConfigs = []relayer.Config{
 			getDefaultRlyRelayerConfig(),
 			getDefaultHermesRelayerConfig(),
-			getDefaultHyperspaceRelayerConfig(),
 		}
 	}
 
@@ -576,16 +573,6 @@ func getDefaultRlyRelayerConfig() relayer.Config {
 		Tag:   defaultRlyTag,
 		ID:    relayer.Rly,
 		Image: relayer.RlyRelayerRepository,
-	}
-}
-
-// TODO: remove in https://github.com/cosmos/ibc-go/issues/4697
-// getDefaultHyperspaceRelayerConfig returns the default config for the hyperspace relayer.
-func getDefaultHyperspaceRelayerConfig() relayer.Config {
-	return relayer.Config{
-		Tag:   defaultHyperspaceTag,
-		ID:    relayer.Hyperspace,
-		Image: relayer.HyperspaceRelayerRepository,
 	}
 }
 
