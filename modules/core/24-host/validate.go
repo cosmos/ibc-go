@@ -60,10 +60,10 @@ func defaultIdentifierValidator(id string, minLength, maxLength int) error {
 }
 
 // ClientIdentifierValidator is the default validator function for Client identifiers.
-// A valid Identifier must be between 9-64 characters and only contain alphanumeric and some allowed
+// A valid Identifier must be between 8-64 characters and only contain alphanumeric and some allowed
 // special characters (see IsValidID).
 func ClientIdentifierValidator(id string) error {
-	return defaultIdentifierValidator(id, 9, DefaultMaxCharacterLength)
+	return defaultIdentifierValidator(id, 8, DefaultMaxCharacterLength)
 }
 
 // ConnectionIdentifierValidator is the default validator function for Connection identifiers.

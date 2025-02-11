@@ -19,4 +19,7 @@ var (
 	ErrInvalidForwarding       = errorsmod.Register(ModuleName, 12, "invalid token forwarding")
 	ErrForwardedPacketTimedOut = errorsmod.Register(ModuleName, 13, "forwarded packet timed out")
 	ErrForwardedPacketFailed   = errorsmod.Register(ModuleName, 14, "forwarded packet failed")
+	ErrAbiEncoding             = errorsmod.Register(ModuleName, 15, "encoding abi failed")
+	ErrAbiDecoding             = errorsmod.Register(ModuleName, 16, "decoding abi failed")
+	ErrReceiveFailed           = errorsmod.Register(ModuleName, 17, "receive packet failed")
 )

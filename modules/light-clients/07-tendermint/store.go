@@ -275,7 +275,7 @@ func PruneAllExpiredConsensusStates(
 		if !found { // consensus state should always be found
 			return true
 		}
-		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/7223
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
 		if clientState.IsExpired(consState.Timestamp, sdkCtx.BlockTime()) {
 			heights = append(heights, height)
 		}
@@ -324,7 +324,7 @@ func bigEndianHeightBytes(height exported.Height) []byte {
 // client state and consensus state will be set by client keeper
 // set iteration key to provide ability for efficient ordered iteration of consensus states.
 func setConsensusMetadata(ctx context.Context, clientStore storetypes.KVStore, height exported.Height) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano()))
 }
 

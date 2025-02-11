@@ -12,7 +12,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -1055,17 +1055,21 @@ func (suite *ForwardingTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.Require().NoError(err) // message committed
 
 	// parse the packet from result events and recv packet on chainB
-	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
+	packetFromAToB, err := ibctesting.ParsePacketFromEvents(result.Events)
 	suite.Require().NoError(err)
-	suite.Require().NotNil(packet)
+	suite.Require().NotNil(packetFromAToB)
 
 	err = pathAtoB.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
 
 	// Receive packet on B.
-	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packet)
+	result, err = pathAtoB.EndpointB.RecvPacketWithResult(packetFromAToB)
 	suite.Require().NoError(err)
 	suite.Require().NotNil(result)
+
+	packetFromBToC, err := ibctesting.ParsePacketFromEvents(result.Events)
+	suite.Require().NoError(err)
+	suite.Require().NotNil(packetFromBToC)
 
 	err = pathBtoC.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
@@ -1078,74 +1082,33 @@ func (suite *ForwardingTestSuite) TestOnTimeoutPacketForwarding() {
 	suite.assertAmountOnChain(suite.chainB, escrow, amount, denomAB.IBCDenom())
 
 	// Check that forwarded packet exists
-	forwardedPacket, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, packet.Sequence)
+	forwardedPacket, found := suite.chainB.GetSimApp().TransferKeeper.GetForwardedPacket(suite.chainB.GetContext(), pathBtoC.EndpointA.ChannelConfig.PortID, pathBtoC.EndpointA.ChannelID, packetFromAToB.Sequence)
 	suite.Require().True(found, "Chain B has no forwarded packet")
-	suite.Require().Equal(packet, forwardedPacket, "ForwardedPacket stored in ChainB is not the same that was sent")
+	suite.Require().Equal(packetFromAToB, forwardedPacket, "ForwardedPacket stored in ChainB is not the same that was sent")
 
-	address := suite.chainB.GetSimApp().AuthKeeper.GetModuleAddress(types.ModuleName).String()
-	data := types.NewFungibleTokenPacketDataV2(
-		[]types.Token{
-			{
-				Denom:  types.NewDenom(sdk.DefaultBondDenom, types.NewHop(pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID)),
-				Amount: "100",
-			},
-		},
-		address,
-		receiver.GetAddress().String(),
-		"", ibctesting.EmptyForwardingPacketData,
-	)
+	// Time out packet
+	suite.coordinator.IncrementTimeBy(time.Minute * 5)
+	err = pathBtoC.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
 
-	packet = channeltypes.NewPacket(
-		data.GetBytes(),
-		1,
-		pathBtoC.EndpointA.ChannelConfig.PortID,
-		pathBtoC.EndpointA.ChannelID,
-		pathBtoC.EndpointB.ChannelConfig.PortID,
-		pathBtoC.EndpointB.ChannelID,
-		packet.TimeoutHeight,
-		packet.TimeoutTimestamp)
-
-	cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(pathBtoC.EndpointA.ChannelConfig.PortID)
-	suite.Require().True(ok)
-
-	// Trigger OnTimeoutPacket for chainB
-	err = cbs.OnTimeoutPacket(suite.chainB.GetContext(), pathBtoC.EndpointA.GetChannel().Version, packet, nil)
+	result, err = pathBtoC.EndpointA.TimeoutPacketWithResult(packetFromBToC)
+	suite.Require().NoError(err)
+	ack, err := ibctesting.ParseAckFromEvents(result.Events)
 	suite.Require().NoError(err)
 
 	// Ensure that chainB has an ack.
-	storedAck, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID, packet.GetSequence())
+	storedAck, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetPacketAcknowledgement(suite.chainB.GetContext(), pathAtoB.EndpointB.ChannelConfig.PortID, pathAtoB.EndpointB.ChannelID, packetFromBToC.GetSequence())
 	suite.Require().True(found, "chainB does not have an ack")
 
 	// And that this ack is of the type we expect (Error due to time out)
-	ack := internaltypes.NewForwardTimeoutAcknowledgement(packet)
-	ackbytes := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
-	suite.Require().Equal(ackbytes, storedAck)
+	expectedAck := internaltypes.NewForwardTimeoutAcknowledgement(packetFromBToC)
+	expectedAckBytes := channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement())
+	suite.Require().Equal(expectedAckBytes, storedAck)
+	suite.Require().Equal(expectedAck.Acknowledgement(), ack)
 
-	forwardingPacketData := types.NewForwardingPacketData("", forwarding.Hops...)
-	data = types.NewFungibleTokenPacketDataV2(
-		[]types.Token{
-			{
-				Denom:  types.NewDenom(sdk.DefaultBondDenom),
-				Amount: "100",
-			},
-		},
-		sender.GetAddress().String(),
-		receiver.GetAddress().String(),
-		"", forwardingPacketData,
-	)
-
-	packet = channeltypes.NewPacket(
-		data.GetBytes(),
-		1,
-		pathAtoB.EndpointA.ChannelConfig.PortID,
-		pathAtoB.EndpointA.ChannelID,
-		pathAtoB.EndpointB.ChannelConfig.PortID,
-		pathAtoB.EndpointB.ChannelID,
-		packet.TimeoutHeight,
-		packet.TimeoutTimestamp)
-
-	// Send the ack to chain A.
-	err = suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet, data, ack)
+	err = pathAtoB.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+	err = pathAtoB.EndpointA.AcknowledgePacket(packetFromAToB, ack)
 	suite.Require().NoError(err)
 
 	// Finally, check that A,B, and C escrow accounts do not have fund.

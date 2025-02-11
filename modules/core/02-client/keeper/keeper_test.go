@@ -9,14 +9,13 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
-	govtypesv1 "cosmossdk.io/x/gov/types/v1"
-	stakingtypes "cosmossdk.io/x/staking/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmttypes "github.com/cometbft/cometbft/types"
@@ -109,6 +108,9 @@ func (suite *KeeperTestSuite) SetupTest() {
 		val.Tokens = sdkmath.NewInt(rand.Int63())
 		validators.Validators = append(validators.Validators, val)
 
+		hi := stakingtypes.NewHistoricalInfo(suite.ctx.BlockHeader(), validators, sdk.DefaultPowerReduction)
+		err = app.StakingKeeper.SetHistoricalInfo(suite.ctx, int64(i), &hi)
+		suite.Require().NoError(err)
 	}
 
 	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
@@ -125,6 +127,25 @@ func (suite *KeeperTestSuite) TestSetClientState() {
 	retrievedState, found := suite.keeper.GetClientState(suite.ctx, testClientID)
 	suite.Require().True(found, "GetClientState failed")
 	suite.Require().Equal(clientState, retrievedState, "Client states are not equal")
+}
+
+func (suite *KeeperTestSuite) TestSetClientCreator() {
+	creator := suite.chainA.SenderAccount.GetAddress()
+	suite.keeper.SetClientCreator(suite.ctx, testClientID, creator)
+	getCreator := suite.keeper.GetClientCreator(suite.ctx, testClientID)
+	suite.Require().Equal(creator, getCreator)
+	suite.keeper.DeleteClientCreator(suite.ctx, testClientID)
+	getCreator = suite.keeper.GetClientCreator(suite.ctx, testClientID)
+	suite.Require().Equal(sdk.AccAddress(nil), getCreator)
+}
+
+func (suite *KeeperTestSuite) TestSetClientCounterparty() {
+	counterparty := types.NewCounterpartyInfo([][]byte{[]byte("ibc"), []byte("channel-7")}, testClientID2)
+	suite.keeper.SetClientCounterparty(suite.ctx, testClientID, counterparty)
+
+	retrievedCounterparty, found := suite.keeper.GetClientCounterparty(suite.ctx, testClientID)
+	suite.Require().True(found, "GetCounterparty failed")
+	suite.Require().Equal(counterparty, retrievedCounterparty, "Counterparties are not equal")
 }
 
 func (suite *KeeperTestSuite) TestSetClientConsensusState() {
@@ -462,6 +483,134 @@ func (suite *KeeperTestSuite) TestGetTimestampAtHeight() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestVerifyMembership() {
+	var path *ibctesting.Path
+
+	cases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"invalid client id",
+			func() {
+				path.EndpointA.ClientID = ""
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"failure: client is frozen",
+			func() {
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
+				clientState.FrozenHeight = types.NewHeight(0, 1)
+				path.EndpointA.SetClientState(clientState)
+			},
+			types.ErrClientNotActive,
+		},
+	}
+
+	for _, tc := range cases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			// create default proof, merklePath, and value which passes
+			key := host.FullClientStateKey(path.EndpointB.ClientID)
+			merklePath := commitmenttypes.NewMerklePath(key)
+			merklePrefixPath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+			suite.Require().NoError(err)
+
+			proof, proofHeight := suite.chainB.QueryProof(key)
+
+			clientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
+			value, err := suite.chainB.Codec.MarshalInterface(clientState)
+			suite.Require().NoError(err)
+
+			tc.malleate()
+
+			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.VerifyMembership(suite.chainA.GetContext(), path.EndpointA.ClientID, proofHeight, 0, 0, proof, merklePrefixPath, value)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestVerifyNonMembership() {
+	var path *ibctesting.Path
+
+	cases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"invalid client id",
+			func() {
+				path.EndpointA.ClientID = ""
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"failure: client is frozen",
+			func() {
+				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().True(ok)
+				clientState.FrozenHeight = types.NewHeight(0, 1)
+				path.EndpointA.SetClientState(clientState)
+			},
+			types.ErrClientNotActive,
+		},
+	}
+
+	for _, tc := range cases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			// create default proof, merklePath, and value which passes
+			key := host.FullClientStateKey("invalid-client-id")
+
+			merklePath := commitmenttypes.NewMerklePath(key)
+			merklePrefixPath, err := commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
+			suite.Require().NoError(err)
+
+			proof, proofHeight := suite.chainB.QueryProof(key)
+
+			tc.malleate()
+
+			err = suite.chainA.App.GetIBCKeeper().ClientKeeper.VerifyNonMembership(suite.chainA.GetContext(), path.EndpointA.ClientID, proofHeight, 0, 0, proof, merklePrefixPath)
+
+			expPass := tc.expError == nil
+			if expPass {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
 // TestDefaultSetParams tests the default params set are what is expected
 func (suite *KeeperTestSuite) TestDefaultSetParams() {
 	expParams := types.DefaultParams()
@@ -642,60 +791,4 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 			}
 		})
 	}
-}
-
-func (suite *KeeperTestSuite) TestIBCScheduleUpgradeProposal() {
-	suite.SetupTest()
-
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
-	path.SetupClients()
-
-	tmClientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
-	suite.Require().True(ok)
-
-	// bump the chain id revision number for the ibc client upgrade
-	chainID := tmClientState.ChainId
-	revisionNumber := types.ParseChainID(chainID)
-
-	newChainID, err := types.SetRevisionNumber(chainID, revisionNumber+1)
-	suite.Require().NoError(err)
-	suite.Require().NotEqual(chainID, newChainID)
-
-	tmClientState.ChainId = newChainID
-	upgradedClientState := tmClientState.ZeroCustomFields()
-
-	msg, err := types.NewMsgIBCSoftwareUpgrade(
-		suite.chainA.GetSimApp().IBCKeeper.GetAuthority(),
-		upgradetypes.Plan{
-			Name:   "upgrade-client",
-			Height: 1000,
-		},
-		upgradedClientState,
-	)
-	suite.Require().NoError(err)
-
-	proposal, err := govtypesv1.NewMsgSubmitProposal(
-		[]sdk.Msg{msg},
-		sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, govtypesv1.DefaultMinDepositTokens)),
-		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
-		"metadata",
-		"ibc client upgrade",
-		"gov proposal for initialising ibc client upgrade",
-		govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD,
-	)
-	suite.Require().NoError(err)
-
-	res, err := suite.chainA.SendMsgs(proposal)
-	suite.Require().NoError(err)
-
-	proposalID, err := ibctesting.ParseProposalIDFromEvents(res.Events)
-	suite.Require().NoError(err)
-
-	// vote and pass proposal, trigger msg execution
-	err = ibctesting.VoteAndCheckProposalStatus(path.EndpointA, proposalID)
-	suite.Require().NoError(err)
-
-	storedPlan, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())
-	suite.Require().NoError(err)
-	suite.Require().Equal(msg.Plan, storedPlan)
 }

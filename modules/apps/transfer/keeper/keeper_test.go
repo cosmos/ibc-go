@@ -6,16 +6,15 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
-	minttypes "cosmossdk.io/x/mint/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec/address"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
@@ -59,12 +58,11 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"success", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				address.NewBech32Codec(suite.chainA.Bech32Prefix),
-				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
+				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().AuthKeeper,
+				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
@@ -72,8 +70,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"failure: transfer module account does not exist", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				address.NewBech32Codec(suite.chainA.Bech32Prefix),
-				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
+				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
@@ -85,12 +82,11 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		{"failure: empty authority", func() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
-				address.NewBech32Codec(suite.chainA.Bech32Prefix),
-				runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)), log.NewNopLogger()),
+				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().AuthKeeper,
+				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
 				"", // authority
 			)
@@ -190,6 +186,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 	var (
 		store           storetypes.KVStore
+		cdc             codec.Codec
 		expDenomEscrows sdk.Coins
 	)
 
@@ -205,8 +202,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err := amount.Marshal()
-				suite.Require().NoError(err)
+				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			true,
@@ -218,16 +214,14 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err := amount.Marshal()
-				suite.Require().NoError(err)
+				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 
 				denom = "bar/foo"
 				amount = sdkmath.NewInt(50)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err = amount.Marshal()
-				suite.Require().NoError(err)
+				bz = cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			true,
@@ -239,8 +233,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.NewInt(100)
 				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
 
-				bz, err := amount.Marshal()
-				suite.Require().NoError(err)
+				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			true,
@@ -251,8 +244,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				denom := ""
 				amount := sdkmath.ZeroInt()
 
-				bz, err := amount.Marshal()
-				suite.Require().NoError(err)
+				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
 			false,
@@ -263,8 +255,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				denom := "uatom"
 				amount := sdkmath.ZeroInt()
 
-				bz, err := amount.Marshal()
-				suite.Require().NoError(err)
+				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set([]byte(fmt.Sprintf("wrong-prefix/%s", denom)), bz)
 			},
 			false,
@@ -282,6 +273,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 
 			storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
 			store = ctx.KVStore(storeKey)
+			cdc = suite.chainA.App.AppCodec()
 
 			tc.malleate()
 
@@ -398,7 +390,7 @@ func (suite *KeeperTestSuite) TestIsBlockedAddr() {
 	}{
 		{
 			"transfer module account address",
-			suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(types.ModuleName),
+			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName),
 			false,
 		},
 		{
@@ -408,7 +400,7 @@ func (suite *KeeperTestSuite) TestIsBlockedAddr() {
 		},
 		{
 			"blocked address",
-			suite.chainA.GetSimApp().AuthKeeper.GetModuleAddress(minttypes.ModuleName),
+			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName),
 			true,
 		},
 	}

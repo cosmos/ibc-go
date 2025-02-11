@@ -7,15 +7,15 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	"google.golang.org/grpc"
 
-	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
-	coreregistry "cosmossdk.io/core/registry"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/client/cli"
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
@@ -23,35 +23,21 @@ import (
 )
 
 var (
-	_ appmodule.AppModule             = (*AppModule)(nil)
-	_ appmodule.HasConsensusVersion   = (*AppModule)(nil)
-	_ appmodule.HasAminoCodec         = (*AppModule)(nil)
-	_ appmodule.HasRegisterInterfaces = (*AppModule)(nil)
-	_ appmodule.HasMigrations         = (*AppModule)(nil)
-
-	_ module.AppModule  = (*AppModule)(nil)
-	_ module.HasGenesis = (*AppModule)(nil)
-
-	_ autocli.HasCustomTxCommand    = (*AppModule)(nil)
-	_ autocli.HasCustomQueryCommand = (*AppModule)(nil)
+	_ module.AppModule           = (*AppModule)(nil)
+	_ module.AppModuleBasic      = (*AppModuleBasic)(nil)
+	_ module.AppModuleSimulation = (*AppModule)(nil)
+	_ module.HasGenesis          = (*AppModule)(nil)
+	_ module.HasName             = (*AppModule)(nil)
+	_ module.HasConsensusVersion = (*AppModule)(nil)
+	_ module.HasServices         = (*AppModule)(nil)
+	_ appmodule.AppModule        = (*AppModule)(nil)
 )
 
-// AppModule represents the AppModule for this module
-type AppModule struct {
-	cdc    codec.Codec
-	keeper keeper.Keeper
-}
-
-// NewAppModule creates a new 29-fee module
-func NewAppModule(cdc codec.Codec, k keeper.Keeper) AppModule {
-	return AppModule{
-		cdc:    cdc,
-		keeper: k,
-	}
-}
+// AppModuleBasic is the 29-fee AppModuleBasic
+type AppModuleBasic struct{}
 
 // Name implements AppModuleBasic interface
-func (AppModule) Name() string {
+func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
@@ -61,26 +47,26 @@ func (AppModule) IsOnePerModuleType() {}
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
 
-// RegisterLegacyAminoCodec implements AppModule interface
-func (AppModule) RegisterLegacyAminoCodec(cdc coreregistry.AminoRegistrar) {
+// RegisterLegacyAminoCodec implements AppModuleBasic interface
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
 }
 
 // RegisterInterfaces registers module concrete types into protobuf Any.
-func (AppModule) RegisterInterfaces(registry coreregistry.InterfaceRegistrar) {
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the ibc
 // 29-fee module.
-func (am AppModule) DefaultGenesis() json.RawMessage {
-	return am.cdc.MustMarshalJSON(types.DefaultGenesisState())
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the 29-fee module.
-func (am AppModule) ValidateGenesis(bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var gs types.GenesisState
-	if err := am.cdc.UnmarshalJSON(bz, &gs); err != nil {
+	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
 
@@ -88,53 +74,76 @@ func (am AppModule) ValidateGenesis(bz json.RawMessage) error {
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for ics29 fee module.
-func (AppModule) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 	if err != nil {
 		panic(err)
 	}
 }
 
-// GetTxCmd implements AppModule interface
-func (AppModule) GetTxCmd() *cobra.Command {
+// GetTxCmd implements AppModuleBasic interface
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
 	return cli.NewTxCmd()
 }
 
-// GetQueryCmd implements AppModule interface
-func (AppModule) GetQueryCmd() *cobra.Command {
+// GetQueryCmd implements AppModuleBasic interface
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
-func (am AppModule) RegisterMigrations(registrar appmodule.MigrationRegistrar) error {
-	m := keeper.NewMigrator(am.keeper)
-	if err := registrar.Register(types.ModuleName, 1, m.Migrate1to2); err != nil {
-		return fmt.Errorf("failed to migrate ibc-fee module from version 1 to 2 (refund leftover fees): %v", err)
+// AppModule represents the AppModule for this module
+type AppModule struct {
+	AppModuleBasic
+	keeper keeper.Keeper
+}
+
+// NewAppModule creates a new 29-fee module
+func NewAppModule(k keeper.Keeper) AppModule {
+	return AppModule{
+		keeper: k,
 	}
-	return nil
 }
 
 // RegisterServices registers module services.
-func (am AppModule) RegisterServices(cfg grpc.ServiceRegistrar) error {
-	types.RegisterMsgServer(cfg, am.keeper)
-	types.RegisterQueryServer(cfg, am.keeper)
-	return nil
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+
+	m := keeper.NewMigrator(am.keeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(fmt.Errorf("failed to migrate ibc-fee module from version 1 to 2 (refund leftover fees): %v", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the ibc-29-fee module. It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx context.Context, data json.RawMessage) error {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
 	var genesisState types.GenesisState
-	am.cdc.MustUnmarshalJSON(data, &genesisState)
+	cdc.MustUnmarshalJSON(data, &genesisState)
 	am.keeper.InitGenesis(ctx, genesisState)
-	return nil
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the ibc-29-fee
 // module.
-func (am AppModule) ExportGenesis(ctx context.Context) (json.RawMessage, error) {
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs := am.keeper.ExportGenesis(ctx)
-	return am.cdc.MarshalJSON(gs)
+	return cdc.MustMarshalJSON(gs)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 2 }
+
+// AppModuleSimulation functions
+
+// GenerateGenesisState creates a randomized GenState of the 29-fee module.
+func (AppModule) GenerateGenesisState(_ *module.SimulationState) {
+}
+
+// RegisterStoreDecoder registers a decoder for 29-fee module's types
+func (AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {
+}
+
+// WeightedOperations returns the all the 29-fee module operations with their respective weights.
+func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
+	return nil
+}

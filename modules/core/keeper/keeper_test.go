@@ -5,10 +5,8 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/log"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 
-	"github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -77,8 +75,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				newIBCKeeperFn = func() {
 					ibckeeper.NewKeeper(
 						suite.chainA.GetSimApp().AppCodec(),
-						address.NewBech32Codec(suite.chainA.Bech32Prefix),
-						runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), log.NewNopLogger()),
+						runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
 						suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 						upgradeKeeper,
 						"", // authority
@@ -98,8 +95,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			newIBCKeeperFn = func() {
 				ibckeeper.NewKeeper(
 					suite.chainA.GetSimApp().AppCodec(),
-					address.NewBech32Codec(suite.chainA.Bech32Prefix),
-					runtime.NewEnvironment(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), log.NewNopLogger()),
+					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
 					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					upgradeKeeper,
 					suite.chainA.App.GetIBCKeeper().GetAuthority(),

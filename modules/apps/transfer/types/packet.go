@@ -23,6 +23,12 @@ var (
 	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketDataV2)(nil)
 )
 
+const (
+	EncodingJSON     = "application/json"
+	EncodingProtobuf = "application/x-protobuf"
+	EncodingABI      = "application/x-solidity-abi"
+)
+
 // NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
 func NewFungibleTokenPacketData(
 	denom string, amount string,
@@ -208,34 +214,86 @@ func (ftpd FungibleTokenPacketDataV2) HasForwarding() bool {
 }
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes into a FungibleTokenPacketDataV2.
-// The version of ics20 should be provided and should be either ics20-1 or ics20-2.
-func UnmarshalPacketData(bz []byte, ics20Version string) (FungibleTokenPacketDataV2, error) {
+func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (FungibleTokenPacketDataV2, error) {
+	const failedUnmarshalingErrorMsg = "cannot unmarshal %s transfer packet data: %s"
+
+	// Depending on the ics20 version, we use a different default encoding (json for V1, proto for V2)
+	// and we have a different type to unmarshal the data into.
+	var data proto.Message
 	switch ics20Version {
 	case V1:
-		var datav1 FungibleTokenPacketData
-		if err := json.Unmarshal(bz, &datav1); err != nil {
-			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V1 transfer packet data: %s", err.Error())
+		if encoding == "" {
+			encoding = EncodingJSON
 		}
-
-		return PacketDataV1ToV2(datav1)
+		data = &FungibleTokenPacketData{}
 	case V2:
-		var datav2 FungibleTokenPacketDataV2
-		if err := unknownproto.RejectUnknownFieldsStrict(bz, &datav2, unknownproto.DefaultAnyResolver{}); err != nil {
-			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
+		if encoding == "" {
+			encoding = EncodingProtobuf
 		}
-
-		if err := proto.Unmarshal(bz, &datav2); err != nil {
-			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
-		}
-
-		if err := datav2.ValidateBasic(); err != nil {
-			return FungibleTokenPacketDataV2{}, err
-		}
-
-		return datav2, nil
+		data = &FungibleTokenPacketDataV2{}
 	default:
 		return FungibleTokenPacketDataV2{}, errorsmod.Wrap(ErrInvalidVersion, ics20Version)
 	}
+
+	errorMsgVersion := "ICS20-V2"
+	if ics20Version == V1 {
+		errorMsgVersion = "ICS20-V1"
+	}
+
+	// Here we perform the unmarshaling based on the specified encoding.
+	// The functions act on the generic "data" variable which is of type proto.Message (an interface).
+	// The underlying type is either FungibleTokenPacketData or FungibleTokenPacketDataV2, based on the value
+	// of "ics20Version".
+	switch encoding {
+	case EncodingJSON:
+		if err := json.Unmarshal(bz, &data); err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
+		}
+	case EncodingProtobuf:
+		if err := unknownproto.RejectUnknownFieldsStrict(bz, data, unknownproto.DefaultAnyResolver{}); err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
+		}
+
+		if err := proto.Unmarshal(bz, data); err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
+		}
+	case EncodingABI:
+		if ics20Version != V1 {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "encoding %s is only supported for ICS20-V1", EncodingABI)
+		}
+		var err error
+		data, err = DecodeABIFungibleTokenPacketData(bz)
+		if err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
+		}
+	default:
+		return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid encoding provided, must be either empty or one of [%q, %q], got %s", EncodingJSON, EncodingProtobuf, encoding)
+	}
+
+	// When the unmarshaling is done, we want to retrieve the underlying data type based on the value of ics20Version
+	// If it's v1, we convert the data to FungibleTokenPacketData and then call the conversion function to construct
+	// the v2 type.
+	if ics20Version == V1 {
+		datav1, ok := data.(*FungibleTokenPacketData)
+		if !ok {
+			// We should never get here, as we manually constructed the type at the beginning of the file
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot convert proto message into FungibleTokenPacketData")
+		}
+		// The call to ValidateBasic for V1 is done inside PacketDataV1toV2.
+		return PacketDataV1ToV2(*datav1)
+	}
+
+	// If it's v2, we convert the data to FungibleTokenPacketDataV2, validate it and return it.
+	datav2, ok := data.(*FungibleTokenPacketDataV2)
+	if !ok {
+		// We should never get here, as we manually constructed the type at the beginning of the file
+		return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot convert proto message into FungibleTokenPacketDataV2")
+	}
+
+	if err := datav2.ValidateBasic(); err != nil {
+		return FungibleTokenPacketDataV2{}, err
+	}
+	return *datav2, nil
 }
 
 // PacketDataV1ToV2 converts a v1 packet data to a v2 packet data. The packet data is validated

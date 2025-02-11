@@ -7,10 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cosmossdk.io/core/header"
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	banktypes "cosmossdk.io/x/bank/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -18,11 +16,12 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
-	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
-	cmtprotoversion "github.com/cometbft/cometbft/api/cometbft/version/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto/tmhash"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
 	cmttypes "github.com/cometbft/cometbft/types"
 	cmtversion "github.com/cometbft/cometbft/version"
 
@@ -61,7 +60,6 @@ type TestChain struct {
 	ProposedHeader        cmtproto.Header // proposed (uncommitted) header for current block height
 	TxConfig              client.TxConfig
 	Codec                 codec.Codec
-	Bech32Prefix          string
 
 	Vals     *cmttypes.ValidatorSet
 	NextVals *cmttypes.ValidatorSet
@@ -139,7 +137,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 	app := SetupWithGenesisValSet(tb, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
 
 	// create current header and call begin block
-	cmtHeader := cmtproto.Header{
+	header := cmtproto.Header{
 		ChainID: chainID,
 		Height:  1,
 		Time:    coord.CurrentTime.UTC(),
@@ -153,7 +151,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		Coordinator:       coord,
 		ChainID:           chainID,
 		App:               app,
-		ProposedHeader:    cmtHeader,
+		ProposedHeader:    header,
 		TxConfig:          txConfig,
 		Codec:             app.AppCodec(),
 		Vals:              valSet,
@@ -163,7 +161,6 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		SenderPrivKey:     senderAccs[0].SenderPrivKey,
 		SenderAccount:     senderAccs[0].SenderAccount,
 		SenderAccounts:    senderAccs,
-		Bech32Prefix:      sdk.GetConfig().GetBech32AccountAddrPrefix(),
 	}
 
 	// commit genesis block
@@ -201,21 +198,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (chain *TestChain) GetContext() sdk.Context {
-	ctx := chain.App.GetBaseApp().NewUncachedContext(false, chain.ProposedHeader)
-
-	cmtHeader, err := cmttypes.HeaderFromProto(&chain.ProposedHeader)
-	require.NoError(chain.TB, err)
-
-	// since:cosmos-sdk/v0.52 when fetching time from context, it now returns from HeaderInfo
-	headerInfo := header.Info{
-		AppHash: chain.ProposedHeader.AppHash,
-		Hash:    cmtHeader.Hash(),
-		ChainID: chain.ProposedHeader.ChainID,
-		Height:  chain.ProposedHeader.Height,
-		Time:    chain.ProposedHeader.Time,
-	}
-
-	return ctx.WithHeaderInfo(headerInfo)
+	return chain.App.GetBaseApp().NewUncachedContext(false, chain.ProposedHeader)
 }
 
 // GetSimApp returns the SimApp to allow usage ofnon-interface fields.
@@ -246,7 +229,7 @@ func (chain *TestChain) QueryProofAtHeight(key []byte, height int64) ([]byte, cl
 func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height int64) ([]byte, clienttypes.Height) {
 	res, err := chain.App.Query(
 		chain.GetContext().Context(),
-		&abci.QueryRequest{
+		&abci.RequestQuery{
 			Path:   fmt.Sprintf("store/%s/key", storeKey),
 			Height: height - 1,
 			Data:   key,
@@ -273,7 +256,7 @@ func (chain *TestChain) QueryProofForStore(storeKey string, key []byte, height i
 func (chain *TestChain) QueryUpgradeProof(key []byte, height uint64) ([]byte, clienttypes.Height) {
 	res, err := chain.App.Query(
 		chain.GetContext().Context(),
-		&abci.QueryRequest{
+		&abci.RequestQuery{
 			Path:   "store/upgrade/key",
 			Height: int64(height - 1),
 			Data:   key,
@@ -313,7 +296,7 @@ func (chain *TestChain) QueryConsensusStateProof(clientID string) ([]byte, clien
 // returned on block `n` to the validators of block `n+2`.
 // It calls BeginBlock with the new block created before returning.
 func (chain *TestChain) NextBlock() {
-	res, err := chain.App.FinalizeBlock(&abci.FinalizeBlockRequest{
+	res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{
 		Height:             chain.ProposedHeader.Height,
 		Time:               chain.ProposedHeader.GetTime(),
 		NextValidatorsHash: chain.NextVals.Hash(),
@@ -322,7 +305,7 @@ func (chain *TestChain) NextBlock() {
 	chain.commitBlock(res)
 }
 
-func (chain *TestChain) commitBlock(res *abci.FinalizeBlockResponse) {
+func (chain *TestChain) commitBlock(res *abci.ResponseFinalizeBlock) {
 	_, err := chain.App.Commit()
 	require.NoError(chain.TB, err)
 
@@ -345,7 +328,6 @@ func (chain *TestChain) commitBlock(res *abci.FinalizeBlockResponse) {
 
 	// increment the current header
 	chain.ProposedHeader = cmtproto.Header{
-		Version: cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 1},
 		ChainID: chain.ChainID,
 		Height:  chain.App.LastBlockHeight() + 1,
 		AppHash: chain.App.LastCommitID().Hash,
@@ -364,35 +346,47 @@ func (chain *TestChain) sendMsgs(msgs ...sdk.Msg) error {
 	return err
 }
 
-// SendMsgs delivers a transaction through the application. It updates the senders sequence
-// number and updates the TestChain's headers. It returns the result and error if one
-// occurred.
+// SendMsgs delivers a transaction through the application using a predefined sender.
+// It updates the senders sequence number and updates the TestChain's headers.
+// It returns the result and error if one occurred.
 func (chain *TestChain) SendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
+	senderAccount := SenderAccount{
+		SenderPrivKey: chain.SenderPrivKey,
+		SenderAccount: chain.SenderAccount,
+	}
+
+	return chain.SendMsgsWithSender(senderAccount, msgs...)
+}
+
+// SendMsgsWithSender delivers a transaction through the application using the provided sender.
+func (chain *TestChain) SendMsgsWithSender(sender SenderAccount, msgs ...sdk.Msg) (*abci.ExecTxResult, error) {
 	if chain.SendMsgsOverride != nil {
 		return chain.SendMsgsOverride(msgs...)
 	}
+
 	// ensure the chain has the latest time
 	chain.Coordinator.UpdateTimeForChain(chain)
 
 	// increment acc sequence regardless of success or failure tx execution
 	defer func() {
-		err := chain.SenderAccount.SetSequence(chain.SenderAccount.GetSequence() + 1)
+		err := sender.SenderAccount.SetSequence(sender.SenderAccount.GetSequence() + 1)
 		if err != nil {
 			panic(err)
 		}
 	}()
+
 	resp, err := simapp.SignAndDeliver(
 		chain.TB,
 		chain.TxConfig,
 		chain.App.GetBaseApp(),
 		msgs,
 		chain.ChainID,
-		[]uint64{chain.SenderAccount.GetAccountNumber()},
-		[]uint64{chain.SenderAccount.GetSequence()},
+		[]uint64{sender.SenderAccount.GetAccountNumber()},
+		[]uint64{sender.SenderAccount.GetSequence()},
 		true,
 		chain.ProposedHeader.GetTime(),
 		chain.NextVals.Hash(),
-		chain.SenderPrivKey,
+		sender.SenderPrivKey,
 	)
 	if err != nil {
 		return nil, err
@@ -573,6 +567,12 @@ func (chain *TestChain) GetTimeoutTimestamp() uint64 {
 	return uint64(chain.GetContext().BlockTime().UnixNano()) + DefaultTimeoutTimestampDelta
 }
 
+// GetTimeoutTimestampSecs is a convenience function which returns a IBC packet timeout timestamp in seconds
+// to be used for testing. It returns the current block timestamp + default timestamp delta (1 hour).
+func (chain *TestChain) GetTimeoutTimestampSecs() uint64 {
+	return uint64(chain.GetContext().BlockTime().Unix()) + uint64(time.Hour.Seconds())
+}
+
 // DeleteKey deletes the specified key from the ibc store.
 func (chain *TestChain) DeleteKey(key []byte) {
 	storeKey := chain.GetSimApp().GetKey(exported.StoreKey)
@@ -582,7 +582,7 @@ func (chain *TestChain) DeleteKey(key []byte) {
 
 // IBCClientHeader will construct a 07-tendermint Header to update the light client
 // on the counterparty chain. The trustedHeight must be passed in as a non-zero height.
-func (chain *TestChain) IBCClientHeader(ibcHeader *ibctm.Header, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
+func (chain *TestChain) IBCClientHeader(header *ibctm.Header, trustedHeight clienttypes.Height) (*ibctm.Header, error) {
 	if trustedHeight.IsZero() {
 		return nil, errorsmod.Wrap(ibctm.ErrInvalidHeaderHeight, "trustedHeight must be a non-zero height")
 	}
@@ -597,9 +597,19 @@ func (chain *TestChain) IBCClientHeader(ibcHeader *ibctm.Header, trustedHeight c
 		return nil, err
 	}
 
-	ibcHeader.TrustedHeight = trustedHeight
+	header.TrustedHeight = trustedHeight
 	trustedVals.TotalVotingPower = cmtTrustedVals.TotalVotingPower()
-	ibcHeader.TrustedValidators = trustedVals
+	header.TrustedValidators = trustedVals
 
-	return ibcHeader, nil
+	return header, nil
+}
+
+// GetSenderAccount returns the sender account associated with the provided private key.
+func (chain *TestChain) GetSenderAccount(privKey cryptotypes.PrivKey) SenderAccount {
+	account := chain.GetSimApp().AccountKeeper.GetAccount(chain.GetContext(), sdk.AccAddress(privKey.PubKey().Address()))
+
+	return SenderAccount{
+		SenderPrivKey: privKey,
+		SenderAccount: account,
+	}
 }

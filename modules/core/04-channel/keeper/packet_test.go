@@ -7,7 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
@@ -536,7 +536,7 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 
 				// manually set packet commitment
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, packet.GetSequence(), types.CommitPacket(suite.chainA.App.AppCodec(), packet))
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, packet.GetSequence(), types.CommitPacket(packet))
 
 				err := path.EndpointA.UpdateClient()
 				suite.Require().NoError(err)

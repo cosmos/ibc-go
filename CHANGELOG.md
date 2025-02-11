@@ -36,14 +36,17 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Testing
+
+* [\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update the block proposer in test chains for each block.
+* [\#7688](https://github.com/cosmos/ibc-go/pull/7688) Added `SendMsgsWithSender` to `TestChain`.
+
 ### Dependencies
 
-* [\#7261](https://github.com/cosmos/ibc-go/pull/7261) Bump CometBFT to v1.0.0.
-* [\#7261](https://github.com/cosmos/ibc-go/pull/7261) Bump Cosmos SDK to v0.52.0.
+* [\#7540](https://github.com/cosmos/ibc-go/pull/7540) Bump CometBFT to v0.38.15.
 
 ### API Breaking
 
-* (apps/27-interchain-accounts) [\#7713](https://github.com/cosmos/ibc-go/pull/7713) Update interchain accounts `GenerateAddress` func to now accept `header.Info` in favour of `sdk.Context`. This function now uses `AppHash` and `Hash` (merkle root of block) instead of `AppHash` and `DataHash` as pre-image data for address generation.
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7213) Remove capabilities from `SendPacket`.
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
 * (core, apps) [\#7232](https://github.com/cosmos/ibc-go/pull/7232) Remove capabilities from channel handshake methods. TODO list all changes 

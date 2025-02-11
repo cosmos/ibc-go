@@ -13,8 +13,8 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
 )
 
-// forwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
-func (k Keeper) forwardPacket(ctx context.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
+// ForwardPacket forwards a fungible FungibleTokenPacketDataV2 to the next hop in the forwarding path.
+func (k Keeper) ForwardPacket(ctx context.Context, data types.FungibleTokenPacketDataV2, packet channeltypes.Packet, receivedCoins sdk.Coins) error {
 	var nextForwardingPath *types.Forwarding
 	if len(data.Forwarding.Hops) > 1 {
 		// remove the first hop since we are going to send to the first hop now and we want to propagate the rest of the hops to the receiver
@@ -22,7 +22,7 @@ func (k Keeper) forwardPacket(ctx context.Context, data types.FungibleTokenPacke
 	}
 
 	// sending from module account (used as a temporary forward escrow) to the original receiver address.
-	sender := k.authKeeper.GetModuleAddress(types.ModuleName)
+	sender := k.AuthKeeper.GetModuleAddress(types.ModuleName)
 
 	msg := types.NewMsgTransfer(
 		data.Forwarding.Hops[0].PortId,
@@ -68,7 +68,7 @@ func (k Keeper) revertForwardedPacket(ctx context.Context, forwardedPacket chann
 			2. Burning voucher tokens if the funds are foreign
 	*/
 
-	forwardingAddr := k.authKeeper.GetModuleAddress(types.ModuleName)
+	forwardingAddr := k.AuthKeeper.GetModuleAddress(types.ModuleName)
 	escrow := types.GetEscrowAddress(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel)
 
 	// we can iterate over the received tokens of forwardedPacket by iterating over the sent tokens of failedPacketData
@@ -83,12 +83,12 @@ func (k Keeper) revertForwardedPacket(ctx context.Context, forwardedPacket chann
 		// given that the packet is being reversed, we check the DestinationChannel and DestinationPort
 		// of the forwardedPacket to see if a hop was added to the trace during the receive step
 		if token.Denom.HasPrefix(forwardedPacket.DestinationPort, forwardedPacket.DestinationChannel) {
-			if err := k.bankKeeper.BurnCoins(ctx, forwardingAddr, sdk.NewCoins(coin)); err != nil {
+			if err := k.BankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
 				return err
 			}
 		} else {
 			// send it back to the escrow address
-			if err := k.escrowCoin(ctx, forwardingAddr, escrow, coin); err != nil {
+			if err := k.EscrowCoin(ctx, forwardingAddr, escrow, coin); err != nil {
 				return err
 			}
 		}
@@ -101,11 +101,10 @@ func (k Keeper) revertForwardedPacket(ctx context.Context, forwardedPacket chann
 func (k Keeper) getReceiverFromPacketData(data types.FungibleTokenPacketDataV2) (sdk.AccAddress, error) {
 	if data.HasForwarding() {
 		// since data.Receiver can potentially be a non-CosmosSDK AccAddress, we return early if the packet should be forwarded
-		return k.authKeeper.GetModuleAddress(types.ModuleName), nil
+		return k.AuthKeeper.GetModuleAddress(types.ModuleName), nil
 	}
 
-	receiverBytes, err := k.addrCdc.StringToBytes(data.Receiver)
-	receiver := sdk.AccAddress(receiverBytes)
+	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
 	if err != nil {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address %s: %v", data.Receiver, err)
 	}

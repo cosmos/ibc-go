@@ -13,7 +13,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
-	"github.com/cosmos/cosmos-sdk/codec/testutil"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -608,13 +607,13 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 			errorsmod.Wrapf(types.ErrInvalidMisbehaviour, "sequence cannot be 0"),
 		},
 		{
-			"client-id mismatch",
+			"client-id too short",
 			func() {
 				soloMachineMisbehaviour := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).CreateMisbehaviour()
-				msg, err = types.NewMsgSubmitMisbehaviour("external", soloMachineMisbehaviour, suite.chainA.SenderAccount.GetAddress().String())
+				msg, err = types.NewMsgSubmitMisbehaviour("externa", soloMachineMisbehaviour, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			errorsmod.Wrapf(host.ErrInvalidID, "identifier external has invalid length: 8, must be between 9-64 characters"),
+			errorsmod.Wrapf(host.ErrInvalidID, "identifier external has invalid length: 7, must be between 8-64 characters"),
 		},
 	}
 
@@ -687,7 +686,6 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 		if tc.expError == nil {
 			suite.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
-			suite.Require().Error(err, "invalid case %s passed", tc.name)
 			suite.Require().ErrorIs(err, tc.expError, "invalid case %s passed", tc.name)
 		}
 	}
@@ -709,8 +707,8 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 		msg := types.MsgRecoverClient{
 			Signer: tc.address.String(),
 		}
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
-		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expError == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
@@ -797,9 +795,8 @@ func TestMsgIBCSoftwareUpgrade_GetSigners(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
-		signers, _, err := encodingCfg.Codec.GetMsgSigners(msg)
-
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 		if tc.expErr == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
@@ -970,9 +967,8 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),
 		}
-		encodingCfg := moduletestutil.MakeTestEncodingConfig(testutil.CodecOptions{}, ibc.AppModule{})
-		signers, _, err := encodingCfg.Codec.GetMsgSigners(&msg)
-
+		encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
+		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(&msg)
 		if tc.expErr == nil {
 			require.NoError(t, err)
 			require.Equal(t, tc.address.Bytes(), signers[0])
@@ -980,5 +976,76 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 			require.Error(t, err)
 			require.Equal(t, err.Error(), tc.expErr.Error())
 		}
+	}
+}
+
+func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
+	signer := ibctesting.TestAccAddress
+	testCases := []struct {
+		name     string
+		msg      *types.MsgRegisterCounterparty
+		expError error
+	}{
+		{
+			"success",
+			types.NewMsgRegisterCounterparty(
+				"testclientid",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid3",
+				signer,
+			),
+			nil,
+		},
+		{
+			"failure: empty client id",
+			types.NewMsgRegisterCounterparty(
+				"",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid3",
+				signer,
+			),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: empty counterparty client id",
+			types.NewMsgRegisterCounterparty(
+				"testclientid",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"",
+				signer,
+			),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: empty counterparty messaging key",
+			types.NewMsgRegisterCounterparty(
+				"testclientid",
+				[][]byte{},
+				"testclientid3",
+				signer,
+			),
+			types.ErrInvalidCounterparty,
+		},
+		{
+			"failure: empty signer",
+			types.NewMsgRegisterCounterparty(
+				"testclientid",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid3",
+				"badsigner",
+			),
+			ibcerrors.ErrInvalidAddress,
+		},
+	}
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.msg.ValidateBasic()
+			if tc.expError == nil {
+				require.NoError(t, err)
+			} else {
+				require.ErrorIs(t, err, tc.expError)
+			}
+		})
 	}
 }

@@ -9,22 +9,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v9/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v9/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v9/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	govtypesv1 "cosmossdk.io/x/gov/types/v1"
-	govtypesv1beta1 "cosmossdk.io/x/gov/types/v1beta1"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	abci "github.com/cometbft/cometbft/api/cometbft/abci/v1"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
@@ -52,15 +53,7 @@ func (s *E2ETestSuite) BroadcastMessages(ctx context.Context, chain ibc.Chain, u
 		// use a codec with all the types our tests care about registered.
 		// BroadcastTx will deserialize the response and will not be able to otherwise.
 		cdc := Codec()
-
-		txConfig := SDKEncodingConfig().TxConfig
-		return clientContext.WithCodec(cdc).
-			WithTxConfig(txConfig).
-			WithAddressCodec(txConfig.SigningContext().AddressCodec()).
-			WithValidatorAddressCodec(txConfig.SigningContext().ValidatorAddressCodec()).
-			WithAddressPrefix(cosmosChain.Config().Bech32Prefix).
-			WithAddressCodec(txConfig.SigningContext().AddressCodec()).
-			WithValidatorAddressCodec(txConfig.SigningContext().ValidatorAddressCodec())
+		return clientContext.WithCodec(cdc).WithTxConfig(authtx.NewTxConfig(cdc, []signingtypes.SignMode{signingtypes.SignMode_SIGN_MODE_DIRECT}))
 	})
 
 	broadcaster.ConfigureFactoryOptions(func(factory tx.Factory) tx.Factory {
@@ -154,12 +147,13 @@ func (s *E2ETestSuite) ExecuteAndPassGovV1Proposal(ctx context.Context, msg sdk.
 // ExecuteGovV1Proposal submits a v1 governance proposal using the provided user and message and uses all validators
 // to vote yes on the proposal.
 func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, chain ibc.Chain, user ibc.Wallet) error {
-	sender := s.ConvertToAccAddress(chain, user.FormattedAddress())
-
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
-		panic("ExecuteGovV1Proposal must be passed a cosmos.CosmosChain")
+		panic("ExecuteAndPassGovV1Proposal must be passed a cosmos.CosmosChain")
 	}
+
+	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
+	s.Require().NoError(err)
 
 	proposalID := s.proposalIDs[cosmosChain.Config().ChainID]
 	defer func() {
@@ -175,7 +169,7 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 		"",
 		fmt.Sprintf("e2e gov proposal: %d", proposalID),
 		fmt.Sprintf("executing gov proposal %d", proposalID),
-		govtypesv1.ProposalType_PROPOSAL_TYPE_STANDARD,
+		false,
 	)
 	s.Require().NoError(err)
 
@@ -187,19 +181,6 @@ func (s *E2ETestSuite) ExecuteGovV1Proposal(ctx context.Context, msg sdk.Msg, ch
 
 	s.T().Logf("validators voted %s on proposal with ID: %d", cosmos.ProposalVoteYes, proposalID)
 	return s.waitForGovV1ProposalToPass(ctx, cosmosChain, proposalID)
-}
-
-func (s *E2ETestSuite) ConvertToAccAddress(chain ibc.Chain, formattedAddress string) sdk.AccAddress {
-	cosmosChain, ok := chain.(*cosmos.CosmosChain)
-	if !ok {
-		panic("ConvertToAccAddress must be passed a cosmos.CosmosChain")
-	}
-
-	addrCdc := addresscodec.NewBech32Codec(cosmosChain.Config().Bech32Prefix)
-	senderBytes, err := addrCdc.StringToBytes(formattedAddress)
-	s.Require().NoError(err)
-
-	return sdk.AccAddress(senderBytes)
 }
 
 // waitForGovV1ProposalToPass polls for the entire voting period to see if the proposal has passed.
@@ -289,13 +270,10 @@ func (*E2ETestSuite) waitForGovV1Beta1ProposalToPass(ctx context.Context, chain 
 
 // ExecuteGovV1Beta1Proposal submits a v1beta1 governance proposal using the provided content.
 func (s *E2ETestSuite) ExecuteGovV1Beta1Proposal(ctx context.Context, chain ibc.Chain, user ibc.Wallet, content govtypesv1beta1.Content) sdk.TxResponse {
-	sender := s.ConvertToAccAddress(chain, user.FormattedAddress())
+	sender, err := sdk.AccAddressFromBech32(user.FormattedAddress())
+	s.Require().NoError(err)
 
-	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(
-		content,
-		sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)),
-		sender.String(),
-	)
+	msgSubmitProposal, err := govtypesv1beta1.NewMsgSubmitProposal(content, sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, govtypesv1beta1.DefaultMinDepositTokens)), sender)
 	s.Require().NoError(err)
 
 	return s.BroadcastMessages(ctx, chain, user, msgSubmitProposal)

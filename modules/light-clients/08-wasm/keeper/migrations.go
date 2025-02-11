@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
@@ -24,7 +24,7 @@ func NewMigrator(keeper Keeper) Migrator {
 // It grabs the checksums stored previously under the old key and stores
 // them in the global KeySet collection. It then deletes the old key and
 // the checksums stored under it.
-func (m Migrator) MigrateChecksums(ctx context.Context) error {
+func (m Migrator) MigrateChecksums(ctx sdk.Context) error {
 	checksums, err := m.getStoredChecksums(ctx)
 	if err != nil {
 		return err
@@ -41,13 +41,13 @@ func (m Migrator) MigrateChecksums(ctx context.Context) error {
 		return err
 	}
 
-	m.keeper.Logger().Info("successfully migrated Checksums to collections")
+	m.keeper.Logger(ctx).Info("successfully migrated Checksums to collections")
 	return nil
 }
 
 // getStoredChecksums returns the checksums stored under the KeyChecksums key.
-func (m Migrator) getStoredChecksums(ctx context.Context) ([][]byte, error) {
-	store := m.keeper.KVStoreService.OpenKVStore(ctx)
+func (m Migrator) getStoredChecksums(ctx sdk.Context) ([][]byte, error) {
+	store := m.keeper.storeService.OpenKVStore(ctx)
 
 	bz, err := store.Get([]byte(types.KeyChecksums))
 	if err != nil {
@@ -64,8 +64,8 @@ func (m Migrator) getStoredChecksums(ctx context.Context) ([][]byte, error) {
 }
 
 // deleteChecksums deletes the checksums stored under the KeyChecksums key.
-func (m Migrator) deleteChecksums(ctx context.Context) error {
-	store := m.keeper.KVStoreService.OpenKVStore(ctx)
+func (m Migrator) deleteChecksums(ctx sdk.Context) error {
+	store := m.keeper.storeService.OpenKVStore(ctx)
 	err := store.Delete([]byte(types.KeyChecksums))
 
 	return err

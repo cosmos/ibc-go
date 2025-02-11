@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 
-	"cosmossdk.io/core/appmodule"
+	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
@@ -32,15 +33,15 @@ var _ exported.LightClientModule = (*LightClientModule)(nil)
 
 // LightClientModule implements the core IBC api.LightClientModule interface.
 type LightClientModule struct {
-	cdc codec.BinaryCodec
-	appmodule.Environment
+	cdc          codec.BinaryCodec
+	storeService corestore.KVStoreService
 }
 
 // NewLightClientModule creates and returns a new 09-localhost LightClientModule.
-func NewLightClientModule(cdc codec.BinaryCodec, env appmodule.Environment) *LightClientModule {
+func NewLightClientModule(cdc codec.BinaryCodec, storeService corestore.KVStoreService) *LightClientModule {
 	return &LightClientModule{
-		cdc:         cdc,
-		Environment: env,
+		cdc:          cdc,
+		storeService: storeService,
 	}
 }
 
@@ -82,7 +83,7 @@ func (l LightClientModule) VerifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	ibcStore := l.KVStoreService.OpenKVStore(ctx)
+	ibcStore := l.storeService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
@@ -126,7 +127,7 @@ func (l LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	ibcStore := l.KVStoreService.OpenKVStore(ctx)
+	ibcStore := l.storeService.OpenKVStore(ctx)
 
 	// ensure the proof provided is the expected sentinel localhost client proof
 	if !bytes.Equal(proof, SentinelProof) {
@@ -166,8 +167,9 @@ func (LightClientModule) LatestHeight(ctx context.Context, _ string) exported.He
 
 // TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
 // cannot provide a timestamp for the provided height.
-func (l LightClientModule) TimestampAtHeight(ctx context.Context, _ string, _ exported.Height) (uint64, error) {
-	return uint64(l.HeaderService.HeaderInfo(ctx).Time.UnixNano()), nil
+func (LightClientModule) TimestampAtHeight(ctx context.Context, _ string, _ exported.Height) (uint64, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return uint64(sdkCtx.BlockTime().UnixNano()), nil
 }
 
 // RecoverClient returns an error. The localhost cannot be modified by proposals.

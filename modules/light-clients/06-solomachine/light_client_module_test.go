@@ -440,7 +440,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 						0,
 					)
 
-					commitmentBz := channeltypes.CommitPacket(suite.chainA.Codec, packet)
+					commitmentBz := channeltypes.CommitPacket(packet)
 					path = sm.GetPacketCommitmentPath(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 					merklePath, ok := path.(commitmenttypesv2.MerklePath)
 					suite.Require().True(ok)

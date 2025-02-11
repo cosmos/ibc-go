@@ -5,6 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -17,8 +19,10 @@ var _ types.MsgServer = (*Keeper)(nil)
 // payee to which reverse and timeout relayer packet fees will be paid out. The payee should be registered on
 // the source chain from which packets originate as this is where fee distribution takes place. This function may be
 // called more than once by a relayer, in which case, the latest payee is always used.
-func (k Keeper) RegisterPayee(ctx context.Context, msg *types.MsgRegisterPayee) (*types.MsgRegisterPayeeResponse, error) {
-	payee, err := k.AddrCodec.StringToBytes(msg.Payee)
+func (k Keeper) RegisterPayee(goCtx context.Context, msg *types.MsgRegisterPayee) (*types.MsgRegisterPayeeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	payee, err := sdk.AccAddressFromBech32(msg.Payee)
 	if err != nil {
 		return nil, err
 	}
@@ -38,11 +42,9 @@ func (k Keeper) RegisterPayee(ctx context.Context, msg *types.MsgRegisterPayee) 
 
 	k.SetPayeeAddress(ctx, msg.Relayer, msg.Payee, msg.ChannelId)
 
-	k.Logger.Info("registering payee address for relayer", "relayer", msg.Relayer, "payee", msg.Payee, "channel", msg.ChannelId)
+	k.Logger(ctx).Info("registering payee address for relayer", "relayer", msg.Relayer, "payee", msg.Payee, "channel", msg.ChannelId)
 
-	if err := k.emitRegisterPayeeEvent(ctx, msg.Relayer, msg.Payee, msg.ChannelId); err != nil {
-		return nil, err
-	}
+	emitRegisterPayeeEvent(ctx, msg.Relayer, msg.Payee, msg.ChannelId)
 
 	return &types.MsgRegisterPayeeResponse{}, nil
 }
@@ -52,7 +54,9 @@ func (k Keeper) RegisterPayee(ctx context.Context, msg *types.MsgRegisterPayee) 
 // payee address before relaying. This ensures they will be properly compensated for forward relaying since
 // the destination chain must include the registered counterparty payee address in the acknowledgement. This function
 // may be called more than once by a relayer, in which case, the latest counterparty payee address is always used.
-func (k Keeper) RegisterCounterpartyPayee(ctx context.Context, msg *types.MsgRegisterCounterpartyPayee) (*types.MsgRegisterCounterpartyPayeeResponse, error) {
+func (k Keeper) RegisterCounterpartyPayee(goCtx context.Context, msg *types.MsgRegisterCounterpartyPayee) (*types.MsgRegisterCounterpartyPayeeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	// only register counterparty payee if the channel exists and is fee enabled
 	if _, found := k.channelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId); !found {
 		return nil, channeltypes.ErrChannelNotFound
@@ -64,18 +68,18 @@ func (k Keeper) RegisterCounterpartyPayee(ctx context.Context, msg *types.MsgReg
 
 	k.SetCounterpartyPayeeAddress(ctx, msg.Relayer, msg.CounterpartyPayee, msg.ChannelId)
 
-	k.Logger.Info("registering counterparty payee for relayer", "relayer", msg.Relayer, "counterparty payee", msg.CounterpartyPayee, "channel", msg.ChannelId)
+	k.Logger(ctx).Info("registering counterparty payee for relayer", "relayer", msg.Relayer, "counterparty payee", msg.CounterpartyPayee, "channel", msg.ChannelId)
 
-	if err := k.emitRegisterCounterpartyPayeeEvent(ctx, msg.Relayer, msg.CounterpartyPayee, msg.ChannelId); err != nil {
-		return nil, err
-	}
+	emitRegisterCounterpartyPayeeEvent(ctx, msg.Relayer, msg.CounterpartyPayee, msg.ChannelId)
 
 	return &types.MsgRegisterCounterpartyPayeeResponse{}, nil
 }
 
 // PayPacketFee defines a rpc handler method for MsgPayPacketFee
 // PayPacketFee is an open callback that may be called by any module/user that wishes to escrow funds in order to relay the packet with the next sequence
-func (k Keeper) PayPacketFee(ctx context.Context, msg *types.MsgPayPacketFee) (*types.MsgPayPacketFeeResponse, error) {
+func (k Keeper) PayPacketFee(goCtx context.Context, msg *types.MsgPayPacketFee) (*types.MsgPayPacketFeeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	if !k.IsFeeEnabled(ctx, msg.SourcePortId, msg.SourceChannelId) {
 		// users may not escrow fees on this channel. Must send packets without a fee message
 		return nil, types.ErrFeeNotEnabled
@@ -85,7 +89,7 @@ func (k Keeper) PayPacketFee(ctx context.Context, msg *types.MsgPayPacketFee) (*
 		return nil, types.ErrFeeModuleLocked
 	}
 
-	refundAcc, err := k.AddrCodec.StringToBytes(msg.Signer)
+	refundAcc, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +122,9 @@ func (k Keeper) PayPacketFee(ctx context.Context, msg *types.MsgPayPacketFee) (*
 // PayPacketFeeAsync is an open callback that may be called by any module/user that wishes to escrow funds in order to
 // incentivize the relaying of a known packet. Only packets which have been sent and have not gone through the
 // packet life cycle may be incentivized.
-func (k Keeper) PayPacketFeeAsync(ctx context.Context, msg *types.MsgPayPacketFeeAsync) (*types.MsgPayPacketFeeAsyncResponse, error) {
+func (k Keeper) PayPacketFeeAsync(goCtx context.Context, msg *types.MsgPayPacketFeeAsync) (*types.MsgPayPacketFeeAsyncResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	if !k.IsFeeEnabled(ctx, msg.PacketId.PortId, msg.PacketId.ChannelId) {
 		// users may not escrow fees on this channel. Must send packets without a fee message
 		return nil, types.ErrFeeNotEnabled
@@ -128,7 +134,7 @@ func (k Keeper) PayPacketFeeAsync(ctx context.Context, msg *types.MsgPayPacketFe
 		return nil, types.ErrFeeModuleLocked
 	}
 
-	refundAcc, err := k.AddrCodec.StringToBytes(msg.PacketFee.RefundAddress)
+	refundAcc, err := sdk.AccAddressFromBech32(msg.PacketFee.RefundAddress)
 	if err != nil {
 		return nil, err
 	}

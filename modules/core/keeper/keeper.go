@@ -5,8 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"cosmossdk.io/core/address"
-	"cosmossdk.io/core/appmodule"
+	corestore "cosmossdk.io/core/store"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -14,29 +13,29 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
+	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	portkeeper "github.com/cosmos/ibc-go/v9/modules/core/05-port/keeper"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v9/modules/core/api"
 	"github.com/cosmos/ibc-go/v9/modules/core/types"
 )
 
 // Keeper defines each ICS keeper for IBC
 type Keeper struct {
-	appmodule.Environment
-
 	ClientKeeper     *clientkeeper.Keeper
 	ConnectionKeeper *connectionkeeper.Keeper
 	ChannelKeeper    *channelkeeper.Keeper
+	ChannelKeeperV2  *channelkeeperv2.Keeper
 	PortKeeper       *portkeeper.Keeper
 
-	cdc     codec.BinaryCodec
-	AddrCdc address.Codec
+	cdc codec.BinaryCodec
 
 	authority string
 }
 
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
-	cdc codec.BinaryCodec, addrCdc address.Codec, env appmodule.Environment, paramSpace types.ParamSubspace,
+	cdc codec.BinaryCodec, storeService corestore.KVStoreService, paramSpace types.ParamSubspace,
 	upgradeKeeper clienttypes.UpgradeKeeper, authority string,
 ) *Keeper {
 	// panic if any of the keepers passed in is empty
@@ -48,18 +47,18 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	clientKeeper := clientkeeper.NewKeeper(cdc, env, paramSpace, upgradeKeeper)
-	connectionKeeper := connectionkeeper.NewKeeper(cdc, env, paramSpace, clientKeeper)
+	clientKeeper := clientkeeper.NewKeeper(cdc, storeService, paramSpace, upgradeKeeper)
+	connectionKeeper := connectionkeeper.NewKeeper(cdc, storeService, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper()
-	channelKeeper := channelkeeper.NewKeeper(cdc, env, clientKeeper, connectionKeeper)
+	channelKeeper := channelkeeper.NewKeeper(cdc, storeService, clientKeeper, connectionKeeper)
+	channelKeeperV2 := channelkeeperv2.NewKeeper(cdc, storeService, clientKeeper, channelKeeper, connectionKeeper)
 
 	return &Keeper{
-		Environment:      env,
 		cdc:              cdc,
-		AddrCdc:          addrCdc,
 		ClientKeeper:     clientKeeper,
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,
+		ChannelKeeperV2:  channelKeeperV2,
 		PortKeeper:       portKeeper,
 		authority:        authority,
 	}
@@ -79,6 +78,11 @@ func (k *Keeper) SetRouter(rtr *porttypes.Router) {
 
 	k.PortKeeper.Router = rtr
 	k.PortKeeper.Router.Seal()
+}
+
+// SetRouterV2 sets the v2 router for the IBC Keeper.
+func (k *Keeper) SetRouterV2(rtr *api.Router) {
+	k.ChannelKeeperV2.Router = rtr
 }
 
 // GetAuthority returns the ibc module's authority.
