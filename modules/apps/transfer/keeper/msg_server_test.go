@@ -253,7 +253,7 @@ func (suite *KeeperTestSuite) TestMsgTransferIBCV2() {
 
 			msg = types.NewMsgTransfer(
 				types.PortID,
-				path.EndpointA.ClientID,
+				path.EndpointA.ClientID, // use eureka client id
 				ibctesting.TestCoin,
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
