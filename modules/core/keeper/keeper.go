@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/core/appmodule"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -27,14 +28,15 @@ type Keeper struct {
 	ChannelKeeper    *channelkeeper.Keeper
 	PortKeeper       *portkeeper.Keeper
 
-	cdc codec.BinaryCodec
+	cdc     codec.BinaryCodec
+	AddrCdc address.Codec
 
 	authority string
 }
 
 // NewKeeper creates a new ibc Keeper
 func NewKeeper(
-	cdc codec.BinaryCodec, env appmodule.Environment, paramSpace types.ParamSubspace,
+	cdc codec.BinaryCodec, addrCdc address.Codec, env appmodule.Environment, paramSpace types.ParamSubspace,
 	upgradeKeeper clienttypes.UpgradeKeeper, authority string,
 ) *Keeper {
 	// panic if any of the keepers passed in is empty
@@ -54,6 +56,7 @@ func NewKeeper(
 	return &Keeper{
 		Environment:      env,
 		cdc:              cdc,
+		AddrCdc:          addrCdc,
 		ClientKeeper:     clientKeeper,
 		ConnectionKeeper: connectionKeeper,
 		ChannelKeeper:    channelKeeper,

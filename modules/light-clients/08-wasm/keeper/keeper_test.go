@@ -152,8 +152,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			"success",
 			func() {
 				keeper.NewKeeperWithVM(
+					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -167,8 +167,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			"failure: empty authority",
 			func() {
 				keeper.NewKeeperWithVM(
+					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					"", // authority
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -182,8 +182,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			"failure: nil client keeper",
 			func() {
 				keeper.NewKeeperWithVM(
+					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					nil, // client keeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -197,8 +197,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			"failure: nil wasm VM",
 			func() {
 				keeper.NewKeeperWithVM(
+					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					nil,
@@ -212,8 +212,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			"failure: nil store service",
 			func() {
 				keeper.NewKeeperWithVM(
+					runtime.NewEnvironment(nil, log.NewNopLogger()),
 					GetSimApp(suite.chainA).AppCodec(),
-					nil,
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
@@ -227,8 +227,8 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			"failure: nil query router",
 			func() {
 				keeper.NewKeeperWithVM(
+					runtime.NewEnvironment(runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)), log.NewNopLogger()),
 					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
 					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
 					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
 					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),

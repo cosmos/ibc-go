@@ -10,7 +10,7 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
 	"cosmossdk.io/collections"
-	"cosmossdk.io/core/store"
+	"cosmossdk.io/core/appmodule"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -21,8 +21,8 @@ import (
 // This constructor function is meant to be used when the chain uses x/wasm
 // and the same Wasm VM instance should be shared with it.
 func NewKeeperWithVM(
+	env appmodule.Environment,
 	cdc codec.BinaryCodec,
-	storeService store.KVStoreService,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	vm types.WasmEngine,
@@ -33,6 +33,10 @@ func NewKeeperWithVM(
 		panic(errors.New("client keeper must not be nil"))
 	}
 
+	if env.KVStoreService == nil {
+		panic(errors.New("store service must not be nil"))
+	}
+
 	if queryRouter == nil {
 		panic(errors.New("query router must not be nil"))
 	}
@@ -41,21 +45,17 @@ func NewKeeperWithVM(
 		panic(errors.New("wasm VM must not be nil"))
 	}
 
-	if storeService == nil {
-		panic(errors.New("store service must not be nil"))
-	}
-
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	sb := collections.NewSchemaBuilder(storeService)
+	sb := collections.NewSchemaBuilder(env.KVStoreService)
 
 	keeper := &Keeper{
+		Environment:  env,
 		cdc:          cdc,
 		vm:           vm,
 		checksums:    collections.NewKeySet(sb, types.ChecksumsKey, "checksums", collections.BytesKey),
-		storeService: storeService,
 		clientKeeper: clientKeeper,
 		authority:    authority,
 	}
@@ -80,8 +80,8 @@ func NewKeeperWithVM(
 // This constructor function is meant to be used when the chain does not use x/wasm
 // and a Wasm VM needs to be instantiated using the provided parameters.
 func NewKeeperWithConfig(
+	env appmodule.Environment,
 	cdc codec.BinaryCodec,
-	storeService store.KVStoreService,
 	clientKeeper types.ClientKeeper,
 	authority string,
 	wasmConfig types.WasmConfig,
@@ -93,5 +93,5 @@ func NewKeeperWithConfig(
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
 	}
 
-	return NewKeeperWithVM(cdc, storeService, clientKeeper, authority, vm, queryRouter, opts...)
+	return NewKeeperWithVM(env, cdc, clientKeeper, authority, vm, queryRouter, opts...)
 }

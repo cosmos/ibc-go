@@ -3,10 +3,9 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
@@ -15,18 +14,19 @@ import (
 var _ types.MsgServer = (*Keeper)(nil)
 
 // StoreCode defines a rpc handler method for MsgStoreCode
-func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*types.MsgStoreCodeResponse, error) {
+func (k Keeper) StoreCode(ctx context.Context, msg *types.MsgStoreCode) (*types.MsgStoreCodeResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	ctx := sdk.UnwrapSDKContext(goCtx)
 	checksum, err := k.storeWasmCode(ctx, msg.WasmByteCode, k.GetVM().StoreCode)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store wasm bytecode")
 	}
 
-	emitStoreWasmCodeEvent(ctx, checksum)
+	if err := k.emitStoreWasmCodeEvent(ctx, checksum); err != nil {
+		return nil, fmt.Errorf("failed to emit store wasm code events: %w", err)
+	}
 
 	return &types.MsgStoreCodeResponse{
 		Checksum: checksum,
@@ -57,12 +57,10 @@ func (k Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecks
 }
 
 // MigrateContract defines a rpc handler method for MsgMigrateContract
-func (k Keeper) MigrateContract(goCtx context.Context, msg *types.MsgMigrateContract) (*types.MsgMigrateContractResponse, error) {
+func (k Keeper) MigrateContract(ctx context.Context, msg *types.MsgMigrateContract) (*types.MsgMigrateContractResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	err := k.migrateContractCode(ctx, msg.ClientId, msg.Checksum, msg.Msg)
 	if err != nil {
