@@ -134,6 +134,10 @@ If no timeout value is set then a default relative timeout value of 10 minutes i
 				}
 
 				timeoutTimestamp -= uint64(now)
+			} else {
+				if timeoutTimestamp == 0 {
+					return errors.New("relative timeouts must provide a non zero value timestamp")
+				}
 			}
 
 			msg := types.NewMsgSendTx(owner, connectionID, timeoutTimestamp, icaMsgData)
