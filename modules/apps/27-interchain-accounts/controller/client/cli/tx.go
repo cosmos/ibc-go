@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -26,7 +25,6 @@ const (
 	// The channel ordering
 	flagOrdering               = "ordering"
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
-	flagAbsoluteTimeouts       = "absolute-timeouts"
 )
 
 // defaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
@@ -81,10 +79,8 @@ func newSendTxCmd() *cobra.Command {
 		Use:   "send-tx [connection-id] [path/to/packet_msg.json]",
 		Short: "Send an interchain account tx on the provided connection.",
 		Long: strings.TrimSpace(`Submits pre-built packet data containing messages to be executed on the host chain and attempts to send the packet. 
-Packet data is provided as json, file or string. A timeout timestamp can be provided using the flag {packet-timeout-timestamp}. 
-By default timeout timestamps are calculated relatively, adding {packet-timeout-timestamp} to the user's local system clock time. 
-Absolute timeout timestamp values can be used by setting the {absolute-timeouts} flag to true.
-If no timeout value is set then a default relative timeout value of 10 minutes is used.`),
+Packet data is provided as json, file or string. A relative timeout timestamp can be provided using the flag {packet-timeout-timestamp}. 
+An absolute timeout is calculated on chain using the current block time. If no timeout value is set then a default relative timeout value of 10 minutes is used.`),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -116,26 +112,6 @@ If no timeout value is set then a default relative timeout value of 10 minutes i
 				return err
 			}
 
-			absoluteTimeouts, err := cmd.Flags().GetBool(flagAbsoluteTimeouts)
-			if err != nil {
-				return err
-			}
-
-			// NOTE: relative timeouts using block height are not supported.
-			if !absoluteTimeouts {
-				if timeoutTimestamp == 0 {
-					return errors.New("relative timeouts must provide a non zero value timestamp")
-				}
-
-				// use local clock time as reference time for calculating timeout timestamp.
-				now := time.Now().UnixNano()
-				if now <= 0 {
-					return errors.New("local clock time is not greater than Jan 1st, 1970 12:00 AM")
-				}
-
-				timeoutTimestamp = uint64(now) + timeoutTimestamp
-			}
-
 			msg := types.NewMsgSendTx(owner, connectionID, timeoutTimestamp, icaMsgData)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
@@ -143,7 +119,6 @@ If no timeout value is set then a default relative timeout value of 10 minutes i
 	}
 
 	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, defaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes.")
-	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
