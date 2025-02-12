@@ -21,6 +21,7 @@ on:
           - release/v8.4.x
           - release/v8.5.x
           - release/v9.0.x
+          - release/v10.0.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -62,6 +63,7 @@ jobs:
           - release/v8.4.x
           - release/v8.5.x
           - release/v9.0.x
+          - release/v10.0.x
           - main
     steps:
       - uses: actions/checkout@v4
