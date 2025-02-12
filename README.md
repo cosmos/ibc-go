@@ -49,7 +49,7 @@ For the latest expected release timelines, please check [here](https://github.co
 
 ## Releases
 
-The release lines currently supported are v7, v8 and v9.
+The release lines currently supported are v7, and v8 (Note: v9 has been retracted and will be replaced by v10).
 
 Please refer to the [Stable Release Policy section of RELEASES.md](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#stable-release-policy) for more details.
 

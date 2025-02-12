@@ -20,7 +20,6 @@ on:
           - release/v7.8.x
           - release/v8.4.x
           - release/v8.5.x
-          - release/v9.0.x
           - release/v10.0.x
           - main
       ibc-go-version:
@@ -62,7 +61,6 @@ jobs:
           - release/v7.8.x
           - release/v8.4.x
           - release/v8.5.x
-          - release/v9.0.x
           - release/v10.0.x
           - main
     steps:

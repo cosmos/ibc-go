@@ -69,25 +69,25 @@ jobs:
       test: "TestV8ToV8_1ChainUpgrade_FeeMiddlewareChannelUpgrade"
       upload-logs: true
 
-  upgrade-v9:
+  upgrade-v10:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-a-tag: v8.4.0
-      chain-b-tag: v8.4.0
-      upgrade-plan-name: "v9"
+      chain-a-tag: v8.5.0
+      chain-b-tag: v8.5.0
+      upgrade-plan-name: "v10"
       test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV8ToV9ChainUpgrade"
+      test: "TestV8ToV10ChainUpgrade"
       upload-logs: true
 
-  upgrade-v9-localhost:
+  upgrade-v10-localhost:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
       chain-a-tag: v8.4.0
       chain-b-tag: v8.4.0
-      upgrade-plan-name: "v9"
+      upgrade-plan-name: "v10"
       test-entry-point:  "TestUpgradeTestSuite"
-      test: "TestV8ToV9ChainUpgrade_Localhost"
+      test: "TestV8ToV10ChainUpgrade_Localhost"
       upload-logs: true
 
