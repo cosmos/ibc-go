@@ -122,18 +122,18 @@ If no timeout value is set then a default relative timeout value of 10 minutes i
 			}
 
 			// NOTE: relative timeouts using block height are not supported.
-			if !absoluteTimeouts {
-				if timeoutTimestamp == 0 {
-					return errors.New("relative timeouts must provide a non zero value timestamp")
-				}
-
+			if absoluteTimeouts {
 				// use local clock time as reference time for calculating timeout timestamp.
 				now := time.Now().UnixNano()
 				if now <= 0 {
 					return errors.New("local clock time is not greater than Jan 1st, 1970 12:00 AM")
 				}
 
-				timeoutTimestamp = uint64(now) + timeoutTimestamp
+				if timeoutTimestamp <= uint64(now) {
+					return errors.New("absolute timeout timestamp must be greater than now")
+				}
+
+				timeoutTimestamp -= uint64(now)
 			}
 
 			msg := types.NewMsgSendTx(owner, connectionID, timeoutTimestamp, icaMsgData)
