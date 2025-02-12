@@ -65,8 +65,5 @@ tmp/
 go.work
 go.work.sum
 
-# E2E WASM contract
-!ics10_grandpa_cw.wasm
-
 # Python
 venv

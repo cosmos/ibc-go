@@ -32,9 +32,6 @@ const (
 	// KeyCreator is the key for the creator in the client-specific store
 	KeyCreator = "creator"
 
-	// KeyCounterparty is the key for the counterpartyInfo in the client-specific store
-	KeyCounterparty = "counterparty"
-
 	// AllowAllClients is the value that if set in AllowedClients param
 	// would allow any wired up light client modules to be allowed
 	AllowAllClients = "*"
@@ -101,9 +98,4 @@ func MustParseClientIdentifier(clientID string) string {
 // CreatorKey returns the key under which the client creator is stored in the client store
 func CreatorKey() []byte {
 	return []byte(KeyCreator)
-}
-
-// CounterpartyKey returns the key under which the counterparty is stored in the client store
-func CounterpartyKey() []byte {
-	return []byte(KeyCounterparty)
 }

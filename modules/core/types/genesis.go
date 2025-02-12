@@ -4,8 +4,10 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	channelv2types "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 )
 
 var _ codectypes.UnpackInterfacesMessage = (*GenesisState)(nil)
@@ -14,8 +16,10 @@ var _ codectypes.UnpackInterfacesMessage = (*GenesisState)(nil)
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		ClientGenesis:     clienttypes.DefaultGenesisState(),
+		ClientV2Genesis:   clientv2types.DefaultGenesisState(),
 		ConnectionGenesis: connectiontypes.DefaultGenesisState(),
 		ChannelGenesis:    channeltypes.DefaultGenesisState(),
+		ChannelV2Genesis:  channelv2types.DefaultGenesisState(),
 	}
 }
 
@@ -31,9 +35,17 @@ func (gs *GenesisState) Validate() error {
 		return err
 	}
 
+	if err := gs.ClientV2Genesis.Validate(); err != nil {
+		return err
+	}
+
 	if err := gs.ConnectionGenesis.Validate(); err != nil {
 		return err
 	}
 
-	return gs.ChannelGenesis.Validate()
+	if err := gs.ChannelGenesis.Validate(); err != nil {
+		return err
+	}
+
+	return gs.ChannelV2Genesis.Validate()
 }

@@ -13,6 +13,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
@@ -69,16 +70,16 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 
 			tc.malleate()
 			merklePrefix := [][]byte{[]byte("ibc"), []byte("channel-7")}
-			msg := clienttypes.NewMsgRegisterCounterparty(path.EndpointA.ClientID, merklePrefix, path.EndpointB.ClientID, suite.chainA.SenderAccount.GetAddress().String())
+			msg := clientv2types.NewMsgRegisterCounterparty(path.EndpointA.ClientID, merklePrefix, path.EndpointB.ClientID, suite.chainA.SenderAccount.GetAddress().String())
 			_, err := suite.chainA.App.GetIBCKeeper().RegisterCounterparty(suite.chainA.GetContext(), msg)
 			if tc.expError != nil {
 				suite.Require().Error(err)
 				suite.Require().True(errors.Is(err, tc.expError))
 			} else {
 				suite.Require().NoError(err)
-				counterpartyInfo, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				counterpartyInfo, ok := suite.chainA.App.GetIBCKeeper().ClientV2Keeper.GetClientCounterparty(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(ok)
-				suite.Require().Equal(counterpartyInfo, clienttypes.NewCounterpartyInfo(merklePrefix, path.EndpointB.ClientID))
+				suite.Require().Equal(counterpartyInfo, clientv2types.NewCounterpartyInfo(merklePrefix, path.EndpointB.ClientID))
 				nextSeqSend, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(ok)
 				suite.Require().Equal(nextSeqSend, uint64(1))
