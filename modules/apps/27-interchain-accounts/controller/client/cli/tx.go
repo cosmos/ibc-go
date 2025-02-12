@@ -111,7 +111,7 @@ If no timeout value is set then a default relative timeout value of 10 minutes i
 				}
 			}
 
-			timeoutTimestamp, err := cmd.Flags().GetUint64(flagPacketTimeoutTimestamp)
+			relativeTimeout, err := cmd.Flags().GetUint64(flagPacketTimeoutTimestamp)
 			if err != nil {
 				return err
 			}
@@ -129,18 +129,18 @@ If no timeout value is set then a default relative timeout value of 10 minutes i
 					return errors.New("local clock time is not greater than Jan 1st, 1970 12:00 AM")
 				}
 
-				if timeoutTimestamp <= uint64(now) {
+				if relativeTimeout <= uint64(now) {
 					return errors.New("absolute timeout timestamp must be greater than now")
 				}
 
-				timeoutTimestamp -= uint64(now)
+				relativeTimeout -= uint64(now)
 			} else {
-				if timeoutTimestamp == 0 {
+				if relativeTimeout == 0 {
 					return errors.New("relative timeouts must provide a non zero value timestamp")
 				}
 			}
 
-			msg := types.NewMsgSendTx(owner, connectionID, timeoutTimestamp, icaMsgData)
+			msg := types.NewMsgSendTx(owner, connectionID, relativeTimeout, icaMsgData)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
