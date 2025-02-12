@@ -55,6 +55,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/05-port) [\#7252](https://github.com/cosmos/ibc-go/pull/7252) Removed function `LookupModuleByPort`
 * (core/24-host) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `ChannelCapabilityPath`
 * (apps/27-interchain-accounts) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) The following functions have been removed: `AuthenticateCapability`, `ClaimCapability`
+* (apps/27-interchain-accounts) [\#7961](https://github.com/cosmos/ibc-go/pull/7961) Removed `absolute-timeouts` flag from `send-tx` in the ICA CLI.
 * (apps/transfer) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) The following functions have been removed: `BindPort`, `AuthenticateCapability`, `ClaimCapability`
 * (capability) [\#7279](https://github.com/cosmos/ibc-go/pull/7279) The module `capability` has been removed.
 * (testing) [\#7305](https://github.com/cosmos/ibc-go/pull/7305) Added `TrustedValidators` map to `TestChain`. This removes the dependency on the `x/staking` module for retrieving trusted validator sets at a given height, and removes the `GetTrustedValidators` method from the `TestChain` struct.
