@@ -21,6 +21,7 @@ on:
           - release/v8.4.x
           - release/v8.5.x
           - release/v9.0.x
+          - release/v10.0.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -62,6 +63,7 @@ jobs:
           - release/v8.4.x
           - release/v8.5.x
           - release/v9.0.x
+          - release/v10.0.x
           - main
     steps:
       - uses: actions/checkout@v4
@@ -216,15 +218,6 @@ jobs:
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file: "e2e/tests/transfer/authz_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-
-  transfer-forwarding-test:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/transfer/forwarding_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
   transfer-incentivized-test-a:

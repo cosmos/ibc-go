@@ -19,13 +19,4 @@ message GenesisState {
   // by the transfer module
   repeated cosmos.base.v1beta1.Coin total_escrowed = 4
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
-  // forwarded_packets contains the forwarded packets stored as part of the
-  // packet forwarding lifecycle
-  repeated ForwardedPacket forwarded_packets = 5 [(gogoproto.nullable) = false];
-}
-
-// ForwardedPacket defines the genesis type necessary to retrieve and store forwarded packets.
-message ForwardedPacket {
-  ibc.core.channel.v1.PacketId forward_key = 1 [(gogoproto.nullable) = false];
-  ibc.core.channel.v1.Packet   packet      = 2 [(gogoproto.nullable) = false];
 }

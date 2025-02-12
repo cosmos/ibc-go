@@ -12,12 +12,11 @@ const (
 	AttributeKeyReceiver       = "receiver"
 	AttributeKeyDenom          = "denom"
 	AttributeKeyDenomHash      = "denom_hash"
-	AttributeKeyTokens         = "tokens"
+	AttributeKeyAmount         = "amount"
 	AttributeKeyRefundReceiver = "refund_receiver"
 	AttributeKeyRefundTokens   = "refund_tokens"
 	AttributeKeyAckSuccess     = "success"
 	AttributeKeyAck            = "acknowledgement"
 	AttributeKeyAckError       = "error"
 	AttributeKeyMemo           = "memo"
-	AttributeKeyForwardingHops = "forwarding_hops"
 )

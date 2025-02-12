@@ -23,8 +23,6 @@ const (
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
 	flagAbsoluteTimeouts       = "absolute-timeouts"
 	flagMemo                   = "memo"
-	flagForwarding             = "forwarding"
-	flagUnwind                 = "unwind"
 )
 
 // defaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
@@ -36,18 +34,13 @@ var defaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Min
 // NewTransferTxCmd returns the command to create a NewMsgTransfer transaction
 func NewTransferTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "transfer [src-port] [src-channel] [receiver] [coins]",
-		Short: "Transfer one or more fungible tokens through IBC",
-		Long: strings.TrimSpace(`Transfer one or more fungible tokens through IBC. Multiple tokens can be transferred in a single
-packet if the coins list is a comma-separated string (e.g. 100uatom,100uosmo). Timeouts can be specified as absolute using the {absolute-timeouts} flag. 
+		Use:   "transfer [src-port] [src-channel] [receiver] [coin]",
+		Short: "Transfer a fungible tokens through IBC",
+		Long: strings.TrimSpace(`Transfer one fungible tokens through IBC. Timeouts can be specified as absolute using the {absolute-timeouts} flag. 
 Timeout height can be set by passing in the height string in the form {revision}-{height} using the {packet-timeout-height} flag. 
 Note, relative timeout height is not supported. Relative timeout timestamp is added to the value of the user's local system clock time 
-using the {packet-timeout-timestamp} flag. If no timeout value is set then a default relative timeout value of 10 minutes is used. IBC tokens
-can be automatically unwound to their native chain using the {unwind} flag. Please note that if the {unwind} flag is used, then all coins must
-be IBC vouchers and share exactly the same denomination trace path, and the src-port and src-channel arguments must not be specified. Tokens can also be 
-automatically forwarded through multiple chains using the {forwarding} flag and specifying a comma-separated list of source portID/channelID pairs for 
-each intermediary chain. {unwind} and {forwarding} flags can be used together to first unwind IBC tokens to their native chain and then forward them to the final destination.`),
-		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [coins]", version.AppName),
+using the {packet-timeout-timestamp} flag. If no timeout value is set then a default relative timeout value of 10 minutes is used.`),
+		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [coin]", version.AppName),
 		Args:    cobra.RangeArgs(2, 4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -56,25 +49,18 @@ each intermediary chain. {unwind} and {forwarding} flags can be used together to
 			}
 			sender := clientCtx.GetFromAddress().String()
 
-			args, err = normalizeArgs(cmd, args)
-			if err != nil {
-				return err
-			}
-
 			srcPort := args[0]
 			srcChannel := args[1]
 			receiver := args[2]
 
-			coins, err := sdk.ParseCoinsNormalized(args[3])
+			coin, err := sdk.ParseCoinNormalized(args[3])
 			if err != nil {
 				return err
 			}
 
-			for i, coin := range coins {
-				if !strings.HasPrefix(coin.Denom, "ibc/") {
-					denom := types.ExtractDenomFromPath(coin.Denom)
-					coins[i].Denom = denom.IBCDenom()
-				}
+			if !strings.HasPrefix(coin.Denom, "ibc/") {
+				denom := types.ExtractDenomFromPath(coin.Denom)
+				coin.Denom = denom.IBCDenom()
 			}
 
 			timeoutHeightStr, err := cmd.Flags().GetString(flagPacketTimeoutHeight)
@@ -102,11 +88,6 @@ each intermediary chain. {unwind} and {forwarding} flags can be used together to
 				return err
 			}
 
-			forwarding, err := parseForwarding(cmd)
-			if err != nil {
-				return err
-			}
-
 			// NOTE: relative timeouts using block height are not supported.
 			// if the timeouts are not absolute, CLI users rely solely on local clock time in order to calculate relative timestamps.
 			if !absoluteTimeouts {
@@ -128,7 +109,7 @@ each intermediary chain. {unwind} and {forwarding} flags can be used together to
 			}
 
 			msg := types.NewMsgTransfer(
-				srcPort, srcChannel, coins, sender, receiver, timeoutHeight, timeoutTimestamp, memo, forwarding,
+				srcPort, srcChannel, coin, sender, receiver, timeoutHeight, timeoutTimestamp, memo,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
@@ -139,74 +120,8 @@ each intermediary chain. {unwind} and {forwarding} flags can be used together to
 	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, defaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	cmd.Flags().String(flagMemo, "", "Memo to be sent along with the packet.")
-	cmd.Flags().String(flagForwarding, "", "Forwarding information in the form of a comma separated list of portID/channelID pairs.")
-	cmd.Flags().Bool(flagUnwind, false, "Flag to indicate if the coin should be unwound to its native chain before forwarding.")
 
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
-}
-
-// parseForwarding parses the forwarding flag into a Forwarding object or nil if the flag is not specified. If the flag cannot
-// be parsed or the hops aren't in the portID/channelID format an error is returned.
-func parseForwarding(cmd *cobra.Command) (*types.Forwarding, error) {
-	var hops []types.Hop
-
-	unwind, err := cmd.Flags().GetBool(flagUnwind)
-	if err != nil {
-		return nil, err
-	}
-	forwarding := types.NewForwarding(unwind)
-
-	forwardingString, err := cmd.Flags().GetString(flagForwarding)
-	if err != nil {
-		return nil, err
-	}
-
-	if strings.TrimSpace(forwardingString) == "" {
-		// If forwarding not specified, we might have unwind set
-		return forwarding, nil
-	}
-
-	pairs := strings.Split(forwardingString, ",")
-	for _, pair := range pairs {
-		pairSplit := strings.Split(pair, "/")
-		if len(pairSplit) != 2 {
-			return nil, fmt.Errorf("expected a portID/channelID pair, found %s", pair)
-		}
-
-		hop := types.NewHop(pairSplit[0], pairSplit[1])
-		hops = append(hops, hop)
-	}
-
-	forwarding.Hops = hops
-	return forwarding, nil
-}
-
-// normalizeArgs takes the positional arguments specified and if the unwind flag
-// is false and the args array is of length 4, returns them as-is or, if unwind is true and the
-// args array has a length of 2, inserts two empty strings at the beginning signifying the
-// portID and channelID.
-func normalizeArgs(cmd *cobra.Command, args []string) ([]string, error) {
-	unwind, err := cmd.Flags().GetBool(flagUnwind)
-	if err != nil {
-		return nil, err
-	}
-
-	if unwind {
-		if len(args) != 2 {
-			return nil, fmt.Errorf("expected only 2 arguments, got %d", len(args))
-		}
-
-		// Inject empty source portID/channelID.
-		args = append([]string{"", ""}, args...)
-		return args, nil
-	}
-
-	// Unwind false, just ensure we have 4 args.
-	if len(args) != 4 {
-		return nil, fmt.Errorf("expected 4 args, got %d", len(args))
-	}
-
-	return args, nil
 }

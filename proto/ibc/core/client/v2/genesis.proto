@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package ibc.core.client.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types";
+
+import "ibc/core/client/v2/counterparty.proto";
+import "gogoproto/gogo.proto";
+
+// GenesisCounterpartyInfo defines the state associating a client with a counterparty.
+message GenesisCounterpartyInfo {
+  // ClientId is the ID of the given client.
+  string client_id = 1;
+
+  // CounterpartyInfo is the counterparty info of the given client.
+  CounterpartyInfo counterparty_info = 2 [(gogoproto.nullable) = false];
+}
+
+// GenesisState defines the ibc client v2 submodule's genesis state.
+message GenesisState {
+  // counterparty info for each client
+  repeated GenesisCounterpartyInfo counterparty_infos = 1 [(gogoproto.nullable) = false];
+}

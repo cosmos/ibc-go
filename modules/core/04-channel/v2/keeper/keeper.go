@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clientv2keeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
 	channelkeeperv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
@@ -25,6 +26,9 @@ type Keeper struct {
 	storeService corestore.KVStoreService
 	cdc          codec.BinaryCodec
 	ClientKeeper types.ClientKeeper
+	// clientV2Keeper is used for counterparty access.
+	clientV2Keeper *clientv2keeper.Keeper
+
 	// channelKeeperV1 is used for channel aliasing only.
 	channelKeeperV1  *channelkeeperv1.Keeper
 	connectionKeeper *connectionkeeper.Keeper
@@ -39,6 +43,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService corestore.KVStoreService,
 	clientKeeper types.ClientKeeper,
+	clientV2Keeper *clientv2keeper.Keeper,
 	channelKeeperV1 *channelkeeperv1.Keeper,
 	connectionKeeper *connectionkeeper.Keeper,
 ) *Keeper {
@@ -46,6 +51,7 @@ func NewKeeper(
 		storeService:     storeService,
 		cdc:              cdc,
 		channelKeeperV1:  channelKeeperV1,
+		clientV2Keeper:   clientV2Keeper,
 		connectionKeeper: connectionKeeper,
 		ClientKeeper:     clientKeeper,
 	}
@@ -213,31 +219,37 @@ func extractSequenceFromKey(key, storePrefix []byte) uint64 {
 // GetAllPacketCommitmentsForClient returns all stored PacketCommitments objects for a specified
 // client ID.
 func (k *Keeper) GetAllPacketCommitmentsForClient(ctx context.Context, clientID string) []types.PacketState {
-	return k.getAllPacketsForClientStore(ctx, clientID, hostv2.PacketCommitmentPrefixKey)
+	return k.getAllPacketStateForClient(ctx, clientID, hostv2.PacketCommitmentPrefixKey)
 }
 
 // GetAllPacketAcknowledgementsForClient returns all stored PacketAcknowledgements objects for a specified
 // client ID.
 func (k *Keeper) GetAllPacketAcknowledgementsForClient(ctx context.Context, clientID string) []types.PacketState {
-	return k.getAllPacketsForClientStore(ctx, clientID, hostv2.PacketAcknowledgementPrefixKey)
+	return k.getAllPacketStateForClient(ctx, clientID, hostv2.PacketAcknowledgementPrefixKey)
 }
 
 // GetAllPacketReceiptsForClient returns all stored PacketReceipts objects for a specified
 // client ID.
 func (k *Keeper) GetAllPacketReceiptsForClient(ctx context.Context, clientID string) []types.PacketState {
-	return k.getAllPacketsForClientStore(ctx, clientID, hostv2.PacketReceiptPrefixKey)
+	return k.getAllPacketStateForClient(ctx, clientID, hostv2.PacketReceiptPrefixKey)
+}
+
+// GetAllAsyncPacketsForClient returns all stored AsyncPackets objects for a specified
+// client ID.
+func (k *Keeper) GetAllAsyncPacketsForClient(ctx context.Context, clientID string) []types.PacketState {
+	return k.getAllPacketStateForClient(ctx, clientID, types.AsyncPacketPrefixKey)
 }
 
 // prefixKeyConstructor is a function that constructs a store key for a specific packet store using the provided
 // clientID.
 type prefixKeyConstructor func(clientID string) []byte
 
-// getAllPacketsForClientStore gets all PacketState objects for the specified clientID using a provided
+// getAllPacketStateForClient gets all PacketState objects for the specified clientID using a provided
 // function for constructing the key prefix for the store.
 //
 // For example, to get all PacketReceipts for a clientID the hostv2.PacketReceiptPrefixKey function can be
 // passed to get the PacketReceipt store key prefix.
-func (k *Keeper) getAllPacketsForClientStore(ctx context.Context, clientID string, prefixFn prefixKeyConstructor) []types.PacketState {
+func (k *Keeper) getAllPacketStateForClient(ctx context.Context, clientID string, prefixFn prefixKeyConstructor) []types.PacketState {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	storePrefix := prefixFn(clientID)
 	iterator := storetypes.KVStorePrefixIterator(store, storePrefix)

@@ -21,8 +21,6 @@ var (
 	_ sdk.Msg = (*MsgIBCSoftwareUpgrade)(nil)
 	_ sdk.Msg = (*MsgRecoverClient)(nil)
 
-	_ sdk.Msg = (*MsgRegisterCounterparty)(nil)
-
 	_ sdk.HasValidateBasic = (*MsgCreateClient)(nil)
 	_ sdk.HasValidateBasic = (*MsgUpdateClient)(nil)
 	_ sdk.HasValidateBasic = (*MsgSubmitMisbehaviour)(nil)
@@ -30,7 +28,6 @@ var (
 	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
 	_ sdk.HasValidateBasic = (*MsgIBCSoftwareUpgrade)(nil)
 	_ sdk.HasValidateBasic = (*MsgRecoverClient)(nil)
-	_ sdk.HasValidateBasic = (*MsgRegisterCounterparty)(nil)
 
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
@@ -320,28 +317,4 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Params.Validate()
-}
-
-// NewMsgRegisterCounterparty creates a new instance of MsgRegisterCounterparty.
-func NewMsgRegisterCounterparty(clientID string, merklePrefix [][]byte, counterpartyClientID string, signer string) *MsgRegisterCounterparty {
-	return &MsgRegisterCounterparty{
-		ClientId:                 clientID,
-		CounterpartyMerklePrefix: merklePrefix,
-		CounterpartyClientId:     counterpartyClientID,
-		Signer:                   signer,
-	}
-}
-
-// ValidateBasic performs basic checks on a MsgRegisterCounterparty.
-func (msg *MsgRegisterCounterparty) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-	if len(msg.CounterpartyMerklePrefix) == 0 {
-		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty messaging key cannot be empty")
-	}
-	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
-		return err
-	}
-	return host.ClientIdentifierValidator(msg.CounterpartyClientId)
 }

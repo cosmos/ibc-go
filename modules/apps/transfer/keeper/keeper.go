@@ -20,9 +20,7 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
 	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
@@ -294,90 +292,6 @@ func (k Keeper) IterateTokensInEscrow(ctx context.Context, storeprefix []byte, c
 
 		denomEscrow := sdk.NewCoin(denom, amount.Int)
 		if cb(denomEscrow) {
-			break
-		}
-	}
-}
-
-// setForwardedPacket sets the forwarded packet in the store.
-func (k Keeper) setForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64, packet channeltypes.Packet) {
-	store := k.storeService.OpenKVStore(ctx)
-	bz := k.cdc.MustMarshal(&packet)
-	if err := store.Set(types.PacketForwardKey(portID, channelID, sequence), bz); err != nil {
-		panic(err)
-	}
-}
-
-// GetForwardedPacket gets the forwarded packet from the store.
-func (k Keeper) GetForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64) (channeltypes.Packet, bool) {
-	store := k.storeService.OpenKVStore(ctx)
-	bz, err := store.Get(types.PacketForwardKey(portID, channelID, sequence))
-	if err != nil {
-		panic(err)
-	}
-	if bz == nil {
-		return channeltypes.Packet{}, false
-	}
-
-	var storedPacket channeltypes.Packet
-	k.cdc.MustUnmarshal(bz, &storedPacket)
-
-	return storedPacket, true
-}
-
-// deleteForwardedPacket deletes the forwarded packet from the store.
-func (k Keeper) deleteForwardedPacket(ctx context.Context, portID, channelID string, sequence uint64) {
-	store := k.storeService.OpenKVStore(ctx)
-	packetKey := types.PacketForwardKey(portID, channelID, sequence)
-
-	if err := store.Delete(packetKey); err != nil {
-		panic(err)
-	}
-}
-
-// getAllForwardedPackets gets all forward packets stored in state.
-func (k Keeper) getAllForwardedPackets(ctx context.Context) []types.ForwardedPacket {
-	var packets []types.ForwardedPacket
-	k.iterateForwardedPackets(ctx, func(packet types.ForwardedPacket) bool {
-		packets = append(packets, packet)
-		return false
-	})
-
-	return packets
-}
-
-// iterateForwardedPackets iterates over the forward packets in the store and performs a callback function.
-func (k Keeper) iterateForwardedPackets(ctx context.Context, cb func(packet types.ForwardedPacket) bool) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	iterator := storetypes.KVStorePrefixIterator(store, types.ForwardedPacketKey)
-
-	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
-	for ; iterator.Valid(); iterator.Next() {
-		var forwardPacket types.ForwardedPacket
-		k.cdc.MustUnmarshal(iterator.Value(), &forwardPacket.Packet)
-
-		// Iterator key consists of types.ForwardedPacketKey/portID/channelID/sequence
-		parts := strings.Split(string(iterator.Key()), "/")
-		if len(parts) != 4 {
-			panic(errors.New("key path should always have 4 elements"))
-		}
-		if parts[0] != string(types.ForwardedPacketKey) {
-			panic(fmt.Errorf("key path does not start with expected prefix: %s", types.ForwardedPacketKey))
-		}
-
-		portID, channelID := parts[1], parts[2]
-		if err := host.PortIdentifierValidator(portID); err != nil {
-			panic(errors.New("port identifier validation failed while parsing forward key path"))
-		}
-		if err := host.ChannelIdentifierValidator(channelID); err != nil {
-			panic(errors.New("channel identifier validation failed while parsing forward key path"))
-		}
-
-		forwardPacket.ForwardKey.Sequence = sdk.BigEndianToUint64([]byte(parts[3]))
-		forwardPacket.ForwardKey.ChannelId = channelID
-		forwardPacket.ForwardKey.PortId = portID
-
-		if cb(forwardPacket) {
 			break
 		}
 	}

@@ -20,6 +20,8 @@ import (
 	ibcclient "github.com/cosmos/ibc-go/v9/modules/core/02-client"
 	clientkeeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	clientv2keeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
+	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
 	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
@@ -135,12 +137,13 @@ func (AppModule) Name() string {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	clienttypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
-	clienttypes.RegisterCounterpartyMsgServer(cfg.MsgServer(), am.keeper)
+	clientv2types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	connectiontypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	channeltypes.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	channeltypesv2.RegisterMsgServer(cfg.MsgServer(), am.keeper.ChannelKeeperV2)
 
 	clienttypes.RegisterQueryServer(cfg.QueryServer(), clientkeeper.NewQueryServer(am.keeper.ClientKeeper))
+	clientv2types.RegisterQueryServer(cfg.QueryServer(), clientv2keeper.NewQueryServer(am.keeper.ClientV2Keeper))
 	connectiontypes.RegisterQueryServer(cfg.QueryServer(), connectionkeeper.NewQueryServer(am.keeper.ConnectionKeeper))
 	channeltypes.RegisterQueryServer(cfg.QueryServer(), channelkeeper.NewQueryServer(am.keeper.ChannelKeeper))
 	channeltypesv2.RegisterQueryServer(cfg.QueryServer(), channelkeeperv2.NewQueryServer(am.keeper.ChannelKeeperV2))
