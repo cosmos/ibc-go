@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"context"
-
 	"github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
@@ -18,7 +16,7 @@ import (
 
 // OnRecvPacket handles a given interchain accounts packet on a destination host chain.
 // If the transaction is successfully executed, the transaction response bytes will be returned.
-func (k Keeper) OnRecvPacket(ctx context.Context, packet channeltypes.Packet) ([]byte, error) {
+func (k Keeper) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) ([]byte, error) {
 	var data icatypes.InterchainAccountPacketData
 	err := data.UnmarshalJSON(packet.GetData())
 	if err != nil {
@@ -52,7 +50,7 @@ func (k Keeper) OnRecvPacket(ctx context.Context, packet channeltypes.Packet) ([
 // If authentication succeeds, it does basic validation of the messages before attempting to deliver each message
 // into state. The state changes will only be committed if all messages in the transaction succeed. Thus the
 // execution of the transaction is atomic, all state changes are reverted if a single message fails.
-func (k Keeper) executeTx(ctx context.Context, sourcePort, destPort, destChannel string, msgs []sdk.Msg) ([]byte, error) {
+func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel string, msgs []sdk.Msg) ([]byte, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, destPort, destChannel)
 	if !found {
 		return nil, channeltypes.ErrChannelNotFound
@@ -97,7 +95,7 @@ func (k Keeper) executeTx(ctx context.Context, sourcePort, destPort, destChannel
 
 // authenticateTx ensures the provided msgs contain the correct interchain account signer address retrieved
 // from state using the provided controller port identifier
-func (k Keeper) authenticateTx(ctx context.Context, msgs []sdk.Msg, connectionID, portID string) error {
+func (k Keeper) authenticateTx(ctx sdk.Context, msgs []sdk.Msg, connectionID, portID string) error {
 	interchainAccountAddr, found := k.GetInterchainAccountAddress(ctx, connectionID, portID)
 	if !found {
 		return errorsmod.Wrapf(icatypes.ErrInterchainAccountNotFound, "failed to retrieve interchain account on port %s", portID)

@@ -2,7 +2,6 @@ package tendermint
 
 import (
 	"bytes"
-	"context"
 	"encoding/binary"
 	"fmt"
 
@@ -265,7 +264,7 @@ func GetPreviousConsensusState(clientStore storetypes.KVStore, cdc codec.BinaryC
 // client store. If a consensus state is expired, it is deleted and its metadata
 // is deleted. The number of consensus states pruned is returned.
 func PruneAllExpiredConsensusStates(
-	ctx context.Context, clientStore storetypes.KVStore,
+	ctx sdk.Context, clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec, clientState *ClientState,
 ) int {
 	var heights []exported.Height
@@ -323,7 +322,7 @@ func bigEndianHeightBytes(height exported.Height) []byte {
 // as this is internal tendermint light client logic.
 // client state and consensus state will be set by client keeper
 // set iteration key to provide ability for efficient ordered iteration of consensus states.
-func setConsensusMetadata(ctx context.Context, clientStore storetypes.KVStore, height exported.Height) {
+func setConsensusMetadata(ctx sdk.Context, clientStore storetypes.KVStore, height exported.Height) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano()))
 }

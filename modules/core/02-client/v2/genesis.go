@@ -1,7 +1,6 @@
 package clientv2
 
 import (
-	"context"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,7 +11,7 @@ import (
 
 // InitGenesis initializes the ibc client/v2 submodule's state from a provided genesis
 // state.
-func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k *keeper.Keeper, gs types.GenesisState) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	if err := gs.Validate(); err != nil {
@@ -25,7 +24,7 @@ func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) {
 }
 
 // ExportGenesis returns the ibc client/v2 submodule's exported genesis.
-func ExportGenesis(ctx context.Context, k *keeper.Keeper) types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) types.GenesisState {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	clients := k.ClientV1Keeper.GetAllGenesisClients(ctx)

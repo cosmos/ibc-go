@@ -1,9 +1,8 @@
 package keeper
 
 import (
-	"context"
-
 	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 
@@ -19,7 +18,7 @@ import (
 // NOTE: Msg validation verifies the supplied identifiers and ensures that the counterparty
 // connection identifier is empty.
 func (k *Keeper) ConnOpenInit(
-	ctx context.Context,
+	ctx sdk.Context,
 	clientID string,
 	counterparty types.Counterparty, // counterpartyPrefix, counterpartyClientIdentifier
 	version *types.Version,
@@ -63,7 +62,7 @@ func (k *Keeper) ConnOpenInit(
 //   - Here chain A acts as the counterparty
 //   - Identifiers are checked on msg validation
 func (k *Keeper) ConnOpenTry(
-	ctx context.Context,
+	ctx sdk.Context,
 	counterparty types.Counterparty, // counterpartyConnectionIdentifier, counterpartyPrefix and counterpartyClientIdentifier
 	delayPeriod uint64,
 	clientID string, // clientID of chainA
@@ -120,7 +119,7 @@ func (k *Keeper) ConnOpenTry(
 //
 // NOTE: Identifiers are checked on msg validation.
 func (k *Keeper) ConnOpenAck(
-	ctx context.Context,
+	ctx sdk.Context,
 	connectionID string,
 	version *types.Version, // version that ChainB chose in ConnOpenTry
 	counterpartyConnectionID string,
@@ -181,7 +180,7 @@ func (k *Keeper) ConnOpenAck(
 //
 // NOTE: Identifiers are checked on msg validation.
 func (k *Keeper) ConnOpenConfirm(
-	ctx context.Context,
+	ctx sdk.Context,
 	connectionID string,
 	ackProof []byte, // proof that connection opened on ChainA during ConnOpenAck
 	proofHeight exported.Height, // height that relayer constructed proofAck

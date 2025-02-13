@@ -31,12 +31,14 @@ func (k Keeper) Denom(ctx context.Context, req *types.QueryDenomRequest) (*types
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	hash, err := types.ParseHexHash(strings.TrimPrefix(req.Hash, "ibc/"))
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("invalid denom trace hash: %s, error: %s", hash.String(), err))
 	}
 
-	denom, found := k.GetDenom(ctx, hash)
+	denom, found := k.GetDenom(sdkCtx, hash)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -79,7 +81,8 @@ func (k Keeper) Denoms(ctx context.Context, req *types.QueryDenomsRequest) (*typ
 
 // Params implements the Query/Params gRPC method
 func (k Keeper) Params(ctx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
-	params := k.GetParams(ctx)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	params := k.GetParams(sdkCtx)
 
 	return &types.QueryParamsResponse{
 		Params: &params,
@@ -92,6 +95,8 @@ func (k Keeper) DenomHash(ctx context.Context, req *types.QueryDenomHashRequest)
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	// Convert given request trace path to Denom struct to confirm the path in a valid denom trace format
 	denom := types.ExtractDenomFromPath(req.Trace)
 	if err := denom.Validate(); err != nil {
@@ -99,7 +104,7 @@ func (k Keeper) DenomHash(ctx context.Context, req *types.QueryDenomHashRequest)
 	}
 
 	denomHash := denom.Hash()
-	found := k.HasDenom(ctx, denomHash)
+	found := k.HasDenom(sdkCtx, denomHash)
 	if !found {
 		return nil, status.Error(
 			codes.NotFound,
@@ -118,13 +123,15 @@ func (k Keeper) EscrowAddress(ctx context.Context, req *types.QueryEscrowAddress
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	addr := types.GetEscrowAddress(req.PortId, req.ChannelId)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
 	}
 
-	if !k.channelKeeper.HasChannel(ctx, req.PortId, req.ChannelId) {
+	if !k.channelKeeper.HasChannel(sdkCtx, req.PortId, req.ChannelId) {
 		return nil, status.Error(
 			codes.NotFound,
 			errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
@@ -142,11 +149,13 @@ func (k Keeper) TotalEscrowForDenom(ctx context.Context, req *types.QueryTotalEs
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	if err := sdk.ValidateDenom(req.Denom); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	amount := k.GetTotalEscrowForDenom(ctx, req.Denom)
+	amount := k.GetTotalEscrowForDenom(sdkCtx, req.Denom)
 
 	return &types.QueryTotalEscrowForDenomResponse{
 		Amount: amount,

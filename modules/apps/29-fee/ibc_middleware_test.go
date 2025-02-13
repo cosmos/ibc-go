@@ -85,7 +85,7 @@ func (suite *FeeTestSuite) TestOnChanOpenInit() {
 				suite.path.SetupConnections()
 
 				// setup mock callback
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx context.Context, order channeltypes.Order, connectionHops []string,
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenInit = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
@@ -179,7 +179,7 @@ func (suite *FeeTestSuite) TestOnChanOpenTry() {
 				suite.Require().NoError(err)
 
 				// setup mock callback
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx context.Context, order channeltypes.Order, connectionHops []string,
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenTry = func(ctx sdk.Context, order channeltypes.Order, connectionHops []string,
 					portID, channelID string,
 					counterparty channeltypes.Counterparty, counterpartyVersion string,
 				) (string, error) {
@@ -270,7 +270,7 @@ func (suite *FeeTestSuite) TestOnChanOpenAck() {
 
 			// setup mock callback
 			suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanOpenAck = func(
-				ctx context.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
+				ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
 			) error {
 				if counterpartyVersion != ibcmock.Version {
 					return fmt.Errorf("incorrect mock version")
@@ -334,7 +334,7 @@ func (suite *FeeTestSuite) TestOnChanCloseInit() {
 		{
 			"application callback fails", func() {
 				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseInit = func(
-					ctx context.Context, portID, channelID string,
+					ctx sdk.Context, portID, channelID string,
 				) error {
 					return fmt.Errorf("application callback fails")
 				}
@@ -420,7 +420,7 @@ func (suite *FeeTestSuite) TestOnChanCloseConfirm() {
 		{
 			"application callback fails", func() {
 				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanCloseConfirm = func(
-					ctx context.Context, portID, channelID string,
+					ctx sdk.Context, portID, channelID string,
 				) error {
 					return fmt.Errorf("application callback fails")
 				}
@@ -490,7 +490,7 @@ func (suite *FeeTestSuite) TestOnRecvPacket() {
 			func() {
 				// setup mock callback
 				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnRecvPacket = func(
-					ctx context.Context,
+					ctx sdk.Context,
 					channelVersion string,
 					packet channeltypes.Packet,
 					relayer sdk.AccAddress,
@@ -775,7 +775,7 @@ func (suite *FeeTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ context.Context, _ string, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnAcknowledgementPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ []byte, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
@@ -986,7 +986,7 @@ func (suite *FeeTestSuite) TestOnTimeoutPacket() {
 		{
 			"application callback fails",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ context.Context, _ string, _ channeltypes.Packet, _ sdk.AccAddress) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnTimeoutPacket = func(_ sdk.Context, _ string, _ channeltypes.Packet, _ sdk.AccAddress) error {
 					return fmt.Errorf("mock fee app callback fails")
 				}
 			},
@@ -1067,7 +1067,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
 				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
 
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ context.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 					// intentionally force the error here so we can assert that a passthrough occurs when fees should not be enabled for this channel
 					return "", ibcmock.MockApplicationCallbackError
 				}
@@ -1086,7 +1086,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeInit() {
 		{
 			"underlying app callback returns error",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ context.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeInit = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 					return "", ibcmock.MockApplicationCallbackError
 				}
 			},
@@ -1173,7 +1173,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 				suite.coordinator.CommitBlock(suite.chainA)
 
 				// intentionally force the error here so we can assert that a passthrough occurs when fees should not be enabled for this channel
-				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeTry = func(_ context.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeTry = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 					return "", ibcmock.MockApplicationCallbackError
 				}
 			},
@@ -1195,7 +1195,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeTry() {
 		{
 			"underlying app callback returns error",
 			func() {
-				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeTry = func(_ context.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
+				suite.chainB.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeTry = func(_ sdk.Context, _, _ string, _ channeltypes.Order, _ []string, _ string) (string, error) {
 					return "", ibcmock.MockApplicationCallbackError
 				}
 			},
@@ -1269,7 +1269,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 
 				suite.coordinator.CommitBlock(suite.chainB)
 
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeAck = func(_ context.Context, _, _, _ string) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeAck = func(_ sdk.Context, _, _, _ string) error {
 					return types.ErrInvalidVersion
 				}
 			},
@@ -1291,7 +1291,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeAck() {
 		{
 			"underlying app callback returns error",
 			func() {
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeAck = func(_ context.Context, _, _, _ string) error {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeAck = func(_ sdk.Context, _, _, _ string) error {
 					return ibcmock.MockApplicationCallbackError
 				}
 			},
@@ -1358,7 +1358,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 			"success: enable fees",
 			func() {
 				// Assert in callback that correct upgrade information is passed
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
 					suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, portID)
 					suite.Require().Equal(path.EndpointA.ChannelID, channelID)
 					suite.Require().Equal(channeltypes.UNORDERED, order)
@@ -1388,7 +1388,7 @@ func (suite *FeeTestSuite) TestOnChanUpgradeOpen() {
 				path.Setup()
 
 				// Assert in callback that correct version is passed
-				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
+				suite.chainA.GetSimApp().FeeMockModule.IBCApp.OnChanUpgradeOpen = func(_ sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) {
 					suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, portID)
 					suite.Require().Equal(path.EndpointA.ChannelID, channelID)
 					suite.Require().Equal(channeltypes.UNORDERED, order)

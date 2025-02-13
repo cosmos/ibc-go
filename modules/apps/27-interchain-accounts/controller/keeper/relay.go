@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"context"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,11 +20,15 @@ import (
 // Prior to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
-func (k Keeper) SendTx(ctx context.Context, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
+func (k Keeper) SendTx(ctx sdk.Context, connectionID, portID string,
+	icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64,
+) (uint64, error) {
 	return k.sendTx(ctx, connectionID, portID, icaPacketData, timeoutTimestamp)
 }
 
-func (k Keeper) sendTx(ctx context.Context, connectionID, portID string, icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64) (uint64, error) {
+func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string,
+	icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64,
+) (uint64, error) {
 	if !k.GetParams(ctx).ControllerEnabled {
 		return 0, types.ErrControllerSubModuleDisabled
 	}
@@ -35,9 +37,7 @@ func (k Keeper) sendTx(ctx context.Context, connectionID, portID string, icaPack
 	if !found {
 		return 0, errorsmod.Wrapf(icatypes.ErrActiveChannelNotFound, "failed to retrieve active channel on connection %s for port %s", connectionID, portID)
 	}
-
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	if uint64(sdkCtx.BlockTime().UnixNano()) >= timeoutTimestamp {
+	if uint64(ctx.BlockTime().UnixNano()) >= timeoutTimestamp {
 		return 0, icatypes.ErrInvalidTimeoutTimestamp
 	}
 
@@ -55,6 +55,6 @@ func (k Keeper) sendTx(ctx context.Context, connectionID, portID string, icaPack
 
 // OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed
 // due to the semantics of ORDERED channels
-func (Keeper) OnTimeoutPacket(ctx context.Context, packet channeltypes.Packet) error {
+func (Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet) error {
 	return nil
 }

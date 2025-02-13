@@ -1,8 +1,6 @@
 package types
 
 import (
-	"context"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
@@ -103,7 +101,7 @@ type ContractKeeper interface {
 
 type ChannelKeeperV2 interface {
 	GetAsyncPacket(
-		ctx context.Context,
+		ctx sdk.Context,
 		clientID string,
 		sequence uint64,
 	) (channeltypesv2.Packet, bool)

@@ -28,7 +28,7 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 
 // ModuleQuerySafe routes the queries to the keeper's query router if they are module_query_safe.
 // This handler doesn't use the signer.
-func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQuerySafe) (*types.MsgModuleQuerySafeResponse, error) {
+func (m msgServer) ModuleQuerySafe(goCtx sdk.Context, msg *types.MsgModuleQuerySafe) (*types.MsgModuleQuerySafeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	responses := make([][]byte, len(msg.Requests))
@@ -62,7 +62,7 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 }
 
 // UpdateParams updates the host submodule's params.
-func (m msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+func (m msgServer) UpdateParams(goCtx sdk.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if m.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", m.GetAuthority(), msg.Signer)
 	}

@@ -2,7 +2,6 @@ package tendermint
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -22,7 +21,7 @@ import (
 
 // VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and verifies the message
 func (cs *ClientState) VerifyClientMessage(
-	ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
+	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
 	clientMsg exported.ClientMessage,
 ) error {
 	switch msg := clientMsg.(type) {
@@ -44,7 +43,7 @@ func (cs *ClientState) VerifyClientMessage(
 // - header timestamp is past the trusting period in relation to the consensus state
 // - header timestamp is less than or equal to the consensus state timestamp
 func (cs *ClientState) verifyHeader(
-	ctx context.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec,
+	ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec,
 	header *Header,
 ) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -134,7 +133,7 @@ func (cs *ClientState) verifyHeader(
 // number must be the same. To update to a new revision, use a separate upgrade path
 // UpdateState will prune the oldest consensus state if it is expired.
 // If the provided clientMsg is not of type of Header then the handler will noop and empty slice is returned.
-func (cs ClientState) UpdateState(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	header, ok := clientMsg.(*Header)
 	if !ok {
 		// clientMsg is invalid Misbehaviour, no update necessary
@@ -179,7 +178,7 @@ func (cs ClientState) UpdateState(ctx context.Context, cdc codec.BinaryCodec, cl
 // pruneOldestConsensusState will retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
 // that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
 // becoming bloated with expired consensus states that can no longer be used for updates and packet verification.
-func (cs ClientState) pruneOldestConsensusState(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore) {
+func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore) {
 	// Check the earliest consensus state to see if it is expired, if so then set the prune height
 	// so that we can delete consensus state and all associated metadata.
 	var (
@@ -212,7 +211,7 @@ func (cs ClientState) pruneOldestConsensusState(ctx context.Context, cdc codec.B
 
 // UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState. This method should only be called when misbehaviour is detected
 // as it does not perform any misbehaviour checks.
-func (cs ClientState) UpdateStateOnMisbehaviour(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, _ exported.ClientMessage) {
+func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, _ exported.ClientMessage) {
 	cs.FrozenHeight = FrozenHeight
 
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))

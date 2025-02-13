@@ -1,7 +1,6 @@
 package events
 
 import (
-	"context"
 	"encoding/json"
 	"strconv"
 
@@ -13,10 +12,8 @@ import (
 )
 
 // EmitTransferEvent emits a ibc transfer event on successful transfers.
-func EmitTransferEvent(ctx context.Context, sender, receiver string, token types.Token, memo string) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func EmitTransferEvent(ctx sdk.Context, sender, receiver string, token types.Token, memo string) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTransfer,
 			sdk.NewAttribute(types.AttributeKeySender, sender),
@@ -33,7 +30,7 @@ func EmitTransferEvent(ctx context.Context, sender, receiver string, token types
 }
 
 // EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback
-func EmitOnRecvPacketEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2, ack ibcexported.Acknowledgement, ackErr error) {
+func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack ibcexported.Acknowledgement, ackErr error) {
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
@@ -47,9 +44,7 @@ func EmitOnRecvPacketEvent(ctx context.Context, packetData types.FungibleTokenPa
 		eventAttributes = append(eventAttributes, sdk.NewAttribute(types.AttributeKeyAckError, ackErr.Error()))
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePacket,
 			eventAttributes...,
@@ -62,9 +57,8 @@ func EmitOnRecvPacketEvent(ctx context.Context, packetData types.FungibleTokenPa
 }
 
 // EmitOnAcknowledgementPacketEvent emits a fungible token packet event in the OnAcknowledgementPacket callback
-func EmitOnAcknowledgementPacketEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2, ack channeltypes.Acknowledgement) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeySender, packetData.Sender),
@@ -82,14 +76,14 @@ func EmitOnAcknowledgementPacketEvent(ctx context.Context, packetData types.Fung
 
 	switch resp := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
-		sdkCtx.EventManager().EmitEvent(
+		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypePacket,
 				sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
 			),
 		)
 	case *channeltypes.Acknowledgement_Error:
-		sdkCtx.EventManager().EmitEvent(
+		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypePacket,
 				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
@@ -99,11 +93,10 @@ func EmitOnAcknowledgementPacketEvent(ctx context.Context, packetData types.Fung
 }
 
 // EmitOnTimeoutEvent emits a fungible token packet event in the OnTimeoutPacket callback
-func EmitOnTimeoutEvent(ctx context.Context, packetData types.FungibleTokenPacketDataV2) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
+func EmitOnTimeoutEvent(ctx sdk.Context, packetData types.FungibleTokenPacketDataV2) {
 	tokenStr := mustMarshalJSON(packetData.Token)
 
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeout,
 			sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Sender),
@@ -118,11 +111,10 @@ func EmitOnTimeoutEvent(ctx context.Context, packetData types.FungibleTokenPacke
 }
 
 // EmitDenomEvent emits a denomination event in the OnRecv callback.
-func EmitDenomEvent(ctx context.Context, token types.Token) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
+func EmitDenomEvent(ctx sdk.Context, token types.Token) {
 	denomStr := mustMarshalJSON(token.Denom)
 
-	sdkCtx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeDenom,
 			sdk.NewAttribute(types.AttributeKeyDenomHash, token.Denom.Hash().String()),

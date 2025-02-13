@@ -5,14 +5,13 @@ package keeper
 */
 
 import (
-	"context"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 func (k *Keeper) SendPacketTest(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourceChannel string,
 	timeoutTimestamp uint64,
 	payloads []types.Payload,
@@ -26,7 +25,7 @@ func (k *Keeper) SendPacketTest(
 }
 
 func (k *Keeper) RecvPacketTest(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
@@ -40,7 +39,7 @@ func (k *Keeper) RecvPacketTest(
 }
 
 func (k *Keeper) AcknowledgePacketTest(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet types.Packet,
 	acknowledgement types.Acknowledgement,
 	proof []byte,
@@ -56,7 +55,7 @@ func (k *Keeper) AcknowledgePacketTest(
 }
 
 func (k *Keeper) TimeoutPacketTest(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,

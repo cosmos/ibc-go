@@ -2,7 +2,6 @@ package v2
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"strings"
 
@@ -33,7 +32,7 @@ type IBCModule struct {
 	keeper keeper.Keeper
 }
 
-func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
+func (im *IBCModule) OnSendPacket(goCtx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
 	// Enforce that the source and destination portIDs are the same and equal to the transfer portID
 	// This is necessary for IBC Eureka since the portIDs (and thus the application-application connection) is not prenegotiated
 	// by the channel handshake
@@ -78,7 +77,7 @@ func (im *IBCModule) OnSendPacket(goCtx context.Context, sourceChannel string, d
 	return nil
 }
 
-func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 	// Enforce that the source and destination portIDs are the same and equal to the transfer portID
 	// This is necessary for IBC Eureka since the portIDs (and thus the application-application connection) is not prenegotiated
 	// by the channel handshake
@@ -135,7 +134,7 @@ func (im *IBCModule) OnRecvPacket(ctx context.Context, sourceChannel string, des
 	return recvResult
 }
 
-func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
+func (im *IBCModule) OnTimeoutPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
 	data, err := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {
 		return err
@@ -151,7 +150,7 @@ func (im *IBCModule) OnTimeoutPacket(ctx context.Context, sourceChannel string, 
 	return nil
 }
 
-func (im *IBCModule) OnAcknowledgementPacket(ctx context.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
+func (im *IBCModule) OnAcknowledgementPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
 	var ack channeltypes.Acknowledgement
 	// construct an error acknowledgement if the acknowledgement bytes are the sentinel error acknowledgement so we can use the shared transfer logic
 	if bytes.Equal(acknowledgement, channeltypesv2.ErrorAcknowledgement[:]) {

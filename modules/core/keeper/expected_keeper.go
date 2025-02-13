@@ -1,27 +1,26 @@
 package keeper
 
 import (
-	"context"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
 
 type PacketHandler interface {
 	RecvPacket(
-		ctx context.Context,
+		ctx sdk.Context,
 		packet channeltypes.Packet,
 		proof []byte,
 		proofHeight exported.Height) (string, error)
 
 	WriteAcknowledgement(
-		ctx context.Context,
+		ctx sdk.Context,
 		packet exported.PacketI,
 		acknowledgement exported.Acknowledgement,
 	) error
 
 	AcknowledgePacket(
-		ctx context.Context,
+		ctx sdk.Context,
 		packet channeltypes.Packet,
 		acknowledgement []byte,
 		proof []byte,
@@ -29,7 +28,7 @@ type PacketHandler interface {
 	) (string, error)
 
 	TimeoutPacket(
-		ctx context.Context,
+		ctx sdk.Context,
 		packet channeltypes.Packet,
 		proof []byte,
 		proofHeight exported.Height,

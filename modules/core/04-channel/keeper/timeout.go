@@ -20,7 +20,7 @@ import (
 // perform appropriate state transitions. Its intended usage is within the
 // ante handler.
 func (k *Keeper) TimeoutPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
@@ -128,7 +128,7 @@ func (k *Keeper) TimeoutPacket(
 //
 // CONTRACT: this function must be called in the IBC handler
 func (k *Keeper) timeoutExecuted(
-	ctx context.Context,
+	ctx sdk.Context,
 	channel types.Channel,
 	packet types.Packet,
 ) error {
@@ -176,7 +176,7 @@ func (k *Keeper) timeoutExecuted(
 // which an unreceived packet was addressed has been closed, so the packet will
 // never be received (even if the timeoutHeight has not yet been reached).
 func (k *Keeper) TimeoutOnClose(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet types.Packet,
 	proof,
 	closedProof []byte,

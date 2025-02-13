@@ -2,7 +2,6 @@ package tendermint
 
 import (
 	"bytes"
-	"context"
 	"reflect"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 
 // CheckForMisbehaviour detects duplicate height misbehaviour and BFT time violation misbehaviour
 // in a submitted Header message and verifies the correctness of a submitted Misbehaviour ClientMessage
-func (ClientState) CheckForMisbehaviour(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, msg exported.ClientMessage) bool {
+func (ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, msg exported.ClientMessage) bool {
 	switch msg := msg.(type) {
 	case *Header:
 		tmHeader := msg
@@ -91,7 +90,7 @@ func (ClientState) CheckForMisbehaviour(ctx context.Context, cdc codec.BinaryCod
 // Similarly, consensusState2 is the trusted consensus state that corresponds
 // to misbehaviour.Header2
 // Misbehaviour sets frozen height to {0, 1} since it is only used as a boolean value (zero or non-zero).
-func (cs *ClientState) verifyMisbehaviour(ctx context.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, misbehaviour *Misbehaviour) error {
+func (cs *ClientState) verifyMisbehaviour(ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec, misbehaviour *Misbehaviour) error {
 	// Regardless of the type of misbehaviour, ensure that both headers are valid and would have been accepted by light-client
 
 	// Retrieve trusted consensus states for each Header in misbehaviour

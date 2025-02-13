@@ -1,7 +1,6 @@
 package v2
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -86,7 +85,7 @@ func (im *IBCMiddleware) GetWriteAckWrapper() api.WriteAcknowledgementWrapper {
 // If the contract callback returns an error, panics, or runs out of gas, then
 // the packet send is rejected.
 func (im IBCMiddleware) OnSendPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourceClient string,
 	destinationClient string,
 	sequence uint64,
@@ -136,7 +135,7 @@ func (im IBCMiddleware) OnSendPacket(
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
 func (im IBCMiddleware) OnRecvPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourceClient string,
 	destinationClient string,
 	sequence uint64,
@@ -201,7 +200,7 @@ func (im IBCMiddleware) OnRecvPacket(
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
 func (im IBCMiddleware) OnAcknowledgementPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourceClient string,
 	destinationClient string,
 	sequence uint64,
@@ -270,7 +269,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 // reverted via a panic.
 // OnTimeoutPacket is executed when a packet has timed out on the receiving chain.
 func (im IBCMiddleware) OnTimeoutPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourceClient string,
 	destinationClient string,
 	sequence uint64,
@@ -331,7 +330,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
 func (im IBCMiddleware) WriteAcknowledgement(
-	ctx context.Context,
+	ctx sdk.Context,
 	clientID string,
 	sequence uint64,
 	ack channeltypesv2.Acknowledgement,

@@ -20,7 +20,7 @@ import (
 // The packet sequence generated for the packet to be sent is returned. An error
 // is returned if one occurs.
 func (k *Keeper) SendPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -102,7 +102,7 @@ func (k *Keeper) SendPacket(
 // RecvPacket is called by a module in order to receive & process an IBC packet
 // sent on the corresponding channel end on the counterparty chain.
 func (k *Keeper) RecvPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
@@ -197,7 +197,7 @@ func (k *Keeper) RecvPacket(
 
 // applyReplayProtection ensures a packet has not already been received
 // and performs the necessary state changes to ensure it cannot be received again.
-func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet, channel types.Channel) error {
+func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, channel types.Channel) error {
 	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
 	// attacks on packets processed in previous lifecycles of a channel. After a successful channel
 	// upgrade all packets under the recvStartSequence will have been processed and thus should be
@@ -279,7 +279,7 @@ func (k *Keeper) applyReplayProtection(ctx context.Context, packet types.Packet,
 // 2) Assumes that packet receipt has been written (unordered), or nextSeqRecv was incremented (ordered)
 // previously by RecvPacket.
 func (k *Keeper) WriteAcknowledgement(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet exported.PacketI,
 	acknowledgement exported.Acknowledgement,
 ) error {
@@ -347,7 +347,7 @@ func (k *Keeper) WriteAcknowledgement(
 // which is no longer necessary since the packet has been received and acted upon.
 // It will also increment NextSequenceAck in case of ORDERED channels.
 func (k *Keeper) AcknowledgePacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet types.Packet,
 	acknowledgement []byte,
 	proof []byte,
@@ -468,7 +468,7 @@ func (k *Keeper) AcknowledgePacket(
 // FLUSHING state. It checks if the upgrade has timed out and if so, aborts the upgrade. If all
 // packets have completed their lifecycle, it sets the channel state to FLUSHCOMPLETE and
 // emits a channel_flush_complete event. Returns true if the upgrade was aborted, false otherwise.
-func (k *Keeper) handleFlushState(ctx context.Context, packet types.Packet, channel types.Channel) {
+func (k *Keeper) handleFlushState(ctx sdk.Context, packet types.Packet, channel types.Channel) {
 	if counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel()); found {
 		timeout := counterpartyUpgrade.Timeout
 		sdkCtx := sdk.UnwrapSDKContext(ctx)

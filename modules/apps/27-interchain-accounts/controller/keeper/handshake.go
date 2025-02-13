@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	"context"
 	"fmt"
 	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -17,7 +18,7 @@ import (
 // the channel version must be equal to the version in the types package,
 // there must not be an active channel for the specified port identifier.
 func (k Keeper) OnChanOpenInit(
-	ctx context.Context,
+	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
 	portID string,
@@ -86,7 +87,7 @@ func (k Keeper) OnChanOpenInit(
 // OnChanOpenAck sets the active channel for the interchain account/owner pair
 // and stores the associated interchain account address in state keyed by it's corresponding port identifier
 func (k Keeper) OnChanOpenAck(
-	ctx context.Context,
+	ctx sdk.Context,
 	portID,
 	channelID string,
 	counterpartyVersion string,
@@ -128,7 +129,7 @@ func (k Keeper) OnChanOpenAck(
 
 // OnChanCloseConfirm removes the active channel stored in state
 func (Keeper) OnChanCloseConfirm(
-	ctx context.Context,
+	ctx sdk.Context,
 	portID,
 	channelID string,
 ) error {
@@ -149,7 +150,7 @@ func (Keeper) OnChanCloseConfirm(
 // - connectionHops (and subsequently host/controller connectionIDs)
 // - interchain account address
 // - ICS27 protocol version
-func (k Keeper) OnChanUpgradeInit(ctx context.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedversion string) (string, error) {
+func (k Keeper) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedversion string) (string, error) {
 	// verify connection hops has not changed
 	connectionID, err := k.GetConnectionID(ctx, portID, channelID)
 	if err != nil {
@@ -212,7 +213,7 @@ func (k Keeper) OnChanUpgradeInit(ctx context.Context, portID, channelID string,
 // - host connectionID
 // - interchain account address
 // - ICS27 protocol version
-func (k Keeper) OnChanUpgradeAck(ctx context.Context, portID, channelID, counterpartyVersion string) error {
+func (k Keeper) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 	if strings.TrimSpace(counterpartyVersion) == "" {
 		return errorsmod.Wrap(channeltypes.ErrInvalidChannelVersion, "counterparty version cannot be empty")
 	}

@@ -17,7 +17,7 @@ import (
 var _ types.MsgServer = &Keeper{}
 
 // SendPacket implements the PacketMsgServer SendPacket method.
-func (k *Keeper) SendPacket(ctx context.Context, msg *types.MsgSendPacket) (*types.MsgSendPacketResponse, error) {
+func (k *Keeper) SendPacket(ctx sdk.Context, msg *types.MsgSendPacket) (*types.MsgSendPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	// Note, the validate basic function in sendPacket does the timeoutTimestamp != 0 check and other stateless checks on the packet.
@@ -56,7 +56,7 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *types.MsgSendPacket) (*typ
 }
 
 // RecvPacket implements the PacketMsgServer RecvPacket method.
-func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*types.MsgRecvPacketResponse, error) {
+func (k *Keeper) RecvPacket(ctx sdk.Context, msg *types.MsgRecvPacket) (*types.MsgRecvPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -159,7 +159,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 }
 
 // Acknowledgement defines an rpc handler method for MsgAcknowledgement.
-func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgement) (*types.MsgAcknowledgementResponse, error) {
+func (k *Keeper) Acknowledgement(ctx sdk.Context, msg *types.MsgAcknowledgement) (*types.MsgAcknowledgementResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -205,7 +205,7 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 }
 
 // Timeout implements the PacketMsgServer Timeout method.
-func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types.MsgTimeoutResponse, error) {
+func (k *Keeper) Timeout(ctx sdk.Context, timeout *types.MsgTimeout) (*types.MsgTimeoutResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	signer, err := sdk.AccAddressFromBech32(timeout.Signer)
