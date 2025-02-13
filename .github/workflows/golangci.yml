@@ -14,7 +14,7 @@ permissions:
 jobs:
   golangci:
     name: lint
-    depot-ubuntu-22.04-4
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-go@v5
         with:

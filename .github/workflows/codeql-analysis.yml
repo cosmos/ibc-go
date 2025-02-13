@@ -23,7 +23,7 @@ on:
 jobs:
   analyze:
     name: Analyze
-    depot-ubuntu-22.04-4
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read

@@ -14,7 +14,7 @@ on:
 jobs:
   deploy:
     name: Deploy to GitHub Pages
-    depot-ubuntu-22.04-4
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

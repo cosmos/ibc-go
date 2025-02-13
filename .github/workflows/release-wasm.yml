@@ -26,7 +26,7 @@ env:
 
 jobs:
   publish-docker-image-wasm:
-    depot-ubuntu-22.04-4
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:

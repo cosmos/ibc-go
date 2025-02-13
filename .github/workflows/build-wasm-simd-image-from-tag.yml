@@ -73,7 +73,7 @@ jobs:
           retention-days: 1
 
   merge:
-    depot-ubuntu-22.04-4
+    runs-on: ubuntu-latest
     needs:
       - build-image-at-tag
     steps:
