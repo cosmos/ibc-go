@@ -1036,7 +1036,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade_FeeMiddlewareChannelUpgrade(
 	})
 }
 
-func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade() {
+func (s *UpgradeTestSuite) TestV8ToV10ChainUpgrade() {
 	t := s.T()
 	testCfg := testsuite.LoadConfig()
 	ctx := context.Background()
@@ -1126,7 +1126,7 @@ func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade() {
 	})
 }
 
-func (s *UpgradeTestSuite) TestV8ToV9ChainUpgrade_Localhost() {
+func (s *UpgradeTestSuite) TestV8ToV10ChainUpgrade_Localhost() {
 	t := s.T()
 	testCfg := testsuite.LoadConfig()
 	ctx := context.Background()
