@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 
 	errorsmod "cosmossdk.io/errors"
@@ -543,7 +542,11 @@ func TestUnmarshalPacketData(t *testing.T) {
 		{
 			"success: v1 -> v2 with JSON encoding",
 			func() {
+				packetDataV1 := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, "")
 				encoding = types.EncodingJSON
+				bz, err := types.MarshalPacketData(packetDataV1, types.V1, encoding)
+				require.NoError(t, err)
+				packetDataBz = bz
 			},
 			nil,
 		},
@@ -551,7 +554,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 			"success: v1 -> v2 with protobuf encoding",
 			func() {
 				packetData := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, "")
-				bz, err := proto.Marshal(&packetData)
+				bz, err := types.MarshalPacketData(packetData, types.V1, types.EncodingProtobuf)
 				require.NoError(t, err)
 
 				packetDataBz = bz
@@ -563,7 +566,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 			"success: v1 -> v2 with abi encoding",
 			func() {
 				packetData := types.NewFungibleTokenPacketData("transfer/channel-0/atom", "1000", sender, receiver, "")
-				bz, err := types.EncodeABIFungibleTokenPacketData(&packetData)
+				bz, err := types.MarshalPacketData(packetData, types.V1, types.EncodingABI)
 				require.NoError(t, err)
 
 				packetDataBz = bz
