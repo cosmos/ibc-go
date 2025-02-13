@@ -26,7 +26,7 @@ jobs:
   # this will be used to tag the images that are built during the workflow.
   determine-image-tag:
     if: ${{ !github.event.pull_request.draft && github.repository == 'cosmos/ibc-go' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-    runs-on: ubuntu-latest
+    depot-ubuntu-22.04-4
     outputs:
       simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
     steps:
