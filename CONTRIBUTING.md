@@ -38,7 +38,7 @@ New features or improvements are sometimes also debated in [discussions](https:/
 ### Submitting pull requests
 
 Before opening a pull request, make sure there is an accompanying issue that has been assigned to you. 
-In the case of smaller changes, opening a pull request without being assigned to the issue _can_ be accepted, but to avoid having to redesign or discard your work due to the change no longer being needed, asking to be assigned to the issue is the safest course of action. We welcome contributors, but we have put in place these guidelines to safeguard the time of both external and core contributors.
+In the case of smaller changes, opening a pull request without being assigned to the issue **can** be accepted, but to avoid having to redesign or discard your work due to the change no longer being needed, asking to be assigned to the issue is the safest course of action. We welcome contributors, but we have put in place these guidelines to safeguard the time of both external and core contributors.
 
 Unless you feel confident your change will be accepted (see [Unwanted pull requests](#unwanted-pull-requests)) you should first create an issue to discuss your change with us. This lets us all discuss the design and proposed implementation of your change, which helps ensure your time is well spent and that your contribution will be accepted.
 
@@ -60,10 +60,12 @@ If you would like to contribute, follow this process:
 Please make sure to check out our [Pull request guidelines](./docs/dev/pull-requests.md) for more information.
 
 #### Unwanted pull requests
+
 To ensure the core maintainers time are spent well, we have certain pull requests we want to avoid:
-* Any non-minor pull requests without an _assigned_ issue
-* Any non-minor bug fixes without an issue (ideally, also assigned, but we are less strict on this)
-* Spelling mistakes/changes (instead, try to fix our CI so that it would be able to catch it automatically - that would be useful)
+
+- Any non-minor pull requests without an **assigned** issue
+- Any non-minor bug fixes without an issue (ideally, also assigned, but we are less strict on this)
+- Spelling mistakes/changes (instead, try to fix our CI so that it would be able to catch it automatically - that would be useful)
 
 ## Relevant development docs
 
