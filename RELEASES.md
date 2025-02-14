@@ -17,9 +17,7 @@ When bumping the dependencies of [Cosmos SDK](https://github.com/cosmos/cosmos-s
 
 [ibc-go](https://github.com/cosmos/ibc-go) and the [IBC protocol specification](https://github.com/cosmos/ibc) maintain different versions. Furthermore, ibc-go serves several different user groups (chains, IBC app developers, relayers, IBC light client developers). Each of these groups has different expectations of what *backwards compatible* means. It simply isn't possible to categorize a change as backwards or non backwards compatible for all user groups. We are primarily interested in when our API breaks and when changes are state machine breaking (thus requiring a coordinated upgrade). This is scoping the meaning of ibc-go to that of those interacting with the code (IBC app developers, relayers, IBC light client developers), not chains using IBC to communicate (that should be encapsulated by the IBC protocol specification versioning).
 
-To summarize: **All our ibc-go releases allow chains to communicate successfully with any chain running any version of our code**. That is to say, we are still using IBC protocol specification v1.0.
-
-We ensure all major releases are supported by relayers ([hermes](https://github.com/informalsystems/ibc-rs), [rly](https://github.com/cosmos/relayer) and [ts-relayer](https://github.com/confio/ts-relayer) at the moment) which can relay between the new major release and older releases. We have no plans of upgrading to an IBC protocol specification v2.0, as this would be very disruptive to the ecosystem.
+To summarize: **All our ibc-go releases allow chains to communicate successfully with any chain running any version of our code**. That is to say, we are still using IBC protocol specification v1.0 (v10 will also include support for the IBC protocol specification v2.0 - also called IBC Eureka)
 
 ## Release cycle
 
@@ -78,7 +76,6 @@ We reserve the right to drop support for releases if they are deemed unused (for
 |`v7.8.x`|March 17, 2025|
 |`v8.4.x`|May 10, 2025|
 |`v8.5.x`|May 10, 2025|
-|`v9.0.x`|October 1, 2025|
 
 ### Callbacks middleware
 
@@ -134,7 +131,6 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 | 1.19 | v7.8.0 | v0.47.13 | v0.37.5  |
 | 1.21 | v8.4.0 | v0.50.7  | v0.38.7  |
 | 1.21 | v8.5.0 | v0.50.9  | v0.38.11 |
-| 1.22 | v9.0.0 | v0.50.9  | v0.38.11 |
 
 ### Callbacks middleware
 
