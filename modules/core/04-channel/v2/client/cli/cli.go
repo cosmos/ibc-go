@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
 // GetQueryCmd returns the query commands for the IBC channel/v2.

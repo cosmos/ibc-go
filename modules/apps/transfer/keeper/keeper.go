@@ -19,9 +19,9 @@ import (
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // Keeper defines the IBC fungible transfer keeper

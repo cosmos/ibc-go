@@ -36,8 +36,8 @@ We need to register the core `ibc` and `transfer` `Keeper`s as follows:
 import (
   // other imports
   // ...
-  ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
-  ibctransferkeeper "github.com/cosmos/ibc-go/v9/modules/apps/transfer/keeper"
+  ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
+  ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 )
 
 type App struct {
@@ -65,11 +65,11 @@ import (
 
   capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
   capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-  ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
-  ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
-  "github.com/cosmos/ibc-go/v9/modules/apps/transfer"
-  ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-  ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+  ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+  ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
+  "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
+  ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+  ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 )
 
 func NewApp(...args) *App {
@@ -136,8 +136,8 @@ Once the `Router` has been set, no new routes can be added.
 import (
   // other imports
   // ...
-  porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types" 
-  ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+  porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types" 
+  ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
 func NewApp(...args) *App {
@@ -163,8 +163,8 @@ import (
   // ...
   "github.com/cosmos/cosmos-sdk/types/module"
 
-  ibc "github.com/cosmos/ibc-go/v9/modules/core"
-  "github.com/cosmos/ibc-go/v9/modules/apps/transfer"
+  ibc "github.com/cosmos/ibc-go/v10/modules/core"
+  "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 )
 
 func NewApp(...args) *App {
@@ -204,7 +204,7 @@ import (
   authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
   // highlight-next-line
-+ ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
++ ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
 // app.go
@@ -232,7 +232,7 @@ import (
   // ...
   "github.com/cosmos/cosmos-sdk/types/module"
   // highlight-next-line
-+ ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
++ ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 )
 
 // app.go
@@ -265,9 +265,9 @@ import (
   // other imports
   // ...
   stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-  ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
-  ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
-  ibctransfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+  ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+  ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
+  ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
 func NewApp(...args) *App {

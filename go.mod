@@ -1,8 +1,6 @@
 go 1.23.6
 
-module github.com/cosmos/ibc-go/v9
-
-retract [v9.0.0, v9.0.2]
+module github.com/cosmos/ibc-go/v10
 
 require (
 	cosmossdk.io/api v0.7.6

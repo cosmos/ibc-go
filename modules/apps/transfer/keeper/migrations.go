@@ -12,8 +12,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	internaltypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/internal/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
