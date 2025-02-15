@@ -90,8 +90,7 @@ func (k Keeper) GetAuthority() string {
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx sdk.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }
 
 // GetPort returns the portID for the transfer module. Used in ExportGenesis

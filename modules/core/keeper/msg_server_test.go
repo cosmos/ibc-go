@@ -1064,11 +1064,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeInit = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
-					sdkCtx := sdk.UnwrapSDKContext(ctx)
-					store := sdkCtx.KVStore(storeKey)
+					store := ctx.KVStore(storeKey)
 					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
+					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return ibcmock.UpgradeVersion, nil
 				}
 			},
@@ -1212,11 +1211,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 			func() {
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
-					sdkCtx := sdk.UnwrapSDKContext(ctx)
-					store := sdkCtx.KVStore(storeKey)
+					store := ctx.KVStore(storeKey)
 					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
+					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return ibcmock.UpgradeVersion, nil
 				}
 			},
@@ -1419,8 +1417,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 					ctx sdk.Context, portID, channelID, counterpartyVersion string,
 				) error {
 					// set arbitrary value in store to mock application state changes
-					sdkCtx := sdk.UnwrapSDKContext(ctx)
-					store := sdkCtx.KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
+					store := ctx.KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
 					store.Set([]byte("foo"), []byte("bar"))
 					return fmt.Errorf("mock app callback failed")
 				}
@@ -1494,11 +1491,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			func() {
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
-					sdkCtx := sdk.UnwrapSDKContext(ctx)
-					store := sdkCtx.KVStore(storeKey)
+					store := ctx.KVStore(storeKey)
 					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
+					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return nil
 				}
 			},

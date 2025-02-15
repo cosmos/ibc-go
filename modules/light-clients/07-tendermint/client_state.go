@@ -93,8 +93,7 @@ func (cs ClientState) status(
 		return exported.Expired
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	if cs.IsExpired(consState.Timestamp, sdkCtx.BlockTime()) {
+	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
 		return exported.Expired
 	}
 
@@ -296,8 +295,7 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHei
 			return errorsmod.Wrapf(ErrProcessedTimeNotFound, "processed time not found for height: %s", proofHeight)
 		}
 
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
-		currentTimestamp := uint64(sdkCtx.BlockTime().UnixNano())
+		currentTimestamp := uint64(ctx.BlockTime().UnixNano())
 		validTime := processedTime + delayTimePeriod
 
 		// NOTE: delay time period is inclusive, so if currentTimestamp is validTime, then we return no error

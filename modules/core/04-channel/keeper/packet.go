@@ -35,8 +35,6 @@ func (k *Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	sequence, found := k.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
 		return 0, errorsmod.Wrapf(
@@ -84,7 +82,7 @@ func (k *Keeper) SendPacket(
 	k.SetNextSequenceSend(ctx, sourcePort, sourceChannel, sequence+1)
 	k.SetPacketCommitment(ctx, sourcePort, sourceChannel, packet.GetSequence(), commitment)
 
-	emitSendPacketEvent(sdkCtx, packet, channel, timeoutHeight)
+	emitSendPacketEvent(ctx, packet, channel, timeoutHeight)
 
 	k.Logger(ctx).Info(
 		"packet sent",
@@ -156,8 +154,7 @@ func (k *Keeper) RecvPacket(
 	}
 
 	// check if packet timed out by comparing it with the latest height of the chain
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
 	timeout := types.NewTimeout(packet.GetTimeoutHeight().(clienttypes.Height), packet.GetTimeoutTimestamp())
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		return "", errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "packet timeout elapsed")
@@ -189,7 +186,7 @@ func (k *Keeper) RecvPacket(
 	)
 
 	// emit an event that the relayer can query for
-	emitRecvPacketEvent(sdkCtx, packet, channel)
+	emitRecvPacketEvent(ctx, packet, channel)
 
 	return channel.Version, nil
 }
@@ -206,7 +203,6 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 		return errorsmod.Wrap(types.ErrPacketReceived, "packet already processed in previous channel upgrade")
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	switch channel.Ordering {
 	case types.UNORDERED:
 		// REPLAY PROTECTION: Packet receipts will indicate that a packet has already been received
@@ -214,7 +210,7 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 		// by the increase of the recvStartSequence.
 		_, found := k.GetPacketReceipt(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		if found {
-			emitRecvPacketEvent(sdkCtx, packet, channel)
+			emitRecvPacketEvent(ctx, packet, channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -238,7 +234,7 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 		}
 
 		if packet.GetSequence() < nextSequenceRecv {
-			emitRecvPacketEvent(sdkCtx, packet, channel)
+			emitRecvPacketEvent(ctx, packet, channel)
 			// This error indicates that the packet has already been relayed. Core IBC will
 			// treat this error as a no-op in order to prevent an entire relay transaction
 			// from failing and consuming unnecessary fees.
@@ -333,8 +329,7 @@ func (k *Keeper) WriteAcknowledgement(
 		"dst_channel", packet.GetDestChannel(),
 	)
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	emitWriteAcknowledgementEvent(sdkCtx, packet.(types.Packet), channel, bz)
+	emitWriteAcknowledgementEvent(ctx, packet.(types.Packet), channel, bz)
 
 	return nil
 }
@@ -470,8 +465,7 @@ func (k *Keeper) AcknowledgePacket(
 func (k *Keeper) handleFlushState(ctx sdk.Context, packet types.Packet, channel types.Channel) {
 	if counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel()); found {
 		timeout := counterpartyUpgrade.Timeout
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
-		selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
+		selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
 
 		if timeout.Elapsed(selfHeight, selfTimestamp) {
 			// packet flushing timeout has expired, abort the upgrade

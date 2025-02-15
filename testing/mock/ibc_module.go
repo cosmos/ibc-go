@@ -110,8 +110,7 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, channelVersion string, packet 
 		return im.IBCApp.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(NewMockRecvPacketEvent())
+	ctx.EventManager().EmitEvent(NewMockRecvPacketEvent())
 
 	if bytes.Equal(MockPacketData, packet.GetData()) {
 		return MockAcknowledgement
@@ -128,8 +127,7 @@ func (im IBCModule) OnAcknowledgementPacket(ctx sdk.Context, channelVersion stri
 		return im.IBCApp.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(NewMockAckPacketEvent())
+	ctx.EventManager().EmitEvent(NewMockAckPacketEvent())
 
 	return nil
 }
@@ -140,8 +138,7 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, channelVersion string, pack
 		return im.IBCApp.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(NewMockTimeoutPacketEvent())
+	ctx.EventManager().EmitEvent(NewMockTimeoutPacketEvent())
 
 	return nil
 }

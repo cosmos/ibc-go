@@ -55,8 +55,7 @@ func (k *Keeper) Codec() codec.BinaryCodec {
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx sdk.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // AddRoute adds a new route to the underlying router.
@@ -512,8 +511,7 @@ func (k *Keeper) ScheduleIBCSoftwareUpgrade(ctx sdk.Context, plan upgradetypes.P
 	}
 
 	// emitting an event for scheduling an upgrade plan
-	sdkContext := sdk.UnwrapSDKContext(ctx)
-	emitScheduleIBCSoftwareUpgradeEvent(sdkContext, plan.Name, plan.Height)
+	emitScheduleIBCSoftwareUpgradeEvent(ctx, plan.Name, plan.Height)
 
 	return nil
 }

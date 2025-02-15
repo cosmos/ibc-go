@@ -340,8 +340,7 @@ func (k *Keeper) ChanUpgradeAck(
 	}
 
 	timeout := counterpartyUpgrade.Timeout
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
 
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "counterparty upgrade timeout elapsed"))
@@ -463,8 +462,7 @@ func (k *Keeper) ChanUpgradeConfirm(
 	}
 
 	timeout := counterpartyUpgrade.Timeout
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(sdkCtx), uint64(sdkCtx.BlockTime().UnixNano())
+	selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
 
 	if timeout.Elapsed(selfHeight, selfTimestamp) {
 		return types.NewUpgradeError(channel.UpgradeSequence, errorsmod.Wrap(timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp), "counterparty upgrade timeout elapsed"))
@@ -884,8 +882,7 @@ func (k *Keeper) startFlushing(ctx sdk.Context, portID, channelID string, upgrad
 // getAbsoluteUpgradeTimeout returns the absolute timeout for the given upgrade.
 func (k *Keeper) getAbsoluteUpgradeTimeout(ctx sdk.Context) types.Timeout {
 	upgradeTimeout := k.GetParams(ctx).UpgradeTimeout
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return types.NewTimeout(clienttypes.ZeroHeight(), uint64(sdkCtx.BlockTime().UnixNano())+upgradeTimeout.Timestamp)
+	return types.NewTimeout(clienttypes.ZeroHeight(), uint64(ctx.BlockTime().UnixNano())+upgradeTimeout.Timestamp)
 }
 
 // checkForUpgradeCompatibility checks performs stateful validation of self upgrade fields relative to counterparty upgrade.

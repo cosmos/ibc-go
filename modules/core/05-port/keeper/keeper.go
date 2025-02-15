@@ -25,8 +25,7 @@ func NewKeeper() *Keeper {
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx sdk.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // Route returns a IBCModule for a given module, and a boolean indicating

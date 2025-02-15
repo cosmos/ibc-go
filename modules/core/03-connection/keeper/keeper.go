@@ -42,8 +42,7 @@ func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, leg
 
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx sdk.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // GetCommitmentPrefix returns the IBC connection store prefix as a commitment
@@ -157,8 +156,7 @@ func (k *Keeper) SetNextConnectionSequence(ctx sdk.Context, sequence uint64) {
 // no paths are stored.
 func (k *Keeper) GetAllClientConnectionPaths(ctx sdk.Context) []types.ConnectionPaths {
 	var allConnectionPaths []types.ConnectionPaths
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	k.clientKeeper.IterateClientStates(sdkCtx, nil, func(clientID string, cs exported.ClientState) bool {
+	k.clientKeeper.IterateClientStates(ctx, nil, func(clientID string, cs exported.ClientState) bool {
 		paths, found := k.GetClientConnectionPaths(ctx, clientID)
 		if !found {
 			// continue when connection handshake is not initialized

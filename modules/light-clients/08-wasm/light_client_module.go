@@ -70,8 +70,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 		Checksum:       clientState.Checksum,
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return l.keeper.WasmInstantiate(sdkCtx, clientID, clientStore, &clientState, payload)
+	return l.keeper.WasmInstantiate(ctx, clientID, clientStore, &clientState, payload)
 }
 
 // VerifyClientMessage obtains the client state associated with the client identifier, it then must verify the ClientMessage.
@@ -96,8 +95,7 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 	payload := types.QueryMsg{
 		VerifyClientMessage: &types.VerifyClientMessageMsg{ClientMessage: clientMessage.Data},
 	}
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	_, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
+	_, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
 	return err
 }
 
@@ -121,8 +119,7 @@ func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string
 		CheckForMisbehaviour: &types.CheckForMisbehaviourMsg{ClientMessage: clientMessage.Data},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	res, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
+	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		return false
 	}
@@ -156,8 +153,7 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID s
 		UpdateStateOnMisbehaviour: &types.UpdateStateOnMisbehaviourMsg{ClientMessage: clientMessage.Data},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		panic(err)
 	}
@@ -183,8 +179,7 @@ func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientM
 		UpdateState: &types.UpdateStateMsg{ClientMessage: clientMessage.Data},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	res, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
+	res, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		panic(err)
 	}
@@ -252,8 +247,7 @@ func (l LightClientModule) VerifyMembership(
 		},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	return err
 }
 
@@ -305,8 +299,7 @@ func (l LightClientModule) VerifyNonMembership(
 		},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	return err
 }
 
@@ -335,8 +328,7 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 	}
 
 	payload := types.QueryMsg{Status: &types.StatusMsg{}}
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	res, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
+	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		return exported.Unknown
 	}
@@ -385,8 +377,7 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 		},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	res, err := l.keeper.WasmQuery(sdkCtx, clientID, clientStore, clientState, payload)
+	res, err := l.keeper.WasmQuery(ctx, clientID, clientStore, clientState, payload)
 	if err != nil {
 		return 0, errorsmod.Wrapf(err, "height (%s)", height)
 	}
@@ -439,8 +430,7 @@ func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteCl
 		MigrateClientStore: &types.MigrateClientStoreMsg{},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	_, err = l.keeper.WasmSudo(sdkCtx, clientID, store, subjectClientState, payload)
+	_, err = l.keeper.WasmSudo(ctx, clientID, store, subjectClientState, payload)
 	return err
 }
 
@@ -488,7 +478,6 @@ func (l LightClientModule) VerifyUpgradeAndUpdateState(
 		},
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	_, err := l.keeper.WasmSudo(sdkCtx, clientID, clientStore, clientState, payload)
+	_, err := l.keeper.WasmSudo(ctx, clientID, clientStore, clientState, payload)
 	return err
 }

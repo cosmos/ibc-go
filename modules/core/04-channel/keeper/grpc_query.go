@@ -38,7 +38,7 @@ func NewQueryServer(k *Keeper) types.QueryServer {
 }
 
 // Channel implements the Query/Channel gRPC method
-func (q *queryServer) Channel(c context.Context, req *types.QueryChannelRequest) (*types.QueryChannelResponse, error) {
+func (q *queryServer) Channel(goCtx context.Context, req *types.QueryChannelRequest) (*types.QueryChannelResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -47,7 +47,7 @@ func (q *queryServer) Channel(c context.Context, req *types.QueryChannelRequest)
 		return nil, err
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	channel, found := q.GetChannel(ctx, req.PortId, req.ChannelId)
 	if !found {
@@ -62,12 +62,12 @@ func (q *queryServer) Channel(c context.Context, req *types.QueryChannelRequest)
 }
 
 // Channels implements the Query/Channels gRPC method
-func (q *queryServer) Channels(c context.Context, req *types.QueryChannelsRequest) (*types.QueryChannelsResponse, error) {
+func (q *queryServer) Channels(goCtx context.Context, req *types.QueryChannelsRequest) (*types.QueryChannelsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var channels []*types.IdentifiedChannel
 	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), []byte(host.KeyChannelEndPrefix))
@@ -100,12 +100,12 @@ func (q *queryServer) Channels(c context.Context, req *types.QueryChannelsReques
 }
 
 // ConnectionChannels implements the Query/ConnectionChannels gRPC method
-func (q *queryServer) ConnectionChannels(c context.Context, req *types.QueryConnectionChannelsRequest) (*types.QueryConnectionChannelsResponse, error) {
+func (q *queryServer) ConnectionChannels(goCtx context.Context, req *types.QueryConnectionChannelsRequest) (*types.QueryConnectionChannelsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := host.ConnectionIdentifierValidator(req.Connection); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -150,12 +150,12 @@ func (q *queryServer) ConnectionChannels(c context.Context, req *types.QueryConn
 }
 
 // ChannelClientState implements the Query/ChannelClientState gRPC method
-func (q *queryServer) ChannelClientState(c context.Context, req *types.QueryChannelClientStateRequest) (*types.QueryChannelClientStateResponse, error) {
+func (q *queryServer) ChannelClientState(goCtx context.Context, req *types.QueryChannelClientStateRequest) (*types.QueryChannelClientStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -173,12 +173,12 @@ func (q *queryServer) ChannelClientState(c context.Context, req *types.QueryChan
 }
 
 // ChannelConsensusState implements the Query/ChannelConsensusState gRPC method
-func (q *queryServer) ChannelConsensusState(c context.Context, req *types.QueryChannelConsensusStateRequest) (*types.QueryChannelConsensusStateResponse, error) {
+func (q *queryServer) ChannelConsensusState(goCtx context.Context, req *types.QueryChannelConsensusStateRequest) (*types.QueryChannelConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -219,12 +219,12 @@ func (q *queryServer) ChannelConsensusState(c context.Context, req *types.QueryC
 }
 
 // PacketCommitment implements the Query/PacketCommitment gRPC method
-func (q *queryServer) PacketCommitment(c context.Context, req *types.QueryPacketCommitmentRequest) (*types.QueryPacketCommitmentResponse, error) {
+func (q *queryServer) PacketCommitment(goCtx context.Context, req *types.QueryPacketCommitmentRequest) (*types.QueryPacketCommitmentResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -251,12 +251,12 @@ func (q *queryServer) PacketCommitment(c context.Context, req *types.QueryPacket
 }
 
 // PacketCommitments implements the Query/PacketCommitments gRPC method
-func (q *queryServer) PacketCommitments(c context.Context, req *types.QueryPacketCommitmentsRequest) (*types.QueryPacketCommitmentsResponse, error) {
+func (q *queryServer) PacketCommitments(goCtx context.Context, req *types.QueryPacketCommitmentsRequest) (*types.QueryPacketCommitmentsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -296,12 +296,12 @@ func (q *queryServer) PacketCommitments(c context.Context, req *types.QueryPacke
 }
 
 // PacketReceipt implements the Query/PacketReceipt gRPC method
-func (q *queryServer) PacketReceipt(c context.Context, req *types.QueryPacketReceiptRequest) (*types.QueryPacketReceiptResponse, error) {
+func (q *queryServer) PacketReceipt(goCtx context.Context, req *types.QueryPacketReceiptRequest) (*types.QueryPacketReceiptResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -324,12 +324,12 @@ func (q *queryServer) PacketReceipt(c context.Context, req *types.QueryPacketRec
 }
 
 // PacketAcknowledgement implements the Query/PacketAcknowledgement gRPC method
-func (q *queryServer) PacketAcknowledgement(c context.Context, req *types.QueryPacketAcknowledgementRequest) (*types.QueryPacketAcknowledgementResponse, error) {
+func (q *queryServer) PacketAcknowledgement(goCtx context.Context, req *types.QueryPacketAcknowledgementRequest) (*types.QueryPacketAcknowledgementResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -355,12 +355,12 @@ func (q *queryServer) PacketAcknowledgement(c context.Context, req *types.QueryP
 }
 
 // PacketAcknowledgements implements the Query/PacketAcknowledgements gRPC method
-func (q *queryServer) PacketAcknowledgements(c context.Context, req *types.QueryPacketAcknowledgementsRequest) (*types.QueryPacketAcknowledgementsResponse, error) {
+func (q *queryServer) PacketAcknowledgements(goCtx context.Context, req *types.QueryPacketAcknowledgementsRequest) (*types.QueryPacketAcknowledgementsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -437,12 +437,12 @@ func (q *queryServer) PacketAcknowledgements(c context.Context, req *types.Query
 // commitments is correct and will not function properly if the list
 // is not up to date. Ideally the query height should equal the latest height
 // on the counterparty's client which represents this chain.
-func (q *queryServer) UnreceivedPackets(c context.Context, req *types.QueryUnreceivedPacketsRequest) (*types.QueryUnreceivedPacketsResponse, error) {
+func (q *queryServer) UnreceivedPackets(goCtx context.Context, req *types.QueryUnreceivedPacketsRequest) (*types.QueryUnreceivedPacketsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -523,12 +523,12 @@ func (q *queryServer) UnreceivedPackets(c context.Context, req *types.QueryUnrec
 // acknowledgements is correct and will not function properly if the list
 // is not up to date. Ideally the query height should equal the latest height
 // on the counterparty's client which represents this chain.
-func (q *queryServer) UnreceivedAcks(c context.Context, req *types.QueryUnreceivedAcksRequest) (*types.QueryUnreceivedAcksResponse, error) {
+func (q *queryServer) UnreceivedAcks(goCtx context.Context, req *types.QueryUnreceivedAcksRequest) (*types.QueryUnreceivedAcksResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -563,12 +563,12 @@ func (q *queryServer) UnreceivedAcks(c context.Context, req *types.QueryUnreceiv
 }
 
 // NextSequenceReceive implements the Query/NextSequenceReceive gRPC method
-func (q *queryServer) NextSequenceReceive(c context.Context, req *types.QueryNextSequenceReceiveRequest) (*types.QueryNextSequenceReceiveResponse, error) {
+func (q *queryServer) NextSequenceReceive(goCtx context.Context, req *types.QueryNextSequenceReceiveRequest) (*types.QueryNextSequenceReceiveResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -599,12 +599,12 @@ func (q *queryServer) NextSequenceReceive(c context.Context, req *types.QueryNex
 }
 
 // NextSequenceSend implements the Query/NextSequenceSend gRPC method
-func (q *queryServer) NextSequenceSend(c context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
+func (q *queryServer) NextSequenceSend(goCtx context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -622,12 +622,12 @@ func (q *queryServer) NextSequenceSend(c context.Context, req *types.QueryNextSe
 }
 
 // UpgradeErrorReceipt implements the Query/UpgradeErrorReceipt gRPC method
-func (q *queryServer) UpgradeError(c context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
+func (q *queryServer) UpgradeError(goCtx context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -654,12 +654,12 @@ func (q *queryServer) UpgradeError(c context.Context, req *types.QueryUpgradeErr
 }
 
 // Upgrade implements the Query/UpgradeSequence gRPC method
-func (q *queryServer) Upgrade(c context.Context, req *types.QueryUpgradeRequest) (*types.QueryUpgradeResponse, error) {
+func (q *queryServer) Upgrade(goCtx context.Context, req *types.QueryUpgradeRequest) (*types.QueryUpgradeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := validate.GRPCRequest(req.PortId, req.ChannelId); err != nil {
 		return nil, err
@@ -686,8 +686,8 @@ func (q *queryServer) Upgrade(c context.Context, req *types.QueryUpgradeRequest)
 }
 
 // ChannelParams implements the Query/ChannelParams gRPC method.
-func (q *queryServer) ChannelParams(c context.Context, req *types.QueryChannelParamsRequest) (*types.QueryChannelParamsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
+func (q *queryServer) ChannelParams(goCtx context.Context, req *types.QueryChannelParamsRequest) (*types.QueryChannelParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	params := q.GetParams(ctx)
 
 	return &types.QueryChannelParamsResponse{

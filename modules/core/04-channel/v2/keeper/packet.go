@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"context"
 	"strconv"
 	"time"
 
@@ -20,20 +19,18 @@ import (
 // sendPacket constructs a packet from the input arguments, writes a packet commitment to state
 // in order for the packet to be sent to the counterparty.
 func (k *Keeper) sendPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourceClient string,
 	timeoutTimestamp uint64,
 	payloads []types.Payload,
 ) (uint64, string, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, sourceClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, sourceClient)
 	if !ok {
 		return 0, "", errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", sourceClient)
 	}
 
-	sequence, found := k.GetNextSequenceSend(sdkCtx, sourceClient)
+	sequence, found := k.GetNextSequenceSend(ctx, sourceClient)
 	if !found {
 		return 0, "", errorsmod.Wrapf(types.ErrSequenceSendNotFound, "source client: %s", sourceClient)
 	}
@@ -46,12 +43,12 @@ func (k *Keeper) sendPacket(
 	}
 
 	// check that the client of counterparty chain is still active
-	if status := k.ClientKeeper.GetClientStatus(sdkCtx, sourceClient); status != exported.Active {
+	if status := k.ClientKeeper.GetClientStatus(ctx, sourceClient); status != exported.Active {
 		return 0, "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", sourceClient, status)
 	}
 
 	// retrieve latest height and timestamp of the client of counterparty chain
-	latestHeight := k.ClientKeeper.GetClientLatestHeight(sdkCtx, sourceClient)
+	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, sourceClient)
 	if latestHeight.IsZero() {
 		return 0, "", errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", sourceClient)
 	}
@@ -59,7 +56,7 @@ func (k *Keeper) sendPacket(
 	// client timestamps are in nanoseconds while packet timeouts are in seconds
 	// thus to compare them, we convert the client timestamp to seconds in uint64
 	// to be consistent with IBC V2 specified timeout behaviour
-	latestTimestampNano, err := k.ClientKeeper.GetClientTimestampAtHeight(sdkCtx, sourceClient, latestHeight)
+	latestTimestampNano, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, sourceClient, latestHeight)
 	if err != nil {
 		return 0, "", err
 	}
@@ -72,13 +69,13 @@ func (k *Keeper) sendPacket(
 	commitment := types.CommitPacket(packet)
 
 	// bump the sequence and set the packet commitment, so it is provable by the counterparty
-	k.SetNextSequenceSend(sdkCtx, sourceClient, sequence+1)
-	k.SetPacketCommitment(sdkCtx, sourceClient, packet.GetSequence(), commitment)
+	k.SetNextSequenceSend(ctx, sourceClient, sequence+1)
+	k.SetPacketCommitment(ctx, sourceClient, packet.GetSequence(), commitment)
 
-	k.Logger(sdkCtx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_client_id",
+	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_client_id",
 		packet.DestinationClient, "src_client_id", packet.SourceClient)
 
-	emitSendPacketEvents(sdkCtx, packet)
+	emitSendPacketEvents(ctx, packet)
 
 	return sequence, counterparty.ClientId, nil
 }
@@ -96,10 +93,8 @@ func (k *Keeper) recvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, packet.DestinationClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
@@ -153,14 +148,12 @@ func (k *Keeper) recvPacket(
 // writeAcknowledgement writes the acknowledgement to the store and emits the packet and acknowledgement
 // for relayers to relay the acknowledgement to the counterparty chain.
 func (k Keeper) writeAcknowledgement(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet types.Packet,
 	ack types.Acknowledgement,
 ) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, packet.DestinationClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
@@ -172,23 +165,23 @@ func (k Keeper) writeAcknowledgement(
 	// NOTE: IBC app modules might have written the acknowledgement synchronously on
 	// the OnRecvPacket callback so we need to check if the acknowledgement is already
 	// set on the store and return an error if so.
-	if k.HasPacketAcknowledgement(sdkCtx, packet.DestinationClient, packet.Sequence) {
+	if k.HasPacketAcknowledgement(ctx, packet.DestinationClient, packet.Sequence) {
 		return errorsmod.Wrapf(types.ErrAcknowledgementExists, "acknowledgement for id %s, sequence %d already exists", packet.DestinationClient, packet.Sequence)
 	}
 
-	if _, found := k.GetPacketReceipt(sdkCtx, packet.DestinationClient, packet.Sequence); !found {
+	if _, found := k.GetPacketReceipt(ctx, packet.DestinationClient, packet.Sequence); !found {
 		return errorsmod.Wrap(types.ErrInvalidPacket, "receipt not found for packet")
 	}
 
 	// set the acknowledgement so that it can be verified on the other side
 	k.SetPacketAcknowledgement(
-		sdkCtx, packet.DestinationClient, packet.Sequence,
+		ctx, packet.DestinationClient, packet.Sequence,
 		types.CommitAcknowledgement(ack),
 	)
 
-	k.Logger(sdkCtx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_client_id", packet.DestinationClient)
+	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_client_id", packet.DestinationClient)
 
-	emitWriteAcknowledgementEvents(sdkCtx, packet, ack)
+	emitWriteAcknowledgementEvents(ctx, packet, ack)
 
 	return nil
 }

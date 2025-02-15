@@ -186,8 +186,7 @@ func (k Keeper) RefundFeesOnChannelClosure(ctx sdk.Context, portID, channelID st
 
 	// cache context before trying to distribute fees
 	// if the escrow account has insufficient balance then we want to avoid partially distributing fees
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	cacheCtx, writeFn := sdkCtx.CacheContext()
+	cacheCtx, writeFn := ctx.CacheContext()
 
 	for _, identifiedPacketFee := range identifiedPacketFees {
 		var unRefundedFees []types.PacketFee

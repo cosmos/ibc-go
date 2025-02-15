@@ -68,10 +68,9 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID,
 
 	k.setPort(ctx, portID)
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	msg := channeltypes.NewMsgChannelOpenInit(portID, version, ordering, []string{connectionID}, icatypes.HostPortID, authtypes.NewModuleAddress(icatypes.ModuleName).String())
 	handler := k.msgRouter.Handler(msg)
-	res, err := handler(sdkCtx, msg)
+	res, err := handler(ctx, msg)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +79,7 @@ func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID,
 	k.Logger(ctx).Debug("emitting interchain account registration events", logging.SdkEventsToLogArguments(events))
 
 	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
-	sdkCtx.EventManager().EmitEvents(events)
+	ctx.EventManager().EmitEvents(events)
 
 	firstMsgResponse := res.MsgResponses[0]
 	channelOpenInitResponse, ok := firstMsgResponse.GetCachedValue().(*channeltypes.MsgChannelOpenInitResponse)

@@ -66,8 +66,7 @@ func (k Keeper) executeTx(ctx sdk.Context, sourcePort, destPort, destChannel str
 
 	// CacheContext returns a new context with the multi-store branched into a cached storage object
 	// writeCache is called only if all msgs succeed, performing state transitions atomically
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	cacheCtx, writeCache := sdkCtx.CacheContext()
+	cacheCtx, writeCache := ctx.CacheContext()
 	for i, msg := range msgs {
 		if m, ok := msg.(sdk.HasValidateBasic); ok {
 			if err := m.ValidateBasic(); err != nil {

@@ -167,8 +167,7 @@ func (LightClientModule) LatestHeight(ctx sdk.Context, _ string) exported.Height
 // TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
 // cannot provide a timestamp for the provided height.
 func (LightClientModule) TimestampAtHeight(ctx sdk.Context, _ string, _ exported.Height) (uint64, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return uint64(sdkCtx.BlockTime().UnixNano()), nil
+	return uint64(ctx.BlockTime().UnixNano()), nil
 }
 
 // RecoverClient returns an error. The localhost cannot be modified by proposals.

@@ -274,8 +274,7 @@ func PruneAllExpiredConsensusStates(
 		if !found { // consensus state should always be found
 			return true
 		}
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
-		if clientState.IsExpired(consState.Timestamp, sdkCtx.BlockTime()) {
+		if clientState.IsExpired(consState.Timestamp, ctx.BlockTime()) {
 			heights = append(heights, height)
 		}
 
@@ -323,8 +322,7 @@ func bigEndianHeightBytes(height exported.Height) []byte {
 // client state and consensus state will be set by client keeper
 // set iteration key to provide ability for efficient ordered iteration of consensus states.
 func setConsensusMetadata(ctx sdk.Context, clientStore storetypes.KVStore, height exported.Height) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(sdkCtx.BlockTime().UnixNano()))
+	setConsensusMetadataWithValues(clientStore, height, clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano()))
 }
 
 // setConsensusMetadataWithValues sets the consensus metadata with the provided values

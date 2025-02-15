@@ -32,7 +32,7 @@ type IBCModule struct {
 	keeper keeper.Keeper
 }
 
-func (im *IBCModule) OnSendPacket(goCtx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
+func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
 	// Enforce that the source and destination portIDs are the same and equal to the transfer portID
 	// This is necessary for IBC Eureka since the portIDs (and thus the application-application connection) is not prenegotiated
 	// by the channel handshake
@@ -66,11 +66,11 @@ func (im *IBCModule) OnSendPacket(goCtx sdk.Context, sourceChannel string, desti
 		return errorsmod.Wrapf(types.ErrInvalidDenomForTransfer, "base denomination %s cannot contain slashes for IBC v2 packet", data.Token.Denom.Base)
 	}
 
-	if err := im.keeper.SendTransfer(sdk.UnwrapSDKContext(goCtx), payload.SourcePort, sourceChannel, data.Token, signer); err != nil {
+	if err := im.keeper.SendTransfer(ctx, payload.SourcePort, sourceChannel, data.Token, signer); err != nil {
 		return err
 	}
 
-	events.EmitTransferEvent(goCtx, sender.String(), data.Receiver, data.Token, data.Memo)
+	events.EmitTransferEvent(ctx, sender.String(), data.Receiver, data.Token, data.Memo)
 
 	telemetry.ReportTransfer(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Token)
 
