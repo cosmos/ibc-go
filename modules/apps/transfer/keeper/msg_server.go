@@ -7,11 +7,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/telemetry"
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/internal/events"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/internal/telemetry"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
 
 var _ types.MsgServer = (*Keeper)(nil)

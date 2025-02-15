@@ -5,8 +5,8 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
 func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) {

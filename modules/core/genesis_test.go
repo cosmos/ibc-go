@@ -10,19 +10,19 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	ibc "github.com/cosmos/ibc-go/v9/modules/core"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
-	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	channelv2types "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/core/types"
-	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
-	"github.com/cosmos/ibc-go/v9/testing/simapp"
+	ibc "github.com/cosmos/ibc-go/v10/modules/core"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	channelv2types "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	"github.com/cosmos/ibc-go/v10/modules/core/types"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
+	"github.com/cosmos/ibc-go/v10/testing/simapp"
 )
 
 const (

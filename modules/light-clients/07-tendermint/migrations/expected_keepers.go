@@ -6,7 +6,7 @@ import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // ClientKeeper expected account IBC client keeper

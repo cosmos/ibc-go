@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 )
 
 // Migrator is a struct for handling in-place state migrations.

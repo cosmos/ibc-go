@@ -6,9 +6,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 func (suite *KeeperTestSuite) TestQueryCounterPartyInfo() {

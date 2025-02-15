@@ -451,8 +451,8 @@ github.com/getsentry/sentry-go v0.28.1/go.mod h1:1fQZ+7l7eeJ3wYi82q5Hg8GqAPgefRq
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/gin-contrib/sse v0.1.0/go.mod h1:RHrZQHXnP2xjPF+u1gW/2HnVO7nvIa9PG3Gm+fLHvGI=
 github.com/gin-gonic/gin v1.6.3/go.mod h1:75u5sXoLsGZoRN5Sgbi1eraJ4GU3++wFwWzhwvtwp4M=
-github.com/gjermundgaraba/interchaintest/v8 v8.0.0-20250207235834-7fa4ae7a13be h1:KJjLqJZtRymH+iM+wpHVf8NGiXoakpqX/PhGpEUN2yA=
-github.com/gjermundgaraba/interchaintest/v8 v8.0.0-20250207235834-7fa4ae7a13be/go.mod h1:O0rdZsJif1tYSUEh5XkRqSckEkg+L8t1VSl6TdlSdpY=
+github.com/gjermundgaraba/interchaintest/v8 v8.0.0-20250215053841-57b934aaa4db h1:4DSb1as7owQW2AGTr/tkvY5GNhbUBqUvA0v0Dm8czec=
+github.com/gjermundgaraba/interchaintest/v8 v8.0.0-20250215053841-57b934aaa4db/go.mod h1:BZ9OQKaC/xq10slM9OPeFTdWm3joJi8Opb2MlvRA3Xk=
 github.com/go-errors/errors v1.4.2 h1:J6MZopCL4uSllY1OfXM374weqZFFItUbrImctkmUxIA=
 github.com/go-errors/errors v1.4.2/go.mod h1:sIVyrIiJhuEF+Pj9Ebtd6P/rEYROXFi3BopGUQ5a5Og=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=

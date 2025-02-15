@@ -10,7 +10,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // NOTE: this is a mock implementation for exported.ClientState. This implementation

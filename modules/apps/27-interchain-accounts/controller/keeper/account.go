@@ -8,10 +8,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	"github.com/cosmos/ibc-go/v9/internal/logging"
-	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v10/internal/logging"
+	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
 
 // RegisterInterchainAccount is the entry point to registering an interchain account:

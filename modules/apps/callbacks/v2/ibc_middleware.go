@@ -11,10 +11,10 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/internal"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/api"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/api"
 )
 
 var _ api.IBCModule = (*IBCMiddleware)(nil)

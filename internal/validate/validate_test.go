@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v9/internal/validate"
+	"github.com/cosmos/ibc-go/v10/internal/validate"
 )
 
 func TestGRPCRequest(t *testing.T) {

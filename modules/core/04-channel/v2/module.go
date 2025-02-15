@@ -3,8 +3,8 @@ package channelv2
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/client/cli"
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/client/cli"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
 func Name() string {

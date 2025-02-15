@@ -10,7 +10,7 @@ on:
 
 jobs:
   push:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     steps:
       - uses: actions/checkout@v4
       - uses: bufbuild/buf-setup-action@v1.50.0

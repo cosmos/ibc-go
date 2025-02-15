@@ -9,16 +9,16 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	clientkeeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	clientv2keeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
-	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
-	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
-	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
-	portkeeper "github.com/cosmos/ibc-go/v9/modules/core/05-port/keeper"
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/api"
-	"github.com/cosmos/ibc-go/v9/modules/core/types"
+	clientkeeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clientv2keeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/keeper"
+	connectionkeeper "github.com/cosmos/ibc-go/v10/modules/core/03-connection/keeper"
+	channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
+	channelkeeperv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
+	portkeeper "github.com/cosmos/ibc-go/v10/modules/core/05-port/keeper"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/api"
+	"github.com/cosmos/ibc-go/v10/modules/core/types"
 )
 
 // Keeper defines each ICS keeper for IBC

@@ -3,8 +3,8 @@ package types
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // RegisterInterfaces registers the commitment interfaces to protobuf Any.

@@ -8,8 +8,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // CheckForMisbehaviour returns true for type Misbehaviour (passed VerifyClientMessage check), otherwise returns false

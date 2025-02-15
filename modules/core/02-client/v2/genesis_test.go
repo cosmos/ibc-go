@@ -1,9 +1,9 @@
 package clientv2_test
 
 import (
-	clientv2 "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2"
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	clientv2 "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 // TestInitExportGenesis tests the import and export flow for the channel v2 keeper.

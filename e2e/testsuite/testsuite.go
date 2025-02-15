@@ -29,10 +29,10 @@ import (
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	feetypes "github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
 
 const (

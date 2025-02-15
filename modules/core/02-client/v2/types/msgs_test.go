@@ -5,10 +5,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
