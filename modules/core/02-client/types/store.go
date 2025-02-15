@@ -3,13 +3,12 @@ package types
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
 )

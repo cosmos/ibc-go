@@ -1,8 +1,9 @@
 package channelv2
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
 	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"

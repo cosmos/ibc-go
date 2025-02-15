@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	errorsmod "cosmossdk.io/errors"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"

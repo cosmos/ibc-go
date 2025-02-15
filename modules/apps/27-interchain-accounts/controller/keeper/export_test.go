@@ -6,6 +6,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
 )
 

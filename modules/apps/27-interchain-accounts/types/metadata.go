@@ -3,9 +3,9 @@ package types
 import (
 	"slices"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	errorsmod "cosmossdk.io/errors"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
 	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"

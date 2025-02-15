@@ -1,10 +1,10 @@
 package migrations
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
