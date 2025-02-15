@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 )
 
 // InitGenesis initializes the ibc client/v2 submodule's state from a provided genesis

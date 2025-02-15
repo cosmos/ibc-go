@@ -10,10 +10,10 @@ import (
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 func (suite *TendermintTestSuite) TestMisbehaviour() {

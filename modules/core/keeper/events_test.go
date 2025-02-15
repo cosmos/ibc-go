@@ -7,8 +7,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/types"
+	internalerrors "github.com/cosmos/ibc-go/v10/modules/core/internal/errors"
+	"github.com/cosmos/ibc-go/v10/modules/core/types"
 )
 
 func TestConvertToErrorEvents(t *testing.T) {

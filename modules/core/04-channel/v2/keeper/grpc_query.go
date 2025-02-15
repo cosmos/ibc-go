@@ -14,10 +14,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
 )
 
 var _ types.QueryServer = (*queryServer)(nil)

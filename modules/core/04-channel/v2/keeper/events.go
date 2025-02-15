@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
 // emitSendPacketEvents emits events for the SendPacket handler.

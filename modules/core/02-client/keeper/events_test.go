@@ -3,10 +3,10 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 func (suite *KeeperTestSuite) TestMsgCreateClientEvents() {

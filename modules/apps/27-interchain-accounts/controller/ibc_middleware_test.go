@@ -11,17 +11,17 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller"
-	controllerkeeper "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
+	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller"
+	controllerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
 const invalidVersion = "invalid|version"

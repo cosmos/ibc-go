@@ -1,7 +1,7 @@
 package types
 
 import (
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 )
 
 // NewQueryNextSequenceSendRequest creates a new next sequence send query.

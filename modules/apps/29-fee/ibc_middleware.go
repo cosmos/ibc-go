@@ -8,13 +8,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v10/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 var (

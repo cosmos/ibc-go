@@ -1,8 +1,8 @@
 package api_test
 
 import (
-	"github.com/cosmos/ibc-go/v9/modules/core/api"
-	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
+	"github.com/cosmos/ibc-go/v10/modules/core/api"
+	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
 )
 
 func (suite *APITestSuite) TestRouter() {

@@ -3,7 +3,7 @@ package api
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
 // IBCModule defines an interface that implements all the callbacks

@@ -9,10 +9,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
-	ibckeeper "github.com/cosmos/ibc-go/v9/modules/core/keeper"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 type KeeperTestSuite struct {
