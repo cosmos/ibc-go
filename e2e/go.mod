@@ -2,8 +2,7 @@ module github.com/cosmos/ibc-go/e2e
 
 go 1.23.6
 
-// needed temporarily for v9.
-replace github.com/strangelove-ventures/interchaintest/v8 => github.com/gjermundgaraba/interchaintest/v8 v8.0.0-20250207235834-7fa4ae7a13be
+replace github.com/strangelove-ventures/interchaintest/v8 => github.com/gjermundgaraba/interchaintest/v8 v8.0.0-20250215053841-57b934aaa4db
 
 require (
 	cosmossdk.io/errors v1.0.1
@@ -71,7 +70,6 @@ require (
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.2.2 // indirect
 	github.com/cosmos/ibc-go/modules/capability v1.0.1 // indirect
-	github.com/cosmos/ibc-go/v9 v9.0.0-20250207234927-bf71bddac4af // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
