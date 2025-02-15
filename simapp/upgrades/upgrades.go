@@ -13,9 +13,9 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	clientkeeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	ibctmmigrations "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint/migrations"
+	clientkeeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibctmmigrations "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint/migrations"
 )
 
 const (

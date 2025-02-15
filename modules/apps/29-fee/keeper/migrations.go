@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.

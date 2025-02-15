@@ -11,16 +11,16 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcfee "github.com/cosmos/ibc-go/v9/modules/apps/29-fee"
-	feekeeper "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
+	ibcfee "github.com/cosmos/ibc-go/v10/modules/apps/29-fee"
+	feekeeper "github.com/cosmos/ibc-go/v10/modules/apps/29-fee/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
 var (

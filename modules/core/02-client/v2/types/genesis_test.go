@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {

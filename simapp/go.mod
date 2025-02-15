@@ -2,7 +2,7 @@ go 1.23.6
 
 module github.com/cosmos/ibc-go/simapp
 
-replace github.com/cosmos/ibc-go/v9 => ../
+replace github.com/cosmos/ibc-go/v10 => ../
 
 require (
 	cosmossdk.io/api v0.7.6
@@ -20,7 +20,7 @@ require (
 	github.com/cosmos/cosmos-db v1.1.0
 	github.com/cosmos/cosmos-sdk v0.50.10
 	github.com/cosmos/gogoproto v1.7.0
-	github.com/cosmos/ibc-go/v9 v9.0.0
+	github.com/cosmos/ibc-go/v10 v10.0.0
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0

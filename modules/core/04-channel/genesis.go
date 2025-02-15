@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
 
 // InitGenesis initializes the ibc channel submodule's state from a provided genesis

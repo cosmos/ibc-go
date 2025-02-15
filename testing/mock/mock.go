@@ -18,10 +18,10 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	feetypes "github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 const (

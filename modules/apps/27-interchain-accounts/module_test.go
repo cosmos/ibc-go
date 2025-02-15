@@ -5,7 +5,7 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 type InterchainAccountsTestSuite struct {
