@@ -1,7 +1,6 @@
 package ibccallbacks
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -86,7 +85,7 @@ func (im *IBCMiddleware) GetICS4Wrapper() porttypes.ICS4Wrapper {
 // If the contract callback returns an error, panics, or runs out of gas, then
 // the packet send is rejected.
 func (im IBCMiddleware) SendPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -101,8 +100,7 @@ func (im IBCMiddleware) SendPacket(
 	// packet is created without destination information present, GetSourceCallbackData does not use these.
 	packet := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	callbackData, err := types.GetSourceCallbackData(sdkCtx, im.app, packet, im.maxCallbackGas)
+	callbackData, err := types.GetSourceCallbackData(ctx, im.app, packet, im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
 		return seq, nil
@@ -114,13 +112,13 @@ func (im IBCMiddleware) SendPacket(
 		)
 	}
 
-	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
+	err = internal.ProcessCallback(ctx, types.CallbackTypeSendPacket, callbackData, callbackExecutor)
 	// contract keeper is allowed to reject the packet send.
 	if err != nil {
 		return 0, err
 	}
 
-	types.EmitCallbackEvent(sdkCtx, sourcePort, sourceChannel, seq, types.CallbackTypeSendPacket, callbackData, nil)
+	types.EmitCallbackEvent(ctx, sourcePort, sourceChannel, seq, types.CallbackTypeSendPacket, callbackData, nil)
 	return seq, nil
 }
 
@@ -129,7 +127,7 @@ func (im IBCMiddleware) SendPacket(
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
 func (im IBCMiddleware) OnAcknowledgementPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -141,10 +139,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	callbackData, err := types.GetSourceCallbackData(
-		sdkCtx, im.app, packet, im.maxCallbackGas,
+		ctx, im.app, packet, im.maxCallbackGas,
 	)
 	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
@@ -158,9 +154,9 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
+	err = internal.ProcessCallback(ctx, types.CallbackTypeAcknowledgementPacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(
-		sdkCtx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
+		ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
 		types.CallbackTypeAcknowledgementPacket, callbackData, err,
 	)
 
@@ -171,16 +167,14 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) OnTimeoutPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	err := im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	if err != nil {
 		return err
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	callbackData, err := types.GetSourceCallbackData(
-		sdkCtx, im.app, packet, im.maxCallbackGas,
+		ctx, im.app, packet, im.maxCallbackGas,
 	)
 	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
@@ -192,9 +186,9 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx context.Context, channelVersion stri
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
+	err = internal.ProcessCallback(ctx, types.CallbackTypeTimeoutPacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(
-		sdkCtx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
+		ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(),
 		types.CallbackTypeTimeoutPacket, callbackData, err,
 	)
 
@@ -206,7 +200,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx context.Context, channelVersion stri
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) OnRecvPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
+func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	ack := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	// if ack is nil (asynchronous acknowledgements), then the callback will be handled in WriteAcknowledgement
 	// if ack is not successful, all state changes are reverted. If a packet cannot be received, then there is
@@ -215,9 +209,8 @@ func (im IBCMiddleware) OnRecvPacket(ctx context.Context, channelVersion string,
 		return ack
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	callbackData, err := types.GetDestCallbackData(
-		sdkCtx, im.app, packet, im.maxCallbackGas,
+		ctx, im.app, packet, im.maxCallbackGas,
 	)
 	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
@@ -229,9 +222,9 @@ func (im IBCMiddleware) OnRecvPacket(ctx context.Context, channelVersion string,
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	err = internal.ProcessCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(
-		sdkCtx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
+		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		types.CallbackTypeReceivePacket, callbackData, err,
 	)
 
@@ -244,7 +237,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx context.Context, channelVersion string,
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
 func (im IBCMiddleware) WriteAcknowledgement(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
 ) error {
@@ -258,9 +251,8 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		panic(fmt.Errorf("expected type %T, got %T", &channeltypes.Packet{}, packet))
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	callbackData, err := types.GetDestCallbackData(
-		sdkCtx, im.app, chanPacket, im.maxCallbackGas,
+		ctx, im.app, chanPacket, im.maxCallbackGas,
 	)
 	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
@@ -272,9 +264,9 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	}
 
 	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
-	err = internal.ProcessCallback(sdkCtx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
+	err = internal.ProcessCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(
-		sdkCtx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
+		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		types.CallbackTypeReceivePacket, callbackData, err,
 	)
 
@@ -283,7 +275,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 
 // OnChanOpenInit defers to the underlying application
 func (im IBCMiddleware) OnChanOpenInit(
-	ctx context.Context,
+	ctx sdk.Context,
 	channelOrdering channeltypes.Order,
 	connectionHops []string,
 	portID,
@@ -296,7 +288,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 
 // OnChanOpenTry defers to the underlying application
 func (im IBCMiddleware) OnChanOpenTry(
-	ctx context.Context,
+	ctx sdk.Context,
 	channelOrdering channeltypes.Order,
 	connectionHops []string, portID,
 	channelID string,
@@ -308,7 +300,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 
 // OnChanOpenAck defers to the underlying application
 func (im IBCMiddleware) OnChanOpenAck(
-	ctx context.Context,
+	ctx sdk.Context,
 	portID,
 	channelID,
 	counterpartyChannelID,
@@ -318,22 +310,22 @@ func (im IBCMiddleware) OnChanOpenAck(
 }
 
 // OnChanOpenConfirm defers to the underlying application
-func (im IBCMiddleware) OnChanOpenConfirm(ctx context.Context, portID, channelID string) error {
+func (im IBCMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
 // OnChanCloseInit defers to the underlying application
-func (im IBCMiddleware) OnChanCloseInit(ctx context.Context, portID, channelID string) error {
+func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanCloseInit(ctx, portID, channelID)
 }
 
 // OnChanCloseConfirm defers to the underlying application
-func (im IBCMiddleware) OnChanCloseConfirm(ctx context.Context, portID, channelID string) error {
+func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
 // OnChanUpgradeInit implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeInit(ctx context.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
+func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
 		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
@@ -343,7 +335,7 @@ func (im IBCMiddleware) OnChanUpgradeInit(ctx context.Context, portID, channelID
 }
 
 // OnChanUpgradeTry implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeTry(ctx context.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
+func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
 		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
@@ -353,7 +345,7 @@ func (im IBCMiddleware) OnChanUpgradeTry(ctx context.Context, portID, channelID 
 }
 
 // OnChanUpgradeAck implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeAck(ctx context.Context, portID, channelID, counterpartyVersion string) error {
+func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
 		return errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
@@ -363,7 +355,7 @@ func (im IBCMiddleware) OnChanUpgradeAck(ctx context.Context, portID, channelID,
 }
 
 // OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeOpen(ctx context.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
+func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
 	cbs, ok := im.app.(porttypes.UpgradableModule)
 	if !ok {
 		panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
@@ -374,12 +366,12 @@ func (im IBCMiddleware) OnChanUpgradeOpen(ctx context.Context, portID, channelID
 
 // GetAppVersion implements the ICS4Wrapper interface. Callbacks has no version,
 // so the call is deferred to the underlying application.
-func (im IBCMiddleware) GetAppVersion(ctx context.Context, portID, channelID string) (string, bool) {
+func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }
 
 // UnmarshalPacketData defers to the underlying app to unmarshal the packet data.
 // This function implements the optional PacketDataUnmarshaler interface.
-func (im IBCMiddleware) UnmarshalPacketData(ctx context.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
+func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	return im.app.UnmarshalPacketData(ctx, portID, channelID, bz)
 }

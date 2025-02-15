@@ -35,10 +35,12 @@ func NewQueryServer(k *Keeper) types.QueryServer {
 }
 
 // NextSequenceSend implements the Query/NextSequenceSend gRPC method
-func (q *queryServer) NextSequenceSend(ctx context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
+func (q *queryServer) NextSequenceSend(goCtx context.Context, req *types.QueryNextSequenceSendRequest) (*types.QueryNextSequenceSendResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -55,10 +57,12 @@ func (q *queryServer) NextSequenceSend(ctx context.Context, req *types.QueryNext
 }
 
 // PacketCommitment implements the Query/PacketCommitment gRPC method.
-func (q *queryServer) PacketCommitment(ctx context.Context, req *types.QueryPacketCommitmentRequest) (*types.QueryPacketCommitmentResponse, error) {
+func (q *queryServer) PacketCommitment(goCtx context.Context, req *types.QueryPacketCommitmentRequest) (*types.QueryPacketCommitmentResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -77,17 +81,19 @@ func (q *queryServer) PacketCommitment(ctx context.Context, req *types.QueryPack
 }
 
 // PacketCommitments implements the Query/PacketCommitments gRPC method
-func (q *queryServer) PacketCommitments(ctx context.Context, req *types.QueryPacketCommitmentsRequest) (*types.QueryPacketCommitmentsResponse, error) {
+func (q *queryServer) PacketCommitments(goCtx context.Context, req *types.QueryPacketCommitmentsRequest) (*types.QueryPacketCommitmentsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	var commitments []*types.PacketState
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), hostv2.PacketCommitmentPrefixKey(req.ClientId))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(goCtx)), hostv2.PacketCommitmentPrefixKey(req.ClientId))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
 		keySplit := strings.Split(string(key), "/")
@@ -114,10 +120,12 @@ func (q *queryServer) PacketCommitments(ctx context.Context, req *types.QueryPac
 }
 
 // PacketAcknowledgement implements the Query/PacketAcknowledgement gRPC method.
-func (q *queryServer) PacketAcknowledgement(ctx context.Context, req *types.QueryPacketAcknowledgementRequest) (*types.QueryPacketAcknowledgementResponse, error) {
+func (q *queryServer) PacketAcknowledgement(goCtx context.Context, req *types.QueryPacketAcknowledgementRequest) (*types.QueryPacketAcknowledgementResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -136,17 +144,19 @@ func (q *queryServer) PacketAcknowledgement(ctx context.Context, req *types.Quer
 }
 
 // PacketAcknowledgements implements the Query/PacketAcknowledgements gRPC method.
-func (q *queryServer) PacketAcknowledgements(ctx context.Context, req *types.QueryPacketAcknowledgementsRequest) (*types.QueryPacketAcknowledgementsResponse, error) {
+func (q *queryServer) PacketAcknowledgements(goCtx context.Context, req *types.QueryPacketAcknowledgementsRequest) (*types.QueryPacketAcknowledgementsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	var acks []*types.PacketState
-	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), hostv2.PacketAcknowledgementPrefixKey(req.ClientId))
+	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(goCtx)), hostv2.PacketAcknowledgementPrefixKey(req.ClientId))
 
 	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
 	// otherwise, maintain previous behaviour and perform paginated query
@@ -194,10 +204,12 @@ func (q *queryServer) PacketAcknowledgements(ctx context.Context, req *types.Que
 }
 
 // PacketReceipt implements the Query/PacketReceipt gRPC method.
-func (q *queryServer) PacketReceipt(ctx context.Context, req *types.QueryPacketReceiptRequest) (*types.QueryPacketReceiptResponse, error) {
+func (q *queryServer) PacketReceipt(goCtx context.Context, req *types.QueryPacketReceiptRequest) (*types.QueryPacketReceiptResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -228,10 +240,12 @@ func (q *queryServer) PacketReceipt(ctx context.Context, req *types.QueryPacketR
 // commitments is correct and will not function properly if the list
 // is not up to date. Ideally the query height should equal the latest height
 // on the counterparty's client which represents this chain.
-func (q *queryServer) UnreceivedPackets(ctx context.Context, req *types.QueryUnreceivedPacketsRequest) (*types.QueryUnreceivedPacketsResponse, error) {
+func (q *queryServer) UnreceivedPackets(goCtx context.Context, req *types.QueryUnreceivedPacketsRequest) (*types.QueryUnreceivedPacketsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -274,10 +288,12 @@ func (q *queryServer) UnreceivedPackets(ctx context.Context, req *types.QueryUnr
 // acknowledgements is correct and will not function properly if the list
 // is not up to date. Ideally the query height should equal the latest height
 // on the counterparty's client which represents this chain.
-func (q *queryServer) UnreceivedAcks(ctx context.Context, req *types.QueryUnreceivedAcksRequest) (*types.QueryUnreceivedAcksResponse, error) {
+func (q *queryServer) UnreceivedAcks(goCtx context.Context, req *types.QueryUnreceivedAcksRequest) (*types.QueryUnreceivedAcksResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())

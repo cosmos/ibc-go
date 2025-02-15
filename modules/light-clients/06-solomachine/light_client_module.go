@@ -1,12 +1,12 @@
 package solomachine
 
 import (
-	"context"
 	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
@@ -30,7 +30,7 @@ func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.Store
 
 // Initialize unmarshals the provided client and consensus states and performs basic validation. It calls into the
 // clientState.Initialize method.
-func (l LightClientModule) Initialize(ctx context.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
+func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientStateBz, consensusStateBz []byte) error {
 	var clientState ClientState
 	if err := l.cdc.Unmarshal(clientStateBz, &clientState); err != nil {
 		return err
@@ -62,7 +62,7 @@ func (l LightClientModule) Initialize(ctx context.Context, clientID string, clie
 }
 
 // VerifyClientMessage obtains the client state associated with the client identifier and calls into the clientState.VerifyClientMessage method.
-func (l LightClientModule) VerifyClientMessage(ctx context.Context, clientID string, clientMsg exported.ClientMessage) error {
+func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) error {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
@@ -73,7 +73,7 @@ func (l LightClientModule) VerifyClientMessage(ctx context.Context, clientID str
 }
 
 // CheckForMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.CheckForMisbehaviour method.
-func (l LightClientModule) CheckForMisbehaviour(ctx context.Context, clientID string, clientMsg exported.ClientMessage) bool {
+func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
@@ -86,7 +86,7 @@ func (l LightClientModule) CheckForMisbehaviour(ctx context.Context, clientID st
 // UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState.
 // This method should only be called when misbehaviour is detected as it does not perform
 // any misbehaviour checks.
-func (l LightClientModule) UpdateStateOnMisbehaviour(ctx context.Context, clientID string, clientMsg exported.ClientMessage) {
+func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
@@ -98,7 +98,7 @@ func (l LightClientModule) UpdateStateOnMisbehaviour(ctx context.Context, client
 }
 
 // UpdateState obtains the client state associated with the client identifier and calls into the clientState.UpdateState method.
-func (l LightClientModule) UpdateState(ctx context.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
+func (l LightClientModule) UpdateState(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) []exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
@@ -110,7 +110,7 @@ func (l LightClientModule) UpdateState(ctx context.Context, clientID string, cli
 
 // VerifyMembership obtains the client state associated with the client identifier and calls into the clientState.verifyMembership method.
 func (l LightClientModule) VerifyMembership(
-	ctx context.Context,
+	ctx sdk.Context,
 	clientID string,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -130,7 +130,7 @@ func (l LightClientModule) VerifyMembership(
 
 // VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
 func (l LightClientModule) VerifyNonMembership(
-	ctx context.Context,
+	ctx sdk.Context,
 	clientID string,
 	height exported.Height,
 	delayTimePeriod uint64,
@@ -152,7 +152,7 @@ func (l LightClientModule) VerifyNonMembership(
 // - Active: if `IsFrozen` is false.
 // - Frozen: if `IsFrozen` is true.
 // - Unknown: if the client state associated with the provided client identifier is not found.
-func (l LightClientModule) Status(ctx context.Context, clientID string) exported.Status {
+func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Status {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
@@ -169,7 +169,7 @@ func (l LightClientModule) Status(ctx context.Context, clientID string) exported
 // LatestHeight returns the latest height for the client state for the given client identifier.
 // If no client is present for the provided client identifier a zero value height is returned.
 // NOTE: RevisionNumber is always 0 for solomachine client heights.
-func (l LightClientModule) LatestHeight(ctx context.Context, clientID string) exported.Height {
+func (l LightClientModule) LatestHeight(ctx sdk.Context, clientID string) exported.Height {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 
 	clientState, found := getClientState(clientStore, l.cdc)
@@ -181,7 +181,7 @@ func (l LightClientModule) LatestHeight(ctx context.Context, clientID string) ex
 }
 
 // TimestampAtHeight obtains the client state associated with the client identifier and returns the timestamp in nanoseconds of the consensus state at the given height.
-func (l LightClientModule) TimestampAtHeight(ctx context.Context, clientID string, height exported.Height) (uint64, error) {
+func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, height exported.Height) (uint64, error) {
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 	clientState, found := getClientState(clientStore, l.cdc)
 	if !found {
@@ -193,7 +193,7 @@ func (l LightClientModule) TimestampAtHeight(ctx context.Context, clientID strin
 
 // RecoverClient asserts that the substitute client is a solo machine client. It obtains the client state associated with the
 // subject client and calls into the subjectClientState.CheckSubstituteAndUpdateState method.
-func (l LightClientModule) RecoverClient(ctx context.Context, clientID, substituteClientID string) error {
+func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
 	substituteClientType, _, err := clienttypes.ParseClientIdentifier(substituteClientID)
 	if err != nil {
 		return err
@@ -219,6 +219,6 @@ func (l LightClientModule) RecoverClient(ctx context.Context, clientID, substitu
 }
 
 // VerifyUpgradeAndUpdateState returns an error since solomachine client does not support upgrades
-func (LightClientModule) VerifyUpgradeAndUpdateState(ctx context.Context, clientID string, newClient, newConsState, upgradeClientProof, upgradeConsensusStateProof []byte) error {
+func (LightClientModule) VerifyUpgradeAndUpdateState(ctx sdk.Context, clientID string, newClient, newConsState, upgradeClientProof, upgradeConsensusStateProof []byte) error {
 	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade solomachine client")
 }

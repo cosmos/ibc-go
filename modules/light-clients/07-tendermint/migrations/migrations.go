@@ -1,11 +1,10 @@
 package migrations
 
 import (
-	"context"
-
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
@@ -14,7 +13,7 @@ import (
 
 // PruneExpiredConsensusStates prunes all expired tendermint consensus states. This function
 // may optionally be called during in-place store migrations. The ibc store key must be provided.
-func PruneExpiredConsensusStates(ctx context.Context, cdc codec.BinaryCodec, clientKeeper ClientKeeper) (int, error) {
+func PruneExpiredConsensusStates(ctx sdk.Context, cdc codec.BinaryCodec, clientKeeper ClientKeeper) (int, error) {
 	var clientIDs []string
 	clientKeeper.IterateClientStates(ctx, []byte(exported.Tendermint), func(clientID string, _ exported.ClientState) bool {
 		clientIDs = append(clientIDs, clientID)

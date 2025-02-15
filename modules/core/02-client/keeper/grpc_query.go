@@ -39,7 +39,7 @@ func NewQueryServer(k *Keeper) types.QueryServer {
 }
 
 // ClientState implements the Query/ClientState gRPC method
-func (q *queryServer) ClientState(c context.Context, req *types.QueryClientStateRequest) (*types.QueryClientStateResponse, error) {
+func (q *queryServer) ClientState(goCtx context.Context, req *types.QueryClientStateRequest) (*types.QueryClientStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -48,7 +48,7 @@ func (q *queryServer) ClientState(c context.Context, req *types.QueryClientState
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	clientState, found := q.GetClientState(ctx, req.ClientId)
 	if !found {
 		return nil, status.Error(
@@ -70,12 +70,12 @@ func (q *queryServer) ClientState(c context.Context, req *types.QueryClientState
 }
 
 // ClientStates implements the Query/ClientStates gRPC method
-func (q *queryServer) ClientStates(c context.Context, req *types.QueryClientStatesRequest) (*types.QueryClientStatesResponse, error) {
+func (q *queryServer) ClientStates(goCtx context.Context, req *types.QueryClientStatesRequest) (*types.QueryClientStatesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var clientStates types.IdentifiedClientStates
 	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.KeyClientStorePrefix)
@@ -114,7 +114,7 @@ func (q *queryServer) ClientStates(c context.Context, req *types.QueryClientStat
 }
 
 // ConsensusState implements the Query/ConsensusState gRPC method
-func (q *queryServer) ConsensusState(c context.Context, req *types.QueryConsensusStateRequest) (*types.QueryConsensusStateResponse, error) {
+func (q *queryServer) ConsensusState(goCtx context.Context, req *types.QueryConsensusStateRequest) (*types.QueryConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -123,7 +123,7 @@ func (q *queryServer) ConsensusState(c context.Context, req *types.QueryConsensu
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var (
 		consensusState exported.ConsensusState
@@ -161,7 +161,7 @@ func (q *queryServer) ConsensusState(c context.Context, req *types.QueryConsensu
 }
 
 // ConsensusStates implements the Query/ConsensusStates gRPC method
-func (q *queryServer) ConsensusStates(c context.Context, req *types.QueryConsensusStatesRequest) (*types.QueryConsensusStatesResponse, error) {
+func (q *queryServer) ConsensusStates(goCtx context.Context, req *types.QueryConsensusStatesRequest) (*types.QueryConsensusStatesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -170,7 +170,7 @@ func (q *queryServer) ConsensusStates(c context.Context, req *types.QueryConsens
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var consensusStates []types.ConsensusStateWithHeight
 	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
@@ -205,7 +205,7 @@ func (q *queryServer) ConsensusStates(c context.Context, req *types.QueryConsens
 }
 
 // ConsensusStateHeights implements the Query/ConsensusStateHeights gRPC method
-func (q *queryServer) ConsensusStateHeights(c context.Context, req *types.QueryConsensusStateHeightsRequest) (*types.QueryConsensusStateHeightsResponse, error) {
+func (q *queryServer) ConsensusStateHeights(goCtx context.Context, req *types.QueryConsensusStateHeightsRequest) (*types.QueryConsensusStateHeightsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -214,7 +214,7 @@ func (q *queryServer) ConsensusStateHeights(c context.Context, req *types.QueryC
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var consensusStateHeights []types.Height
 	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.FullClientKey(req.ClientId, []byte(fmt.Sprintf("%s/", host.KeyConsensusStatePrefix))))
@@ -244,7 +244,7 @@ func (q *queryServer) ConsensusStateHeights(c context.Context, req *types.QueryC
 }
 
 // ClientStatus implements the Query/ClientStatus gRPC method
-func (q *queryServer) ClientStatus(c context.Context, req *types.QueryClientStatusRequest) (*types.QueryClientStatusResponse, error) {
+func (q *queryServer) ClientStatus(goCtx context.Context, req *types.QueryClientStatusRequest) (*types.QueryClientStatusResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -253,7 +253,7 @@ func (q *queryServer) ClientStatus(c context.Context, req *types.QueryClientStat
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	clientStatus := q.GetClientStatus(ctx, req.ClientId)
 
 	return &types.QueryClientStatusResponse{
@@ -262,8 +262,8 @@ func (q *queryServer) ClientStatus(c context.Context, req *types.QueryClientStat
 }
 
 // ClientParams implements the Query/ClientParams gRPC method
-func (q *queryServer) ClientParams(c context.Context, _ *types.QueryClientParamsRequest) (*types.QueryClientParamsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
+func (q *queryServer) ClientParams(goCtx context.Context, _ *types.QueryClientParamsRequest) (*types.QueryClientParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	params := q.GetParams(ctx)
 
 	return &types.QueryClientParamsResponse{
@@ -272,12 +272,12 @@ func (q *queryServer) ClientParams(c context.Context, _ *types.QueryClientParams
 }
 
 // UpgradedClientState implements the Query/UpgradedClientState gRPC method
-func (q *queryServer) UpgradedClientState(c context.Context, req *types.QueryUpgradedClientStateRequest) (*types.QueryUpgradedClientStateResponse, error) {
+func (q *queryServer) UpgradedClientState(goCtx context.Context, req *types.QueryUpgradedClientStateRequest) (*types.QueryUpgradedClientStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	plan, err := q.GetUpgradePlan(ctx)
 	if err != nil {
@@ -307,12 +307,12 @@ func (q *queryServer) UpgradedClientState(c context.Context, req *types.QueryUpg
 }
 
 // UpgradedConsensusState implements the Query/UpgradedConsensusState gRPC method
-func (q *queryServer) UpgradedConsensusState(c context.Context, req *types.QueryUpgradedConsensusStateRequest) (*types.QueryUpgradedConsensusStateResponse, error) {
+func (q *queryServer) UpgradedConsensusState(goCtx context.Context, req *types.QueryUpgradedConsensusStateRequest) (*types.QueryUpgradedConsensusStateResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	bz, err := q.GetUpgradedConsensusState(ctx, ctx.BlockHeight())
 	if err != nil {
@@ -339,7 +339,7 @@ func (q *queryServer) UpgradedConsensusState(c context.Context, req *types.Query
 // VerifyMembership implements the Query/VerifyMembership gRPC method
 // NOTE: Any state changes made within this handler are discarded by leveraging a cached context. Gas is consumed for underlying state access.
 // This gRPC method is intended to be used within the context of the state machine and delegates to light clients to verify proofs.
-func (q *queryServer) VerifyMembership(c context.Context, req *types.QueryVerifyMembershipRequest) (*types.QueryVerifyMembershipResponse, error) {
+func (q *queryServer) VerifyMembership(goCtx context.Context, req *types.QueryVerifyMembershipRequest) (*types.QueryVerifyMembershipResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -374,7 +374,7 @@ func (q *queryServer) VerifyMembership(c context.Context, req *types.QueryVerify
 		return nil, status.Error(codes.InvalidArgument, "empty value")
 	}
 
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// cache the context to ensure clientState.VerifyMembership does not change state
 	cachedCtx, _ := ctx.CacheContext()

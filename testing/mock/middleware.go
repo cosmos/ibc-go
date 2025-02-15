@@ -2,7 +2,6 @@ package mock
 
 import (
 	"bytes"
-	"context"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -36,7 +35,7 @@ func NewBlockUpgradeMiddleware(appModule *AppModule, app *IBCApp) BlockUpgradeMi
 
 // OnChanOpenInit implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnChanOpenInit(
-	ctx context.Context, order channeltypes.Order, connectionHops []string, portID string,
+	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
 	channelID string, counterparty channeltypes.Counterparty, version string,
 ) (string, error) {
 	if strings.TrimSpace(version) == "" {
@@ -52,7 +51,7 @@ func (im BlockUpgradeMiddleware) OnChanOpenInit(
 
 // OnChanOpenTry implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnChanOpenTry(
-	ctx context.Context, order channeltypes.Order, connectionHops []string, portID string,
+	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
 	channelID string, counterparty channeltypes.Counterparty, counterpartyVersion string,
 ) (version string, err error) {
 	if im.IBCApp.OnChanOpenTry != nil {
@@ -63,7 +62,7 @@ func (im BlockUpgradeMiddleware) OnChanOpenTry(
 }
 
 // OnChanOpenAck implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnChanOpenAck(ctx context.Context, portID string, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
+func (im BlockUpgradeMiddleware) OnChanOpenAck(ctx sdk.Context, portID string, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
 	if im.IBCApp.OnChanOpenAck != nil {
 		return im.IBCApp.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 	}
@@ -72,7 +71,7 @@ func (im BlockUpgradeMiddleware) OnChanOpenAck(ctx context.Context, portID strin
 }
 
 // OnChanOpenConfirm implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnChanOpenConfirm(ctx context.Context, portID, channelID string) error {
+func (im BlockUpgradeMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanOpenConfirm != nil {
 		return im.IBCApp.OnChanOpenConfirm(ctx, portID, channelID)
 	}
@@ -81,7 +80,7 @@ func (im BlockUpgradeMiddleware) OnChanOpenConfirm(ctx context.Context, portID, 
 }
 
 // OnChanCloseInit implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnChanCloseInit(ctx context.Context, portID, channelID string) error {
+func (im BlockUpgradeMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanCloseInit != nil {
 		return im.IBCApp.OnChanCloseInit(ctx, portID, channelID)
 	}
@@ -90,7 +89,7 @@ func (im BlockUpgradeMiddleware) OnChanCloseInit(ctx context.Context, portID, ch
 }
 
 // OnChanCloseConfirm implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnChanCloseConfirm(ctx context.Context, portID, channelID string) error {
+func (im BlockUpgradeMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
 	if im.IBCApp.OnChanCloseConfirm != nil {
 		return im.IBCApp.OnChanCloseConfirm(ctx, portID, channelID)
 	}
@@ -99,7 +98,7 @@ func (im BlockUpgradeMiddleware) OnChanCloseConfirm(ctx context.Context, portID,
 }
 
 // OnRecvPacket implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnRecvPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
+func (im BlockUpgradeMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	if im.IBCApp.OnRecvPacket != nil {
 		return im.IBCApp.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
@@ -114,7 +113,7 @@ func (im BlockUpgradeMiddleware) OnRecvPacket(ctx context.Context, channelVersio
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnAcknowledgementPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
+func (im BlockUpgradeMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnAcknowledgementPacket != nil {
 		return im.IBCApp.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
@@ -123,7 +122,7 @@ func (im BlockUpgradeMiddleware) OnAcknowledgementPacket(ctx context.Context, ch
 }
 
 // OnTimeoutPacket implements the IBCModule interface.
-func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx context.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	if im.IBCApp.OnTimeoutPacket != nil {
 		return im.IBCApp.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
@@ -133,7 +132,7 @@ func (im BlockUpgradeMiddleware) OnTimeoutPacket(ctx context.Context, channelVer
 
 // SendPacket implements the ICS4 Wrapper interface
 func (BlockUpgradeMiddleware) SendPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -145,7 +144,7 @@ func (BlockUpgradeMiddleware) SendPacket(
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
 func (BlockUpgradeMiddleware) WriteAcknowledgement(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {
@@ -153,6 +152,6 @@ func (BlockUpgradeMiddleware) WriteAcknowledgement(
 }
 
 // GetAppVersion returns the application version of the underlying application
-func (BlockUpgradeMiddleware) GetAppVersion(ctx context.Context, portID, channelID string) (string, bool) {
+func (BlockUpgradeMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return Version, true
 }
