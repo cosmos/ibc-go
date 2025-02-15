@@ -17,7 +17,7 @@ import (
 var _ types.MsgServer = &Keeper{}
 
 // SendPacket implements the PacketMsgServer SendPacket method.
-func (k *Keeper) SendPacket(ctx sdk.Context, msg *types.MsgSendPacket) (*types.MsgSendPacketResponse, error) {
+func (k *Keeper) SendPacket(ctx context.Context, msg *types.MsgSendPacket) (*types.MsgSendPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	// Note, the validate basic function in sendPacket does the timeoutTimestamp != 0 check and other stateless checks on the packet.
@@ -46,7 +46,7 @@ func (k *Keeper) SendPacket(ctx sdk.Context, msg *types.MsgSendPacket) (*types.M
 
 	for _, pd := range msg.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
-		err := cbs.OnSendPacket(ctx, msg.SourceClient, destChannel, sequence, pd, signer)
+		err := cbs.OnSendPacket(sdkCtx, msg.SourceClient, destChannel, sequence, pd, signer)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +56,7 @@ func (k *Keeper) SendPacket(ctx sdk.Context, msg *types.MsgSendPacket) (*types.M
 }
 
 // RecvPacket implements the PacketMsgServer RecvPacket method.
-func (k *Keeper) RecvPacket(ctx sdk.Context, msg *types.MsgRecvPacket) (*types.MsgRecvPacketResponse, error) {
+func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*types.MsgRecvPacketResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -148,7 +148,7 @@ func (k *Keeper) RecvPacket(ctx sdk.Context, msg *types.MsgRecvPacket) (*types.M
 		}
 	} else {
 		// store the packet temporarily until the application returns an acknowledgement
-		k.SetAsyncPacket(ctx, msg.Packet.DestinationClient, msg.Packet.Sequence, msg.Packet)
+		k.SetAsyncPacket(sdkCtx, msg.Packet.DestinationClient, msg.Packet.Sequence, msg.Packet)
 	}
 
 	// TODO: store the packet for async applications to access if required.
@@ -159,7 +159,7 @@ func (k *Keeper) RecvPacket(ctx sdk.Context, msg *types.MsgRecvPacket) (*types.M
 }
 
 // Acknowledgement defines an rpc handler method for MsgAcknowledgement.
-func (k *Keeper) Acknowledgement(ctx sdk.Context, msg *types.MsgAcknowledgement) (*types.MsgAcknowledgementResponse, error) {
+func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgement) (*types.MsgAcknowledgementResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
@@ -193,7 +193,8 @@ func (k *Keeper) Acknowledgement(ctx sdk.Context, msg *types.MsgAcknowledgement)
 		} else {
 			ack = types.ErrorAcknowledgement[:]
 		}
-		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, ack, pd, relayer)
+		err := cbs.OnAcknowledgementPacket(sdkCtx, msg.Packet.SourceClient, msg.Packet.DestinationClient,
+			msg.Packet.Sequence, ack, pd, relayer)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source client %s, destination client %s", pd.SourcePort, msg.Packet.SourceClient, msg.Packet.DestinationClient)
 		}
@@ -205,7 +206,7 @@ func (k *Keeper) Acknowledgement(ctx sdk.Context, msg *types.MsgAcknowledgement)
 }
 
 // Timeout implements the PacketMsgServer Timeout method.
-func (k *Keeper) Timeout(ctx sdk.Context, timeout *types.MsgTimeout) (*types.MsgTimeoutResponse, error) {
+func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types.MsgTimeoutResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	signer, err := sdk.AccAddressFromBech32(timeout.Signer)
@@ -230,7 +231,8 @@ func (k *Keeper) Timeout(ctx sdk.Context, timeout *types.MsgTimeout) (*types.Msg
 
 	for _, pd := range timeout.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
-		err := cbs.OnTimeoutPacket(ctx, timeout.Packet.SourceClient, timeout.Packet.DestinationClient, timeout.Packet.Sequence, pd, signer)
+		err := cbs.OnTimeoutPacket(sdkCtx, timeout.Packet.SourceClient, timeout.Packet.DestinationClient,
+			timeout.Packet.Sequence, pd, signer)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnTimeoutPacket for source port %s, source client %s, destination client %s", pd.SourcePort, timeout.Packet.SourceClient, timeout.Packet.DestinationClient)
 		}

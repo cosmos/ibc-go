@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	"context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"

@@ -2,7 +2,6 @@ package mock
 
 import (
 	"bytes"
-	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

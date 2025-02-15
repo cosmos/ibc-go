@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"

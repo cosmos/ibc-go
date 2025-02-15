@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"errors"
 
 	errorsmod "cosmossdk.io/errors"
@@ -31,7 +32,8 @@ var (
 // of the light client module to unmarshal and interpret the proto encoded bytes.
 // Backwards compatibility with older versions of ibc-go is maintained through the light client module reconstructing and encoding
 // the expected concrete type to the protobuf.Any for proof verification.
-func (k *Keeper) CreateClient(ctx sdk.Context, msg *clienttypes.MsgCreateClient) (*clienttypes.MsgCreateClientResponse, error) {
+func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateClient) (*clienttypes.MsgCreateClientResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	clientState, err := clienttypes.UnpackClientState(msg.ClientState)
 	if err != nil {
@@ -51,8 +53,10 @@ func (k *Keeper) CreateClient(ctx sdk.Context, msg *clienttypes.MsgCreateClient)
 
 // RegisterCounterparty will register the eureka counterparty info for the given client id
 // it must be called by the same relayer that called CreateClient
-func (k *Keeper) RegisterCounterparty(ctx sdk.Context, msg *clientv2types.MsgRegisterCounterparty) (*clientv2types.MsgRegisterCounterpartyResponse, error) {
-	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
+func (k *Keeper) RegisterCounterparty(ctx context.Context, msg *clientv2types.MsgRegisterCounterparty) (*clientv2types.MsgRegisterCounterpartyResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	creator := k.ClientKeeper.GetClientCreator(sdkCtx, msg.ClientId)
 	if !creator.Equals(sdk.AccAddress(msg.Signer)) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected same signer as createClient submittor %s, got %s", creator, msg.Signer)
 	}
@@ -61,17 +65,17 @@ func (k *Keeper) RegisterCounterparty(ctx sdk.Context, msg *clientv2types.MsgReg
 		MerklePrefix: msg.CounterpartyMerklePrefix,
 		ClientId:     msg.CounterpartyClientId,
 	}
-	k.ClientV2Keeper.SetClientCounterparty(ctx, msg.ClientId, counterpartyInfo)
+	k.ClientV2Keeper.SetClientCounterparty(sdkCtx, msg.ClientId, counterpartyInfo)
 
 	// initialize next sequence send to enable packet flow
-	k.ChannelKeeperV2.SetNextSequenceSend(ctx, msg.ClientId, 1)
+	k.ChannelKeeperV2.SetNextSequenceSend(sdkCtx, msg.ClientId, 1)
 
-	k.ClientKeeper.DeleteClientCreator(ctx, msg.ClientId)
+	k.ClientKeeper.DeleteClientCreator(sdkCtx, msg.ClientId)
 	return &clientv2types.MsgRegisterCounterpartyResponse{}, nil
 }
 
 // UpdateClient defines a rpc handler method for MsgUpdateClient.
-func (k *Keeper) UpdateClient(goCtx sdk.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
+func (k *Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateClient) (*clienttypes.MsgUpdateClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
@@ -92,7 +96,9 @@ func (k *Keeper) UpdateClient(goCtx sdk.Context, msg *clienttypes.MsgUpdateClien
 // of the light client module to unmarshal and interpret the proto encoded bytes.
 // Backwards compatibility with older versions of ibc-go is maintained through the light client module reconstructing and encoding
 // the expected concrete type to the protobuf.Any for proof verification.
-func (k *Keeper) UpgradeClient(ctx sdk.Context, msg *clienttypes.MsgUpgradeClient) (*clienttypes.MsgUpgradeClientResponse, error) {
+func (k *Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgradeClient) (*clienttypes.MsgUpgradeClientResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	if err := k.ClientKeeper.UpgradeClient(
 		ctx, msg.ClientId,
 		msg.ClientState.Value,
@@ -109,7 +115,7 @@ func (k *Keeper) UpgradeClient(ctx sdk.Context, msg *clienttypes.MsgUpgradeClien
 // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 // Warning: DEPRECATED
 // This handler is redundant as `MsgUpdateClient` is now capable of handling both a Header and a Misbehaviour
-func (k *Keeper) SubmitMisbehaviour(goCtx sdk.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) { //nolint:staticcheck // for now, we're using msgsubmitmisbehaviour.
+func (k *Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) { //nolint:staticcheck // for now, we're using msgsubmitmisbehaviour.
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	misbehaviour, err := clienttypes.UnpackClientMessage(msg.Misbehaviour)
@@ -125,7 +131,7 @@ func (k *Keeper) SubmitMisbehaviour(goCtx sdk.Context, msg *clienttypes.MsgSubmi
 }
 
 // RecoverClient defines a rpc handler method for MsgRecoverClient.
-func (k *Keeper) RecoverClient(goCtx sdk.Context, msg *clienttypes.MsgRecoverClient) (*clienttypes.MsgRecoverClientResponse, error) {
+func (k *Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecoverClient) (*clienttypes.MsgRecoverClientResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
@@ -139,7 +145,7 @@ func (k *Keeper) RecoverClient(goCtx sdk.Context, msg *clienttypes.MsgRecoverCli
 }
 
 // IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
-func (k *Keeper) IBCSoftwareUpgrade(goCtx sdk.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
+func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
@@ -158,7 +164,7 @@ func (k *Keeper) IBCSoftwareUpgrade(goCtx sdk.Context, msg *clienttypes.MsgIBCSo
 }
 
 // ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit.
-func (k *Keeper) ConnectionOpenInit(goCtx sdk.Context, msg *connectiontypes.MsgConnectionOpenInit) (*connectiontypes.MsgConnectionOpenInitResponse, error) {
+func (k *Keeper) ConnectionOpenInit(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenInit) (*connectiontypes.MsgConnectionOpenInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if _, err := k.ConnectionKeeper.ConnOpenInit(ctx, msg.ClientId, msg.Counterparty, msg.Version, msg.DelayPeriod); err != nil {
@@ -169,7 +175,7 @@ func (k *Keeper) ConnectionOpenInit(goCtx sdk.Context, msg *connectiontypes.MsgC
 }
 
 // ConnectionOpenTry defines a rpc handler method for MsgConnectionOpenTry.
-func (k *Keeper) ConnectionOpenTry(goCtx sdk.Context, msg *connectiontypes.MsgConnectionOpenTry) (*connectiontypes.MsgConnectionOpenTryResponse, error) {
+func (k *Keeper) ConnectionOpenTry(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenTry) (*connectiontypes.MsgConnectionOpenTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if _, err := k.ConnectionKeeper.ConnOpenTry(
@@ -183,7 +189,7 @@ func (k *Keeper) ConnectionOpenTry(goCtx sdk.Context, msg *connectiontypes.MsgCo
 }
 
 // ConnectionOpenAck defines a rpc handler method for MsgConnectionOpenAck.
-func (k *Keeper) ConnectionOpenAck(goCtx sdk.Context, msg *connectiontypes.MsgConnectionOpenAck) (*connectiontypes.MsgConnectionOpenAckResponse, error) {
+func (k *Keeper) ConnectionOpenAck(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenAck) (*connectiontypes.MsgConnectionOpenAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := k.ConnectionKeeper.ConnOpenAck(
@@ -197,7 +203,7 @@ func (k *Keeper) ConnectionOpenAck(goCtx sdk.Context, msg *connectiontypes.MsgCo
 }
 
 // ConnectionOpenConfirm defines a rpc handler method for MsgConnectionOpenConfirm.
-func (k *Keeper) ConnectionOpenConfirm(goCtx sdk.Context, msg *connectiontypes.MsgConnectionOpenConfirm) (*connectiontypes.MsgConnectionOpenConfirmResponse, error) {
+func (k *Keeper) ConnectionOpenConfirm(goCtx context.Context, msg *connectiontypes.MsgConnectionOpenConfirm) (*connectiontypes.MsgConnectionOpenConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := k.ConnectionKeeper.ConnOpenConfirm(
@@ -212,7 +218,7 @@ func (k *Keeper) ConnectionOpenConfirm(goCtx sdk.Context, msg *connectiontypes.M
 // ChannelOpenInit defines a rpc handler method for MsgChannelOpenInit.
 // ChannelOpenInit will perform 04-channel checks, route to the application
 // callback, and write an OpenInit channel into state upon successful execution.
-func (k *Keeper) ChannelOpenInit(goCtx sdk.Context, msg *channeltypes.MsgChannelOpenInit) (*channeltypes.MsgChannelOpenInitResponse, error) {
+func (k *Keeper) ChannelOpenInit(goCtx context.Context, msg *channeltypes.MsgChannelOpenInit) (*channeltypes.MsgChannelOpenInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Retrieve application callbacks from router
@@ -252,7 +258,7 @@ func (k *Keeper) ChannelOpenInit(goCtx sdk.Context, msg *channeltypes.MsgChannel
 // ChannelOpenTry defines a rpc handler method for MsgChannelOpenTry.
 // ChannelOpenTry will perform 04-channel checks, route to the application
 // callback, and write an OpenTry channel into state upon successful execution.
-func (k *Keeper) ChannelOpenTry(goCtx sdk.Context, msg *channeltypes.MsgChannelOpenTry) (*channeltypes.MsgChannelOpenTryResponse, error) {
+func (k *Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChannelOpenTry) (*channeltypes.MsgChannelOpenTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Retrieve application callbacks from router
@@ -290,7 +296,7 @@ func (k *Keeper) ChannelOpenTry(goCtx sdk.Context, msg *channeltypes.MsgChannelO
 // ChannelOpenAck defines a rpc handler method for MsgChannelOpenAck.
 // ChannelOpenAck will perform 04-channel checks, route to the application
 // callback, and write an OpenAck channel into state upon successful execution.
-func (k *Keeper) ChannelOpenAck(goCtx sdk.Context, msg *channeltypes.MsgChannelOpenAck) (*channeltypes.MsgChannelOpenAckResponse, error) {
+func (k *Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChannelOpenAck) (*channeltypes.MsgChannelOpenAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Retrieve application callbacks from router
@@ -325,7 +331,7 @@ func (k *Keeper) ChannelOpenAck(goCtx sdk.Context, msg *channeltypes.MsgChannelO
 // ChannelOpenConfirm defines a rpc handler method for MsgChannelOpenConfirm.
 // ChannelOpenConfirm will perform 04-channel checks, route to the application
 // callback, and write an OpenConfirm channel into state upon successful execution.
-func (k *Keeper) ChannelOpenConfirm(goCtx sdk.Context, msg *channeltypes.MsgChannelOpenConfirm) (*channeltypes.MsgChannelOpenConfirmResponse, error) {
+func (k *Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgChannelOpenConfirm) (*channeltypes.MsgChannelOpenConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Retrieve application callbacks from router
@@ -356,7 +362,7 @@ func (k *Keeper) ChannelOpenConfirm(goCtx sdk.Context, msg *channeltypes.MsgChan
 }
 
 // ChannelCloseInit defines a rpc handler method for MsgChannelCloseInit.
-func (k *Keeper) ChannelCloseInit(goCtx sdk.Context, msg *channeltypes.MsgChannelCloseInit) (*channeltypes.MsgChannelCloseInitResponse, error) {
+func (k *Keeper) ChannelCloseInit(goCtx context.Context, msg *channeltypes.MsgChannelCloseInit) (*channeltypes.MsgChannelCloseInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Retrieve callbacks from router
@@ -383,7 +389,7 @@ func (k *Keeper) ChannelCloseInit(goCtx sdk.Context, msg *channeltypes.MsgChanne
 }
 
 // ChannelCloseConfirm defines a rpc handler method for MsgChannelCloseConfirm.
-func (k *Keeper) ChannelCloseConfirm(goCtx sdk.Context, msg *channeltypes.MsgChannelCloseConfirm) (*channeltypes.MsgChannelCloseConfirmResponse, error) {
+func (k *Keeper) ChannelCloseConfirm(goCtx context.Context, msg *channeltypes.MsgChannelCloseConfirm) (*channeltypes.MsgChannelCloseConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Retrieve callbacks from router
@@ -410,7 +416,7 @@ func (k *Keeper) ChannelCloseConfirm(goCtx sdk.Context, msg *channeltypes.MsgCha
 }
 
 // RecvPacket defines a rpc handler method for MsgRecvPacket.
-func (k *Keeper) RecvPacket(goCtx sdk.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
+func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPacket) (*channeltypes.MsgRecvPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -475,7 +481,7 @@ func (k *Keeper) RecvPacket(goCtx sdk.Context, msg *channeltypes.MsgRecvPacket) 
 }
 
 // Timeout defines a rpc handler method for MsgTimeout.
-func (k *Keeper) Timeout(goCtx sdk.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
+func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*channeltypes.MsgTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -525,7 +531,7 @@ func (k *Keeper) Timeout(goCtx sdk.Context, msg *channeltypes.MsgTimeout) (*chan
 }
 
 // TimeoutOnClose defines a rpc handler method for MsgTimeoutOnClose.
-func (k *Keeper) TimeoutOnClose(goCtx sdk.Context, msg *channeltypes.MsgTimeoutOnClose) (*channeltypes.MsgTimeoutOnCloseResponse, error) {
+func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTimeoutOnClose) (*channeltypes.MsgTimeoutOnCloseResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -577,7 +583,7 @@ func (k *Keeper) TimeoutOnClose(goCtx sdk.Context, msg *channeltypes.MsgTimeoutO
 }
 
 // Acknowledgement defines a rpc handler method for MsgAcknowledgement.
-func (k *Keeper) Acknowledgement(goCtx sdk.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
+func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAcknowledgement) (*channeltypes.MsgAcknowledgementResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
@@ -627,7 +633,7 @@ func (k *Keeper) Acknowledgement(goCtx sdk.Context, msg *channeltypes.MsgAcknowl
 }
 
 // ChannelUpgradeInit defines a rpc handler method for MsgChannelUpgradeInit.
-func (k *Keeper) ChannelUpgradeInit(goCtx sdk.Context, msg *channeltypes.MsgChannelUpgradeInit) (*channeltypes.MsgChannelUpgradeInitResponse, error) {
+func (k *Keeper) ChannelUpgradeInit(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeInit) (*channeltypes.MsgChannelUpgradeInitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if k.GetAuthority() != msg.Signer {
@@ -673,7 +679,7 @@ func (k *Keeper) ChannelUpgradeInit(goCtx sdk.Context, msg *channeltypes.MsgChan
 }
 
 // ChannelUpgradeTry defines a rpc handler method for MsgChannelUpgradeTry.
-func (k *Keeper) ChannelUpgradeTry(goCtx sdk.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
+func (k *Keeper) ChannelUpgradeTry(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTry) (*channeltypes.MsgChannelUpgradeTryResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	app, ok := k.PortKeeper.Route(msg.PortId)
@@ -728,7 +734,7 @@ func (k *Keeper) ChannelUpgradeTry(goCtx sdk.Context, msg *channeltypes.MsgChann
 }
 
 // ChannelUpgradeAck defines a rpc handler method for MsgChannelUpgradeAck.
-func (k *Keeper) ChannelUpgradeAck(goCtx sdk.Context, msg *channeltypes.MsgChannelUpgradeAck) (*channeltypes.MsgChannelUpgradeAckResponse, error) {
+func (k *Keeper) ChannelUpgradeAck(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeAck) (*channeltypes.MsgChannelUpgradeAckResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	app, ok := k.PortKeeper.Route(msg.PortId)
@@ -788,7 +794,7 @@ func (k *Keeper) ChannelUpgradeAck(goCtx sdk.Context, msg *channeltypes.MsgChann
 }
 
 // ChannelUpgradeConfirm defines a rpc handler method for MsgChannelUpgradeConfirm.
-func (k *Keeper) ChannelUpgradeConfirm(goCtx sdk.Context, msg *channeltypes.MsgChannelUpgradeConfirm) (*channeltypes.MsgChannelUpgradeConfirmResponse, error) {
+func (k *Keeper) ChannelUpgradeConfirm(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeConfirm) (*channeltypes.MsgChannelUpgradeConfirmResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	app, ok := k.PortKeeper.Route(msg.PortId)
@@ -843,7 +849,7 @@ func (k *Keeper) ChannelUpgradeConfirm(goCtx sdk.Context, msg *channeltypes.MsgC
 }
 
 // ChannelUpgradeOpen defines a rpc handler method for MsgChannelUpgradeOpen.
-func (k *Keeper) ChannelUpgradeOpen(goCtx sdk.Context, msg *channeltypes.MsgChannelUpgradeOpen) (*channeltypes.MsgChannelUpgradeOpenResponse, error) {
+func (k *Keeper) ChannelUpgradeOpen(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeOpen) (*channeltypes.MsgChannelUpgradeOpenResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	app, ok := k.PortKeeper.Route(msg.PortId)
@@ -880,7 +886,7 @@ func (k *Keeper) ChannelUpgradeOpen(goCtx sdk.Context, msg *channeltypes.MsgChan
 }
 
 // ChannelUpgradeTimeout defines a rpc handler method for MsgChannelUpgradeTimeout.
-func (k *Keeper) ChannelUpgradeTimeout(goCtx sdk.Context, msg *channeltypes.MsgChannelUpgradeTimeout) (*channeltypes.MsgChannelUpgradeTimeoutResponse, error) {
+func (k *Keeper) ChannelUpgradeTimeout(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeTimeout) (*channeltypes.MsgChannelUpgradeTimeoutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := k.ChannelKeeper.ChanUpgradeTimeout(ctx, msg.PortId, msg.ChannelId, msg.CounterpartyChannel, msg.ProofChannel, msg.ProofHeight); err != nil {
@@ -896,7 +902,7 @@ func (k *Keeper) ChannelUpgradeTimeout(goCtx sdk.Context, msg *channeltypes.MsgC
 }
 
 // ChannelUpgradeCancel defines a rpc handler method for MsgChannelUpgradeCancel.
-func (k *Keeper) ChannelUpgradeCancel(goCtx sdk.Context, msg *channeltypes.MsgChannelUpgradeCancel) (*channeltypes.MsgChannelUpgradeCancelResponse, error) {
+func (k *Keeper) ChannelUpgradeCancel(goCtx context.Context, msg *channeltypes.MsgChannelUpgradeCancel) (*channeltypes.MsgChannelUpgradeCancelResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	channel, found := k.ChannelKeeper.GetChannel(ctx, msg.PortId, msg.ChannelId)
@@ -948,7 +954,7 @@ func (k *Keeper) ChannelUpgradeCancel(goCtx sdk.Context, msg *channeltypes.MsgCh
 }
 
 // PruneAcknowledgements defines a rpc handler method for MsgPruneAcknowledgements.
-func (k *Keeper) PruneAcknowledgements(goCtx sdk.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
+func (k *Keeper) PruneAcknowledgements(goCtx context.Context, msg *channeltypes.MsgPruneAcknowledgements) (*channeltypes.MsgPruneAcknowledgementsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	pruned, remaining, err := k.ChannelKeeper.PruneAcknowledgements(ctx, msg.PortId, msg.ChannelId, msg.Limit)
@@ -963,7 +969,7 @@ func (k *Keeper) PruneAcknowledgements(goCtx sdk.Context, msg *channeltypes.MsgP
 }
 
 // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
-func (k *Keeper) UpdateClientParams(goCtx sdk.Context, msg *clienttypes.MsgUpdateParams) (*clienttypes.MsgUpdateParamsResponse, error) {
+func (k *Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUpdateParams) (*clienttypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
@@ -975,7 +981,7 @@ func (k *Keeper) UpdateClientParams(goCtx sdk.Context, msg *clienttypes.MsgUpdat
 }
 
 // UpdateConnectionParams defines a rpc handler method for MsgUpdateParams for the 03-connection submodule.
-func (k *Keeper) UpdateConnectionParams(goCtx sdk.Context, msg *connectiontypes.MsgUpdateParams) (*connectiontypes.MsgUpdateParamsResponse, error) {
+func (k *Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontypes.MsgUpdateParams) (*connectiontypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
@@ -987,7 +993,7 @@ func (k *Keeper) UpdateConnectionParams(goCtx sdk.Context, msg *connectiontypes.
 }
 
 // UpdateChannelParams defines a rpc handler method for MsgUpdateParams.
-func (k *Keeper) UpdateChannelParams(goCtx sdk.Context, msg *channeltypes.MsgUpdateParams) (*channeltypes.MsgUpdateParamsResponse, error) {
+func (k *Keeper) UpdateChannelParams(goCtx context.Context, msg *channeltypes.MsgUpdateParams) (*channeltypes.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Authority {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Authority)
 	}

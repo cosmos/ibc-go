@@ -34,16 +34,20 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
 }
 
 // RemoveChecksum defines a rpc handler method for MsgRemoveChecksum
-func (k Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecksum) (*types.MsgRemoveChecksumResponse, error) {
+func (k Keeper) RemoveChecksum(ctx context.Context, msg *types.MsgRemoveChecksum) (*types.MsgRemoveChecksumResponse,
+	error,
+) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	if !k.HasChecksum(goCtx, msg.Checksum) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	if !k.HasChecksum(sdkCtx, msg.Checksum) {
 		return nil, types.ErrWasmChecksumNotFound
 	}
 
-	err := k.GetChecksums().Remove(goCtx, msg.Checksum)
+	err := k.GetChecksums().Remove(ctx, msg.Checksum)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to remove checksum")
 	}

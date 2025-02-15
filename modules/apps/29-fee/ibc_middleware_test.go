@@ -1,7 +1,6 @@
 package fee_test
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"

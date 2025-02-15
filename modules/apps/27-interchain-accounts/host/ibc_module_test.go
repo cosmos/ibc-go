@@ -1,7 +1,6 @@
 package host_test
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"testing"

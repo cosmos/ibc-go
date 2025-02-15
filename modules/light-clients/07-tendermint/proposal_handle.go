@@ -1,9 +1,10 @@
 package tendermint
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"reflect"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"

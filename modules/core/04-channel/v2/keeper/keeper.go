@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"context"
 
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"

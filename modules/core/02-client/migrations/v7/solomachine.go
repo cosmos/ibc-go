@@ -1,7 +1,6 @@
 package v7
 
 import (
-	"context"
 	"errors"
 
 	storetypes "cosmossdk.io/store/types"
@@ -9,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v9/modules/core/exported"
 )
