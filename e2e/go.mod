@@ -218,6 +218,10 @@ require (
 	google.golang.org/genproto v0.0.0-20240701130421-f6361c86f094 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250115164207-1a7da9e5054f // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
+<<<<<<< HEAD
+=======
+	google.golang.org/protobuf v1.36.5 // indirect
+>>>>>>> af5b171e (chore(deps): bump google.golang.org/protobuf from 1.36.4 to 1.36.5 (#7920))
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
