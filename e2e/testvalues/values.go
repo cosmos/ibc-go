@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/e2e/semverutil"
-	feetypes "github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
 )
 
 const (
@@ -31,14 +30,6 @@ func ImmediatelyTimeout() *ibc.IBCTimeout {
 	}
 }
 
-func DefaultFee(denom string) feetypes.Fee {
-	return feetypes.Fee{
-		RecvFee:    sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(50))),
-		AckFee:     sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(25))),
-		TimeoutFee: sdk.NewCoins(sdk.NewCoin(denom, sdkmath.NewInt(10))),
-	}
-}
-
 func DefaultTransferAmount(denom string) sdk.Coin {
 	return sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(IBCTransferAmount)}
 }
@@ -53,11 +44,6 @@ func TendermintClientID(id int) string {
 
 func SolomachineClientID(id int) string {
 	return fmt.Sprintf("06-solomachine-%d", id)
-}
-
-// FeeMiddlewareFeatureReleases represents the releases the support for fee middleware was released in.
-var FeeMiddlewareFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v4",
 }
 
 // TokenMetadataFeatureReleases represents the releases the token metadata was released in.
@@ -118,14 +104,6 @@ var GovV1MessagesFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
 }
 
-// CapitalEfficientFeeEscrowFeatureReleases represents the releases the support for capital efficient fee escrow was released in.
-var CapitalEfficientFeeEscrowFeatureReleases = semverutil.FeatureReleases{
-	MajorVersion: "v9",
-	MinorVersions: []string{
-		"v8.1",
-	},
-}
-
 // TransactionEventQueryFeatureReleases represents the releases the support for --query flag
 // in "query txs" for searching transactions that match exact events (since Cosmos SDK v0.50) was released in.
 var TransactionEventQueryFeatureReleases = semverutil.FeatureReleases{
@@ -133,5 +111,9 @@ var TransactionEventQueryFeatureReleases = semverutil.FeatureReleases{
 }
 
 var ChannelsV2FeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v10",
+}
+
+var ClientV2FeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v10",
 }
