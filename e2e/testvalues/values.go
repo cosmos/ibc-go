@@ -135,3 +135,7 @@ var TransactionEventQueryFeatureReleases = semverutil.FeatureReleases{
 var ChannelsV2FeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v10",
 }
+
+var ClientV2FeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v10",
+}
