@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -882,7 +881,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) fundICAWallet(ctx context.Context, portID string, amount sdk.Coins) {
+func (suite *KeeperTestSuite) fundICAWallet(ctx sdk.Context, portID string, amount sdk.Coins) {
 	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(ctx, ibctesting.FirstConnectionID, portID)
 	suite.Require().True(found)
 

@@ -1,7 +1,6 @@
 package types
 
 import (
-	"context"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -186,8 +185,7 @@ func ParseChainID(chainID string) uint64 {
 
 // GetSelfHeight is a utility function that returns self height given context
 // Revision number is retrieved from ctx.ChainID()
-func GetSelfHeight(ctx context.Context) Height {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	revision := ParseChainID(sdkCtx.ChainID())
-	return NewHeight(revision, uint64(sdkCtx.BlockHeight()))
+func GetSelfHeight(ctx sdk.Context) Height {
+	revision := ParseChainID(ctx.ChainID())
+	return NewHeight(revision, uint64(ctx.BlockHeight()))
 }

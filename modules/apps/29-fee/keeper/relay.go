@@ -1,10 +1,11 @@
 package keeper
 
 import (
-	"context"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
@@ -14,7 +15,7 @@ import (
 
 // SendPacket wraps the ICS4Wrapper SendPacket function
 func (k Keeper) SendPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
 	timeoutHeight clienttypes.Height,
@@ -26,7 +27,7 @@ func (k Keeper) SendPacket(
 
 // WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function
 // ICS29 WriteAcknowledgement is used for asynchronous acknowledgements
-func (k Keeper) WriteAcknowledgement(ctx context.Context, packet ibcexported.PacketI, acknowledgement ibcexported.Acknowledgement) error {
+func (k Keeper) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, acknowledgement ibcexported.Acknowledgement) error {
 	if !k.IsFeeEnabled(ctx, packet.GetDestPort(), packet.GetDestChannel()) {
 		// ics4Wrapper may be core IBC or higher-level middleware
 		return k.ics4Wrapper.WriteAcknowledgement(ctx, packet, acknowledgement)
@@ -53,7 +54,7 @@ func (k Keeper) WriteAcknowledgement(ctx context.Context, packet ibcexported.Pac
 }
 
 // GetAppVersion returns the underlying application version.
-func (k Keeper) GetAppVersion(ctx context.Context, portID, channelID string) (string, bool) {
+func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	version, found := k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 	if !found {
 		return "", false

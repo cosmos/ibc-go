@@ -1,15 +1,15 @@
 package channelv2
 
 import (
-	"context"
-
 	"github.com/cosmos/gogoproto/proto"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
-func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k *keeper.Keeper, gs types.GenesisState) {
 	// set acks
 	for _, ack := range gs.Acknowledgements {
 		k.SetPacketAcknowledgement(ctx, ack.ClientId, ack.Sequence, ack.Data)
@@ -41,7 +41,7 @@ func InitGenesis(ctx context.Context, k *keeper.Keeper, gs types.GenesisState) {
 	}
 }
 
-func ExportGenesis(ctx context.Context, k *keeper.Keeper) types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) types.GenesisState {
 	clientStates := k.ClientKeeper.GetAllGenesisClients(ctx)
 	gs := types.GenesisState{
 		Acknowledgements: make([]types.PacketState, 0),

@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 
@@ -12,9 +11,8 @@ import (
 )
 
 // emitChannelOpenInitEvent emits a channel open init event
-func emitChannelOpenInitEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenInitEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenInit,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -31,9 +29,8 @@ func emitChannelOpenInitEvent(ctx context.Context, portID string, channelID stri
 }
 
 // emitChannelOpenTryEvent emits a channel open try event
-func emitChannelOpenTryEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenTryEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenTry,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -51,9 +48,8 @@ func emitChannelOpenTryEvent(ctx context.Context, portID string, channelID strin
 }
 
 // emitChannelOpenAckEvent emits a channel open acknowledge event
-func emitChannelOpenAckEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenAckEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenAck,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -70,9 +66,8 @@ func emitChannelOpenAckEvent(ctx context.Context, portID string, channelID strin
 }
 
 // emitChannelOpenConfirmEvent emits a channel open confirm event
-func emitChannelOpenConfirmEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func emitChannelOpenConfirmEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelOpenConfirm,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -89,9 +84,8 @@ func emitChannelOpenConfirmEvent(ctx context.Context, portID string, channelID s
 }
 
 // emitChannelCloseInitEvent emits a channel close init event
-func emitChannelCloseInitEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func emitChannelCloseInitEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelCloseInit,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -108,9 +102,8 @@ func emitChannelCloseInitEvent(ctx context.Context, portID string, channelID str
 }
 
 // emitChannelCloseConfirmEvent emits a channel close confirm event
-func emitChannelCloseConfirmEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func emitChannelCloseConfirmEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelCloseConfirm,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -209,9 +202,8 @@ func emitWriteAcknowledgementEvent(ctx sdk.Context, packet types.Packet, channel
 
 // emitAcknowledgePacketEvent emits an acknowledge packet event. It will be emitted both the first time
 // a packet is acknowledged for a certain sequence and for all duplicate acknowledgements.
-func emitAcknowledgePacketEvent(ctx context.Context, packet types.Packet, channel types.Channel) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func emitAcknowledgePacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAcknowledgePacket,
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
@@ -236,9 +228,8 @@ func emitAcknowledgePacketEvent(ctx context.Context, packet types.Packet, channe
 
 // emitTimeoutPacketEvent emits a timeout packet event. It will be emitted both the first time a packet
 // is timed out for a certain sequence and for all duplicate timeouts.
-func emitTimeoutPacketEvent(ctx context.Context, packet types.Packet, channel types.Channel) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func emitTimeoutPacketEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeoutPacket,
 			sdk.NewAttribute(types.AttributeKeyTimeoutHeight, packet.GetTimeoutHeight().String()),
@@ -259,9 +250,8 @@ func emitTimeoutPacketEvent(ctx context.Context, packet types.Packet, channel ty
 }
 
 // emitChannelClosedEvent emits a channel closed event.
-func emitChannelClosedEvent(ctx context.Context, packet types.Packet, channel types.Channel) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func emitChannelClosedEvent(ctx sdk.Context, packet types.Packet, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelClosed,
 			sdk.NewAttribute(types.AttributeKeyPortID, packet.GetSourcePort()),
@@ -391,9 +381,8 @@ func EmitChannelUpgradeTimeoutEvent(ctx sdk.Context, portID string, channelID st
 }
 
 // EmitErrorReceiptEvent emits an error receipt event
-func EmitErrorReceiptEvent(ctx context.Context, portID string, channelID string, channel types.Channel, err error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func EmitErrorReceiptEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel, err error) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelUpgradeError,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),
@@ -429,9 +418,8 @@ func EmitChannelUpgradeCancelEvent(ctx sdk.Context, portID string, channelID str
 }
 
 // emitChannelFlushCompleteEvent emits an flushing event.
-func emitChannelFlushCompleteEvent(ctx context.Context, portID string, channelID string, channel types.Channel) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+func emitChannelFlushCompleteEvent(ctx sdk.Context, portID string, channelID string, channel types.Channel) {
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeChannelFlushComplete,
 			sdk.NewAttribute(types.AttributeKeyPortID, portID),

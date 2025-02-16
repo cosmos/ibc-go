@@ -35,10 +35,10 @@ type BankKeeper interface {
 
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
-	GetChannel(ctx context.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
-	GetNextSequenceSend(ctx context.Context, portID, channelID string) (uint64, bool)
-	GetAllChannelsWithPortPrefix(ctx context.Context, portPrefix string) []channeltypes.IdentifiedChannel
-	HasChannel(ctx context.Context, portID, channelID string) bool
+	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
+	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
+	GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []channeltypes.IdentifiedChannel
+	HasChannel(ctx sdk.Context, portID, channelID string) bool
 }
 
 // ClientKeeper defines the expected IBC client keeper
