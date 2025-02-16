@@ -21,10 +21,10 @@ type AccountKeeper interface {
 
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
-	GetChannel(ctx context.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
-	GetNextSequenceSend(ctx context.Context, portID, channelID string) (uint64, bool)
-	GetConnection(ctx context.Context, connectionID string) (connectiontypes.ConnectionEnd, error)
-	GetAllChannelsWithPortPrefix(ctx context.Context, portPrefix string) []channeltypes.IdentifiedChannel
+	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
+	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
+	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, error)
+	GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []channeltypes.IdentifiedChannel
 }
 
 // ParamSubspace defines the expected Subspace interface for module parameters.

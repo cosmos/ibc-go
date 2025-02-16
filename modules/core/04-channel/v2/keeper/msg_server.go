@@ -17,30 +17,30 @@ import (
 var _ types.MsgServer = &Keeper{}
 
 // SendPacket implements the PacketMsgServer SendPacket method.
-func (k *Keeper) SendPacket(ctx context.Context, msg *types.MsgSendPacket) (*types.MsgSendPacketResponse, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
+func (k *Keeper) SendPacket(goCtx context.Context, msg *types.MsgSendPacket) (*types.MsgSendPacketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Note, the validate basic function in sendPacket does the timeoutTimestamp != 0 check and other stateless checks on the packet.
 	// timeoutTimestamp must be greater than current block time
 	timeout := time.Unix(int64(msg.TimeoutTimestamp), 0)
-	if timeout.Before(sdkCtx.BlockTime()) {
+	if timeout.Before(ctx.BlockTime()) {
 		return nil, errorsmod.Wrap(types.ErrTimeoutElapsed, "timeout is less than the current block timestamp")
 	}
 
 	// timeoutTimestamp must be less than current block time + MaxTimeoutDelta
-	if timeout.After(sdkCtx.BlockTime().Add(types.MaxTimeoutDelta)) {
+	if timeout.After(ctx.BlockTime().Add(types.MaxTimeoutDelta)) {
 		return nil, errorsmod.Wrap(types.ErrInvalidTimeout, "timeout exceeds the maximum expected value")
 	}
 
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		sdkCtx.Logger().Error("send packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
+		ctx.Logger().Error("send packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
 	sequence, destChannel, err := k.sendPacket(ctx, msg.SourceClient, msg.TimeoutTimestamp, msg.Payloads)
 	if err != nil {
-		sdkCtx.Logger().Error("send packet failed", "source-client", msg.SourceClient, "error", errorsmod.Wrap(err, "send packet failed"))
+		ctx.Logger().Error("send packet failed", "source-client", msg.SourceClient, "error", errorsmod.Wrap(err, "send packet failed"))
 		return nil, errorsmod.Wrapf(err, "send packet failed for source id: %s", msg.SourceClient)
 	}
 
@@ -56,12 +56,12 @@ func (k *Keeper) SendPacket(ctx context.Context, msg *types.MsgSendPacket) (*typ
 }
 
 // RecvPacket implements the PacketMsgServer RecvPacket method.
-func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*types.MsgRecvPacketResponse, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
+func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*types.MsgRecvPacketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		sdkCtx.Logger().Error("receive packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
+		ctx.Logger().Error("receive packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
@@ -69,7 +69,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 	//
 	// If the packet was already received, perform a no-op
 	// Use a cached context to prevent accidental state changes
-	cacheCtx, writeFn := sdkCtx.CacheContext()
+	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.recvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
 	switch err {
@@ -77,10 +77,10 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 		writeFn()
 	case types.ErrNoOpMsg:
 		// no-ops do not need event emission as they will be ignored
-		sdkCtx.Logger().Debug("no-op on redundant relay", "source-client", msg.Packet.SourceClient)
+		ctx.Logger().Debug("no-op on redundant relay", "source-client", msg.Packet.SourceClient)
 		return &types.MsgRecvPacketResponse{Result: types.NOOP}, nil
 	default:
-		sdkCtx.Logger().Error("receive packet failed", "source-client", msg.Packet.SourceClient, "error", errorsmod.Wrap(err, "receive packet verification failed"))
+		ctx.Logger().Error("receive packet failed", "source-client", msg.Packet.SourceClient, "error", errorsmod.Wrap(err, "receive packet verification failed"))
 		return nil, errorsmod.Wrap(err, "receive packet verification failed")
 	}
 
@@ -93,7 +93,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 	isSuccess := true
 	for _, pd := range msg.Packet.Payloads {
 		// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
-		cacheCtx, writeFn = sdkCtx.CacheContext()
+		cacheCtx, writeFn = ctx.CacheContext()
 		cb := k.Router.Route(pd.DestinationPort)
 		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, pd, signer)
 
@@ -113,7 +113,7 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 				AppAcknowledgements: [][]byte{types.ErrorAcknowledgement[:]},
 			}
 			// Modify events in cached context to reflect unsuccessful acknowledgement
-			sdkCtx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
+			ctx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
 			break
 		}
 
@@ -154,30 +154,30 @@ func (k *Keeper) RecvPacket(ctx context.Context, msg *types.MsgRecvPacket) (*typ
 	// TODO: store the packet for async applications to access if required.
 	defer telemetry.ReportRecvPacket(msg.Packet)
 
-	sdkCtx.Logger().Info("receive packet callback succeeded", "source-client", msg.Packet.SourceClient, "dest-client", msg.Packet.DestinationClient, "result", types.SUCCESS.String())
+	ctx.Logger().Info("receive packet callback succeeded", "source-client", msg.Packet.SourceClient, "dest-client", msg.Packet.DestinationClient, "result", types.SUCCESS.String())
 	return &types.MsgRecvPacketResponse{Result: types.SUCCESS}, nil
 }
 
 // Acknowledgement defines an rpc handler method for MsgAcknowledgement.
-func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgement) (*types.MsgAcknowledgementResponse, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
+func (k *Keeper) Acknowledgement(goCtx context.Context, msg *types.MsgAcknowledgement) (*types.MsgAcknowledgementResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	relayer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		sdkCtx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
+		ctx.Logger().Error("acknowledgement failed", "error", errorsmod.Wrap(err, "Invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
-	cacheCtx, writeFn := sdkCtx.CacheContext()
+	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.acknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 
 	switch err {
 	case nil:
 		writeFn()
 	case types.ErrNoOpMsg:
-		sdkCtx.Logger().Debug("no-op on redundant relay", "source-client", msg.Packet.SourceClient)
+		ctx.Logger().Debug("no-op on redundant relay", "source-client", msg.Packet.SourceClient)
 		return &types.MsgAcknowledgementResponse{Result: types.NOOP}, nil
 	default:
-		sdkCtx.Logger().Error("acknowledgement failed", "source-client", msg.Packet.SourceClient, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
+		ctx.Logger().Error("acknowledgement failed", "source-client", msg.Packet.SourceClient, "error", errorsmod.Wrap(err, "acknowledge packet verification failed"))
 		return nil, errorsmod.Wrap(err, "acknowledge packet verification failed")
 	}
 
@@ -193,7 +193,8 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 		} else {
 			ack = types.ErrorAcknowledgement[:]
 		}
-		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, ack, pd, relayer)
+		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceClient, msg.Packet.DestinationClient,
+			msg.Packet.Sequence, ack, pd, relayer)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnAcknowledgementPacket for source port %s, source client %s, destination client %s", pd.SourcePort, msg.Packet.SourceClient, msg.Packet.DestinationClient)
 		}
@@ -205,32 +206,33 @@ func (k *Keeper) Acknowledgement(ctx context.Context, msg *types.MsgAcknowledgem
 }
 
 // Timeout implements the PacketMsgServer Timeout method.
-func (k *Keeper) Timeout(ctx context.Context, timeout *types.MsgTimeout) (*types.MsgTimeoutResponse, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
+func (k *Keeper) Timeout(goCtx context.Context, timeout *types.MsgTimeout) (*types.MsgTimeoutResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	signer, err := sdk.AccAddressFromBech32(timeout.Signer)
 	if err != nil {
-		sdkCtx.Logger().Error("timeout packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
+		ctx.Logger().Error("timeout packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
-	cacheCtx, writeFn := sdkCtx.CacheContext()
+	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.timeoutPacket(cacheCtx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight)
 
 	switch err {
 	case nil:
 		writeFn()
 	case types.ErrNoOpMsg:
-		sdkCtx.Logger().Debug("no-op on redundant relay", "source-client", timeout.Packet.SourceClient)
+		ctx.Logger().Debug("no-op on redundant relay", "source-client", timeout.Packet.SourceClient)
 		return &types.MsgTimeoutResponse{Result: types.NOOP}, nil
 	default:
-		sdkCtx.Logger().Error("timeout failed", "source-client", timeout.Packet.SourceClient, "error", errorsmod.Wrap(err, "timeout packet verification failed"))
+		ctx.Logger().Error("timeout failed", "source-client", timeout.Packet.SourceClient, "error", errorsmod.Wrap(err, "timeout packet verification failed"))
 		return nil, errorsmod.Wrap(err, "timeout packet verification failed")
 	}
 
 	for _, pd := range timeout.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
-		err := cbs.OnTimeoutPacket(ctx, timeout.Packet.SourceClient, timeout.Packet.DestinationClient, timeout.Packet.Sequence, pd, signer)
+		err := cbs.OnTimeoutPacket(ctx, timeout.Packet.SourceClient, timeout.Packet.DestinationClient,
+			timeout.Packet.Sequence, pd, signer)
 		if err != nil {
 			return nil, errorsmod.Wrapf(err, "failed OnTimeoutPacket for source port %s, source client %s, destination client %s", pd.SourcePort, timeout.Packet.SourceClient, timeout.Packet.DestinationClient)
 		}

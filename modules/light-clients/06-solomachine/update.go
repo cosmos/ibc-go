@@ -1,12 +1,11 @@
 package solomachine
 
 import (
-	"context"
-
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
@@ -15,7 +14,7 @@ import (
 // VerifyClientMessage introspects the provided ClientMessage and checks its validity
 // A Solomachine Header is considered valid if the currently registered public key has signed over the new public key with the correct sequence
 // A Solomachine Misbehaviour is considered valid if duplicate signatures of the current public key are found on two different messages at a given sequence
-func (cs ClientState) VerifyClientMessage(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) error {
+func (cs ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) error {
 	switch msg := clientMsg.(type) {
 	case *Header:
 		return cs.verifyHeader(cdc, msg)
@@ -79,7 +78,7 @@ func (cs ClientState) verifyHeader(cdc codec.BinaryCodec, header *Header) error 
 // UpdateState updates the consensus state to the new public key and an incremented sequence.
 // A list containing the updated consensus height is returned.
 // If the provided clientMsg is not of type Header, the handler will no-op and return an empty slice.
-func (cs ClientState) UpdateState(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	smHeader, ok := clientMsg.(*Header)
 	if !ok {
 		// clientMsg is invalid Misbehaviour, no update necessary

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"context"
 	"strconv"
 	"time"
 
@@ -20,15 +19,13 @@ import (
 // sendPacket constructs a packet from the input arguments, writes a packet commitment to state
 // in order for the packet to be sent to the counterparty.
 func (k *Keeper) sendPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourceClient string,
 	timeoutTimestamp uint64,
 	payloads []types.Payload,
 ) (uint64, string, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, sourceClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, sourceClient)
 	if !ok {
 		return 0, "", errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", sourceClient)
 	}
@@ -75,7 +72,8 @@ func (k *Keeper) sendPacket(
 	k.SetNextSequenceSend(ctx, sourceClient, sequence+1)
 	k.SetPacketCommitment(ctx, sourceClient, packet.GetSequence(), commitment)
 
-	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_client_id", packet.DestinationClient, "src_client_id", packet.SourceClient)
+	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_client_id",
+		packet.DestinationClient, "src_client_id", packet.SourceClient)
 
 	emitSendPacketEvents(ctx, packet)
 
@@ -90,15 +88,13 @@ func (k *Keeper) sendPacket(
 // counterparty stored a packet commitment. If successful, a packet receipt is stored
 // to indicate to the counterparty successful delivery.
 func (k *Keeper) recvPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, packet.DestinationClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
@@ -107,7 +103,7 @@ func (k *Keeper) recvPacket(
 		return errorsmod.Wrapf(clientv2types.ErrInvalidCounterparty, "counterparty id (%s) does not match packet source id (%s)", counterparty.ClientId, packet.SourceClient)
 	}
 
-	currentTimestamp := uint64(sdkCtx.BlockTime().Unix())
+	currentTimestamp := uint64(ctx.BlockTime().Unix())
 	if currentTimestamp >= packet.TimeoutTimestamp {
 		return errorsmod.Wrapf(types.ErrTimeoutElapsed, "current timestamp: %d, timeout timestamp: %d", currentTimestamp, packet.TimeoutTimestamp)
 	}
@@ -152,14 +148,12 @@ func (k *Keeper) recvPacket(
 // writeAcknowledgement writes the acknowledgement to the store and emits the packet and acknowledgement
 // for relayers to relay the acknowledgement to the counterparty chain.
 func (k Keeper) writeAcknowledgement(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet types.Packet,
 	ack types.Acknowledgement,
 ) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, packet.DestinationClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
 	}
@@ -194,12 +188,10 @@ func (k Keeper) writeAcknowledgement(
 
 // WriteAcknowledgement writes the acknowledgement and emits events for asynchronous acknowledgements
 // this is the method to be called by external apps when they want to write an acknowledgement asyncrhonously
-func (k *Keeper) WriteAcknowledgement(ctx context.Context, clientID string, sequence uint64, ack types.Acknowledgement) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
+func (k *Keeper) WriteAcknowledgement(ctx sdk.Context, clientID string, sequence uint64, ack types.Acknowledgement) error {
 	// Validate the acknowledgement
 	if err := ack.Validate(); err != nil {
-		sdkCtx.Logger().Error("write acknowledgement failed", "error", errorsmod.Wrap(err, "invalid acknowledgement"))
+		ctx.Logger().Error("write acknowledgement failed", "error", errorsmod.Wrap(err, "invalid acknowledgement"))
 		return errorsmod.Wrap(err, "invalid acknowledgement")
 	}
 
@@ -210,7 +202,7 @@ func (k *Keeper) WriteAcknowledgement(ctx context.Context, clientID string, sequ
 
 	// Write the acknowledgement to the store
 	if err := k.writeAcknowledgement(ctx, packet, ack); err != nil {
-		sdkCtx.Logger().Error("write acknowledgement failed", "error", errorsmod.Wrap(err, "write acknowledgement failed"))
+		ctx.Logger().Error("write acknowledgement failed", "error", errorsmod.Wrap(err, "write acknowledgement failed"))
 		return errorsmod.Wrap(err, "write acknowledgement failed")
 	}
 
@@ -220,11 +212,9 @@ func (k *Keeper) WriteAcknowledgement(ctx context.Context, clientID string, sequ
 	return nil
 }
 
-func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, acknowledgement types.Acknowledgement, proof []byte, proofHeight exported.Height) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
+func (k *Keeper) acknowledgePacket(ctx sdk.Context, packet types.Packet, acknowledgement types.Acknowledgement, proof []byte, proofHeight exported.Height) error {
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, packet.SourceClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.SourceClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
 	}
@@ -281,15 +271,13 @@ func (k *Keeper) acknowledgePacket(ctx context.Context, packet types.Packet, ack
 // was never delivered to the counterparty. If successful, the packet commitment
 // is deleted and the packet has completed its lifecycle.
 func (k *Keeper) timeoutPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	packet types.Packet,
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
 	// lookup counterparty from client identifiers
-	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(sdkCtx, packet.SourceClient)
+	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.SourceClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
 	}

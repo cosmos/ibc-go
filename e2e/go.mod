@@ -2,7 +2,7 @@ module github.com/cosmos/ibc-go/e2e
 
 go 1.23.6
 
-replace github.com/strangelove-ventures/interchaintest/v8 => github.com/gjermundgaraba/interchaintest/v8 v8.0.0-20250215053841-57b934aaa4db
+replace github.com/strangelove-ventures/interchaintest/v8 => github.com/gjermundgaraba/interchaintest/v8 v8.0.0-20250215185800-7e1ec6907f6e
 
 require (
 	cosmossdk.io/errors v1.0.1

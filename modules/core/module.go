@@ -199,8 +199,8 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 7 }
 
 // BeginBlock returns the begin blocker for the ibc module.
-func (am AppModule) BeginBlock(ctx context.Context) error {
-	ibcclient.BeginBlocker(sdk.UnwrapSDKContext(ctx), am.keeper.ClientKeeper)
+func (am AppModule) BeginBlock(goCtx context.Context) error {
+	ibcclient.BeginBlocker(sdk.UnwrapSDKContext(goCtx), am.keeper.ClientKeeper)
 	return nil
 }
 
