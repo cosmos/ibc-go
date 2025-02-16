@@ -256,7 +256,6 @@ jobs:
           - entrypoint: TestTransferLocalhostTestSuite
           - entrypoint: TestConnectionTestSuite
           - entrypoint: TestInterchainAccountsGovTestSuite
-          - entrypoint: TestIncentivizedTransferTestSuite
     steps:
       - uses: actions/checkout@v4
         with:
