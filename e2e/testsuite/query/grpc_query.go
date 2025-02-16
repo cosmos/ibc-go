@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	msgv1 "cosmossdk.io/api/cosmos/msg/v1"
-	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	pb "google.golang.org/protobuf/proto"
+
+	msgv1 "cosmossdk.io/api/cosmos/msg/v1"
+	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 )
 
 var queryReqToPath = make(map[string]string)
@@ -24,8 +25,10 @@ func PopulateQueryReqToPath(ctx context.Context, chain ibc.Chain) error {
 	for _, fileDescriptor := range resp.Files {
 		for _, service := range fileDescriptor.GetService() {
 			// Skip services that are annotated with the "cosmos.msg.v1.service" option.
-			if ext := pb.GetExtension(service.GetOptions(), msgv1.E_Service); ext != nil && ext.(bool) {
-				continue
+			if ext := pb.GetExtension(service.GetOptions(), msgv1.E_Service); ext != nil {
+				if ok, extBool := ext.(bool); ok && extBool {
+					continue
+				}
 			}
 
 			for _, method := range service.GetMethod() {
