@@ -26,7 +26,6 @@ import (
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
-	feetypes "github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	v7migrations "github.com/cosmos/ibc-go/v10/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
@@ -63,7 +62,6 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 	// ibc types
 	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	icahosttypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	feetypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	solomachine.RegisterInterfaces(cfg.InterfaceRegistry)
 	v7migrations.RegisterInterfaces(cfg.InterfaceRegistry)
 	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
