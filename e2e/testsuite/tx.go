@@ -30,7 +30,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
@@ -288,42 +287,8 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 	s.Require().NoError(err)
 	s.Require().NotNil(channel)
 
-	feeEnabled := false
-	if testvalues.FeeMiddlewareFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
-		feeEnabled, err = query.FeeEnabledChannel(ctx, chain, portID, channelID)
-		s.Require().NoError(err)
-	}
+	msg := GetMsgTransfer(portID, channelID, channel.Version, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
 
-	transferVersion := channel.Version
-	if feeEnabled {
-		version, err := feetypes.MetadataFromVersion(channel.Version)
-		s.Require().NoError(err)
-
-		transferVersion = version.AppVersion
-	}
-
-	msg := GetMsgTransfer(portID, channelID, transferVersion, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
-
-	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-// RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
-func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain ibc.Chain,
-	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
-) sdk.TxResponse {
-	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
-	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-// PayPacketFeeAsync broadcasts a MsgPayPacketFeeAsync message.
-func (s *E2ETestSuite) PayPacketFeeAsync(
-	ctx context.Context,
-	chain ibc.Chain,
-	user ibc.Wallet,
-	packetID channeltypes.PacketId,
-	packetFee feetypes.PacketFee,
-) sdk.TxResponse {
-	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
