@@ -29,10 +29,9 @@ import (
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
 
 const (
@@ -668,38 +667,12 @@ func (*E2ETestSuite) TransferChannelOptions() ibc.CreateChannelOptions {
 	return opts
 }
 
-// FeeTransferChannelOptions configures both of the chains to have fee middleware enabled.
-func (s *E2ETestSuite) FeeTransferChannelOptions() ibc.CreateChannelOptions {
-	versionMetadata := feetypes.Metadata{
-		FeeVersion: feetypes.Version,
-		AppVersion: transfertypes.V1,
-	}
-	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
-	s.Require().NoError(err)
-
-	opts := ibc.DefaultChannelOpts()
-	opts.Version = string(versionBytes)
-	return opts
-}
-
 // GetTimeoutHeight returns a timeout height of 1000 blocks above the current block height.
 // This function should be used when the timeout is never expected to be reached
 func (s *E2ETestSuite) GetTimeoutHeight(ctx context.Context, chain ibc.Chain) clienttypes.Height {
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err)
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
-}
-
-// CreateUpgradeFields creates upgrade fields for channel with fee middleware
-func (s *E2ETestSuite) CreateUpgradeFields(channel channeltypes.Channel) channeltypes.UpgradeFields {
-	versionMetadata := feetypes.Metadata{
-		FeeVersion: feetypes.Version,
-		AppVersion: channel.Version,
-	}
-	versionBytes, err := feetypes.ModuleCdc.MarshalJSON(&versionMetadata)
-	s.Require().NoError(err)
-
-	return channeltypes.NewUpgradeFields(channel.Ordering, channel.ConnectionHops, string(versionBytes))
 }
 
 // SetUpgradeTimeoutParam creates and submits a governance proposal to execute the message to update 04-channel params with a timeout of 1s

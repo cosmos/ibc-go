@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -12,8 +11,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	internaltypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/types"
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	internaltypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/internal/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -115,7 +114,7 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 }
 
 // setDenomTrace sets a new {trace hash -> denom trace} pair to the store.
-func (k Keeper) setDenomTrace(ctx context.Context, denomTrace internaltypes.DenomTrace) {
+func (k Keeper) setDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
 	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomTraceKey)
 	bz := k.cdc.MustMarshal(&denomTrace)
 
@@ -123,14 +122,14 @@ func (k Keeper) setDenomTrace(ctx context.Context, denomTrace internaltypes.Deno
 }
 
 // deleteDenomTrace deletes the denom trace
-func (k Keeper) deleteDenomTrace(ctx context.Context, denomTrace internaltypes.DenomTrace) {
+func (k Keeper) deleteDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
 	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomTraceKey)
 	store.Delete(denomTrace.Hash())
 }
 
 // iterateDenomTraces iterates over the denomination traces in the store
 // and performs a callback function.
-func (k Keeper) iterateDenomTraces(ctx context.Context, cb func(denomTrace internaltypes.DenomTrace) bool) {
+func (k Keeper) iterateDenomTraces(ctx sdk.Context, cb func(denomTrace internaltypes.DenomTrace) bool) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, types.DenomTraceKey)
 

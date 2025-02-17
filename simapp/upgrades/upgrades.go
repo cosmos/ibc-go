@@ -13,9 +13,9 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	clientkeeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	ibctmmigrations "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint/migrations"
+	clientkeeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibctmmigrations "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint/migrations"
 )
 
 const (
@@ -51,20 +51,20 @@ func CreateV7UpgradeHandler(
 	consensusParamsKeeper consensusparamskeeper.Keeper,
 	paramsKeeper paramskeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return func(goCtx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		ctx := sdk.UnwrapSDKContext(goCtx)
 		// OPTIONAL: prune expired tendermint consensus states to save storage space
-		if _, err := ibctmmigrations.PruneExpiredConsensusStates(sdkCtx, cdc, &clientKeeper); err != nil {
+		if _, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, cdc, &clientKeeper); err != nil {
 			return nil, err
 		}
 
 		legacyBaseAppSubspace := paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-		err := baseapp.MigrateParams(sdkCtx, legacyBaseAppSubspace, consensusParamsKeeper.ParamsStore)
+		err := baseapp.MigrateParams(ctx, legacyBaseAppSubspace, consensusParamsKeeper.ParamsStore)
 		if err != nil {
 			panic(err)
 		}
 
-		return mm.RunMigrations(ctx, configurator, vm)
+		return mm.RunMigrations(goCtx, configurator, vm)
 	}
 }
 
@@ -74,13 +74,13 @@ func CreateV7LocalhostUpgradeHandler(
 	configurator module.Configurator,
 	clientKeeper clientkeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return func(goCtx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		ctx := sdk.UnwrapSDKContext(goCtx)
 		// explicitly update the IBC 02-client params, adding the localhost client type
-		params := clientKeeper.GetParams(sdkCtx)
+		params := clientKeeper.GetParams(ctx)
 		params.AllowedClients = append(params.AllowedClients, exported.Localhost)
-		clientKeeper.SetParams(sdkCtx, params)
+		clientKeeper.SetParams(ctx, params)
 
-		return mm.RunMigrations(ctx, configurator, vm)
+		return mm.RunMigrations(goCtx, configurator, vm)
 	}
 }

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
-	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	mockv2 "github.com/cosmos/ibc-go/v9/testing/mock/v2"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
+	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
 )
 
 var unusedChannel = "channel-5"

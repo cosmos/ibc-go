@@ -11,12 +11,12 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
-	modulefee "github.com/cosmos/ibc-go/v9/modules/apps/29-fee"
-	"github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	modulefee "github.com/cosmos/ibc-go/v10/modules/apps/29-fee"
+	"github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 func TestMsgRegisterPayeeValidation(t *testing.T) {

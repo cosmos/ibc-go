@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -10,10 +9,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/internal/events"
-	"github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/internal/events"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
 
 // SendTransfer handles transfer sending logic. There are 2 possible cases:
@@ -112,7 +111,7 @@ func (k Keeper) SendTransfer(
 // back tokens this chain originally transferred to it, the tokens are
 // unescrowed and sent to the receiving address.
 func (k Keeper) OnRecvPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	data types.FungibleTokenPacketDataV2,
 	sourcePort string,
 	sourceChannel string,
@@ -211,7 +210,7 @@ func (k Keeper) OnRecvPacket(
 // If the acknowledgement was a success then nothing occurs. Otherwise,
 // if the acknowledgement failed, then the sender is refunded their tokens.
 func (k Keeper) OnAcknowledgementPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
 	data types.FungibleTokenPacketDataV2,
@@ -234,7 +233,7 @@ func (k Keeper) OnAcknowledgementPacket(
 
 // OnTimeoutPacket processes a transfer packet timeout by refunding the tokens to the sender
 func (k Keeper) OnTimeoutPacket(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
 	data types.FungibleTokenPacketDataV2,
@@ -247,7 +246,7 @@ func (k Keeper) OnTimeoutPacket(
 // were burnt in the original send so new tokens are minted and sent to
 // the sending address.
 func (k Keeper) refundPacketTokens(
-	ctx context.Context,
+	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
 	data types.FungibleTokenPacketDataV2,
@@ -296,7 +295,7 @@ func (k Keeper) refundPacketTokens(
 
 // EscrowCoin will send the given coin from the provided sender to the escrow address. It will also
 // update the total escrowed amount by adding the escrowed coin's amount to the current total escrow.
-func (k Keeper) EscrowCoin(ctx context.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
+func (k Keeper) EscrowCoin(ctx sdk.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
 	if err := k.BankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(coin)); err != nil {
 		// failure is expected for insufficient balances
 		return err
@@ -312,7 +311,7 @@ func (k Keeper) EscrowCoin(ctx context.Context, sender, escrowAddress sdk.AccAdd
 
 // UnescrowCoin will send the given coin from the escrow address to the provided receiver. It will also
 // update the total escrow by deducting the unescrowed coin's amount from the current total escrow.
-func (k Keeper) UnescrowCoin(ctx context.Context, escrowAddress, receiver sdk.AccAddress, coin sdk.Coin) error {
+func (k Keeper) UnescrowCoin(ctx sdk.Context, escrowAddress, receiver sdk.AccAddress, coin sdk.Coin) error {
 	if err := k.BankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(coin)); err != nil {
 		// NOTE: this error is only expected to occur given an unexpected bug or a malicious
 		// counterparty module. The bug may occur in bank or any part of the code that allows

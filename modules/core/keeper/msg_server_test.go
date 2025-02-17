@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -12,19 +11,19 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
-	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
-	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	internalerrors "github.com/cosmos/ibc-go/v10/modules/core/internal/errors"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
 var (
@@ -1063,13 +1062,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeInit() {
 					path.EndpointA.Chain.GetSimApp().IBCKeeper.GetAuthority(),
 				)
 
-				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeInit = func(ctx context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeInit = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, version string) (string, error) {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
-					sdkCtx := sdk.UnwrapSDKContext(ctx)
-					store := sdkCtx.KVStore(storeKey)
+					store := ctx.KVStore(storeKey)
 					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
+					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return ibcmock.UpgradeVersion, nil
 				}
 			},
@@ -1211,13 +1209,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeTry() {
 		{
 			"ibc application does not commit state changes in callback",
 			func() {
-				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(ctx context.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeTry = func(ctx sdk.Context, portID, channelID string, order channeltypes.Order, connectionHops []string, counterpartyVersion string) (string, error) {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
-					sdkCtx := sdk.UnwrapSDKContext(ctx)
-					store := sdkCtx.KVStore(storeKey)
+					store := ctx.KVStore(storeKey)
 					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
+					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return ibcmock.UpgradeVersion, nil
 				}
 			},
@@ -1417,11 +1414,10 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 			"application callback returns error and error receipt is written",
 			func() {
 				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(
-					ctx context.Context, portID, channelID, counterpartyVersion string,
+					ctx sdk.Context, portID, channelID, counterpartyVersion string,
 				) error {
 					// set arbitrary value in store to mock application state changes
-					sdkCtx := sdk.UnwrapSDKContext(ctx)
-					store := sdkCtx.KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
+					store := ctx.KVStore(suite.chainA.GetSimApp().GetKey(exported.ModuleName))
 					store.Set([]byte("foo"), []byte("bar"))
 					return fmt.Errorf("mock app callback failed")
 				}
@@ -1481,7 +1477,7 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		{
 			"application callback returns an upgrade error",
 			func() {
-				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx context.Context, portID, channelID, counterpartyVersion string) error {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 					return channeltypes.NewUpgradeError(10000000, ibcmock.MockApplicationCallbackError)
 				}
 			},
@@ -1493,13 +1489,12 @@ func (suite *KeeperTestSuite) TestChannelUpgradeAck() {
 		{
 			"ibc application does not commit state changes in callback",
 			func() {
-				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx context.Context, portID, channelID, counterpartyVersion string) error {
+				suite.chainA.GetSimApp().IBCMockModule.IBCApp.OnChanUpgradeAck = func(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
 					storeKey := suite.chainA.GetSimApp().GetKey(exported.ModuleName)
-					sdkCtx := sdk.UnwrapSDKContext(ctx)
-					store := sdkCtx.KVStore(storeKey)
+					store := ctx.KVStore(storeKey)
 					store.Set(ibcmock.TestKey, ibcmock.TestValue)
 
-					sdkCtx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
+					ctx.EventManager().EmitEvent(sdk.NewEvent(ibcmock.MockEventType))
 					return nil
 				}
 			},

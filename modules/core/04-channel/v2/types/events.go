@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // IBC Eureka core events

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"context"
 	"encoding/hex"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
@@ -16,8 +15,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // Keeper defines the 08-wasm keeper
@@ -201,7 +200,7 @@ func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.Cli
 
 // GetAllChecksums is a helper to get all checksums from the store.
 // It returns an empty slice if no checksums are found
-func (k Keeper) GetAllChecksums(ctx context.Context) ([]types.Checksum, error) {
+func (k Keeper) GetAllChecksums(ctx sdk.Context) ([]types.Checksum, error) {
 	iterator, err := k.GetChecksums().Iterate(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -222,7 +221,7 @@ func (k Keeper) GetAllChecksums(ctx context.Context) ([]types.Checksum, error) {
 
 // HasChecksum returns true if the given checksum exists in the store and
 // false otherwise.
-func (k Keeper) HasChecksum(ctx context.Context, checksum types.Checksum) bool {
+func (k Keeper) HasChecksum(ctx sdk.Context, checksum types.Checksum) bool {
 	found, err := k.GetChecksums().Has(ctx, checksum)
 	if err != nil {
 		return false

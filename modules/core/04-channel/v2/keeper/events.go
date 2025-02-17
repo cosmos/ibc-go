@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	"encoding/hex"
 	"fmt"
 
@@ -9,19 +8,17 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
 // emitSendPacketEvents emits events for the SendPacket handler.
-func emitSendPacketEvents(ctx context.Context, packet types.Packet) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
+func emitSendPacketEvents(ctx sdk.Context, packet types.Packet) {
 	encodedPacket, err := proto.Marshal(&packet)
 	if err != nil {
 		panic(err)
 	}
 
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSendPacket,
 			sdk.NewAttribute(types.AttributeKeySrcClient, packet.SourceClient),
@@ -38,15 +35,13 @@ func emitSendPacketEvents(ctx context.Context, packet types.Packet) {
 }
 
 // emitRecvPacketEvents emits events for the RecvPacket handler.
-func emitRecvPacketEvents(ctx context.Context, packet types.Packet) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
+func emitRecvPacketEvents(ctx sdk.Context, packet types.Packet) {
 	encodedPacket, err := proto.Marshal(&packet)
 	if err != nil {
 		panic(err)
 	}
 
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRecvPacket,
 			sdk.NewAttribute(types.AttributeKeySrcClient, packet.SourceClient),
@@ -63,9 +58,7 @@ func emitRecvPacketEvents(ctx context.Context, packet types.Packet) {
 }
 
 // emitWriteAcknowledgementEvents emits events for WriteAcknowledgement.
-func emitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ack types.Acknowledgement) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
+func emitWriteAcknowledgementEvents(ctx sdk.Context, packet types.Packet, ack types.Acknowledgement) {
 	encodedPacket, err := proto.Marshal(&packet)
 	if err != nil {
 		panic(err)
@@ -76,7 +69,7 @@ func emitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ac
 		panic(err)
 	}
 
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeWriteAck,
 			sdk.NewAttribute(types.AttributeKeySrcClient, packet.SourceClient),
@@ -94,15 +87,13 @@ func emitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ac
 }
 
 // emitAcknowledgePacketEvents emits events for the AcknowledgePacket handler.
-func emitAcknowledgePacketEvents(ctx context.Context, packet types.Packet) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
+func emitAcknowledgePacketEvents(ctx sdk.Context, packet types.Packet) {
 	encodedPacket, err := proto.Marshal(&packet)
 	if err != nil {
 		panic(err)
 	}
 
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeAcknowledgePacket,
 			sdk.NewAttribute(types.AttributeKeySrcClient, packet.SourceClient),
@@ -119,15 +110,13 @@ func emitAcknowledgePacketEvents(ctx context.Context, packet types.Packet) {
 }
 
 // emitTimeoutPacketEvents emits events for the TimeoutPacket handler.
-func emitTimeoutPacketEvents(ctx context.Context, packet types.Packet) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
+func emitTimeoutPacketEvents(ctx sdk.Context, packet types.Packet) {
 	encodedPacket, err := proto.Marshal(&packet)
 	if err != nil {
 		panic(err)
 	}
 
-	sdkCtx.EventManager().EmitEvents(sdk.Events{
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTimeoutPacket,
 			sdk.NewAttribute(types.AttributeKeySrcClient, packet.SourceClient),

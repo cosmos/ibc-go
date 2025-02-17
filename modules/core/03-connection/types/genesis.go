@@ -3,8 +3,8 @@ package types
 import (
 	"fmt"
 
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // NewConnectionPaths creates a ConnectionPaths instance.

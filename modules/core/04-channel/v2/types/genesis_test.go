@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 func TestValidateGenesis(t *testing.T) {

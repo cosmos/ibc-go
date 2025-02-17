@@ -36,7 +36,7 @@ env:
 
 jobs:
   determine-image-tag:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     outputs:
       release-version: ${{ steps.set-release-version.outputs.release-version }}
     steps:
@@ -50,7 +50,7 @@ jobs:
   # build-release-images builds all docker images that are relevant for the compatibility tests. If a single release
   # branch is specified, only that image will be built, e.g. release-v6.0.x.
   build-release-images:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     strategy:
       matrix:
         release-branch:
@@ -144,15 +144,6 @@ jobs:
       test-file: "e2e/tests/interchain_accounts/groups_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-inventivized-test:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/interchain_accounts/incentivized_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-
   ica-localhost-test:
     needs:
       - build-release-images
@@ -217,26 +208,6 @@ jobs:
     with:
       test-file: "e2e/tests/transfer/authz_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-
-  transfer-incentivized-test-a:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/transfer/incentivized_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-      chain: "chain-a"
-
-  transfer-incentivized-test-b:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/transfer/incentivized_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-      chain: "chain-b"
 
   transfer-localhost-test:
     needs:

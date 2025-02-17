@@ -1,20 +1,19 @@
 package keeper
 
 import (
-	"context"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // EmitAcknowledgementEvent emits an event signalling a successful or failed acknowledgement and including the error
 // details if any.
-func EmitAcknowledgementEvent(ctx context.Context, packet channeltypes.Packet, ack exported.Acknowledgement, err error) {
+func EmitAcknowledgementEvent(ctx sdk.Context, packet channeltypes.Packet, ack exported.Acknowledgement, err error) {
 	attributes := []sdk.Attribute{
 		sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),
 		sdk.NewAttribute(icatypes.AttributeKeyHostChannelID, packet.GetDestChannel()),
@@ -24,8 +23,7 @@ func EmitAcknowledgementEvent(ctx context.Context, packet channeltypes.Packet, a
 	if err != nil {
 		attributes = append(attributes, sdk.NewAttribute(icatypes.AttributeKeyAckError, err.Error()))
 	}
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			icatypes.EventTypePacket,
 			attributes...,
@@ -34,9 +32,8 @@ func EmitAcknowledgementEvent(ctx context.Context, packet channeltypes.Packet, a
 }
 
 // EmitHostDisabledEvent emits an event signalling that the host submodule is disabled.
-func EmitHostDisabledEvent(ctx context.Context, packet channeltypes.Packet) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	sdkCtx.EventManager().EmitEvent(
+func EmitHostDisabledEvent(ctx sdk.Context, packet channeltypes.Packet) {
+	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			icatypes.EventTypePacket,
 			sdk.NewAttribute(sdk.AttributeKeyModule, icatypes.ModuleName),

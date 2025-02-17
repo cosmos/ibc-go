@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
 
 var _ types.MsgServer = (*Keeper)(nil)
@@ -34,12 +34,16 @@ func (k Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*type
 }
 
 // RemoveChecksum defines a rpc handler method for MsgRemoveChecksum
-func (k Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecksum) (*types.MsgRemoveChecksumResponse, error) {
+func (k Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecksum) (*types.MsgRemoveChecksumResponse,
+	error,
+) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}
 
-	if !k.HasChecksum(goCtx, msg.Checksum) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if !k.HasChecksum(ctx, msg.Checksum) {
 		return nil, types.ErrWasmChecksumNotFound
 	}
 

@@ -15,7 +15,7 @@ on:
 jobs:
   check-docs-build:
     name: Check docs build
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

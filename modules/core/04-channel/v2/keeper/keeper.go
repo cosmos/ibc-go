@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"context"
 
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
@@ -12,13 +11,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clientv2keeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
-	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
-	channelkeeperv1 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	hostv2 "github.com/cosmos/ibc-go/v9/modules/core/24-host/v2"
-	"github.com/cosmos/ibc-go/v9/modules/core/api"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	clientv2keeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/keeper"
+	connectionkeeper "github.com/cosmos/ibc-go/v10/modules/core/03-connection/keeper"
+	channelkeeperv1 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
+	"github.com/cosmos/ibc-go/v10/modules/core/api"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // Keeper defines the channel keeper v2.
@@ -58,13 +57,12 @@ func NewKeeper(
 }
 
 // Logger returns a module-specific logger.
-func (Keeper) Logger(ctx context.Context) log.Logger {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	return sdkCtx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
 // GetPacketReceipt returns the packet receipt from the packet receipt path based on the clientID and sequence.
-func (k *Keeper) GetPacketReceipt(ctx context.Context, clientID string, sequence uint64) ([]byte, bool) {
+func (k *Keeper) GetPacketReceipt(ctx sdk.Context, clientID string, sequence uint64) ([]byte, bool) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(hostv2.PacketReceiptKey(clientID, sequence))
 	if err != nil {
@@ -77,7 +75,7 @@ func (k *Keeper) GetPacketReceipt(ctx context.Context, clientID string, sequence
 }
 
 // HasPacketReceipt returns true if the packet receipt exists, otherwise false.
-func (k *Keeper) HasPacketReceipt(ctx context.Context, clientID string, sequence uint64) bool {
+func (k *Keeper) HasPacketReceipt(ctx sdk.Context, clientID string, sequence uint64) bool {
 	store := k.storeService.OpenKVStore(ctx)
 	has, err := store.Has(hostv2.PacketReceiptKey(clientID, sequence))
 	if err != nil {
@@ -89,7 +87,7 @@ func (k *Keeper) HasPacketReceipt(ctx context.Context, clientID string, sequence
 
 // SetPacketReceipt writes the packet receipt under the receipt path
 // This is a public path that is standardized by the IBC V2 specification.
-func (k *Keeper) SetPacketReceipt(ctx context.Context, clientID string, sequence uint64) {
+func (k *Keeper) SetPacketReceipt(ctx sdk.Context, clientID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Set(hostv2.PacketReceiptKey(clientID, sequence), []byte{byte(2)}); err != nil {
 		panic(err)
@@ -97,7 +95,7 @@ func (k *Keeper) SetPacketReceipt(ctx context.Context, clientID string, sequence
 }
 
 // GetPacketAcknowledgement fetches the packet acknowledgement from the store.
-func (k *Keeper) GetPacketAcknowledgement(ctx context.Context, clientID string, sequence uint64) []byte {
+func (k *Keeper) GetPacketAcknowledgement(ctx sdk.Context, clientID string, sequence uint64) []byte {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(hostv2.PacketAcknowledgementKey(clientID, sequence))
 	if err != nil {
@@ -108,7 +106,7 @@ func (k *Keeper) GetPacketAcknowledgement(ctx context.Context, clientID string, 
 
 // SetPacketAcknowledgement writes the acknowledgement hash under the acknowledgement path
 // This is a public path that is standardized by the IBC V2 specification.
-func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, clientID string, sequence uint64, ackHash []byte) {
+func (k *Keeper) SetPacketAcknowledgement(ctx sdk.Context, clientID string, sequence uint64, ackHash []byte) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Set(hostv2.PacketAcknowledgementKey(clientID, sequence), ackHash); err != nil {
 		panic(err)
@@ -116,12 +114,12 @@ func (k *Keeper) SetPacketAcknowledgement(ctx context.Context, clientID string, 
 }
 
 // HasPacketAcknowledgement checks if the packet ack hash is already on the store.
-func (k *Keeper) HasPacketAcknowledgement(ctx context.Context, clientID string, sequence uint64) bool {
+func (k *Keeper) HasPacketAcknowledgement(ctx sdk.Context, clientID string, sequence uint64) bool {
 	return len(k.GetPacketAcknowledgement(ctx, clientID, sequence)) > 0
 }
 
 // GetPacketCommitment returns the packet commitment hash under the commitment path.
-func (k *Keeper) GetPacketCommitment(ctx context.Context, clientID string, sequence uint64) []byte {
+func (k *Keeper) GetPacketCommitment(ctx sdk.Context, clientID string, sequence uint64) []byte {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(hostv2.PacketCommitmentKey(clientID, sequence))
 	if err != nil {
@@ -134,7 +132,7 @@ func (k *Keeper) GetPacketCommitment(ctx context.Context, clientID string, seque
 }
 
 // SetPacketCommitment writes the commitment hash under the commitment path.
-func (k *Keeper) SetPacketCommitment(ctx context.Context, clientID string, sequence uint64, commitment []byte) {
+func (k *Keeper) SetPacketCommitment(ctx sdk.Context, clientID string, sequence uint64, commitment []byte) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Set(hostv2.PacketCommitmentKey(clientID, sequence), commitment); err != nil {
 		panic(err)
@@ -142,7 +140,7 @@ func (k *Keeper) SetPacketCommitment(ctx context.Context, clientID string, seque
 }
 
 // DeletePacketCommitment deletes the packet commitment hash under the commitment path.
-func (k *Keeper) DeletePacketCommitment(ctx context.Context, clientID string, sequence uint64) {
+func (k *Keeper) DeletePacketCommitment(ctx sdk.Context, clientID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Delete(hostv2.PacketCommitmentKey(clientID, sequence)); err != nil {
 		panic(err)
@@ -150,7 +148,7 @@ func (k *Keeper) DeletePacketCommitment(ctx context.Context, clientID string, se
 }
 
 // GetNextSequenceSend returns the next send sequence from the sequence path
-func (k *Keeper) GetNextSequenceSend(ctx context.Context, clientID string) (uint64, bool) {
+func (k *Keeper) GetNextSequenceSend(ctx sdk.Context, clientID string) (uint64, bool) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(hostv2.NextSequenceSendKey(clientID))
 	if err != nil {
@@ -163,7 +161,7 @@ func (k *Keeper) GetNextSequenceSend(ctx context.Context, clientID string) (uint
 }
 
 // SetNextSequenceSend writes the next send sequence under the sequence path
-func (k *Keeper) SetNextSequenceSend(ctx context.Context, clientID string, sequence uint64) {
+func (k *Keeper) SetNextSequenceSend(ctx sdk.Context, clientID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bigEndianBz := sdk.Uint64ToBigEndian(sequence)
 	if err := store.Set(hostv2.NextSequenceSendKey(clientID), bigEndianBz); err != nil {
@@ -172,7 +170,7 @@ func (k *Keeper) SetNextSequenceSend(ctx context.Context, clientID string, seque
 }
 
 // SetAsyncPacket writes the packet under the async path
-func (k *Keeper) SetAsyncPacket(ctx context.Context, clientID string, sequence uint64, packet types.Packet) {
+func (k *Keeper) SetAsyncPacket(ctx sdk.Context, clientID string, sequence uint64, packet types.Packet) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&packet)
 	if err := store.Set(types.AsyncPacketKey(clientID, sequence), bz); err != nil {
@@ -181,7 +179,7 @@ func (k *Keeper) SetAsyncPacket(ctx context.Context, clientID string, sequence u
 }
 
 // GetAsyncPacket fetches the packet from the async path
-func (k *Keeper) GetAsyncPacket(ctx context.Context, clientID string, sequence uint64) (types.Packet, bool) {
+func (k *Keeper) GetAsyncPacket(ctx sdk.Context, clientID string, sequence uint64) (types.Packet, bool) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(types.AsyncPacketKey(clientID, sequence))
 	if err != nil {
@@ -196,7 +194,7 @@ func (k *Keeper) GetAsyncPacket(ctx context.Context, clientID string, sequence u
 }
 
 // DeleteAsyncPacket deletes the packet from the async path
-func (k *Keeper) DeleteAsyncPacket(ctx context.Context, clientID string, sequence uint64) {
+func (k *Keeper) DeleteAsyncPacket(ctx sdk.Context, clientID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Delete(types.AsyncPacketKey(clientID, sequence)); err != nil {
 		panic(err)
@@ -218,25 +216,25 @@ func extractSequenceFromKey(key, storePrefix []byte) uint64 {
 
 // GetAllPacketCommitmentsForClient returns all stored PacketCommitments objects for a specified
 // client ID.
-func (k *Keeper) GetAllPacketCommitmentsForClient(ctx context.Context, clientID string) []types.PacketState {
+func (k *Keeper) GetAllPacketCommitmentsForClient(ctx sdk.Context, clientID string) []types.PacketState {
 	return k.getAllPacketStateForClient(ctx, clientID, hostv2.PacketCommitmentPrefixKey)
 }
 
 // GetAllPacketAcknowledgementsForClient returns all stored PacketAcknowledgements objects for a specified
 // client ID.
-func (k *Keeper) GetAllPacketAcknowledgementsForClient(ctx context.Context, clientID string) []types.PacketState {
+func (k *Keeper) GetAllPacketAcknowledgementsForClient(ctx sdk.Context, clientID string) []types.PacketState {
 	return k.getAllPacketStateForClient(ctx, clientID, hostv2.PacketAcknowledgementPrefixKey)
 }
 
 // GetAllPacketReceiptsForClient returns all stored PacketReceipts objects for a specified
 // client ID.
-func (k *Keeper) GetAllPacketReceiptsForClient(ctx context.Context, clientID string) []types.PacketState {
+func (k *Keeper) GetAllPacketReceiptsForClient(ctx sdk.Context, clientID string) []types.PacketState {
 	return k.getAllPacketStateForClient(ctx, clientID, hostv2.PacketReceiptPrefixKey)
 }
 
 // GetAllAsyncPacketsForClient returns all stored AsyncPackets objects for a specified
 // client ID.
-func (k *Keeper) GetAllAsyncPacketsForClient(ctx context.Context, clientID string) []types.PacketState {
+func (k *Keeper) GetAllAsyncPacketsForClient(ctx sdk.Context, clientID string) []types.PacketState {
 	return k.getAllPacketStateForClient(ctx, clientID, types.AsyncPacketPrefixKey)
 }
 
@@ -249,7 +247,7 @@ type prefixKeyConstructor func(clientID string) []byte
 //
 // For example, to get all PacketReceipts for a clientID the hostv2.PacketReceiptPrefixKey function can be
 // passed to get the PacketReceipt store key prefix.
-func (k *Keeper) getAllPacketStateForClient(ctx context.Context, clientID string, prefixFn prefixKeyConstructor) []types.PacketState {
+func (k *Keeper) getAllPacketStateForClient(ctx sdk.Context, clientID string, prefixFn prefixKeyConstructor) []types.PacketState {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	storePrefix := prefixFn(clientID)
 	iterator := storetypes.KVStorePrefixIterator(store, storePrefix)
