@@ -261,7 +261,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 			s.Require().Len(txSearchRes.Txs, 1)
 
 			errorMessage, isFound := s.ExtractValueFromEvents(
-				txSearchRes.Txs[0].Events,
+				txSearchRes.TxResponses[0].Events,
 				coretypes.ErrorAttributeKeyPrefix+icatypes.EventTypePacket,
 				coretypes.ErrorAttributeKeyPrefix+icatypes.AttributeKeyAckError,
 			)
