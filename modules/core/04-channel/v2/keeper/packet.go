@@ -75,7 +75,7 @@ func (k *Keeper) sendPacket(
 	k.Logger(ctx).Info("packet sent", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_client_id",
 		packet.DestinationClient, "src_client_id", packet.SourceClient)
 
-	emitSendPacketEvents(ctx, packet)
+	emitSendPacketEvents(ctx, packet, k)
 
 	return sequence, counterparty.ClientId, nil
 }
@@ -140,7 +140,7 @@ func (k *Keeper) recvPacket(
 
 	k.Logger(ctx).Info("packet received", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_client_id", packet.SourceClient, "dst_client_id", packet.DestinationClient)
 
-	emitRecvPacketEvents(ctx, packet)
+	emitRecvPacketEvents(ctx, packet, k)
 
 	return nil
 }
@@ -181,7 +181,7 @@ func (k Keeper) writeAcknowledgement(
 
 	k.Logger(ctx).Info("acknowledgement written", "sequence", strconv.FormatUint(packet.Sequence, 10), "dst_client_id", packet.DestinationClient)
 
-	emitWriteAcknowledgementEvents(ctx, packet, ack)
+	emitWriteAcknowledgementEvents(ctx, packet, ack, k)
 
 	return nil
 }
@@ -258,7 +258,7 @@ func (k *Keeper) acknowledgePacket(ctx sdk.Context, packet types.Packet, acknowl
 
 	k.Logger(ctx).Info("packet acknowledged", "sequence", strconv.FormatUint(packet.GetSequence(), 10), "src_client_id", packet.GetSourceClient(), "dst_client_id", packet.GetDestinationClient())
 
-	emitAcknowledgePacketEvents(ctx, packet)
+	emitAcknowledgePacketEvents(ctx, packet, k)
 
 	return nil
 }
@@ -336,7 +336,7 @@ func (k *Keeper) timeoutPacket(
 
 	k.Logger(ctx).Info("packet timed out", "sequence", strconv.FormatUint(packet.Sequence, 10), "src_client_id", packet.SourceClient, "dst_client_id", packet.DestinationClient)
 
-	emitTimeoutPacketEvents(ctx, packet)
+	emitTimeoutPacketEvents(ctx, packet, k)
 
 	return nil
 }

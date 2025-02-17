@@ -10,8 +10,8 @@ import (
 )
 
 // emitSendPacketEvents emits events for the SendPacket handler.
-func emitSendPacketEvents(ctx sdk.Context, packet types.Packet) {
-	encodedPacket:= k.cdc.MustMarshal(&packet)
+func emitSendPacketEvents(ctx sdk.Context, packet types.Packet, k Keeper) {
+	encodedPacket := k.cdc.MustMarshal(&packet)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -30,8 +30,8 @@ func emitSendPacketEvents(ctx sdk.Context, packet types.Packet) {
 }
 
 // emitRecvPacketEvents emits events for the RecvPacket handler.
-func emitRecvPacketEvents(ctx sdk.Context, packet types.Packet) {
-	encodedPacket:= k.cdc.MustMarshal(&packet)
+func emitRecvPacketEvents(ctx sdk.Context, packet types.Packet, k Keeper) {
+	encodedPacket := k.cdc.MustMarshal(&packet)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -50,10 +50,10 @@ func emitRecvPacketEvents(ctx sdk.Context, packet types.Packet) {
 }
 
 // emitWriteAcknowledgementEvents emits events for WriteAcknowledgement.
-func emitWriteAcknowledgementEvents(ctx sdk.Context, packet types.Packet, ack types.Acknowledgement) {
-	encodedPacket:= k.cdc.MustMarshal(&packet)
+func emitWriteAcknowledgementEvents(ctx sdk.Context, packet types.Packet, ack types.Acknowledgement, k Keeper) {
+	encodedPacket := k.cdc.MustMarshal(&packet)
 
-	encodedAck:= k.cdc.MustMarshal(&ack)
+	encodedAck := k.cdc.MustMarshal(&ack)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -73,8 +73,8 @@ func emitWriteAcknowledgementEvents(ctx sdk.Context, packet types.Packet, ack ty
 }
 
 // emitAcknowledgePacketEvents emits events for the AcknowledgePacket handler.
-func emitAcknowledgePacketEvents(ctx sdk.Context, packet types.Packet) {
-	encodedPacket:= k.cdc.MustMarshal(&packet)
+func emitAcknowledgePacketEvents(ctx sdk.Context, packet types.Packet, k Keeper) {
+	encodedPacket := k.cdc.MustMarshal(&packet)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -93,8 +93,8 @@ func emitAcknowledgePacketEvents(ctx sdk.Context, packet types.Packet) {
 }
 
 // emitTimeoutPacketEvents emits events for the TimeoutPacket handler.
-func emitTimeoutPacketEvents(ctx sdk.Context, packet types.Packet) {
-	encodedPacket:= k.cdc.MustMarshal(&packet)
+func emitTimeoutPacketEvents(ctx sdk.Context, packet types.Packet, k Keeper) {
+	encodedPacket := k.cdc.MustMarshal(&packet)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
