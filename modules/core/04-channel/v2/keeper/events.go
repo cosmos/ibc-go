@@ -16,10 +16,7 @@ import (
 func emitSendPacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	encodedPacket, err := proto.Marshal(&packet)
-	if err != nil {
-		panic(err)
-	}
+	encodedPacket := k.cdc.MustMarshal(&packet)
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -41,10 +38,7 @@ func emitSendPacketEvents(ctx context.Context, packet types.Packet) {
 func emitRecvPacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	encodedPacket, err := proto.Marshal(&packet)
-	if err != nil {
-		panic(err)
-	}
+	encodedPacket := k.cdc.MustMarshal(&packet)
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -66,15 +60,9 @@ func emitRecvPacketEvents(ctx context.Context, packet types.Packet) {
 func emitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ack types.Acknowledgement) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	encodedPacket, err := proto.Marshal(&packet)
-	if err != nil {
-		panic(err)
-	}
+	encodedPacket := k.cdc.MustMarshal(&packet)
 
-	encodedAck, err := proto.Marshal(&ack)
-	if err != nil {
-		panic(err)
-	}
+	encodedAck := k.cdc.MustMarshal(&ack)
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -97,10 +85,7 @@ func emitWriteAcknowledgementEvents(ctx context.Context, packet types.Packet, ac
 func emitAcknowledgePacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	encodedPacket, err := proto.Marshal(&packet)
-	if err != nil {
-		panic(err)
-	}
+	encodedPacket := k.cdc.MustMarshal(&packet)
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -122,10 +107,7 @@ func emitAcknowledgePacketEvents(ctx context.Context, packet types.Packet) {
 func emitTimeoutPacketEvents(ctx context.Context, packet types.Packet) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	encodedPacket, err := proto.Marshal(&packet)
-	if err != nil {
-		panic(err)
-	}
+	encodedPacket := k.cdc.MustMarshal(&packet)
 
 	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
