@@ -141,6 +141,7 @@ jobs:
         if: env.GIT_DIFF
       - uses: actions/download-artifact@v3
         with:
+<<<<<<< HEAD
           name: "${{ github.sha }}-03-coverage"
         if: env.GIT_DIFF
       - run: |
@@ -162,3 +163,12 @@ jobs:
         with:
           file: ./coverage.txt
         if: env.GIT_DIFF
+=======
+          name: '${{ github.sha }}-03-coverage'
+      - name: sonarcloud
+        if: ${{ env.GIT_DIFF && !github.event.pull_request.draft }}
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+>>>>>>> fcb6809d (chore: update sonarqube gh action (#7985))
