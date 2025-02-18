@@ -93,7 +93,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 }
 
 func (k Keeper) transferV1Packet(ctx sdk.Context, sourceChannel string, token types.Token, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData types.FungibleTokenPacketData) (uint64, error) {
-	if err := k.SendTransfer(ctx, types.PortID, sourceChannel, token, sdk.AccAddress(packetData.Sender)); err != nil {
+	if err := k.SendTransfer(ctx, types.PortID, sourceChannel, token, sdk.MustAccAddressFromBech32(packetData.Sender)); err != nil {
 		return 0, err
 	}
 
