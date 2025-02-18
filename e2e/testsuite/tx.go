@@ -26,6 +26,7 @@ import (
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
@@ -319,6 +320,42 @@ func (*E2ETestSuite) QueryTxsByEvents(
 		Page:  uint64(page),
 		Limit: uint64(limit),
 		Query: queryReq,
+	}
+
+	if !testvalues.TransactionEventQueryFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
+		// Taken from the cosmos-sdk cli for tx search to make sure we do the same thing.
+		eventFormat := "{eventType}.{eventAttribute}={value}"
+		eventsRaw := queryReq
+		eventsStr := strings.Trim(eventsRaw, "'")
+
+		var events []string
+		if strings.Contains(eventsStr, "&") {
+			events = strings.Split(eventsStr, "&")
+		} else {
+			events = append(events, eventsStr)
+		}
+
+		var tmEvents []string
+
+		for _, event := range events {
+			if !strings.Contains(event, "=") {
+				return nil, fmt.Errorf("invalid event; event %s should be of the format: %s", event, eventFormat)
+			} else if strings.Count(event, "=") > 1 {
+				return nil, fmt.Errorf("invalid event; event %s should be of the format: %s", event, eventFormat)
+			}
+
+			tokens := strings.Split(event, "=")
+			if tokens[0] == tmtypes.TxHeightKey {
+				event = fmt.Sprintf("%s=%s", tokens[0], tokens[1])
+			} else {
+				event = fmt.Sprintf("%s='%s'", tokens[0], tokens[1])
+			}
+
+			tmEvents = append(tmEvents, event)
+		}
+
+		req.Events = []string{queryReq}
+		req.Query = ""
 	}
 
 	res, err := query.GRPCQuery[txtypes.GetTxsEventResponse](ctx, cosmosChain, req)
