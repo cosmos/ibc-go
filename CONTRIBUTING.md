@@ -14,6 +14,8 @@ Contributing to this repository can mean many things such as participating in di
 
 If you find that something is not working as expected, please open an issue using the [bug report template](https://github.com/cosmos/ibc-go/blob/main/.github/ISSUE_TEMPLATE/bug-report.md) and provide as much information possible: how can the bug be reproduced? What's the expected behavior? What version is affected?
 
+This is also true if you plan to fix the bug yourself and submit a PR. As a general rule, we want contributing pull requests to reference an existing issue. See [Submitting pull requests](#submitting-pull-requests)
+
 ### Proposing improvements or new features
 
 New features or improvements should be written in an issue using the [new feature template](https://github.com/cosmos/ibc-go/blob/main/.github/ISSUE_TEMPLATE/feature-request.md). Please include in the issue as many details as possible: what use case(s) would this new feature or improvement enable? Why are those use cases important or helpful? what user group would benefit? The team will evaluate and engage with you in a discussion of the proposal, which could have different outcomes:
@@ -22,6 +24,8 @@ New features or improvements should be written in an issue using the [new featur
 - agreeing to support external contributors to implement it with the goal of merging it eventually in ibc-go,
 - discarding the suggestion if deemed not aligned with the objectives of ibc-go;
 - or proposing (in the case of applications or light clients) to be developed and maintained in a separate repository.
+
+Unless the change is a minor bug fix with minor code changes, and you want to submit a pull request, please make sure to write a Github issue for it before opening the pull request.
 
 ### Architecture Decision Records (ADR)
 
@@ -33,7 +37,10 @@ New features or improvements are sometimes also debated in [discussions](https:/
 
 ### Submitting pull requests
 
-Unless you feel confident your change will be accepted (trivial bug fixes, code cleanup, etc) you should first create an issue to discuss your change with us. This lets us all discuss the design and proposed implementation of your change, which helps ensure your time is well spent and that your contribution will be accepted.
+Before opening a pull request, make sure there is an accompanying issue that has been assigned to you. 
+In the case of smaller changes, opening a pull request without being assigned to the issue **can** be accepted, but to avoid having to redesign or discard your work due to the change no longer being needed, asking to be assigned to the issue is the safest course of action. We welcome contributors, but we have put in place these guidelines to safeguard the time of both external and core contributors.
+
+Unless you feel confident your change will be accepted (see [Unwanted pull requests](#unwanted-pull-requests)) you should first create an issue to discuss your change with us. This lets us all discuss the design and proposed implementation of your change, which helps ensure your time is well spent and that your contribution will be accepted.
 
 Looking for a good place to start contributing? The issue tracker is always the first place to go. Issues are triaged to categorize them:
 
@@ -52,9 +59,13 @@ If you would like to contribute, follow this process:
 
 Please make sure to check out our [Pull request guidelines](./docs/dev/pull-requests.md) for more information.
 
-> Note: At this time, we will not be accepting contributions that only fix spelling
-> or grammar errors in documentation, code or elsewhere. The repository has a nightly job that
-> spell checks all files and will automatically open PRs for any spelling errors.
+#### Unwanted pull requests
+
+To ensure the core maintainers time are spent well, we have certain pull requests we want to avoid:
+
+- Any non-minor pull requests without an **assigned** issue
+- Any non-minor bug fixes without an issue (ideally, also assigned, but we are less strict on this)
+- Spelling mistakes/changes (instead, try to fix our CI so that it would be able to catch it automatically - that would be useful)
 
 ## Relevant development docs
 

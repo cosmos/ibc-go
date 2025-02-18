@@ -1,11 +1,9 @@
 package api
 
 import (
-	"context"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
 // IBCModule defines an interface that implements all the callbacks
@@ -15,7 +13,7 @@ type IBCModule interface {
 	// this callback is provided with the source and destination IDs, the signer, the packet sequence and the packet data
 	// for this specific application.
 	OnSendPacket(
-		ctx context.Context,
+		ctx sdk.Context,
 		sourceClient string,
 		destinationClient string,
 		sequence uint64,
@@ -24,7 +22,7 @@ type IBCModule interface {
 	) error
 
 	OnRecvPacket(
-		ctx context.Context,
+		ctx sdk.Context,
 		sourceClient string,
 		destinationClient string,
 		sequence uint64,
@@ -34,7 +32,7 @@ type IBCModule interface {
 
 	// OnTimeoutPacket is executed when a packet has timed out on the receiving chain.
 	OnTimeoutPacket(
-		ctx context.Context,
+		ctx sdk.Context,
 		sourceClient string,
 		destinationClient string,
 		sequence uint64,
@@ -44,7 +42,7 @@ type IBCModule interface {
 
 	// OnAcknowledgementPacket is executed when a packet gets acknowledged
 	OnAcknowledgementPacket(
-		ctx context.Context,
+		ctx sdk.Context,
 		sourceClient string,
 		destinationClient string,
 		sequence uint64,
@@ -57,7 +55,7 @@ type IBCModule interface {
 type WriteAcknowledgementWrapper interface {
 	// WriteAcknowledgement writes the acknowledgement for an async acknowledgement
 	WriteAcknowledgement(
-		ctx context.Context,
+		ctx sdk.Context,
 		srcClientID string,
 		sequence uint64,
 		ack channeltypesv2.Acknowledgement,

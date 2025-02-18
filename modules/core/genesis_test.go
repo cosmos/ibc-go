@@ -5,22 +5,24 @@ import (
 	"fmt"
 	"testing"
 
+	proto "github.com/cosmos/gogoproto/proto"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	ibc "github.com/cosmos/ibc-go/v9/modules/core"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
-	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	channelv2types "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/core/types"
-	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
-	"github.com/cosmos/ibc-go/v9/testing/simapp"
+	ibc "github.com/cosmos/ibc-go/v10/modules/core"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	channelv2types "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	"github.com/cosmos/ibc-go/v10/modules/core/types"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
+	"github.com/cosmos/ibc-go/v10/testing/simapp"
 )
 
 const (
@@ -169,6 +171,9 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 					[]channelv2types.PacketState{
 						channelv2types.NewPacketState(channel1, 1, []byte("commit_hash")),
 					},
+					[]channelv2types.PacketState{
+						channelv2types.NewPacketState(channel2, 1, []byte("async_packet")),
+					},
 					[]channelv2types.PacketSequence{
 						channelv2types.NewPacketSequence(channel1, 1),
 					},
@@ -291,6 +296,13 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 func (suite *IBCTestSuite) TestInitGenesis() {
 	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.ProposedHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.ProposedHeader.Height-1)), suite.chainA.ProposedHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
 
+	packet := channelv2types.NewPacket(
+		1, "07-tendermint-0", "07-tendermint-1",
+		uint64(suite.chainA.GetContext().BlockTime().Unix()), mockv2.NewMockPayload("src", "dst"),
+	)
+	bz, err := proto.Marshal(&packet)
+	suite.Require().NoError(err)
+
 	testCases := []struct {
 		name     string
 		genState *types.GenesisState
@@ -395,6 +407,9 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 					},
 					[]channelv2types.PacketState{
 						channelv2types.NewPacketState(channel1, 1, []byte("commit_hash")),
+					},
+					[]channelv2types.PacketState{
+						channelv2types.NewPacketState(channel2, 1, bz),
 					},
 					[]channelv2types.PacketSequence{
 						channelv2types.NewPacketSequence(channel1, 1),

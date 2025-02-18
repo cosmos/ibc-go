@@ -18,7 +18,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
 // compatibility:from_version: v7.4.0
@@ -322,7 +322,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 // TestMsgTransfer_EntireBalance tests that it is possible to transfer the entire balance
 // of a given denom by using types.UnboundedSpendLimit as the amount.
-// compatibility:TestMsgTransfer_EntireBalance:from_versions: v7.7.0,v7.8.0,v8.4.0,v8.5.0,v9.0.0
+// compatibility:TestMsgTransfer_EntireBalance:from_versions: v7.7.0,v7.8.0,v8.4.0,v8.5.0,v10.0.0
 func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 	t := s.T()
 	ctx := context.TODO()

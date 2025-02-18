@@ -18,7 +18,7 @@ import (
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 const maxCallbackGas = uint64(1000000)

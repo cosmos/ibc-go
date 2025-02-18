@@ -1,7 +1,6 @@
 package types
 
 import (
-	"context"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -12,8 +11,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 var _ exported.Height = (*Height)(nil)
@@ -186,8 +185,7 @@ func ParseChainID(chainID string) uint64 {
 
 // GetSelfHeight is a utility function that returns self height given context
 // Revision number is retrieved from ctx.ChainID()
-func GetSelfHeight(ctx context.Context) Height {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	revision := ParseChainID(sdkCtx.ChainID())
-	return NewHeight(revision, uint64(sdkCtx.BlockHeight()))
+func GetSelfHeight(ctx sdk.Context) Height {
+	revision := ParseChainID(ctx.ChainID())
+	return NewHeight(revision, uint64(ctx.BlockHeight()))
 }

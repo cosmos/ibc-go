@@ -9,8 +9,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 )
 
 var _ types.QueryServer = (*queryServer)(nil)
@@ -29,7 +29,7 @@ func NewQueryServer(k *Keeper) types.QueryServer {
 }
 
 // CounterpartyInfo gets the CounterpartyInfo from the store corresponding to the request client ID.
-func (q queryServer) CounterpartyInfo(ctx context.Context, req *types.QueryCounterpartyInfoRequest) (*types.QueryCounterpartyInfoResponse, error) {
+func (q queryServer) CounterpartyInfo(goCtx context.Context, req *types.QueryCounterpartyInfoRequest) (*types.QueryCounterpartyInfoResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -38,9 +38,9 @@ func (q queryServer) CounterpartyInfo(ctx context.Context, req *types.QueryCount
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	info, found := q.GetClientCounterparty(sdkCtx, req.ClientId)
+	info, found := q.GetClientCounterparty(ctx, req.ClientId)
 	if !found {
 		return nil, status.Error(codes.NotFound, fmt.Sprintf("client %s counterparty not found", req.ClientId))
 	}

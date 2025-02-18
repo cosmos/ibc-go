@@ -14,12 +14,11 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	controllertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
-	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
-	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	controllertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 const queryPathTransferDenoms = "/ibc.applications.transfer.v2.QueryV2/Denoms"
@@ -123,47 +122,6 @@ func Channel(ctx context.Context, chain ibc.Chain, portID, channelID string) (ch
 		return channeltypes.Channel{}, err
 	}
 	return *res.Channel, nil
-}
-
-// CounterPartyPayee queries the counterparty payee of the given chain and relayer address on the specified channel.
-func CounterPartyPayee(ctx context.Context, chain ibc.Chain, relayerAddress, channelID string) (string, error) {
-	res, err := GRPCQuery[feetypes.QueryCounterpartyPayeeResponse](ctx, chain, &feetypes.QueryCounterpartyPayeeRequest{
-		ChannelId: channelID,
-		Relayer:   relayerAddress,
-	})
-	if err != nil {
-		return "", err
-	}
-	return res.CounterpartyPayee, nil
-}
-
-// IncentivizedPacketsForChannel queries the incentivized packets on the specified channel.
-func IncentivizedPacketsForChannel(
-	ctx context.Context,
-	chain ibc.Chain,
-	portID,
-	channelID string,
-) ([]*feetypes.IdentifiedPacketFees, error) {
-	res, err := GRPCQuery[feetypes.QueryIncentivizedPacketsForChannelResponse](ctx, chain, &feetypes.QueryIncentivizedPacketsForChannelRequest{
-		PortId:    portID,
-		ChannelId: channelID,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return res.IncentivizedPackets, err
-}
-
-// FeeEnabledChannel queries the fee-enabled status of a channel.
-func FeeEnabledChannel(ctx context.Context, chain ibc.Chain, portID, channelID string) (bool, error) {
-	res, err := GRPCQuery[feetypes.QueryFeeEnabledChannelResponse](ctx, chain, &feetypes.QueryFeeEnabledChannelRequest{
-		PortId:    portID,
-		ChannelId: channelID,
-	})
-	if err != nil {
-		return false, err
-	}
-	return res.FeeEnabled, nil
 }
 
 // TotalEscrowForDenom queries the total amount of tokens in escrow for a denom

@@ -34,10 +34,10 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 const (
@@ -62,7 +62,7 @@ func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Cha
 }
 
 // TestScheduleIBCUpgrade_Succeeds tests that a governance proposal to schedule an IBC software upgrade is successful.
-// compatibility:TestScheduleIBCUpgrade_Succeeds:from_versions: v8.4.0,v8.5.0,v9.0.0
+// compatibility:TestScheduleIBCUpgrade_Succeeds:from_versions: v8.4.0,v8.5.0,v10.0.0
 func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
@@ -134,7 +134,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 }
 
 // TestRecoverClient_Succeeds tests that a governance proposal to recover a client using a MsgRecoverClient is successful.
-// compatibility:TestRecoverClient_Succeeds:from_versions: v8.4.0,v8.5.0,v9.0.0
+// compatibility:TestRecoverClient_Succeeds:from_versions: v8.4.0,v8.5.0,v10.0.0
 func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()

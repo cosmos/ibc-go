@@ -6,9 +6,9 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v9/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	ibcmock "github.com/cosmos/ibc-go/v9/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
 // Path contains two endpoints representing two chains connected over IBC

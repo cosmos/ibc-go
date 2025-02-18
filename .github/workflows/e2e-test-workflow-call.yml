@@ -71,7 +71,7 @@ env:
 jobs:
   # test-details exists to provide an easy way to see the inputs for the e2e test.
   test-details:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     steps:
       - name: Display Inputs
         run: |
@@ -87,7 +87,7 @@ jobs:
   # is skipped. But will run if every individual task is skipped. There is no current way of conditionally needing
   # a job.
   docker-build:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     steps:
       - uses: actions/checkout@v4
         if: ${{ inputs.build-and-push-docker-image }}
@@ -117,7 +117,7 @@ jobs:
             IBC_GO_VERSION=${{ github.ref_name }}
 
   docker-build-wasm:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     steps:
       - uses: actions/checkout@v4
         if: ${{ inputs.build-and-push-docker-image-wasm }}
@@ -172,7 +172,7 @@ jobs:
   # pairs. The output of this job can be fed in as input to a workflow matrix and
   # will expand to jobs which will run all tests present.
   build-test-matrix:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -195,7 +195,7 @@ jobs:
   # the tests themselves are configured via environment variables to specify
   # things like chain and relayer images and tags.
   e2e-tests:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     needs:
       - build-test-matrix
       - docker-build
@@ -234,7 +234,7 @@ jobs:
   e2e-test-suites:
     # temporary flag. eventually this field will not exist and this will be the default.
     if: ${{ inputs.temp-run-full-suite }}
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     needs:
       - build-test-matrix
       - docker-build
@@ -256,7 +256,6 @@ jobs:
           - entrypoint: TestTransferLocalhostTestSuite
           - entrypoint: TestConnectionTestSuite
           - entrypoint: TestInterchainAccountsGovTestSuite
-          - entrypoint: TestIncentivizedTransferTestSuite
     steps:
       - uses: actions/checkout@v4
         with:
