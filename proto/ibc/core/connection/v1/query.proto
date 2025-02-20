@@ -53,6 +53,10 @@ service Query {
 message QueryConnectionRequest {
   // connection unique identifier
   string connection_id = 1;
+  // the height at which to query
+  ibc.core.client.v1.Height height = 2;
+  // latest_height overrides the height field and queries the latest height
+  bool latest_height = 3;
 }
 
 // QueryConnectionResponse is the response type for the Query/Connection RPC
