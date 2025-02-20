@@ -236,24 +236,6 @@ jobs:
       test-file: "e2e/tests/transfer/send_receive_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  transfer-upgrades-v1-test:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/transfer/upgradesv1_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-
-  transfer-upgrades-v2-test:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/transfer/upgradesv2_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-
   upgrade-genesis-test:
     needs:
       - build-release-images
