@@ -35,7 +35,7 @@ type InterchainAccountsQueryTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// compatibility:InterchainAccountsQueryTestSuite:from_versions: v7.5.0,v7.6.0,v7.7.0,v7.8.0,v8.4.0,v8.5.0,v10.0.0
+// compatibility:TestInterchainAccountsQuery:from_versions: v7.5.0,v7.6.0,v7.7.0,v7.8.0,v8.4.0,v8.5.0,v10.0.0
 func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	t := s.T()
 	ctx := context.TODO()
@@ -44,7 +44,6 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	relayer := s.CreateDefaultPaths(testName)
 
 	chainA, chainB := s.GetChains()
-	chainBVersion := chainB.Config().Images[0].Version
 
 	// setup 2 accounts: controller account on chain A, a second chain B account.
 	// host account will be created when the ICA is registered
@@ -106,7 +105,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			txResp := s.BroadcastMessages(ctx, chainA, controllerAccount, icaQueryMsg)
 			s.AssertTxSuccess(txResp)
 
-			s.Require().NoError(testutil.WaitForBlocks(ctx, 10, chainA, chainB))
+			s.Require().NoError(testutil.WaitForBlocks(ctx, 20, chainA, chainB))
 		})
 
 		t.Run("verify query response", func(t *testing.T) {
@@ -114,18 +113,15 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 
 			ack := &channeltypes.Acknowledgement_Result{}
 			t.Run("retrieve acknowledgement", func(t *testing.T) {
-				cmd := "message.action=/ibc.core.channel.v1.MsgRecvPacket"
-				if testvalues.TransactionEventQueryFeatureReleases.IsSupported(chainBVersion) {
-					cmd = "message.action='/ibc.core.channel.v1.MsgRecvPacket'"
-				}
+				cmd := "message.action='/ibc.core.channel.v1.MsgRecvPacket'"
 				txSearchRes, err := s.QueryTxsByEvents(ctx, chainB, 1, 1, cmd, "")
 				s.Require().NoError(err)
-				s.Require().Len(txSearchRes.Txs, 1)
+				s.Require().Len(txSearchRes.TxResponses, 1)
 
-				expQueryHeight = uint64(txSearchRes.Txs[0].Height)
+				expQueryHeight = uint64(txSearchRes.TxResponses[0].Height)
 
 				ackHexValue, isFound := s.ExtractValueFromEvents(
-					txSearchRes.Txs[0].Events,
+					txSearchRes.TxResponses[0].Events,
 					channeltypes.EventTypeWriteAck,
 					channeltypes.AttributeKeyAckHex,
 				)
