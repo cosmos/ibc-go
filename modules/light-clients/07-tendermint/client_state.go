@@ -1,7 +1,6 @@
 package tendermint
 
 import (
-	"context"
 	"strings"
 	"time"
 
@@ -16,11 +15,11 @@ import (
 	"github.com/cometbft/cometbft/light"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types/v2"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -78,7 +77,7 @@ func (ClientState) getTimestampAtHeight(
 // A frozen client will become expired, so the Frozen status
 // has higher precedence.
 func (cs ClientState) status(
-	ctx context.Context,
+	ctx sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 ) exported.Status {
@@ -94,8 +93,7 @@ func (cs ClientState) status(
 		return exported.Expired
 	}
 
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	if cs.IsExpired(consState.Timestamp, sdkCtx.BlockTime()) {
+	if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
 		return exported.Expired
 	}
 
@@ -188,7 +186,7 @@ func (cs ClientState) ZeroCustomFields() *ClientState {
 
 // initialize checks that the initial consensus state is an 07-tendermint consensus state and
 // sets the client state, consensus state and associated metadata in the provided client store.
-func (cs ClientState) initialize(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
+func (cs ClientState) initialize(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, consState exported.ConsensusState) error {
 	consensusState, ok := consState.(*ConsensusState)
 	if !ok {
 		return errorsmod.Wrapf(clienttypes.ErrInvalidConsensus, "invalid initial consensus state. expected type: %T, got: %T",
@@ -206,7 +204,7 @@ func (cs ClientState) initialize(ctx context.Context, cdc codec.BinaryCodec, cli
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
 func (cs ClientState) verifyMembership(
-	ctx context.Context,
+	ctx sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
@@ -249,7 +247,7 @@ func (cs ClientState) verifyMembership(
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
 // If a zero proof height is passed in, it will fail to retrieve the associated consensus state.
 func (cs ClientState) verifyNonMembership(
-	ctx context.Context,
+	ctx sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
@@ -289,7 +287,7 @@ func (cs ClientState) verifyNonMembership(
 
 // verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
 // since consensus state was submitted before allowing verification to continue.
-func verifyDelayPeriodPassed(ctx context.Context, store storetypes.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
+func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
 	if delayTimePeriod != 0 {
 		// check that executing chain's timestamp has passed consensusState's processed time + delay time period
 		processedTime, ok := GetProcessedTime(store, proofHeight)
@@ -297,8 +295,7 @@ func verifyDelayPeriodPassed(ctx context.Context, store storetypes.KVStore, proo
 			return errorsmod.Wrapf(ErrProcessedTimeNotFound, "processed time not found for height: %s", proofHeight)
 		}
 
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
-		currentTimestamp := uint64(sdkCtx.BlockTime().UnixNano())
+		currentTimestamp := uint64(ctx.BlockTime().UnixNano())
 		validTime := processedTime + delayTimePeriod
 
 		// NOTE: delay time period is inclusive, so if currentTimestamp is validTime, then we return no error

@@ -17,22 +17,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	ibcclient "github.com/cosmos/ibc-go/v9/modules/core/02-client"
-	clientkeeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	clientv2keeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/keeper"
-	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
-	connectionkeeper "github.com/cosmos/ibc-go/v9/modules/core/03-connection/keeper"
-	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
-	channelkeeper "github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	channelkeeperv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/keeper"
-	channeltypesv2 "github.com/cosmos/ibc-go/v9/modules/core/04-channel/v2/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/client/cli"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
-	"github.com/cosmos/ibc-go/v9/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/core/simulation"
-	"github.com/cosmos/ibc-go/v9/modules/core/types"
+	ibcclient "github.com/cosmos/ibc-go/v10/modules/core/02-client"
+	clientkeeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/keeper"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clientv2keeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/keeper"
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	connectionkeeper "github.com/cosmos/ibc-go/v10/modules/core/03-connection/keeper"
+	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	channelkeeperv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/client/cli"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	"github.com/cosmos/ibc-go/v10/modules/core/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/core/simulation"
+	"github.com/cosmos/ibc-go/v10/modules/core/types"
 )
 
 var (
@@ -199,8 +199,8 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 7 }
 
 // BeginBlock returns the begin blocker for the ibc module.
-func (am AppModule) BeginBlock(ctx context.Context) error {
-	ibcclient.BeginBlocker(sdk.UnwrapSDKContext(ctx), am.keeper.ClientKeeper)
+func (am AppModule) BeginBlock(goCtx context.Context) error {
+	ibcclient.BeginBlocker(sdk.UnwrapSDKContext(goCtx), am.keeper.ClientKeeper)
 	return nil
 }
 

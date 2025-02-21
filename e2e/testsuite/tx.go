@@ -17,9 +17,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -30,9 +30,8 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	feetypes "github.com/cosmos/ibc-go/v9/modules/apps/29-fee/types"
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
@@ -288,42 +287,8 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 	s.Require().NoError(err)
 	s.Require().NotNil(channel)
 
-	feeEnabled := false
-	if testvalues.FeeMiddlewareFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
-		feeEnabled, err = query.FeeEnabledChannel(ctx, chain, portID, channelID)
-		s.Require().NoError(err)
-	}
+	msg := GetMsgTransfer(portID, channelID, channel.Version, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
 
-	transferVersion := channel.Version
-	if feeEnabled {
-		version, err := feetypes.MetadataFromVersion(channel.Version)
-		s.Require().NoError(err)
-
-		transferVersion = version.AppVersion
-	}
-
-	msg := GetMsgTransfer(portID, channelID, transferVersion, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
-
-	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-// RegisterCounterPartyPayee broadcasts a MsgRegisterCounterpartyPayee message.
-func (s *E2ETestSuite) RegisterCounterPartyPayee(ctx context.Context, chain ibc.Chain,
-	user ibc.Wallet, portID, channelID, relayerAddr, counterpartyPayeeAddr string,
-) sdk.TxResponse {
-	msg := feetypes.NewMsgRegisterCounterpartyPayee(portID, channelID, relayerAddr, counterpartyPayeeAddr)
-	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-// PayPacketFeeAsync broadcasts a MsgPayPacketFeeAsync message.
-func (s *E2ETestSuite) PayPacketFeeAsync(
-	ctx context.Context,
-	chain ibc.Chain,
-	user ibc.Wallet,
-	packetID channeltypes.PacketId,
-	packetFee feetypes.PacketFee,
-) sdk.TxResponse {
-	msg := feetypes.NewMsgPayPacketFeeAsync(packetID, packetFee)
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
@@ -344,43 +309,29 @@ func (s *E2ETestSuite) PruneAcknowledgements(
 func (*E2ETestSuite) QueryTxsByEvents(
 	ctx context.Context, chain ibc.Chain,
 	page, limit int, queryReq, orderBy string,
-) (*sdk.SearchTxsResult, error) {
+) (*txtypes.GetTxsEventResponse, error) {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
 		return nil, errors.New("QueryTxsByEvents must be passed a cosmos.CosmosChain")
 	}
 
-	cmd := []string{"txs"}
-
-	chainVersion := chain.Config().Images[0].Version
-	if testvalues.TransactionEventQueryFeatureReleases.IsSupported(chainVersion) {
-		cmd = append(cmd, "--query", queryReq)
-	} else {
-		cmd = append(cmd, "--events", queryReq)
+	req := &txtypes.GetTxsEventRequest{
+		Page:  uint64(page),
+		Limit: uint64(limit),
+		Query: queryReq,
 	}
 
-	if orderBy != "" {
-		cmd = append(cmd, "--order_by", orderBy)
-	}
-	if page != 0 {
-		cmd = append(cmd, "--"+flags.FlagPage, strconv.Itoa(page))
-	}
-	if limit != 0 {
-		cmd = append(cmd, "--"+flags.FlagLimit, strconv.Itoa(limit))
+	if !testvalues.TransactionEventQueryFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
+		req.Events = []string{queryReq}
+		req.Query = ""
 	}
 
-	stdout, _, err := cosmosChain.GetNode().ExecQuery(ctx, cmd...)
+	res, err := query.GRPCQuery[txtypes.GetTxsEventResponse](ctx, cosmosChain, req)
 	if err != nil {
 		return nil, err
 	}
 
-	result := &sdk.SearchTxsResult{}
-	err = Codec().UnmarshalJSON(stdout, result)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return res, nil
 }
 
 // ExtractValueFromEvents extracts the value of an attribute from a list of events.

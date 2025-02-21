@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     steps:
       - uses: actions/setup-go@v5
         with:
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: golangci/golangci-lint-action@v6.2.0
+      - uses: golangci/golangci-lint-action@v6.4.1
         with:
           version: v1.62
           only-new-issues: true
@@ -29,7 +29,7 @@ jobs:
           working-directory: modules/apps/callbacks
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     strategy:
       matrix:
         go-arch: ['amd64', 'arm64']
@@ -44,7 +44,7 @@ jobs:
           GOARCH=${{ matrix.go-arch }} go build ./...
 
   tests:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -57,12 +57,12 @@ jobs:
 
   code-analysis:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     needs: [tests]
     steps:
       - name: sonarcloud
         if: ${{ env.GIT_DIFF && !github.event.pull_request.draft && env.SONAR_TOKEN != null }}
-        uses: SonarSource/sonarcloud-github-action@v4.0.0
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

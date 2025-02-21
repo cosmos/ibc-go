@@ -4,8 +4,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clientv1keeper "github.com/cosmos/ibc-go/v9/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
+	clientv1keeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 )
 
 type Keeper struct {

@@ -8,15 +8,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	clientv2types "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types"
-	connectiontypes "github.com/cosmos/ibc-go/v9/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v9/modules/core/04-channel/keeper"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v9/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	internalerrors "github.com/cosmos/ibc-go/v9/modules/core/internal/errors"
-	"github.com/cosmos/ibc-go/v9/modules/core/internal/telemetry"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	internalerrors "github.com/cosmos/ibc-go/v10/modules/core/internal/errors"
+	"github.com/cosmos/ibc-go/v10/modules/core/internal/telemetry"
 )
 
 var (
@@ -53,8 +53,8 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 
 // RegisterCounterparty will register the eureka counterparty info for the given client id
 // it must be called by the same relayer that called CreateClient
-func (k *Keeper) RegisterCounterparty(ctx context.Context, msg *clientv2types.MsgRegisterCounterparty) (*clientv2types.MsgRegisterCounterpartyResponse, error) {
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
+func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *clientv2types.MsgRegisterCounterparty) (*clientv2types.MsgRegisterCounterpartyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
 	if !creator.Equals(sdk.AccAddress(msg.Signer)) {
@@ -65,7 +65,7 @@ func (k *Keeper) RegisterCounterparty(ctx context.Context, msg *clientv2types.Ms
 		MerklePrefix: msg.CounterpartyMerklePrefix,
 		ClientId:     msg.CounterpartyClientId,
 	}
-	k.ClientV2Keeper.SetClientCounterparty(sdkCtx, msg.ClientId, counterpartyInfo)
+	k.ClientV2Keeper.SetClientCounterparty(ctx, msg.ClientId, counterpartyInfo)
 
 	// initialize next sequence send to enable packet flow
 	k.ChannelKeeperV2.SetNextSequenceSend(ctx, msg.ClientId, 1)

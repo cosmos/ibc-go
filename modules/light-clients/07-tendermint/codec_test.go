@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	tendermint "github.com/cosmos/ibc-go/v9/modules/light-clients/07-tendermint"
+	tendermint "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 )
 
 func TestCodecTypeRegistration(t *testing.T) {

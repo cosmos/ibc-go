@@ -341,14 +341,14 @@ func CreateWasmUpgradeHandler(
   configurator module.Configurator,
   clientKeeper clientkeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
-  return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-    sdkCtx := sdk.UnwrapSDKContext(ctx)
+  return func(goCtx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+    ctx := sdk.UnwrapSDKContext(goCtx)
     // explicitly update the IBC 02-client params, adding the wasm client type
     params := clientKeeper.GetParams(ctx)
     params.AllowedClients = append(params.AllowedClients, ibcwasmtypes.Wasm)
     clientKeeper.SetParams(ctx, params)
 
-    return mm.RunMigrations(ctx, configurator, vm)
+    return mm.RunMigrations(goCtx, configurator, vm)
   }
 }
 ```

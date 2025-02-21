@@ -3,7 +3,7 @@ package errors
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
+	coretypes "github.com/cosmos/ibc-go/v10/modules/core/types"
 )
 
 // ConvertToErrorEvents converts all events to error events by appending the

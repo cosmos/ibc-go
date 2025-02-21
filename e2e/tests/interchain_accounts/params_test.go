@@ -23,12 +23,12 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/controller/types"
-	hosttypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v9/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v9/modules/core/04-channel/types"
-	coretypes "github.com/cosmos/ibc-go/v9/modules/core/types"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	controllertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
+	hosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	coretypes "github.com/cosmos/ibc-go/v10/modules/core/types"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 // compatibility:from_version: v7.4.0
@@ -252,16 +252,13 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 		})
 
 		t.Run("verify acknowledgement error in ack transaction", func(t *testing.T) {
-			cmd := "message.action=/ibc.core.channel.v1.MsgRecvPacket"
-			if testvalues.TransactionEventQueryFeatureReleases.IsSupported(chainBVersion) {
-				cmd = "message.action='/ibc.core.channel.v1.MsgRecvPacket'"
-			}
+			cmd := "message.action='/ibc.core.channel.v1.MsgRecvPacket'"
 			txSearchRes, err := s.QueryTxsByEvents(ctx, chainB, 1, 1, cmd, "")
 			s.Require().NoError(err)
 			s.Require().Len(txSearchRes.Txs, 1)
 
 			errorMessage, isFound := s.ExtractValueFromEvents(
-				txSearchRes.Txs[0].Events,
+				txSearchRes.TxResponses[0].Events,
 				coretypes.ErrorAttributeKeyPrefix+icatypes.EventTypePacket,
 				coretypes.ErrorAttributeKeyPrefix+icatypes.AttributeKeyAckError,
 			)

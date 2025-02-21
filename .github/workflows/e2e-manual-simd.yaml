@@ -11,12 +11,10 @@ on:
         type: choice
         options:
           - TestTransferTestSuite
-          - TestIncentivizedTransferTestSuite
           - TestConnectionTestSuite
           - TestInterchainAccountsTestSuite
           - TestInterchainAccountsGroupsTestSuite
           - TestInterchainAccountsGovTestSuite
-          - TestIncentivizedInterchainAccountsTestSuite
           - TestAuthzTransferTestSuite
       chain-image:
         description: 'The image to use for chain A'

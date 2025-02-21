@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.client.v2;
 
-option go_package = "github.com/cosmos/ibc-go/v9/modules/core/02-client/v2/types";
+option go_package = "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types";
 
 // CounterpartyInfo defines the key that the counterparty will use to message our client
 message CounterpartyInfo {

@@ -7,12 +7,12 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
-	ibcclient "github.com/cosmos/ibc-go/v9/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/migrations/v7"
-	"github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v9/testing"
+	ibcclient "github.com/cosmos/ibc-go/v10/modules/core/02-client"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/migrations/v7"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {

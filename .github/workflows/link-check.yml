@@ -6,7 +6,7 @@ on:
       - "!.github/**"
 jobs:
   markdown-link-check:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04-4
     steps:
       - uses: actions/checkout@v4
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
