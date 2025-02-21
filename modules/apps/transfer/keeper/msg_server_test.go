@@ -13,7 +13,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	clienttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			func() {
 				msg.SourceChannel = "channel-100"
 			},
-			channeltypes.ErrChannelNotFound,
+			clienttypesv2.ErrCounterpartyNotFound,
 		},
 	}
 
@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 				ibctesting.TestCoin,
 				suite.chainA.SenderAccount.GetAddress().String(),
 				suite.chainB.SenderAccount.GetAddress().String(),
-				suite.chainB.GetTimeoutHeight(), 0, // only use timeout height
+				clienttypes.Height{}, suite.chainB.GetTimeoutTimestamp(), // only use timeout height
 				"memo",
 			)
 
@@ -236,7 +236,7 @@ func (suite *KeeperTestSuite) TestMsgTransferIBCV2() {
 			func() {
 				msg.SourceChannel = "07-tendermint-500"
 			},
-			channeltypes.ErrChannelNotFound,
+			clienttypesv2.ErrCounterpartyNotFound,
 		},
 	}
 

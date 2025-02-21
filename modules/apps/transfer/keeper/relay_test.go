@@ -148,14 +148,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			types.ErrInvalidAmount,
 		},
 		{
-			"failure: source channel not found",
-			func() {
-				// channel references wrong ID
-				path.EndpointA.ChannelID = ibctesting.InvalidID
-			},
-			channeltypes.ErrChannelNotFound,
-		},
-		{
 			"failure: sender account is blocked",
 			func() {
 				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName)
