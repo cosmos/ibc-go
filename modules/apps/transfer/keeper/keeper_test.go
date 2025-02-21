@@ -61,7 +61,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2,
-				suite.chainA.App.GetIBCKeeper().ClientV2Keeper,
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
@@ -75,7 +74,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2,
-				suite.chainA.App.GetIBCKeeper().ClientV2Keeper,
 				authkeeper.AccountKeeper{}, // empty account keeper
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
@@ -89,7 +87,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2,
-				suite.chainA.App.GetIBCKeeper().ClientV2Keeper,
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
 				"", // authority

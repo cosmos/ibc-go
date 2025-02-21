@@ -32,7 +32,6 @@ type Keeper struct {
 	ics4Wrapper     porttypes.ICS4Wrapper
 	channelKeeper   types.ChannelKeeper
 	channelKeeperV2 types.ChannelKeeperV2
-	clientKeeperV2  types.ClientKeeperV2
 	AuthKeeper      types.AccountKeeper
 	BankKeeper      types.BankKeeper
 
@@ -49,7 +48,6 @@ func NewKeeper(
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	channelKeeperV2 types.ChannelKeeperV2,
-	clientKeeperV2 types.ClientKeeperV2,
 	authKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	authority string,
@@ -70,7 +68,6 @@ func NewKeeper(
 		ics4Wrapper:     ics4Wrapper,
 		channelKeeper:   channelKeeper,
 		channelKeeperV2: channelKeeperV2,
-		clientKeeperV2:  clientKeeperV2,
 		AuthKeeper:      authKeeper,
 		BankKeeper:      bankKeeper,
 		authority:       authority,
