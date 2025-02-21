@@ -6,7 +6,6 @@ sidebar_position: 1
 
 This is a location to record all high-level architecture decisions in the ibc-go project.
 
-
 An ADR should provide:
 
 - Context on the relevant goals and the current state
