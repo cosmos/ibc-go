@@ -17,9 +17,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -309,43 +309,29 @@ func (s *E2ETestSuite) PruneAcknowledgements(
 func (*E2ETestSuite) QueryTxsByEvents(
 	ctx context.Context, chain ibc.Chain,
 	page, limit int, queryReq, orderBy string,
-) (*sdk.SearchTxsResult, error) {
+) (*txtypes.GetTxsEventResponse, error) {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
 		return nil, errors.New("QueryTxsByEvents must be passed a cosmos.CosmosChain")
 	}
 
-	cmd := []string{"txs"}
-
-	chainVersion := chain.Config().Images[0].Version
-	if testvalues.TransactionEventQueryFeatureReleases.IsSupported(chainVersion) {
-		cmd = append(cmd, "--query", queryReq)
-	} else {
-		cmd = append(cmd, "--events", queryReq)
+	req := &txtypes.GetTxsEventRequest{
+		Page:  uint64(page),
+		Limit: uint64(limit),
+		Query: queryReq,
 	}
 
-	if orderBy != "" {
-		cmd = append(cmd, "--order_by", orderBy)
-	}
-	if page != 0 {
-		cmd = append(cmd, "--"+flags.FlagPage, strconv.Itoa(page))
-	}
-	if limit != 0 {
-		cmd = append(cmd, "--"+flags.FlagLimit, strconv.Itoa(limit))
+	if !testvalues.TransactionEventQueryFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
+		req.Events = []string{queryReq}
+		req.Query = ""
 	}
 
-	stdout, _, err := cosmosChain.GetNode().ExecQuery(ctx, cmd...)
+	res, err := query.GRPCQuery[txtypes.GetTxsEventResponse](ctx, cosmosChain, req)
 	if err != nil {
 		return nil, err
 	}
 
-	result := &sdk.SearchTxsResult{}
-	err = Codec().UnmarshalJSON(stdout, result)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return res, nil
 }
 
 // ExtractValueFromEvents extracts the value of an attribute from a list of events.

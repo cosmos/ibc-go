@@ -192,6 +192,11 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 	}
 
 	s.Require().NoError(ic.Build(ctx, s.GetRelayerExecReporter(), buildOpts))
+
+	// setup query paths for GRPC queries:
+	for _, chain := range s.chains {
+		s.Require().NoError(query.PopulateQueryReqToPath(ctx, chain))
+	}
 }
 
 // CreateDefaultPaths creates a path between the chains using the default client and channel options.
