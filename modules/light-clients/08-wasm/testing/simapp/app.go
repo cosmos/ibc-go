@@ -239,7 +239,6 @@ func NewUnitTestSimApp(
 	appOpts servertypes.AppOptions,
 	mockVM wasmtypes.WasmEngine,
 	baseAppOptions ...func(*baseapp.BaseApp),
-
 ) *SimApp {
 	wasmDir := path.Join("ibc_08-wasm_client_data", strconv.Itoa(rand.Intn(10000)))
 	return newSimApp(logger, db, traceStore, loadLatest, appOpts, mockVM, wasmDir, baseAppOptions...)
