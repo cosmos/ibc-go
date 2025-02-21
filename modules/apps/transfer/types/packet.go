@@ -190,7 +190,6 @@ func (ftpd FungibleTokenPacketDataV2) GetPacketSender(sourcePortID string) strin
 }
 
 // MarshalPacketData attempts to marshal the provided FungibleTokenPacketData into bytes with the provided encoding.
-// It only supports V1 for now
 func MarshalPacketData(data FungibleTokenPacketData, ics20Version string, encoding string) ([]byte, error) {
 	if ics20Version != V1 {
 		panic("unsupported ics20 version")
