@@ -16,12 +16,6 @@ const (
 	AttributeKeyConnectionHops = "connection_hops"
 	AttributeKeyOrdering       = "ordering"
 
-	// upgrade specific keys
-	AttributeKeyUpgradeTimeoutHeight    = "timeout_height"
-	AttributeKeyUpgradeTimeoutTimestamp = "timeout_timestamp"
-	AttributeKeyUpgradeSequence         = "upgrade_sequence"
-	AttributeKeyErrorReceipt            = "error_receipt"
-
 	AttributeCounterpartyPortID    = "counterparty_port_id"
 	AttributeCounterpartyChannelID = "counterparty_channel_id"
 
@@ -46,22 +40,13 @@ const (
 
 // IBC channel events vars
 var (
-	EventTypeChannelOpenInit       = "channel_open_init"
-	EventTypeChannelOpenTry        = "channel_open_try"
-	EventTypeChannelOpenAck        = "channel_open_ack"
-	EventTypeChannelOpenConfirm    = "channel_open_confirm"
-	EventTypeChannelCloseInit      = "channel_close_init"
-	EventTypeChannelCloseConfirm   = "channel_close_confirm"
-	EventTypeChannelClosed         = "channel_close"
-	EventTypeChannelUpgradeInit    = "channel_upgrade_init"
-	EventTypeChannelUpgradeTry     = "channel_upgrade_try"
-	EventTypeChannelUpgradeAck     = "channel_upgrade_ack"
-	EventTypeChannelUpgradeConfirm = "channel_upgrade_confirm"
-	EventTypeChannelUpgradeOpen    = "channel_upgrade_open"
-	EventTypeChannelUpgradeTimeout = "channel_upgrade_timeout"
-	EventTypeChannelUpgradeCancel  = "channel_upgrade_cancelled"
-	EventTypeChannelUpgradeError   = "channel_upgrade_error"
-	EventTypeChannelFlushComplete  = "channel_flush_complete"
+	EventTypeChannelOpenInit     = "channel_open_init"
+	EventTypeChannelOpenTry      = "channel_open_try"
+	EventTypeChannelOpenAck      = "channel_open_ack"
+	EventTypeChannelOpenConfirm  = "channel_open_confirm"
+	EventTypeChannelCloseInit    = "channel_close_init"
+	EventTypeChannelCloseConfirm = "channel_close_confirm"
+	EventTypeChannelClosed       = "channel_close"
 
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )

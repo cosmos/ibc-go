@@ -12,11 +12,6 @@ func Name() string {
 	return types.SubModuleName
 }
 
-// GetTxCmd returns the root tx command for IBC channels.
-func GetTxCmd() *cobra.Command {
-	return cli.NewTxCmd()
-}
-
 // GetQueryCmd returns the root query command for IBC channels.
 func GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()

@@ -6,8 +6,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
@@ -18,7 +16,6 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	"github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
 // TestTimeoutPacket test the TimeoutPacket call on chainA by ensuring the timeout has passed
@@ -279,194 +276,6 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 			},
 			nil,
 		},
-		{
-			"set to flush complete with no inflight packets",
-			func() {
-				path.Setup()
-				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-				packet = types.NewPacket(ibctesting.MockPacketData, 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
-
-				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
-
-				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{
-					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), uint64(suite.chainA.GetContext().BlockTime().UnixNano())+types.DefaultTimeout.Timestamp),
-				})
-			},
-			func(packetCommitment []byte, err error) {
-				suite.Require().NoError(err)
-
-				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(types.FLUSHCOMPLETE, channel.State, "channel state should still be set to FLUSHCOMPLETE")
-			},
-			func(path *ibctesting.Path) []abci.Event {
-				return sdk.Events{
-					sdk.NewEvent(
-						types.EventTypeChannelFlushComplete,
-						sdk.NewAttribute(types.AttributeKeyPortID, path.EndpointA.ChannelConfig.PortID),
-						sdk.NewAttribute(types.AttributeKeyChannelID, path.EndpointA.ChannelID),
-						sdk.NewAttribute(types.AttributeCounterpartyPortID, path.EndpointB.ChannelConfig.PortID),
-						sdk.NewAttribute(types.AttributeCounterpartyChannelID, path.EndpointB.ChannelID),
-						sdk.NewAttribute(types.AttributeKeyChannelState, path.EndpointA.GetChannel().State.String()),
-					),
-					sdk.NewEvent(
-						sdk.EventTypeMessage,
-						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-					),
-				}.ToABCIEvents()
-			},
-		},
-		{
-			"conterparty upgrade timeout is invalid",
-			func() {
-				path.Setup()
-
-				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-
-				sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-
-				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
-
-				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
-			},
-			func(packetCommitment []byte, err error) {
-				suite.Require().NoError(err)
-
-				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(types.FLUSHING, channel.State, "channel state should still be FLUSHING")
-			},
-			nil,
-		},
-		{
-			"conterparty upgrade timed out (abort)",
-			func() {
-				path.Setup()
-
-				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-
-				sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-
-				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
-
-				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
-
-				path.EndpointA.SetChannelUpgrade(types.Upgrade{
-					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
-					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
-				})
-				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{
-					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
-				})
-			},
-			func(packetCommitment []byte, err error) {
-				suite.Require().NoError(err)
-
-				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(types.OPEN, channel.State, "channel state should still be OPEN")
-
-				upgrade, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().False(found, "upgrade should not be present")
-				suite.Require().Equal(types.Upgrade{}, upgrade, "upgrade should be zero value")
-
-				upgrade, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().False(found, "counterparty upgrade should not be present")
-				suite.Require().Equal(types.Upgrade{}, upgrade, "counterparty upgrade should be zero value")
-
-				errorReceipt, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(found, "error receipt should be present")
-				suite.Require().Equal(channel.UpgradeSequence, errorReceipt.Sequence, "error receipt sequence should be equal to channel upgrade sequence")
-			},
-			nil,
-		},
-		{
-			"conterparty upgrade has not timed out with in-flight packets",
-			func() {
-				path.Setup()
-
-				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-
-				// we are sending two packets here as one will be removed in TimeoutExecuted. This is to ensure that
-				// there is still an in-flight packet so that the channel remains in the flushing state.
-				_, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-
-				sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-
-				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
-
-				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
-
-				path.EndpointA.SetChannelUpgrade(types.Upgrade{
-					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
-					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), uint64(suite.chainA.GetContext().BlockTime().UnixNano())+types.DefaultTimeout.Timestamp),
-				})
-				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{
-					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), uint64(suite.chainB.GetContext().BlockTime().UnixNano())+types.DefaultTimeout.Timestamp),
-				})
-			},
-			func(packetCommitment []byte, err error) {
-				suite.Require().NoError(err)
-
-				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(types.FLUSHING, channel.State, "channel state should still be FLUSHING")
-
-				_, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(found, "upgrade should not be deleted")
-
-				_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(found, "counterparty upgrade should not be deleted")
-
-				_, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgradeErrorReceipt(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().False(found, "error receipt should not be written")
-			},
-			nil,
-		},
-		{
-			"ordered channel is closed and upgrade is aborted when timeout is executed",
-			func() {
-				path.SetChannelOrdered()
-				path.Setup()
-
-				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-				timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().UnixNano())
-
-				sequence, err := path.EndpointA.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-
-				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, timeoutTimestamp)
-
-				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.FLUSHING })
-
-				path.EndpointA.SetChannelUpgrade(types.Upgrade{
-					Fields:  path.EndpointA.GetProposedUpgrade().Fields,
-					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
-				})
-				path.EndpointA.SetChannelCounterpartyUpgrade(types.Upgrade{
-					Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
-				})
-			},
-			func(packetCommitment []byte, err error) {
-				suite.Require().NoError(err)
-
-				channel := path.EndpointA.GetChannel()
-				suite.Require().Equal(types.CLOSED, channel.State, "channel state should be CLOSED")
-
-				upgrade, found := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().False(found, "upgrade should not be present")
-				suite.Require().Equal(types.Upgrade{}, upgrade, "upgrade should be zero value")
-
-				upgrade, found = suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetCounterpartyUpgrade(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().False(found, "counterparty upgrade should not be present")
-				suite.Require().Equal(types.Upgrade{}, upgrade, "counterparty upgrade should be zero value")
-			},
-			nil,
-		},
 	}
 
 	for i, tc := range testCases {
@@ -497,11 +306,10 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 // channel on chainB after the packet commitment has been created.
 func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 	var (
-		path                        *ibctesting.Path
-		packet                      types.Packet
-		nextSeqRecv                 uint64
-		counterpartyUpgradeSequence uint64
-		ordered                     bool
+		path        *ibctesting.Path
+		packet      types.Packet
+		nextSeqRecv uint64
+		ordered     bool
 	)
 
 	testCases := []testCase{
@@ -629,32 +437,6 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
 		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "")},
-		{
-			"failure: invalid counterparty upgrade sequence",
-			func() {
-				ordered = false
-				path.Setup()
-
-				timeoutHeight := clienttypes.GetSelfHeight(suite.chainB.GetContext())
-
-				sequence, err := path.EndpointA.SendPacket(timeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
-
-				// trigger upgradeInit on B which will bump the counterparty upgrade sequence.
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-				err = path.EndpointB.ChanUpgradeInit()
-				suite.Require().NoError(err)
-
-				path.EndpointB.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
-
-				// need to update chainA's client representing chainB to prove missing ack
-				err = path.EndpointA.UpdateClient()
-				suite.Require().NoError(err)
-
-				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, timeoutHeight, disabledTimeoutTimestamp)
-			},
-			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, ""),
-		},
 	}
 
 	for i, tc := range testCases {
@@ -662,9 +444,8 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			var proof []byte
 
-			suite.SetupTest()               // reset
-			nextSeqRecv = 1                 // must be explicitly changed
-			counterpartyUpgradeSequence = 0 // must be explicitly changed
+			suite.SetupTest() // reset
+			nextSeqRecv = 1   // must be explicitly changed
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -688,7 +469,6 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 				closedProof,
 				proofHeight,
 				nextSeqRecv,
-				counterpartyUpgradeSequence,
 			)
 
 			if tc.expErr == nil {

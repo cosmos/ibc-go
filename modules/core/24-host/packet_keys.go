@@ -10,7 +10,6 @@ const (
 	KeyPacketCommitmentPrefix = "commitments"
 	KeyPacketAckPrefix        = "acks"
 	KeyPacketReceiptPrefix    = "receipts"
-	KeyPruningSequenceStart   = "pruningSequenceStart"
 	KeyRecvStartSequence      = "recvStartSequence"
 )
 
@@ -61,11 +60,6 @@ func PacketAcknowledgementPrefixKey(portID, channelID string) []byte {
 // receipt is stored
 func PacketReceiptKey(portID, channelID string, sequence uint64) []byte {
 	return []byte(fmt.Sprintf("%s/%s/%s", KeyPacketReceiptPrefix, channelPath(portID, channelID), sequencePath(sequence)))
-}
-
-// PruningSequenceStartKey returns the store key for the pruning sequence start of a particular channel
-func PruningSequenceStartKey(portID, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", KeyPruningSequenceStart, channelPath(portID, channelID)))
 }
 
 // RecvStartSequenceKey returns the store key for the recv start sequence of a particular channel
