@@ -5,6 +5,7 @@ import (
 	fmt "fmt"
 
 	corestore "cosmossdk.io/core/store"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -102,7 +103,6 @@ func GetParams(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec
 func DeleteParams(ctx sdk.Context, storeService corestore.KVStoreService) {
 	store := storeService.OpenKVStore(ctx)
 	store.Delete([]byte(ParamsKey))
-
 }
 
 // hasUpgrade returns true if a proposed upgrade exists in store

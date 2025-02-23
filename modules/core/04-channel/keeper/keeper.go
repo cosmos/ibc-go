@@ -228,14 +228,6 @@ func (k *Keeper) SetPacketReceipt(ctx sdk.Context, portID, channelID string, seq
 	}
 }
 
-// deletePacketReceipt deletes a packet receipt from the store
-func (k *Keeper) deletePacketReceipt(ctx sdk.Context, portID, channelID string, sequence uint64) {
-	store := k.storeService.OpenKVStore(ctx)
-	if err := store.Delete(host.PacketReceiptKey(portID, channelID, sequence)); err != nil {
-		panic(err)
-	}
-}
-
 // GetPacketCommitment gets the packet commitment hash from the store
 func (k *Keeper) GetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) []byte {
 	store := k.storeService.OpenKVStore(ctx)
@@ -303,14 +295,6 @@ func (k *Keeper) HasPacketAcknowledgement(ctx sdk.Context, portID, channelID str
 		panic(err)
 	}
 	return has
-}
-
-// deletePacketAcknowledgement deletes the packet ack hash from the store
-func (k *Keeper) deletePacketAcknowledgement(ctx sdk.Context, portID, channelID string, sequence uint64) {
-	store := k.storeService.OpenKVStore(ctx)
-	if err := store.Delete(host.PacketAcknowledgementKey(portID, channelID, sequence)); err != nil {
-		panic(err)
-	}
 }
 
 // IteratePacketSequence provides an iterator over all send, receive or ack sequences.

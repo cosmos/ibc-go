@@ -96,15 +96,6 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", exported.ModuleName, icatypes.ModuleName))
 }
 
-// getConnectionID returns the connection id for the given port and channelIDs.
-func (k Keeper) getConnectionID(ctx sdk.Context, portID, channelID string) (string, error) {
-	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	if !found {
-		return "", errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
-	}
-	return channel.ConnectionHops[0], nil
-}
-
 // setPort sets the provided portID in state.
 func (k Keeper) setPort(ctx sdk.Context, portID string) {
 	store := k.storeService.OpenKVStore(ctx)

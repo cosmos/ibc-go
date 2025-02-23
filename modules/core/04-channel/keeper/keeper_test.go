@@ -7,7 +7,6 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
@@ -468,34 +467,4 @@ func (suite *KeeperTestSuite) TestSetPacketAcknowledgement() {
 	suite.Require().True(found)
 	suite.Require().Equal(ackHash, storedAckHash)
 	suite.Require().True(suite.chainA.App.GetIBCKeeper().ChannelKeeper.HasPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq))
-}
-
-// sendMockPackets sends a packet from source to dest and acknowledges it on the source (completing the packet lifecycle)
-// if acknowledge is true. If acknowledge is false, then the packet will be sent, but timed out.
-// Question(jim): find a nicer home for this?
-func (suite *KeeperTestSuite) sendMockPackets(path *ibctesting.Path, numPackets int, acknowledge bool) {
-	for i := 0; i < numPackets; i++ {
-
-		timeoutHeight := clienttypes.NewHeight(1, 1000)
-		timeoutTimestamp := disabledTimeoutTimestamp
-		if !acknowledge {
-			timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().UnixNano())
-		}
-
-		sequence, err := path.EndpointB.SendPacket(timeoutHeight, timeoutTimestamp, ibctesting.MockPacketData)
-		suite.Require().NoError(err)
-
-		packet := types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, timeoutHeight, timeoutTimestamp)
-
-		if acknowledge {
-			err = path.RelayPacket(packet)
-			suite.Require().NoError(err)
-		} else {
-			err = path.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.TimeoutPacket(packet)
-			suite.Require().NoError(err)
-		}
-	}
 }

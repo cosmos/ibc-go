@@ -8,10 +8,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-const (
-	differentConnectionID = "connection-100"
-)
-
 func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		var (
