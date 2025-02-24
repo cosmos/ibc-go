@@ -950,7 +950,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 	s.path.Setup()
 
 	// We will pass the function call down the transfer stack to the transfer module
-	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
+	// transfer stack UnmarshalPacketData call order: callbacks -> transfer
 	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 	s.Require().True(ok)
 
@@ -1006,7 +1006,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseInit() {
 	s.SetupICATest()
 
 	// We will pass the function call down the icacontroller stack to the icacontroller module
-	// icacontroller stack OnChanCloseInit call order: callbacks -> fee -> icacontroller
+	// icacontroller stack OnChanCloseInit call order: callbacks -> icacontroller
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
@@ -1021,7 +1021,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 	s.SetupICATest()
 
 	// We will pass the function call down the icacontroller stack to the icacontroller module
-	// icacontroller stack OnChanCloseConfirm call order: callbacks -> fee -> icacontroller
+	// icacontroller stack OnChanCloseConfirm call order: callbacks -> icacontroller
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
