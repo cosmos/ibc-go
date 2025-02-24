@@ -18,7 +18,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 	"github.com/cosmos/ibc-go/v10/testing/mock"
-	"github.com/cosmos/ibc-go/v10/testing/simapp"
 )
 
 const (
@@ -41,7 +40,6 @@ const (
 	// Application Ports
 	TransferPort = ibctransfertypes.ModuleName
 	MockPort     = mock.ModuleName
-	MockFeePort  = simapp.MockFeePort
 
 	// used for testing proposals
 	Title       = "title"
