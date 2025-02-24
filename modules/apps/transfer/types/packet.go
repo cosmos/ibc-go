@@ -189,6 +189,24 @@ func (ftpd FungibleTokenPacketDataV2) GetPacketSender(sourcePortID string) strin
 	return ftpd.Sender
 }
 
+// MarshalPacketData attempts to marshal the provided FungibleTokenPacketData into bytes with the provided encoding.
+func MarshalPacketData(data FungibleTokenPacketData, ics20Version string, encoding string) ([]byte, error) {
+	if ics20Version != V1 {
+		panic("unsupported ics20 version")
+	}
+
+	switch encoding {
+	case EncodingJSON:
+		return json.Marshal(data)
+	case EncodingProtobuf:
+		return proto.Marshal(&data)
+	case EncodingABI:
+		return EncodeABIFungibleTokenPacketData(&data)
+	default:
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid encoding provided, must be either empty or one of [%q, %q], got %s", EncodingJSON, EncodingProtobuf, encoding)
+	}
+}
+
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes into a FungibleTokenPacketDataV2.
 func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (FungibleTokenPacketDataV2, error) {
 	const failedUnmarshalingErrorMsg = "cannot unmarshal %s transfer packet data: %s"
