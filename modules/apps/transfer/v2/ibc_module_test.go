@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -202,6 +203,15 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			suite.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
+			msg := types.NewMsgTransferWithEncoding(
+				types.PortID, suite.pathAToB.EndpointA.ClientID,
+				originalCoin, suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{},
+				timeoutTimestamp, "", types.EncodingProtobuf,
+			)
+			_, err := suite.chainA.SendMsgs(msg)
+			suite.Require().NoError(err) // message committed
+
 			token, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(suite.chainA.GetContext(), originalCoin)
 			suite.Require().NoError(err)
 
@@ -217,15 +227,6 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				types.PortID, types.PortID, types.V1,
 				types.EncodingProtobuf, bz,
 			)
-			msg := channeltypesv2.NewMsgSendPacket(
-				suite.pathAToB.EndpointA.ClientID,
-				timeoutTimestamp,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				payload,
-			)
-
-			_, err = suite.chainA.SendMsgs(msg)
-			suite.Require().NoError(err) // message committed
 
 			ctx := suite.chainB.GetContext()
 			cbs := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
@@ -289,6 +290,15 @@ func (suite *TransferTestSuite) TestOnAckPacket() {
 			suite.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
+			msg := types.NewMsgTransferWithEncoding(
+				types.PortID, suite.pathAToB.EndpointA.ClientID,
+				originalCoin, suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{},
+				timeoutTimestamp, "", types.EncodingProtobuf,
+			)
+			_, err := suite.chainA.SendMsgs(msg)
+			suite.Require().NoError(err) // message committed
+
 			token, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(suite.chainA.GetContext(), originalCoin)
 			suite.Require().NoError(err)
 
@@ -304,15 +314,6 @@ func (suite *TransferTestSuite) TestOnAckPacket() {
 				types.PortID, types.PortID, types.V1,
 				types.EncodingProtobuf, bz,
 			)
-			msg := channeltypesv2.NewMsgSendPacket(
-				suite.pathAToB.EndpointA.ClientID,
-				timeoutTimestamp,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				payload,
-			)
-
-			_, err = suite.chainA.SendMsgs(msg)
-			suite.Require().NoError(err) // message committed
 
 			ctx := suite.chainA.GetContext()
 			cbs := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
@@ -386,6 +387,15 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			suite.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
+			msg := types.NewMsgTransferWithEncoding(
+				types.PortID, suite.pathAToB.EndpointA.ClientID,
+				originalCoin, suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{},
+				timeoutTimestamp, "", types.EncodingProtobuf,
+			)
+			_, err := suite.chainA.SendMsgs(msg)
+			suite.Require().NoError(err) // message committed
+
 			token, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(suite.chainA.GetContext(), originalCoin)
 			suite.Require().NoError(err)
 
@@ -401,15 +411,6 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 				types.PortID, types.PortID, types.V1,
 				types.EncodingProtobuf, bz,
 			)
-			msg := channeltypesv2.NewMsgSendPacket(
-				suite.pathAToB.EndpointA.ClientID,
-				timeoutTimestamp,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				payload,
-			)
-
-			_, err = suite.chainA.SendMsgs(msg)
-			suite.Require().NoError(err) // message committed
 
 			// on successful send, the tokens sent in packets should be in escrow
 			escrowAddress := types.GetEscrowAddress(types.PortID, suite.pathAToB.EndpointA.ClientID)
