@@ -893,7 +893,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 	for _, tc := range testCases {
 		tc := tc
 		s.Run(tc.name, func() {
-			s.SetupMockFeeTest()
+			s.setupChains()
 
 			// set a callback data that does not allow retry
 			callbackData = types.CallbackData{
@@ -1033,11 +1033,9 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 }
 
 func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
-	s.SetupMockFeeTest()
+	s.setupChains()
 
-	cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
-	s.Require().True(ok)
-	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
+	cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockPort)
 	s.Require().True(ok)
 
 	packet := channeltypes.NewPacket(
@@ -1051,7 +1049,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 		0,
 	)
 
-	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), ibcmock.MockFeeVersion, packet, s.chainA.SenderAccount.GetAddress())
+	ack := cbs.OnRecvPacket(s.chainA.GetContext(), ibcmock.Version, packet, s.chainA.SenderAccount.GetAddress())
 	s.Require().Nil(ack)
 	s.AssertHasExecutedExpectedCallback("none", true)
 }
