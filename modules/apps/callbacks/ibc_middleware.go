@@ -221,12 +221,18 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, ack, callbackData.CallbackAddress, callbackData.ApplicationVersion)
 	}
 
-	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
+	// callback execution errors in RecvPacket are allowed to write an error acknowledgement
+	// in this case, the receive logic of the underlying app is reverted
+	// and the error acknowledgement is processed on the sending chain
+	// Thus the sending application MUST be capable of processing the standard channel acknowledgement
 	err = internal.ProcessCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(
 		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		types.CallbackTypeReceivePacket, callbackData, err,
 	)
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
 
 	return ack
 }

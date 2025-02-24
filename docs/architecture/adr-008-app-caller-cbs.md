@@ -5,6 +5,7 @@
 - 2022-08-10: Initial Draft
 - 2023-03-22: Merged
 - 2023-09-13: Updated with decisions made in implementation
+- 2025-02-24: RecvPacket callback error now returns error acknowledgement
 
 ## Status
 
@@ -245,10 +246,12 @@ type ContractKeeper interface {
 		version string,
 	) error
 	// IBCReceivePacketCallback is called in the destination chain when a packet acknowledgement is written.
-	// The contract is expected to handle the callback within the user defined gas limit, and handle any errors,
-	// out of gas, or panics gracefully.
-	// This entry point is called with a cached context. If an error is returned, then the changes in
-	// this context will not be persisted, but the packet lifecycle will not be blocked.
+	// The contract is expected to handle the callback within the user defined gas limit.
+	// This entry point is called with a cached context. If an error is returned, then the error
+	// will be written as an error acknowledgement. This will cause the context changes made by the contract
+	// to be reverted along with any state changes made by the underlying application.
+	// The error acknowledgement will then be relayed to the sending application which can perform
+	// its error acknowledgement logic (e.g. refunding tokens back to user)
 	//
 	// The version provided is the base application version for the given packet send. This allows
 	// contracts to determine how to unmarshal the packetData.
@@ -397,6 +400,9 @@ func (im IBCMiddleware) OnRecvPacket(
 		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		types.CallbackTypeReceivePacket, callbackData, err,
 	)
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
 
 	return ack
 }
