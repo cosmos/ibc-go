@@ -50,7 +50,7 @@ If the `Amount` is set to the maximum value for a 256-bit unsigned integer (i.e.
 
 The memo field was added to allow applications and users to attach metadata to transfer packets. The field is optional and may be left empty. When it is used to attach metadata for a particular middleware, the memo field should be represented as a json object where different middlewares use different json keys.
 
-For example, the following memo field is used by the [callbacks middleware](../../../04-middleware/02-callbacks/01-overview.md) to attach a source callback to a transfer packet:
+For example, the following memo field is used by the [callbacks middleware](../../../04-middleware/01-callbacks/01-overview.md) to attach a source callback to a transfer packet:
 
 ```jsonc
 {
