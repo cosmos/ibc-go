@@ -25,7 +25,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"success: ack callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				transfertypes.PortID, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
 			types.CallbackTypeAcknowledgementPacket,
 			types.CallbackData{
@@ -57,7 +57,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"success: send packet callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				transfertypes.PortID, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
 			types.CallbackTypeSendPacket,
 			types.CallbackData{
@@ -89,7 +89,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"success: timeout callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				transfertypes.PortID, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
 			types.CallbackTypeTimeoutPacket,
 			types.CallbackData{
@@ -121,7 +121,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"success: receive packet callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				transfertypes.PortID, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
 			types.CallbackTypeReceivePacket,
 			types.CallbackData{
@@ -140,7 +140,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 						sdk.NewAttribute(types.AttributeKeyCallbackAddress, ibctesting.TestAccAddress),
 						sdk.NewAttribute(types.AttributeKeyCallbackGasLimit, "100000"),
 						sdk.NewAttribute(types.AttributeKeyCallbackCommitGasLimit, "200000"),
-						sdk.NewAttribute(types.AttributeKeyCallbackDestPortID, ibctesting.MockFeePort),
+						sdk.NewAttribute(types.AttributeKeyCallbackDestPortID, transfertypes.PortID),
 						sdk.NewAttribute(types.AttributeKeyCallbackDestChannelID, ibctesting.InvalidID),
 						sdk.NewAttribute(types.AttributeKeyCallbackSequence, "1"),
 						sdk.NewAttribute(types.AttributeKeyCallbackResult, types.AttributeValueCallbackSuccess),
@@ -153,7 +153,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"success: unknown callback",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				transfertypes.PortID, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
 			"something",
 			types.CallbackData{
@@ -185,7 +185,7 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 			"failure: ack callback with error",
 			channeltypes.NewPacket(
 				ibctesting.MockPacketData, 1, ibctesting.MockPort, ibctesting.FirstChannelID,
-				ibctesting.MockFeePort, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
+				transfertypes.PortID, ibctesting.InvalidID, clienttypes.NewHeight(1, 100), 0,
 			),
 			types.CallbackTypeAcknowledgementPacket,
 			types.CallbackData{
