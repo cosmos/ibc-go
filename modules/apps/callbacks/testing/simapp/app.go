@@ -436,8 +436,7 @@ func NewSimApp(
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> icaHost.OnRecvPacket
 
-	var icaHostStack porttypes.IBCModule
-	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
+	var icaHostStack porttypes.IBCModule = icahost.NewIBCModule(app.ICAHostKeeper)
 
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.

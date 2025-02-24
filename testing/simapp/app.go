@@ -401,8 +401,7 @@ func NewSimApp(
 	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// create IBC module from bottom to top of stack
-	var transferStack porttypes.IBCModule
-	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	var transferStack porttypes.IBCModule = transfer.NewIBCModule(app.TransferKeeper)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
@@ -424,8 +423,7 @@ func NewSimApp(
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> icaHost.OnRecvPacket
 
-	var icaHostStack porttypes.IBCModule
-	icaHostStack = icahost.NewIBCModule(app.ICAHostKeeper)
+	var icaHostStack porttypes.IBCModule = icahost.NewIBCModule(app.ICAHostKeeper)
 
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.
