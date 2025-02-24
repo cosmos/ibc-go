@@ -17,7 +17,6 @@ import (
 	icahost "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host"
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
@@ -773,17 +772,6 @@ func (suite *InterchainAccountsTestSuite) TestControlAccountAfterChannelClose() 
 		suite.SetupTest() // reset
 
 		path := NewICAPath(suite.chainA, suite.chainB, ordering)
-
-		// use a fee enabled version to cover unwrapping channel version code paths
-		feeMetadata := feetypes.Metadata{
-			FeeVersion: feetypes.Version,
-			AppVersion: TestVersion,
-		}
-
-		feeICAVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feeMetadata))
-
-		path.EndpointA.ChannelConfig.Version = feeICAVersion
-		path.EndpointB.ChannelConfig.Version = feeICAVersion
 
 		path.SetupConnections()
 
