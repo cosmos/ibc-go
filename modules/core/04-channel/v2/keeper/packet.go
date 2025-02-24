@@ -30,6 +30,18 @@ func (k *Keeper) sendPacket(
 		return 0, "", errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", sourceClient)
 	}
 
+	// Note, the validate basic function in sendPacket does the timeoutTimestamp != 0 check and other stateless checks on the packet.
+	// timeoutTimestamp must be greater than current block time
+	timeout := time.Unix(int64(timeoutTimestamp), 0)
+	if timeout.Before(ctx.BlockTime()) {
+		return 0, "", errorsmod.Wrap(types.ErrTimeoutElapsed, "timeout is less than the current block timestamp")
+	}
+
+	// timeoutTimestamp must be less than current block time + MaxTimeoutDelta
+	if timeout.After(ctx.BlockTime().Add(types.MaxTimeoutDelta)) {
+		return 0, "", errorsmod.Wrap(types.ErrInvalidTimeout, "timeout exceeds the maximum expected value")
+	}
+
 	sequence, found := k.GetNextSequenceSend(ctx, sourceClient)
 	if !found {
 		return 0, "", errorsmod.Wrapf(types.ErrSequenceSendNotFound, "source client: %s", sourceClient)

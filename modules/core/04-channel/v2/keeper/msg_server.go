@@ -3,7 +3,6 @@ package keeper
 import (
 	"bytes"
 	"context"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -19,18 +18,6 @@ var _ types.MsgServer = &Keeper{}
 // SendPacket implements the PacketMsgServer SendPacket method.
 func (k *Keeper) SendPacket(goCtx context.Context, msg *types.MsgSendPacket) (*types.MsgSendPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// Note, the validate basic function in sendPacket does the timeoutTimestamp != 0 check and other stateless checks on the packet.
-	// timeoutTimestamp must be greater than current block time
-	timeout := time.Unix(int64(msg.TimeoutTimestamp), 0)
-	if timeout.Before(ctx.BlockTime()) {
-		return nil, errorsmod.Wrap(types.ErrTimeoutElapsed, "timeout is less than the current block timestamp")
-	}
-
-	// timeoutTimestamp must be less than current block time + MaxTimeoutDelta
-	if timeout.After(ctx.BlockTime().Add(types.MaxTimeoutDelta)) {
-		return nil, errorsmod.Wrap(types.ErrInvalidTimeout, "timeout exceeds the maximum expected value")
-	}
 
 	signer, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
