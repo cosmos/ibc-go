@@ -14,7 +14,6 @@ import (
 	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
@@ -38,19 +37,6 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 			"success: with empty channel version",
 			func() {
 				msg.Version = ""
-			},
-			nil,
-		},
-		{
-			"success: with fee enabled channel version",
-			func() {
-				feeMetadata := feetypes.Metadata{
-					FeeVersion: feetypes.Version,
-					AppVersion: icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID),
-				}
-
-				bz := feetypes.ModuleCdc.MustMarshalJSON(&feeMetadata)
-				msg.Version = string(bz)
 			},
 			nil,
 		},

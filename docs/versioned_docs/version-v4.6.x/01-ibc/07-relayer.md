@@ -50,4 +50,4 @@ piece of information needed to relay a packet.
 ## Example Implementations
 
 - [Golang Relayer](https://github.com/cosmos/relayer)
-- [Hermes](https://github.com/informalsystems/ibc-rs/tree/master/crates/relayer)
+- [Hermes](https://github.com/informalsystems/hermes)

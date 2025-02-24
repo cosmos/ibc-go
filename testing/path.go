@@ -8,7 +8,6 @@ import (
 
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
 // Path contains two endpoints representing two chains connected over IBC
@@ -33,14 +32,6 @@ func NewPath(chainA, chainB *TestChain) *Path {
 	}
 }
 
-// NewPathWithFeeEnabled constructs an endpoint for each chain using the default values
-// for the endpoints. Each endpoint is updated to have a pointer to the
-// counterparty endpoint. It also enables fee on the path
-func NewPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
-	path := NewPath(chainA, chainB)
-	return EnableFeeOnPath(path)
-}
-
 // NewTransferPath constructs a new path between each chain suitable for use with
 // the transfer module.
 func NewTransferPath(chainA, chainB *TestChain) *Path {
@@ -51,13 +42,6 @@ func NewTransferPath(chainA, chainB *TestChain) *Path {
 	path.EndpointB.ChannelConfig.Version = transfertypes.V1
 
 	return path
-}
-
-// NewTransferPathWithFeeEnabled constructs a new path between each chain suitable for use with
-// the transfer module, and it enables fee on it.
-func NewTransferPathWithFeeEnabled(chainA, chainB *TestChain) *Path {
-	path := NewTransferPath(chainA, chainB)
-	return EnableFeeOnPath(path)
 }
 
 // SetChannelOrdered sets the channel order for both endpoints to ORDERED.
@@ -258,13 +242,4 @@ func (path *Path) CreateChannels() {
 	if err != nil {
 		panic(err)
 	}
-}
-
-// EnableFeeOnPath enables fee on a channel given a path.
-func EnableFeeOnPath(path *Path) *Path {
-	path.EndpointA.ChannelConfig.Version = ibcmock.MockFeeVersion
-	path.EndpointB.ChannelConfig.Version = ibcmock.MockFeeVersion
-	path.EndpointA.ChannelConfig.PortID = MockFeePort
-	path.EndpointB.ChannelConfig.PortID = MockFeePort
-	return path
 }
