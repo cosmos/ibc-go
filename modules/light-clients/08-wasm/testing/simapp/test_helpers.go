@@ -44,7 +44,7 @@ func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint,
 	appOptions := make(simtestutil.AppOptionsMap, 0)
 	appOptions[flags.FlagHome] = nodeHome // ensure unique folder
 	appOptions[server.FlagInvCheckPeriod] = invCheckPeriod
-	app := NewSimApp(log.NewNopLogger(), db, nil, true, appOptions, mockVM, bam.SetChainID(chainID), bam.SetSnapshot(snapshotStore, snapshottypes.SnapshotOptions{KeepRecent: 2}))
+	app := NewUnitTestSimApp(log.NewNopLogger(), db, nil, true, appOptions, mockVM, bam.SetChainID(chainID), bam.SetSnapshot(snapshotStore, snapshottypes.SnapshotOptions{KeepRecent: 2}))
 
 	if withGenesis {
 		return app, app.DefaultGenesis()

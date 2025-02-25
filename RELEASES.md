@@ -81,8 +81,8 @@ We reserve the right to drop support for releases if they are deemed unused (for
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v0.1.x+ibc-go-v7.3.x`|March 17, 2025|
-|`v0.1.x+ibc-go-v8.0.x`|May 10, 2025|
+|`v0.2.x+ibc-go-v7.3.x`|March 17, 2025|
+|`v0.2.x+ibc-go-v8.0.x`|May 10, 2025|
 
 ### `08-wasm` light client proxy module
 
@@ -138,7 +138,7 @@ Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by callbacks middleware
 
 | Go | callbacks | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|-----------|--------|------------|---------------------|
-| 1.19 | v0.1.0+ibc-go-v7.3 | v7.3.0 | v0.47.4 | v0.37.2 |
+| 1.19 | v0.2.0+ibc-go-v7.3 | v7.3.0 | v0.47.5 | v0.37.2 |
 | 1.21 | v0.2.0+ibc-go-v8.0 | v8.0.0 | v0.50.1 | v0.38.0 |
 
 ### `08-wasm` light client proxy module
