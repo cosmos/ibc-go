@@ -18,7 +18,6 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	feetypes "github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
@@ -44,7 +43,6 @@ var (
 	// MockApplicationCallbackError should be returned when an application callback should fail. It is possible to
 	// test that this error was returned using ErrorIs.
 	MockApplicationCallbackError error = &applicationCallbackError{}
-	MockFeeVersion                     = string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: Version}))
 )
 
 var (

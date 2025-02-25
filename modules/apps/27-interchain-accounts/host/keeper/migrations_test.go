@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 					suite.chainA.Codec,
 					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(icahosttypes.StoreKey)),
 					nil, // assign a nil legacy param subspace
-					suite.chainA.GetSimApp().IBCFeeKeeper,
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 					suite.chainA.GetSimApp().AccountKeeper,
 					suite.chainA.GetSimApp().MsgServiceRouter(),

@@ -22,7 +22,7 @@ var (
 	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
 )
 
-// IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
+// IBCMiddleware implements the ICS26 callbacks for the controller middleware given the
 // ICA controller keeper and the underlying application.
 type IBCMiddleware struct {
 	app    porttypes.IBCModule
