@@ -12,15 +12,19 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec/unknownproto"
 
-	ibcerrors "github.com/cosmos/ibc-go/v9/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v9/modules/core/exported"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 var (
 	_ ibcexported.PacketData         = (*FungibleTokenPacketData)(nil)
 	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
-	_ ibcexported.PacketData         = (*FungibleTokenPacketDataV2)(nil)
-	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketDataV2)(nil)
+)
+
+const (
+	EncodingJSON     = "application/json"
+	EncodingProtobuf = "application/x-protobuf"
+	EncodingABI      = "application/x-solidity-abi"
 )
 
 // NewFungibleTokenPacketData constructs a new FungibleTokenPacketData instance
@@ -106,17 +110,15 @@ func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} 
 
 // NewFungibleTokenPacketDataV2 constructs a new FungibleTokenPacketDataV2 instance
 func NewFungibleTokenPacketDataV2(
-	tokens []Token,
+	token Token,
 	sender, receiver string,
 	memo string,
-	forwarding ForwardingPacketData,
 ) FungibleTokenPacketDataV2 {
 	return FungibleTokenPacketDataV2{
-		Tokens:     tokens,
-		Sender:     sender,
-		Receiver:   receiver,
-		Memo:       memo,
-		Forwarding: forwarding,
+		Token:    token,
+		Sender:   sender,
+		Receiver: receiver,
+		Memo:     memo,
 	}
 }
 
@@ -132,27 +134,12 @@ func (ftpd FungibleTokenPacketDataV2) ValidateBasic() error {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "receiver address cannot be blank")
 	}
 
-	if len(ftpd.Tokens) == 0 {
-		return errorsmod.Wrap(ErrInvalidAmount, "tokens cannot be empty")
-	}
-
-	for _, token := range ftpd.Tokens {
-		if err := token.Validate(); err != nil {
-			return err
-		}
+	if err := ftpd.Token.Validate(); err != nil {
+		return err
 	}
 
 	if len(ftpd.Memo) > MaximumMemoLength {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
-	}
-
-	if err := ftpd.Forwarding.Validate(); err != nil {
-		return err
-	}
-
-	// We cannot have non-empty memo and non-empty forwarding path hops at the same time.
-	if ftpd.HasForwarding() && ftpd.Memo != "" {
-		return errorsmod.Wrapf(ErrInvalidMemo, "memo must be empty if forwarding path hops is not empty: %s, %s", ftpd.Memo, ftpd.Forwarding.Hops)
 	}
 
 	return nil
@@ -202,40 +189,83 @@ func (ftpd FungibleTokenPacketDataV2) GetPacketSender(sourcePortID string) strin
 	return ftpd.Sender
 }
 
-// HasForwarding determines if the packet should be forwarded to the next hop.
-func (ftpd FungibleTokenPacketDataV2) HasForwarding() bool {
-	return len(ftpd.Forwarding.Hops) > 0
+// MarshalPacketData attempts to marshal the provided FungibleTokenPacketData into bytes with the provided encoding.
+func MarshalPacketData(data FungibleTokenPacketData, ics20Version string, encoding string) ([]byte, error) {
+	if ics20Version != V1 {
+		panic("unsupported ics20 version")
+	}
+
+	switch encoding {
+	case EncodingJSON:
+		return json.Marshal(data)
+	case EncodingProtobuf:
+		return proto.Marshal(&data)
+	case EncodingABI:
+		return EncodeABIFungibleTokenPacketData(&data)
+	default:
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid encoding provided, must be either empty or one of [%q, %q], got %s", EncodingJSON, EncodingProtobuf, encoding)
+	}
 }
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes into a FungibleTokenPacketDataV2.
-// The version of ics20 should be provided and should be either ics20-1 or ics20-2.
-func UnmarshalPacketData(bz []byte, ics20Version string) (FungibleTokenPacketDataV2, error) {
+func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (FungibleTokenPacketDataV2, error) {
+	const failedUnmarshalingErrorMsg = "cannot unmarshal %s transfer packet data: %s"
+
+	// Depending on the ics20 version, we use a different default encoding (json for V1, proto for V2)
+	// and we have a different type to unmarshal the data into.
+	var data proto.Message
 	switch ics20Version {
 	case V1:
-		var datav1 FungibleTokenPacketData
-		if err := json.Unmarshal(bz, &datav1); err != nil {
-			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V1 transfer packet data: %s", err.Error())
+		if encoding == "" {
+			encoding = EncodingJSON
 		}
-
-		return PacketDataV1ToV2(datav1)
-	case V2:
-		var datav2 FungibleTokenPacketDataV2
-		if err := unknownproto.RejectUnknownFieldsStrict(bz, &datav2, unknownproto.DefaultAnyResolver{}); err != nil {
-			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
-		}
-
-		if err := proto.Unmarshal(bz, &datav2); err != nil {
-			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS20-V2 transfer packet data: %s", err.Error())
-		}
-
-		if err := datav2.ValidateBasic(); err != nil {
-			return FungibleTokenPacketDataV2{}, err
-		}
-
-		return datav2, nil
+		data = &FungibleTokenPacketData{}
 	default:
 		return FungibleTokenPacketDataV2{}, errorsmod.Wrap(ErrInvalidVersion, ics20Version)
 	}
+
+	errorMsgVersion := "ICS20-V1"
+
+	// Here we perform the unmarshaling based on the specified encoding.
+	// The functions act on the generic "data" variable which is of type proto.Message (an interface).
+	// The underlying type is either FungibleTokenPacketData or FungibleTokenPacketDataV2, based on the value
+	// of "ics20Version".
+	switch encoding {
+	case EncodingJSON:
+		if err := json.Unmarshal(bz, &data); err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
+		}
+	case EncodingProtobuf:
+		if err := unknownproto.RejectUnknownFieldsStrict(bz, data, unknownproto.DefaultAnyResolver{}); err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
+		}
+
+		if err := proto.Unmarshal(bz, data); err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
+		}
+	case EncodingABI:
+		if ics20Version != V1 {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "encoding %s is only supported for ICS20-V1", EncodingABI)
+		}
+		var err error
+		data, err = DecodeABIFungibleTokenPacketData(bz)
+		if err != nil {
+			return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
+		}
+	default:
+		return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid encoding provided, must be either empty or one of [%q, %q], got %s", EncodingJSON, EncodingProtobuf, encoding)
+	}
+
+	// When the unmarshaling is done, we want to retrieve the underlying data type based on the value of ics20Version
+	// Since it has to be v1, we convert the data to FungibleTokenPacketData and then call the conversion function to construct
+	// the v2 type.
+	datav1, ok := data.(*FungibleTokenPacketData)
+	if !ok {
+		// We should never get here, as we manually constructed the type at the beginning of the file
+		return FungibleTokenPacketDataV2{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot convert proto message into FungibleTokenPacketData")
+	}
+	// The call to ValidateBasic for V1 is done inside PacketDataV1ToV2.
+	return PacketDataV1ToV2(*datav1)
 }
 
 // PacketDataV1ToV2 converts a v1 packet data to a v2 packet data. The packet data is validated
@@ -247,15 +277,31 @@ func PacketDataV1ToV2(packetData FungibleTokenPacketData) (FungibleTokenPacketDa
 
 	denom := ExtractDenomFromPath(packetData.Denom)
 	return FungibleTokenPacketDataV2{
-		Tokens: []Token{
-			{
-				Denom:  denom,
-				Amount: packetData.Amount,
-			},
+		Token: Token{
+			Denom:  denom,
+			Amount: packetData.Amount,
 		},
-		Sender:     packetData.Sender,
-		Receiver:   packetData.Receiver,
-		Memo:       packetData.Memo,
-		Forwarding: ForwardingPacketData{},
+		Sender:   packetData.Sender,
+		Receiver: packetData.Receiver,
+		Memo:     packetData.Memo,
 	}, nil
+}
+
+// internalFungibleTokenPacketData is a package-private version of FungibleTokenPacketDataV2
+// It is not exposed in any public interfaces.
+type internalFungibleTokenPacketData struct {
+	Token    Token
+	Sender   string
+	Receiver string
+	Memo     string
+}
+
+// NewInternalFungibleTokenPacketData constructs a new internalFungibleTokenPacketData instance
+func NewInternalFungibleTokenPacketData(token Token, sender, receiver, memo string) internalFungibleTokenPacketData {
+	return internalFungibleTokenPacketData{
+		Token:    token,
+		Sender:   sender,
+		Receiver: receiver,
+		Memo:     memo,
+	}
 }
