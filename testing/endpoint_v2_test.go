@@ -1,12 +1,113 @@
 package ibctesting
 
 import (
+	"encoding/hex"
 	"testing"
 
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
+
+func TestParsePacketFromEventsV2(t *testing.T) {
+	testCases := []struct {
+		name          string
+		events        []abci.Event
+		expectedError string
+	}{
+		{
+			name: "successful packet parsing",
+			events: []abci.Event{
+				{
+					Type: channeltypesv2.EventTypeSendPacket,
+					Attributes: []abci.EventAttribute{
+						{
+							Key: channeltypesv2.AttributeKeyEncodedPacketHex,
+							Value: hex.EncodeToString(func() []byte {
+								packet := channeltypesv2.Packet{
+									SourceClient:      "client-0",
+									DestinationClient: "client-1",
+									Sequence:          1,
+									TimeoutTimestamp:  100,
+									Payloads: []channeltypesv2.Payload{
+										{
+											SourcePort:      "transfer",
+											DestinationPort: "transfer",
+											Version:         "1.0",
+											Encoding:        "proto3",
+											Value:           []byte("test data"),
+										},
+									},
+								}
+								bz, err := proto.Marshal(&packet)
+								require.NoError(t, err)
+								return bz
+							}()),
+						},
+					},
+				},
+			},
+			expectedError: "",
+		},
+		{
+			name:          "empty events",
+			events:        []abci.Event{},
+			expectedError: "packet not found in events",
+		},
+		{
+			name: "invalid hex encoding",
+			events: []abci.Event{
+				{
+					Type: channeltypesv2.EventTypeSendPacket,
+					Attributes: []abci.EventAttribute{
+						{
+							Key:   channeltypesv2.AttributeKeyEncodedPacketHex,
+							Value: "invalid hex",
+						},
+					},
+				},
+			},
+			expectedError: "failed to decode packet bytes",
+		},
+		{
+			name: "invalid proto encoding",
+			events: []abci.Event{
+				{
+					Type: channeltypesv2.EventTypeSendPacket,
+					Attributes: []abci.EventAttribute{
+						{
+							Key:   channeltypesv2.AttributeKeyEncodedPacketHex,
+							Value: hex.EncodeToString([]byte("invalid proto")),
+						},
+					},
+				},
+			},
+			expectedError: "failed to unmarshal packet",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			packet, err := ParsePacketFromEventsV2(tc.events)
+			if tc.expectedError == "" {
+				require.NoError(t, err)
+				require.NotEmpty(t, packet)
+				require.Equal(t, "client-0", packet.SourceClient)
+				require.Equal(t, "client-1", packet.DestinationClient)
+				require.Equal(t, uint64(1), packet.Sequence)
+				require.Equal(t, uint64(100), packet.TimeoutTimestamp)
+				require.Len(t, packet.Payloads, 1)
+				require.Equal(t, "transfer", packet.Payloads[0].SourcePort)
+				require.Equal(t, "transfer", packet.Payloads[0].DestinationPort)
+			} else {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.expectedError)
+			}
+		})
+	}
+}
 
 func TestMsgSendPacketWithSender(t *testing.T) {
 	coordinator := NewCoordinator(t, 2)
