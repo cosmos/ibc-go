@@ -120,13 +120,6 @@ const config = {
             label: "Architecture Decision Records",
           },
           {
-            type: "doc",
-            position: "left",
-            docId: "intro",
-            docsPluginId: "tutorials",
-            label: "Tutorials",
-          },
-          {
             type: "docsVersionDropdown",
             position: "right",
             dropdownActiveClassDisabled: true,
@@ -271,16 +264,6 @@ const config = {
         id: "adrs",
         path: "architecture",
         routeBasePath: "architecture",
-        sidebarPath: require.resolve("./sidebars.js"),
-        exclude: ["**/*.template.md"],
-      },
-    ],
-    [
-      "@docusaurus/plugin-content-docs",
-      {
-        id: "tutorials",
-        path: "tutorials",
-        routeBasePath: "tutorials",
         sidebarPath: require.resolve("./sidebars.js"),
         exclude: ["**/*.template.md"],
       },

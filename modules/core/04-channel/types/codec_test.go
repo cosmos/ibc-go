@@ -75,51 +75,6 @@ func TestCodecTypeRegistration(t *testing.T) {
 			nil,
 		},
 		{
-			"success: MsgChannelUpgradeInit",
-			sdk.MsgTypeURL(&types.MsgChannelUpgradeInit{}),
-			nil,
-		},
-		{
-			"success: MsgChannelUpgradeTry",
-			sdk.MsgTypeURL(&types.MsgChannelUpgradeTry{}),
-			nil,
-		},
-		{
-			"success: MsgChannelUpgradeAck",
-			sdk.MsgTypeURL(&types.MsgChannelUpgradeAck{}),
-			nil,
-		},
-		{
-			"success: MsgChannelUpgradeConfirm",
-			sdk.MsgTypeURL(&types.MsgChannelUpgradeConfirm{}),
-			nil,
-		},
-		{
-			"success: MsgChannelUpgradeOpen",
-			sdk.MsgTypeURL(&types.MsgChannelUpgradeOpen{}),
-			nil,
-		},
-		{
-			"success: MsgChannelUpgradeTimeout",
-			sdk.MsgTypeURL(&types.MsgChannelUpgradeTimeout{}),
-			nil,
-		},
-		{
-			"success: MsgChannelUpgradeCancel",
-			sdk.MsgTypeURL(&types.MsgChannelUpgradeCancel{}),
-			nil,
-		},
-		{
-			"success: MsgPruneAcknowledgements",
-			sdk.MsgTypeURL(&types.MsgPruneAcknowledgements{}),
-			nil,
-		},
-		{
-			"success: MsgUpdateParams",
-			sdk.MsgTypeURL(&types.MsgUpdateParams{}),
-			nil,
-		},
-		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
 			fmt.Errorf("unable to resolve type URL ibc.invalid.MsgTypeURL"),

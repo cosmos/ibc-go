@@ -214,7 +214,7 @@ func (suite *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Ms
 	channelKey := host.ChannelKey(packet.GetDestPort(), packet.GetDestChannel())
 	closedProof, _ := suite.chainA.QueryProof(channelKey)
 
-	return channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, closedProof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String(), 0)
+	return channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, closedProof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
 func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {

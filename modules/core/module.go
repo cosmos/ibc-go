@@ -168,14 +168,20 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 		panic(err)
 	}
 
-	channelMigrator := channelkeeper.NewMigrator(am.keeper.ChannelKeeper)
-	if err := cfg.RegisterMigration(exported.ModuleName, 5, channelMigrator.MigrateParams); err != nil {
+	// This upgrade used to just add default params, since we have deleted it, we just return directly to increase the ConsensusVersion
+	if err := cfg.RegisterMigration(exported.ModuleName, 5, func(_ sdk.Context) error {
+		return nil
+	}); err != nil {
 		panic(err)
 	}
 
 	if err := cfg.RegisterMigration(exported.ModuleName, 6, clientMigrator.MigrateToStatelessLocalhost); err != nil {
 		panic(err)
 	}
+
+	// TODO: Add migration for v10
+	channelMigrator := channelkeeper.NewMigrator(am.keeper.ChannelKeeper)
+	_ = channelMigrator
 }
 
 // InitGenesis performs genesis initialization for the ibc module. It returns

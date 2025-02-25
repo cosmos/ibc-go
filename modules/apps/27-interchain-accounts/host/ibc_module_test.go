@@ -19,7 +19,6 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -626,127 +625,6 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 				}
 			})
 		}
-	}
-}
-
-// OnChanUpgradeInit callback returns error on host chains
-func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeInit() {
-	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
-		suite.SetupTest() // reset
-
-		path := NewICAPath(suite.chainA, suite.chainB, ordering)
-		path.SetupConnections()
-
-		err := SetupICAPath(path, TestOwnerAddress)
-		suite.Require().NoError(err)
-
-		// call application callback directly
-		app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(path.EndpointB.ChannelConfig.PortID)
-		suite.Require().True(ok)
-		cbs, ok := app.(porttypes.UpgradableModule)
-		suite.Require().True(ok)
-
-		version, err := cbs.OnChanUpgradeInit(
-			suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
-			path.EndpointB.ChannelConfig.Order, []string{path.EndpointB.ConnectionID}, path.EndpointB.ChannelConfig.Version,
-		)
-
-		suite.Require().Error(err)
-		suite.Require().ErrorIs(err, icatypes.ErrInvalidChannelFlow)
-		suite.Require().Equal("", version)
-	}
-}
-
-func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeTry() {
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success", func() {}, nil,
-		},
-		{
-			"host submodule disabled", func() {
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(false, []string{}))
-			}, types.ErrHostSubModuleDisabled,
-		},
-	}
-
-	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
-		for _, tc := range testCases {
-			tc := tc
-
-			suite.Run(tc.name, func() {
-				suite.SetupTest() // reset
-
-				path := NewICAPath(suite.chainA, suite.chainB, ordering)
-				path.SetupConnections()
-
-				err := SetupICAPath(path, TestOwnerAddress)
-				suite.Require().NoError(err)
-
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
-
-				metadata := icatypes.NewDefaultMetadata(path.EndpointA.ConnectionID, path.EndpointB.ConnectionID)
-				metadata.Address = interchainAccountAddr
-				metadata.Encoding = icatypes.EncodingProto3JSON // this is the actual change to the version
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = string(icatypes.ModuleCdc.MustMarshalJSON(&metadata))
-
-				err = path.EndpointA.ChanUpgradeInit()
-				suite.Require().NoError(err)
-
-				tc.malleate() // malleate mutates test data
-
-				app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(path.EndpointB.ChannelConfig.PortID)
-				suite.Require().True(ok)
-				cbs, ok := app.(porttypes.UpgradableModule)
-				suite.Require().True(ok)
-
-				version, err := cbs.OnChanUpgradeTry(
-					suite.chainB.GetContext(),
-					path.EndpointB.ChannelConfig.PortID,
-					path.EndpointB.ChannelID,
-					ordering,
-					[]string{path.EndpointB.ConnectionID},
-					path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version,
-				)
-
-				if tc.expError == nil {
-					suite.Require().NoError(err)
-				} else {
-					suite.Require().Error(err)
-					suite.Require().Empty(version)
-				}
-			})
-		}
-	}
-}
-
-// OnChanUpgradeAck callback returns error on host chains
-func (suite *InterchainAccountsTestSuite) TestOnChanUpgradeAck() {
-	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
-		suite.SetupTest() // reset
-
-		path := NewICAPath(suite.chainA, suite.chainB, ordering)
-		path.SetupConnections()
-
-		err := SetupICAPath(path, TestOwnerAddress)
-		suite.Require().NoError(err)
-
-		// call application callback directly
-		app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(path.EndpointB.ChannelConfig.PortID)
-		suite.Require().True(ok)
-		cbs, ok := app.(porttypes.UpgradableModule)
-		suite.Require().True(ok)
-
-		err = cbs.OnChanUpgradeAck(
-			suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.Version,
-		)
-
-		suite.Require().Error(err)
-		suite.Require().ErrorIs(err, icatypes.ErrInvalidChannelFlow)
 	}
 }
 

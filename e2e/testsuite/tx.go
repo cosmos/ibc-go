@@ -31,7 +31,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
@@ -289,18 +288,6 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 
 	msg := GetMsgTransfer(portID, channelID, channel.Version, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
 
-	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-// PruneAcknowledgements broadcasts a MsgPruneAcknowledgements message.
-func (s *E2ETestSuite) PruneAcknowledgements(
-	ctx context.Context,
-	chain ibc.Chain,
-	user ibc.Wallet,
-	portID, channelID string,
-	limit uint64,
-) sdk.TxResponse {
-	msg := channeltypes.NewMsgPruneAcknowledgements(portID, channelID, limit, user.FormattedAddress())
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 

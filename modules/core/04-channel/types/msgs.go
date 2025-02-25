@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/base64"
-	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -25,13 +24,6 @@ var (
 	_ sdk.Msg = (*MsgAcknowledgement)(nil)
 	_ sdk.Msg = (*MsgTimeout)(nil)
 	_ sdk.Msg = (*MsgTimeoutOnClose)(nil)
-	_ sdk.Msg = (*MsgChannelUpgradeInit)(nil)
-	_ sdk.Msg = (*MsgChannelUpgradeTry)(nil)
-	_ sdk.Msg = (*MsgChannelUpgradeAck)(nil)
-	_ sdk.Msg = (*MsgChannelUpgradeConfirm)(nil)
-	_ sdk.Msg = (*MsgChannelUpgradeTimeout)(nil)
-	_ sdk.Msg = (*MsgChannelUpgradeCancel)(nil)
-	_ sdk.Msg = (*MsgPruneAcknowledgements)(nil)
 
 	_ sdk.HasValidateBasic = (*MsgChannelOpenInit)(nil)
 	_ sdk.HasValidateBasic = (*MsgChannelOpenTry)(nil)
@@ -43,13 +35,6 @@ var (
 	_ sdk.HasValidateBasic = (*MsgAcknowledgement)(nil)
 	_ sdk.HasValidateBasic = (*MsgTimeout)(nil)
 	_ sdk.HasValidateBasic = (*MsgTimeoutOnClose)(nil)
-	_ sdk.HasValidateBasic = (*MsgChannelUpgradeInit)(nil)
-	_ sdk.HasValidateBasic = (*MsgChannelUpgradeTry)(nil)
-	_ sdk.HasValidateBasic = (*MsgChannelUpgradeAck)(nil)
-	_ sdk.HasValidateBasic = (*MsgChannelUpgradeConfirm)(nil)
-	_ sdk.HasValidateBasic = (*MsgChannelUpgradeTimeout)(nil)
-	_ sdk.HasValidateBasic = (*MsgChannelUpgradeCancel)(nil)
-	_ sdk.HasValidateBasic = (*MsgPruneAcknowledgements)(nil)
 )
 
 // NewMsgChannelOpenInit creates a new MsgChannelOpenInit. It sets the counterparty channel
@@ -235,15 +220,14 @@ func (msg MsgChannelCloseInit) ValidateBasic() error {
 // NewMsgChannelCloseConfirm creates a new MsgChannelCloseConfirm instance
 func NewMsgChannelCloseConfirm(
 	portID, channelID string, initProof []byte, proofHeight clienttypes.Height,
-	signer string, counterpartyUpgradeSequence uint64,
+	signer string,
 ) *MsgChannelCloseConfirm {
 	return &MsgChannelCloseConfirm{
-		PortId:                      portID,
-		ChannelId:                   channelID,
-		ProofInit:                   initProof,
-		ProofHeight:                 proofHeight,
-		Signer:                      signer,
-		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
+		PortId:      portID,
+		ChannelId:   channelID,
+		ProofInit:   initProof,
+		ProofHeight: proofHeight,
+		Signer:      signer,
 	}
 }
 
@@ -331,16 +315,14 @@ func NewMsgTimeoutOnClose(
 	packet Packet, nextSequenceRecv uint64,
 	unreceivedProof, closeProof []byte,
 	proofHeight clienttypes.Height, signer string,
-	counterpartyUpgradeSequence uint64,
 ) *MsgTimeoutOnClose {
 	return &MsgTimeoutOnClose{
-		Packet:                      packet,
-		NextSequenceRecv:            nextSequenceRecv,
-		ProofUnreceived:             unreceivedProof,
-		ProofClose:                  closeProof,
-		ProofHeight:                 proofHeight,
-		Signer:                      signer,
-		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
+		Packet:           packet,
+		NextSequenceRecv: nextSequenceRecv,
+		ProofUnreceived:  unreceivedProof,
+		ProofClose:       closeProof,
+		ProofHeight:      proofHeight,
+		Signer:           signer,
 	}
 }
 
@@ -391,386 +373,4 @@ func (msg MsgAcknowledgement) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Packet.ValidateBasic()
-}
-
-var _ sdk.Msg = &MsgChannelUpgradeInit{}
-
-// NewMsgChannelUpgradeInit constructs a new MsgChannelUpgradeInit
-// nolint:interfacer
-func NewMsgChannelUpgradeInit(
-	portID, channelID string,
-	upgradeFields UpgradeFields,
-	signer string,
-) *MsgChannelUpgradeInit {
-	return &MsgChannelUpgradeInit{
-		PortId:    portID,
-		ChannelId: channelID,
-		Fields:    upgradeFields,
-		Signer:    signer,
-	}
-}
-
-// ValidateBasic implements sdk.Msg
-func (msg MsgChannelUpgradeInit) ValidateBasic() error {
-	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
-		return errorsmod.Wrap(err, "invalid port ID")
-	}
-	if !IsValidChannelID(msg.ChannelId) {
-		return ErrInvalidChannelIdentifier
-	}
-
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	return msg.Fields.ValidateBasic()
-}
-
-var _ sdk.Msg = &MsgChannelUpgradeTry{}
-
-// NewMsgChannelUpgradeTry constructs a new MsgChannelUpgradeTry
-// nolint:interfacer
-func NewMsgChannelUpgradeTry(
-	portID,
-	channelID string,
-	proposedConnectionHops []string,
-	counterpartyUpgradeFields UpgradeFields,
-	counterpartyUpgradeSequence uint64,
-	channelProof []byte,
-	upgradeProof []byte,
-	proofHeight clienttypes.Height,
-	signer string,
-) *MsgChannelUpgradeTry {
-	return &MsgChannelUpgradeTry{
-		PortId:                        portID,
-		ChannelId:                     channelID,
-		ProposedUpgradeConnectionHops: proposedConnectionHops,
-		CounterpartyUpgradeFields:     counterpartyUpgradeFields,
-		CounterpartyUpgradeSequence:   counterpartyUpgradeSequence,
-		ProofChannel:                  channelProof,
-		ProofUpgrade:                  upgradeProof,
-		ProofHeight:                   proofHeight,
-		Signer:                        signer,
-	}
-}
-
-// ValidateBasic implements sdk.Msg
-func (msg MsgChannelUpgradeTry) ValidateBasic() error {
-	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
-		return errorsmod.Wrap(err, "invalid port ID")
-	}
-
-	if !IsValidChannelID(msg.ChannelId) {
-		return ErrInvalidChannelIdentifier
-	}
-
-	if len(msg.ProposedUpgradeConnectionHops) == 0 {
-		return errorsmod.Wrap(ErrInvalidUpgrade, "proposed connection hops cannot be empty")
-	}
-
-	if err := msg.CounterpartyUpgradeFields.ValidateBasic(); err != nil {
-		return errorsmod.Wrap(err, "error validating counterparty upgrade fields")
-	}
-
-	if msg.CounterpartyUpgradeSequence == 0 {
-		return errorsmod.Wrap(ErrInvalidUpgradeSequence, "counterparty sequence cannot be 0")
-	}
-
-	if len(msg.ProofChannel) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
-	}
-
-	if len(msg.ProofUpgrade) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade proof")
-	}
-
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	return nil
-}
-
-var _ sdk.Msg = &MsgChannelUpgradeAck{}
-
-// NewMsgChannelUpgradeAck constructs a new MsgChannelUpgradeAck
-// nolint:interfacer
-func NewMsgChannelUpgradeAck(portID, channelID string, counterpartyUpgrade Upgrade, channelProof, upgradeProof []byte, proofHeight clienttypes.Height, signer string) *MsgChannelUpgradeAck {
-	return &MsgChannelUpgradeAck{
-		PortId:              portID,
-		ChannelId:           channelID,
-		CounterpartyUpgrade: counterpartyUpgrade,
-		ProofChannel:        channelProof,
-		ProofUpgrade:        upgradeProof,
-		ProofHeight:         proofHeight,
-		Signer:              signer,
-	}
-}
-
-// ValidateBasic implements sdk.Msg
-func (msg MsgChannelUpgradeAck) ValidateBasic() error {
-	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
-		return errorsmod.Wrap(err, "invalid port ID")
-	}
-	if !IsValidChannelID(msg.ChannelId) {
-		return ErrInvalidChannelIdentifier
-	}
-	if len(msg.ProofChannel) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
-	}
-	if len(msg.ProofUpgrade) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade sequence proof")
-	}
-	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	return msg.CounterpartyUpgrade.ValidateBasic()
-}
-
-var _ sdk.Msg = &MsgChannelUpgradeConfirm{}
-
-// NewMsgChannelUpgradeConfirm constructs a new MsgChannelUpgradeConfirm
-func NewMsgChannelUpgradeConfirm(
-	portID,
-	channelID string,
-	counterpartyChannelState State,
-	counterpartyUpgrade Upgrade,
-	channelProof,
-	upgradeProof []byte,
-	proofHeight clienttypes.Height,
-	signer string,
-) *MsgChannelUpgradeConfirm {
-	return &MsgChannelUpgradeConfirm{
-		PortId:                   portID,
-		ChannelId:                channelID,
-		CounterpartyChannelState: counterpartyChannelState,
-		CounterpartyUpgrade:      counterpartyUpgrade,
-		ProofChannel:             channelProof,
-		ProofUpgrade:             upgradeProof,
-		ProofHeight:              proofHeight,
-		Signer:                   signer,
-	}
-}
-
-// ValidateBasic implements sdk.Msg
-func (msg MsgChannelUpgradeConfirm) ValidateBasic() error {
-	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
-		return errorsmod.Wrap(err, "invalid port ID")
-	}
-
-	if !IsValidChannelID(msg.ChannelId) {
-		return ErrInvalidChannelIdentifier
-	}
-
-	if !slices.Contains([]State{FLUSHING, FLUSHCOMPLETE}, msg.CounterpartyChannelState) {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: %s or %s, got: %s", FLUSHING, FLUSHCOMPLETE, msg.CounterpartyChannelState)
-	}
-
-	if len(msg.ProofChannel) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
-	}
-
-	if len(msg.ProofUpgrade) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty upgrade proof")
-	}
-
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	return msg.CounterpartyUpgrade.ValidateBasic()
-}
-
-var _ sdk.Msg = &MsgChannelUpgradeOpen{}
-
-// NewMsgChannelUpgradeOpen constructs a new MsgChannelUpgradeOpen
-// nolint:interfacer
-func NewMsgChannelUpgradeOpen(
-	portID,
-	channelID string,
-	counterpartyChannelState State,
-	counterpartyUpgradeSequence uint64,
-	channelProof []byte,
-	proofHeight clienttypes.Height,
-	signer string,
-) *MsgChannelUpgradeOpen {
-	return &MsgChannelUpgradeOpen{
-		PortId:                      portID,
-		ChannelId:                   channelID,
-		CounterpartyChannelState:    counterpartyChannelState,
-		CounterpartyUpgradeSequence: counterpartyUpgradeSequence,
-		ProofChannel:                channelProof,
-		ProofHeight:                 proofHeight,
-		Signer:                      signer,
-	}
-}
-
-// ValidateBasic implements sdk.Msg
-func (msg MsgChannelUpgradeOpen) ValidateBasic() error {
-	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
-		return errorsmod.Wrap(err, "invalid port ID")
-	}
-
-	if !IsValidChannelID(msg.ChannelId) {
-		return ErrInvalidChannelIdentifier
-	}
-
-	if len(msg.ProofChannel) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty channel proof")
-	}
-
-	if !slices.Contains([]State{FLUSHCOMPLETE, OPEN}, msg.CounterpartyChannelState) {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected channel state to be one of: [%s, %s], got: %s", FLUSHCOMPLETE, OPEN, msg.CounterpartyChannelState)
-	}
-
-	if msg.CounterpartyUpgradeSequence == 0 {
-		return errorsmod.Wrap(ErrInvalidUpgradeSequence, "counterparty upgrade sequence must be non-zero")
-	}
-
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	return nil
-}
-
-var _ sdk.Msg = &MsgChannelUpgradeTimeout{}
-
-// NewMsgChannelUpgradeTimeout constructs a new MsgChannelUpgradeTimeout
-// nolint:interfacer
-func NewMsgChannelUpgradeTimeout(
-	portID, channelID string,
-	counterpartyChannel Channel,
-	channelProof []byte,
-	proofHeight clienttypes.Height,
-	signer string,
-) *MsgChannelUpgradeTimeout {
-	return &MsgChannelUpgradeTimeout{
-		PortId:              portID,
-		ChannelId:           channelID,
-		CounterpartyChannel: counterpartyChannel,
-		ProofChannel:        channelProof,
-		ProofHeight:         proofHeight,
-		Signer:              signer,
-	}
-}
-
-// ValidateBasic implements sdk.Msg
-func (msg MsgChannelUpgradeTimeout) ValidateBasic() error {
-	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
-		return errorsmod.Wrap(err, "invalid port ID")
-	}
-
-	if !IsValidChannelID(msg.ChannelId) {
-		return ErrInvalidChannelIdentifier
-	}
-
-	if len(msg.ProofChannel) == 0 {
-		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof")
-	}
-
-	if !slices.Contains([]State{FLUSHING, OPEN}, msg.CounterpartyChannel.State) {
-		return errorsmod.Wrapf(ErrInvalidChannelState, "expected counterparty channel state to be one of: [%s, %s], got: %s", FLUSHING, OPEN, msg.CounterpartyChannel.State)
-	}
-
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	return nil
-}
-
-var _ sdk.Msg = &MsgChannelUpgradeCancel{}
-
-// NewMsgChannelUpgradeCancel constructs a new MsgChannelUpgradeCancel
-// nolint:interfacer
-func NewMsgChannelUpgradeCancel(
-	portID, channelID string,
-	errorReceipt ErrorReceipt,
-	errorReceiptProof []byte,
-	proofHeight clienttypes.Height,
-	signer string,
-) *MsgChannelUpgradeCancel {
-	return &MsgChannelUpgradeCancel{
-		PortId:            portID,
-		ChannelId:         channelID,
-		ErrorReceipt:      errorReceipt,
-		ProofErrorReceipt: errorReceiptProof,
-		ProofHeight:       proofHeight,
-		Signer:            signer,
-	}
-}
-
-// ValidateBasic implements sdk.Msg. No checks are done for ErrorReceipt and ProofErrorReceipt
-// since they are not required if the current channel state is not in FLUSHCOMPLETE and the signer
-// is the designated authority (e.g. the governance module).
-func (msg MsgChannelUpgradeCancel) ValidateBasic() error {
-	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
-		return errorsmod.Wrap(err, "invalid port ID")
-	}
-
-	if !IsValidChannelID(msg.ChannelId) {
-		return ErrInvalidChannelIdentifier
-	}
-
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	return nil
-}
-
-// NewMsgUpdateChannelParams creates a new instance of MsgUpdateParams.
-func NewMsgUpdateChannelParams(authority string, params Params) *MsgUpdateParams {
-	return &MsgUpdateParams{
-		Authority: authority,
-		Params:    params,
-	}
-}
-
-// ValidateBasic performs basic checks on a MsgUpdateParams.
-func (msg *MsgUpdateParams) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-	return msg.Params.Validate()
-}
-
-// NewMsgPruneAcknowledgements creates a new instance of MsgPruneAcknowledgements.
-func NewMsgPruneAcknowledgements(portID, channelID string, limit uint64, signer string) *MsgPruneAcknowledgements {
-	return &MsgPruneAcknowledgements{
-		PortId:    portID,
-		ChannelId: channelID,
-		Limit:     limit,
-		Signer:    signer,
-	}
-}
-
-// ValidateBasic performs basic checks on a MsgPruneAcknowledgements.
-func (msg *MsgPruneAcknowledgements) ValidateBasic() error {
-	if err := host.PortIdentifierValidator(msg.PortId); err != nil {
-		return errorsmod.Wrap(err, "invalid port ID")
-	}
-
-	if !IsValidChannelID(msg.ChannelId) {
-		return ErrInvalidChannelIdentifier
-	}
-
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-
-	if msg.Limit == 0 {
-		return errorsmod.Wrap(ErrInvalidPruningLimit, "number of acknowledgements to prune must be greater than 0")
-	}
-
-	return nil
 }

@@ -159,7 +159,6 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 						channeltypes.NewPacketSequence(port2, channel2, 1),
 					},
 					0,
-					channeltypes.Params{UpgradeTimeout: channeltypes.DefaultTimeout},
 				),
 				ChannelV2Genesis: channelv2types.NewGenesisState(
 					[]channelv2types.PacketState{
@@ -396,7 +395,6 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 						channeltypes.NewPacketSequence(port2, channel2, 1),
 					},
 					0,
-					channeltypes.Params{UpgradeTimeout: channeltypes.DefaultTimeout},
 				),
 				ChannelV2Genesis: channelv2types.NewGenesisState(
 					[]channelv2types.PacketState{
