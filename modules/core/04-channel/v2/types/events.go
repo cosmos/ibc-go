@@ -6,7 +6,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
-// IBC Eureka core events
+// IBC v2 core events
 const (
 	EventTypeSendPacket        = "send_packet"
 	EventTypeRecvPacket        = "recv_packet"
@@ -22,7 +22,7 @@ const (
 	AttributeKeyEncodedAckHex    = "encoded_acknowledgement_hex"
 )
 
-// IBC Eureka core events vars
+// IBC v2 core events vars
 var (
 	AttributeValueCategory = fmt.Sprintf("%s_%s", ibcexported.ModuleName, SubModuleName)
 )
