@@ -257,7 +257,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 }
 
 // TestRecvPacket test RecvPacket on chainB. Since packet commitment verification will always
-// occur last (resource instensive), only tests expected to succeed and packet commitment
+// occur last (resource intensive), only tests expected to succeed and packet commitment
 // verification tests need to simulate sending a packet from chainA to chainB.
 func (suite *KeeperTestSuite) TestRecvPacket() {
 	var (
