@@ -30,7 +30,7 @@ type ClientMessage interface {
 }
 ```
 
-The `ClientMessage` will be passed to the client to be used in [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/keeper/client.go#L48), which retrieves the `LightClientModule` by client type (parsed from the client ID available in `MsgUpdateClient`). This `LightClientModule` implements the [`LightClientModule` interface](02-light-client-module.md) for its specific consenus type (e.g. Tendermint).
+The `ClientMessage` will be passed to the client to be used in [`UpdateClient`](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/02-client/keeper/client.go#L48), which retrieves the `LightClientModule` by client type (parsed from the client ID available in `MsgUpdateClient`). This `LightClientModule` implements the [`LightClientModule` interface](02-light-client-module.md) for its specific consensus type (e.g. Tendermint).
 
 `UpdateClient` will then handle a number of cases including misbehaviour and/or updating the consensus state, utilizing the specific methods defined in the relevant `LightClientModule`.
 

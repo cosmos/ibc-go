@@ -23,7 +23,7 @@ module.exports = {
     fontFamily: {
       intervar: ['"Inter var"', defaultTheme.fontFamily.sans],
       inter: ["Inter", defaultTheme.fontFamily.sans],
-      jetbrain: ["JetBrains Mono", defaultTheme.fontFamily.mono],
+      jetbrains: ["JetBrains Mono", defaultTheme.fontFamily.mono],
     },
     fontSize: {
       0: "0",
