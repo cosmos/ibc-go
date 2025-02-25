@@ -339,22 +339,45 @@ func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 	}
 
 	// NOTE: denomination and hex hash correctness checked during msg.ValidateBasic
-	hexHash := coin.Denom[len(types.DenomPrefix+"/"):]
-
-	hash, err := types.ParseHexHash(hexHash)
+	denom, err := k.GetDenomFromIBCDenom(ctx, coin.Denom)
 	if err != nil {
-		return types.Token{}, errorsmod.Wrap(types.ErrInvalidDenomForTransfer, err.Error())
-	}
-
-	denom, found := k.GetDenom(ctx, hash)
-	if !found {
-		return types.Token{}, errorsmod.Wrap(types.ErrDenomNotFound, hexHash)
+		return types.Token{}, err
 	}
 
 	return types.Token{
 		Denom:  denom,
 		Amount: coin.Amount.String(),
 	}, nil
+}
+
+// GetDenomFromIBCDenom returns the `Denom` given the IBC Denom (ibc/{hex hash}) of the denomination.
+// The ibcDenom is the hex hash of the denomination prefixed by "ibc/", often referred to as the IBC denom.
+func (k Keeper) GetDenomFromIBCDenom(ctx sdk.Context, ibcDenom string) (types.Denom, error) {
+	hexHash := ibcDenom[len(types.DenomPrefix+"/"):]
+
+	hash, err := types.ParseHexHash(hexHash)
+	if err != nil {
+		return types.Denom{}, errorsmod.Wrap(types.ErrInvalidDenomForTransfer, err.Error())
+	}
+
+	denom, found := k.GetDenom(ctx, hash)
+	if !found {
+		return types.Denom{}, errorsmod.Wrap(types.ErrDenomNotFound, hexHash)
+	}
+
+	return denom, nil
+}
+
+// Deprecated: usage of this function should be replaced by `Keeper.GetDenomFromIBCDenom`
+// DenomPathFromHash returns the full denomination path prefix from an ibc denom with a hash
+// component.
+func (k Keeper) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error) {
+	denom, err := k.GetDenomFromIBCDenom(ctx, ibcDenom)
+	if err != nil {
+		return "", err
+	}
+
+	return denom.Path(), nil
 }
 
 // createPacketDataBytesFromVersion creates the packet data bytes to be sent based on the application version.
