@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 
@@ -230,14 +231,41 @@ func init() {
 	DefaultNodeHome = filepath.Join(userHomeDir, ".simapp")
 }
 
-// NewSimApp returns a reference to an initialized SimApp.
-func NewSimApp(
+func NewUnitTestSimApp(
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
 	mockVM wasmtypes.WasmEngine,
+	baseAppOptions ...func(*baseapp.BaseApp),
+) *SimApp {
+	wasmDir := path.Join("ibc_08-wasm_client_data", strconv.Itoa(rand.Intn(10000)))
+	return newSimApp(logger, db, traceStore, loadLatest, appOpts, mockVM, wasmDir, baseAppOptions...)
+}
+
+func NewBinarySimApp(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	loadLatest bool,
+	appOpts servertypes.AppOptions,
+	mockVM wasmtypes.WasmEngine,
+	baseAppOptions ...func(*baseapp.BaseApp),
+) *SimApp {
+	wasmDir := "ibc_08-wasm_client_data"
+	return newSimApp(logger, db, traceStore, loadLatest, appOpts, mockVM, wasmDir, baseAppOptions...)
+}
+
+// NewSimApp returns a reference to an initialized SimApp.
+func newSimApp(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	loadLatest bool,
+	appOpts servertypes.AppOptions,
+	mockVM wasmtypes.WasmEngine,
+	wasmDir string,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
 	interfaceRegistry, _ := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
@@ -425,7 +453,7 @@ func NewSimApp(
 	// different VM instances running in the same data directory. In production environments, the
 	// appended random string is not needed.
 	wasmConfig := wasmtypes.WasmConfig{
-		DataDir:               filepath.Join(homePath, "ibc_08-wasm_client_data", strconv.Itoa(rand.Intn(10000))),
+		DataDir:               filepath.Join(homePath, wasmDir),
 		SupportedCapabilities: []string{"iterator"},
 		ContractDebugMode:     false,
 	}
