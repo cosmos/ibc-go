@@ -20,10 +20,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
 
-var (
-	_ types.QueryServer   = (*Keeper)(nil)
-	_ types.QueryV2Server = (*Keeper)(nil)
-)
+var _ types.QueryServer = (*Keeper)(nil)
 
 // Denom implements the Query/Denom gRPC method
 func (k Keeper) Denom(goCtx context.Context, req *types.QueryDenomRequest) (*types.QueryDenomResponse, error) {

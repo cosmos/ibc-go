@@ -575,20 +575,6 @@ func TestUnmarshalPacketData(t *testing.T) {
 			nil,
 		},
 		{
-			"failure: v2 with empty encoding (protobuf)",
-			func() {
-				packetData := types.NewFungibleTokenPacketDataV2(
-					types.Token{
-						Denom:  types.NewDenom("atom", types.NewHop("transfer", "channel-0")),
-						Amount: "1000",
-					}, sender, receiver, "")
-
-				packetDataBz = packetData.GetBytes()
-				version = "ics20-2"
-			},
-			types.ErrInvalidVersion,
-		},
-		{
 			"invalid version",
 			func() {
 				version = "ics20-100"

@@ -16,6 +16,20 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
+// FungibleTokenPacketDataV2 defines a struct for the packet payload
+// See FungibleTokenPacketDataV2 spec:
+// https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
+type FungibleTokenPacketDataV2 struct {
+	// the tokens to be transferred
+	Token Token `protobuf:"bytes,1,opt,name=token,proto3" json:"token"`
+	// the sender address
+	Sender string `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
+	// the recipient address on the destination chain
+	Receiver string `protobuf:"bytes,3,opt,name=receiver,proto3" json:"receiver,omitempty"`
+	// optional memo
+	Memo string `protobuf:"bytes,4,opt,name=memo,proto3" json:"memo,omitempty"`
+}
+
 var (
 	_ ibcexported.PacketData         = (*FungibleTokenPacketData)(nil)
 	_ ibcexported.PacketDataProvider = (*FungibleTokenPacketData)(nil)
@@ -143,17 +157,6 @@ func (ftpd FungibleTokenPacketDataV2) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// GetBytes is a helper for serialising a FungibleTokenPacketDataV2. It uses protobuf to serialise
-// the packet data and panics on failure.
-func (ftpd FungibleTokenPacketDataV2) GetBytes() []byte {
-	bz, err := proto.Marshal(&ftpd)
-	if err != nil {
-		panic(errors.New("cannot marshal FungibleTokenPacketDataV2 into bytes"))
-	}
-
-	return bz
 }
 
 // GetCustomPacketData interprets the memo field of the packet data as a JSON object
