@@ -25,7 +25,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // State defines if a channel is in one of the following states:
-// CLOSED, INIT, TRYOPEN, OPEN, FLUSHING, FLUSHCOMPLETE or UNINITIALIZED.
+// CLOSED, INIT, TRYOPEN, OPEN, or UNINITIALIZED.
 type State int32
 
 const (
@@ -487,12 +487,12 @@ func (*Acknowledgement) XXX_OneofWrappers() []interface{} {
 }
 
 // Timeout defines an execution deadline structure for 04-channel handlers.
-// This includes packet lifecycle handlers as well as the upgrade handshake handlers.
+// This includes packet lifecycle handlers.
 // A valid Timeout contains either one or both of a timestamp and block height (sequence).
 type Timeout struct {
-	// block height after which the packet or upgrade times out
+	// block height after which the packet times out
 	Height types.Height `protobuf:"bytes,1,opt,name=height,proto3" json:"height"`
-	// block timestamp (in nanoseconds) after which the packet or upgrade times out
+	// block timestamp (in nanoseconds) after which the packet times out
 	Timestamp uint64 `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 }
 
