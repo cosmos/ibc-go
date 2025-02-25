@@ -47,10 +47,10 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 			true,
 		},
 		{
-			"success: dest callback with missing address",
+			"failure: dest callback with missing address",
 			`{"dest_callback": {"address": ""}}`,
 			"none",
-			true,
+			false,
 		},
 		{
 			"success: source callback",

@@ -100,10 +100,15 @@ func (im IBCMiddleware) SendPacket(
 	// packet is created without destination information present, GetSourceCallbackData does not use these.
 	packet := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 
-	callbackData, err := types.GetSourceCallbackData(ctx, im.app, packet, im.maxCallbackGas)
+	callbackData, isCbPacket, err := types.GetSourceCallbackData(ctx, im.app, packet, im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return seq, nil
+	}
+	// if the packet does opt-in to callbacks but the callback data is malformed,
+	// then the packet send is rejected.
+	if err != nil {
+		return 0, err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -139,12 +144,18 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	callbackData, err := types.GetSourceCallbackData(
+	callbackData, isCbPacket, err := types.GetSourceCallbackData(
 		ctx, im.app, packet, im.maxCallbackGas,
 	)
 	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// if the packet does opt-in to callbacks but the callback data is malformed,
+	// then the packet acknowledgement is rejected.
+	// This should never occur, since this error is already checked on `SendPacket`
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -173,12 +184,18 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 		return err
 	}
 
-	callbackData, err := types.GetSourceCallbackData(
+	callbackData, isCbPacket, err := types.GetSourceCallbackData(
 		ctx, im.app, packet, im.maxCallbackGas,
 	)
 	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// if the packet does opt-in to callbacks but the callback data is malformed,
+	// then the packet timeout is rejected.
+	// This should never occur, since this error is already checked on `SendPacket`
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -209,12 +226,17 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 		return ack
 	}
 
-	callbackData, err := types.GetDestCallbackData(
+	callbackData, isCbPacket, err := types.GetDestCallbackData(
 		ctx, im.app, packet, im.maxCallbackGas,
 	)
 	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return ack
+	}
+	// if the packet does opt-in to callbacks but the callback data is malformed,
+	// then the packet receive is rejected.
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -257,12 +279,16 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		panic(fmt.Errorf("expected type %T, got %T", &channeltypes.Packet{}, packet))
 	}
 
-	callbackData, err := types.GetDestCallbackData(
+	callbackData, isCbPacket, err := types.GetDestCallbackData(
 		ctx, im.app, chanPacket, im.maxCallbackGas,
 	)
 	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// This should never occur, since this error is already checked on `OnRecvPacket`
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {

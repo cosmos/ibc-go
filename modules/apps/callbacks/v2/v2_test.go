@@ -155,8 +155,8 @@ func GetExpectedEvent(
 	if callbackType == types.CallbackTypeReceivePacket {
 		callbackKey = types.DestinationCallbackKey
 	}
-	callbackData, err := types.GetCallbackData(packetData, version, eventPortID, remainingGas, maxCallbackGas, callbackKey)
-	if err != nil {
+	callbackData, isCbPacket, err := types.GetCallbackData(packetData, version, eventPortID, remainingGas, maxCallbackGas, callbackKey)
+	if !isCbPacket || err != nil {
 		return abci.Event{}, false
 	}
 

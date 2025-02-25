@@ -4,8 +4,6 @@ import (
 	"strconv"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -84,10 +82,10 @@ func GetSourceCallbackData(
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
 	packet channeltypes.Packet,
 	maxGas uint64,
-) (CallbackData, error) {
+) (CallbackData, bool, error) {
 	packetData, version, err := packetDataUnmarshaler.UnmarshalPacketData(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetData())
 	if err != nil {
-		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
+		return CallbackData{}, false, nil
 	}
 
 	return GetCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, SourceCallbackKey)
@@ -98,16 +96,19 @@ func GetDestCallbackData(
 	ctx sdk.Context,
 	packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
 	packet channeltypes.Packet, maxGas uint64,
-) (CallbackData, error) {
+) (CallbackData, bool, error) {
 	packetData, version, err := packetDataUnmarshaler.UnmarshalPacketData(ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetData())
 	if err != nil {
-		return CallbackData{}, errorsmod.Wrap(ErrCannotUnmarshalPacketData, err.Error())
+		return CallbackData{}, false, nil
 	}
 
 	return GetCallbackData(packetData, version, packet.GetSourcePort(), ctx.GasMeter().GasRemaining(), maxGas, DestinationCallbackKey)
 }
 
 // GetCallbackData parses the packet data and returns the callback data.
+// If the packet data does not have callback data set, it will return false for `isCbPacket` and an error.
+// If the packet data does have callback data set but the callback data is malformed,
+// it will return true for `isCbPacket` and an error
 // It also checks that the remaining gas is greater than the gas limit specified in the packet data.
 // The addressGetter and gasLimitGetter functions are used to retrieve the callback
 // address and gas limit from the callback data.
@@ -116,21 +117,21 @@ func GetCallbackData(
 	version, srcPortID string,
 	remainingGas, maxGas uint64,
 	callbackKey string,
-) (CallbackData, error) {
+) (cbData CallbackData, isCbPacket bool, err error) {
 	packetDataProvider, ok := packetData.(ibcexported.PacketDataProvider)
 	if !ok {
-		return CallbackData{}, ErrNotPacketDataProvider
+		return CallbackData{}, false, ErrNotPacketDataProvider
 	}
 
 	callbackData, ok := packetDataProvider.GetCustomPacketData(callbackKey).(map[string]interface{})
 	if callbackData == nil || !ok {
-		return CallbackData{}, ErrCallbackKeyNotFound
+		return CallbackData{}, false, ErrCallbackKeyNotFound
 	}
 
 	// get the callback address from the callback data
 	callbackAddress := getCallbackAddress(callbackData)
 	if strings.TrimSpace(callbackAddress) == "" {
-		return CallbackData{}, ErrCallbackAddressNotFound
+		return CallbackData{}, true, ErrCallbackAddressNotFound
 	}
 
 	// retrieve packet sender from packet data if possible and if needed
@@ -151,7 +152,7 @@ func GetCallbackData(
 		SenderAddress:      packetSender,
 		CommitGasLimit:     commitGasLimit,
 		ApplicationVersion: version,
-	}, nil
+	}, true, nil
 }
 
 func computeExecAndCommitGasLimit(callbackData map[string]interface{}, remainingGas, maxGas uint64) (uint64, uint64) {

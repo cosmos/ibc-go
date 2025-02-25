@@ -229,6 +229,7 @@ func GetExpectedEvent(
 ) (abci.Event, bool) {
 	var (
 		callbackData types.CallbackData
+		isCbPacket   bool
 		err          error
 	)
 
@@ -238,12 +239,12 @@ func GetExpectedEvent(
 
 	if callbackType == types.CallbackTypeReceivePacket {
 		packet := channeltypes.NewPacket(data, seq, "", "", eventPortID, eventChannelID, clienttypes.ZeroHeight(), 0)
-		callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
+		callbackData, isCbPacket, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	} else {
 		packet := channeltypes.NewPacket(data, seq, eventPortID, eventChannelID, "", "", clienttypes.ZeroHeight(), 0)
-		callbackData, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
+		callbackData, isCbPacket, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	}
-	if err != nil {
+	if !isCbPacket || err != nil {
 		return abci.Event{}, false
 	}
 
