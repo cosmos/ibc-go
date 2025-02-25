@@ -52,7 +52,7 @@ func (suite *TransferTestSuite) SetupTest() {
 	// pathBToC.EndpointB = endpoint on chainC
 	suite.pathBToC = ibctesting.NewPath(suite.chainB, suite.chainC)
 
-	// setup eureka paths between the chains
+	// setup IBC v2 paths between the chains
 	suite.pathAToB.SetupV2()
 	suite.pathBToC.SetupV2()
 }
