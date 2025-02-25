@@ -1,9 +1,10 @@
 package ibctesting
 
 import (
-	"github.com/cosmos/gogoproto/proto"
+	"encoding/hex"
+	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 
 	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
@@ -43,22 +44,26 @@ func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, paylo
 		return channeltypesv2.Packet{}, err
 	}
 
-	// TODO: parse the packet from events instead of from the response. https://github.com/cosmos/ibc-go/issues/7459
-	// get sequence from msg response
-	var msgData sdk.TxMsgData
-	err = proto.Unmarshal(res.Data, &msgData)
-	if err != nil {
-		return channeltypesv2.Packet{}, err
+	// Parse the packet from events
+	for _, event := range res.Events {
+		if event.Type == channeltypesv2.EventTypeSendPacket {
+			var packet channeltypesv2.Packet
+			for _, attr := range event.Attributes {
+				if string(attr.Key) == channeltypesv2.AttributeKeyEncodedPacketHex {
+					packetBytes, err := hex.DecodeString(string(attr.Value))
+					if err != nil {
+						return channeltypesv2.Packet{}, err
+					}
+					if err := proto.Unmarshal(packetBytes, &packet); err != nil {
+						return channeltypesv2.Packet{}, err
+					}
+					return packet, nil
+				}
+			}
+		}
 	}
-	msgResponse := msgData.MsgResponses[0]
-	var sendResponse channeltypesv2.MsgSendPacketResponse
-	err = proto.Unmarshal(msgResponse.Value, &sendResponse)
-	if err != nil {
-		return channeltypesv2.Packet{}, err
-	}
-	packet := channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ClientID, endpoint.Counterparty.ClientID, timeoutTimestamp, payload)
 
-	return packet, nil
+	return channeltypesv2.Packet{}, fmt.Errorf("packet not found in events")
 }
 
 // MsgRecvPacket sends a MsgRecvPacket on the associated endpoint with the provided packet.
