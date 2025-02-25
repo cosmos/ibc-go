@@ -350,7 +350,7 @@ func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 	}, nil
 }
 
-// GetDenomFromHash returns the denomination given the hex hash of the denomination.
+// GetDenomFromIBCDenom returns the `Denom` given the IBC Denom (ibc/{hex hash}) of the denomination.
 // The ibcDenom is the hex hash of the denomination prefixed by "ibc/", often referred to as the IBC denom.
 func (k Keeper) GetDenomFromIBCDenom(ctx sdk.Context, ibcDenom string) (types.Denom, error) {
 	hexHash := ibcDenom[len(types.DenomPrefix+"/"):]
