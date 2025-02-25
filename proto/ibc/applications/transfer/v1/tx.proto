@@ -49,6 +49,8 @@ message MsgTransfer {
   uint64 timeout_timestamp = 7;
   // optional memo
   string memo = 8;
+  // optional encoding
+  string encoding = 9;
 }
 
 // MsgTransferResponse defines the Msg/Transfer response type.

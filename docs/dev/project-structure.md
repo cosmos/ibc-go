@@ -21,8 +21,7 @@ This folder contains implementations for the IBC TAO (`core`), IBC applications 
 
 - `transfer`: This is the Cosmos SDK implementation of the [ICS 20](https://github.com/cosmos/ibc/tree/main/spec/app/ics-020-fungible-token-transfer) protocol, which enables cross-chain fungible token transfers. For more information, read the [module's docs](../docs/02-apps/01-transfer/01-overview.md)
 - `27-interchain-accounts`: This is the Cosmos SDK implementation of the [ICS 27](https://github.com/cosmos/ibc/tree/main/spec/app/ics-027-interchain-accounts) protocol, which enables cross-chain account management built upon IBC. For more information, read the [module's documentation](../docs/02-apps/02-interchain-accounts/01-overview.md).
-- `29-fee`: This is the Cosmos SDK implementation of the [ICS 29](https://github.com/cosmos/ibc/tree/main/spec/app/ics-029-fee-payment) middleware, which handles packet incentivisation and fee distribution on top of any ICS application protocol, enabling fee payment to relayer operators. For more information, read the [module's documentation](../docs/04-middleware/01-ics29-fee/01-overview.md).
-- `callbacks`: This is an implementation of [ADR 008](../architecture/adr-008-app-caller-cbs.md) that allows for secondary applications (e.g. smart contracts, modules) to call into IBC apps as part of their state machine logic and then do some actions on packet lifecycle events. For more information, read the [module's documentation](../docs/04-middleware/02-callbacks/01-overview.md).
+- `callbacks`: This is an implementation of [ADR 008](../architecture/adr-008-app-caller-cbs.md) that allows for secondary applications (e.g. smart contracts, modules) to call into IBC apps as part of their state machine logic and then do some actions on packet lifecycle events. For more information, read the [module's documentation](../docs/04-middleware/01-callbacks/01-overview.md).
 
 ### `light-clients`
 
