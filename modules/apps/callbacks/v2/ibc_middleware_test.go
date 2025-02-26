@@ -114,14 +114,24 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"success: callback data nonexistent",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+			},
+			"none",
+			false,
+			nil,
+		},
+		{
+			"failure: no-op on callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			"none", // improperly formatted callback data should result in no callback execution
 			false,
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: callback execution fails",
@@ -241,6 +251,15 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			nil,
 		},
 		{
+			"success: callback data nonexistent",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+			},
+			noExecution,
+			nil,
+		},
+		{
 			"failure: underlying app OnAcknowledgePacket fails",
 			func() {
 				ack = []byte("invalid ack")
@@ -249,13 +268,13 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			ibcerrors.ErrUnknownRequest,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"failure: callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			noExecution,
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -392,6 +411,15 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			nil,
 		},
 		{
+			"success: callback data nonexistent",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+			},
+			noExecution,
+			nil,
+		},
+		{
 			"failure: underlying app OnTimeoutPacket fails",
 			func() {
 				packetData.Amount = "invalid amount"
@@ -400,13 +428,13 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			transfertypes.ErrInvalidAmount,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"failure: callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			noExecution,
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -558,6 +586,15 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			success,
 		},
 		{
+			"success: callback data nonexistent",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+			},
+			noExecution,
+			success,
+		},
+		{
 			"failure: underlying app OnRecvPacket fails",
 			func() {
 				packetData.Denom = ""
@@ -566,13 +603,13 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			failure,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"failure: no-op on callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 			},
 			noExecution,
-			success,
+			failure,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -580,7 +617,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				packetData.Memo = fmt.Sprintf(`{"dest_callback": {"address":"%s", "gas_limit":"%d"}}`, simapp.OogPanicContract, userGasLimit)
 			},
 			callbackFailed,
-			success,
+			failure,
 		},
 		{
 			"failure: callback execution panics on insufficient gas provided by relayer",
@@ -598,7 +635,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				packetData.Memo = fmt.Sprintf(`{"dest_callback": {"address":"%s"}}`, simapp.ErrorContract)
 			},
 			callbackFailed,
-			success,
+			failure,
 		},
 	}
 
@@ -710,12 +747,21 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			nil,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"success: callback data nonexistent",
+			func() {
+				packetData.Memo = ""
+				ack = successAck
+			},
+			"none",
+			nil,
+		},
+		{
+			"failure: callback data is not valid",
 			func() {
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 			},
 			"none", // improperly formatted callback data should result in no callback execution
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: ics4Wrapper WriteAcknowledgement call fails",
