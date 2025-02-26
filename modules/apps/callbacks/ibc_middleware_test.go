@@ -110,14 +110,24 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"success: callback data doesn't exist",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+			},
+			"none", // nonexistent callback data should result in no callback execution
+			false,
+			nil,
+		},
+		{
+			"failure: callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			"none", // improperly formatted callback data should result in no callback execution
 			false,
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: ics4Wrapper SendPacket call fails",
@@ -245,6 +255,16 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			nil,
 		},
 		{
+			"success: callback data doesn't exist",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+				packet.Data = packetData.GetBytes()
+			},
+			noExecution,
+			nil,
+		},
+		{
 			"failure: underlying app OnAcknowledgePacket fails",
 			func() {
 				ack = []byte("invalid ack")
@@ -253,14 +273,14 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			ibcerrors.ErrUnknownRequest,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"failure: no-op on callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -406,6 +426,16 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			nil,
 		},
 		{
+			"success: callback data doesn't exist",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+				packet.Data = packetData.GetBytes()
+			},
+			noExecution,
+			nil,
+		},
+		{
 			"failure: underlying app OnTimeoutPacket fails",
 			func() {
 				packet.Data = []byte("invalid packet data")
@@ -414,14 +444,14 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			ibcerrors.ErrInvalidType,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"failure: no-op on callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -572,6 +602,16 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			successAck,
 		},
 		{
+			"success: callback data doesn't exist",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+				packet.Data = packetData.GetBytes()
+			},
+			noExecution,
+			successAck,
+		},
+		{
 			"failure: underlying app OnRecvPacket fails",
 			func() {
 				packet.Data = []byte("invalid packet data")
@@ -580,14 +620,14 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInvalidType),
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"failure: callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			successAck,
+			channeltypes.NewErrorAcknowledgement(types.ErrCallbackAddressNotFound),
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -730,13 +770,23 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			nil,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"success: callback data doesn't exist",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+				packet.Data = packetData.GetBytes()
+			},
+			"none", // nonexistent callback data should result in no callback execution
+			nil,
+		},
+		{
+			"failure: callback data is not valid",
 			func() {
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
 			"none", // improperly formatted callback data should result in no callback execution
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: ics4Wrapper WriteAcknowledgement call fails",
@@ -893,7 +943,7 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 	for _, tc := range testCases {
 		tc := tc
 		s.Run(tc.name, func() {
-			s.SetupMockFeeTest()
+			s.setupChains()
 
 			// set a callback data that does not allow retry
 			callbackData = types.CallbackData{
@@ -950,7 +1000,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 	s.path.Setup()
 
 	// We will pass the function call down the transfer stack to the transfer module
-	// transfer stack UnmarshalPacketData call order: callbacks -> fee -> transfer
+	// transfer stack UnmarshalPacketData call order: callbacks -> transfer
 	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 	s.Require().True(ok)
 
@@ -1006,7 +1056,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseInit() {
 	s.SetupICATest()
 
 	// We will pass the function call down the icacontroller stack to the icacontroller module
-	// icacontroller stack OnChanCloseInit call order: callbacks -> fee -> icacontroller
+	// icacontroller stack OnChanCloseInit call order: callbacks -> icacontroller
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
@@ -1021,7 +1071,7 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 	s.SetupICATest()
 
 	// We will pass the function call down the icacontroller stack to the icacontroller module
-	// icacontroller stack OnChanCloseConfirm call order: callbacks -> fee -> icacontroller
+	// icacontroller stack OnChanCloseConfirm call order: callbacks -> icacontroller
 	icaControllerStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(icacontrollertypes.SubModuleName)
 	s.Require().True(ok)
 
@@ -1033,11 +1083,9 @@ func (s *CallbacksTestSuite) TestOnChanCloseConfirm() {
 }
 
 func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
-	s.SetupMockFeeTest()
+	s.setupChains()
 
-	cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockFeePort)
-	s.Require().True(ok)
-	mockFeeCallbackStack, ok := cbs.(porttypes.Middleware)
+	cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.MockPort)
 	s.Require().True(ok)
 
 	packet := channeltypes.NewPacket(
@@ -1051,7 +1099,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacketAsyncAck() {
 		0,
 	)
 
-	ack := mockFeeCallbackStack.OnRecvPacket(s.chainA.GetContext(), ibcmock.MockFeeVersion, packet, s.chainA.SenderAccount.GetAddress())
+	ack := cbs.OnRecvPacket(s.chainA.GetContext(), ibcmock.Version, packet, s.chainA.SenderAccount.GetAddress())
 	s.Require().Nil(ack)
 	s.AssertHasExecutedExpectedCallback("none", true)
 }

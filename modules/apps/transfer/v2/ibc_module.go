@@ -34,7 +34,7 @@ type IBCModule struct {
 
 func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
 	// Enforce that the source and destination portIDs are the same and equal to the transfer portID
-	// This is necessary for IBC Eureka since the portIDs (and thus the application-application connection) is not prenegotiated
+	// This is necessary for IBC v2 since the portIDs (and thus the application-application connection) is not prenegotiated
 	// by the channel handshake
 	// This restriction can be removed in a future where the trace hop on receive commits to **both** the source and destination portIDs
 	// rather than just the destination port
@@ -79,7 +79,7 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 
 func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 	// Enforce that the source and destination portIDs are the same and equal to the transfer portID
-	// This is necessary for IBC Eureka since the portIDs (and thus the application-application connection) is not prenegotiated
+	// This is necessary for IBC v2 since the portIDs (and thus the application-application connection) is not prenegotiated
 	// by the channel handshake
 	// This restriction can be removed in a future where the trace hop on receive commits to **both** the source and destination portIDs
 	// rather than just the destination port

@@ -38,7 +38,7 @@ The [gaiad manager](https://github.com/informalsystems/gm) (`gm`) is a configura
 
 ## ibc-go simd
 
-Download the simd binary from the [v8.1.0 release](https://github.com/cosmos/ibc-go/releases/tag/v8.1.0). This chain binary has the Fee Middleware already wired up and wrapping the ICS 20 transfer application. If you want to know how to wire up the Fee Middleware, please read [this section](../01-fee/04-wire-feeibc-mod.md) from the Fee Middleware tutorial.
+Download the simd binary from the [v8.1.0 release](https://github.com/cosmos/ibc-go/releases/tag/v8.1.0). This chain binary has the Fee Middleware already wired up and wrapping the ICS 20 transfer application. If you want to know how to wire up the Fee Middleware, please read the wiring section from the Fee Middleware tutorial.
 
 ## Hermes
 
