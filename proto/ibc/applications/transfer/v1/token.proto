@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package ibc.applications.transfer.v2;
+package ibc.applications.transfer.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types";
 
