@@ -43,13 +43,13 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 		return nil, err
 	}
 
-	// set the client creator so that eureka counterparty can be set by same relayer
+	// set the client creator so that IBC v2 counterparty can be set by same relayer
 	k.ClientKeeper.SetClientCreator(ctx, clientID, sdk.AccAddress(msg.Signer))
 
 	return &clienttypes.MsgCreateClientResponse{ClientId: clientID}, nil
 }
 
-// RegisterCounterparty will register the eureka counterparty info for the given client id
+// RegisterCounterparty will register the IBC v2 counterparty info for the given client id
 // it must be called by the same relayer that called CreateClient
 func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *clientv2types.MsgRegisterCounterparty) (*clientv2types.MsgRegisterCounterpartyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
