@@ -319,7 +319,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 // loop since setup is intensive for all cases. The malleate function allows
 // for testing invalid cases.
 func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
-	var packetData types.FungibleTokenPacketDataV2
+	var packetData types.InternalTransferRepresentation
 
 	testCases := []struct {
 		msg      string
@@ -388,7 +388,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			suite.Require().NoError(err) // message committed
 
 			token := types.Token{Denom: types.NewDenom(transferMsg.Token.Denom), Amount: transferMsg.Token.Amount.String()}
-			packetData = types.NewFungibleTokenPacketDataV2(token, suite.chainA.SenderAccount.GetAddress().String(), receiver, "")
+			packetData = types.NewInternalTransferRepresentation(token, suite.chainA.SenderAccount.GetAddress().String(), receiver, "")
 			sourcePort := path.EndpointA.ChannelConfig.PortID
 			sourceChannel := path.EndpointA.ChannelID
 			destinationPort := path.EndpointB.ChannelConfig.PortID
@@ -434,7 +434,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 // for all cases. The malleate function allows for testing invalid cases.
 func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 	var (
-		packetData      types.FungibleTokenPacketDataV2
+		packetData      types.InternalTransferRepresentation
 		expEscrowAmount sdkmath.Int // total amount in escrow for denom on receiving chain
 	)
 
@@ -519,7 +519,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 			suite.Require().NoError(err) // message committed
 
 			token := types.Token{Denom: types.NewDenom(transferMsg.Token.Denom, types.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)), Amount: transferMsg.Token.Amount.String()}
-			packetData = types.NewFungibleTokenPacketDataV2(token, suite.chainA.SenderAccount.GetAddress().String(), receiver, "")
+			packetData = types.NewInternalTransferRepresentation(token, suite.chainA.SenderAccount.GetAddress().String(), receiver, "")
 			sourcePort := path.EndpointB.ChannelConfig.PortID
 			sourceChannel := path.EndpointB.ChannelID
 			destinationPort := path.EndpointA.ChannelConfig.PortID
@@ -602,7 +602,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		types.NewHop(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	)
 
-	data := types.NewFungibleTokenPacketDataV2(
+	data := types.NewInternalTransferRepresentation(
 		types.Token{
 			Denom:  denom,
 			Amount: amount.String(),
@@ -733,7 +733,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			tc.malleate()
 
-			data := types.NewFungibleTokenPacketDataV2(
+			data := types.NewInternalTransferRepresentation(
 				types.Token{
 					Denom:  denom,
 					Amount: amount.String(),
@@ -821,7 +821,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		),
 	)
 
-	data := types.NewFungibleTokenPacketDataV2(
+	data := types.NewInternalTransferRepresentation(
 		types.Token{
 			Denom:  denom,
 			Amount: amount.String(),
@@ -955,7 +955,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			tc.malleate()
 
-			data := types.NewFungibleTokenPacketDataV2(
+			data := types.NewInternalTransferRepresentation(
 				types.Token{
 					Denom:  denom,
 					Amount: amount,
@@ -1038,7 +1038,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		),
 	)
 
-	data := types.NewFungibleTokenPacketDataV2(
+	data := types.NewInternalTransferRepresentation(
 		types.Token{
 			Denom:  denom,
 			Amount: amount.String(),

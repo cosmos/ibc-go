@@ -112,7 +112,7 @@ func (k Keeper) SendTransfer(
 // unescrowed and sent to the receiving address.
 func (k Keeper) OnRecvPacket(
 	ctx sdk.Context,
-	data types.FungibleTokenPacketDataV2,
+	data types.InternalTransferRepresentation,
 	sourcePort string,
 	sourceChannel string,
 	destPort string,
@@ -213,7 +213,7 @@ func (k Keeper) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
-	data types.FungibleTokenPacketDataV2,
+	data types.InternalTransferRepresentation,
 	ack channeltypes.Acknowledgement,
 ) error {
 	switch ack.Response.(type) {
@@ -236,7 +236,7 @@ func (k Keeper) OnTimeoutPacket(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
-	data types.FungibleTokenPacketDataV2,
+	data types.InternalTransferRepresentation,
 ) error {
 	return k.refundPacketTokens(ctx, sourcePort, sourceChannel, data)
 }
@@ -249,7 +249,7 @@ func (k Keeper) refundPacketTokens(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
-	data types.FungibleTokenPacketDataV2,
+	data types.InternalTransferRepresentation,
 ) error {
 	// NOTE: packet data type already checked in handler.go
 

@@ -65,7 +65,7 @@ type FungibleTokenPacket struct {
 	SourcePort    string
 	DestChannel   string
 	DestPort      string
-	Data          types.FungibleTokenPacketDataV2
+	Data          types.InternalTransferRepresentation
 }
 
 type OnRecvPacketTestCase = struct {
@@ -149,7 +149,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 		SourcePort:    packet.SourcePort,
 		DestChannel:   packet.DestChannel,
 		DestPort:      packet.DestPort,
-		Data: types.NewFungibleTokenPacketDataV2(
+		Data: types.NewInternalTransferRepresentation(
 			types.Token{
 				Denom:  denom,
 				Amount: packet.Data.Amount,

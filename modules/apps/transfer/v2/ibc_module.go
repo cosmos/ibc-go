@@ -90,7 +90,7 @@ func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destina
 	}
 	var (
 		ackErr error
-		data   types.FungibleTokenPacketDataV2
+		data   types.InternalTransferRepresentation
 	)
 
 	ack := channeltypes.NewResultAcknowledgement([]byte{byte(1)})

@@ -965,7 +965,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
 	}
 
-	expPacketDataICS20V2 := transfertypes.FungibleTokenPacketDataV2{
+	expPacketDataICS20V2 := transfertypes.InternalTransferRepresentation{
 		Token: transfertypes.Token{
 			Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 			Amount: ibctesting.TestCoin.Amount.String(),
