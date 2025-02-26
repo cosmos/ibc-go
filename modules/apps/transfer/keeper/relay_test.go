@@ -319,7 +319,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 // loop since setup is intensive for all cases. The malleate function allows
 // for testing invalid cases.
 func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
-	var packetData types.FungibleTokenPacketDataV2
+	var packetData types.InternalTransferRepresentation
 
 	testCases := []struct {
 		msg      string
@@ -388,8 +388,11 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			suite.Require().NoError(err) // message committed
 
 			token := types.Token{Denom: types.NewDenom(transferMsg.Token.Denom), Amount: transferMsg.Token.Amount.String()}
-			packetData = types.NewFungibleTokenPacketDataV2(token, suite.chainA.SenderAccount.GetAddress().String(), receiver, "")
-			packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(1), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+			packetData = types.NewInternalTransferRepresentation(token, suite.chainA.SenderAccount.GetAddress().String(), receiver, "")
+			sourcePort := path.EndpointA.ChannelConfig.PortID
+			sourceChannel := path.EndpointA.ChannelID
+			destinationPort := path.EndpointB.ChannelConfig.PortID
+			destinationChannel := path.EndpointB.ChannelID
 
 			tc.malleate()
 
@@ -398,10 +401,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(
 				suite.chainB.GetContext(),
 				packetData,
-				packet.SourcePort,
-				packet.SourceChannel,
-				packet.DestinationPort,
-				packet.DestinationChannel,
+				sourcePort,
+				sourceChannel,
+				destinationPort,
+				destinationChannel,
 			)
 
 			if tc.expError == nil {
@@ -431,7 +434,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 // for all cases. The malleate function allows for testing invalid cases.
 func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 	var (
-		packetData      types.FungibleTokenPacketDataV2
+		packetData      types.InternalTransferRepresentation
 		expEscrowAmount sdkmath.Int // total amount in escrow for denom on receiving chain
 	)
 
@@ -516,18 +519,21 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 			suite.Require().NoError(err) // message committed
 
 			token := types.Token{Denom: types.NewDenom(transferMsg.Token.Denom, types.NewHop(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)), Amount: transferMsg.Token.Amount.String()}
-			packetData = types.NewFungibleTokenPacketDataV2(token, suite.chainA.SenderAccount.GetAddress().String(), receiver, "")
+			packetData = types.NewInternalTransferRepresentation(token, suite.chainA.SenderAccount.GetAddress().String(), receiver, "")
+			sourcePort := path.EndpointB.ChannelConfig.PortID
+			sourceChannel := path.EndpointB.ChannelID
+			destinationPort := path.EndpointA.ChannelConfig.PortID
+			destinationChannel := path.EndpointA.ChannelID
 
 			tc.malleate()
 
-			packet := channeltypes.NewPacket(packetData.GetBytes(), uint64(1), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 			err = suite.chainA.GetSimApp().TransferKeeper.OnRecvPacket(
 				suite.chainA.GetContext(),
 				packetData,
-				packet.SourcePort,
-				packet.SourceChannel,
-				packet.DestinationPort,
-				packet.DestinationChannel,
+				sourcePort,
+				sourceChannel,
+				destinationPort,
+				destinationChannel,
 			)
 
 			if tc.expError == nil {
@@ -579,9 +585,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		received back on chain B.
 	*/
 
-	seq := uint64(1)
 	amount := defaultAmount
-	timeout := suite.chainA.GetTimeoutHeight()
 
 	// setup
 	// 2 transfer channels between chain A and chain B
@@ -598,20 +602,15 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 		types.NewHop(path1.EndpointB.ChannelConfig.PortID, path1.EndpointB.ChannelID),
 	)
 
-	data := types.NewFungibleTokenPacketDataV2(
+	data := types.NewInternalTransferRepresentation(
 		types.Token{
 			Denom:  denom,
 			Amount: amount.String(),
 		}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
-	packet := channeltypes.NewPacket(
-		data.GetBytes(),
-		seq,
-		path2.EndpointA.ChannelConfig.PortID,
-		path2.EndpointA.ChannelID,
-		path2.EndpointB.ChannelConfig.PortID,
-		path2.EndpointB.ChannelID,
-		timeout, 0,
-	)
+	sourcePort := path2.EndpointA.ChannelConfig.PortID
+	sourceChannel := path2.EndpointA.ChannelID
+	destinationPort := path2.EndpointB.ChannelConfig.PortID
+	destinationChannel := path2.EndpointB.ChannelID
 
 	// fund escrow account for transfer and channel-1 on chain B
 	// denom path: transfer/channel-0
@@ -639,10 +638,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 	err := suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(
 		suite.chainB.GetContext(),
 		data,
-		packet.SourcePort,
-		packet.SourceChannel,
-		packet.DestinationPort,
-		packet.DestinationChannel,
+		sourcePort,
+		sourceChannel,
+		destinationPort,
+		destinationChannel,
 	)
 	suite.Require().NoError(err)
 
@@ -734,15 +733,16 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 			tc.malleate()
 
-			data := types.NewFungibleTokenPacketDataV2(
+			data := types.NewInternalTransferRepresentation(
 				types.Token{
 					Denom:  denom,
 					Amount: amount.String(),
 				}, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
-			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+			sourcePort := path.EndpointA.ChannelConfig.PortID
+			sourceChannel := path.EndpointA.ChannelID
 			preAcknowledgementBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
-			err := suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, data, tc.ack)
+			err := suite.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainA.GetContext(), sourcePort, sourceChannel, data, tc.ack)
 
 			// check total amount in escrow of sent token denom on sending chain
 			totalEscrow := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom.IBCDenom())
@@ -795,7 +795,6 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		acknowledgement.
 	*/
 
-	seq := uint64(1)
 	amount := defaultAmount
 	ack := channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
 
@@ -822,7 +821,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		),
 	)
 
-	data := types.NewFungibleTokenPacketDataV2(
+	data := types.NewInternalTransferRepresentation(
 		types.Token{
 			Denom:  denom,
 			Amount: amount.String(),
@@ -831,21 +830,14 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 		suite.chainA.SenderAccount.GetAddress().String(),
 		"",
 	)
-	packet := channeltypes.NewPacket(
-		data.GetBytes(),
-		seq,
-		path2.EndpointB.ChannelConfig.PortID,
-		path2.EndpointB.ChannelID,
-		path2.EndpointA.ChannelConfig.PortID,
-		path2.EndpointA.ChannelID,
-		suite.chainA.GetTimeoutHeight(), 0,
-	)
+	sourcePort := path2.EndpointB.ChannelConfig.PortID
+	sourceChannel := path2.EndpointB.ChannelID
 
 	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin)
 	totalEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(defaultAmount, totalEscrowChainB.Amount)
 
-	err := suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), packet.SourcePort, packet.SourceChannel, data, ack)
+	err := suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(suite.chainB.GetContext(), sourcePort, sourceChannel, data, ack)
 	suite.Require().NoError(err)
 
 	// check total amount in escrow of sent token on sending chain
@@ -963,15 +955,16 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 			tc.malleate()
 
-			data := types.NewFungibleTokenPacketDataV2(
+			data := types.NewInternalTransferRepresentation(
 				types.Token{
 					Denom:  denom,
 					Amount: amount,
 				}, sender, suite.chainB.SenderAccount.GetAddress().String(), "")
-			packet := channeltypes.NewPacket(data.GetBytes(), 1, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
+			sourcePort := path.EndpointA.ChannelConfig.PortID
+			sourceChannel := path.EndpointA.ChannelID
 			preTimeoutBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
-			err := suite.chainA.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainA.GetContext(), packet.SourcePort, packet.SourceChannel, data)
+			err := suite.chainA.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainA.GetContext(), sourcePort, sourceChannel, data)
 
 			postTimeoutBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 			deltaAmount := postTimeoutBalance.Amount.Sub(preTimeoutBalance.Amount)
@@ -1021,7 +1014,6 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		denom that corresponds to the trace "transfer/channel-0/stake" when processing the timeout.
 	*/
 
-	seq := uint64(1)
 	amount := defaultAmount
 
 	// set up
@@ -1046,26 +1038,19 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceI
 		),
 	)
 
-	data := types.NewFungibleTokenPacketDataV2(
+	data := types.NewInternalTransferRepresentation(
 		types.Token{
 			Denom:  denom,
 			Amount: amount.String(),
 		}, suite.chainB.SenderAccount.GetAddress().String(), suite.chainA.SenderAccount.GetAddress().String(), "")
-	packet := channeltypes.NewPacket(
-		data.GetBytes(),
-		seq,
-		path2.EndpointB.ChannelConfig.PortID,
-		path2.EndpointB.ChannelID,
-		path2.EndpointA.ChannelConfig.PortID,
-		path2.EndpointA.ChannelID,
-		suite.chainA.GetTimeoutHeight(), 0,
-	)
+	sourcePort := path2.EndpointB.ChannelConfig.PortID
+	sourceChannel := path2.EndpointB.ChannelID
 
 	suite.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainB.GetContext(), coin)
 	totalEscrowChainB := suite.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainB.GetContext(), coin.GetDenom())
 	suite.Require().Equal(defaultAmount, totalEscrowChainB.Amount)
 
-	err := suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), packet.SourcePort, packet.SourceChannel, data)
+	err := suite.chainB.GetSimApp().TransferKeeper.OnTimeoutPacket(suite.chainB.GetContext(), sourcePort, sourceChannel, data)
 	suite.Require().NoError(err)
 
 	// check total amount in escrow of sent token on sending chain
