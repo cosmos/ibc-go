@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/internal"
@@ -19,7 +17,6 @@ import (
 var (
 	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil)
-	_ porttypes.UpgradableModule      = (*IBCMiddleware)(nil)
 )
 
 // IBCMiddleware implements the ICS26 callbacks for the ibc-callbacks middleware given
@@ -100,10 +97,15 @@ func (im IBCMiddleware) SendPacket(
 	// packet is created without destination information present, GetSourceCallbackData does not use these.
 	packet := channeltypes.NewPacket(data, seq, sourcePort, sourceChannel, "", "", timeoutHeight, timeoutTimestamp)
 
-	callbackData, err := types.GetSourceCallbackData(ctx, im.app, packet, im.maxCallbackGas)
+	callbackData, isCbPacket, err := types.GetSourceCallbackData(ctx, im.app, packet, im.maxCallbackGas)
 	// SendPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return seq, nil
+	}
+	// if the packet does opt-in to callbacks but the callback data is malformed,
+	// then the packet send is rejected.
+	if err != nil {
+		return 0, err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -139,12 +141,18 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	callbackData, err := types.GetSourceCallbackData(
+	callbackData, isCbPacket, err := types.GetSourceCallbackData(
 		ctx, im.app, packet, im.maxCallbackGas,
 	)
 	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// if the packet does opt-in to callbacks but the callback data is malformed,
+	// then the packet acknowledgement is rejected.
+	// This should never occur, since this error is already checked on `SendPacket`
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -173,12 +181,18 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 		return err
 	}
 
-	callbackData, err := types.GetSourceCallbackData(
+	callbackData, isCbPacket, err := types.GetSourceCallbackData(
 		ctx, im.app, packet, im.maxCallbackGas,
 	)
 	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// if the packet does opt-in to callbacks but the callback data is malformed,
+	// then the packet timeout is rejected.
+	// This should never occur, since this error is already checked on `SendPacket`
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -209,24 +223,35 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 		return ack
 	}
 
-	callbackData, err := types.GetDestCallbackData(
+	callbackData, isCbPacket, err := types.GetDestCallbackData(
 		ctx, im.app, packet, im.maxCallbackGas,
 	)
 	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return ack
+	}
+	// if the packet does opt-in to callbacks but the callback data is malformed,
+	// then the packet receive is rejected.
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
 		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packet, ack, callbackData.CallbackAddress, callbackData.ApplicationVersion)
 	}
 
-	// callback execution errors are not allowed to block the packet lifecycle, they are only used in event emissions
+	// callback execution errors in RecvPacket are allowed to write an error acknowledgement
+	// in this case, the receive logic of the underlying app is reverted
+	// and the error acknowledgement is processed on the sending chain
+	// Thus the sending application MUST be capable of processing the standard channel acknowledgement
 	err = internal.ProcessCallback(ctx, types.CallbackTypeReceivePacket, callbackData, callbackExecutor)
 	types.EmitCallbackEvent(
 		ctx, packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 		types.CallbackTypeReceivePacket, callbackData, err,
 	)
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
 
 	return ack
 }
@@ -251,12 +276,16 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		panic(fmt.Errorf("expected type %T, got %T", &channeltypes.Packet{}, packet))
 	}
 
-	callbackData, err := types.GetDestCallbackData(
+	callbackData, isCbPacket, err := types.GetDestCallbackData(
 		ctx, im.app, chanPacket, im.maxCallbackGas,
 	)
 	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// This should never occur, since this error is already checked on `OnRecvPacket`
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -322,46 +351,6 @@ func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID strin
 // OnChanCloseConfirm defers to the underlying application
 func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
-}
-
-// OnChanUpgradeInit implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
-	}
-
-	return cbs.OnChanUpgradeInit(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
-}
-
-// OnChanUpgradeTry implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return "", errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
-	}
-
-	return cbs.OnChanUpgradeTry(ctx, portID, channelID, proposedOrder, proposedConnectionHops, counterpartyVersion)
-}
-
-// OnChanUpgradeAck implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		return errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack")
-	}
-
-	return cbs.OnChanUpgradeAck(ctx, portID, channelID, counterpartyVersion)
-}
-
-// OnChanUpgradeOpen implements the IBCModule interface
-func (im IBCMiddleware) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
-	cbs, ok := im.app.(porttypes.UpgradableModule)
-	if !ok {
-		panic(errorsmod.Wrap(porttypes.ErrInvalidRoute, "upgrade route not found to module in application callstack"))
-	}
-
-	cbs.OnChanUpgradeOpen(ctx, portID, channelID, proposedOrder, proposedConnectionHops, proposedVersion)
 }
 
 // GetAppVersion implements the ICS4Wrapper interface. Callbacks has no version,

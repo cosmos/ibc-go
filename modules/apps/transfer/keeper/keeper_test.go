@@ -60,6 +60,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2,
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
@@ -72,6 +73,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2,
 				authkeeper.AccountKeeper{}, // empty account keeper
 				suite.chainA.GetSimApp().BankKeeper,
 				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
@@ -84,6 +86,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2,
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
 				"", // authority
@@ -339,13 +342,13 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	ics4Wrapper := suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
 
 	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
-	suite.Require().False(isChannelKeeper)
+	suite.Require().True(isChannelKeeper)
+	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
 
 	// set the ics4 wrapper to the channel keeper
-	suite.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper)
+	suite.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(nil)
 	ics4Wrapper = suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
-
-	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
+	suite.Require().Nil(ics4Wrapper)
 }
 
 func (suite *KeeperTestSuite) TestIsBlockedAddr() {

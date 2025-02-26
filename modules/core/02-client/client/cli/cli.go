@@ -20,6 +20,7 @@ func GetQueryCmd() *cobra.Command {
 
 	queryCmd.AddCommand(
 		GetCmdQueryClientStates(),
+		GetCmdQueryCounterpartyInfo(),
 		GetCmdQueryClientState(),
 		GetCmdQueryClientStatus(),
 		GetCmdQueryConsensusStates(),
@@ -45,6 +46,7 @@ func NewTxCmd() *cobra.Command {
 
 	txCmd.AddCommand(
 		newCreateClientCmd(),
+		newAddCounterpartyCmd(),
 		newUpdateClientCmd(),
 		newSubmitMisbehaviourCmd(), // Deprecated
 		newUpgradeClientCmd(),

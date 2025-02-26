@@ -23,7 +23,6 @@ import (
 	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	feetypes "github.com/cosmos/ibc-go/v10/modules/apps/29-fee/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -84,25 +83,6 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 	s.path.EndpointB.ChannelConfig.Version = transfertypes.V1
 
 	s.path.Setup()
-}
-
-// SetupFeeTransferTest sets up a fee middleware enabled transfer channel between chainA and chainB
-func (s *CallbacksTestSuite) SetupFeeTransferTest() {
-	s.setupChains()
-
-	feeTransferVersion := string(feetypes.ModuleCdc.MustMarshalJSON(&feetypes.Metadata{FeeVersion: feetypes.Version, AppVersion: transfertypes.V1}))
-	s.path.EndpointA.ChannelConfig.Version = feeTransferVersion
-	s.path.EndpointB.ChannelConfig.Version = feeTransferVersion
-	s.path.EndpointA.ChannelConfig.PortID = transfertypes.PortID
-	s.path.EndpointB.ChannelConfig.PortID = transfertypes.PortID
-
-	s.path.Setup()
-}
-
-func (s *CallbacksTestSuite) SetupMockFeeTest() {
-	s.setupChains()
-
-	ibctesting.EnableFeeOnPath(s.path)
 }
 
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).
@@ -242,57 +222,6 @@ func TestIBCCallbacksTestSuite(t *testing.T) {
 	suite.Run(t, new(CallbacksTestSuite))
 }
 
-// AssertHasExecutedExpectedCallbackWithFee checks if only the expected type of callback has been executed
-// and that the expected ics-29 fee has been paid.
-func (s *CallbacksTestSuite) AssertHasExecutedExpectedCallbackWithFee(
-	callbackType types.CallbackType, isSuccessful bool, isTimeout bool,
-	originalSenderBalance sdk.Coins, fee feetypes.Fee,
-) {
-	// Recall that:
-	// - the source chain is chainA
-	// - forward relayer is chainB.SenderAccount
-	// - reverse relayer is chainA.SenderAccount
-	// - The counterparty payee of the forward relayer in chainA is chainB.SenderAccount (as a chainA account)
-
-	// We only check if the fee is paid if the callback is successful.
-	if !isTimeout && isSuccessful {
-		// check forward relay balance
-		payeeAddr, err := sdk.AccAddressFromBech32(ibctesting.TestAccAddress)
-		s.Require().NoError(err)
-		s.Require().Equal(
-			fee.RecvFee,
-			sdk.NewCoins(GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), payeeAddr, ibctesting.TestCoin.Denom)),
-		)
-
-		refundCoins := fee.Total().Sub(fee.RecvFee...).Sub(fee.AckFee...)
-		s.Require().Equal(
-			fee.AckFee.Add(refundCoins...), // ack fee paid, and refund processed
-			sdk.NewCoins(
-				GetSimApp(s.chainA).BankKeeper.GetBalance(
-					s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(),
-					ibctesting.TestCoin.Denom),
-			).Sub(originalSenderBalance[0]),
-		)
-	} else if isSuccessful {
-		// forward relay balance should be 0
-		s.Require().Equal(
-			sdk.NewCoin(ibctesting.TestCoin.Denom, sdkmath.ZeroInt()),
-			GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainB.SenderAccount.GetAddress(), ibctesting.TestCoin.Denom),
-		)
-
-		// all fees should be returned as sender is the reverse relayer
-		s.Require().Equal(
-			fee.Total(),
-			sdk.NewCoins(
-				GetSimApp(s.chainA).BankKeeper.GetBalance(
-					s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(),
-					ibctesting.TestCoin.Denom),
-			).Sub(originalSenderBalance[0]),
-		)
-	}
-	s.AssertHasExecutedExpectedCallback(callbackType, isSuccessful)
-}
-
 // GetExpectedEvent returns the expected event for a callback.
 func GetExpectedEvent(
 	ctx sdk.Context, packetDataUnmarshaler porttypes.PacketDataUnmarshaler, remainingGas uint64, data []byte,
@@ -300,6 +229,7 @@ func GetExpectedEvent(
 ) (abci.Event, bool) {
 	var (
 		callbackData types.CallbackData
+		isCbPacket   bool
 		err          error
 	)
 
@@ -309,12 +239,12 @@ func GetExpectedEvent(
 
 	if callbackType == types.CallbackTypeReceivePacket {
 		packet := channeltypes.NewPacket(data, seq, "", "", eventPortID, eventChannelID, clienttypes.ZeroHeight(), 0)
-		callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
+		callbackData, isCbPacket, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	} else {
 		packet := channeltypes.NewPacket(data, seq, eventPortID, eventChannelID, "", "", clienttypes.ZeroHeight(), 0)
-		callbackData, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
+		callbackData, isCbPacket, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	}
-	if err != nil {
+	if !isCbPacket || err != nil {
 		return abci.Event{}, false
 	}
 
