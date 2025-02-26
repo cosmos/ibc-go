@@ -64,7 +64,7 @@ func (s *CallbacksTestSuite) setupChains() {
 	s.path = ibctesting.NewPath(s.chainA, s.chainB)
 }
 
-// SetupTransferTest sets up a IBC v2 path between chainA and chainB
+// SetupTest sets up a IBC v2 path between chainA and chainB
 func (s *CallbacksTestSuite) SetupTest() {
 	s.setupChains()
 

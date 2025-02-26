@@ -162,7 +162,7 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 	}
 }
 
-// TestMsgTransfer tests Transfer rpc handler with IBC V2 protocol
+// TestMsgTransferIBCV2 tests Transfer rpc handler with IBC V2 protocol
 func (suite *KeeperTestSuite) TestMsgTransferIBCV2() {
 	var msg *types.MsgTransfer
 	var path *ibctesting.Path

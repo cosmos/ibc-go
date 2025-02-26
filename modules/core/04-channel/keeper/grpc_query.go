@@ -621,7 +621,7 @@ func (q *queryServer) NextSequenceSend(goCtx context.Context, req *types.QueryNe
 	return types.NewQueryNextSequenceSendResponse(sequence, nil, selfHeight), nil
 }
 
-// UpgradeErrorReceipt implements the Query/UpgradeErrorReceipt gRPC method
+// UpgradeError implements the Query/UpgradeErrorReceipt gRPC method
 func (q *queryServer) UpgradeError(goCtx context.Context, req *types.QueryUpgradeErrorRequest) (*types.QueryUpgradeErrorResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
