@@ -46,6 +46,12 @@ func channelPath(portID, channelID string) string {
 	return fmt.Sprintf("%s/%s/%s/%s", host.KeyPortPrefix, portID, host.KeyChannelPrefix, channelID)
 }
 
+// MigrateStore migrates the channel store to the ibc-go v10 store by:
+// - Removing channel upgrade sequences
+// - Removing any channel upgrade info (i.e. upgrades, counterparty upgrades, upgrade errors)
+// - Removing channel params
+// - Removing pruning sequences
+// NOTE: This migration will fail if any channels are in the FLUSHING or FLUSHCOMPLETE state.
 func MigrateStore(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.BinaryCodec, channelKeeper ChannelKeeper) error {
 	store := storeService.OpenKVStore(ctx)
 
@@ -77,7 +83,7 @@ func handleChannelMigration(ctx sdk.Context, store corestore.KVStore, cdc codec.
 		cdc.MustUnmarshal(iterator.Value(), &channel)
 
 		if channel.State == FLUSHING || channel.State == FLUSHCOMPLETE {
-			channel.State = OPEN
+			return fmt.Errorf("channel in state FLUSHING or FLUSHCOMPLETE found, to proceed with migration, please ensure no channels are currently upgrading")
 		}
 
 		newChannel := types.Channel{

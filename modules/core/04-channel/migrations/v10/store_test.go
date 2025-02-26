@@ -39,9 +39,37 @@ func TestMigrationsV10TestSuite(t *testing.T) {
 	testifysuite.Run(t, new(MigrationsV10TestSuite))
 }
 
-// create multiple solo machine clients, tendermint and localhost clients
-// ensure that solo machine clients are migrated and their consensus states are removed
-// ensure the localhost is deleted entirely.
+// set up channels that are still in upgrade state, and assert that the upgrade fails.
+// migrate the store, and assert that the channels have been upgraded and state removed as expected
+func (suite *MigrationsV10TestSuite) TestMigrateStoreWithUpgradingChannels() {
+	ctx := suite.chainA.GetContext()
+	cdc := suite.chainA.App.AppCodec()
+	channelKeeper := suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper
+	storeService := runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey))
+
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.Setup()
+	path = ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.Setup()
+
+	preMigrationChannels := suite.getPreMigrationTypeChannels(ctx, cdc, storeService)
+	suite.Require().Len(preMigrationChannels, 2)
+
+	// Set up some channels with old state
+	flushingChannel := preMigrationChannels[0]
+	flushingChannel.State = v10.FLUSHING
+	suite.setPreMigrationChannel(ctx, cdc, storeService, flushingChannel)
+
+	flushCompleteChannel := preMigrationChannels[1]
+	flushCompleteChannel.State = v10.FLUSHCOMPLETE
+	suite.setPreMigrationChannel(ctx, cdc, storeService, flushCompleteChannel)
+
+	err := v10.MigrateStore(ctx, storeService, cdc, channelKeeper)
+	suite.Require().Errorf(err, "channel in state FLUSHING or FLUSHCOMPLETE found, to proceed with migration, please ensure no channels are currently upgrading")
+}
+
+// set up channels, upgrades, params, and prune sequences in the store,
+// migrate the store, and assert that the channels have been upgraded and state removed as expected
 func (suite *MigrationsV10TestSuite) TestMigrateStore() {
 	ctx := suite.chainA.GetContext()
 	cdc := suite.chainA.App.AppCodec()
@@ -59,59 +87,50 @@ func (suite *MigrationsV10TestSuite) TestMigrateStore() {
 	suite.Require().Len(preMigrationChannels, numberOfChannels)
 
 	// Set up some channels with old state
-	flushingChannel := preMigrationChannels[0]
-	flushingChannel.State = v10.FLUSHING
-	suite.setPreMigrationChannel(ctx, cdc, storeService, flushingChannel)
-
-	flushCompleteChannel := preMigrationChannels[1]
-	flushCompleteChannel.State = v10.FLUSHCOMPLETE
-	suite.setPreMigrationChannel(ctx, cdc, storeService, flushCompleteChannel)
-
-	upgradeSequenceChannel := preMigrationChannels[2]
-	upgradeSequenceChannel.UpgradeSequence = 1
-	suite.setPreMigrationChannel(ctx, cdc, storeService, upgradeSequenceChannel)
+	testChannel1 := preMigrationChannels[0]
+	testChannel2 := preMigrationChannels[1]
 
 	// Set some upgrades
 	upgrade := v10.Upgrade{
 		Fields: v10.UpgradeFields{
 			Ordering:       v10.ORDERED,
 			ConnectionHops: []string{"connection-0"},
-			Version:        flushingChannel.Version,
+			Version:        testChannel1.Version,
 		},
 		Timeout:          v10.Timeout{},
 		NextSequenceSend: 2,
 	}
-	err := store.Set(v10.ChannelUpgradeKey(flushingChannel.PortId, flushingChannel.ChannelId), cdc.MustMarshal(&upgrade))
+	err := store.Set(v10.ChannelUpgradeKey(testChannel1.PortId, testChannel1.ChannelId), cdc.MustMarshal(&upgrade))
 	suite.Require().NoError(err)
 	upgrade = v10.Upgrade{
 		Fields: v10.UpgradeFields{
 			Ordering:       v10.ORDERED,
 			ConnectionHops: []string{"connection-0"},
-			Version:        flushCompleteChannel.Version,
+			Version:        testChannel2.Version,
 		},
 		Timeout:          v10.Timeout{},
 		NextSequenceSend: 20,
 	}
-	err = store.Set(v10.ChannelUpgradeKey(flushCompleteChannel.PortId, flushCompleteChannel.ChannelId), cdc.MustMarshal(&upgrade))
+	err = store.Set(v10.ChannelUpgradeKey(testChannel2.PortId, testChannel2.ChannelId), cdc.MustMarshal(&upgrade))
 	suite.Require().NoError(err)
 
 	counterpartyUpgrade := v10.Upgrade{
 		Fields: v10.UpgradeFields{
 			Ordering:       v10.ORDERED,
 			ConnectionHops: []string{"connection-0"},
-			Version:        flushCompleteChannel.Version,
+			Version:        testChannel2.Version,
 		},
 		Timeout:          v10.Timeout{},
 		NextSequenceSend: 20,
 	}
-	err = store.Set(v10.ChannelCounterpartyUpgradeKey(flushCompleteChannel.PortId, flushCompleteChannel.ChannelId), cdc.MustMarshal(&counterpartyUpgrade))
+	err = store.Set(v10.ChannelCounterpartyUpgradeKey(testChannel2.PortId, testChannel2.ChannelId), cdc.MustMarshal(&counterpartyUpgrade))
 	suite.Require().NoError(err)
 
 	errorReceipt := v10.ErrorReceipt{
 		Sequence: 3,
 		Message:  "🤷",
 	}
-	err = store.Set(v10.ChannelUpgradeErrorKey(flushingChannel.PortId, flushingChannel.ChannelId), cdc.MustMarshal(&errorReceipt))
+	err = store.Set(v10.ChannelUpgradeErrorKey(testChannel1.PortId, testChannel1.ChannelId), cdc.MustMarshal(&errorReceipt))
 	suite.Require().NoError(err)
 
 	// Set some params
@@ -121,9 +140,9 @@ func (suite *MigrationsV10TestSuite) TestMigrateStore() {
 	suite.Require().NoError(err)
 
 	// Set some prune sequences
-	err = store.Set(v10.PruningSequenceStartKey(flushingChannel.PortId, flushingChannel.ChannelId), sdk.Uint64ToBigEndian(0))
+	err = store.Set(v10.PruningSequenceStartKey(testChannel1.PortId, testChannel1.ChannelId), sdk.Uint64ToBigEndian(0))
 	suite.Require().NoError(err)
-	err = store.Set(v10.PruningSequenceStartKey(flushCompleteChannel.PortId, flushCompleteChannel.ChannelId), sdk.Uint64ToBigEndian(42))
+	err = store.Set(v10.PruningSequenceStartKey(testChannel2.PortId, testChannel2.ChannelId), sdk.Uint64ToBigEndian(42))
 	suite.Require().NoError(err)
 
 	err = v10.MigrateStore(ctx, storeService, cdc, channelKeeper)

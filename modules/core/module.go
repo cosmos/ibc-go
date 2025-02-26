@@ -168,7 +168,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 		panic(err)
 	}
 
-	// This upgrade used to just add default params, since we have deleted it, we just return directly to increase the ConsensusVersion
+	// This upgrade used to just add default params, since we have deleted it (in consensus version 8 - ibc-go v10),
+	// we just return directly to increment the ConsensusVersion as expected
 	if err := cfg.RegisterMigration(exported.ModuleName, 5, func(_ sdk.Context) error {
 		return nil
 	}); err != nil {

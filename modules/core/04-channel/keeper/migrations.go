@@ -16,6 +16,12 @@ func NewMigrator(keeper *Keeper) Migrator {
 	return Migrator{keeper: keeper}
 }
 
+// Migrate7To8 migrates the channel store from module version 7 to 8 by:
+// - Removing channel upgrade sequences
+// - Removing any channel upgrade info (i.e. upgrades, counterparty upgrades, upgrade errors)
+// - Removing channel params
+// - Removing pruning sequences
+// NOTE: This migration will fail if any channels are in the FLUSHING or FLUSHCOMPLETE state.
 func (m *Migrator) Migrate7To8(ctx sdk.Context) error {
 	return v10.MigrateStore(ctx, m.keeper.storeService, m.keeper.cdc, m.keeper)
 }
