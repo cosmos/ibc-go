@@ -139,6 +139,9 @@ clean:
 build-docker-wasm:
 	./scripts/build-wasm-simapp-docker.sh $(tag)
 
+build-docker-local:
+	docker build -t ghcr.io/cosmos/ibc-go-simd:local --build-arg IBC_GO_VERSION=local . 
+
 .PHONY: build-docker-wasm
 
 ###############################################################################
