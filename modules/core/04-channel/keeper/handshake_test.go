@@ -13,7 +13,6 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	"github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
 type testCase = struct {
@@ -567,35 +566,14 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 // bypassed on chainA by setting the channel state in the ChannelKeeper.
 func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 	var (
-		path                        *ibctesting.Path
-		heightDiff                  uint64
-		counterpartyUpgradeSequence uint64
+		path       *ibctesting.Path
+		heightDiff uint64
 	)
 
 	testCases := []testCase{
 		{"success", func() {
 			path.Setup()
 			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
-		}, nil},
-		{"success with upgrade info", func() {
-			path.Setup()
-
-			path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
-
-			// add mock upgrade info to simulate that the channel is closing during
-			// an upgrade and verify that the upgrade information is deleted
-			upgrade := types.Upgrade{
-				Fields:  types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.UpgradeVersion),
-				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
-			}
-
-			counterpartyUpgrade := types.Upgrade{
-				Fields:  types.NewUpgradeFields(types.UNORDERED, []string{ibctesting.FirstConnectionID}, mock.UpgradeVersion),
-				Timeout: types.NewTimeout(clienttypes.ZeroHeight(), 1),
-			}
-
-			path.EndpointB.SetChannelUpgrade(upgrade)
-			path.EndpointB.SetChannelCounterpartyUpgrade(counterpartyUpgrade)
 		}, nil},
 		{"channel doesn't exist", func() {
 			// any non-nil values work for connections
@@ -637,28 +615,13 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			// channel not closed
 			path.Setup()
 		}, ibcerrors.ErrInvalidHeight},
-		{
-			"failure: invalid counterparty upgrade sequence",
-			func() {
-				path.Setup()
-
-				// trigger upgradeInit on A which will bump the counterparty upgrade sequence.
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = mock.UpgradeVersion
-				err := path.EndpointA.ChanUpgradeInit()
-				suite.Require().NoError(err)
-
-				path.EndpointA.UpdateChannel(func(channel *types.Channel) { channel.State = types.CLOSED })
-			},
-			commitmenttypes.ErrInvalidProof,
-		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest()               // reset
-			heightDiff = 0                  // must explicitly be changed
-			counterpartyUpgradeSequence = 0 // must explicitly be changed
+			suite.SetupTest() // reset
+			heightDiff = 0    // must explicitly be changed
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -669,17 +632,11 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			ctx := suite.chainB.GetContext()
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
 				ctx, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
-				proof, malleateHeight(proofHeight, heightDiff), counterpartyUpgradeSequence,
+				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
-
-				// if the channel closed during an upgrade, there should not be any upgrade information
-				_, found := suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetUpgrade(ctx, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				suite.Require().False(found)
-				_, found = suite.chainB.App.GetIBCKeeper().ChannelKeeper.GetCounterpartyUpgrade(ctx, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-				suite.Require().False(found)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)
