@@ -31,10 +31,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 
 	// max gas is 1_000_000
 	testCases := []struct {
-		name            string
-		malleate        func()
-		expCallbackData types.CallbackData
-		expError        error
+		name              string
+		malleate          func()
+		expCallbackData   types.CallbackData
+		expIsCallbackData bool
+		expError          error
 	}{
 		{
 			"success: source callback",
@@ -56,6 +57,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				CommitGasLimit:     1_000_000,
 				ApplicationVersion: transfertypes.V1,
 			},
+			true,
 			nil,
 		},
 		{
@@ -80,6 +82,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				CommitGasLimit:     1_000_000,
 				ApplicationVersion: transfertypes.V1,
 			},
+			true,
 			nil,
 		},
 		{
@@ -104,6 +107,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				CommitGasLimit:     1_000_000,
 				ApplicationVersion: transfertypes.V1,
 			},
+			true,
 			nil,
 		},
 		{
@@ -127,6 +131,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				CommitGasLimit:     50_000,
 				ApplicationVersion: transfertypes.V1,
 			},
+			true,
 			nil,
 		},
 		{
@@ -149,6 +154,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				CommitGasLimit:     200_000,
 				ApplicationVersion: transfertypes.V1,
 			},
+			true,
 			nil,
 		},
 		{
@@ -171,6 +177,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				CommitGasLimit:     1_000_000,
 				ApplicationVersion: transfertypes.V1,
 			},
+			true,
 			nil,
 		},
 		{
@@ -195,6 +202,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				CommitGasLimit:     1_000_000,
 				ApplicationVersion: transfertypes.V1,
 			},
+			true,
 			nil,
 		},
 		{
@@ -217,6 +225,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				CommitGasLimit:     1_000_000,
 				ApplicationVersion: transfertypes.V1,
 			},
+			true,
 			nil,
 		},
 		{
@@ -225,6 +234,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = ibcmock.MockPacketData
 			},
 			types.CallbackData{},
+			false,
 			types.ErrNotPacketDataProvider,
 		},
 		{
@@ -240,6 +250,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{},
+			false,
 			types.ErrCallbackKeyNotFound,
 		},
 		{
@@ -255,6 +266,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{},
+			true,
 			types.ErrCallbackAddressNotFound,
 		},
 		{
@@ -270,6 +282,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				}
 			},
 			types.CallbackData{},
+			true,
 			types.ErrCallbackAddressNotFound,
 		},
 
@@ -293,6 +306,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				CommitGasLimit:     1_000_000,
 				ApplicationVersion: transfertypes.V1,
 			},
+			true,
 			nil,
 		},
 		{
@@ -317,6 +331,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				CommitGasLimit:     1_000_000,
 				ApplicationVersion: transfertypes.V1,
 			},
+			true,
 			nil,
 		},
 		{
@@ -325,6 +340,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				packetData = ibcmock.MockPacketData
 			},
 			types.CallbackData{},
+			false,
 			types.ErrNotPacketDataProvider,
 		},
 	}
@@ -339,7 +355,10 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 
 			tc.malleate()
 
-			callbackData, err := types.GetCallbackData(packetData, version, transfertypes.PortID, remainingGas, uint64(1_000_000), callbackKey)
+			callbackData, isCbPacket, err := types.GetCallbackData(packetData, version, transfertypes.PortID, remainingGas, uint64(1_000_000), callbackKey)
+
+			// check if GetCallbackData correctly determines if callback data is present in the packet data
+			s.Require().Equal(tc.expIsCallbackData, isCbPacket, tc.name)
 
 			if tc.expError == nil {
 				s.Require().NoError(err, tc.name)
@@ -391,7 +410,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestSourceCallbackDataTransfer() {
 			packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
 			packet channeltypes.Packet,
 			maxGas uint64,
-		) (types.CallbackData, error)
+		) (types.CallbackData, bool, error)
 		getSrc bool
 	}{
 		{
@@ -461,8 +480,9 @@ func (s *CallbacksTypesTestSuite) TestGetDestSourceCallbackDataTransfer() {
 			} else {
 				packet = channeltypes.NewPacket(packetData.GetBytes(), 0, transfertypes.PortID, s.path.EndpointB.ChannelID, transfertypes.PortID, s.path.EndpointA.ChannelID, clienttypes.ZeroHeight(), 0)
 			}
-			callbackData, err := tc.callbackFn(ctx, packetUnmarshaler, packet, 1_000_000)
+			callbackData, isCbPacket, err := tc.callbackFn(ctx, packetUnmarshaler, packet, 1_000_000)
 			s.Require().NoError(err)
+			s.Require().True(isCbPacket)
 			s.Require().Equal(expCallbackData, callbackData)
 		})
 	}

@@ -93,6 +93,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking
 
 * (light-clients/06-solomachine) [\#6313](https://github.com/cosmos/ibc-go/pull/6313) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
+* (apps/callbacks) [\#8014](https://github.com/cosmos/ibc-go/pull/8014) Callbacks will now return an error acknowledgement if the recvPacket callback fails. This reverts all app callback changes whereas before we only reverted the callback changes. We also error on all callbacks if the callback data is set but malformed whereas before we ignored the error and continued processing.
 
 ### Improvements
 
