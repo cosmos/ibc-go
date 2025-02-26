@@ -31,14 +31,6 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/ibc/applications/fee/v1/query.swagger.json",
-      "operationIds": {
-        "rename": {
-          "Params": "FeeParams"
-        }
-      }
-    },
-    {
       "url": "./tmp-swagger-gen/ibc/core/client/v1/query.swagger.json",
       "operationIds": {
         "rename": {
