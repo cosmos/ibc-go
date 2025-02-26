@@ -2,7 +2,6 @@ package tendermint
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -14,15 +13,15 @@ import (
 	"github.com/cometbft/cometbft/light"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v9/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v9/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v9/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v9/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // VerifyClientMessage checks if the clientMessage is of type Header or Misbehaviour and verifies the message
 func (cs *ClientState) VerifyClientMessage(
-	ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
+	ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore,
 	clientMsg exported.ClientMessage,
 ) error {
 	switch msg := clientMsg.(type) {
@@ -44,11 +43,10 @@ func (cs *ClientState) VerifyClientMessage(
 // - header timestamp is past the trusting period in relation to the consensus state
 // - header timestamp is less than or equal to the consensus state timestamp
 func (cs *ClientState) verifyHeader(
-	ctx context.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec,
+	ctx sdk.Context, clientStore storetypes.KVStore, cdc codec.BinaryCodec,
 	header *Header,
 ) error {
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	currentTimestamp := sdkCtx.HeaderInfo().Time
+	currentTimestamp := ctx.BlockTime()
 
 	// Retrieve trusted consensus states for each Header in misbehaviour
 	consState, found := GetConsensusState(clientStore, cdc, header.TrustedHeight)
@@ -134,7 +132,7 @@ func (cs *ClientState) verifyHeader(
 // number must be the same. To update to a new revision, use a separate upgrade path
 // UpdateState will prune the oldest consensus state if it is expired.
 // If the provided clientMsg is not of type of Header then the handler will noop and empty slice is returned.
-func (cs ClientState) UpdateState(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
+func (cs ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
 	header, ok := clientMsg.(*Header)
 	if !ok {
 		// clientMsg is invalid Misbehaviour, no update necessary
@@ -143,8 +141,7 @@ func (cs ClientState) UpdateState(ctx context.Context, cdc codec.BinaryCodec, cl
 
 	// performance: do not prune in checkTx
 	// simulation must prune for accurate gas estimation
-	sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-	if (!sdkCtx.IsCheckTx() && !sdkCtx.IsReCheckTx()) || sdkCtx.ExecMode() == sdk.ExecModeSimulate {
+	if (!ctx.IsCheckTx() && !ctx.IsReCheckTx()) || ctx.ExecMode() == sdk.ExecModeSimulate {
 		cs.pruneOldestConsensusState(ctx, cdc, clientStore)
 	}
 
@@ -179,12 +176,10 @@ func (cs ClientState) UpdateState(ctx context.Context, cdc codec.BinaryCodec, cl
 // pruneOldestConsensusState will retrieve the earliest consensus state for this clientID and check if it is expired. If it is,
 // that consensus state will be pruned from store along with all associated metadata. This will prevent the client store from
 // becoming bloated with expired consensus states that can no longer be used for updates and packet verification.
-func (cs ClientState) pruneOldestConsensusState(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore) {
-	// Check the earliest consensus state to see if it is expired, if so then set the prune height
+func (cs ClientState) pruneOldestConsensusState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore) {
+	// Check consensus states to see if they are expired, if so then collect all expired heights
 	// so that we can delete consensus state and all associated metadata.
-	var (
-		pruneHeight exported.Height
-	)
+	var expiredHeights []exported.Height
 
 	pruneCb := func(height exported.Height) bool {
 		consState, found := GetConsensusState(clientStore, cdc, height)
@@ -193,9 +188,8 @@ func (cs ClientState) pruneOldestConsensusState(ctx context.Context, cdc codec.B
 			panic(errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "failed to retrieve consensus state at height: %s", height))
 		}
 
-		sdkCtx := sdk.UnwrapSDKContext(ctx) // TODO: https://github.com/cosmos/ibc-go/issues/5917
-		if cs.IsExpired(consState.Timestamp, sdkCtx.BlockTime()) {
-			pruneHeight = height
+		if cs.IsExpired(consState.Timestamp, ctx.BlockTime()) {
+			expiredHeights = append(expiredHeights, height)
 		}
 
 		return true
@@ -203,16 +197,16 @@ func (cs ClientState) pruneOldestConsensusState(ctx context.Context, cdc codec.B
 
 	IterateConsensusStateAscending(clientStore, pruneCb)
 
-	// if pruneHeight is set, delete consensus state and metadata
-	if pruneHeight != nil {
-		deleteConsensusState(clientStore, pruneHeight)
-		deleteConsensusMetadata(clientStore, pruneHeight)
+	// Delete all expired consensus states and metadata
+	for _, height := range expiredHeights {
+		deleteConsensusState(clientStore, height)
+		deleteConsensusMetadata(clientStore, height)
 	}
 }
 
 // UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState. This method should only be called when misbehaviour is detected
 // as it does not perform any misbehaviour checks.
-func (cs ClientState) UpdateStateOnMisbehaviour(ctx context.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, _ exported.ClientMessage) {
+func (cs ClientState) UpdateStateOnMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, _ exported.ClientMessage) {
 	cs.FrozenHeight = FrozenHeight
 
 	clientStore.Set(host.ClientStateKey(), clienttypes.MustMarshalClientState(cdc, &cs))
