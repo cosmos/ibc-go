@@ -30,7 +30,7 @@ jobs:
          ref: "${{ env.GIT_TAG }}"
          fetch-depth: 0
 
-      # TODO: #7885 Get rid of this script, it is super unecessary and can probably be done in the Dockerfile or a bash script
+      # TODO: #7885 Get rid of this script, it is super unnecessary and can probably be done in the Dockerfile or a bash script
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
