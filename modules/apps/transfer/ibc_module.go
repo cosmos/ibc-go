@@ -172,7 +172,7 @@ func (im IBCModule) OnRecvPacket(
 	var (
 		ack    ibcexported.Acknowledgement
 		ackErr error
-		data   types.FungibleTokenPacketDataV2
+		data   types.InternalTransferRepresentation
 	)
 
 	// we are explicitly wrapping this emit event call in an anonymous function so that
@@ -268,7 +268,7 @@ func (im IBCModule) OnTimeoutPacket(
 func (im IBCModule) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
 	if !found {
-		return types.FungibleTokenPacketDataV2{}, "", errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
+		return types.InternalTransferRepresentation{}, "", errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
 	}
 
 	ftpd, err := types.UnmarshalPacketData(bz, ics20Version, "")

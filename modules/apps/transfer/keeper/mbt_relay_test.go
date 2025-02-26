@@ -65,7 +65,7 @@ type FungibleTokenPacket struct {
 	SourcePort    string
 	DestChannel   string
 	DestPort      string
-	Data          types.FungibleTokenPacketDataV2
+	Data          types.InternalTransferRepresentation
 }
 
 type OnRecvPacketTestCase = struct {
@@ -149,7 +149,7 @@ func FungibleTokenPacketFromTla(packet TlaFungibleTokenPacket) FungibleTokenPack
 		SourcePort:    packet.SourcePort,
 		DestChannel:   packet.DestChannel,
 		DestPort:      packet.DestPort,
-		Data: types.NewFungibleTokenPacketDataV2(
+		Data: types.NewInternalTransferRepresentation(
 			types.Token{
 				Denom:  denom,
 				Amount: packet.Data.Amount,
@@ -322,7 +322,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 			description := fileInfo.Name() + " # " + strconv.Itoa(i+1)
 			suite.Run(fmt.Sprintf("Case %s", description), func() {
 				seq := uint64(1)
-				packet := channeltypes.NewPacket(tc.packet.Data.GetBytes(), seq, tc.packet.SourcePort, tc.packet.SourceChannel, tc.packet.DestPort, tc.packet.DestChannel, clienttypes.NewHeight(1, 100), 0)
+				packet := channeltypes.NewPacket([]byte("mockdata"), seq, tc.packet.SourcePort, tc.packet.SourceChannel, tc.packet.DestPort, tc.packet.DestChannel, clienttypes.NewHeight(1, 100), 0)
 				bankBefore := BankFromBalances(tc.bankBefore)
 				realBankBefore := BankOfChain(suite.chainB)
 				// First validate the packet itself (mimics what happens when the packet is being sent and/or received)

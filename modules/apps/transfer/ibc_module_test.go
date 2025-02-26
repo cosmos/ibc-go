@@ -510,7 +510,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			if tc.expError == nil {
 				suite.Require().NoError(err)
 
-				v2PacketData, ok := packetData.(types.FungibleTokenPacketDataV2)
+				v2PacketData, ok := packetData.(types.InternalTransferRepresentation)
 				suite.Require().True(ok)
 				suite.Require().Equal(path.EndpointA.ChannelConfig.Version, version)
 
@@ -521,7 +521,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 					suite.Require().Equal(v1PacketData.Receiver, v2PacketData.Receiver)
 					suite.Require().Equal(v1PacketData.Memo, v2PacketData.Memo)
 				} else {
-					suite.Require().Equal(initialPacketData.(types.FungibleTokenPacketDataV2), v2PacketData)
+					suite.Require().Equal(initialPacketData.(types.InternalTransferRepresentation), v2PacketData)
 				}
 			} else {
 				suite.Require().Error(err)
