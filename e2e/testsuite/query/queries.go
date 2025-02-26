@@ -21,7 +21,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
-const queryPathTransferDenoms = "/ibc.applications.transfer.v2.QueryV2/Denoms"
+const queryPathTransferDenoms = "/ibc.applications.transfer.v1.Query/Denoms"
 
 // ModuleAccountAddress returns the address of the given module on the given chain.
 // Added because interchaintest's method doesn't work.
