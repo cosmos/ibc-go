@@ -23,7 +23,6 @@ import (
 var (
 	_ porttypes.IBCModule             = (*IBCModule)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCModule)(nil)
-	_ porttypes.UpgradableModule      = (*IBCModule)(nil)
 )
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
@@ -173,7 +172,7 @@ func (im IBCModule) OnRecvPacket(
 	var (
 		ack    ibcexported.Acknowledgement
 		ackErr error
-		data   types.FungibleTokenPacketDataV2
+		data   types.InternalTransferRepresentation
 	)
 
 	// we are explicitly wrapping this emit event call in an anonymous function so that
@@ -263,53 +262,13 @@ func (im IBCModule) OnTimeoutPacket(
 	return nil
 }
 
-// OnChanUpgradeInit implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, proposedOrder, portID, channelID); err != nil {
-		return "", err
-	}
-
-	if !slices.Contains(types.SupportedVersions, proposedVersion) {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected one of %s, got %s", types.SupportedVersions, proposedVersion)
-	}
-
-	return proposedVersion, nil
-}
-
-// OnChanUpgradeTry implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, proposedOrder, portID, channelID); err != nil {
-		return "", err
-	}
-
-	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V1)
-		return types.V1, nil
-	}
-
-	return counterpartyVersion, nil
-}
-
-// OnChanUpgradeAck implements the IBCModule interface
-func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected one of %s, got %s", types.SupportedVersions, counterpartyVersion)
-	}
-
-	return nil
-}
-
-// OnChanUpgradeOpen implements the IBCModule interface
-func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
-}
-
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into a FungibleTokenPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
 func (im IBCModule) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
 	ics20Version, found := im.keeper.GetICS4Wrapper().GetAppVersion(ctx, portID, channelID)
 	if !found {
-		return types.FungibleTokenPacketDataV2{}, "", errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
+		return types.InternalTransferRepresentation{}, "", errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
 	}
 
 	ftpd, err := types.UnmarshalPacketData(bz, ics20Version, "")

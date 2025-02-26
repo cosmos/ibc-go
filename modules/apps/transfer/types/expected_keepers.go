@@ -7,9 +7,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	clienttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
 // AccountKeeper defines the contract required for account APIs.
@@ -41,9 +42,14 @@ type ChannelKeeper interface {
 	HasChannel(ctx sdk.Context, portID, channelID string) bool
 }
 
+// ChannelKeeperV2 defines the expected IBC channelV2 keeper
+type ChannelKeeperV2 interface {
+	SendPacket(ctx context.Context, msg *channeltypesv2.MsgSendPacket) (*channeltypesv2.MsgSendPacketResponse, error)
+}
+
 // ClientKeeper defines the expected IBC client keeper
-type ClientKeeper interface {
-	GetClientConsensusState(ctx sdk.Context, clientID string) (connection ibcexported.ConsensusState, found bool)
+type ClientKeeperV2 interface {
+	GetClientCounterparty(ctx sdk.Context, clientID string) (counterparty clienttypesv2.CounterpartyInfo, found bool)
 }
 
 // ConnectionKeeper defines the expected IBC connection keeper

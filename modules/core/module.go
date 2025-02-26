@@ -168,12 +168,20 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 		panic(err)
 	}
 
-	channelMigrator := channelkeeper.NewMigrator(am.keeper.ChannelKeeper)
-	if err := cfg.RegisterMigration(exported.ModuleName, 5, channelMigrator.MigrateParams); err != nil {
+	// This upgrade used to just add default params, since we have deleted it (in consensus version 8 - ibc-go v10),
+	// we just return directly to increment the ConsensusVersion as expected
+	if err := cfg.RegisterMigration(exported.ModuleName, 5, func(_ sdk.Context) error {
+		return nil
+	}); err != nil {
 		panic(err)
 	}
 
 	if err := cfg.RegisterMigration(exported.ModuleName, 6, clientMigrator.MigrateToStatelessLocalhost); err != nil {
+		panic(err)
+	}
+
+	channelMigrator := channelkeeper.NewMigrator(am.keeper.ChannelKeeper)
+	if err := cfg.RegisterMigration(exported.ModuleName, 7, channelMigrator.Migrate7To8); err != nil {
 		panic(err)
 	}
 }
@@ -196,7 +204,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 7 }
+func (AppModule) ConsensusVersion() uint64 { return 8 }
 
 // BeginBlock returns the begin blocker for the ibc module.
 func (am AppModule) BeginBlock(goCtx context.Context) error {
