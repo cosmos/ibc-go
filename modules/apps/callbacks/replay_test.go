@@ -226,7 +226,7 @@ func (s *CallbacksTestSuite) TestTransferSuccessAcknowledgementReplayProtection(
 			initialBalance := GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
 			// amountTransferred := ibctesting.TestCoin
-			s.ExecuteTransfer(tc.transferMemo)
+			s.ExecuteTransfer(tc.transferMemo, true)
 
 			// check that the callback is executed 1 times
 			s.Require().Equal(1, callbackCount)
@@ -290,7 +290,7 @@ func (s *CallbacksTestSuite) TestTransferRecvPacketReplayProtection() {
 			initialBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
 
 			// execute the transfer
-			s.ExecuteTransfer(tc.transferMemo)
+			s.ExecuteTransfer(tc.transferMemo, true)
 
 			// check that the callback is executed 1 times
 			s.Require().Equal(1, callbackCount)

@@ -103,13 +103,17 @@ func (im IBCMiddleware) OnSendPacket(
 		return nil
 	}
 
-	cbData, err := types.GetCallbackData(
+	cbData, isCbPacket, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetSourcePort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
 	)
 	// OnSendPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// OnSendPacket is blocked if the packet opts-in to callbacks but the callback data is invalid
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -155,13 +159,19 @@ func (im IBCMiddleware) OnRecvPacket(
 		return recvResult
 	}
 
-	cbData, err := types.GetCallbackData(
+	cbData, isCbPacket, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetDestinationPort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.DestinationCallbackKey,
 	)
 	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return recvResult
+	}
+	// OnRecvPacket is blocked if the packet opts-in to callbacks but the callback data is invalid
+	if err != nil {
+		return channeltypesv2.RecvPacketResult{
+			Status: channeltypesv2.PacketStatus_Failure,
+		}
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -189,6 +199,11 @@ func (im IBCMiddleware) OnRecvPacket(
 		ctx, payload.DestinationPort, destinationClient, sequence,
 		types.CallbackTypeReceivePacket, cbData, err,
 	)
+	if err != nil {
+		return channeltypesv2.RecvPacketResult{
+			Status: channeltypesv2.PacketStatus_Failure,
+		}
+	}
 
 	return recvResult
 }
@@ -218,13 +233,18 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return nil
 	}
 
-	cbData, err := types.GetCallbackData(
+	cbData, isCbPacket, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetSourcePort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
 	)
 	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// OnAcknowledgementPacket is blocked if the packet opts-in to callbacks but the callback data is invalid
+	// This should never occur since this error is already checked `OnSendPacket`
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -283,13 +303,18 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	cbData, err := types.GetCallbackData(
+	cbData, isCbPacket, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetSourcePort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
 	)
 	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// OnTimeoutPacket is blocked if the packet opts-in to callbacks but the callback data is invalid
+	// This should never occur since this error is already checked `OnSendPacket`
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -354,13 +379,18 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	cbData, err := types.GetCallbackData(
+	cbData, isCbPacket, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetDestinationPort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.DestinationCallbackKey,
 	)
 	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// WriteAcknowledgement is blocked if the packet opts-in to callbacks but the callback data is invalid
+	// This should never occur since this error is already checked `OnRecvPacket`
+	if err != nil {
+		return err
 	}
 
 	recvResult := channeltypesv2.RecvPacketResult{
