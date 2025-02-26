@@ -23,7 +23,6 @@ import (
 var (
 	_ porttypes.IBCModule             = (*IBCModule)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCModule)(nil)
-	_ porttypes.UpgradableModule      = (*IBCModule)(nil)
 )
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
@@ -261,46 +260,6 @@ func (im IBCModule) OnTimeoutPacket(
 	events.EmitOnTimeoutEvent(ctx, data)
 
 	return nil
-}
-
-// OnChanUpgradeInit implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeInit(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, proposedOrder, portID, channelID); err != nil {
-		return "", err
-	}
-
-	if !slices.Contains(types.SupportedVersions, proposedVersion) {
-		return "", errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected one of %s, got %s", types.SupportedVersions, proposedVersion)
-	}
-
-	return proposedVersion, nil
-}
-
-// OnChanUpgradeTry implements the IBCModule interface
-func (im IBCModule) OnChanUpgradeTry(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, counterpartyVersion string) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, proposedOrder, portID, channelID); err != nil {
-		return "", err
-	}
-
-	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		im.keeper.Logger(ctx).Debug("invalid counterparty version, proposing latest app version", "counterpartyVersion", counterpartyVersion, "version", types.V1)
-		return types.V1, nil
-	}
-
-	return counterpartyVersion, nil
-}
-
-// OnChanUpgradeAck implements the IBCModule interface
-func (IBCModule) OnChanUpgradeAck(ctx sdk.Context, portID, channelID, counterpartyVersion string) error {
-	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {
-		return errorsmod.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: expected one of %s, got %s", types.SupportedVersions, counterpartyVersion)
-	}
-
-	return nil
-}
-
-// OnChanUpgradeOpen implements the IBCModule interface
-func (IBCModule) OnChanUpgradeOpen(ctx sdk.Context, portID, channelID string, proposedOrder channeltypes.Order, proposedConnectionHops []string, proposedVersion string) {
 }
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
