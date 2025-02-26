@@ -25,7 +25,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.50.11
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier v0.0.0-20250221115439-3e6d5f597fc4
-	github.com/cosmos/ibc-go/v10 v10.0.0-beta.0.0.20250226170218-8b6e7a17a3fb
+	github.com/cosmos/ibc-go/v10 v10.0.0-beta.1
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cast v1.7.1
