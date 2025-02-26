@@ -1,14 +1,39 @@
 package ibctesting
 
 import (
+	"encoding/hex"
+	"fmt"
+
 	"github.com/cosmos/gogoproto/proto"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	abci "github.com/cometbft/cometbft/abci/types"
 	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
 )
+
+// ParsePacketFromEventsV2 parses a packet from events using the encoded packet hex attribute.
+// It returns the parsed packet and an error if the packet cannot be found or decoded.
+func ParsePacketFromEventsV2(events []abci.Event) (channeltypesv2.Packet, error) {
+	for _, event := range events {
+		if event.Type == channeltypesv2.EventTypeSendPacket {
+			for _, attr := range event.Attributes {
+				if string(attr.Key) == channeltypesv2.AttributeKeyEncodedPacketHex {
+					packetBytes, err := hex.DecodeString(string(attr.Value))
+					if err != nil {
+						return channeltypesv2.Packet{}, fmt.Errorf("failed to decode packet bytes: %w", err)
+					}
+					var packet channeltypesv2.Packet
+					if err := proto.Unmarshal(packetBytes, &packet); err != nil {
+						return channeltypesv2.Packet{}, fmt.Errorf("failed to unmarshal packet: %w", err)
+					}
+					return packet, nil
+				}
+			}
+		}
+	}
+	return channeltypesv2.Packet{}, fmt.Errorf("packet not found in events")
+}
 
 // RegisterCounterparty will construct and execute a MsgRegisterCounterparty on the associated endpoint.
 func (endpoint *Endpoint) RegisterCounterparty() (err error) {
@@ -43,22 +68,23 @@ func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, paylo
 		return channeltypesv2.Packet{}, err
 	}
 
-	// TODO: parse the packet from events instead of from the response. https://github.com/cosmos/ibc-go/issues/7459
-	// get sequence from msg response
-	var msgData sdk.TxMsgData
-	err = proto.Unmarshal(res.Data, &msgData)
-	if err != nil {
-		return channeltypesv2.Packet{}, err
+	// Convert sdk.Events to abci.Events
+	abciEvents := make([]abci.Event, len(res.Events))
+	for i, event := range res.Events {
+		attributes := make([]abci.EventAttribute, len(event.Attributes))
+		for j, attr := range event.Attributes {
+			attributes[j] = abci.EventAttribute{
+				Key:   attr.Key,
+				Value: attr.Value,
+			}
+		}
+		abciEvents[i] = abci.Event{
+			Type:       event.Type,
+			Attributes: attributes,
+		}
 	}
-	msgResponse := msgData.MsgResponses[0]
-	var sendResponse channeltypesv2.MsgSendPacketResponse
-	err = proto.Unmarshal(msgResponse.Value, &sendResponse)
-	if err != nil {
-		return channeltypesv2.Packet{}, err
-	}
-	packet := channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ClientID, endpoint.Counterparty.ClientID, timeoutTimestamp, payload)
 
-	return packet, nil
+	return ParsePacketFromEventsV2(abciEvents)
 }
 
 // MsgRecvPacket sends a MsgRecvPacket on the associated endpoint with the provided packet.
