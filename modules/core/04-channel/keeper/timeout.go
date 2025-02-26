@@ -123,9 +123,6 @@ func (k *Keeper) TimeoutPacket(
 
 // timeoutExecuted deletes the commitment send from this chain after it verifies timeout.
 // If the timed-out packet came from an ORDERED channel then this channel will be closed.
-// If the channel is in the FLUSHING state and there is a counterparty upgrade, then the
-// upgrade will be aborted if the upgrade has timed out. Otherwise, if there are no more inflight packets,
-// then the channel will be set to the FLUSHCOMPLETE state.
 //
 // CONTRACT: this function must be called in the IBC handler
 func (k *Keeper) timeoutExecuted(
@@ -135,24 +132,8 @@ func (k *Keeper) timeoutExecuted(
 ) error {
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
-	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
-	if channel.State == types.FLUSHING && channel.Ordering == types.UNORDERED {
-		k.handleFlushState(ctx, packet, channel)
-	}
-
 	if channel.Ordering == types.ORDERED {
-		// NOTE: if the channel is ORDERED and a packet is timed out in FLUSHING state then
-		// all upgrade information is deleted and the channel is set to CLOSED.
-		if channel.State == types.FLUSHING {
-			k.deleteUpgradeInfo(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
-			k.Logger(ctx).Info(
-				"upgrade info deleted",
-				"port_id", packet.GetSourcePort(),
-				"channel_id", packet.GetSourceChannel(),
-				"upgrade_sequence", channel.UpgradeSequence,
-			)
-		}
-
+		// Close the channel since the packet timed-out and the channel is ORDERED
 		channel.State = types.CLOSED
 		k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
 		emitChannelClosedEvent(ctx, packet, channel)
@@ -183,7 +164,6 @@ func (k *Keeper) TimeoutOnClose(
 	closedProof []byte,
 	proofHeight exported.Height,
 	nextSequenceRecv uint64,
-	counterpartyUpgradeSequence uint64,
 ) (string, error) {
 	channel, found := k.GetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel())
 	if !found {
@@ -231,12 +211,11 @@ func (k *Keeper) TimeoutOnClose(
 
 	counterparty := types.NewCounterparty(packet.GetSourcePort(), packet.GetSourceChannel())
 	expectedChannel := types.Channel{
-		State:           types.CLOSED,
-		Ordering:        channel.Ordering,
-		Counterparty:    counterparty,
-		ConnectionHops:  counterpartyHops,
-		Version:         channel.Version,
-		UpgradeSequence: counterpartyUpgradeSequence,
+		State:          types.CLOSED,
+		Ordering:       channel.Ordering,
+		Counterparty:   counterparty,
+		ConnectionHops: counterpartyHops,
+		Version:        channel.Version,
 	}
 
 	// check that the opposing channel end has closed

@@ -2,7 +2,7 @@ package blsverifier
 
 /*
  * This custom query handler is used to aggregate public keys and verify a signature using BLS.
- * It is used by the 08-wasm union light client, which we we use in the solidity IBC Eureka e2e tests.
+ * It is used by the 08-wasm union light client, which we we use in the solidity IBC v2 e2e tests.
  * The code here is taken from here: https://github.com/unionlabs/union/tree/main/uniond/app/custom_query
  */
 import (

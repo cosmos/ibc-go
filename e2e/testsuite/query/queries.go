@@ -148,18 +148,6 @@ func PacketAcknowledgements(ctx context.Context, chain ibc.Chain, portID, channe
 	return res.Acknowledgements, nil
 }
 
-// UpgradeError queries the upgrade error on the given chain for the provided channel.
-func UpgradeError(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.ErrorReceipt, error) {
-	res, err := GRPCQuery[channeltypes.QueryUpgradeErrorResponse](ctx, chain, &channeltypes.QueryUpgradeErrorRequest{
-		PortId:    portID,
-		ChannelId: channelID,
-	})
-	if err != nil {
-		return channeltypes.ErrorReceipt{}, err
-	}
-	return res.ErrorReceipt, nil
-}
-
 // InterchainAccount queries the interchain account for the given owner and connectionID.
 func InterchainAccount(ctx context.Context, chain ibc.Chain, address, connectionID string) (string, error) {
 	res, err := GRPCQuery[controllertypes.QueryInterchainAccountResponse](ctx, chain, &controllertypes.QueryInterchainAccountRequest{

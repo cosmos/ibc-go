@@ -27,7 +27,7 @@ The callbacks middleware has no stable releases yet. To use it, you need to impo
 go get github.com/cosmos/ibc-go/modules/apps/callbacks@17cf1260a9cdc5292512acc9bcf6336ef0d917f4
 ```
 
-You can find the version matrix in [here](../../../../docs/04-middleware/02-callbacks/02-integration.md#importing-the-callbacks-middleware).
+You can find the version matrix in [here](../../../../docs/04-middleware/01-callbacks/02-integration.md#importing-the-callbacks-middleware).
 
 ## Configuring an application stack with the callbacks middleware
 

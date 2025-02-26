@@ -61,6 +61,27 @@ func NewMsgTransfer(
 	}
 }
 
+// NewMsgTransferWithEncoding creates a new MsgTransfer instance
+// with the provided encoding
+func NewMsgTransferWithEncoding(
+	sourcePort, sourceChannel string,
+	token sdk.Coin, sender, receiver string,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+	memo string, encoding string,
+) *MsgTransfer {
+	return &MsgTransfer{
+		SourcePort:       sourcePort,
+		SourceChannel:    sourceChannel,
+		Token:            token,
+		Sender:           sender,
+		Receiver:         receiver,
+		TimeoutHeight:    timeoutHeight,
+		TimeoutTimestamp: timeoutTimestamp,
+		Memo:             memo,
+		Encoding:         encoding,
+	}
+}
+
 // ValidateBasic performs a basic check of the MsgTransfer fields.
 // NOTE: timeout height or timestamp values can be 0 to disable the timeout.
 // NOTE: The recipient addresses format is not validated as the format defined by

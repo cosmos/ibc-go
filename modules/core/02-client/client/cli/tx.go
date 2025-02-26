@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"strconv"
@@ -20,6 +21,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clienttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
@@ -78,6 +80,40 @@ func newCreateClientCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+func newAddCounterpartyCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "add-counterparty [client-id] [counterparty-client-id] [merkle-prefix...]",
+		Short:   "add counterparty to client",
+		Example: fmt.Sprintf("%s tx ibc %s add-counterparty 07-tendermint-0 client-0 \"aWJj\" \"\"", version.AppName, types.SubModuleName),
+		Args:    cobra.MinimumNArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			clientID := args[0]
+			counterpartyClientID := args[1]
+
+			var merklePrefix [][]byte
+			for _, base64EncodedPathPart := range args[2:] {
+				pathPart, err := base64.StdEncoding.DecodeString(base64EncodedPathPart)
+				if err != nil {
+					return err
+				}
+				merklePrefix = append(merklePrefix, pathPart)
+			}
+
+			msg := clienttypesv2.NewMsgRegisterCounterparty(clientID, merklePrefix, counterpartyClientID, clientCtx.GetFromAddress().String())
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
