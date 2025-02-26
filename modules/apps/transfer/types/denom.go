@@ -142,7 +142,6 @@ func (d Denoms) Sort() Denoms {
 }
 
 // ExtractDenomFromPath returns the denom from the full path.
-// Used to support v1 denoms.
 func ExtractDenomFromPath(fullPath string) Denom {
 	denomSplit := strings.Split(fullPath, "/")
 

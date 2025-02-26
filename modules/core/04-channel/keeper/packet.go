@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"slices"
 	"strconv"
 
 	errorsmod "cosmossdk.io/errors"
@@ -109,21 +108,8 @@ func (k *Keeper) RecvPacket(
 		return "", errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
-		return "", errorsmod.Wrapf(types.ErrInvalidChannelState, "expected channel state to be one of [%s, %s, %s], but got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
-	}
-
-	// If counterpartyUpgrade is stored we need to ensure that the
-	// packet sequence is counterparty next sequence send. If the
-	// counterparty is implemented correctly, this may only occur
-	// when we are in FLUSHCOMPLETE and the counterparty has already
-	// completed the channel upgrade.
-	counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetDestPort(), packet.GetDestChannel())
-	if found {
-		counterpartyNextSequenceSend := counterpartyUpgrade.NextSequenceSend
-		if packet.GetSequence() >= counterpartyNextSequenceSend {
-			return "", errorsmod.Wrapf(types.ErrInvalidPacket, "cannot flush packet at sequence greater than or equal to counterparty next sequence send (%d) ≥ (%d).", packet.GetSequence(), counterpartyNextSequenceSend)
-		}
+	if channel.State != types.OPEN {
+		return "", errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
 	// packet must come from the channel's counterparty
@@ -283,8 +269,8 @@ func (k *Keeper) WriteAcknowledgement(
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE}, channel.State) {
-		return errorsmod.Wrapf(types.ErrInvalidChannelState, "expected one of [%s, %s, %s], got %s", types.OPEN, types.FLUSHING, types.FLUSHCOMPLETE, channel.State)
+	if channel.State != types.OPEN {
+		return errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
 	// REPLAY PROTECTION: The recvStartSequence will prevent historical proofs from allowing replay
@@ -355,8 +341,8 @@ func (k *Keeper) AcknowledgePacket(
 		)
 	}
 
-	if !slices.Contains([]types.State{types.OPEN, types.FLUSHING}, channel.State) {
-		return "", errorsmod.Wrapf(types.ErrInvalidChannelState, "packets cannot be acknowledged on channel with state (%s)", channel.State)
+	if channel.State != types.OPEN {
+		return "", errorsmod.Wrapf(types.ErrInvalidChannelState, "channel is not OPEN (got %s)", channel.State)
 	}
 
 	// packet must have been sent to the channel's counterparty
@@ -450,33 +436,5 @@ func (k *Keeper) AcknowledgePacket(
 	// emit an event marking that we have processed the acknowledgement
 	emitAcknowledgePacketEvent(ctx, packet, channel)
 
-	// if an upgrade is in progress, handling packet flushing and update channel state appropriately
-	if channel.State == types.FLUSHING {
-		k.handleFlushState(ctx, packet, channel)
-	}
-
 	return channel.Version, nil
-}
-
-// handleFlushState is called when a packet is acknowledged or timed out and the channel is in
-// FLUSHING state. It checks if the upgrade has timed out and if so, aborts the upgrade. If all
-// packets have completed their lifecycle, it sets the channel state to FLUSHCOMPLETE and
-// emits a channel_flush_complete event. Returns true if the upgrade was aborted, false otherwise.
-func (k *Keeper) handleFlushState(ctx sdk.Context, packet types.Packet, channel types.Channel) {
-	if counterpartyUpgrade, found := k.GetCounterpartyUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel()); found {
-		timeout := counterpartyUpgrade.Timeout
-		selfHeight, selfTimestamp := clienttypes.GetSelfHeight(ctx), uint64(ctx.BlockTime().UnixNano())
-
-		if timeout.Elapsed(selfHeight, selfTimestamp) {
-			// packet flushing timeout has expired, abort the upgrade
-			// committing an error receipt to state, deleting upgrade information and restoring the channel.
-			k.Logger(ctx).Info("upgrade aborted", "port_id", packet.GetSourcePort(), "channel_id", packet.GetSourceChannel(), "upgrade_sequence", channel.UpgradeSequence)
-			k.MustAbortUpgrade(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), timeout.ErrTimeoutElapsed(selfHeight, selfTimestamp))
-		} else if !k.HasInflightPackets(ctx, packet.GetSourcePort(), packet.GetSourceChannel()) {
-			// set the channel state to flush complete if all packets have been acknowledged/flushed.
-			channel.State = types.FLUSHCOMPLETE
-			k.SetChannel(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-			emitChannelFlushCompleteEvent(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), channel)
-		}
-	}
 }

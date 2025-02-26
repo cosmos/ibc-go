@@ -25,7 +25,7 @@ func GetCmdQueryDenom() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryV2Client(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx)
 
 			req := &types.QueryDenomRequest{
 				Hash: args[0],
@@ -57,7 +57,7 @@ func GetCmdQueryDenoms() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			queryClient := types.NewQueryV2Client(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx)
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {

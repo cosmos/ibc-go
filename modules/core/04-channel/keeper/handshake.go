@@ -367,7 +367,6 @@ func (k *Keeper) ChanCloseConfirm(
 	channelID string,
 	initProof []byte,
 	proofHeight exported.Height,
-	counterpartyUpgradeSequence uint64,
 ) error {
 	channel, found := k.GetChannel(ctx, portID, channelID)
 	if !found {
@@ -391,12 +390,11 @@ func (k *Keeper) ChanCloseConfirm(
 
 	counterparty := types.NewCounterparty(portID, channelID)
 	expectedChannel := types.Channel{
-		State:           types.CLOSED,
-		Ordering:        channel.Ordering,
-		Counterparty:    counterparty,
-		ConnectionHops:  counterpartyHops,
-		Version:         channel.Version,
-		UpgradeSequence: counterpartyUpgradeSequence,
+		State:          types.CLOSED,
+		Ordering:       channel.Ordering,
+		Counterparty:   counterparty,
+		ConnectionHops: counterpartyHops,
+		Version:        channel.Version,
 	}
 
 	if err := k.connectionKeeper.VerifyChannelState(
@@ -405,17 +403,6 @@ func (k *Keeper) ChanCloseConfirm(
 		expectedChannel,
 	); err != nil {
 		return err
-	}
-
-	// If the channel is closing during an upgrade, then we can delete all upgrade information.
-	if k.hasUpgrade(ctx, portID, channelID) {
-		k.deleteUpgradeInfo(ctx, portID, channelID)
-		k.Logger(ctx).Info(
-			"upgrade info deleted",
-			"port_id", portID,
-			"channel_id", channelID,
-			"upgrade_sequence", channel.UpgradeSequence,
-		)
 	}
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", channel.State, "new-state", types.CLOSED)

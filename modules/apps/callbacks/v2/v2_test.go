@@ -64,7 +64,7 @@ func (s *CallbacksTestSuite) setupChains() {
 	s.path = ibctesting.NewPath(s.chainA, s.chainB)
 }
 
-// SetupTransferTest sets up a eureka path between chainA and chainB
+// SetupTransferTest sets up a IBC v2 path between chainA and chainB
 func (s *CallbacksTestSuite) SetupTest() {
 	s.setupChains()
 
@@ -155,8 +155,8 @@ func GetExpectedEvent(
 	if callbackType == types.CallbackTypeReceivePacket {
 		callbackKey = types.DestinationCallbackKey
 	}
-	callbackData, err := types.GetCallbackData(packetData, version, eventPortID, remainingGas, maxCallbackGas, callbackKey)
-	if err != nil {
+	callbackData, isCbPacket, err := types.GetCallbackData(packetData, version, eventPortID, remainingGas, maxCallbackGas, callbackKey)
+	if !isCbPacket || err != nil {
 		return abci.Event{}, false
 	}
 
