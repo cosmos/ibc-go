@@ -4,7 +4,7 @@ module github.com/cosmos/ibc-go/v8
 
 retract (
 	// contain ASA-2025-004 vulnerability
-	[v8.0.0, v8.5.2]
+	[v8.0.0, v8.5.3]
 )
 
 require (
