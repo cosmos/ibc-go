@@ -188,10 +188,7 @@ func AssertEvents(
 
 	for i, expectedEvent := range expected {
 		for _, actualEvent := range actual {
-			// the actual event will have an extra attribute added automatically
-			// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
-			// with the number of attributes in the expected event.
-			if expectedEvent.Type == actualEvent.Type && (len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1) {
+			if shouldProcessEvent(expectedEvent, actualEvent) {
 				// multiple events with the same type may be emitted, only mark the expected event as found
 				// if all of the attributes match
 				attributeMatch := true
@@ -211,4 +208,34 @@ func AssertEvents(
 	for i, expectedEvent := range expected {
 		suite.Require().True(foundEvents[i], "event: %s was not found in events", expectedEvent.Type)
 	}
+}
+
+// shouldProcessEvent returns true if the given expected event should be processed based on event type.
+func shouldProcessEvent(expectedEvent abci.Event, actualEvent abci.Event) bool {
+	if expectedEvent.Type != actualEvent.Type {
+		return false
+	}
+	// the actual event will have an extra attribute added automatically
+	// by Cosmos SDK since v0.50, that's why we subtract 1 when comparing
+	// with the number of attributes in the expected event.
+	if containsAttributeKey(actualEvent.Attributes, "msg_index") {
+		return len(expectedEvent.Attributes) == len(actualEvent.Attributes)-1
+	}
+
+	return len(expectedEvent.Attributes) == len(actualEvent.Attributes)
+}
+
+// containsAttributeKey returns true if the given key is contained in the given attributes.
+func containsAttributeKey(attrs []abci.EventAttribute, key string) bool {
+	_, found := attributeByKey(attrs, key)
+	return found
+}
+
+// attributeByKey returns the event attribute's value keyed by the given key and a boolean indicating its presence in the given attributes.
+func attributeByKey(attributes []abci.EventAttribute, key string) (abci.EventAttribute, bool) {
+	idx := slices.IndexFunc(attributes, func(a abci.EventAttribute) bool { return a.Key == key })
+	if idx == -1 {
+		return abci.EventAttribute{}, false
+	}
+	return attributes[idx], true
 }

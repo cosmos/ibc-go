@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"strings"
@@ -188,6 +189,13 @@ func (im IBCModule) OnRecvPacket(
 		ackErr = errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal ICS-20 transfer packet data")
 		logger.Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
 		ack = channeltypes.NewErrorAcknowledgement(ackErr)
+	} else {
+		bz := data.GetBytes()
+		if !bytes.Equal(bz, packet.GetData()) {
+			ackErr = errorsmod.Wrapf(ibcerrors.ErrInvalidType, "packet data did not marshal to expected bytes: %X ≠ %X", bz, packet.GetData())
+			ack = channeltypes.NewErrorAcknowledgement(ackErr)
+			im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), packet.Sequence))
+		}
 	}
 
 	// only attempt the application logic if the packet data
@@ -242,6 +250,11 @@ func (im IBCModule) OnAcknowledgementPacket(
 	var data types.FungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
+	}
+
+	bz := types.ModuleCdc.MustMarshalJSON(&ack)
+	if !bytes.Equal(bz, acknowledgement) {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "acknowledgement did not marshal to expected bytes: %X ≠ %X", bz, acknowledgement)
 	}
 
 	if err := im.keeper.OnAcknowledgementPacket(ctx, packet, data, ack); err != nil {
