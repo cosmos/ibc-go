@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"strings"
@@ -252,7 +253,7 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Inter
 			return InternalTransferRepresentation{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
 		}
 	default:
-		return InternalTransferRepresentation{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid encoding provided, must be either empty or one of [%q, %q], got %s", EncodingJSON, EncodingProtobuf, encoding)
+		return InternalTransferRepresentation{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "invalid encoding provided, must be either empty or one of [%q, %q, %q], got %s", EncodingJSON, EncodingProtobuf, EncodingABI, encoding)
 	}
 
 	// When the unmarshaling is done, we want to retrieve the underlying data type based on the value of ics20Version
@@ -262,6 +263,13 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Inter
 	if !ok {
 		// We should never get here, as we manually constructed the type at the beginning of the file
 		return InternalTransferRepresentation{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot convert proto message into FungibleTokenPacketData")
+	}
+	bz2, err := MarshalPacketData(*datav1, ics20Version, encoding)
+	if err != nil {
+		return InternalTransferRepresentation{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot marshal transfer packet data: %s", err.Error())
+	}
+	if !bytes.Equal(bz, bz2) {
+		return InternalTransferRepresentation{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "marshaled bytes are not equal: got %X, expected %X", bz2, bz)
 	}
 	// The call to ValidateBasic for V1 is done inside PacketDataV1toV2.
 	return PacketDataV1ToV2(*datav1)

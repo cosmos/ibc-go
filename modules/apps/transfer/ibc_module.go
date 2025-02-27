@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"slices"
@@ -229,6 +230,11 @@ func (im IBCModule) OnAcknowledgementPacket(
 	data, err := types.UnmarshalPacketData(packet.GetData(), channelVersion, "")
 	if err != nil {
 		return err
+	}
+
+	bz := types.ModuleCdc.MustMarshalJSON(&ack)
+	if !bytes.Equal(bz, acknowledgement) {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "acknowledgement did not marshal to expected bytes: %X ≠ %X", bz, acknowledgement)
 	}
 
 	if err := im.keeper.OnAcknowledgementPacket(ctx, packet.SourcePort, packet.SourceChannel, data, ack); err != nil {
