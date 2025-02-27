@@ -2,7 +2,7 @@ go 1.19
 
 retract (
 	// contains ASA-2025-004
-	[v7.0.0, v7.8.0]
+	[v7.0.0, v7.9.0]
 )
 
 module github.com/cosmos/ibc-go/v7
