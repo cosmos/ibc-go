@@ -34,17 +34,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v7.9.0](https://github.com/cosmos/ibc-go/releases/tag/v7.9.0) - 2025-02-27
 
-### Dependencies
-
-### API Breaking
-
-### State Machine Breaking
-
-### Improvements
-
-### Features
+- [ASA-2025-004](https://github.com/cosmos/ibc-go/security/advisories/GHSA-jg6f-48ff-5xrw) Fix ASA-2025-004
 
 ### Bug Fixes
 
