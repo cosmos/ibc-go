@@ -3,14 +3,8 @@ go 1.21
 module github.com/cosmos/ibc-go/v8
 
 retract (
-	// contained state-incompatible changes
-	v8.5.3
-	// contain bug in channel upgradability that can result
-	// in a channel upgrade succeeding but with channel ends
-	// in incompatible state
-	[v8.2.0, v8.3.2]
-	// contain ASA-2024-007 vulnerability
-	[v8.0.0, v8.1.1]
+	// contain ASA-2025-004 vulnerability
+	[v8.0.0, v8.5.2]
 )
 
 require (
