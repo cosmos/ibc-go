@@ -102,7 +102,7 @@ jobs:
       - name: Extract metadata (tags, labels) for Docker
         if: ${{ inputs.build-and-push-docker-image }}
         id: meta
-        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804
         with:
           images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
 
@@ -149,7 +149,7 @@ jobs:
       - name: Extract metadata (tags, labels) for Docker
         if: ${{ inputs.build-and-push-docker-image-wasm }}
         id: meta
-        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804
         with:
           images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME_WASM }}
 
