@@ -29,12 +29,8 @@ on:
         options:
           - main
           - v10.0.0
-          - v8.5.0
-          - v8.4.0
-          - v7.7.0
-          - v7.6.0
-          - v7.5.0
-          - v7.4.0
+          - v8.6.1
+          - v7.9.2
       chain-a-tag-override:
         description: 'Specify an arbitrary tag for chain A'
         required: false
@@ -47,12 +43,8 @@ on:
         options:
           - main
           - v10.0.0
-          - v8.5.0
-          - v8.4.0
-          - v7.7.0
-          - v7.6.0
-          - v7.5.0
-          - v7.4.0
+          - v8.6.1
+          - v7.9.2
       chain-b-tag-override:
         description: 'Specify an arbitrary tag for chain B'
         required: false
