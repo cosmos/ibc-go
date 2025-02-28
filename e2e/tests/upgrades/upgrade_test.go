@@ -409,6 +409,10 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 		s.UpgradeChain(ctx, chainA.(*cosmos.CosmosChain), chainAUpgradeProposalWallet, testCfg.GetUpgradeConfig().PlanName, testCfg.ChainConfigs[0].Tag, testCfg.GetUpgradeConfig().Tag)
 	})
 
+	// The reflection service is now available for chainA, so need to populate the query paths
+	err = query.PopulateQueryReqToPath(ctx, chainA)
+	s.Require().NoError(err)
+
 	// see this issue https://github.com/informalsystems/hermes/issues/3579
 	// this restart is a temporary workaround to a limitation in hermes requiring a restart
 	// in some cases after an upgrade.

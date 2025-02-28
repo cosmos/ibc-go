@@ -382,6 +382,8 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 		s.AssertTxSuccess(transferTxResp)
 	})
 
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+
 	t.Run("packets relayed", func(t *testing.T) {
 		// test that chainA has the entire balance back of its native token.
 		s.AssertPacketRelayed(ctx, chainB, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
