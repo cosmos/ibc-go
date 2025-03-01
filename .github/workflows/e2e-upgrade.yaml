@@ -40,8 +40,8 @@ jobs:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-a-tag: v7.0.0
-      chain-b-tag: v7.0.0
+      chain-a-tag: v7.9.2
+      chain-b-tag: v7.9.2
       upgrade-plan-name: "v8"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV7ToV8ChainUpgrade"
@@ -62,8 +62,8 @@ jobs:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-a-tag: v8.5.0
-      chain-b-tag: v8.5.0
+      chain-a-tag: v8.6.1
+      chain-b-tag: v8.6.1
       upgrade-plan-name: "v10"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV8ToV10ChainUpgrade"
@@ -73,8 +73,8 @@ jobs:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-a-tag: v8.4.0
-      chain-b-tag: v8.4.0
+      chain-a-tag: v8.6.1
+      chain-b-tag: v8.6.1
       upgrade-plan-name: "v10"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV8ToV10ChainUpgrade_Localhost"

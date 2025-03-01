@@ -120,6 +120,10 @@ func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.Cosmo
 	s.Require().NoError(err, "error fetching height after upgrade")
 
 	s.Require().Greater(height, haltHeight, "height did not increment after upgrade")
+
+	// In case the query paths have changed after the upgrade, we need to repopulate them
+	err = query.PopulateQueryReqToPath(ctx, chain)
+	s.Require().NoError(err, "error populating query paths after upgrade")
 }
 
 func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
