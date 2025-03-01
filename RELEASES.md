@@ -69,13 +69,8 @@ We reserve the right to drop support for releases if they are deemed unused (for
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v7.4.x`|March 17, 2025|
-|`v7.5.x`|March 17, 2025|
-|`v7.6.x`|March 17, 2025|
-|`v7.7.x`|March 17, 2025|
-|`v7.8.x`|March 17, 2025|
-|`v8.4.x`|May 10, 2025|
-|`v8.5.x`|May 10, 2025|
+|`v7.9.x`|March 17, 2025|
+|`v8.6.x`|May 10, 2025|
 
 ### Callbacks middleware
 
@@ -124,13 +119,8 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 
 | Go | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|--------|------------|---------------------|
-| 1.19 | v7.4.0 | v0.47.8  | v0.37.4  |
-| 1.19 | v7.5.0 | v0.47.11 | v0.37.5  |
-| 1.19 | v7.6.0 | v0.47.12 | v0.37.5  |
-| 1.19 | v7.7.0 | v0.47.13 | v0.37.5  |
-| 1.19 | v7.8.0 | v0.47.13 | v0.37.5  |
-| 1.21 | v8.4.0 | v0.50.7  | v0.38.7  |
-| 1.21 | v8.5.0 | v0.50.9  | v0.38.11 |
+| 1.19 | v7.9.0 | v0.47.13 | v0.37.5  |
+| 1.21 | v8.6.0 | v0.50.9  | v0.38.11 |
 
 ### Callbacks middleware
 
@@ -145,7 +135,7 @@ Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by callbacks middleware
 
 Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by `08-wasm` module in the currently active releases:
 
-| Go | callbacks | ibc-go | Cosmos SDK | Tendermint/CometBFT |
+| Go | 08-wasm | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|-----------|--------|------------|---------------------|
 | 1.19 | v0.3.1+ibc-go-v7.4-wasmvm-v1.5 | v7.4.0 | v0.47.8 | v0.37.4 |
 | 1.21 | v0.4.1+ibc-go-v8.4-wasmvm-v2.0 | v8.4.0 | v0.50.7 | v0.38.9 |

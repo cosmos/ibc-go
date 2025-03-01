@@ -3,6 +3,7 @@ package query
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
@@ -12,11 +13,16 @@ import (
 
 	msgv1 "cosmossdk.io/api/cosmos/msg/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
+
+	"github.com/cosmos/ibc-go/e2e/testvalues"
 )
 
 var queryReqToPath = make(map[string]string)
 
 func PopulateQueryReqToPath(ctx context.Context, chain ibc.Chain) error {
+	if !testvalues.ReflectionServiceFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
+		return nil
+	}
 	resp, err := queryFileDescriptors(ctx, chain)
 	if err != nil {
 		return err
@@ -43,9 +49,19 @@ func PopulateQueryReqToPath(ctx context.Context, chain ibc.Chain) error {
 
 // GRPCQuery queries the chain with a query request and deserializes the response to T
 func GRPCQuery[T any](ctx context.Context, chain ibc.Chain, req proto.Message, opts ...grpc.CallOption) (*T, error) {
-	path, ok := queryReqToPath[proto.MessageName(req)]
-	if !ok {
-		return nil, fmt.Errorf("no path found for %s", proto.MessageName(req))
+	var path string
+	if testvalues.ReflectionServiceFeatureReleases.IsSupported(chain.Config().Images[0].Version) {
+		var ok bool
+		path, ok = queryReqToPath[proto.MessageName(req)]
+		if !ok {
+			return nil, fmt.Errorf("no path found for %s", proto.MessageName(req))
+		}
+	} else {
+		var err error
+		path, err = getProtoPath(req)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return grpcQueryWithMethod[T](ctx, chain, req, path, opts...)
@@ -95,4 +111,51 @@ func queryFileDescriptors(ctx context.Context, chain ibc.Chain) (*reflectionv1.F
 	}
 
 	return resp, nil
+}
+
+// TODO: Remove all of the below when v6 -> v7 upgrade is not supported anymore:
+func getProtoPath(req proto.Message) (string, error) {
+	typeURL := "/" + proto.MessageName(req)
+
+	switch {
+	case strings.Contains(typeURL, "Query"):
+		return getQueryProtoPath(typeURL)
+	case strings.Contains(typeURL, "cosmos.base.tendermint"):
+		return getCmtProtoPath(typeURL)
+	default:
+		return "", fmt.Errorf("unsupported typeURL: %s", typeURL)
+	}
+}
+
+func getQueryProtoPath(queryTypeURL string) (string, error) {
+	queryIndex := strings.Index(queryTypeURL, "Query")
+	if queryIndex == -1 {
+		return "", fmt.Errorf("invalid typeURL: %s", queryTypeURL)
+	}
+
+	// Add to the index to account for the length of "Query"
+	queryIndex += len("Query")
+
+	// Add a slash before the query
+	urlWithSlash := queryTypeURL[:queryIndex] + "/" + queryTypeURL[queryIndex:]
+	if !strings.HasSuffix(urlWithSlash, "Request") {
+		return "", fmt.Errorf("invalid typeURL: %s", queryTypeURL)
+	}
+
+	return strings.TrimSuffix(urlWithSlash, "Request"), nil
+}
+
+func getCmtProtoPath(cmtTypeURL string) (string, error) {
+	cmtIndex := strings.Index(cmtTypeURL, "Get")
+	if cmtIndex == -1 {
+		return "", fmt.Errorf("invalid typeURL: %s", cmtTypeURL)
+	}
+
+	// Add a slash before the commitment
+	urlWithSlash := cmtTypeURL[:cmtIndex] + "Service/" + cmtTypeURL[cmtIndex:]
+	if !strings.HasSuffix(urlWithSlash, "Request") {
+		return "", fmt.Errorf("invalid typeURL: %s", cmtTypeURL)
+	}
+
+	return strings.TrimSuffix(urlWithSlash, "Request"), nil
 }

@@ -171,15 +171,6 @@ jobs:
       test-file: "e2e/tests/interchain_accounts/query_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-upgrade-test:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/interchain_accounts/upgrades_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-
   transfer-base-test-a:
     needs:
       - build-release-images
