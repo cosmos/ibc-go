@@ -13,13 +13,8 @@ on:
         required: true
         type: choice
         options:
-          - release/v7.4.x
-          - release/v7.5.x
-          - release/v7.6.x
-          - release/v7.7.x
-          - release/v7.8.x
-          - release/v8.4.x
-          - release/v8.5.x
+          - release/v7.9.x
+          - release/v8.6.x
           - release/v10.0.x
           - main
       ibc-go-version:
@@ -54,13 +49,8 @@ jobs:
     strategy:
       matrix:
         release-branch:
-          - release/v7.4.x
-          - release/v7.5.x
-          - release/v7.6.x
-          - release/v7.7.x
-          - release/v7.8.x
-          - release/v8.4.x
-          - release/v8.5.x
+          - release/v7.9.x
+          - release/v8.6.x
           - release/v10.0.x
           - main
     steps:
