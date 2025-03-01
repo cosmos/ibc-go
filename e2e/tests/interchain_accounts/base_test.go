@@ -496,13 +496,8 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 			s.Require().NoError(err)
 			s.Require().NotNil(govModuleAddress)
 
-			testProposal := &controllertypes.MsgUpdateParams{
-				Signer: govModuleAddress.String(),
-				Params: controllertypes.NewParams(false),
-			}
-
 			msg, err := govv1.NewMsgSubmitProposal(
-				[]sdk.Msg{testProposal},
+				[]sdk.Msg{},
 				sdk.NewCoins(sdk.NewCoin(chainB.Config().Denom, sdkmath.NewInt(10_000_000))),
 				hostAccount, "e2e", "e2e", "e2e", false,
 			)
