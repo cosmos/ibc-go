@@ -29,8 +29,8 @@ jobs:
     uses: ./.github/workflows/e2e-test-workflow-call.yml
     with:
       chain-image: ghcr.io/cosmos/ibc-go-simd
-      chain-a-tag: v7.9.2
-      chain-b-tag: v7.9.2
+      chain-a-tag: v7.0.0
+      chain-b-tag: v7.0.0
       upgrade-plan-name: "v7.1"
       test-entry-point:  "TestUpgradeTestSuite"
       test: "TestV7ToV7_1ChainUpgrade"
