@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 
+	"github.com/cosmos/gogoproto/proto"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -14,6 +15,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
 // ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
@@ -250,4 +252,46 @@ func attributeByKey(attributes []abci.EventAttribute, key string) (abci.EventAtt
 		return abci.EventAttribute{}, false
 	}
 	return attributes[idx], true
+}
+
+// ParsePacketFromEventsV2 parses events emitted from a send packet and returns
+// the first EventTypeSendPacket packet found.
+// Returns an error if no packet is found.
+func ParsePacketFromEventsV2(events []abci.Event) (channeltypesv2.Packet, error) {
+	packets, err := ParsePacketsFromEventsV2(channeltypesv2.EventTypeSendPacket, events)
+	if err != nil {
+		return channeltypesv2.Packet{}, err
+	}
+	return packets[0], nil
+}
+
+// ParsePacketsFromEventsV2 parses events emitted from a MsgSendPacket and returns
+// all the packets found.
+// Returns an error if no packet is found.
+func ParsePacketsFromEventsV2(eventType string, events []abci.Event) ([]channeltypesv2.Packet, error) {
+	ferr := func(err error) ([]channeltypesv2.Packet, error) {
+		return nil, fmt.Errorf("ibctesting.ParsePacketsFromEventsV2: %w", err)
+	}
+	var packets []channeltypesv2.Packet
+	for _, event := range events {
+		if event.Type == eventType {
+			for _, attr := range event.Attributes {
+				if string(attr.Key) == "packet_hex" {
+					packetBytes, err := hex.DecodeString(string(attr.Value))
+					if err != nil {
+						return ferr(fmt.Errorf("failed to decode packet bytes: %w", err))
+					}
+					var packet channeltypesv2.Packet
+					if err := proto.Unmarshal(packetBytes, &packet); err != nil {
+						return ferr(fmt.Errorf("failed to unmarshal packet: %w", err))
+					}
+					packets = append(packets, packet)
+				}
+			}
+		}
+	}
+	if len(packets) == 0 {
+		return ferr(errors.New("packet not found in events"))
+	}
+	return packets, nil
 }
