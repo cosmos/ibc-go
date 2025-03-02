@@ -78,8 +78,8 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
-	ibccallbacksv2 "github.com/cosmos/ibc-go/modules/apps/callbacks/v2"
+	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks/v10"
+	ibccallbacksv2 "github.com/cosmos/ibc-go/modules/apps/callbacks/v10/v2"
 	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"

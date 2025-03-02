@@ -1,4 +1,4 @@
-module github.com/cosmos/ibc-go/modules/apps/callbacks
+module github.com/cosmos/ibc-go/modules/apps/callbacks/v10
 
 go 1.23.6
 

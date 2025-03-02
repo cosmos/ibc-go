@@ -1,4 +1,4 @@
-module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier
+module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier/v10
 
 go 1.23.6
 
