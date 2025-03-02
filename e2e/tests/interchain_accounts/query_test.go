@@ -35,7 +35,7 @@ type InterchainAccountsQueryTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// compatibility:TestInterchainAccountsQuery:from_versions: v7.5.0,v7.6.0,v7.7.0,v7.8.0,v8.4.0,v8.5.0,v10.0.0
+// compatibility:TestInterchainAccountsQuery:from_versions: v7.5.0,v7.6.0,v7.7.0,v7.8.0,v7.9.0,v8.4.0,v8.5.0,v8.6.0,v10.0.0
 func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	t := s.T()
 	ctx := context.TODO()
