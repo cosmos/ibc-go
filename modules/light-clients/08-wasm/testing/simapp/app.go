@@ -106,10 +106,17 @@ import (
 	cmtos "github.com/cometbft/cometbft/libs/os"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
+<<<<<<< HEAD
 	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier"
 	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+=======
+	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/blsverifier"
+	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+>>>>>>> 05e846da (chore: move blsverifier to 08-wasm (#8091))
 	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"

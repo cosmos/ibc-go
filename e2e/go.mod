@@ -238,9 +238,13 @@ require (
 // uncomment to use the local version of ibc-go, you will need to run `go mod tidy` in e2e directory.
 replace github.com/cosmos/ibc-go/v10 => ../
 
+<<<<<<< HEAD
 replace (
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm => ../modules/light-clients/08-wasm
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier => ../modules/light-clients/08-wasm/blsverifier
 )
+=======
+replace github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => ../modules/light-clients/08-wasm
+>>>>>>> 05e846da (chore: move blsverifier to 08-wasm (#8091))
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
