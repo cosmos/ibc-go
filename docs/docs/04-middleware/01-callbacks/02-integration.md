@@ -21,18 +21,9 @@ For Cosmos SDK chains this setup is done via the `app/app.go` file, where module
 
 ## Importing the callbacks middleware
 
-The callbacks middleware has no stable releases yet. To use it, you need to import the git commit that contains the module with the compatible version of `ibc-go`. To do so, run the following command with the desired git commit in your project:
-
 ```sh
-go get github.com/cosmos/ibc-go/modules/apps/callbacks@342c00b0f8bd7feeebf0780f208a820b0faf90d1
+go get github.com/cosmos/ibc-go/modules/apps/callbacks/v10
 ```
-
-The following table shows the compatibility matrix between the callbacks middleware, `ibc-go`.
-
-|      **Version**     |         **Git commit to import**         |
-|:--------------------:|:----------------------------------------:|
-| `v0.2.0+ibc-go-v8.0` | 342c00b0f8bd7feeebf0780f208a820b0faf90d1 |
-| `v0.1.0+ibc-go-v7.3` | 17cf1260a9cdc5292512acc9bcf6336ef0d917f4 |
 
 ## Configuring an application stack with the callbacks middleware
 

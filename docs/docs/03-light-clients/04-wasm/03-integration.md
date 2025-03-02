@@ -14,15 +14,8 @@ Learn how to integrate the `08-wasm` module in a chain binary and about the reco
 `08-wasm` has no stable releases yet. To use it, you need to import the git commit that contains the module with the compatible versions of `ibc-go` and `wasmvm`. To do so, run the following command with the desired git commit in your project:
 
 ```sh
-go get github.com/cosmos/ibc-go/modules/light-clients/08-wasm@7ee2a2452b79d0bc8316dc622a1243afa058e8cb
+go get github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10
 ```
-
-The following table shows the compatibility matrix between the `08-wasm` module, `ibc-go`, and `wasmvm`.
-
-|            **Version**           |         **Git commit to import**         |
-|:--------------------------------:|:----------------------------------------:|
-| `v0.4.1+ibc-go-v8.4-wasmvm-v2.0` | ccd4dc278e720be87418028026ebd93a80fa5ac0 |
-| `v0.3.1+ibc-go-v7.4-wasmvm-v1.5` | 13c071f0b34d67342f0b7a8874d84d2e68b887e1 |
 
 ## `app.go` setup
 
@@ -36,9 +29,9 @@ import (
 
   cmtos "github.com/cometbft/cometbft/libs/os"
 
-  ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+  ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
+  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
   ...
 )
 
@@ -169,8 +162,8 @@ import (
   wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
   wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
-  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
   ...
 )
 
@@ -248,8 +241,8 @@ import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
 
-  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
   ...
 )
 
@@ -349,7 +342,7 @@ If the chain's 02-client submodule parameter `AllowedClients` contains the singl
 ```go
 import (
   ...
-  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
   ...
 )
 
