@@ -12,7 +12,7 @@ require (
 	github.com/cometbft/cometbft v0.38.15
 	github.com/cosmos/cosmos-sdk v0.50.11
 	github.com/cosmos/gogoproto v1.7.0
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm v0.0.0-00010101000000-000000000000
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.0.0
 	github.com/cosmos/ibc-go/v10 v10.0.0
 	github.com/docker/docker v27.3.1+incompatible
 	github.com/pelletier/go-toml v1.9.5
@@ -239,8 +239,8 @@ require (
 replace github.com/cosmos/ibc-go/v10 => ../
 
 replace (
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm => ../modules/light-clients/08-wasm
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier => ../modules/light-clients/08-wasm/blsverifier
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier/v10 => ../modules/light-clients/08-wasm/blsverifier
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => ../modules/light-clients/08-wasm
 )
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7

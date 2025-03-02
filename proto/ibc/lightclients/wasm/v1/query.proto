@@ -4,7 +4,7 @@ package ibc.lightclients.wasm.v1;
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 
-option go_package = "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types";
+option go_package = "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types";
 
 // Query service for wasm module
 service Query {

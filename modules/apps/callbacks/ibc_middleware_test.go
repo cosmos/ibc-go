@@ -9,10 +9,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/internal"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
+	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks/v10"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/v10/internal"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/v10/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/apps/callbacks/v10/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
