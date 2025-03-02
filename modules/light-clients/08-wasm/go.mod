@@ -2,10 +2,7 @@ module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10
 
 go 1.23.6
 
-replace (
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier/v10 => ./blsverifier
-	github.com/cosmos/ibc-go/v10 => ../../../
-)
+replace github.com/cosmos/ibc-go/v10 => ../../../
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
@@ -29,10 +26,10 @@ require (
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-sdk v0.50.11
 	github.com/cosmos/gogoproto v1.7.0
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier/v10 v10.0.0
 	github.com/cosmos/ibc-go/v10 v10.0.0
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
+	github.com/prysmaticlabs/prysm/v5 v5.2.0
 	github.com/spf13/cast v1.7.1
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
@@ -171,7 +168,6 @@ require (
 	github.com/prysmaticlabs/fastssz v0.0.0-20241008181541-518c4ce73516 // indirect
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20240328144219-a1caa50c3a1e // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b // indirect
-	github.com/prysmaticlabs/prysm/v5 v5.2.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/rs/cors v1.11.1 // indirect
