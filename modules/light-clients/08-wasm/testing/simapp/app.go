@@ -106,8 +106,8 @@ import (
 	cmtos "github.com/cometbft/cometbft/libs/os"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier/v10"
 	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/blsverifier"
 	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
 	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
