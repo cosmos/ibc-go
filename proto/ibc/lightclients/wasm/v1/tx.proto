@@ -1,7 +1,7 @@
 syntax = "proto3";
 package ibc.lightclients.wasm.v1;
 
-option go_package = "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types";
+option go_package = "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types";
 
 import "cosmos/msg/v1/msg.proto";
 

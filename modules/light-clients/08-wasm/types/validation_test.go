@@ -8,8 +8,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
