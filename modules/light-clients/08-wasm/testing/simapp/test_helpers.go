@@ -25,10 +25,10 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 )
 
-func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint, mockVM wasmtypes.WasmEngine) (*SimApp, GenesisState) {
+func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint, mockVM ibcwasmtypes.WasmEngine) (*SimApp, GenesisState) {
 	tb.Helper()
 
 	db := dbm.NewMemDB()
@@ -54,7 +54,7 @@ func setup(tb testing.TB, chainID string, withGenesis bool, invCheckPeriod uint,
 }
 
 // SetupWithEmptyStore set up a simapp instance with empty DB
-func SetupWithEmptyStore(tb testing.TB, mockVM wasmtypes.WasmEngine) *SimApp {
+func SetupWithEmptyStore(tb testing.TB, mockVM ibcwasmtypes.WasmEngine) *SimApp {
 	tb.Helper()
 
 	app, _ := setup(tb, "", false, 0, mockVM)
@@ -65,7 +65,7 @@ func SetupWithEmptyStore(tb testing.TB, mockVM wasmtypes.WasmEngine) *SimApp {
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
-func SetupWithGenesisValSetSnapshotter(t *testing.T, mockVM wasmtypes.WasmEngine, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *SimApp {
+func SetupWithGenesisValSetSnapshotter(t *testing.T, mockVM ibcwasmtypes.WasmEngine, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *SimApp {
 	t.Helper()
 
 	app, genesisState := setup(t, "", true, 5, mockVM)
@@ -87,7 +87,7 @@ func SetupWithGenesisValSetSnapshotter(t *testing.T, mockVM wasmtypes.WasmEngine
 }
 
 // SetupWithSnapshotter initializes a new SimApp with a configured snapshot db. A Nop logger is set in SimApp.
-func SetupWithSnapshotter(t *testing.T, mockVM wasmtypes.WasmEngine) *SimApp {
+func SetupWithSnapshotter(t *testing.T, mockVM ibcwasmtypes.WasmEngine) *SimApp {
 	t.Helper()
 
 	privVal := cmttypes.NewMockPV()
