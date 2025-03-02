@@ -2,14 +2,10 @@ module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10
 
 go 1.23.6
 
-<<<<<<< HEAD
-replace github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier => github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier v0.0.0-20250302170719-832cd27a96ee
-=======
 replace (
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier/v10 => ./blsverifier
 	github.com/cosmos/ibc-go/v10 => ../../../
 )
->>>>>>> 9cb568d0 (chore: change modules to follow ibc-go version (#8089))
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
@@ -33,13 +29,8 @@ require (
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-sdk v0.50.11
 	github.com/cosmos/gogoproto v1.7.0
-<<<<<<< HEAD
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier v0.0.0
-	github.com/cosmos/ibc-go/v10 v10.0.0-rc.1
-=======
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier/v10 v10.0.0
 	github.com/cosmos/ibc-go/v10 v10.0.0
->>>>>>> 9cb568d0 (chore: change modules to follow ibc-go version (#8089))
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cast v1.7.1

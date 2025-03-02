@@ -370,10 +370,6 @@ github.com/cosmos/gogoproto v1.7.0 h1:79USr0oyXAbxg3rspGh/m4SWNyoz/GLaAh0QlCe2fr
 github.com/cosmos/gogoproto v1.7.0/go.mod h1:yWChEv5IUEYURQasfyBW5ffkMHR/90hiHgbNgrtp4j0=
 github.com/cosmos/iavl v1.2.2 h1:qHhKW3I70w+04g5KdsdVSHRbFLgt3yY3qTMd4Xa4rC8=
 github.com/cosmos/iavl v1.2.2/go.mod h1:GiM43q0pB+uG53mLxLDzimxM9l/5N9UuSY3/D0huuVw=
-github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier v0.0.0-20250302170719-832cd27a96ee h1:kejiV61eXlWyYn/2s/N2/QLOySqPj8SO3cwS7VC3lRk=
-github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier v0.0.0-20250302170719-832cd27a96ee/go.mod h1:G22E25VpQ6ctcDNeZYY7F2k+yR/4eLDUSO0Lxb5WjA0=
-github.com/cosmos/ibc-go/v10 v10.0.0-rc.1 h1:oDR618vXOWso0VF+D9dSOfFhYAliD1LRkskQyP7rS5w=
-github.com/cosmos/ibc-go/v10 v10.0.0-rc.1/go.mod h1:ikF0o+cl0V7jwwe74fceRD5N2T7yfpRZju2fVJDdcu8=
 github.com/cosmos/ics23/go v0.11.0 h1:jk5skjT0TqX5e5QJbEnwXIS2yI2vnmLOgpQPeM5RtnU=
 github.com/cosmos/ics23/go v0.11.0/go.mod h1:A8OjxPE67hHST4Icw94hOxxFEJMBG031xIGF/JHNIY0=
 github.com/cosmos/ledger-cosmos-go v0.13.3 h1:7ehuBGuyIytsXbd4MP43mLeoN2LTOEnk5nvue4rK+yM=
