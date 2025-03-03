@@ -29,7 +29,7 @@ WASM_IMPORT = "github.com/CosmWasm/wasmvm/v2"
 
 
 def _get_wasm_version(wasm_go_mod_path: str) -> str:
-    """get the version of the cosm wasm module from the go.mod file"""
+    """Get the version of the CosmWasm module from the go.mod file"""
     with open(wasm_go_mod_path, "r") as f:
         for line in f:
             if WASM_IMPORT in line:
@@ -38,7 +38,7 @@ def _get_wasm_version(wasm_go_mod_path: str) -> str:
 
 
 def _get_wasm_lib_checksum(wasm_version: str, wasm_lib: str) -> str:
-    """get the checksum of the wasm library for the given version"""
+    """Get the checksum of the wasm library for the given version"""
     checksums_url = f"https://github.com/CosmWasm/wasmvm/releases/download/{wasm_version}/checksums.txt"
     resp = requests.get(checksums_url)
     resp.raise_for_status()
@@ -51,7 +51,7 @@ def _get_wasm_lib_checksum(wasm_version: str, wasm_lib: str) -> str:
 
 
 def _extract_wasm_version(line: str) -> str:
-    """extract the version from a line in the go.mod file"""
+    """Extract the version from a line in the go.mod file"""
     return line.split(" ")[1].strip()
 
 
