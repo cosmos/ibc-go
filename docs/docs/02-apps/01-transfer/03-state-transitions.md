@@ -2,8 +2,12 @@
 title: State Transitions
 sidebar_label: State Transitions
 sidebar_position: 3
-slug: /apps/transfer/state-transitions
+slug: /apps/transfer/ics20-v1/state-transitions
 ---
+
+:::warning
+This document is relevant only for fungible token transfers over channels on v1 of the ICS-20 protocol.
+:::
 
 # State transitions
 

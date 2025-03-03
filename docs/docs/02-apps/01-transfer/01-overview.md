@@ -2,8 +2,12 @@
 title: Overview
 sidebar_label: Overview
 sidebar_position: 1
-slug: /apps/transfer/overview
+slug: /apps/transfer/ics20-v1/overview
 ---
+
+:::warning
+This document is relevant only for fungible token transfers over channels on v1 of the ICS-20 protocol.
+:::
 
 # Overview
 
@@ -111,49 +115,6 @@ chain #1 -> ... -> chain #(n-1) -> final chain`). These services could provide m
 :::tip
 The only viable alternative for clients (at the time of writing) to tokens with multiple connection hops, is to connect to all chains directly and perform relevant queries to each of them in the sequence.
 :::
-
-## Forwarding
-
-:::info
-Token forwarding and unwinding is supported only on ICS20 v2 transfer channels.
-:::
-
-Forwarding allows tokens to be routed to a final destination through multiple (up to 8) intermediary
-chains. With forwarding, it's also possible to unwind IBC vouchers to their native chain, and forward 
-them afterwards to another destination, all with just a single transfer transaction on the sending chain.
-
-### Forward tokens
-
-Native tokens or IBC vouchers on any chain can be forwarded through intermediary chains to reach their 
-final destination. For example, given the topology below, with 3 chains and a transfer channel between
-chains A and B and between chains B and C:
-
-![Light Mode Forwarding](./images/forwarding-3-chains-light.png#gh-light-mode-only)![Dark Mode Forwarding](./images/forwarding-3-chains-dark.png#gh-dark-mode-only)
-
-Native tokens on chain `A` can be sent to chain `C` through chain `B`. The routing is specified by the 
-source port ID and channel ID of choice on every intermediary chain. In this example, there is only one
-forwarding hop on chain `B` and the port ID, channel ID pair is `transfer`, `channelBToC`. Forwarding of 
-a multi-denom collections of tokens is also allowed (i.e. forwarding of tokens of different denominations).
-
-### Unwind tokens
-
-Taking again as an example the topology from the previous section, we assume that native tokens on chain `A`
-have been transferred to chain `C`. The IBC vouchers on chain `C` have the denomination trace
-`transfer/channelCtoB/transfer/channelBtoA`, and with forwarding it is possible to submit a transfer message 
-on chain `C` and automatically unwind the vouchers through chain `B` to chain `A`, so that the tokens recovered
-on the origin chain regain their native denomination. In order to execute automatic unwinding, the transfer
-module does not require extra user input: the unwind route is encoded in the denomination trace with the 
-pairs of destination port ID, channel ID that are added on every chain where the tokens are received.
-
-Please note that unwinding of vouchers is only allowed when vouchers transferred all share the same denomination
-trace (signifying coins that all originate from the same source). It is not possible to unwind vouchers of two different 
-IBC denominations, since they come from different source chains.
-
-### Unwind tokens and then forward
-
-Unwinding and forwarding can be used in combination, so that vouchers are first unwound to their origin chain
-and then forwarded to a final destination. The same restriction as in the unwinding case applies: only vouchers
-of a single IBC denomination can be used.
 
 ## Locked funds
 

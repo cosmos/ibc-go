@@ -2,8 +2,12 @@
 title: State
 sidebar_label: State
 sidebar_position: 2
-slug: /apps/transfer/state
+slug: /apps/transfer/ics20-v1/state
 ---
+
+:::warning
+This document is relevant only for fungible token transfers over channels on v1 of the ICS-20 protocol.
+:::
 
 # State
 

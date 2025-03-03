@@ -2,9 +2,12 @@
 title: Metrics
 sidebar_label: Metrics
 sidebar_position: 6
-slug: /apps/transfer/metrics
+slug: /apps/transfer/ics20-v1/metrics
 ---
 
+:::warning
+This document is relevant only for fungible token transfers over channels on v1 of the ICS-20 protocol.
+:::
 
 # Metrics
 
