@@ -41,6 +41,25 @@ func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
 }
 ```
 
+Serialization and Deserialization Requirements
+Middleware developers must ensure that they use the same serialization and deserialization methods as those used in ibc-go's codec: `transfertypes.ModuleCdc.[Must]MarshalJSON`. This ensures compatibility and consistency with the IBC protocol.
+
+For middleware builders, this means:
+
+Import the transfertypes package from ibc-go:
+```go
+import transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+```
+
+Use `transfertypes.ModuleCdc.[Must]MarshalJSON` for serialization and deserialization. For example:
+
+```go
+func MarshalAsIBCDoes(ack channeltypes.Acknowledgement) ([]byte, error) {
+    return transfertypes.ModuleCdc.MarshalJSON(&ack)
+}
+```
+This ensures that the middleware's serialization and deserialization logic aligns with ibc-go's implementation, preventing potential issues with data encoding and decoding.
+
 ## Implement `IBCModule` interface
 
 `IBCMiddleware` is a struct that implements the [ICS-26 `IBCModule` interface (`porttypes.IBCModule`)](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/05-port/types/module.go#L14-L107). It is recommended to separate these callbacks into a separate file `ibc_middleware.go`.
