@@ -16,8 +16,8 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/v10/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/v10/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
