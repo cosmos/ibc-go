@@ -81,6 +81,12 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			clienttypes.ErrInvalidHeight,
 		},
 		{
+			"timeout equal to sending chain blocktime", func() {
+				packet.TimeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Unix())
+			},
+			types.ErrTimeoutElapsed,
+		},
+		{
 			"timeout elapsed", func() {
 				packet.TimeoutTimestamp = 1
 			},
@@ -563,7 +569,9 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			// create default packet with a timed out timestamp
 			payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
-			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Unix())
+			// make timeoutTimestamp 1 second more than sending chain time to ensure it passes SendPacket
+			// and times out successfully after update
+			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Second).Unix())
 
 			// test cases may mutate timeout values
 			packet = types.NewPacket(1, path.EndpointA.ClientID, path.EndpointB.ClientID,
