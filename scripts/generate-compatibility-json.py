@@ -332,7 +332,7 @@ def _extract_script_fields(file_lines: List[str]) -> Dict:
     script_fields = {}
     for line in file_lines:
         line = line.strip()
-        match = re.match(rf"//\s*{COMPATIBILITY_FLAG}\s*:\s*(.*):\s*(.*)", line)
+        match = re.match(rf"//\s*{COMPATIBILITY_FLAG}\s*:\s*([\w-]+)\s*:\s*(.+)", line)
         if match:
             script_fields[match.group(1)] = match.group(2)
     return script_fields
