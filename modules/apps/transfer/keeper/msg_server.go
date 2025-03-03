@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -110,11 +112,30 @@ func (k Keeper) transferV2Packet(ctx sdk.Context, encoding, sourceChannel string
 		packetData.Sender, payload,
 	)
 
-	res, err := k.channelKeeperV2.SendPacket(ctx, msg)
+	handler := k.msgRouter.Handler(msg)
+	if handler == nil {
+		return 0, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "unrecognized packet type: %T", msg)
+	}
+	res, err := handler(ctx, msg)
 	if err != nil {
 		return 0, err
 	}
-	return res.Sequence, nil
+
+	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
+	ctx.EventManager().EmitEvents(res.GetEvents())
+
+	// Each individual sdk.Result has exactly one Msg response. We aggregate here.
+	msgResponse := res.MsgResponses[0]
+	if msgResponse == nil {
+		return 0, errorsmod.Wrapf(ibcerrors.ErrLogic, "got nil Msg response for msg %s", sdk.MsgTypeURL(msg))
+	}
+	var sendResponse channeltypesv2.MsgSendPacketResponse
+	err = proto.Unmarshal(msgResponse.Value, &sendResponse)
+	if err != nil {
+		return 0, err
+	}
+
+	return sendResponse.Sequence, nil
 }
 
 // UpdateParams defines an rpc handler method for MsgUpdateParams. Updates the ibc-transfer module's parameters.
