@@ -2,6 +2,7 @@ package v2_test
 
 import (
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -474,7 +475,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			// NOTE: we call send packet so transfer is setup with the correct logic to
 			// succeed on timeout
 			userGasLimit := 600_000
-			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Unix())
+			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Second).Unix())
 			packetData = transfertypes.NewFungibleTokenPacketData(
 				ibctesting.TestCoin.Denom,
 				ibctesting.TestCoin.Amount.String(),
