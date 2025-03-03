@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -40,6 +41,12 @@ type ChannelKeeper interface {
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 	GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []channeltypes.IdentifiedChannel
 	HasChannel(ctx sdk.Context, portID, channelID string) bool
+}
+
+// MessageRouter ADR 031 request type routing
+// https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md
+type MessageRouter interface {
+	Handler(msg sdk.Msg) baseapp.MsgServiceHandler
 }
 
 // ChannelKeeperV2 defines the expected IBC channelV2 keeper
