@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/v10/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 )
 
 // ProcessCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.

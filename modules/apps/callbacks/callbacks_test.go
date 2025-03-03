@@ -19,10 +19,10 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/v10/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/v10/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
