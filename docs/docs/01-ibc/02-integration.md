@@ -218,13 +218,11 @@ var (
 )
 ```
 
-#### Integrating light clients
+### Integrating light clients
 
-> Note that from v9 onwards, all light clients are expected to implement the [`LightClientInterface` interface](../03-light-clients/01-developer-guide/02-light-client-module.md#implementing-the-lightclientmodule-interface) defined by core IBC, and have to be explicitly registered in a chain's app.go. This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box. Follow the steps below to integrate the `07-tendermint` light client.
+> Note that from v7 onwards, all light clients are expected to implement the [`LightClientInterface` interface](../03-light-clients/01-developer-guide/02-light-client-module.md#implementing-the-lightclientmodule-interface) defined by core IBC, and have to be explicitly registered in a chain's app.go. This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box. Follow the steps below to integrate the `07-tendermint` light client.
 
-All light clients must be registered with `module.Manager` in a chain's app.go file.
-
-The following code example shows how to instantiate `07-tendermint` light client module and register its `ibctm.AppModule`.
+All light clients must be registered with `module.Manager` in a chain's app.go file. The following code example shows how to instantiate `07-tendermint` light client module and register its `ibctm.AppModule`.
 
 ```go title="app.go"
 import (
@@ -252,6 +250,16 @@ app.ModuleManager = module.NewManager(
 + ibctm.NewAppModule(tmLightClientModule),
 )
 ```
+#### Allowed Clients Params
+
+The allowed clients parameter defines an allow list of client types supported by the chain. The 
+default value is a single-element list containing the [`AllowedClients`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/types/client.pb.go#L248-L253) wildcard (`"*"`). Alternatively, the parameter
+may be set with a list of client types (e.g. `"06-solomachine","07-tendermint","09-localhost"`).
+A client type that is not registered on this list will fail upon creation or on genesis validation.
+Note that, since the client type is an arbitrary string, chains must not register two light clients
+which return the same value for the `ClientType()` function, otherwise the allow list check can be
+bypassed.
+
 
 ### Application ABCI ordering
 
