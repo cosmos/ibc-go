@@ -4,8 +4,6 @@ package ibc.core.client.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v10/modules/core/02-client/types";
 
-import "cosmos/upgrade/v1beta1/upgrade.proto";
-import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 
@@ -66,4 +64,3 @@ message Params {
   // of this client will be disabled until it is added again to the list.
   repeated string allowed_clients = 1;
 }
-
