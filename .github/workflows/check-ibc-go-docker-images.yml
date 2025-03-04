@@ -1,0 +1,37 @@
+name: Check and Build IBC-Go Docker Images
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  check-and-build-docker-images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Get IBC-Go Releases
+        id: get_releases
+        run: |
+          RELEASES=$(curl -s https://api.github.com/repos/cosmos/ibc-go/releases | jq -r '.[].tag_name')
+          echo "RELEASES=$RELEASES" >> $GITHUB_ENV
+
+      - name: Check and Build Missing Docker Images
+        run: |
+          for TAG in $RELEASES; do
+            IMAGE_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" https://ghcr.io/v2/cosmos/ibc-go/manifests/$TAG)
+            if [ "$IMAGE_EXISTS" -ne 200 ]; then
+              echo "Building and pushing image for $TAG"
+              git clone --depth 1 --branch $TAG https://github.com/cosmos/ibc-go.git
+              cd ibc-go
+              docker build -t ghcr.io/cosmos/ibc-go:$TAG .
+              echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u USERNAME --password-stdin
+              docker push ghcr.io/cosmos/ibc-go:$TAG
+              cd ..
+              rm -rf ibc-go
+            else
+              echo "Image for $TAG already exists."
+            fi
+          done
