@@ -27,7 +27,7 @@ const (
 
 // defaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
 // relative to the current block timestamp of the counterparty chain provided by the client
-// state. The timeout is disabled when set to 0. The default is currently set to a 10 minute
+// state. The default is currently set to a 10 minute
 // timeout.
 var defaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 
@@ -116,8 +116,8 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 		},
 	}
 
-	cmd.Flags().String(flagPacketTimeoutHeight, "0-0", "Packet timeout block height in the format {revision}-{height}. The timeout is disabled when set to 0-0.")
-	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, defaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
+	cmd.Flags().String(flagPacketTimeoutHeight, "0-0", "Packet timeout block height in the format {revision}-{height}.")
+	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, defaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes.")
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	cmd.Flags().String(flagMemo, "", "Memo to be sent along with the packet.")
 

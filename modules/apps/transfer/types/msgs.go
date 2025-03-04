@@ -83,7 +83,6 @@ func NewMsgTransferWithEncoding(
 }
 
 // ValidateBasic performs a basic check of the MsgTransfer fields.
-// NOTE: timeout height or timestamp values can be 0 to disable the timeout.
 // NOTE: The recipient addresses format is not validated as the format defined by
 // the chain is not known to IBC.
 func (msg MsgTransfer) ValidateBasic() error {
