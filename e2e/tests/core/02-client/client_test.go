@@ -158,7 +158,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 
 		s.Require().NoError(err)
 		txResp := s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, legacyUpgradeProposal)
-		s.AssertTxFailure(txResp, govtypes.ErrInvalidProposalContent)
+		s.AssertTxFailure(txResp, govtypes.ErrInvalidProposalType)
 	})
 }
 
