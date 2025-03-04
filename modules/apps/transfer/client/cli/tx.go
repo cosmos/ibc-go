@@ -27,8 +27,9 @@ const (
 
 // defaultRelativePacketTimeoutTimestamp is the default packet timeout timestamp (in nanoseconds)
 // relative to the current block timestamp of the counterparty chain provided by the client
-// state. The timeout is disabled when set to 0. The default is currently set to a 10 minute
-// timeout.
+// state. For IBC v1 protocol, either timeout timestamp or timeout height must be set.
+// If you are sending with IBC v2 protocol, timeout timestamp must be set.
+// The default is currently set to a 10 minute timeout.
 var defaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
 
 // NewTransferTxCmd returns the command to create a NewMsgTransfer transaction
@@ -116,8 +117,8 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 		},
 	}
 
-	cmd.Flags().String(flagPacketTimeoutHeight, "0-0", "Packet timeout block height in the format {revision}-{height}. The timeout is disabled when set to 0-0.")
-	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, defaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. The timeout is disabled when set to 0.")
+	cmd.Flags().String(flagPacketTimeoutHeight, "0-0", "Packet timeout block height in the format {revision}-{height}.")
+	cmd.Flags().Uint64(flagPacketTimeoutTimestamp, defaultRelativePacketTimeoutTimestamp, "Packet timeout timestamp in nanoseconds from now. Default is 10 minutes. On IBC v1 protocol, either timeout timestamp or timeout height must be set. On IBC v2 protocol timeout timestamp must be set.")
 	cmd.Flags().Bool(flagAbsoluteTimeouts, false, "Timeout flags are used as absolute timeouts.")
 	cmd.Flags().String(flagMemo, "", "Memo to be sent along with the packet.")
 
