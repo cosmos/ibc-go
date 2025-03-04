@@ -122,21 +122,16 @@ jobs:
       - uses: actions/checkout@v4
         if: ${{ inputs.build-and-push-docker-image-wasm }}
 
-      - uses: actions/setup-python@v5
+      - name: Set up Docker Buildx
         if: ${{ inputs.build-and-push-docker-image-wasm }}
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        if: ${{ inputs.build-and-push-docker-image-wasm }}
-        run: make python-install-deps
+        uses: docker/setup-buildx-action@v3
 
       - name: Determine Build arguments
         if: ${{ inputs.build-and-push-docker-image-wasm }}
         id: build-args
         run: |
-          echo "version=$(scripts/get-libwasm-version.py --get-version)" >> $GITHUB_OUTPUT
-          echo "checksum=$(scripts/get-libwasm-version.py --get-checksum)" >> $GITHUB_OUTPUT
+          echo "version=$(scripts/get-libwasm-version.sh --get-version)" >> $GITHUB_OUTPUT
+          echo "checksum=$(scripts/get-libwasm-version.sh --get-checksum)" >> $GITHUB_OUTPUT
 
       - name: Log in to the Container registry
         if: ${{ inputs.build-and-push-docker-image-wasm }}
