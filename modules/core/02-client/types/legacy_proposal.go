@@ -25,10 +25,10 @@ var (
 	_ codectypes.UnpackInterfacesMessage = &UpgradeProposal{}
 )
 
-func init() {
-	govtypes.RegisterProposalType(ProposalTypeClientUpdate)
-	govtypes.RegisterProposalType(ProposalTypeUpgrade)
-}
+// func init() {
+// 	govtypes.RegisterProposalType(ProposalTypeClientUpdate)
+// 	govtypes.RegisterProposalType(ProposalTypeUpgrade)
+// }
 
 // NewClientUpdateProposal creates a new client update proposal.
 //
