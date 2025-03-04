@@ -74,6 +74,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	const planHeight = int64(300)
+	const legacyPlanHeight = planHeight * 2
 	var newChainID string
 
 	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
@@ -130,6 +131,34 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 
 		s.Require().Equal("upgrade-client", plan.Name)
 		s.Require().Equal(planHeight, plan.Height)
+	})
+
+	t.Run("ensure legacy proposal does not succeed", func(t *testing.T) {
+		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		s.Require().NotNil(authority)
+
+		clientState, err := query.ClientState(ctx, chainB, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+
+		originalChainID := clientState.(*ibctm.ClientState).ChainId
+		revisionNumber := clienttypes.ParseChainID(originalChainID)
+		// increment revision number even with new chain ID to prevent loss of misbehaviour detection support
+		newChainID, err = clienttypes.SetRevisionNumber(originalChainID, revisionNumber+1)
+		s.Require().NoError(err)
+		s.Require().NotEqual(originalChainID, newChainID)
+
+		upgradedClientState := clientState.(*ibctm.ClientState).ZeroCustomFields()
+		upgradedClientState.ChainId = newChainID
+
+		legacyUpgradeProposal, err := clienttypes.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, upgradetypes.Plan{
+			Name:   "upgrade-client-legacy",
+			Height: legacyPlanHeight,
+		}, upgradedClientState)
+
+		s.Require().NoError(err)
+		txResp := s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, legacyUpgradeProposal)
+		s.AssertTxFailure(txResp, govtypes.ErrInvalidProposalType)
 	})
 }
 
