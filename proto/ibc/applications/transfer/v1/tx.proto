@@ -42,8 +42,12 @@ message MsgTransfer {
   // the recipient address on the destination chain
   string receiver = 5;
   // Timeout height relative to the current block height.
+  // If you are sending with IBC v1 protocol, either timeout_height or timeout_timestamp must be set.
+  // If you are sending with IBC v2 protocol, timeout_timestamp must be set, and timeout_height must be omitted.
   ibc.core.client.v1.Height timeout_height = 6 [(gogoproto.nullable) = false, (amino.dont_omitempty) = true];
   // Timeout timestamp in absolute nanoseconds since unix epoch.
+  // If you are sending with IBC v1 protocol, either timeout_height or timeout_timestamp must be set.
+  // If you are sending with IBC v2 protocol, timeout_timestamp must be set.
   uint64 timeout_timestamp = 7;
   // optional memo
   string memo = 8;
