@@ -47,10 +47,12 @@ type MsgTransfer struct {
 	// the recipient address on the destination chain
 	Receiver string `protobuf:"bytes,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
 	// Timeout height relative to the current block height.
-	// The timeout is disabled when set to 0.
+	// If you are sending with IBC v1 protocol, either timeout_height or timeout_timestamp must be set.
+	// If you are sending with IBC v2 protocol, timeout_timestamp must be set, and timeout_height must be omitted.
 	TimeoutHeight types1.Height `protobuf:"bytes,6,opt,name=timeout_height,json=timeoutHeight,proto3" json:"timeout_height"`
 	// Timeout timestamp in absolute nanoseconds since unix epoch.
-	// The timeout is disabled when set to 0.
+	// If you are sending with IBC v1 protocol, either timeout_height or timeout_timestamp must be set.
+	// If you are sending with IBC v2 protocol, timeout_timestamp must be set.
 	TimeoutTimestamp uint64 `protobuf:"varint,7,opt,name=timeout_timestamp,json=timeoutTimestamp,proto3" json:"timeout_timestamp,omitempty"`
 	// optional memo
 	Memo string `protobuf:"bytes,8,opt,name=memo,proto3" json:"memo,omitempty"`
