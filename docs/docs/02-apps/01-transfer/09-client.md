@@ -40,8 +40,8 @@ of amount and denomination (e.g. `100uatom,100uosmo`) in the `coins` option.
 
 The additional flags that can be used with the command are:
 
-- `--packet-timeout-height` to specify the timeout block height in the format `{revision}-{height}`. The default value is `0-0`, which effectively disables the timeout. Timeout height can only be absolute, therefore this option must be used in combination with `--absolute-timeouts` set to true.
-- `--packet-timeout-timestamp` to specify the timeout timestamp in nanoseconds. The timeout can be either relative (from the current UTC time) or absolute. The default value is 10 minutes (and thus relative). The timeout is disabled when set to 0.
+- `--packet-timeout-height` to specify the timeout block height in the format `{revision}-{height}`. The default value is `0-0`, which effectively disables the timeout. Timeout height can only be absolute, therefore this option must be used in combination with `--absolute-timeouts` set to true. On IBC v1 protocol, either `--packet-timeout-height` or `--packet-timeout-timestamp` must be set. On IBC v2 protocol `--packet-timeout-timestamp` must be set.
+- `--packet-timeout-timestamp` to specify the timeout timestamp in nanoseconds. The timeout can be either relative (from the current UTC time) or absolute. The default value is 10 minutes (and thus relative). On IBC v1 protocol, either `--packet-timeout-height` or `--packet-timeout-timestamp` must be set. On IBC v2 protocol `--packet-timeout-timestamp` must be set.
 - `--absolute-timeouts` to interpret the timeout timestamp as an absolute value (when set to true). The default value is false (and thus the timeout is considered relative to current UTC time).
 - `--memo` to specify the memo string to be sent along with the transfer packet. If forwarding is used, then the memo string will be carried through the intermediary chains to the final destination.
 - `--forwarding` to specify forwarding information in the form of a comma separated list of source port ID/channel ID pairs at each intermediary chain (e.g. `transfer/channel-0,transfer/channel-1`).
