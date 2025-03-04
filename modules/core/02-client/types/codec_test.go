@@ -215,6 +215,16 @@ func (suite *TypesTestSuite) TestCodecTypeRegistration() {
 			nil,
 		},
 		{
+			"success: ClientUpdateProposal",
+			sdk.MsgTypeURL(&types.ClientUpdateProposal{}),
+			nil,
+		},
+		{
+			"success: UpgradeProposal",
+			sdk.MsgTypeURL(&types.UpgradeProposal{}),
+			nil,
+		},
+		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
 			fmt.Errorf("unable to resolve type URL ibc.invalid.MsgTypeURL"),
