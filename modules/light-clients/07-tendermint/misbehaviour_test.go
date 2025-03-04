@@ -140,10 +140,10 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 			&ibctm.Misbehaviour{
 				Header1:  suite.header,
 				Header2:  suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now, suite.valSet, suite.valSet, suite.valSet, suite.signers),
-				ClientId: "GAIA",
+				ClientId: "GAI",
 			},
 			func(misbehaviour *ibctm.Misbehaviour) error { return nil },
-			errors.New("identifier GAIA has invalid length"),
+			errors.New("identifier GAI has invalid length"),
 		},
 		{
 			"chainIDs do not match",

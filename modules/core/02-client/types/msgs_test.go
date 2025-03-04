@@ -610,10 +610,10 @@ func (suite *TypesTestSuite) TestMsgSubmitMisbehaviour_ValidateBasic() {
 			"client-id too short",
 			func() {
 				soloMachineMisbehaviour := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).CreateMisbehaviour()
-				msg, err = types.NewMsgSubmitMisbehaviour("externa", soloMachineMisbehaviour, suite.chainA.SenderAccount.GetAddress().String())
+				msg, err = types.NewMsgSubmitMisbehaviour("ext", soloMachineMisbehaviour, suite.chainA.SenderAccount.GetAddress().String())
 				suite.Require().NoError(err)
 			},
-			errorsmod.Wrapf(host.ErrInvalidID, "identifier external has invalid length: 7, must be between 8-64 characters"),
+			errorsmod.Wrapf(host.ErrInvalidID, "identifier external has invalid length: 3, must be between 4-64 characters"),
 		},
 	}
 
