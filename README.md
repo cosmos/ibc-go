@@ -39,9 +39,21 @@ The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) al
 
 This IBC implementation in Golang is built as a Cosmos SDK module. To understand more about how to use the `ibc-go` module as well as about the IBC protocol, please check out the Interchain Developer Academy [section on IBC](https://tutorials.cosmos.network/academy/3-ibc/), or [our docs](./docs/docs/01-ibc/01-overview.md).
 
+## Protobuf
+
+IBC-Go Protobuf definitions are hosted on the [Buf Schema Registry](https://buf.build/cosmos/ibc).
+
+[![buf.build](https://img.shields.io/badge/buf.build-cosmos%2Fibc-blue)](https://buf.build/cosmos/ibc)
+
+The registry includes tagged versions for all releases, allowing you to depend on specific versions of the API in your projects.
+
 ## Roadmap
 
-For an overview of upcoming changes to ibc-go take a look at the [roadmap project board](https://github.com/orgs/cosmos/projects/38/views/14).
+For an overview of upcoming changes to ibc-go take a look at the [roadmap](./docs/docs/01-ibc/10-roadmap.md).
+
+This roadmap is also available as a [project board](https://github.com/orgs/cosmos/projects/7/views/25).
+
+For the latest expected release timelines, please check [here](https://github.com/cosmos/ibc-go/wiki/Release-timeline).
 
 ## Releases
 
@@ -61,7 +73,9 @@ We have active, helpful communities on Discord and Telegram.
 
 For questions and support please use the `developers` channel in the [Cosmos Network Discord server](https://discord.com/channels/669268347736686612/1019978171367559208) or join the [Interchain Discord server](https://discord.com/invite/interchain). The issue list of this repo is exclusively for bug reports and feature requests.
 
-To receive announcements of new releases or other technical updates, please join the [Telegram group that Interchain Labs administers](https://t.me/cosmostechstack/1).
+To receive announcements of new releases or other technical updates, please join the [Telegram group that we administer](https://t.me/ibc_is_expansive).
+
+We run biweekly community calls to update the community with our current direction and gather feedback on what to work on next. The community calls are also a platform for you to update everyone else with what you're working on, ask questions and find opportunities to collaborate. Please join [this Google group](https://groups.google.com/g/ibc-community) to receive a calendar invitation for the meeting.
 
 ## Contributing
 
