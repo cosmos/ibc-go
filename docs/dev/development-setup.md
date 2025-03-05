@@ -34,6 +34,17 @@ For generating or updating the swagger file that documents the URLs of the RESTf
 
 It reads protobuf service definitions and generates a reverse-proxy server which translates a RESTful HTTP API into gRPC.
 
+### Buf Registry and Tags
+
+The IBC-Go protobuf definitions are published to the [Buf Schema Registry](https://buf.build/cosmos/ibc) on both the `main` branch and for all release tags. When a new tag is created, the protobuf definitions are automatically pushed to the Buf registry with appropriate commit labels that include the tag name. This allows consumers to depend on specific versions of the API.
+
+These tagged versions can be referenced in your `buf.yaml` files as dependencies, for example:
+
+```yaml
+deps:
+  - buf.build/cosmos/ibc:v7.2.0  # Specific version
+```
+
 ## Developing and testing
 
 - The latest state of development is on `main`.
