@@ -98,7 +98,7 @@ func (s *E2ETestSuite) retryNtimes(f func() (sdk.TxResponse, error), attempts in
 }
 
 // AssertTxFailure verifies that an sdk.TxResponse has failed.
-func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *errorsmod.Error) {
+func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *errorsmod.Error, alternativeError ...*errorsmod.Error) {
 	errorMsg := fmt.Sprintf("%+v", resp)
 	// In older versions, the codespace and abci codes were different. So in compatibility tests
 	// we can not make assertions on them.
@@ -106,7 +106,17 @@ func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *error
 		s.Require().Equal(expectedError.ABCICode(), resp.Code, errorMsg)
 		s.Require().Equal(expectedError.Codespace(), resp.Codespace, errorMsg)
 	}
-	s.Require().Contains(resp.RawLog, expectedError.Error(), errorMsg)
+	// Verify that the error message contains the expected error message or one of the alternative error messages.
+	if strings.Contains(resp.RawLog, expectedError.Error()) {
+		return
+	}
+
+	for _, altErr := range alternativeError {
+		if strings.Contains(resp.RawLog, altErr.Error()) {
+			return
+		}
+	}
+	s.Require().FailNow(fmt.Sprintf("expected error: %s, got: %s", expectedError.Error(), resp.RawLog))
 }
 
 // AssertTxSuccess verifies that an sdk.TxResponse has succeeded.
