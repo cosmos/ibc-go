@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 
@@ -30,7 +31,7 @@ type RecvAcknowledgement []byte
 // RecvPacket only passes callback to contract if the acknowledgement
 // is successful. Thus, we can just return true here.
 func (rack RecvAcknowledgement) Success() bool {
-	return true
+	return !bytes.Equal(rack, channeltypesv2.ErrorAcknowledgement[:])
 }
 
 // RecvPacket passes the application acknowledgment directly to contract
