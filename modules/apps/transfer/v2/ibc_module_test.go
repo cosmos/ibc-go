@@ -92,6 +92,22 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			channeltypesv2.ErrInvalidPacket,
 		},
 		{
+			"transfer with invalid source client",
+			sdk.DefaultBondDenom,
+			func() {
+				suite.pathAToB.EndpointA.ClientID = "testclientid"
+			},
+			channeltypesv2.ErrInvalidPacket,
+		},
+		{
+			"transfer with invalid destination client",
+			sdk.DefaultBondDenom,
+			func() {
+				suite.pathAToB.EndpointB.ClientID = "testclientid"
+			},
+			channeltypesv2.ErrInvalidPacket,
+		},
+		{
 			"transfer with slashes in base denom",
 			"base/coin",
 			func() {},
@@ -186,6 +202,22 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			sdk.DefaultBondDenom,
 			func() {
 				payload.DestinationPort = invalidPortID
+			},
+			true,
+		},
+		{
+			"transfer with invalid source client",
+			sdk.DefaultBondDenom,
+			func() {
+				suite.pathAToB.EndpointA.ClientID = "testclientid"
+			},
+			true,
+		},
+		{
+			"transfer with invalid destination client",
+			sdk.DefaultBondDenom,
+			func() {
+				suite.pathAToB.EndpointB.ClientID = "testclientid"
 			},
 			true,
 		},
