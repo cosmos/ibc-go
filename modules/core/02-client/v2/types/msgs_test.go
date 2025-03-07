@@ -21,19 +21,39 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 		{
 			"success",
 			types.NewMsgRegisterCounterparty(
-				"testclientid",
+				"testclientid-3",
 				[][]byte{[]byte("ibc"), []byte("channel-9")},
-				"testclientid3",
+				"testclientid-2",
 				signer,
 			),
 			nil,
+		},
+		{
+			"failure: client id does not match clientID format",
+			types.NewMsgRegisterCounterparty(
+				"testclientid1",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid-3",
+				signer,
+			),
+			host.ErrInvalidID,
+		},
+		{
+			"failure: counterparty client id does not match clientID format",
+			types.NewMsgRegisterCounterparty(
+				"testclientid-1",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid2",
+				signer,
+			),
+			host.ErrInvalidID,
 		},
 		{
 			"failure: empty client id",
 			types.NewMsgRegisterCounterparty(
 				"",
 				[][]byte{[]byte("ibc"), []byte("channel-9")},
-				"testclientid3",
+				"testclientid-3",
 				signer,
 			),
 			host.ErrInvalidID,
@@ -41,7 +61,7 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 		{
 			"failure: empty counterparty client id",
 			types.NewMsgRegisterCounterparty(
-				"testclientid",
+				"testclientid-1",
 				[][]byte{[]byte("ibc"), []byte("channel-9")},
 				"",
 				signer,
@@ -51,9 +71,9 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 		{
 			"failure: empty counterparty messaging key",
 			types.NewMsgRegisterCounterparty(
-				"testclientid",
+				"testclientid-1",
 				[][]byte{},
-				"testclientid3",
+				"testclientid-3",
 				signer,
 			),
 			types.ErrInvalidCounterparty,
@@ -61,9 +81,9 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 		{
 			"failure: empty signer",
 			types.NewMsgRegisterCounterparty(
-				"testclientid",
+				"testclientid-2",
 				[][]byte{[]byte("ibc"), []byte("channel-9")},
-				"testclientid3",
+				"testclientid-3",
 				"badsigner",
 			),
 			ibcerrors.ErrInvalidAddress,
