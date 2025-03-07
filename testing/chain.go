@@ -206,6 +206,7 @@ func NewCustomAppTestChain(t *testing.T, coord *Coordinator, chainID string, app
 // NewTestChain initializes a new test chain with a default of 4 validators
 // Use this function if the tests do not need custom control over the validator set
 func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
+	t.Helper()
 	return NewCustomAppTestChain(t, coord, chainID, DefaultTestingAppInit)
 }
 
