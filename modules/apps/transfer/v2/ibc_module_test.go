@@ -19,6 +19,8 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
+const testclientid = "testclientid"
+
 type TransferTestSuite struct {
 	testifysuite.Suite
 
@@ -88,6 +90,22 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			sdk.DefaultBondDenom,
 			func() {
 				payload.DestinationPort = invalidPortID
+			},
+			channeltypesv2.ErrInvalidPacket,
+		},
+		{
+			"transfer with invalid source client",
+			sdk.DefaultBondDenom,
+			func() {
+				suite.pathAToB.EndpointA.ClientID = testclientid
+			},
+			channeltypesv2.ErrInvalidPacket,
+		},
+		{
+			"transfer with invalid destination client",
+			sdk.DefaultBondDenom,
+			func() {
+				suite.pathAToB.EndpointB.ClientID = testclientid
 			},
 			channeltypesv2.ErrInvalidPacket,
 		},
@@ -186,6 +204,22 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			sdk.DefaultBondDenom,
 			func() {
 				payload.DestinationPort = invalidPortID
+			},
+			true,
+		},
+		{
+			"transfer with invalid source client",
+			sdk.DefaultBondDenom,
+			func() {
+				suite.pathAToB.EndpointA.ClientID = testclientid
+			},
+			true,
+		},
+		{
+			"transfer with invalid destination client",
+			sdk.DefaultBondDenom,
+			func() {
+				suite.pathAToB.EndpointB.ClientID = testclientid
 			},
 			true,
 		},
