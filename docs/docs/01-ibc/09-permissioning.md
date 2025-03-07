@@ -1,7 +1,7 @@
 ---
 title: Permissioning
 sidebar_label: Permissioning
-sidebar_position: 14
+sidebar_position: 9
 slug: /ibc/permissioning
 ---
 
