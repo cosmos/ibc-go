@@ -121,3 +121,7 @@ var ChannelsV2FeatureReleases = semverutil.FeatureReleases{
 var ClientV2FeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v10",
 }
+
+var LocalhostWithDashFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v10",
+}
