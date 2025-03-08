@@ -28,6 +28,11 @@ type Coordinator struct {
 
 // NewCoordinator initializes Coordinator with N TestChain's
 func NewCoordinator(t *testing.T, n int) *Coordinator {
+	return NewCustomAppCoordinator(t, n, DefaultTestingAppInit)
+}
+
+// NewCustomAppCoordinator initializes a Coordinator with N TestChain's using the given AppCreator function.
+func NewCustomAppCoordinator(t *testing.T, n int, appCreator AppCreator) *Coordinator {
 	t.Helper()
 	chains := make(map[string]*TestChain)
 	coord := &Coordinator{
@@ -37,7 +42,7 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 
 	for i := 1; i <= n; i++ {
 		chainID := GetChainID(i)
-		chains[chainID] = NewTestChain(t, coord, chainID)
+		chains[chainID] = NewCustomAppTestChain(t, coord, chainID, appCreator)
 	}
 	coord.Chains = chains
 

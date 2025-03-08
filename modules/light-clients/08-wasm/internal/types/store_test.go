@@ -24,10 +24,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func init() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
-}
-
 var invalidPrefix = []byte("invalid/")
 
 type TypesTestSuite struct {
@@ -41,9 +37,7 @@ func TestWasmTestSuite(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
-
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.coordinator = ibctesting.NewCustomAppCoordinator(suite.T(), 1, setupTestingApp)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 }
 
