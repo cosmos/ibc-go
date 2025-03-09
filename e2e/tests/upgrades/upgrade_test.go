@@ -511,15 +511,19 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	})
 
 	t.Run("ensure the localhost client is active and sentinel connection is stored in state", func(t *testing.T) {
-		status, err := query.ClientStatus(ctx, chainA, exported.LocalhostClientID)
+		localhostClientID := exported.LocalhostClientID
+		if !testvalues.LocalhostWithDashFeatureReleases.IsSupported(chainA.Config().Images[0].Version) {
+			localhostClientID = exported.Localhost
+		}
+		status, err := query.ClientStatus(ctx, chainA, localhostClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 
 		connectionResp, err := query.GRPCQuery[connectiontypes.QueryConnectionResponse](ctx, chainA, &connectiontypes.QueryConnectionRequest{ConnectionId: exported.LocalhostConnectionID})
 		s.Require().NoError(err)
 		s.Require().Equal(connectiontypes.OPEN, connectionResp.Connection.State)
-		s.Require().Equal(exported.LocalhostClientID, connectionResp.Connection.ClientId)
-		s.Require().Equal(exported.LocalhostClientID, connectionResp.Connection.Counterparty.ClientId)
+		s.Require().Equal(localhostClientID, connectionResp.Connection.ClientId)
+		s.Require().Equal(localhostClientID, connectionResp.Connection.Counterparty.ClientId)
 		s.Require().Equal(exported.LocalhostConnectionID, connectionResp.Connection.Counterparty.ConnectionId)
 	})
 
@@ -898,11 +902,16 @@ func (s *UpgradeTestSuite) TestV8ToV10ChainUpgrade_Localhost() {
 	})
 
 	t.Run("localhost exists in state before upgrade", func(t *testing.T) {
-		status, err := query.ClientStatus(ctx, chainA, exported.LocalhostClientID)
+		localhostClientID := exported.LocalhostClientID
+		if !testvalues.LocalhostWithDashFeatureReleases.IsSupported(chainA.Config().Images[0].Version) {
+			localhostClientID = exported.Localhost
+		}
+
+		status, err := query.ClientStatus(ctx, chainA, localhostClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 
-		state, err := s.ClientState(ctx, chainA, exported.LocalhostClientID)
+		state, err := s.ClientState(ctx, chainA, localhostClientID)
 		s.Require().NoError(err)
 		s.Require().NotNil(state)
 	})
@@ -913,11 +922,16 @@ func (s *UpgradeTestSuite) TestV8ToV10ChainUpgrade_Localhost() {
 	})
 
 	t.Run("localhost does not exist in state after upgrade", func(t *testing.T) {
-		status, err := query.ClientStatus(ctx, chainA, exported.LocalhostClientID)
+		localhostClientID := exported.LocalhostClientID
+		if !testvalues.LocalhostWithDashFeatureReleases.IsSupported(chainA.Config().Images[0].Version) {
+			localhostClientID = exported.Localhost
+		}
+
+		status, err := query.ClientStatus(ctx, chainA, localhostClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(exported.Active.String(), status)
 
-		state, err := s.ClientState(ctx, chainA, exported.LocalhostClientID)
+		state, err := s.ClientState(ctx, chainA, localhostClientID)
 		s.Require().Error(err)
 		s.Require().Nil(state)
 	})
