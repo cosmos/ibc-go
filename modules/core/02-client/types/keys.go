@@ -9,6 +9,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 const (
@@ -59,6 +60,10 @@ func IsValidClientID(clientID string) bool {
 
 // ParseClientIdentifier parses the client type and sequence from the client identifier.
 func ParseClientIdentifier(clientID string) (string, uint64, error) {
+	if clientID == exported.LocalhostClientID {
+		return clientID, 0, nil
+	}
+
 	if !IsClientIDFormat(clientID) {
 		return "", 0, errorsmod.Wrapf(host.ErrInvalidID, "invalid client identifier %s is not in format: `{client-type}-{N}`", clientID)
 	}
