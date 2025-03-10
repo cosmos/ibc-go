@@ -1,7 +1,7 @@
 ---
 title: Best Practices
 sidebar_label: Best Practices
-sidebar_position: 13
+sidebar_position: 8
 slug: /ibc/best-practices
 ---
 
