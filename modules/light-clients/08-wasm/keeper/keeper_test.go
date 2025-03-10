@@ -44,10 +44,6 @@ type KeeperTestSuite struct {
 	chainA *ibctesting.TestChain
 }
 
-func init() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
-}
-
 // setupTestingApp provides the duplicated simapp which is specific to the 08-wasm module on chain creation.
 func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
@@ -66,7 +62,7 @@ func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.coordinator = ibctesting.NewCustomAppCoordinator(suite.T(), 1, setupTestingApp)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), GetSimApp(suite.chainA).InterfaceRegistry())
@@ -75,9 +71,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 // SetupWasmWithMockVM sets up mock cometbft chain with a mock vm.
 func (suite *KeeperTestSuite) SetupWasmWithMockVM() {
-	ibctesting.DefaultTestingAppInit = suite.setupWasmWithMockVM
-
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.coordinator = ibctesting.NewCustomAppCoordinator(suite.T(), 1, suite.setupWasmWithMockVM)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 }
 
@@ -115,8 +109,6 @@ func (suite *KeeperTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[
 	db := dbm.NewMemDB()
 	app := simapp.NewUnitTestSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, suite.mockVM)
 
-	// reset DefaultTestingAppInit to its original value
-	ibctesting.DefaultTestingAppInit = setupTestingApp
 	return app, app.DefaultGenesis()
 }
 
