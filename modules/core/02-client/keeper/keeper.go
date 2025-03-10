@@ -72,10 +72,12 @@ func (k *Keeper) GetStoreProvider() types.StoreProvider {
 func (k *Keeper) Route(ctx sdk.Context, clientID string) (exported.LightClientModule, error) {
 	clientType, _, err := types.ParseClientIdentifier(clientID)
 	if err != nil {
+		fmt.Println("error 1")
 		return nil, errorsmod.Wrapf(err, "unable to parse client identifier %s", clientID)
 	}
 
 	if !k.GetParams(ctx).IsAllowedClient(clientType) {
+		fmt.Println("error 2")
 		return nil, errorsmod.Wrapf(
 			types.ErrInvalidClientType,
 			"client (%s) type %s is not in the allowed client list", clientID, clientType,
@@ -84,6 +86,7 @@ func (k *Keeper) Route(ctx sdk.Context, clientID string) (exported.LightClientMo
 
 	clientModule, found := k.router.GetRoute(clientType)
 	if !found {
+		fmt.Println("error 3")
 		return nil, errorsmod.Wrap(types.ErrRouteNotFound, clientID)
 	}
 
@@ -429,7 +432,7 @@ func (k *Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStor
 func (k *Keeper) GetClientStatus(ctx sdk.Context, clientID string) exported.Status {
 	clientModule, err := k.Route(ctx, clientID)
 	if err != nil {
-		return exported.Unauthorized
+		return exported.Status(err.Error())
 	}
 
 	return clientModule.Status(ctx, clientID)
