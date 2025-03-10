@@ -20,7 +20,7 @@ const (
 	Localhost string = "09-localhost"
 
 	// LocalhostClientID is the sentinel client ID for the localhost client.
-	LocalhostClientID string = Localhost
+	LocalhostClientID string = Localhost + "-0"
 
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"

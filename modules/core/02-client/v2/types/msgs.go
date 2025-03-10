@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
@@ -35,5 +36,13 @@ func (msg *MsgRegisterCounterparty) ValidateBasic() error {
 	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
 		return err
 	}
-	return host.ClientIdentifierValidator(msg.CounterpartyClientId)
+	if err := host.ClientIdentifierValidator(msg.CounterpartyClientId); err != nil {
+		return err
+	}
+	// This check must be done because the transfer v2 module assumes that the client IDs in the packet
+	// are in the format {clientID}-{sequence}
+	if !types.IsValidClientID(msg.ClientId) || !types.IsValidClientID(msg.CounterpartyClientId) {
+		return errorsmod.Wrapf(host.ErrInvalidID, "%s and %s must be in valid format: {string}-{number}", msg.ClientId, msg.CounterpartyClientId)
+	}
+	return nil
 }

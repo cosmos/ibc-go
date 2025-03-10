@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/internal/telemetry"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/api"
@@ -34,6 +35,7 @@ type IBCModule struct {
 
 func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
 	// Enforce that the source and destination portIDs are the same and equal to the transfer portID
+	// Enforce that the source and destination clientIDs are also in the clientID format that transfer expects: {clientid}-{sequence}
 	// This is necessary for IBC v2 since the portIDs (and thus the application-application connection) is not prenegotiated
 	// by the channel handshake
 	// This restriction can be removed in a future where the trace hop on receive commits to **both** the source and destination portIDs
@@ -41,6 +43,10 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 	if payload.SourcePort != types.PortID || payload.DestinationPort != types.PortID {
 		return errorsmod.Wrapf(channeltypesv2.ErrInvalidPacket, "payload port ID is invalid: expected %s, got sourcePort: %s destPort: %s", types.PortID, payload.SourcePort, payload.DestinationPort)
 	}
+	if !clienttypes.IsValidClientID(sourceChannel) || !clienttypes.IsValidClientID(destinationChannel) {
+		return errorsmod.Wrapf(channeltypesv2.ErrInvalidPacket, "client IDs must be in valid format: {string}-{number}")
+	}
+
 	data, err := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {
 		return err
@@ -79,6 +85,7 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 
 func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 	// Enforce that the source and destination portIDs are the same and equal to the transfer portID
+	// Enforce that the source and destination clientIDs are also in the clientID format that transfer expects: {clientid}-{sequence}
 	// This is necessary for IBC v2 since the portIDs (and thus the application-application connection) is not prenegotiated
 	// by the channel handshake
 	// This restriction can be removed in a future where the trace hop on receive commits to **both** the source and destination portIDs
@@ -88,6 +95,12 @@ func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destina
 			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
+	if !clienttypes.IsValidClientID(sourceChannel) || !clienttypes.IsValidClientID(destinationChannel) {
+		return channeltypesv2.RecvPacketResult{
+			Status: channeltypesv2.PacketStatus_Failure,
+		}
+	}
+
 	var (
 		ackErr error
 		data   types.InternalTransferRepresentation
