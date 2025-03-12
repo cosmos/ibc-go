@@ -31,7 +31,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-// compatibility:from_version: v7.4.0
+// compatibility:from_version: v7.10.0
 func TestInterchainAccountsParamsTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsParamsTestSuite))
 }
@@ -112,7 +112,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	})
 }
 
-// compatibility:TestHostEnabledParam:from_versions: v7.9.2,v8.6.1,v10.0.0
+// compatibility:TestHostEnabledParam:from_versions: v7.10.0,v8.7.0,v10.1.0
 func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()

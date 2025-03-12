@@ -36,7 +36,7 @@ var orderMapping = map[channeltypes.Order][]string{
 	channeltypes.UNORDERED: {channeltypes.UNORDERED.String(), "Unordered"},
 }
 
-// compatibility:from_version: v7.4.0
+// compatibility:from_version: v7.10.0
 func TestInterchainAccountsTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsTestSuite))
 }
@@ -55,7 +55,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 	s.testMsgSendTxSuccessfulTransfer(channeltypes.ORDERED)
 }
 
-// compatibility:TestMsgSendTx_SuccessfulTransfer_UnorderedChannel:from_versions: v7.9.2,v8.6.1,v10.0.0
+// compatibility:TestMsgSendTx_SuccessfulTransfer_UnorderedChannel:from_versions: v7.10.0,v8.7.0,v10.1.0
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_UnorderedChannel() {
 	s.testMsgSendTxSuccessfulTransfer(channeltypes.UNORDERED)
 }
@@ -434,7 +434,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulSubmitGovProposal_
 	s.testMsgSendTxSuccessfulGovProposal(channeltypes.ORDERED)
 }
 
-// compatibility:TestMsgSendTx_SuccessfulSubmitGovProposal_UnorderedChannel:from_versions: v7.9.2,v8.6.1,v10.0.0
+// compatibility:TestMsgSendTx_SuccessfulSubmitGovProposal_UnorderedChannel:from_versions: v7.10.0,v8.7.0,v10.1.0
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulSubmitGovProposal_UnorderedChannel() {
 	s.testMsgSendTxSuccessfulGovProposal(channeltypes.UNORDERED)
 }

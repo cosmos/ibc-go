@@ -24,7 +24,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
 
-// compatibility:from_version: v7.4.0
+// compatibility:from_version: v7.10.0
 func TestAuthzTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(AuthzTransferTestSuite))
 }
