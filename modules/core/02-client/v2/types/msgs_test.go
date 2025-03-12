@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"crypto/sha256"
 	fmt "fmt"
 	"testing"
 
@@ -17,11 +16,9 @@ import (
 )
 
 var (
-	signer1 = sdk.AccAddress(ibctesting.TestAccAddress)
-	hash2   = sha256.Sum256([]byte("signer2"))
-	signer2 = sdk.AccAddress(hash2[:])
-	hash3   = sha256.Sum256([]byte("signer3"))
-	signer3 = sdk.AccAddress(hash3[:])
+	signer1 = sdk.MustAccAddressFromBech32(ibctesting.TestAccAddress)
+	signer2 = sdk.AccAddress([]byte("signer2"))
+	signer3 = sdk.AccAddress([]byte("signer3"))
 )
 
 func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {

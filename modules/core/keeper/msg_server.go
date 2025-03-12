@@ -80,10 +80,13 @@ func (k *Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateC
 		return nil, err
 	}
 
-	// check if this client is allowed to update if v2 params are set
-	params := k.ClientV2Keeper.GetParams(ctx, msg.ClientId)
-	if !params.IsAllowedRelayer(sdk.MustAccAddressFromBech32(msg.Signer)) {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", msg.Signer, msg.ClientId)
+	// only check v2 params if this chain is setup with v2 clientKeepr
+	if k.ClientV2Keeper != nil {
+		// check if this relayer is allowed to update if v2 params are set
+		params := k.ClientV2Keeper.GetParams(ctx, msg.ClientId)
+		if !params.IsAllowedRelayer(sdk.MustAccAddressFromBech32(msg.Signer)) {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", msg.Signer, msg.ClientId)
+		}
 	}
 
 	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, clientMsg); err != nil {

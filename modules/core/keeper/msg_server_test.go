@@ -270,6 +270,62 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestUpdateClient() {
+	var path *ibctesting.Path
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: update client, no params",
+			func() {},
+			nil,
+		},
+		{
+			"success: update client, with v2 params set to correct relayer",
+			func() {
+				creator := suite.chainA.SenderAccount.GetAddress()
+				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, creator.String(), types.NewParams(suite.chainB.SenderAccount.GetAddress().String(), creator.String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), msg)
+				suite.Require().NoError(err)
+			},
+			nil,
+		},
+		{
+			"failure: update client with invalid relayer",
+			func() {
+				creator := suite.chainA.SenderAccount.GetAddress()
+				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, creator.String(), types.NewParams(suite.chainB.SenderAccount.GetAddress().String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), msg)
+				suite.Require().NoError(err)
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			tc.malleate()
+
+			err := path.EndpointA.UpdateClient()
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestRecoverClient() {
 	var msg *clienttypes.MsgRecoverClient
 
@@ -1211,6 +1267,14 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 				params = types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
 			},
 			nil,
+		},
+		{
+			"failure: invalid signer",
+			func() {
+				signer = suite.chainB.SenderAccount.GetAddress().String()
+				params = types.NewParams(suite.chainB.SenderAccount.String())
+			},
+			ibcerrors.ErrUnauthorized,
 		},
 	}
 

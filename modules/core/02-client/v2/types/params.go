@@ -32,7 +32,7 @@ func (p Params) IsAllowedRelayer(relayer sdk.AccAddress) bool {
 		return true
 	}
 	for _, r := range p.AllowedRelayers {
-		if relayer.Equals(sdk.AccAddress(r)) {
+		if relayer.Equals(sdk.MustAccAddressFromBech32(r)) {
 			return true
 		}
 	}
