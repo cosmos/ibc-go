@@ -656,5 +656,16 @@ func (k *Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectionty
 
 // UpdateClientV2Params defines an rpc handler method for MsgUpdateClientParams for the 02-client v2 submodule.
 func (k *Keeper) UpdateClientV2Params(goCtx context.Context, msg *clientv2types.MsgUpdateClientV2Params) (*clientv2types.MsgUpdateClientV2ParamsResponse, error) {
-	return nil, nil
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
+	if k.GetAuthority() != msg.Signer || creator.String() != msg.Signer {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority %s or client creator %s is authorized to update params for %s, got %s",
+			k.GetAuthority(), creator, msg.ClientId, msg.Signer,
+		)
+	}
+
+	params := clientv2types.NewParams(msg.AllowedRelayers...)
+	k.ClientV2Keeper.SetParams(ctx, msg.ClientId, params)
+	return &clientv2types.MsgUpdateClientV2ParamsResponse{}, nil
 }
