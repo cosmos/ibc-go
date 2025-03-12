@@ -123,9 +123,9 @@ func GetCmdQueryClientCreator() *cobra.Command {
 	return cmd
 }
 
-func GetCmdQueryClientParams() *cobra.Command {
+func GetCmdQueryClientSpecificParams() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "params [client-id]",
+		Use:     "client-specific-params [client-id]",
 		Short:   "Query a client's params",
 		Long:    "Query a client's params",
 		Example: fmt.Sprintf("%s query %s %s params 08-wasm-0", version.AppName, ibcexported.ModuleName, types.SubModuleName),

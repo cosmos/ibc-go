@@ -29,6 +29,9 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryHeader(),
 		GetCmdSelfConsensusState(),
 		GetCmdClientParams(),
+		GetCmdClientParams(),
+		GetCmdQueryClientCreator(),
+		GetCmdQueryClientSpecificParams(),
 	)
 
 	return queryCmd
