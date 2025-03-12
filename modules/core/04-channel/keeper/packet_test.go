@@ -620,7 +620,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	var (
 		path   *ibctesting.Path
 		packet types.Packet
-		ack    = ibcmock.MockAcknowledgement
+		ack    []byte
 	)
 
 	assertErr := func(errType *errorsmod.Error) func(commitment []byte, channelVersion string, err error) {
@@ -707,7 +707,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				err = path.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 
-				err = path.EndpointA.AcknowledgePacket(packet, ack.Acknowledgement())
+				err = path.EndpointA.AcknowledgePacket(packet, ack)
 				suite.Require().NoError(err)
 			},
 			expResult: assertNoOp,
@@ -727,10 +727,73 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				err = path.EndpointB.RecvPacket(packet)
 				suite.Require().NoError(err)
 
-				err = path.EndpointA.AcknowledgePacket(packet, ack.Acknowledgement())
+				err = path.EndpointA.AcknowledgePacket(packet, ack)
 				suite.Require().NoError(err)
 			},
 			expResult: assertNoOp,
+		},
+		{
+			name: "fake acknowledgement",
+			malleate: func() {
+				path.Setup()
+
+				// create packet commitment
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+
+				// create packet
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+
+				// write packet acknowledgement directly
+				// Create a valid acknowledgement using deterministic serialization.
+				ack = types.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+				// Introduce non-determinism: insert an extra space after the first character '{'
+				// This will deserialize correctly but fail to re-serialize to the expected bytes.
+				if len(ack) > 0 && ack[0] == '{' {
+					ack = []byte("{ " + string(ack[1:]))
+				}
+				path.EndpointB.Chain.Coordinator.UpdateTimeForChain(path.EndpointB.Chain)
+
+				path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence, types.CommitAcknowledgement(ack))
+
+				path.EndpointB.Chain.NextBlock()
+				path.EndpointA.UpdateClient()
+			},
+			expResult: func(commitment []byte, channelVersion string, err error) {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, types.ErrInvalidAcknowledgement)
+				suite.Require().Equal("", channelVersion)
+				suite.Require().NotNil(commitment)
+			},
+		},
+		{
+			name: "non-standard acknowledgement",
+			malleate: func() {
+				// setup uses an UNORDERED channel
+				suite.coordinator.Setup(path)
+
+				// create packet commitment
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+
+				// create packet
+				packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
+
+				// write packet acknowledgement directly
+				ack = []byte(`{"somethingelse":"anything"}`)
+				path.EndpointB.Chain.Coordinator.UpdateTimeForChain(path.EndpointB.Chain)
+
+				path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence, types.CommitAcknowledgement(ack))
+
+				path.EndpointB.Chain.NextBlock()
+				path.EndpointA.UpdateClient()
+			},
+			expResult: func(commitment []byte, channelVersion string, err error) {
+				suite.Require().NoError(err)
+				channel := path.EndpointA.GetChannel()
+				suite.Require().Equal(channel.Version, channelVersion)
+				suite.Require().Nil(commitment)
+			},
 		},
 		{
 			name: "channel not found",
@@ -924,6 +987,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
+			// reset ack
+			ack = ibcmock.MockAcknowledgement.Acknowledgement()
 
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			ctx := suite.chainA.GetContext()
@@ -933,7 +998,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointB.QueryProof(packetKey)
 
-			channelVersion, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(ctx, packet, ack.Acknowledgement(), proof, proofHeight)
+			channelVersion, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(ctx, packet, ack, proof, proofHeight)
 
 			commitment := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, packet.GetSequence())
 			tc.expResult(commitment, channelVersion, err)
