@@ -8,12 +8,11 @@ slug: /ibc/integration
 # Integration
 
 :::note Synopsis
-Learn how to integrate IBC to your application and send data packets to other chains.
+Learn how to integrate IBC to your application
 :::
 
 This document outlines the required steps to integrate and configure the [IBC
-module](https://github.com/cosmos/ibc-go/tree/main/modules/core) to your Cosmos SDK application and
-send fungible token transfers to other chains.
+module](https://github.com/cosmos/ibc-go/tree/main/modules/core) to your Cosmos SDK application and enable sending fungible token transfers to other chains. An [example app using ibc-go v10 is linked](https://github.com/gjermundgaraba/probe/tree/ibc/v10).
 
 ## Integrating the IBC module
 
@@ -21,6 +20,7 @@ Integrating the IBC module to your SDK-based application is straightforward. The
 
 - [Define additional `Keeper` fields for the new modules on the `App` type](#add-application-fields-to-app).
 - [Add the module's `StoreKey`s and initialize their `Keeper`s](#configure-the-keepers).
+- [Create Application Stacks with Middleware](#create-application-stacks)
 - [Set up IBC router and add route for the `transfer` module](#register-module-routes-in-the-ibc-router).
 - [Grant permissions to `transfer`'s `ModuleAccount`](#module-account-permissions).
 - [Add the modules to the module `Manager`](#module-manager-and-simulationmanager).
@@ -30,7 +30,7 @@ Integrating the IBC module to your SDK-based application is straightforward. The
 
 ### Add application fields to `App`
 
-We need to register the core `ibc` and `transfer` `Keeper`s as follows:
+We need to register the core `ibc` and `transfer` `Keeper`s. To support the use of IBC v2, `transferv2` and `callbacksv2` must also be registered as follows:
 
 ```go title="app.go"
 import (
@@ -38,6 +38,9 @@ import (
   // ...
   ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
   ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
+  // ibc v2 imports
+  transferv2 "github.com/cosmos/ibc-go/v10/modules/apps/transfer/v2"
+  ibccallbacksv2 "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
 )
 
 type App struct {
@@ -55,7 +58,11 @@ type App struct {
 
 ### Configure the `Keeper`s
 
-During initialization, besides initializing the IBC `Keeper`s (for core `ibc` and `transfer` modules), we need to grant specific capabilities through the capability module `ScopedKeeper`s so that we can authenticate the object-capability permissions for each of the IBC channels.
+Initialize the IBC `Keeper`s (for core `ibc` and `transfer` modules), and any additional modules you want to include. 
+
+:::note Notice
+The capability module has been removed in ibc-go v10, therefore the `ScopedKeeper` has also been removed
+:::
 
 ```go
 import (
@@ -63,8 +70,6 @@ import (
   // ...
   authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-  capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
-  capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
   ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
   ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
   "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
@@ -75,46 +80,63 @@ import (
 func NewApp(...args) *App {
   // define codecs and baseapp
 
-  // add capability keeper and ScopeToModule for ibc module
-  app.CapabilityKeeper = capabilitykeeper.NewKeeper(
-    appCodec,
-    keys[capabilitytypes.StoreKey],
-    memKeys[capabilitytypes.MemStoreKey],
-  )
-
-  // grant capabilities for the ibc and transfer modules
-  scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
-  scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-
   // ... other module keepers
 
   // Create IBC Keeper
   app.IBCKeeper = ibckeeper.NewKeeper(
-    appCodec,
-    keys[ibcexported.StoreKey],
-    app.GetSubspace(ibcexported.ModuleName),
-    app.UpgradeKeeper,
-    scopedIBCKeeper,
-    authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-  )
+		appCodec,
+		runtime.NewKVStoreService(keys[ibcexported.StoreKey]),
+		app.GetSubspace(ibcexported.ModuleName),
+		app.UpgradeKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 
   // Create Transfer Keeper
   app.TransferKeeper = ibctransferkeeper.NewKeeper(
-    appCodec,
-    keys[ibctransfertypes.StoreKey],
-    app.GetSubspace(ibctransfertypes.ModuleName),
-    app.IBCKeeper.ChannelKeeper,
-    app.IBCKeeper.ChannelKeeper,
-    app.IBCKeeper.PortKeeper,
-    app.AccountKeeper,
-    app.BankKeeper,
-    scopedTransferKeeper,
-    authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-  )
-  transferModule := transfer.NewIBCModule(app.TransferKeeper)
+		appCodec,
+		runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]),
+		app.GetSubspace(ibctransfertypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.MsgServiceRouter(),
+		app.AccountKeeper,
+		app.BankKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 
   // ... continues
 }
+```
+
+### Create Application Stacks with Middleware
+
+Middleware stacks in IBC allow you to wrap an `IBCModule` with additional logic for packets and acknowledgements. This is a chain of handlers that execute in order. The transfer stack below shows how to wire up transfer to use packet forward middleware, and the callbacks middleware. Note that the order is important. 
+
+```go
+// Create Transfer Stack for IBC Classic
+	var transferStack porttypes.IBCModule
+	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCKeeper.ChannelKeeper, wasmStackIBCHandler, maxCallbackGas)
+	transferStack = packetforward.NewIBCMiddleware(
+		transferStack,
+		app.PacketForwardKeeper,
+		0,
+		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
+	)
+```
+#### IBC v2 Application Stack
+
+For IBC v2, an example transfer stack is shown below. In this case the transfer stack is using the callbacks middleware.
+
+```go
+// Create IBC v2 transfer middleware stack
+// the callbacks gas limit is recommended to be 10M for use with wasm contracts
+maxCallbackGas := uint64(10_000_000)
+wasmStackIBCHandler := wasm.NewIBCHandler(app.WasmKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper)
+
+var ibcv2TransferStack ibcapi.IBCModule
+	ibcv2TransferStack = transferv2.NewIBCModule(app.TransferKeeper)
+	ibcv2TransferStack = ibccallbacksv2.NewIBCMiddleware(transferv2.NewIBCModule(app.TransferKeeper), app.IBCKeeper.ChannelKeeperV2, wasmStackIBCHandler, app.IBCKeeper.ChannelKeeperV2, maxCallbackGas)
 ```
 
 ### Register module routes in the IBC `Router`
@@ -126,8 +148,7 @@ by the port
 [`Router`](https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port/types/router.go) on the
 `ibc` module.
 
-Adding the module routes allows the IBC handler to call the appropriate callback when processing a
-channel handshake or a packet.
+Adding the module routes allows the IBC handler to call the appropriate callback when processing a channel handshake or a packet.
 
 Currently, a `Router` is static so it must be initialized and set correctly on app initialization.
 Once the `Router` has been set, no new routes can be added.
@@ -145,12 +166,25 @@ func NewApp(...args) *App {
 
   // Create static IBC router, add transfer module route, then set and seal it
   ibcRouter := porttypes.NewRouter()
-  ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
   // Setting Router will finalize all routes by sealing router
   // No more routes can be added
   app.IBCKeeper.SetRouter(ibcRouter)
 
   // ... continues
+```
+
+#### IBC v2 Router
+
+With IBC v2, there is a new [router](https://github.com/cosmos/ibc-go/blob/main/modules/core/api/router.go) that needs to register the routes for a portID to a given IBCModule. 
+
+```go
+// IBC v2 router creation
+	ibcRouterV2 := ibcapi.NewRouter()
+	ibcRouterV2.AddRoute(ibctransfertypes.PortID, ibcv2TransferStack)
+  // Setting Router will finalize all routes by sealing router
+  // No more routes can be added
+	app.IBCKeeper.SetRouterV2(ibcRouterV2)
 ```
 
 ### Module `Manager` and `SimulationManager`
@@ -220,9 +254,9 @@ var (
 
 ### Integrating light clients
 
-> Note that from v7 onwards, all light clients are expected to implement the [`LightClientInterface` interface](../03-light-clients/01-developer-guide/02-light-client-module.md#implementing-the-lightclientmodule-interface) defined by core IBC, and have to be explicitly registered in a chain's app.go. This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box. Follow the steps below to integrate the `07-tendermint` light client.
+> Note that from v7 onwards, all light clients are expected to implement the [`LightClientInterface` interface](../03-light-clients/01-developer-guide/02-light-client-module.md#implementing-the-lightclientmodule-interface) defined by core IBC, and have to be explicitly registered in a chain's app.go. This is in contrast to earlier versions of ibc-go when `07-tendermint` and `06-solomachine` were added out of the box. Follow the steps below to integrate the `07-tendermint` light client. 
 
-All light clients must be registered with `module.Manager` in a chain's app.go file. The following code example shows how to instantiate `07-tendermint` light client module and register its `ibctm.AppModule`.
+All light clients must be registered with `module.Manager` in a chain's app.go file. The following code example shows how to instantiate `07-tendermint` light client module and register its `ibctm.AppModule`. 
 
 ```go title="app.go"
 import (
@@ -235,11 +269,12 @@ import (
 
 // app.go
 // after sealing the IBC router
-
+clientKeeper := app.IBCKeeper.ClientKeeper
 storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
 
 tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
-app.IBCKeeper.ClientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
+clientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
+// ...
 app.ModuleManager = module.NewManager(
   // ...
   ibc.NewAppModule(app.IBCKeeper),
