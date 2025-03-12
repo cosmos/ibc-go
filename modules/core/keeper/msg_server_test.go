@@ -1170,7 +1170,7 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 		{
 			"success: valid creator and default params",
 			func() {
-				signer = string(suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID))
+				signer = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID).String()
 			},
 			nil,
 		},
@@ -1185,7 +1185,7 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 		{
 			"success: valid creator and default params",
 			func() {
-				signer = string(suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID))
+				signer = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID).String()
 				params = types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
 			},
 			nil,
@@ -1193,7 +1193,7 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 		{
 			"success: valid creator and setting params to empty after it has been set",
 			func() {
-				signer = string(suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID))
+				signer = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID).String()
 				params = types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
 				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, signer, params))
 				suite.Require().NoError(err)
@@ -1204,7 +1204,7 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 		{
 			"success: valid creator and setting params to different params after it has been set",
 			func() {
-				signer = string(suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID))
+				signer = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID).String()
 				params = types.NewParams(suite.chainA.SenderAccount.String())
 				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, signer, params))
 				suite.Require().NoError(err)

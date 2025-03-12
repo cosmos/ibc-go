@@ -44,7 +44,7 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 	}
 
 	// set the client creator so that IBC v2 counterparty can be set by same relayer
-	k.ClientKeeper.SetClientCreator(ctx, clientID, sdk.AccAddress(msg.Signer))
+	k.ClientKeeper.SetClientCreator(ctx, clientID, sdk.MustAccAddressFromBech32(msg.Signer))
 
 	return &clienttypes.MsgCreateClientResponse{ClientId: clientID}, nil
 }
@@ -55,7 +55,7 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *clientv2types.
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
-	if !creator.Equals(sdk.AccAddress(msg.Signer)) {
+	if !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected same signer as createClient submittor %s, got %s", creator, msg.Signer)
 	}
 
@@ -78,6 +78,12 @@ func (k *Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateC
 	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
 		return nil, err
+	}
+
+	// check if this client is allowed to update if v2 params are set
+	params := k.ClientV2Keeper.GetParams(ctx, msg.ClientId)
+	if !params.IsAllowedRelayer(sdk.AccAddress(msg.Signer)) {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", msg.Signer, msg.ClientId)
 	}
 
 	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, clientMsg); err != nil {
@@ -658,7 +664,7 @@ func (k *Keeper) UpdateClientV2Params(goCtx context.Context, msg *clientv2types.
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
-	if k.GetAuthority() != msg.Signer && !creator.Equals(sdk.AccAddress(msg.Signer)) {
+	if k.GetAuthority() != msg.Signer && !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority %s or client creator %s is authorized to update params for %s, got %s",
 			k.GetAuthority(), creator, msg.ClientId, msg.Signer,
 		)
