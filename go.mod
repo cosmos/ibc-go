@@ -1,9 +1,7 @@
 go 1.19
 
-retract (
-	// contains ASA-2025-004
-	[v7.0.0, v7.9.1]
-)
+// contains ASA-2025-004 and ISA-2025-001 vulnerabilities
+retract [v7.0.0, v7.9.2]
 
 module github.com/cosmos/ibc-go/v7
 
