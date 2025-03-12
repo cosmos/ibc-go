@@ -1301,3 +1301,87 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 		})
 	}
 }
+
+// TestDeleteClientCreator tests the DeleteClientCreator message handler
+func (suite *KeeperTestSuite) TestDeleteClientCreator() {
+	var (
+		path     *ibctesting.Path
+		clientID string
+		msg      *clienttypes.MsgDeleteClientCreator
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: valid creator deletes itself",
+			func() {
+				creator := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), clientID)
+				msg = clienttypes.NewMsgDeleteClientCreator(clientID, creator.String())
+			},
+			nil,
+		},
+		{
+			"success: valid authority deletes client creator",
+			func() {
+				msg = clienttypes.NewMsgDeleteClientCreator(clientID, suite.chainA.App.GetIBCKeeper().GetAuthority())
+			},
+			nil,
+		},
+		{
+			"failure: deleting a client creator that was already deleted",
+			func() {
+				// First delete the creator
+				authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+				deleteMsg := clienttypes.NewMsgDeleteClientCreator(clientID, authority)
+				_, err := suite.chainA.App.GetIBCKeeper().DeleteClientCreator(suite.chainA.GetContext(), deleteMsg)
+				suite.Require().NoError(err)
+
+				// Now try to delete it again
+				msg = clienttypes.NewMsgDeleteClientCreator(clientID, authority)
+			},
+			ibcerrors.ErrNotFound, // Now it should fail with not found
+		},
+		{
+			"failure: unauthorized signer - not creator or authority",
+			func() {
+				msg = clienttypes.NewMsgDeleteClientCreator(clientID, suite.chainB.SenderAccount.GetAddress().String())
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: client ID does not exist",
+			func() {
+				msg = clienttypes.NewMsgDeleteClientCreator("nonexistentclient", suite.chainA.App.GetIBCKeeper().GetAuthority())
+			},
+			ibcerrors.ErrNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+			clientID = path.EndpointA.ClientID
+
+			tc.malleate()
+
+			_, err := suite.chainA.App.GetIBCKeeper().DeleteClientCreator(suite.chainA.GetContext(), msg)
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+
+				// Verify creator has been deleted
+				creator := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), clientID)
+				suite.Require().Nil(creator)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
