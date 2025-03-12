@@ -123,6 +123,30 @@ func newAddCounterpartyCmd() *cobra.Command {
 	return cmd
 }
 
+func newDeleteClientCreatorCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "delete-client-creator [client-id]",
+		Short:   "delete the client creator",
+		Example: fmt.Sprintf("%s tx ibc %s delete-client-creator 07-tendermint-0", version.AppName, types.SubModuleName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			clientID := args[0]
+
+			msg := types.NewMsgDeleteClientCreator(clientID, clientCtx.GetFromAddress().String())
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
 func newUpdateClientParamsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-client-params client-id [allowed-relayer-addresses...]",
