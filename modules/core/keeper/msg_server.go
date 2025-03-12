@@ -58,6 +58,9 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *clientv2types.
 	if !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected same signer as createClient submittor %s, got %s", creator, msg.Signer)
 	}
+	if _, ok := k.ClientV2Keeper.GetClientCounterparty(ctx, msg.ClientId); ok {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot register counterparty once it is already set")
+	}
 
 	counterpartyInfo := clientv2types.CounterpartyInfo{
 		MerklePrefix: msg.CounterpartyMerklePrefix,

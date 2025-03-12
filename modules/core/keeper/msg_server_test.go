@@ -56,6 +56,13 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 			},
 			ibcerrors.ErrUnauthorized,
 		},
+		{
+			"counterparty already registered",
+			func() {
+				path.SetupV2()
+			},
+			ibcerrors.ErrInvalidRequest,
+		},
 	}
 	for _, tc := range testCases {
 		tc := tc
