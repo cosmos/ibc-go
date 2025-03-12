@@ -68,7 +68,6 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *clientv2types.
 	// initialize next sequence send to enable packet flow
 	k.ChannelKeeperV2.SetNextSequenceSend(ctx, msg.ClientId, 1)
 
-	k.ClientKeeper.DeleteClientCreator(ctx, msg.ClientId)
 	return &clientv2types.MsgRegisterCounterpartyResponse{}, nil
 }
 
@@ -659,7 +658,7 @@ func (k *Keeper) UpdateClientV2Params(goCtx context.Context, msg *clientv2types.
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
-	if k.GetAuthority() != msg.Signer || creator.String() != msg.Signer {
+	if k.GetAuthority() != msg.Signer && !creator.Equals(sdk.AccAddress(msg.Signer)) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority %s or client creator %s is authorized to update params for %s, got %s",
 			k.GetAuthority(), creator, msg.ClientId, msg.Signer,
 		)

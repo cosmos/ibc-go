@@ -79,8 +79,6 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 				nextSeqSend, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(ok)
 				suite.Require().Equal(nextSeqSend, uint64(1))
-				creator := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				suite.Require().Empty(creator)
 			}
 		})
 	}
@@ -1157,7 +1155,6 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 		signer string
 		params types.Params
 	)
-	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -1166,7 +1163,52 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 		{
 			"success: valid authority and default params",
 			func() {
-				signer = authority
+				signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+			},
+			nil,
+		},
+		{
+			"success: valid creator and default params",
+			func() {
+				signer = string(suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID))
+			},
+			nil,
+		},
+		{
+			"success: valid authority and custom params",
+			func() {
+				signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+				params = types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
+			},
+			nil,
+		},
+		{
+			"success: valid creator and default params",
+			func() {
+				signer = string(suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID))
+				params = types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
+			},
+			nil,
+		},
+		{
+			"success: valid creator and setting params to empty after it has been set",
+			func() {
+				signer = string(suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID))
+				params = types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, signer, params))
+				suite.Require().NoError(err)
+				params = types.DefaultParams()
+			},
+			nil,
+		},
+		{
+			"success: valid creator and setting params to different params after it has been set",
+			func() {
+				signer = string(suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID))
+				params = types.NewParams(suite.chainA.SenderAccount.String())
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, signer, params))
+				suite.Require().NoError(err)
+				params = types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
 			},
 			nil,
 		},
@@ -1183,7 +1225,16 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 
 			tc.malleate()
 
-			msg := types.NewMsgUpdateClientV2Params(signer, path.EndpointA.ClientID, params)
+			msg := types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, signer, params)
+			_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), msg)
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+				p := suite.chainA.App.GetIBCKeeper().ClientV2Keeper.GetParams(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().Equal(params, p)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
 
 		})
 	}
