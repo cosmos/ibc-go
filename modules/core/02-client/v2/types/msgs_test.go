@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	signer1 = sdk.MustAccAddressFromBech32(ibctesting.TestAccAddress)
+	signer1 = sdk.AccAddress(ibctesting.TestAccAddress)
 	hash2   = sha256.Sum256([]byte("signer2"))
 	signer2 = sdk.AccAddress(hash2[:])
 	hash3   = sha256.Sum256([]byte("signer3"))
