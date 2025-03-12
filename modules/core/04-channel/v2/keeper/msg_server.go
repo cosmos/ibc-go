@@ -55,7 +55,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 
 	// check if this client is allowed to update if v2 params are set
 	params := k.clientV2Keeper.GetParams(ctx, msg.Packet.DestinationClient)
-	if !params.IsAllowedRelayer(sdk.MustAccAddressFromBech32(msg.Signer)) {
+	if !params.IsAllowedRelayer(signer) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", msg.Signer, msg.Packet.DestinationClient)
 	}
 
@@ -163,7 +163,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *types.MsgAcknowledg
 
 	// check if this client is allowed to update if v2 params are set
 	params := k.clientV2Keeper.GetParams(ctx, msg.Packet.SourceClient)
-	if !params.IsAllowedRelayer(sdk.MustAccAddressFromBech32(msg.Signer)) {
+	if !params.IsAllowedRelayer(relayer) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", msg.Signer, msg.Packet.SourceClient)
 	}
 
@@ -217,7 +217,7 @@ func (k *Keeper) Timeout(goCtx context.Context, timeout *types.MsgTimeout) (*typ
 
 	// check if this client is allowed to update if v2 params are set
 	params := k.clientV2Keeper.GetParams(ctx, timeout.Packet.SourceClient)
-	if !params.IsAllowedRelayer(sdk.MustAccAddressFromBech32(timeout.Signer)) {
+	if !params.IsAllowedRelayer(signer) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", timeout.Signer, timeout.Packet.SourceClient)
 	}
 

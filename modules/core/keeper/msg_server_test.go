@@ -286,7 +286,7 @@ func (suite *KeeperTestSuite) TestUpdateClient() {
 			"success: update client, with v2 params set to correct relayer",
 			func() {
 				creator := suite.chainA.SenderAccount.GetAddress()
-				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, creator.String(), types.NewParams(suite.chainB.SenderAccount.GetAddress().String(), creator.String()))
+				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, creator.String(), clientv2types.NewParams(suite.chainB.SenderAccount.GetAddress().String(), creator.String()))
 				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 			},
@@ -296,7 +296,7 @@ func (suite *KeeperTestSuite) TestUpdateClient() {
 			"failure: update client with invalid relayer",
 			func() {
 				creator := suite.chainA.SenderAccount.GetAddress()
-				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, creator.String(), types.NewParams(suite.chainB.SenderAccount.GetAddress().String()))
+				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, creator.String(), clientv2types.NewParams(suite.chainB.SenderAccount.GetAddress().String()))
 				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 			},
