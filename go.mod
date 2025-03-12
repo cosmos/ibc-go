@@ -2,10 +2,8 @@ go 1.21
 
 module github.com/cosmos/ibc-go/v8
 
-retract (
-	// contain ASA-2025-004 vulnerability
-	[v8.0.0, v8.6.0]
-)
+// contain ASA-2025-004 and ISA-2025-001 vulnerability
+retract [v8.0.0, v8.6.1]
 
 require (
 	cosmossdk.io/api v0.7.5
