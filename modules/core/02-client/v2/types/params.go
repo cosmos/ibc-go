@@ -10,13 +10,9 @@ import (
 const MaxAllowedRelayersLength = 20
 
 // NewParams instantiates a new allowed relayer list for a client with provided addresses
-func NewParams(allowedRelayers ...sdk.AccAddress) Params {
-	var relayersStr []string
-	for _, relayer := range allowedRelayers {
-		relayersStr = append(relayersStr, relayer.String())
-	}
+func NewParams(allowedRelayers ...string) Params {
 	return Params{
-		AllowedRelayers: relayersStr,
+		AllowedRelayers: allowedRelayers,
 	}
 }
 
