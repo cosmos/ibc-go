@@ -780,6 +780,83 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestQueryCreatorParams() {
+	var (
+		req    *types.QueryClientCreatorRequest
+		expRes *types.QueryClientCreatorResponse
+		path   *ibctesting.Path
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"req is nil",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"invalid clientID",
+			func() {
+				req = &types.QueryClientCreatorRequest{}
+			},
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
+		},
+		{
+			"client not found",
+			func() {
+				req = &types.QueryClientCreatorRequest{
+					ClientId: ibctesting.FirstClientID,
+				}
+				expRes = &types.QueryClientCreatorResponse{
+					Creator: "",
+				}
+			},
+			nil,
+		},
+		{
+			"success",
+			func() {
+				path.SetupClients()
+				req = &types.QueryClientCreatorRequest{
+					ClientId: path.EndpointA.ClientID,
+				}
+				expRes = &types.QueryClientCreatorResponse{
+					Creator: suite.chainA.SenderAccount.GetAddress().String(),
+				}
+			},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest() // reset
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+
+			tc.malleate()
+			ctx := suite.chainA.GetContext()
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.ClientCreator(ctx, req)
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expRes, res)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestQueryClientParams() {
 	ctx := suite.chainA.GetContext()
 	expParams := types.DefaultParams()

@@ -47,3 +47,20 @@ func (q queryServer) CounterpartyInfo(goCtx context.Context, req *types.QueryCou
 
 	return &types.QueryCounterpartyInfoResponse{CounterpartyInfo: &info}, nil
 }
+
+// Params queries the parameters of the ibc client v2 module.
+func (q queryServer) Params(goCtx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	params := q.GetParams(ctx, req.ClientId)
+
+	return &types.QueryParamsResponse{Params: &params}, nil
+}
