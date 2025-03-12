@@ -6,6 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/type
 
 import "cosmos/msg/v1/msg.proto";
 import "gogoproto/gogo.proto";
+import "ibc/core/client/v2/params.proto";
 
 // Msg defines the ibc/client/v2 Msg service.
 service Msg {
@@ -46,7 +47,7 @@ message MsgUpdateClientV2Params {
   // client identifier
   string client_id = 1;
   // allowed relayers
-  repeated string allowed_relayers = 2;
+  Params params = 2 [(gogoproto.nullable) = false];
   // signer address
   string signer = 3;
 }

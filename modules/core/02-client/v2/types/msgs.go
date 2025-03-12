@@ -50,11 +50,11 @@ func (msg *MsgRegisterCounterparty) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateClientV2Params(clientID string, signer string, allowedRelayers ...string) *MsgUpdateClientV2Params {
+func NewMsgUpdateClientV2Params(clientID string, signer string, params Params) *MsgUpdateClientV2Params {
 	return &MsgUpdateClientV2Params{
-		ClientId:        clientID,
-		Signer:          signer,
-		AllowedRelayers: allowedRelayers,
+		ClientId: clientID,
+		Signer:   signer,
+		Params:   params,
 	}
 }
 
@@ -69,7 +69,7 @@ func (msg *MsgUpdateClientV2Params) ValidateBasic() error {
 	if !types.IsValidClientID(msg.ClientId) {
 		return errorsmod.Wrapf(host.ErrInvalidID, "client ID %s must be in valid format: {string}-{number}", msg.ClientId)
 	}
-	if err := validateRelayers(msg.AllowedRelayers); err != nil {
+	if err := msg.Params.Validate(); err != nil {
 		return err
 	}
 	return nil

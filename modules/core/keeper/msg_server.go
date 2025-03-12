@@ -665,7 +665,6 @@ func (k *Keeper) UpdateClientV2Params(goCtx context.Context, msg *clientv2types.
 		)
 	}
 
-	params := clientv2types.NewParams(msg.AllowedRelayers...)
-	k.ClientV2Keeper.SetParams(ctx, msg.ClientId, params)
+	k.ClientV2Keeper.SetParams(ctx, msg.ClientId, msg.Params)
 	return &clientv2types.MsgUpdateClientV2ParamsResponse{}, nil
 }

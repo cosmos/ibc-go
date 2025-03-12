@@ -131,7 +131,7 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 			types.NewMsgUpdateClientV2Params(
 				"testclientid-2",
 				signer,
-				ibctesting.TestAccAddress,
+				types.NewParams(ibctesting.TestAccAddress),
 			),
 			nil,
 		},
@@ -140,7 +140,7 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 			types.NewMsgUpdateClientV2Params(
 				"testclientid-2",
 				signer,
-				ibctesting.TestAccAddress, signer2.String(), signer3.String(),
+				types.NewParams(ibctesting.TestAccAddress, signer2.String(), signer3.String()),
 			),
 			nil,
 		},
@@ -149,6 +149,7 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 			types.NewMsgUpdateClientV2Params(
 				"testclientid-2",
 				signer,
+				types.DefaultParams(),
 			),
 			nil,
 		},
@@ -157,7 +158,7 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 			types.NewMsgUpdateClientV2Params(
 				"testclientid1",
 				signer,
-				ibctesting.TestAccAddress,
+				types.NewParams(ibctesting.TestAccAddress),
 			),
 			errorsmod.Wrapf(host.ErrInvalidID, "client ID %s must be in valid format: {string}-{number}", "testclientid1"),
 		},
@@ -166,7 +167,7 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 			types.NewMsgUpdateClientV2Params(
 				"",
 				signer,
-				ibctesting.TestAccAddress,
+				types.NewParams(ibctesting.TestAccAddress),
 			),
 			errorsmod.Wrapf(host.ErrInvalidID, "identifier cannot be blank"),
 		},
@@ -175,7 +176,7 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 			types.NewMsgUpdateClientV2Params(
 				"testclientid-2",
 				"",
-				ibctesting.TestAccAddress,
+				types.NewParams(ibctesting.TestAccAddress),
 			),
 			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: empty address string is not allowed"),
 		},
@@ -184,7 +185,7 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 			types.NewMsgUpdateClientV2Params(
 				"testclientid-2",
 				"badsigner",
-				ibctesting.TestAccAddress,
+				types.NewParams(ibctesting.TestAccAddress),
 			),
 			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: decoding bech32 failed: invalid separator index -1"),
 		},
@@ -193,7 +194,7 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 			types.NewMsgUpdateClientV2Params(
 				"testclientid-2",
 				signer,
-				"invalidAddress",
+				types.NewParams("invalidAddress"),
 			),
 			fmt.Errorf("invalid relayer address: %s", "invalidAddress"),
 		},
@@ -202,8 +203,7 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 			types.NewMsgUpdateClientV2Params(
 				"testclientid-2",
 				signer,
-				"invalidAddress",
-				ibctesting.TestAccAddress,
+				types.NewParams("invalidAddress", ibctesting.TestAccAddress),
 			),
 			fmt.Errorf("invalid relayer address: %s", "invalidAddress"),
 		},
@@ -212,7 +212,7 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 			types.NewMsgUpdateClientV2Params(
 				"testclientid-2",
 				signer,
-				tooManyRelayers...,
+				types.NewParams(tooManyRelayers...),
 			),
 			fmt.Errorf("allowed relayers length must not exceed %d items", types.MaxAllowedRelayersLength),
 		},

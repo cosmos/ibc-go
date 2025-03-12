@@ -24,6 +24,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params is a **per-client** parameter that sets which relayers are allowed to relay v2 IBC messages
 // for a given client.
+// If it is set, then only relayers in the allow list can send v2 messages
+// If it is not set, then the client allows permissionless relaying of v2 messages
 type Params struct {
 	// allowed_relayers defines the set of allowed relayers for IBC V2 protocol for the given client
 	AllowedRelayers []string `protobuf:"bytes,1,rep,name=allowed_relayers,json=allowedRelayers,proto3" json:"allowed_relayers,omitempty"`

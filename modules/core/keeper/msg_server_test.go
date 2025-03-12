@@ -9,6 +9,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -1146,6 +1147,44 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expErr.Error())
 			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
+	var (
+		path   *ibctesting.Path
+		signer string
+		params types.Params
+	)
+	authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: valid authority and default params",
+			func() {
+				signer = authority
+			},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			params = types.DefaultParams()
+
+			tc.malleate()
+
+			msg := types.NewMsgUpdateClientV2Params(signer, path.EndpointA.ClientID, params)
+
 		})
 	}
 }
