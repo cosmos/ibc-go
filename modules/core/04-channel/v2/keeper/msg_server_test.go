@@ -495,7 +495,6 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 					return mock.MockApplicationCallbackError
 				}
 				suite.Require().NoError(path.EndpointA.UpdateClient())
-
 			},
 			expError: mock.MockApplicationCallbackError,
 		},
@@ -505,7 +504,6 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 				// change the source id to a non-existent client.
 				packet.SourceClient = "not-existent-client"
 				suite.Require().NoError(path.EndpointA.UpdateClient())
-
 			},
 			expError: clientv2types.ErrCounterpartyNotFound,
 		},
@@ -514,7 +512,6 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			malleate: func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceClient, packet.Sequence, []byte("foo"))
 				suite.Require().NoError(path.EndpointA.UpdateClient())
-
 			},
 			expError: types.ErrInvalidPacket,
 		},

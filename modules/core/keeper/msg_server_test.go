@@ -9,7 +9,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -1209,7 +1208,7 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 	var (
 		path   *ibctesting.Path
 		signer string
-		params types.Params
+		params clientv2types.Params
 	)
 	testCases := []struct {
 		name     string
@@ -1234,7 +1233,7 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 			"success: valid authority and custom params",
 			func() {
 				signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
-				params = types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
+				params = clientv2types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
 			},
 			nil,
 		},
@@ -1242,7 +1241,7 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 			"success: valid creator and default params",
 			func() {
 				signer = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID).String()
-				params = types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
+				params = clientv2types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
 			},
 			nil,
 		},
@@ -1250,10 +1249,10 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 			"success: valid creator and setting params to empty after it has been set",
 			func() {
 				signer = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID).String()
-				params = types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
-				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, signer, params))
+				params = clientv2types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, signer, params))
 				suite.Require().NoError(err)
-				params = types.DefaultParams()
+				params = clientv2types.DefaultParams()
 			},
 			nil,
 		},
@@ -1261,10 +1260,10 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 			"success: valid creator and setting params to different params after it has been set",
 			func() {
 				signer = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID).String()
-				params = types.NewParams(suite.chainA.SenderAccount.String())
-				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, signer, params))
+				params = clientv2types.NewParams(suite.chainA.SenderAccount.String())
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, signer, params))
 				suite.Require().NoError(err)
-				params = types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
+				params = clientv2types.NewParams(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
 			},
 			nil,
 		},
@@ -1272,7 +1271,7 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 			"failure: invalid signer",
 			func() {
 				signer = suite.chainB.SenderAccount.GetAddress().String()
-				params = types.NewParams(suite.chainB.SenderAccount.String())
+				params = clientv2types.NewParams(suite.chainB.SenderAccount.String())
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -1285,11 +1284,11 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
 
-			params = types.DefaultParams()
+			params = clientv2types.DefaultParams()
 
 			tc.malleate()
 
-			msg := types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, signer, params)
+			msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, signer, params)
 			_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), msg)
 			if tc.expError == nil {
 				suite.Require().NoError(err)
@@ -1299,7 +1298,6 @@ func (suite *KeeperTestSuite) TestUpdateClientV2Params() {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())
 			}
-
 		})
 	}
 }

@@ -4,8 +4,9 @@ import (
 	fmt "fmt"
 	"testing"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/stretchr/testify/require"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -114,7 +115,7 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 
 func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 	tooManyRelayers := make([]string, types.MaxAllowedRelayersLength+1)
-	for i, _ := range tooManyRelayers {
+	for i := range tooManyRelayers {
 		tooManyRelayers[i] = ibctesting.TestAccAddress
 	}
 	signer := ibctesting.TestAccAddress
@@ -227,5 +228,4 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 			}
 		})
 	}
-
 }

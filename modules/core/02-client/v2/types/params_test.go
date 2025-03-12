@@ -3,10 +3,12 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	"github.com/stretchr/testify/require"
 )
 
 func TestIsAllowedRelayer(t *testing.T) {
@@ -30,7 +32,7 @@ func TestIsAllowedRelayer(t *testing.T) {
 
 func TestValidateParams(t *testing.T) {
 	tooManyRelayers := make([]string, types.MaxAllowedRelayersLength+1)
-	for i, _ := range tooManyRelayers {
+	for i := range tooManyRelayers {
 		tooManyRelayers[i] = ibctesting.TestAccAddress
 	}
 	testCases := []struct {

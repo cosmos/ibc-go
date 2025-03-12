@@ -10,7 +10,6 @@ import (
 
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
-	types2 "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 	"github.com/cosmos/ibc-go/v10/testing/simapp"
 )
@@ -52,7 +51,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) TestSetClientCounterparty() {
-	counterparty := types2.NewCounterpartyInfo([][]byte{[]byte("ibc"), []byte("channel-7")}, testClientID2)
+	counterparty := types.NewCounterpartyInfo([][]byte{[]byte("ibc"), []byte("channel-7")}, testClientID2)
 	suite.keeper.SetClientCounterparty(suite.ctx, testClientID, counterparty)
 
 	retrievedCounterparty, found := suite.keeper.GetClientCounterparty(suite.ctx, testClientID)
@@ -84,5 +83,4 @@ func (suite *KeeperTestSuite) TestSetParams() {
 	// params for original client unaffected
 	params = suite.keeper.GetParams(suite.ctx, testClientID)
 	suite.Require().Equal(newParams, params, "params not set correctly for original clientID")
-
 }
