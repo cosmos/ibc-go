@@ -111,38 +111,124 @@ func (m *MsgRegisterCounterpartyResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRegisterCounterpartyResponse proto.InternalMessageInfo
 
+// MsgUpdateClientV2Params defines the sdk.Msg type to update the v2 parameters for a given client
+type MsgUpdateClientV2Params struct {
+	// client identifier
+	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	// allowed relayers
+	AllowedRelayers []string `protobuf:"bytes,2,rep,name=allowed_relayers,json=allowedRelayers,proto3" json:"allowed_relayers,omitempty"`
+	// signer address
+	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
+}
+
+func (m *MsgUpdateClientV2Params) Reset()         { *m = MsgUpdateClientV2Params{} }
+func (m *MsgUpdateClientV2Params) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateClientV2Params) ProtoMessage()    {}
+func (*MsgUpdateClientV2Params) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f63146ac703bba45, []int{2}
+}
+func (m *MsgUpdateClientV2Params) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateClientV2Params) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateClientV2Params.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateClientV2Params) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateClientV2Params.Merge(m, src)
+}
+func (m *MsgUpdateClientV2Params) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateClientV2Params) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateClientV2Params.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateClientV2Params proto.InternalMessageInfo
+
+// MsgUpdateClientV2ParamsResponse defines the MsgUpdateClientV2Params response type.
+type MsgUpdateClientV2ParamsResponse struct {
+}
+
+func (m *MsgUpdateClientV2ParamsResponse) Reset()         { *m = MsgUpdateClientV2ParamsResponse{} }
+func (m *MsgUpdateClientV2ParamsResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateClientV2ParamsResponse) ProtoMessage()    {}
+func (*MsgUpdateClientV2ParamsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f63146ac703bba45, []int{3}
+}
+func (m *MsgUpdateClientV2ParamsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateClientV2ParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateClientV2ParamsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateClientV2ParamsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateClientV2ParamsResponse.Merge(m, src)
+}
+func (m *MsgUpdateClientV2ParamsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateClientV2ParamsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateClientV2ParamsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateClientV2ParamsResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgRegisterCounterparty)(nil), "ibc.core.client.v2.MsgRegisterCounterparty")
 	proto.RegisterType((*MsgRegisterCounterpartyResponse)(nil), "ibc.core.client.v2.MsgRegisterCounterpartyResponse")
+	proto.RegisterType((*MsgUpdateClientV2Params)(nil), "ibc.core.client.v2.MsgUpdateClientV2Params")
+	proto.RegisterType((*MsgUpdateClientV2ParamsResponse)(nil), "ibc.core.client.v2.MsgUpdateClientV2ParamsResponse")
 }
 
 func init() { proto.RegisterFile("ibc/core/client/v2/tx.proto", fileDescriptor_f63146ac703bba45) }
 
 var fileDescriptor_f63146ac703bba45 = []byte{
-	// 358 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0xce, 0x4c, 0x4a, 0xd6,
-	0x4f, 0xce, 0x2f, 0x4a, 0xd5, 0x4f, 0xce, 0xc9, 0x4c, 0xcd, 0x2b, 0xd1, 0x2f, 0x33, 0xd2, 0x2f,
-	0xa9, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0xca, 0x4c, 0x4a, 0xd6, 0x03, 0x49, 0xea,
-	0x41, 0x24, 0xf5, 0xca, 0x8c, 0xa4, 0xc4, 0x93, 0xf3, 0x8b, 0x73, 0xf3, 0x8b, 0xf5, 0x73, 0x8b,
-	0xd3, 0xf5, 0xcb, 0x0c, 0x41, 0x14, 0x44, 0xb1, 0x94, 0x48, 0x7a, 0x7e, 0x7a, 0x3e, 0x98, 0xa9,
-	0x0f, 0x62, 0x41, 0x44, 0x95, 0x2e, 0x33, 0x72, 0x89, 0xfb, 0x16, 0xa7, 0x07, 0xa5, 0xa6, 0x67,
-	0x16, 0x97, 0xa4, 0x16, 0x39, 0xe7, 0x97, 0xe6, 0x95, 0xa4, 0x16, 0x15, 0x24, 0x16, 0x95, 0x54,
-	0x0a, 0x49, 0x73, 0x71, 0x42, 0xcc, 0x8d, 0xcf, 0x4c, 0x91, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x0c,
-	0xe2, 0x80, 0x08, 0x78, 0xa6, 0x08, 0xd9, 0x70, 0x49, 0x25, 0x23, 0x29, 0x8e, 0xcf, 0x4d, 0x2d,
-	0xca, 0xce, 0x49, 0x8d, 0x2f, 0x28, 0x4a, 0x4d, 0xcb, 0xac, 0x90, 0x60, 0x52, 0x60, 0xd6, 0xe0,
-	0x09, 0x92, 0x40, 0x56, 0xe1, 0x0b, 0x56, 0x10, 0x00, 0x96, 0x17, 0x32, 0xe1, 0x12, 0x43, 0xd1,
-	0x8d, 0xb0, 0x87, 0x19, 0x6c, 0x8f, 0x08, 0xb2, 0xac, 0x33, 0xcc, 0x4e, 0x31, 0x2e, 0xb6, 0xe2,
-	0xcc, 0xf4, 0xbc, 0xd4, 0x22, 0x09, 0x16, 0xb0, 0x2a, 0x28, 0xcf, 0x8a, 0xbf, 0x63, 0x81, 0x3c,
-	0x43, 0xd3, 0xf3, 0x0d, 0x5a, 0x50, 0x01, 0x25, 0x45, 0x2e, 0x79, 0x1c, 0x9e, 0x0a, 0x4a, 0x2d,
-	0x2e, 0xc8, 0xcf, 0x2b, 0x4e, 0x35, 0x6a, 0x63, 0xe4, 0x62, 0xf6, 0x2d, 0x4e, 0x17, 0xaa, 0xe0,
-	0x12, 0xc1, 0xea, 0x79, 0x6d, 0x3d, 0xcc, 0xc0, 0xd5, 0xc3, 0x61, 0xa8, 0x94, 0x31, 0x09, 0x8a,
-	0x61, 0x2e, 0x90, 0x62, 0x6d, 0x78, 0xbe, 0x41, 0x8b, 0xd1, 0x29, 0xec, 0xc4, 0x23, 0x39, 0xc6,
-	0x0b, 0x8f, 0xe4, 0x18, 0x1f, 0x3c, 0x92, 0x63, 0x9c, 0xf0, 0x58, 0x8e, 0xe1, 0xc2, 0x63, 0x39,
-	0x86, 0x1b, 0x8f, 0xe5, 0x18, 0xa2, 0x6c, 0xd2, 0x33, 0x4b, 0x32, 0x4a, 0x93, 0xf4, 0x92, 0xf3,
-	0x73, 0xf5, 0xa1, 0xb1, 0x9a, 0x99, 0x94, 0xac, 0x9b, 0x9e, 0xaf, 0x5f, 0x66, 0x68, 0xa0, 0x9f,
-	0x9b, 0x9f, 0x52, 0x9a, 0x93, 0x5a, 0x0c, 0x49, 0x1c, 0x06, 0x46, 0xba, 0x48, 0xe9, 0xa3, 0xb2,
-	0x20, 0xb5, 0x38, 0x89, 0x0d, 0x1c, 0xc1, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0xbb, 0x07,
-	0xab, 0x6d, 0x42, 0x02, 0x00, 0x00,
+	// 432 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0x41, 0x6f, 0x94, 0x40,
+	0x18, 0x85, 0xa2, 0x8d, 0x3b, 0x31, 0xa9, 0x21, 0x9b, 0x96, 0xd0, 0x84, 0xd6, 0x3d, 0xd5, 0x9a,
+	0x32, 0x2d, 0xf5, 0x64, 0x7a, 0xb2, 0x27, 0x0f, 0x9b, 0x34, 0x24, 0xf6, 0xe0, 0x85, 0xc0, 0xf0,
+	0x39, 0x4e, 0x04, 0x86, 0xcc, 0xcc, 0xe2, 0xee, 0xad, 0xf1, 0x64, 0x3c, 0xf9, 0x13, 0xfc, 0x09,
+	0xfd, 0x19, 0x1e, 0x9b, 0x78, 0xf1, 0x68, 0x76, 0x0f, 0xfd, 0x1b, 0x06, 0x86, 0x8d, 0x18, 0xa1,
+	0xb1, 0x27, 0x86, 0xf7, 0x1e, 0xbc, 0xf7, 0x66, 0xe6, 0x43, 0xbb, 0x2c, 0x21, 0x98, 0x70, 0x01,
+	0x98, 0x64, 0x0c, 0x0a, 0x85, 0xab, 0x00, 0xab, 0xb9, 0x5f, 0x0a, 0xae, 0xb8, 0x6d, 0xb3, 0x84,
+	0xf8, 0x35, 0xe9, 0x6b, 0xd2, 0xaf, 0x02, 0x77, 0x87, 0x70, 0x99, 0x73, 0x89, 0x73, 0x49, 0x71,
+	0x75, 0x52, 0x3f, 0xb4, 0xd8, 0x1d, 0x53, 0x4e, 0x79, 0xb3, 0xc4, 0xf5, 0x4a, 0xa3, 0x93, 0x1f,
+	0x26, 0xda, 0x99, 0x4a, 0x1a, 0x02, 0x65, 0x52, 0x81, 0x38, 0xe7, 0xb3, 0x42, 0x81, 0x28, 0x63,
+	0xa1, 0x16, 0xf6, 0x2e, 0x1a, 0xe9, 0xff, 0x46, 0x2c, 0x75, 0xcc, 0x7d, 0xf3, 0x60, 0x14, 0x3e,
+	0xd2, 0xc0, 0xeb, 0xd4, 0x3e, 0x43, 0x2e, 0xe9, 0x88, 0xa3, 0x1c, 0xc4, 0x87, 0x0c, 0xa2, 0x52,
+	0xc0, 0x3b, 0x36, 0x77, 0x36, 0xf6, 0xad, 0x83, 0xc7, 0xa1, 0xd3, 0x55, 0x4c, 0x1b, 0xc1, 0x45,
+	0xc3, 0xdb, 0x2f, 0xd0, 0xf6, 0x5f, 0x5f, 0xff, 0xf1, 0xb1, 0x1a, 0x9f, 0x71, 0x97, 0x3d, 0x5f,
+	0x7b, 0x6e, 0xa3, 0x4d, 0xc9, 0x68, 0x01, 0xc2, 0x79, 0xd0, 0xa8, 0xda, 0xb7, 0x97, 0x5b, 0x9f,
+	0xbf, 0xed, 0x19, 0x9f, 0x6e, 0xaf, 0x0f, 0x5b, 0x60, 0xf2, 0x14, 0xed, 0x0d, 0x94, 0x0a, 0x41,
+	0x96, 0xbc, 0x90, 0x30, 0xf9, 0xa2, 0x8b, 0xbf, 0x29, 0xd3, 0x58, 0x81, 0x76, 0xb8, 0x0c, 0x2e,
+	0x62, 0x11, 0xe7, 0xf2, 0xee, 0xe2, 0xcf, 0xd0, 0x93, 0x38, 0xcb, 0xf8, 0x47, 0x48, 0x23, 0x01,
+	0x59, 0xbc, 0x00, 0x21, 0x9b, 0xba, 0xa3, 0x70, 0xab, 0xc5, 0xc3, 0x16, 0xee, 0xe4, 0xb5, 0xfe,
+	0x27, 0x6f, 0x5f, 0x96, 0x75, 0xde, 0xe0, 0x6a, 0x03, 0x59, 0x53, 0x49, 0xed, 0x39, 0x1a, 0xf7,
+	0x1e, 0xd6, 0x73, 0xff, 0xdf, 0xcb, 0xe0, 0x0f, 0x6c, 0x82, 0x7b, 0x7a, 0x0f, 0xf1, 0x3a, 0x41,
+	0xed, 0xdc, 0xbb, 0x5b, 0x43, 0xce, 0x7d, 0xe2, 0x41, 0xe7, 0xbb, 0xba, 0xbb, 0x0f, 0xaf, 0x6e,
+	0xaf, 0x0f, 0xcd, 0x57, 0x97, 0xdf, 0x97, 0x9e, 0x79, 0xb3, 0xf4, 0xcc, 0x5f, 0x4b, 0xcf, 0xfc,
+	0xba, 0xf2, 0x8c, 0x9b, 0x95, 0x67, 0xfc, 0x5c, 0x79, 0xc6, 0xdb, 0x33, 0xca, 0xd4, 0xfb, 0x59,
+	0xe2, 0x13, 0x9e, 0xe3, 0xf6, 0xfe, 0xb3, 0x84, 0x1c, 0x51, 0x8e, 0xab, 0x93, 0x63, 0x9c, 0xf3,
+	0x74, 0x96, 0x81, 0xd4, 0x63, 0x74, 0x1c, 0x1c, 0x75, 0x26, 0x69, 0x51, 0x82, 0x4c, 0x36, 0x9b,
+	0x51, 0x38, 0xfd, 0x1d, 0x00, 0x00, 0xff, 0xff, 0x31, 0x52, 0xeb, 0x68, 0x6c, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -159,6 +245,8 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// RegisterCounterparty defines a rpc handler method for MsgRegisterCounterparty.
 	RegisterCounterparty(ctx context.Context, in *MsgRegisterCounterparty, opts ...grpc.CallOption) (*MsgRegisterCounterpartyResponse, error)
+	// UpdateClientV2Params defines a rpc handler method for MsgUpdateClientV2Params.
+	UpdateClientV2Params(ctx context.Context, in *MsgUpdateClientV2Params, opts ...grpc.CallOption) (*MsgUpdateClientV2ParamsResponse, error)
 }
 
 type msgClient struct {
@@ -178,10 +266,21 @@ func (c *msgClient) RegisterCounterparty(ctx context.Context, in *MsgRegisterCou
 	return out, nil
 }
 
+func (c *msgClient) UpdateClientV2Params(ctx context.Context, in *MsgUpdateClientV2Params, opts ...grpc.CallOption) (*MsgUpdateClientV2ParamsResponse, error) {
+	out := new(MsgUpdateClientV2ParamsResponse)
+	err := c.cc.Invoke(ctx, "/ibc.core.client.v2.Msg/UpdateClientV2Params", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// RegisterCounterparty defines a rpc handler method for MsgRegisterCounterparty.
 	RegisterCounterparty(context.Context, *MsgRegisterCounterparty) (*MsgRegisterCounterpartyResponse, error)
+	// UpdateClientV2Params defines a rpc handler method for MsgUpdateClientV2Params.
+	UpdateClientV2Params(context.Context, *MsgUpdateClientV2Params) (*MsgUpdateClientV2ParamsResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -190,6 +289,9 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) RegisterCounterparty(ctx context.Context, req *MsgRegisterCounterparty) (*MsgRegisterCounterpartyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterCounterparty not implemented")
+}
+func (*UnimplementedMsgServer) UpdateClientV2Params(ctx context.Context, req *MsgUpdateClientV2Params) (*MsgUpdateClientV2ParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateClientV2Params not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -214,6 +316,24 @@ func _Msg_RegisterCounterparty_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_UpdateClientV2Params_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateClientV2Params)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateClientV2Params(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.core.client.v2.Msg/UpdateClientV2Params",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateClientV2Params(ctx, req.(*MsgUpdateClientV2Params))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.core.client.v2.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -221,6 +341,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterCounterparty",
 			Handler:    _Msg_RegisterCounterparty_Handler,
+		},
+		{
+			MethodName: "UpdateClientV2Params",
+			Handler:    _Msg_UpdateClientV2Params_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -303,6 +427,75 @@ func (m *MsgRegisterCounterpartyResponse) MarshalToSizedBuffer(dAtA []byte) (int
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgUpdateClientV2Params) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateClientV2Params) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateClientV2Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.AllowedRelayers) > 0 {
+		for iNdEx := len(m.AllowedRelayers) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.AllowedRelayers[iNdEx])
+			copy(dAtA[i:], m.AllowedRelayers[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.AllowedRelayers[iNdEx])))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.ClientId) > 0 {
+		i -= len(m.ClientId)
+		copy(dAtA[i:], m.ClientId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.ClientId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateClientV2ParamsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateClientV2ParamsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateClientV2ParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -342,6 +535,38 @@ func (m *MsgRegisterCounterparty) Size() (n int) {
 }
 
 func (m *MsgRegisterCounterpartyResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateClientV2Params) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ClientId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.AllowedRelayers) > 0 {
+		for _, s := range m.AllowedRelayers {
+			l = len(s)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgUpdateClientV2ParamsResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -561,6 +786,202 @@ func (m *MsgRegisterCounterpartyResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgRegisterCounterpartyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateClientV2Params) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateClientV2Params: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateClientV2Params: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ClientId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ClientId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AllowedRelayers", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AllowedRelayers = append(m.AllowedRelayers, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateClientV2ParamsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateClientV2ParamsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateClientV2ParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

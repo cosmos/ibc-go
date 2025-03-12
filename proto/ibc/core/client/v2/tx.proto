@@ -13,6 +13,9 @@ service Msg {
 
   // RegisterCounterparty defines a rpc handler method for MsgRegisterCounterparty.
   rpc RegisterCounterparty(MsgRegisterCounterparty) returns (MsgRegisterCounterpartyResponse);
+
+  // UpdateClientV2Params defines a rpc handler method for MsgUpdateClientV2Params.
+  rpc UpdateClientV2Params(MsgUpdateClientV2Params) returns (MsgUpdateClientV2ParamsResponse);
 }
 
 // MsgRegisterCounterparty defines a message to register a counterparty on a client
@@ -33,3 +36,20 @@ message MsgRegisterCounterparty {
 
 // MsgRegisterCounterpartyResponse defines the Msg/RegisterCounterparty response type.
 message MsgRegisterCounterpartyResponse {}
+
+// MsgUpdateClientV2Params defines the sdk.Msg type to update the v2 parameters for a given client
+message MsgUpdateClientV2Params {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  // client identifier
+  string client_id = 1;
+  // allowed relayers
+  repeated string allowed_relayers = 2;
+  // signer address
+  string signer = 3;
+}
+
+// MsgUpdateClientV2ParamsResponse defines the MsgUpdateClientV2Params response type.
+message MsgUpdateClientV2ParamsResponse {}

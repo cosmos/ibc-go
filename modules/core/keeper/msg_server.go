@@ -653,3 +653,8 @@ func (k *Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectionty
 
 	return &connectiontypes.MsgUpdateParamsResponse{}, nil
 }
+
+// UpdateClientV2Params defines an rpc handler method for MsgUpdateClientParams for the 02-client v2 submodule.
+func (k *Keeper) UpdateClientV2Params(goCtx context.Context, msg *clientv2types.MsgUpdateClientV2Params) (*clientv2types.MsgUpdateClientV2ParamsResponse, error) {
+	return nil, nil
+}
