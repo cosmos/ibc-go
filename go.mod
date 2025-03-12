@@ -2,6 +2,9 @@ go 1.23.6
 
 module github.com/cosmos/ibc-go/v10
 
+// Contains ISA-2025-001 vulnerability
+retract v10.0.0
+
 require (
 	cosmossdk.io/api v0.7.6
 	cosmossdk.io/core v0.11.1
