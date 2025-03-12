@@ -1,15 +1,17 @@
 ---
 title: Governance Proposals
-sidebar_label: Governance Proposals
+sidebar_label: Light Client Recovery
 sidebar_position: 6
 slug: /ibc/proposals
 ---
 
-# Governance Proposals
+# Light Client Recovery
 
-In uncommon situations, a highly valued client may become frozen due to uncontrollable
+In uncommon situations, a highly valued client may become frozen or expire due to uncontrollable
 circumstances. A highly valued client might have hundreds of channels being actively used.
 Some of those channels might have a significant amount of locked tokens used for ICS 20.
+
+### Frozen Light Clients
 
 If the one third of the validator set of the chain the client represents decides to collude,
 they can sign off on two valid but conflicting headers each signed by the other one third
@@ -24,6 +26,8 @@ or updating clients which have become "stuck". Without this mechanism, validator
 to construct a state root to unfreeze the client. Unfreezing clients, re-enables all of the channels
 built upon that client. This may result in recovery of otherwise lost funds.
 
+### Expired Light Clients
+
 Tendermint light clients may become expired if the trusting period has passed since their
 last update. This may occur if relayers stop submitting headers to update the clients.
 
@@ -32,6 +36,11 @@ chain undergoes an unplanned upgrade, there may be no commitment to that upgrade
 set before the chain ID changes. In this situation, the validator set of the last valid update for the
 light client is never expected to produce another valid header since the chain ID has changed, which will
 ultimately lead the on-chain light client to become expired.
+
+# How to recover an expired client with a governance proposal
+
+> **Who is this information for?**
+> Although technically anyone can submit the governance proposal to recover an expired client, often it will be **relayer operators** (at least coordinating the submission).
 
 In the case that a highly valued light client is frozen, expired, or rendered non-updateable, a
 governance proposal may be submitted to update this client, known as the subject client. The
@@ -43,14 +52,7 @@ a substitute client *after* the subject has become frozen to avoid the substitut
 An active substitute client allows headers to be submitted during the voting period to prevent accidental expiry
 once the proposal passes.
 
-*note* two of these parameters: `AllowUpdateAfterExpiry` and `AllowUpdateAfterMisbehavior` have been deprecated, and will both be set to `false` upon upgrades even if they were previously set to `true`. These parameters will no longer play a role in restricting a client upgrade. Please see ADR026 for more details.
-
-# How to recover an expired client with a governance proposal
-
 See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](/architecture/adr-026-ibc-client-recovery-mechanisms)
-
-> **Who is this information for?**
-> Although technically anyone can submit the governance proposal to recover an expired client, often it will be **relayer operators** (at least coordinating the submission).
 
 ## Preconditions
 
