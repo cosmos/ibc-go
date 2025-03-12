@@ -112,7 +112,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	})
 }
 
-// compatibility:TestHostEnabledParam:from_versions: v10.0.0,v8.4.0,v7.5.0
+// compatibility:TestHostEnabledParam:from_versions: v7.9.2,v8.6.1,v10.0.0
 func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 	t := s.T()
 	ctx := context.TODO()
