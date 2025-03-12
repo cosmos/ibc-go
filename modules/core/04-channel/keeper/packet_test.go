@@ -619,7 +619,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	var (
 		path   *ibctesting.Path
 		packet types.Packet
-		ack    = ibcmock.MockAcknowledgement
+		ack    []byte
 
 		channelCap *capabilitytypes.Capability
 		expError   *sdkerrors.Error
@@ -673,7 +673,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-			err = path.EndpointA.AcknowledgePacket(packet, ack.Acknowledgement())
+			err = path.EndpointA.AcknowledgePacket(packet, ack)
 			suite.Require().NoError(err)
 		}, false},
 		{"packet already acknowledged unordered channel (no-op)", func() {
@@ -693,9 +693,60 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
-			err = path.EndpointA.AcknowledgePacket(packet, ack.Acknowledgement())
+			err = path.EndpointA.AcknowledgePacket(packet, ack)
 			suite.Require().NoError(err)
 		}, false},
+		{
+			"fake acknowledgement",
+			func() {
+				// setup uses an UNORDERED channel
+				suite.coordinator.Setup(path)
+
+				// create packet commitment
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+
+				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				// write packet acknowledgement directly
+				// Create a valid acknowledgement using deterministic serialization.
+				ack = types.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+				// Introduce non-determinism: insert an extra space after the first character '{'
+				// This will deserialize correctly but fail to re-serialize to the expected bytes.
+				if len(ack) > 0 && ack[0] == '{' {
+					ack = []byte("{ " + string(ack[1:]))
+				}
+				path.EndpointB.Chain.Coordinator.UpdateTimeForChain(path.EndpointB.Chain)
+
+				path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence, types.CommitAcknowledgement(ack))
+
+				path.EndpointB.Chain.NextBlock()
+				path.EndpointA.UpdateClient()
+			},
+			false,
+		},
+		{
+			"non-standard acknowledgement", func() {
+				// setup uses an UNORDERED channel
+				suite.coordinator.Setup(path)
+
+				// create packet commitment
+				sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
+				suite.Require().NoError(err)
+
+				channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+
+				// write packet acknowledgement directly
+				ack = []byte(`{"somethingelse":"anything"}`)
+				path.EndpointB.Chain.Coordinator.UpdateTimeForChain(path.EndpointB.Chain)
+
+				path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence, types.CommitAcknowledgement(ack))
+
+				path.EndpointB.Chain.NextBlock()
+				path.EndpointA.UpdateClient()
+			},
+			true,
+		},
 		{"channel not found", func() {
 			expError = types.ErrChannelNotFound
 
@@ -835,7 +886,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, packet.GetSequence(), types.CommitPacket(suite.chainA.App.AppCodec(), packet))
 
 			// manually set packet acknowledgement and capability
-			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, packet.GetSequence(), types.CommitAcknowledgement(ack.Acknowledgement()))
+			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, packet.GetSequence(), types.CommitAcknowledgement(ack))
 
 			suite.chainA.CreateChannelCapability(suite.chainA.GetSimApp().ScopedIBCMockKeeper, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			channelCap = suite.chainA.GetChannelCapability(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -872,6 +923,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			suite.SetupTest() // reset
 			expError = nil    // must explcitly set error for failed cases
+			ack = ibcmock.MockAcknowledgement.Acknowledgement()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			tc.malleate()
@@ -879,7 +931,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointB.QueryProof(packetKey)
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(suite.chainA.GetContext(), channelCap, packet, ack.Acknowledgement(), proof, proofHeight)
+			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.AcknowledgePacket(suite.chainA.GetContext(), channelCap, packet, ack, proof, proofHeight)
 			pc := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 			channelA, _ := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(suite.chainA.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel())

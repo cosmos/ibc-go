@@ -268,7 +268,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 				packet.Data = []byte("invalid data")
 
 			},
-			channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInvalidType),
+			channeltypes.NewErrorAcknowledgement(sdkerrors.ErrInvalidType),
 		},
 		{
 			"failure: receive disabled",
