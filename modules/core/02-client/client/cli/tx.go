@@ -123,6 +123,36 @@ func newAddCounterpartyCmd() *cobra.Command {
 	return cmd
 }
 
+func newUpdateClientParamsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "update-client-params client-id [allowed-relayer-addresses...]",
+		Short:   "update allowed relayers for a client (replaces existing list)",
+		Example: fmt.Sprintf("%s tx ibc %s update-client-params 08-wasm-0 cosmos123... cosmos456...", version.AppName, types.SubModuleName),
+		Args:    cobra.MinimumNArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			clientID := args[0]
+
+			var allowedRelayers []string
+			for _, relayerAddress := range args[1:] {
+				_ = sdk.MustAccAddressFromBech32(relayerAddress)
+				allowedRelayers = append(allowedRelayers, relayerAddress)
+			}
+
+			msg := clienttypesv2.NewMsgUpdateClientV2Params(clientID, clientCtx.GetFromAddress().String(), clienttypesv2.NewParams(allowedRelayers...))
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
 // newUpdateClientCmd defines the command to update an IBC client.
 func newUpdateClientCmd() *cobra.Command {
 	cmd := &cobra.Command{

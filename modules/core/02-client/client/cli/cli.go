@@ -52,6 +52,7 @@ func NewTxCmd() *cobra.Command {
 		newUpgradeClientCmd(),
 		newSubmitRecoverClientProposalCmd(),
 		newScheduleIBCUpgradeProposalCmd(),
+		newUpdateClientParamsCmd(),
 	)
 
 	return txCmd
