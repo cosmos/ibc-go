@@ -56,6 +56,13 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 			},
 			ibcerrors.ErrUnauthorized,
 		},
+		{
+			"counterparty already registered",
+			func() {
+				path.SetupV2()
+			},
+			ibcerrors.ErrInvalidRequest,
+		},
 	}
 	for _, tc := range testCases {
 		tc := tc
@@ -78,8 +85,6 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 				nextSeqSend, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				suite.Require().True(ok)
 				suite.Require().Equal(nextSeqSend, uint64(1))
-				creator := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID)
-				suite.Require().Empty(creator)
 			}
 		})
 	}
@@ -263,6 +268,62 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 					suite.Require().NotNil(ack)
 					suite.Require().True(found)
 				}
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestUpdateClient() {
+	var path *ibctesting.Path
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: update client, no params",
+			func() {},
+			nil,
+		},
+		{
+			"success: update client, with v2 params set to correct relayer",
+			func() {
+				creator := suite.chainA.SenderAccount.GetAddress()
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.NewConfig(suite.chainB.SenderAccount.GetAddress().String(), creator.String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), msg)
+				suite.Require().NoError(err)
+			},
+			nil,
+		},
+		{
+			"failure: update client with invalid relayer",
+			func() {
+				creator := suite.chainA.SenderAccount.GetAddress()
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.NewConfig(suite.chainB.SenderAccount.GetAddress().String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), msg)
+				suite.Require().NoError(err)
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			tc.malleate()
+
+			err := path.EndpointA.UpdateClient()
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expError.Error())
@@ -1145,6 +1206,188 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.expErr.Error())
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestUpdateClientConfig() {
+	var (
+		path   *ibctesting.Path
+		signer string
+		config clientv2types.Config
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: valid authority and default config",
+			func() {
+				signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+			},
+			nil,
+		},
+		{
+			"success: valid creator and default config",
+			func() {
+				signer = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID).String()
+			},
+			nil,
+		},
+		{
+			"success: valid authority and custom config",
+			func() {
+				signer = suite.chainA.App.GetIBCKeeper().GetAuthority()
+				config = clientv2types.NewConfig(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
+			},
+			nil,
+		},
+		{
+			"success: valid creator and default config",
+			func() {
+				signer = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID).String()
+				config = clientv2types.NewConfig(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
+			},
+			nil,
+		},
+		{
+			"success: valid creator and setting config to empty after it has been set",
+			func() {
+				signer = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID).String()
+				config = clientv2types.NewConfig(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, signer, config))
+				suite.Require().NoError(err)
+				config = clientv2types.DefaultConfig()
+			},
+			nil,
+		},
+		{
+			"success: valid creator and setting config to different config after it has been set",
+			func() {
+				signer = suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), path.EndpointA.ClientID).String()
+				config = clientv2types.NewConfig(suite.chainA.SenderAccount.String())
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, signer, config))
+				suite.Require().NoError(err)
+				config = clientv2types.NewConfig(suite.chainB.SenderAccount.String(), suite.chainA.SenderAccount.String())
+			},
+			nil,
+		},
+		{
+			"failure: invalid signer",
+			func() {
+				signer = suite.chainB.SenderAccount.GetAddress().String()
+				config = clientv2types.NewConfig(suite.chainB.SenderAccount.String())
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+
+			config = clientv2types.DefaultConfig()
+
+			tc.malleate()
+
+			msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, signer, config)
+			_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), msg)
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+				c := suite.chainA.App.GetIBCKeeper().ClientV2Keeper.GetConfig(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().Equal(config, c)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
+		})
+	}
+}
+
+// TestDeleteClientCreator tests the DeleteClientCreator message handler
+func (suite *KeeperTestSuite) TestDeleteClientCreator() {
+	var (
+		path     *ibctesting.Path
+		clientID string
+		msg      *clienttypes.MsgDeleteClientCreator
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expError error
+	}{
+		{
+			"success: valid creator deletes itself",
+			func() {
+				creator := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), clientID)
+				msg = clienttypes.NewMsgDeleteClientCreator(clientID, creator.String())
+			},
+			nil,
+		},
+		{
+			"success: valid authority deletes client creator",
+			func() {
+				msg = clienttypes.NewMsgDeleteClientCreator(clientID, suite.chainA.App.GetIBCKeeper().GetAuthority())
+			},
+			nil,
+		},
+		{
+			"failure: deleting a client creator that was already deleted",
+			func() {
+				// First delete the creator
+				authority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+				deleteMsg := clienttypes.NewMsgDeleteClientCreator(clientID, authority)
+				_, err := suite.chainA.App.GetIBCKeeper().DeleteClientCreator(suite.chainA.GetContext(), deleteMsg)
+				suite.Require().NoError(err)
+
+				// Now try to delete it again
+				msg = clienttypes.NewMsgDeleteClientCreator(clientID, authority)
+			},
+			ibcerrors.ErrNotFound, // Now it should fail with not found
+		},
+		{
+			"failure: unauthorized signer - not creator or authority",
+			func() {
+				msg = clienttypes.NewMsgDeleteClientCreator(clientID, suite.chainB.SenderAccount.GetAddress().String())
+			},
+			ibcerrors.ErrUnauthorized,
+		},
+		{
+			"failure: client ID does not exist",
+			func() {
+				msg = clienttypes.NewMsgDeleteClientCreator("nonexistentclient", suite.chainA.App.GetIBCKeeper().GetAuthority())
+			},
+			ibcerrors.ErrNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.SetupClients()
+			clientID = path.EndpointA.ClientID
+
+			tc.malleate()
+
+			_, err := suite.chainA.App.GetIBCKeeper().DeleteClientCreator(suite.chainA.GetContext(), msg)
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+
+				// Verify creator has been deleted
+				creator := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(suite.chainA.GetContext(), clientID)
+				suite.Require().Nil(creator)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}

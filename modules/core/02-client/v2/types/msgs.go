@@ -11,8 +11,11 @@ import (
 )
 
 var (
-	_ sdk.Msg              = (*MsgRegisterCounterparty)(nil)
+	_ sdk.Msg = (*MsgRegisterCounterparty)(nil)
+	_ sdk.Msg = (*MsgUpdateClientConfig)(nil)
+
 	_ sdk.HasValidateBasic = (*MsgRegisterCounterparty)(nil)
+	_ sdk.HasValidateBasic = (*MsgUpdateClientConfig)(nil)
 )
 
 // NewMsgRegisterCounterparty creates a new instance of MsgRegisterCounterparty.
@@ -45,4 +48,26 @@ func (msg *MsgRegisterCounterparty) ValidateBasic() error {
 		return errorsmod.Wrapf(host.ErrInvalidID, "%s and %s must be in valid format: {string}-{number}", msg.ClientId, msg.CounterpartyClientId)
 	}
 	return nil
+}
+
+func NewMsgUpdateClientConfig(clientID string, signer string, config Config) *MsgUpdateClientConfig {
+	return &MsgUpdateClientConfig{
+		ClientId: clientID,
+		Signer:   signer,
+		Config:   config,
+	}
+}
+
+// ValidateBasic performs basic validation of the MsgUpdateClientConfig fields.
+func (msg *MsgUpdateClientConfig) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
+		return err
+	}
+	if !types.IsValidClientID(msg.ClientId) {
+		return errorsmod.Wrapf(host.ErrInvalidID, "client ID %s must be in valid format: {string}-{number}", msg.ClientId)
+	}
+	return msg.Config.Validate()
 }

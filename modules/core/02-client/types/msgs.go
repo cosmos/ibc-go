@@ -20,6 +20,7 @@ var (
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
 	_ sdk.Msg = (*MsgIBCSoftwareUpgrade)(nil)
 	_ sdk.Msg = (*MsgRecoverClient)(nil)
+	_ sdk.Msg = (*MsgDeleteClientCreator)(nil)
 
 	_ sdk.HasValidateBasic = (*MsgCreateClient)(nil)
 	_ sdk.HasValidateBasic = (*MsgUpdateClient)(nil)
@@ -28,6 +29,7 @@ var (
 	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
 	_ sdk.HasValidateBasic = (*MsgIBCSoftwareUpgrade)(nil)
 	_ sdk.HasValidateBasic = (*MsgRecoverClient)(nil)
+	_ sdk.HasValidateBasic = (*MsgDeleteClientCreator)(nil)
 
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
@@ -317,4 +319,26 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Params.Validate()
+}
+
+// NewMsgDeleteClientCreator creates a new instance of MsgDeleteClientCreator.
+func NewMsgDeleteClientCreator(clientID string, signer string) *MsgDeleteClientCreator {
+	return &MsgDeleteClientCreator{
+		ClientId: clientID,
+		Signer:   signer,
+	}
+}
+
+// ValidateBasic performs basic validation of the MsgDeleteClientCreator fields.
+func (msg *MsgDeleteClientCreator) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Signer); err != nil {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
+		return err
+	}
+	if !IsValidClientID(msg.ClientId) {
+		return errorsmod.Wrapf(host.ErrInvalidID, "client ID %s must be in valid format: {string}-{number}", msg.ClientId)
+	}
+	return nil
 }

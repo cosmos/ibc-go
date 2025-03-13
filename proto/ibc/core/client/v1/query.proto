@@ -53,6 +53,11 @@ service Query {
     option (google.api.http).get = "/ibc/core/client/v1/params";
   }
 
+  // ClientCreator queries the creator of a given client.
+  rpc ClientCreator(QueryClientCreatorRequest) returns (QueryClientCreatorResponse) {
+    option (google.api.http).get = "/ibc/core/client/v1/client_creator/{client_id}";
+  }
+
   // UpgradedClientState queries an Upgraded IBC light client.
   rpc UpgradedClientState(QueryUpgradedClientStateRequest) returns (QueryUpgradedClientStateResponse) {
     option (google.api.http).get = "/ibc/core/client/v1/upgraded_client_states";
@@ -193,6 +198,20 @@ message QueryClientParamsRequest {}
 message QueryClientParamsResponse {
   // params defines the parameters of the module.
   Params params = 1;
+}
+
+// QueryClientCreatorRequest is the request type for the Query/ClientCreator RPC
+// method.
+message QueryClientCreatorRequest {
+  // client unique identifier
+  string client_id = 1;
+}
+
+// QueryClientCreatorResponse is the response type for the Query/ClientCreator RPC
+// method.
+message QueryClientCreatorResponse {
+  // creator of the client
+  string creator = 1;
 }
 
 // QueryUpgradedClientStateRequest is the request type for the
