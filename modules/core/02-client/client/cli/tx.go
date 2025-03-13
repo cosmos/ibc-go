@@ -150,9 +150,9 @@ func newDeleteClientCreatorCmd() *cobra.Command {
 func newUpdateClientConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-client-config client-id [allowed-relayer-addresses...]",
-		Short:   "update allowed relayers for a client (replaces existing list)",
+		Short:   "update allowed relayers for a client (replaces existing list, and no addresses means empty list and permissionless relaying)",
 		Example: fmt.Sprintf("%s tx ibc %s update-client-params 08-wasm-0 cosmos123... cosmos456...", version.AppName, types.SubModuleName),
-		Args:    cobra.MinimumNArgs(2),
+		Args:    cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
