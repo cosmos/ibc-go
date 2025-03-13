@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	internalerrors "github.com/cosmos/ibc-go/v10/modules/core/internal/errors"
 	"github.com/cosmos/ibc-go/v10/modules/core/internal/v2/telemetry"
 )
@@ -50,6 +51,12 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 	if err != nil {
 		ctx.Logger().Error("receive packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
+	}
+
+	// check if this client is allowed to update if v2 config are set
+	config := k.clientV2Keeper.GetConfig(ctx, msg.Packet.DestinationClient)
+	if !config.IsAllowedRelayer(signer) {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", msg.Signer, msg.Packet.DestinationClient)
 	}
 
 	// Perform TAO verification
@@ -154,6 +161,12 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *types.MsgAcknowledg
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
+	// check if this client is allowed to update if v2 config are set
+	config := k.clientV2Keeper.GetConfig(ctx, msg.Packet.SourceClient)
+	if !config.IsAllowedRelayer(relayer) {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", msg.Signer, msg.Packet.SourceClient)
+	}
+
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.acknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 
@@ -200,6 +213,12 @@ func (k *Keeper) Timeout(goCtx context.Context, timeout *types.MsgTimeout) (*typ
 	if err != nil {
 		ctx.Logger().Error("timeout packet failed", "error", errorsmod.Wrap(err, "invalid address for msg Signer"))
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
+	}
+
+	// check if this client is allowed to update if v2 config are set
+	config := k.clientV2Keeper.GetConfig(ctx, timeout.Packet.SourceClient)
+	if !config.IsAllowedRelayer(signer) {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", timeout.Signer, timeout.Packet.SourceClient)
 	}
 
 	cacheCtx, writeFn := ctx.CacheContext()

@@ -44,7 +44,7 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 	}
 
 	// set the client creator so that IBC v2 counterparty can be set by same relayer
-	k.ClientKeeper.SetClientCreator(ctx, clientID, sdk.AccAddress(msg.Signer))
+	k.ClientKeeper.SetClientCreator(ctx, clientID, sdk.MustAccAddressFromBech32(msg.Signer))
 
 	return &clienttypes.MsgCreateClientResponse{ClientId: clientID}, nil
 }
@@ -55,8 +55,11 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *clientv2types.
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
-	if !creator.Equals(sdk.AccAddress(msg.Signer)) {
+	if !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected same signer as createClient submittor %s, got %s", creator, msg.Signer)
+	}
+	if _, ok := k.ClientV2Keeper.GetClientCounterparty(ctx, msg.ClientId); ok {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot register counterparty once it is already set")
 	}
 
 	counterpartyInfo := clientv2types.CounterpartyInfo{
@@ -68,7 +71,6 @@ func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *clientv2types.
 	// initialize next sequence send to enable packet flow
 	k.ChannelKeeperV2.SetNextSequenceSend(ctx, msg.ClientId, 1)
 
-	k.ClientKeeper.DeleteClientCreator(ctx, msg.ClientId)
 	return &clientv2types.MsgRegisterCounterpartyResponse{}, nil
 }
 
@@ -79,6 +81,15 @@ func (k *Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateC
 	clientMsg, err := clienttypes.UnpackClientMessage(msg.ClientMessage)
 	if err != nil {
 		return nil, err
+	}
+
+	// only check v2 params if this chain is setup with v2 clientKeepr
+	if k.ClientV2Keeper != nil {
+		// check if this relayer is allowed to update if v2 configuration are set
+		config := k.ClientV2Keeper.GetConfig(ctx, msg.ClientId)
+		if !config.IsAllowedRelayer(sdk.MustAccAddressFromBech32(msg.Signer)) {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", msg.Signer, msg.ClientId)
+		}
 	}
 
 	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, clientMsg); err != nil {
@@ -652,4 +663,39 @@ func (k *Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectionty
 	k.ConnectionKeeper.SetParams(ctx, msg.Params)
 
 	return &connectiontypes.MsgUpdateParamsResponse{}, nil
+}
+
+// UpdateClientConfig defines an rpc handler method for MsgUpdateClientConfig for the 02-client v2 submodule.
+func (k *Keeper) UpdateClientConfig(goCtx context.Context, msg *clientv2types.MsgUpdateClientConfig) (*clientv2types.MsgUpdateClientConfigResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
+	if k.GetAuthority() != msg.Signer && !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority %s or client creator %s is authorized to update params for %s, got %s",
+			k.GetAuthority(), creator, msg.ClientId, msg.Signer,
+		)
+	}
+
+	k.ClientV2Keeper.SetConfig(ctx, msg.ClientId, msg.Config)
+	return &clientv2types.MsgUpdateClientConfigResponse{}, nil
+}
+
+// DeleteClientCreator defines an rpc handler method for MsgDeleteClientCreator for the 02-client v1 submodule.
+func (k *Keeper) DeleteClientCreator(goCtx context.Context, msg *clienttypes.MsgDeleteClientCreator) (*clienttypes.MsgDeleteClientCreatorResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
+	if creator == nil {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrNotFound, "creator for client %s not found", msg.ClientId)
+	}
+
+	// Check authorization
+	if k.GetAuthority() != msg.Signer && !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority %s or client creator %s is authorized to delete creator for %s, got %s",
+			k.GetAuthority(), creator, msg.ClientId, msg.Signer,
+		)
+	}
+
+	k.ClientKeeper.DeleteClientCreator(ctx, msg.ClientId)
+	return &clienttypes.MsgDeleteClientCreatorResponse{}, nil
 }
