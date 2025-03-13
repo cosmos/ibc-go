@@ -88,10 +88,10 @@ func (suite *KeeperTestSuite) TestQueryCounterPartyInfo() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryParams() {
+func (suite *KeeperTestSuite) TestQueryConfig() {
 	var (
-		req     *types.QueryParamsRequest
-		expInfo = types.Params{}
+		req       *types.QueryConfigRequest
+		expConfig = types.Config{}
 	)
 
 	testCases := []struct {
@@ -109,32 +109,32 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 		{
 			"req has no ID",
 			func() {
-				req = &types.QueryParamsRequest{}
+				req = &types.QueryConfigRequest{}
 			},
 			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
 		},
 		{
-			"success with default params",
+			"success with default config",
 			func() {
 				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path1.SetupClients()
 
-				expInfo = types.DefaultParams()
-				req = &types.QueryParamsRequest{
+				expConfig = types.DefaultConfig()
+				req = &types.QueryConfigRequest{
 					ClientId: path1.EndpointA.ClientID,
 				}
 			},
 			nil,
 		},
 		{
-			"success with custom params",
+			"success with custom config",
 			func() {
 				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
 				path1.SetupClients()
 
-				expInfo = types.NewParams(ibctesting.TestAccAddress)
-				suite.chainA.App.GetIBCKeeper().ClientV2Keeper.SetParams(suite.chainA.GetContext(), path1.EndpointA.ClientID, expInfo)
-				req = &types.QueryParamsRequest{
+				expConfig = types.NewConfig(ibctesting.TestAccAddress)
+				suite.chainA.App.GetIBCKeeper().ClientV2Keeper.SetConfig(suite.chainA.GetContext(), path1.EndpointA.ClientID, expConfig)
+				req = &types.QueryConfigRequest{
 					ClientId: path1.EndpointA.ClientID,
 				}
 			},
@@ -151,11 +151,11 @@ func (suite *KeeperTestSuite) TestQueryParams() {
 
 			ctx := suite.chainA.GetContext()
 			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientV2Keeper)
-			res, err := queryServer.Params(ctx, req)
+			res, err := queryServer.Config(ctx, req)
 			if tc.expErr == nil {
 				suite.Require().NoError(err)
 				suite.Require().NotNil(res)
-				suite.Require().Equal(expInfo, *res.Params)
+				suite.Require().Equal(expConfig, *res.Config)
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)

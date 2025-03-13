@@ -59,28 +59,28 @@ func (suite *KeeperTestSuite) TestSetClientCounterparty() {
 	suite.Require().Equal(counterparty, retrievedCounterparty, "Counterparties are not equal")
 }
 
-func (suite *KeeperTestSuite) TestSetParams() {
-	params := suite.keeper.GetParams(suite.ctx, testClientID)
-	suite.Require().Equal(params, types.DefaultParams(), "did not return default params on initialization")
+func (suite *KeeperTestSuite) TestSetConfig() {
+	config := suite.keeper.GetConfig(suite.ctx, testClientID)
+	suite.Require().Equal(config, types.DefaultConfig(), "did not return default config on initialization")
 
-	newParams := types.NewParams(ibctesting.TestAccAddress)
-	suite.keeper.SetParams(suite.ctx, testClientID, newParams)
+	newConfig := types.NewConfig(ibctesting.TestAccAddress)
+	suite.keeper.SetConfig(suite.ctx, testClientID, newConfig)
 
-	params = suite.keeper.GetParams(suite.ctx, testClientID)
-	suite.Require().Equal(newParams, params, "params not set correctly")
+	config = suite.keeper.GetConfig(suite.ctx, testClientID)
+	suite.Require().Equal(newConfig, config, "config not set correctly")
 
-	// params should be empty for a different clientID
-	params = suite.keeper.GetParams(suite.ctx, testClientID2)
-	suite.Require().Equal(types.DefaultParams(), params, "params should be empty for different clientID")
+	// config should be empty for a different clientID
+	config = suite.keeper.GetConfig(suite.ctx, testClientID2)
+	suite.Require().Equal(types.DefaultConfig(), config, "config should be empty for different clientID")
 
-	// set params for a different clientID
-	newParams2 := types.NewParams(ibctesting.TestAccAddress, suite.chainA.SenderAccount.GetAddress().String())
-	suite.keeper.SetParams(suite.ctx, testClientID2, newParams2)
+	// set config for a different clientID
+	newConfig2 := types.NewConfig(ibctesting.TestAccAddress, suite.chainA.SenderAccount.GetAddress().String())
+	suite.keeper.SetConfig(suite.ctx, testClientID2, newConfig2)
 
-	params = suite.keeper.GetParams(suite.ctx, testClientID2)
-	suite.Require().Equal(newParams2, params, "params not set correctly for different clientID")
+	config = suite.keeper.GetConfig(suite.ctx, testClientID2)
+	suite.Require().Equal(newConfig2, config, "config not set correctly for different clientID")
 
-	// params for original client unaffected
-	params = suite.keeper.GetParams(suite.ctx, testClientID)
-	suite.Require().Equal(newParams, params, "params not set correctly for original clientID")
+	// config for original client unaffected
+	config = suite.keeper.GetConfig(suite.ctx, testClientID)
+	suite.Require().Equal(newConfig, config, "config not set correctly for original clientID")
 }

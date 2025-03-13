@@ -48,8 +48,8 @@ func (q queryServer) CounterpartyInfo(goCtx context.Context, req *types.QueryCou
 	return &types.QueryCounterpartyInfoResponse{CounterpartyInfo: &info}, nil
 }
 
-// Params queries the parameters of the ibc client v2 module.
-func (q queryServer) Params(goCtx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+// Config queries the configuration of the ibc client v2 module.
+func (q queryServer) Config(goCtx context.Context, req *types.QueryConfigRequest) (*types.QueryConfigResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -60,7 +60,7 @@ func (q queryServer) Params(goCtx context.Context, req *types.QueryParamsRequest
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	params := q.GetParams(ctx, req.ClientId)
+	config := q.GetConfig(ctx, req.ClientId)
 
-	return &types.QueryParamsResponse{Params: &params}, nil
+	return &types.QueryConfigResponse{Config: &config}, nil
 }

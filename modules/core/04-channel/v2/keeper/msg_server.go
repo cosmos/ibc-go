@@ -53,9 +53,9 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
-	// check if this client is allowed to update if v2 params are set
-	params := k.clientV2Keeper.GetParams(ctx, msg.Packet.DestinationClient)
-	if !params.IsAllowedRelayer(signer) {
+	// check if this client is allowed to update if v2 config are set
+	config := k.clientV2Keeper.GetConfig(ctx, msg.Packet.DestinationClient)
+	if !config.IsAllowedRelayer(signer) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", msg.Signer, msg.Packet.DestinationClient)
 	}
 
@@ -161,9 +161,9 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *types.MsgAcknowledg
 		return nil, errorsmod.Wrap(err, "Invalid address for msg Signer")
 	}
 
-	// check if this client is allowed to update if v2 params are set
-	params := k.clientV2Keeper.GetParams(ctx, msg.Packet.SourceClient)
-	if !params.IsAllowedRelayer(relayer) {
+	// check if this client is allowed to update if v2 config are set
+	config := k.clientV2Keeper.GetConfig(ctx, msg.Packet.SourceClient)
+	if !config.IsAllowedRelayer(relayer) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", msg.Signer, msg.Packet.SourceClient)
 	}
 
@@ -215,9 +215,9 @@ func (k *Keeper) Timeout(goCtx context.Context, timeout *types.MsgTimeout) (*typ
 		return nil, errorsmod.Wrap(err, "invalid address for msg Signer")
 	}
 
-	// check if this client is allowed to update if v2 params are set
-	params := k.clientV2Keeper.GetParams(ctx, timeout.Packet.SourceClient)
-	if !params.IsAllowedRelayer(signer) {
+	// check if this client is allowed to update if v2 config are set
+	config := k.clientV2Keeper.GetConfig(ctx, timeout.Packet.SourceClient)
+	if !config.IsAllowedRelayer(signer) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", timeout.Signer, timeout.Packet.SourceClient)
 	}
 
