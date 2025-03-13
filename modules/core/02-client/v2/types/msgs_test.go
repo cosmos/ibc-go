@@ -113,7 +113,7 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
+func TestMsgUpdateClientConfigValidateBasic(t *testing.T) {
 	tooManyRelayers := make([]string, types.MaxAllowedRelayersLength+1)
 	for i := range tooManyRelayers {
 		tooManyRelayers[i] = ibctesting.TestAccAddress
@@ -121,96 +121,96 @@ func TestMsgUpdateClientV2ParamsValidateBasic(t *testing.T) {
 	signer := ibctesting.TestAccAddress
 	testCases := []struct {
 		name     string
-		msg      *types.MsgUpdateClientV2Params
+		msg      *types.MsgUpdateClientConfig
 		expError error
 	}{
 		{
 			"success",
-			types.NewMsgUpdateClientV2Params(
+			types.NewMsgUpdateClientConfig(
 				"testclientid-2",
 				signer,
-				types.NewParams(ibctesting.TestAccAddress),
+				types.NewConfig(ibctesting.TestAccAddress),
 			),
 			nil,
 		},
 		{
 			"success with multiple relayers",
-			types.NewMsgUpdateClientV2Params(
+			types.NewMsgUpdateClientConfig(
 				"testclientid-2",
 				signer,
-				types.NewParams(ibctesting.TestAccAddress, signer2.String(), signer3.String()),
+				types.NewConfig(ibctesting.TestAccAddress, signer2.String(), signer3.String()),
 			),
 			nil,
 		},
 		{
 			"success with no relayers",
-			types.NewMsgUpdateClientV2Params(
+			types.NewMsgUpdateClientConfig(
 				"testclientid-2",
 				signer,
-				types.DefaultParams(),
+				types.DefaultConfig(),
 			),
 			nil,
 		},
 		{
 			"failure: client id does not match clientID format",
-			types.NewMsgUpdateClientV2Params(
+			types.NewMsgUpdateClientConfig(
 				"testclientid1",
 				signer,
-				types.NewParams(ibctesting.TestAccAddress),
+				types.NewConfig(ibctesting.TestAccAddress),
 			),
 			errorsmod.Wrapf(host.ErrInvalidID, "client ID %s must be in valid format: {string}-{number}", "testclientid1"),
 		},
 		{
 			"failure: empty client id",
-			types.NewMsgUpdateClientV2Params(
+			types.NewMsgUpdateClientConfig(
 				"",
 				signer,
-				types.NewParams(ibctesting.TestAccAddress),
+				types.NewConfig(ibctesting.TestAccAddress),
 			),
 			errorsmod.Wrapf(host.ErrInvalidID, "identifier cannot be blank"),
 		},
 		{
 			"failure: empty signer",
-			types.NewMsgUpdateClientV2Params(
+			types.NewMsgUpdateClientConfig(
 				"testclientid-2",
 				"",
-				types.NewParams(ibctesting.TestAccAddress),
+				types.NewConfig(ibctesting.TestAccAddress),
 			),
 			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: empty address string is not allowed"),
 		},
 		{
 			"failure: invalid signer",
-			types.NewMsgUpdateClientV2Params(
+			types.NewMsgUpdateClientConfig(
 				"testclientid-2",
 				"badsigner",
-				types.NewParams(ibctesting.TestAccAddress),
+				types.NewConfig(ibctesting.TestAccAddress),
 			),
 			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: decoding bech32 failed: invalid separator index -1"),
 		},
 		{
 			"failure: invalid allowed relayer address",
-			types.NewMsgUpdateClientV2Params(
+			types.NewMsgUpdateClientConfig(
 				"testclientid-2",
 				signer,
-				types.NewParams("invalidAddress"),
+				types.NewConfig("invalidAddress"),
 			),
 			fmt.Errorf("invalid relayer address: %s", "invalidAddress"),
 		},
 		{
 			"failure: invalid allowed relayer address with valid ones",
-			types.NewMsgUpdateClientV2Params(
+			types.NewMsgUpdateClientConfig(
 				"testclientid-2",
 				signer,
-				types.NewParams("invalidAddress", ibctesting.TestAccAddress),
+				types.NewConfig("invalidAddress", ibctesting.TestAccAddress),
 			),
 			fmt.Errorf("invalid relayer address: %s", "invalidAddress"),
 		},
 		{
 			"failure: too many allowed relayers",
-			types.NewMsgUpdateClientV2Params(
+			types.NewMsgUpdateClientConfig(
 				"testclientid-2",
 				signer,
-				types.NewParams(tooManyRelayers...),
+				types.NewConfig(tooManyRelayers...),
 			),
 			fmt.Errorf("allowed relayers length must not exceed %d items", types.MaxAllowedRelayersLength),
 		},

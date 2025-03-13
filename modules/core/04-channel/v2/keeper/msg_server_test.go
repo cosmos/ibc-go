@@ -194,8 +194,8 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			name: "success: receive permissioned with msg sender",
 			malleate: func() {
 				creator := suite.chainB.SenderAccount.GetAddress()
-				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointB.ClientID, creator.String(), clientv2types.NewParams(suite.chainA.SenderAccount.GetAddress().String(), creator.String()))
-				_, err := suite.chainB.App.GetIBCKeeper().UpdateClientV2Params(suite.chainB.GetContext(), msg)
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointB.ClientID, creator.String(), clientv2types.NewConfig(suite.chainA.SenderAccount.GetAddress().String(), creator.String()))
+				_, err := suite.chainB.App.GetIBCKeeper().UpdateClientConfig(suite.chainB.GetContext(), msg)
 				suite.Require().NoError(err)
 			},
 			expError:      nil,
@@ -205,8 +205,8 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			name: "failure: relayer not permissioned",
 			malleate: func() {
 				creator := suite.chainB.SenderAccount.GetAddress()
-				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointB.ClientID, creator.String(), clientv2types.NewParams(suite.chainA.SenderAccount.GetAddress().String()))
-				_, err := suite.chainB.App.GetIBCKeeper().UpdateClientV2Params(suite.chainB.GetContext(), msg)
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointB.ClientID, creator.String(), clientv2types.NewConfig(suite.chainA.SenderAccount.GetAddress().String()))
+				_, err := suite.chainB.App.GetIBCKeeper().UpdateClientConfig(suite.chainB.GetContext(), msg)
 				suite.Require().NoError(err)
 			},
 			expError: ibcerrors.ErrUnauthorized,
@@ -348,8 +348,8 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			name: "success: relayer permissioned with msg sender",
 			malleate: func() {
 				creator := suite.chainA.SenderAccount.GetAddress()
-				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, creator.String(), clientv2types.NewParams(suite.chainB.SenderAccount.GetAddress().String(), creator.String()))
-				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), msg)
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.NewConfig(suite.chainB.SenderAccount.GetAddress().String(), creator.String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 			},
 			payload: mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
@@ -358,8 +358,8 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			name: "failure: relayer not permissioned",
 			malleate: func() {
 				creator := suite.chainA.SenderAccount.GetAddress()
-				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, creator.String(), clientv2types.NewParams(suite.chainB.SenderAccount.GetAddress().String()))
-				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), msg)
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.NewConfig(suite.chainB.SenderAccount.GetAddress().String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 			},
 			payload:  mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
@@ -470,8 +470,8 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			name: "success: relayer permissioned with msg sender",
 			malleate: func() {
 				creator := suite.chainA.SenderAccount.GetAddress()
-				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, creator.String(), clientv2types.NewParams(suite.chainB.SenderAccount.GetAddress().String(), creator.String()))
-				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), msg)
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.NewConfig(suite.chainB.SenderAccount.GetAddress().String(), creator.String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
@@ -482,8 +482,8 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 				// update first before permissioning the relayer in this case
 				suite.Require().NoError(path.EndpointA.UpdateClient())
 				creator := suite.chainA.SenderAccount.GetAddress()
-				msg := clientv2types.NewMsgUpdateClientV2Params(path.EndpointA.ClientID, creator.String(), clientv2types.NewParams(suite.chainB.SenderAccount.GetAddress().String()))
-				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientV2Params(suite.chainA.GetContext(), msg)
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.NewConfig(suite.chainB.SenderAccount.GetAddress().String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), msg)
 				suite.Require().NoError(err)
 			},
 			expError: ibcerrors.ErrUnauthorized,

@@ -780,7 +780,7 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryCreatorParams() {
+func (suite *KeeperTestSuite) TestQueryCreator() {
 	var (
 		req    *types.QueryClientCreatorRequest
 		expRes *types.QueryClientCreatorResponse

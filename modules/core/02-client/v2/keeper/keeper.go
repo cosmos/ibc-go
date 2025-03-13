@@ -43,22 +43,22 @@ func (k *Keeper) GetClientCounterparty(ctx sdk.Context, clientID string) (types.
 	return counterparty, true
 }
 
-// GetParams returns the ibc-client v2 parameters for the given clientID.
-func (k *Keeper) GetParams(ctx sdk.Context, clientID string) types.Params {
+// GetConfig returns the ibc-client v2 configuration for the given clientID.
+func (k *Keeper) GetConfig(ctx sdk.Context, clientID string) types.Config {
 	store := k.ClientV1Keeper.ClientStore(ctx, clientID)
-	bz := store.Get(types.V2ParamsKey())
+	bz := store.Get(types.ConfigKey())
 	if len(bz) == 0 {
-		return types.NewParams()
+		return types.NewConfig()
 	}
 
-	var params types.Params
-	k.cdc.MustUnmarshal(bz, &params)
-	return params
+	var config types.Config
+	k.cdc.MustUnmarshal(bz, &config)
+	return config
 }
 
-// SetParams sets ibc-client v2 parameters for the given clientID.
-func (k *Keeper) SetParams(ctx sdk.Context, clientID string, params types.Params) {
+// SetConfig sets ibc-client v2 configuration for the given clientID.
+func (k *Keeper) SetConfig(ctx sdk.Context, clientID string, config types.Config) {
 	store := k.ClientV1Keeper.ClientStore(ctx, clientID)
-	bz := k.cdc.MustMarshal(&params)
-	store.Set(types.V2ParamsKey(), bz)
+	bz := k.cdc.MustMarshal(&config)
+	store.Set(types.ConfigKey(), bz)
 }

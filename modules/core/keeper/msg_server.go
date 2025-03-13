@@ -85,9 +85,9 @@ func (k *Keeper) UpdateClient(goCtx context.Context, msg *clienttypes.MsgUpdateC
 
 	// only check v2 params if this chain is setup with v2 clientKeepr
 	if k.ClientV2Keeper != nil {
-		// check if this relayer is allowed to update if v2 params are set
-		params := k.ClientV2Keeper.GetParams(ctx, msg.ClientId)
-		if !params.IsAllowedRelayer(sdk.MustAccAddressFromBech32(msg.Signer)) {
+		// check if this relayer is allowed to update if v2 configuration are set
+		config := k.ClientV2Keeper.GetConfig(ctx, msg.ClientId)
+		if !config.IsAllowedRelayer(sdk.MustAccAddressFromBech32(msg.Signer)) {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "relayer %s is not authorized to update client %s", msg.Signer, msg.ClientId)
 		}
 	}
@@ -665,8 +665,8 @@ func (k *Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectionty
 	return &connectiontypes.MsgUpdateParamsResponse{}, nil
 }
 
-// UpdateClientV2Params defines an rpc handler method for MsgUpdateClientParams for the 02-client v2 submodule.
-func (k *Keeper) UpdateClientV2Params(goCtx context.Context, msg *clientv2types.MsgUpdateClientV2Params) (*clientv2types.MsgUpdateClientV2ParamsResponse, error) {
+// UpdateClientConfig defines an rpc handler method for MsgUpdateClientConfig for the 02-client v2 submodule.
+func (k *Keeper) UpdateClientConfig(goCtx context.Context, msg *clientv2types.MsgUpdateClientConfig) (*clientv2types.MsgUpdateClientConfigResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
@@ -676,6 +676,6 @@ func (k *Keeper) UpdateClientV2Params(goCtx context.Context, msg *clientv2types.
 		)
 	}
 
-	k.ClientV2Keeper.SetParams(ctx, msg.ClientId, msg.Params)
-	return &clientv2types.MsgUpdateClientV2ParamsResponse{}, nil
+	k.ClientV2Keeper.SetConfig(ctx, msg.ClientId, msg.Config)
+	return &clientv2types.MsgUpdateClientConfigResponse{}, nil
 }
