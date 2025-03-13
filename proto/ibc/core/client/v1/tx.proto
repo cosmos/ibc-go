@@ -34,6 +34,9 @@ service Msg {
 
   // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
   rpc UpdateClientParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // DeleteClientCreator defines a rpc handler method for MsgDeleteClientCreator.
+  rpc DeleteClientCreator(MsgDeleteClientCreator) returns (MsgDeleteClientCreatorResponse);
 }
 
 // MsgCreateClient defines a message to create an IBC client
@@ -177,3 +180,19 @@ message MsgUpdateParams {
 
 // MsgUpdateParamsResponse defines the MsgUpdateParams response type.
 message MsgUpdateParamsResponse {}
+
+// MsgDeleteClientCreator defines a message to delete the client creator of a client
+message MsgDeleteClientCreator {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  // client identifier
+  string client_id = 1;
+  // signer address
+  string signer = 2;
+}
+
+// MsgDeleteClientCreatorResponse defines the Msg/DeleteClientCreator response type.
+message MsgDeleteClientCreatorResponse {}
+
