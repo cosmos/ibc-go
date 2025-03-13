@@ -47,6 +47,8 @@ message MsgUpdateClientConfig {
   // client identifier
   string client_id = 1;
   // allowed relayers
+  //
+  // NOTE: All fields in the config must be supplied.
   Config config = 2 [(gogoproto.nullable) = false];
   // signer address
   string signer = 3;

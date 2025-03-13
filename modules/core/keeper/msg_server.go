@@ -680,6 +680,7 @@ func (k *Keeper) UpdateClientConfig(goCtx context.Context, msg *clientv2types.Ms
 	return &clientv2types.MsgUpdateClientConfigResponse{}, nil
 }
 
+// DeleteClientCreator defines an rpc handler method for MsgDeleteClientCreator for the 02-client v1 submodule.
 func (k *Keeper) DeleteClientCreator(goCtx context.Context, msg *clienttypes.MsgDeleteClientCreator) (*clienttypes.MsgDeleteClientCreatorResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

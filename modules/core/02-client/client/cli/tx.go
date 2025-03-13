@@ -123,6 +123,7 @@ func newAddCounterpartyCmd() *cobra.Command {
 	return cmd
 }
 
+// newDeleteClientCreatorCmd defines the command to delete the client creator for a given client.
 func newDeleteClientCreatorCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "delete-client-creator [client-id]",
@@ -147,12 +148,13 @@ func newDeleteClientCreatorCmd() *cobra.Command {
 	return cmd
 }
 
+// newUpdateClientConfigCmd defines the command to update the client config (allowed relayers) for a given client.
 func newUpdateClientConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-client-config client-id [allowed-relayer-addresses...]",
-		Short:   "update allowed relayers for a client (replaces existing list)",
+		Short:   "update allowed relayers for a client (replaces existing list, and no addresses means empty list and permissionless relaying)",
 		Example: fmt.Sprintf("%s tx ibc %s update-client-params 08-wasm-0 cosmos123... cosmos456...", version.AppName, types.SubModuleName),
-		Args:    cobra.MinimumNArgs(2),
+		Args:    cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -161,6 +163,8 @@ func newUpdateClientConfigCmd() *cobra.Command {
 
 			clientID := args[0]
 
+			// NOTE: Make sure all fields are gathered from the user for the config objects, as it replaces the entire existing config.
+			// In other words, if we add a new field to the config object, we need to make sure it is gathered here
 			var allowedRelayers []string
 			for _, relayerAddress := range args[1:] {
 				_ = sdk.MustAccAddressFromBech32(relayerAddress)

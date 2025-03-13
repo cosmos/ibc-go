@@ -59,6 +59,7 @@ func GetCmdQueryClientStates() *cobra.Command {
 	return cmd
 }
 
+// GetCmdQueryCounterpartyInfo defines the command to query the counterparty chain
 func GetCmdQueryCounterpartyInfo() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "counterparty-info [client-id]",
@@ -91,6 +92,7 @@ func GetCmdQueryCounterpartyInfo() *cobra.Command {
 	return cmd
 }
 
+// GetCmdQueryClientCreator defines the command to query the creator of a client
 func GetCmdQueryClientCreator() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "creator [client-id]",
@@ -123,6 +125,7 @@ func GetCmdQueryClientCreator() *cobra.Command {
 	return cmd
 }
 
+// GetCmdQueryClientConfig defines the command to query a client's configuration
 func GetCmdQueryClientConfig() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "config [client-id]",
