@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/keeper"
-	types2 "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 	"github.com/cosmos/ibc-go/v10/testing/simapp"
 )
@@ -51,10 +51,36 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) TestSetClientCounterparty() {
-	counterparty := types2.NewCounterpartyInfo([][]byte{[]byte("ibc"), []byte("channel-7")}, testClientID2)
+	counterparty := types.NewCounterpartyInfo([][]byte{[]byte("ibc"), []byte("channel-7")}, testClientID2)
 	suite.keeper.SetClientCounterparty(suite.ctx, testClientID, counterparty)
 
 	retrievedCounterparty, found := suite.keeper.GetClientCounterparty(suite.ctx, testClientID)
 	suite.Require().True(found, "GetCounterparty failed")
 	suite.Require().Equal(counterparty, retrievedCounterparty, "Counterparties are not equal")
+}
+
+func (suite *KeeperTestSuite) TestSetConfig() {
+	config := suite.keeper.GetConfig(suite.ctx, testClientID)
+	suite.Require().Equal(config, types.DefaultConfig(), "did not return default config on initialization")
+
+	newConfig := types.NewConfig(ibctesting.TestAccAddress)
+	suite.keeper.SetConfig(suite.ctx, testClientID, newConfig)
+
+	config = suite.keeper.GetConfig(suite.ctx, testClientID)
+	suite.Require().Equal(newConfig, config, "config not set correctly")
+
+	// config should be empty for a different clientID
+	config = suite.keeper.GetConfig(suite.ctx, testClientID2)
+	suite.Require().Equal(types.DefaultConfig(), config, "config should be empty for different clientID")
+
+	// set config for a different clientID
+	newConfig2 := types.NewConfig(ibctesting.TestAccAddress, suite.chainA.SenderAccount.GetAddress().String())
+	suite.keeper.SetConfig(suite.ctx, testClientID2, newConfig2)
+
+	config = suite.keeper.GetConfig(suite.ctx, testClientID2)
+	suite.Require().Equal(newConfig2, config, "config not set correctly for different clientID")
+
+	// config for original client unaffected
+	config = suite.keeper.GetConfig(suite.ctx, testClientID)
+	suite.Require().Equal(newConfig, config, "config not set correctly for original clientID")
 }
