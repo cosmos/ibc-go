@@ -91,6 +91,70 @@ func GetCmdQueryCounterpartyInfo() *cobra.Command {
 	return cmd
 }
 
+func GetCmdQueryClientCreator() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "creator [client-id]",
+		Short:   "Query a client's creator",
+		Long:    "Query a client's creator",
+		Example: fmt.Sprintf("%s query %s %s creator 08-wasm-0", version.AppName, ibcexported.ModuleName, types.SubModuleName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			clientID := args[0]
+
+			queryClient := types.NewQueryClient(clientCtx)
+			req := &types.QueryClientCreatorRequest{
+				ClientId: clientID,
+			}
+			paramsResp, err := queryClient.ClientCreator(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(paramsResp)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryClientConfig() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "config [client-id]",
+		Short:   "Query a client's config",
+		Long:    "Query a client's config",
+		Example: fmt.Sprintf("%s query %s %s params 08-wasm-0", version.AppName, ibcexported.ModuleName, types.SubModuleName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			clientID := args[0]
+
+			queryClient := clienttypesv2.NewQueryClient(clientCtx)
+			req := &clienttypesv2.QueryConfigRequest{
+				ClientId: clientID,
+			}
+			paramsResp, err := queryClient.Config(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(paramsResp)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // GetCmdQueryClientState defines the command to query the state of a client with
 // a given id as defined in https://github.com/cosmos/ibc/tree/master/spec/core/ics-002-client-semantics#query
 func GetCmdQueryClientState() *cobra.Command {

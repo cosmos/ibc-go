@@ -679,3 +679,22 @@ func (k *Keeper) UpdateClientConfig(goCtx context.Context, msg *clientv2types.Ms
 	k.ClientV2Keeper.SetConfig(ctx, msg.ClientId, msg.Config)
 	return &clientv2types.MsgUpdateClientConfigResponse{}, nil
 }
+
+func (k *Keeper) DeleteClientCreator(goCtx context.Context, msg *clienttypes.MsgDeleteClientCreator) (*clienttypes.MsgDeleteClientCreatorResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
+	if creator == nil {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrNotFound, "creator for client %s not found", msg.ClientId)
+	}
+
+	// Check authorization
+	if k.GetAuthority() != msg.Signer && !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority %s or client creator %s is authorized to delete creator for %s, got %s",
+			k.GetAuthority(), creator, msg.ClientId, msg.Signer,
+		)
+	}
+
+	k.ClientKeeper.DeleteClientCreator(ctx, msg.ClientId)
+	return &clienttypes.MsgDeleteClientCreatorResponse{}, nil
+}

@@ -123,6 +123,60 @@ func newAddCounterpartyCmd() *cobra.Command {
 	return cmd
 }
 
+func newDeleteClientCreatorCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "delete-client-creator [client-id]",
+		Short:   "delete the client creator",
+		Example: fmt.Sprintf("%s tx ibc %s delete-client-creator 07-tendermint-0", version.AppName, types.SubModuleName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			clientID := args[0]
+
+			msg := types.NewMsgDeleteClientCreator(clientID, clientCtx.GetFromAddress().String())
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
+func newUpdateClientConfigCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "update-client-config client-id [allowed-relayer-addresses...]",
+		Short:   "update allowed relayers for a client (replaces existing list)",
+		Example: fmt.Sprintf("%s tx ibc %s update-client-params 08-wasm-0 cosmos123... cosmos456...", version.AppName, types.SubModuleName),
+		Args:    cobra.MinimumNArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			clientID := args[0]
+
+			var allowedRelayers []string
+			for _, relayerAddress := range args[1:] {
+				_ = sdk.MustAccAddressFromBech32(relayerAddress)
+				allowedRelayers = append(allowedRelayers, relayerAddress)
+			}
+
+			msg := clienttypesv2.NewMsgUpdateClientConfig(clientID, clientCtx.GetFromAddress().String(), clienttypesv2.NewConfig(allowedRelayers...))
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}
+
 // newUpdateClientCmd defines the command to update an IBC client.
 func newUpdateClientCmd() *cobra.Command {
 	cmd := &cobra.Command{
