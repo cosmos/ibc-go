@@ -20,7 +20,7 @@ func TestIsAllowedRelayer(t *testing.T) {
 	}{
 		{"success: valid relayer with default config", signer1, types.DefaultConfig(), true},
 		{"success: valid relayer with custom config", signer1, types.NewConfig(ibctesting.TestAccAddress), true},
-		{"success: valid relaeyr with multiple relayers in config", signer1, types.NewConfig(signer2.String(), ibctesting.TestAccAddress), true},
+		{"success: valid relayer with multiple relayers in config", signer1, types.NewConfig(signer2.String(), ibctesting.TestAccAddress), true},
 		{"failure: invalid relayer with custom config", signer2, types.NewConfig(ibctesting.TestAccAddress, signer3.String()), false},
 	}
 

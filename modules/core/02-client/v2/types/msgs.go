@@ -69,8 +69,5 @@ func (msg *MsgUpdateClientConfig) ValidateBasic() error {
 	if !types.IsValidClientID(msg.ClientId) {
 		return errorsmod.Wrapf(host.ErrInvalidID, "client ID %s must be in valid format: {string}-{number}", msg.ClientId)
 	}
-	if err := msg.Config.Validate(); err != nil {
-		return err
-	}
-	return nil
+	return msg.Config.Validate()
 }
