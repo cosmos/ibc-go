@@ -147,9 +147,9 @@ func newDeleteClientCreatorCmd() *cobra.Command {
 	return cmd
 }
 
-func newUpdateClientParamsCmd() *cobra.Command {
+func newUpdateClientConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "update-client-params client-id [allowed-relayer-addresses...]",
+		Use:     "update-client-config client-id [allowed-relayer-addresses...]",
 		Short:   "update allowed relayers for a client (replaces existing list)",
 		Example: fmt.Sprintf("%s tx ibc %s update-client-params 08-wasm-0 cosmos123... cosmos456...", version.AppName, types.SubModuleName),
 		Args:    cobra.MinimumNArgs(2),
@@ -167,7 +167,7 @@ func newUpdateClientParamsCmd() *cobra.Command {
 				allowedRelayers = append(allowedRelayers, relayerAddress)
 			}
 
-			msg := clienttypesv2.NewMsgUpdateClientV2Params(clientID, clientCtx.GetFromAddress().String(), clienttypesv2.NewParams(allowedRelayers...))
+			msg := clienttypesv2.NewMsgUpdateClientConfig(clientID, clientCtx.GetFromAddress().String(), clienttypesv2.NewConfig(allowedRelayers...))
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

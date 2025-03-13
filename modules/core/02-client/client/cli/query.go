@@ -123,11 +123,11 @@ func GetCmdQueryClientCreator() *cobra.Command {
 	return cmd
 }
 
-func GetCmdQueryClientSpecificParams() *cobra.Command {
+func GetCmdQueryClientConfig() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "client-specific-params [client-id]",
-		Short:   "Query a client's params",
-		Long:    "Query a client's params",
+		Use:     "config [client-id]",
+		Short:   "Query a client's config",
+		Long:    "Query a client's config",
 		Example: fmt.Sprintf("%s query %s %s params 08-wasm-0", version.AppName, ibcexported.ModuleName, types.SubModuleName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -138,10 +138,10 @@ func GetCmdQueryClientSpecificParams() *cobra.Command {
 			clientID := args[0]
 
 			queryClient := clienttypesv2.NewQueryClient(clientCtx)
-			req := &clienttypesv2.QueryParamsRequest{
+			req := &clienttypesv2.QueryConfigRequest{
 				ClientId: clientID,
 			}
-			paramsResp, err := queryClient.Params(cmd.Context(), req)
+			paramsResp, err := queryClient.Config(cmd.Context(), req)
 			if err != nil {
 				return err
 			}
