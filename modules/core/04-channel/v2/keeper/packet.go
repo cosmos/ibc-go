@@ -33,8 +33,8 @@ func (k *Keeper) sendPacket(
 	// Note, the validate basic function in sendPacket does the timeoutTimestamp != 0 check and other stateless checks on the packet.
 	// timeoutTimestamp must be greater than current block time
 	timeout := time.Unix(int64(timeoutTimestamp), 0)
-	if timeout.Before(ctx.BlockTime()) {
-		return 0, "", errorsmod.Wrap(types.ErrTimeoutElapsed, "timeout is less than the current block timestamp")
+	if !timeout.After(ctx.BlockTime()) {
+		return 0, "", errorsmod.Wrapf(types.ErrTimeoutElapsed, "timeout is less than or equal the current block timestamp, %d <= %d", timeoutTimestamp, ctx.BlockTime().Unix())
 	}
 
 	// timeoutTimestamp must be less than current block time + MaxTimeoutDelta

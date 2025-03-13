@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 
@@ -8,15 +9,35 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/internal"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/internal"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/api"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
-var _ api.IBCModule = (*IBCMiddleware)(nil)
+var (
+	_ api.IBCModule            = (*IBCMiddleware)(nil)
+	_ exported.Acknowledgement = (*RecvAcknowledgement)(nil)
+)
+
+// Create internal implementation of exported.Acknowledgement
+// to pass the app acknowledgement bytes to contractKeeper IBCReceivePacketCallback
+// interface
+type RecvAcknowledgement []byte
+
+// RecvPacket only passes callback to contract if the acknowledgement
+// is successful. Thus, we can just return true here.
+func (rack RecvAcknowledgement) Success() bool {
+	return !bytes.Equal(rack, channeltypesv2.ErrorAcknowledgement[:])
+}
+
+// RecvPacket passes the application acknowledgment directly to contract
+func (rack RecvAcknowledgement) Acknowledgement() []byte {
+	return rack
+}
 
 // IBCMiddleware implements the IBC v2 middleware interface
 // with the underlying application.
@@ -103,13 +124,17 @@ func (im IBCMiddleware) OnSendPacket(
 		return nil
 	}
 
-	cbData, err := types.GetCallbackData(
+	cbData, isCbPacket, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetSourcePort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
 	)
 	// OnSendPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// OnSendPacket is blocked if the packet opts-in to callbacks but the callback data is invalid
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -155,13 +180,19 @@ func (im IBCMiddleware) OnRecvPacket(
 		return recvResult
 	}
 
-	cbData, err := types.GetCallbackData(
+	cbData, isCbPacket, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetDestinationPort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.DestinationCallbackKey,
 	)
 	// OnRecvPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return recvResult
+	}
+	// OnRecvPacket is blocked if the packet opts-in to callbacks but the callback data is invalid
+	if err != nil {
+		return channeltypesv2.RecvPacketResult{
+			Status: channeltypesv2.PacketStatus_Failure,
+		}
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -177,9 +208,9 @@ func (im IBCMiddleware) OnRecvPacket(
 			TimeoutHeight:      clienttypes.Height{},
 			TimeoutTimestamp:   0,
 		}
-		// wrap the individual acknowledgement into the channeltypesv2.Acknowledgement since it implements the exported.Acknowledgement interface
+		// wrap the individual acknowledgement into the RecvAcknowledgement since it implements the exported.Acknowledgement interface
 		// since we return early on failure, we are guaranteed that the ack is a successful acknowledgement
-		ack := channeltypesv2.NewAcknowledgement(recvResult.Acknowledgement)
+		ack := RecvAcknowledgement(recvResult.Acknowledgement)
 		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packetv1, ack, cbData.CallbackAddress, payload.Version)
 	}
 
@@ -189,6 +220,11 @@ func (im IBCMiddleware) OnRecvPacket(
 		ctx, payload.DestinationPort, destinationClient, sequence,
 		types.CallbackTypeReceivePacket, cbData, err,
 	)
+	if err != nil {
+		return channeltypesv2.RecvPacketResult{
+			Status: channeltypesv2.PacketStatus_Failure,
+		}
+	}
 
 	return recvResult
 }
@@ -218,13 +254,18 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return nil
 	}
 
-	cbData, err := types.GetCallbackData(
+	cbData, isCbPacket, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetSourcePort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
 	)
 	// OnAcknowledgementPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// OnAcknowledgementPacket is blocked if the packet opts-in to callbacks but the callback data is invalid
+	// This should never occur since this error is already checked `OnSendPacket`
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -283,13 +324,18 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	cbData, err := types.GetCallbackData(
+	cbData, isCbPacket, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetSourcePort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
 	)
 	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// OnTimeoutPacket is blocked if the packet opts-in to callbacks but the callback data is invalid
+	// This should never occur since this error is already checked `OnSendPacket`
+	if err != nil {
+		return err
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
@@ -354,13 +400,18 @@ func (im IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	cbData, err := types.GetCallbackData(
+	cbData, isCbPacket, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetDestinationPort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.DestinationCallbackKey,
 	)
 	// WriteAcknowledgement is not blocked if the packet does not opt-in to callbacks
-	if err != nil {
+	if !isCbPacket {
 		return nil
+	}
+	// WriteAcknowledgement is blocked if the packet opts-in to callbacks but the callback data is invalid
+	// This should never occur since this error is already checked `OnRecvPacket`
+	if err != nil {
+		return err
 	}
 
 	recvResult := channeltypesv2.RecvPacketResult{

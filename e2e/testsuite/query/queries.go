@@ -21,7 +21,7 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
-const queryPathTransferDenoms = "/ibc.applications.transfer.v2.QueryV2/Denoms"
+const queryPathTransferDenoms = "/ibc.applications.transfer.v1.Query/Denoms"
 
 // ModuleAccountAddress returns the address of the given module on the given chain.
 // Added because interchaintest's method doesn't work.
@@ -146,18 +146,6 @@ func PacketAcknowledgements(ctx context.Context, chain ibc.Chain, portID, channe
 		return nil, err
 	}
 	return res.Acknowledgements, nil
-}
-
-// UpgradeError queries the upgrade error on the given chain for the provided channel.
-func UpgradeError(ctx context.Context, chain ibc.Chain, portID, channelID string) (channeltypes.ErrorReceipt, error) {
-	res, err := GRPCQuery[channeltypes.QueryUpgradeErrorResponse](ctx, chain, &channeltypes.QueryUpgradeErrorRequest{
-		PortId:    portID,
-		ChannelId: channelID,
-	})
-	if err != nil {
-		return channeltypes.ErrorReceipt{}, err
-	}
-	return res.ErrorReceipt, nil
 }
 
 // InterchainAccount queries the interchain account for the given owner and connectionID.

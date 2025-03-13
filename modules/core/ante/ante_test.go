@@ -170,7 +170,7 @@ func (suite *AnteTestSuite) createTimeoutMessage(isRedundant bool) sdk.Msg {
 
 // createTimeoutMessageV2 creates a V2 Timeout message for a packet sent from chain B to chain A.
 func (suite *AnteTestSuite) createTimeoutMessageV2(isRedundant bool) *channeltypesv2.MsgTimeout {
-	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Unix())
+	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Second).Unix())
 	packet, err := suite.path.EndpointB.MsgSendPacket(timeoutTimestamp, mock.NewMockPayload(mock.ModuleNameA, mock.ModuleNameB))
 	suite.Require().NoError(err)
 
@@ -214,7 +214,7 @@ func (suite *AnteTestSuite) createTimeoutOnCloseMessage(isRedundant bool) sdk.Ms
 	channelKey := host.ChannelKey(packet.GetDestPort(), packet.GetDestChannel())
 	closedProof, _ := suite.chainA.QueryProof(channelKey)
 
-	return channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, closedProof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String(), 0)
+	return channeltypes.NewMsgTimeoutOnClose(packet, 1, proof, closedProof, proofHeight, suite.path.EndpointA.Chain.SenderAccount.GetAddress().String())
 }
 
 func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {

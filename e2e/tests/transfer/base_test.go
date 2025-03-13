@@ -21,7 +21,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
-// compatibility:from_version: v7.4.0
+// compatibility:from_version: v7.10.0
 func TestTransferTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TransferTestSuite))
 }
@@ -322,7 +322,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 // TestMsgTransfer_EntireBalance tests that it is possible to transfer the entire balance
 // of a given denom by using types.UnboundedSpendLimit as the amount.
-// compatibility:TestMsgTransfer_EntireBalance:from_versions: v7.7.0,v7.8.0,v8.4.0,v8.5.0,v10.0.0
+// compatibility:TestMsgTransfer_EntireBalance:from_versions: v7.10.0,v8.7.0,v10.0.0
 func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 	t := s.T()
 	ctx := context.TODO()
@@ -381,6 +381,8 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 		transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, transferCoin, chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("packets relayed", func(t *testing.T) {
 		// test that chainA has the entire balance back of its native token.

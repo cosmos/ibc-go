@@ -10,9 +10,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/internal/types"
-	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/internal/types"
+	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"

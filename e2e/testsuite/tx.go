@@ -31,7 +31,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
@@ -99,7 +98,7 @@ func (s *E2ETestSuite) retryNtimes(f func() (sdk.TxResponse, error), attempts in
 }
 
 // AssertTxFailure verifies that an sdk.TxResponse has failed.
-func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *errorsmod.Error) {
+func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *errorsmod.Error, alternativeError ...*errorsmod.Error) {
 	errorMsg := fmt.Sprintf("%+v", resp)
 	// In older versions, the codespace and abci codes were different. So in compatibility tests
 	// we can not make assertions on them.
@@ -107,7 +106,17 @@ func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *error
 		s.Require().Equal(expectedError.ABCICode(), resp.Code, errorMsg)
 		s.Require().Equal(expectedError.Codespace(), resp.Codespace, errorMsg)
 	}
-	s.Require().Contains(resp.RawLog, expectedError.Error(), errorMsg)
+	// Verify that the error message contains the expected error message or one of the alternative error messages.
+	if strings.Contains(resp.RawLog, expectedError.Error()) {
+		return
+	}
+
+	for _, altErr := range alternativeError {
+		if strings.Contains(resp.RawLog, altErr.Error()) {
+			return
+		}
+	}
+	s.Require().FailNow(fmt.Sprintf("expected error: %s, got: %s", expectedError.Error(), resp.RawLog))
 }
 
 // AssertTxSuccess verifies that an sdk.TxResponse has succeeded.
@@ -289,18 +298,6 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 
 	msg := GetMsgTransfer(portID, channelID, channel.Version, token, sender, receiver, timeoutHeight, timeoutTimestamp, memo)
 
-	return s.BroadcastMessages(ctx, chain, user, msg)
-}
-
-// PruneAcknowledgements broadcasts a MsgPruneAcknowledgements message.
-func (s *E2ETestSuite) PruneAcknowledgements(
-	ctx context.Context,
-	chain ibc.Chain,
-	user ibc.Wallet,
-	portID, channelID string,
-	limit uint64,
-) sdk.TxResponse {
-	msg := channeltypes.NewMsgPruneAcknowledgements(portID, channelID, limit, user.FormattedAddress())
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 

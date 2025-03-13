@@ -13,14 +13,9 @@ on:
         required: true
         type: choice
         options:
-          - release/v7.4.x
-          - release/v7.5.x
-          - release/v7.6.x
-          - release/v7.7.x
-          - release/v7.8.x
-          - release/v8.4.x
-          - release/v8.5.x
-          - release/v10.0.x
+          - release/v7.10.x
+          - release/v8.7.x
+          - release/v10.1.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -54,14 +49,9 @@ jobs:
     strategy:
       matrix:
         release-branch:
-          - release/v7.4.x
-          - release/v7.5.x
-          - release/v7.6.x
-          - release/v7.7.x
-          - release/v7.8.x
-          - release/v8.4.x
-          - release/v8.5.x
-          - release/v10.0.x
+          - release/v7.10.x
+          - release/v8.7.x
+          - release/v10.1.x
           - main
     steps:
       - uses: actions/checkout@v4
@@ -169,15 +159,6 @@ jobs:
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file: "e2e/tests/interchain_accounts/query_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-
-  ica-upgrade-test:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/interchain_accounts/upgrades_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
   transfer-base-test-a:

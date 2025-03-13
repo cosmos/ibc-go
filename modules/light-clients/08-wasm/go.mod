@@ -1,11 +1,8 @@
-module github.com/cosmos/ibc-go/modules/light-clients/08-wasm
+module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10
 
 go 1.23.6
 
-replace (
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier => ./blsverifier
-	github.com/cosmos/ibc-go/v10 => ../../../
-)
+replace github.com/cosmos/ibc-go/v10 => ../../../
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
@@ -24,15 +21,15 @@ require (
 	cosmossdk.io/x/feegrant v0.1.1
 	cosmossdk.io/x/tx v0.13.7
 	cosmossdk.io/x/upgrade v0.1.4
-	github.com/CosmWasm/wasmvm/v2 v2.1.2
+	github.com/CosmWasm/wasmvm/v2 v2.2.3
 	github.com/cometbft/cometbft v0.38.15
 	github.com/cosmos/cosmos-db v1.1.1
-	github.com/cosmos/cosmos-sdk v0.50.11
+	github.com/cosmos/cosmos-sdk v0.50.12
 	github.com/cosmos/gogoproto v1.7.0
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier v0.0.0
 	github.com/cosmos/ibc-go/v10 v10.0.0
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
+	github.com/prysmaticlabs/prysm/v5 v5.2.0
 	github.com/spf13/cast v1.7.1
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
@@ -59,7 +56,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
-	github.com/bits-and-blooms/bitset v1.13.0 // indirect
+	github.com/bits-and-blooms/bitset v1.17.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
@@ -77,7 +74,7 @@ require (
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.2.2 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
-	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
+	github.com/cosmos/ledger-cosmos-go v0.14.0 // indirect
 	github.com/creachadair/atomicfile v0.3.1 // indirect
 	github.com/creachadair/tomledit v0.0.24 // indirect
 	github.com/danieljoos/wincred v1.2.1 // indirect
@@ -89,7 +86,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.7.0 // indirect
 	github.com/emicklei/dot v1.6.2 // indirect
-	github.com/ethereum/go-ethereum v1.14.12 // indirect
+	github.com/ethereum/go-ethereum v1.15.5 // indirect
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -133,7 +130,7 @@ require (
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
 	github.com/herumi/bls-eth-go-binary v0.0.0-20210917013441-d37c07cfda4e // indirect
-	github.com/holiman/uint256 v1.3.1 // indirect
+	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/huandu/skiplist v1.2.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
@@ -171,7 +168,6 @@ require (
 	github.com/prysmaticlabs/fastssz v0.0.0-20241008181541-518c4ce73516 // indirect
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20240328144219-a1caa50c3a1e // indirect
 	github.com/prysmaticlabs/gohashtree v0.0.4-beta.0.20240624100937-73632381301b // indirect
-	github.com/prysmaticlabs/prysm/v5 v5.2.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/rs/cors v1.11.1 // indirect
@@ -185,7 +181,7 @@ require (
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/supranational/blst v0.3.13 // indirect
+	github.com/supranational/blst v0.3.14 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
 	github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e // indirect
@@ -201,15 +197,15 @@ require (
 	go.opentelemetry.io/otel/metric v1.31.0 // indirect
 	go.opentelemetry.io/otel/trace v1.31.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.28.0 // indirect
+	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/exp v0.0.0-20240808152545-0cdaa3abc0fa // indirect
-	golang.org/x/net v0.30.0 // indirect
+	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/oauth2 v0.23.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/term v0.25.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
-	golang.org/x/time v0.5.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/term v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/time v0.9.0 // indirect
 	google.golang.org/api v0.186.0 // indirect
 	google.golang.org/genproto v0.0.0-20240701130421-f6361c86f094 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241015192408-796eee8c2d53 // indirect

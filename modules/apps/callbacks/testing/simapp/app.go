@@ -78,8 +78,6 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
-	ibccallbacksv2 "github.com/cosmos/ibc-go/modules/apps/callbacks/v2"
 	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"
@@ -88,6 +86,8 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	ibccallbacks "github.com/cosmos/ibc-go/v10/modules/apps/callbacks"
+	ibccallbacksv2 "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
@@ -370,7 +370,7 @@ func NewSimApp(
 		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeperV2,
+		app.MsgServiceRouter(),
 		app.AccountKeeper, app.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)

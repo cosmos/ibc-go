@@ -9,11 +9,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibccallbacks "github.com/cosmos/ibc-go/modules/apps/callbacks"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/internal"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
+	ibccallbacks "github.com/cosmos/ibc-go/v10/modules/apps/callbacks"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/internal"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
@@ -110,14 +110,24 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"success: callback data doesn't exist",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+			},
+			"none", // nonexistent callback data should result in no callback execution
+			false,
+			nil,
+		},
+		{
+			"failure: callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			"none", // improperly formatted callback data should result in no callback execution
 			false,
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: ics4Wrapper SendPacket call fails",
@@ -245,6 +255,16 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			nil,
 		},
 		{
+			"success: callback data doesn't exist",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+				packet.Data = packetData.GetBytes()
+			},
+			noExecution,
+			nil,
+		},
+		{
 			"failure: underlying app OnAcknowledgePacket fails",
 			func() {
 				ack = []byte("invalid ack")
@@ -253,14 +273,14 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			ibcerrors.ErrUnknownRequest,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"failure: no-op on callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -406,6 +426,16 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			nil,
 		},
 		{
+			"success: callback data doesn't exist",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+				packet.Data = packetData.GetBytes()
+			},
+			noExecution,
+			nil,
+		},
+		{
 			"failure: underlying app OnTimeoutPacket fails",
 			func() {
 				packet.Data = []byte("invalid packet data")
@@ -414,14 +444,14 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			ibcerrors.ErrInvalidType,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"failure: no-op on callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -572,6 +602,16 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			successAck,
 		},
 		{
+			"success: callback data doesn't exist",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+				packet.Data = packetData.GetBytes()
+			},
+			noExecution,
+			successAck,
+		},
+		{
 			"failure: underlying app OnRecvPacket fails",
 			func() {
 				packet.Data = []byte("invalid packet data")
@@ -580,14 +620,14 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 			channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInvalidType),
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"failure: callback data is not valid",
 			func() {
 				//nolint:goconst
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			successAck,
+			channeltypes.NewErrorAcknowledgement(types.ErrCallbackAddressNotFound),
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -730,13 +770,23 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 			nil,
 		},
 		{
-			"success: no-op on callback data is not valid",
+			"success: callback data doesn't exist",
+			func() {
+				//nolint:goconst
+				packetData.Memo = ""
+				packet.Data = packetData.GetBytes()
+			},
+			"none", // nonexistent callback data should result in no callback execution
+			nil,
+		},
+		{
+			"failure: callback data is not valid",
 			func() {
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
 			"none", // improperly formatted callback data should result in no callback execution
-			nil,
+			types.ErrCallbackAddressNotFound,
 		},
 		{
 			"failure: ics4Wrapper WriteAcknowledgement call fails",
@@ -965,7 +1015,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 		Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}, "dest_callback": {"address":"%s"}}`, ibctesting.TestAccAddress, ibctesting.TestAccAddress),
 	}
 
-	expPacketDataICS20V2 := transfertypes.FungibleTokenPacketDataV2{
+	expPacketDataICS20V2 := transfertypes.InternalTransferRepresentation{
 		Token: transfertypes.Token{
 			Denom:  transfertypes.NewDenom(ibctesting.TestCoin.Denom),
 			Amount: ibctesting.TestCoin.Amount.String(),

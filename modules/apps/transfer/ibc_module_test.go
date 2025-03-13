@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
@@ -38,7 +37,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 		},
 		{
 			// connection hops is not used in the transfer application callback,
-			// it is already validated in the core OnChanUpgradeInit.
 			"success: invalid connection hops", func() {
 				path.EndpointA.ConnectionID = ibctesting.InvalidID
 			}, nil, types.V1,
@@ -350,6 +348,124 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 	}
 }
 
+func (suite *TransferTestSuite) TestOnAcknowledgePacket() {
+	var (
+		path   *ibctesting.Path
+		packet channeltypes.Packet
+		ack    []byte
+	)
+
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expError  error
+		expRefund bool
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+			false,
+		},
+		{
+			"success: refund coins",
+			func() {
+				ack = channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInsufficientFunds).Acknowledgement()
+			},
+			nil,
+			true,
+		},
+		{
+			"cannot refund ack on non-existent channel",
+			func() {
+				ack = channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInsufficientFunds).Acknowledgement()
+
+				packet.SourceChannel = "channel-100"
+			},
+			errors.New("unable to unescrow tokens"),
+			false,
+		},
+		{
+			"invalid packet data",
+			func() {
+				packet.Data = []byte("invalid data")
+			},
+			ibcerrors.ErrInvalidType,
+			false,
+		},
+		{
+			"invalid acknowledgement",
+			func() {
+				ack = []byte("invalid ack")
+			},
+			ibcerrors.ErrUnknownRequest,
+			false,
+		},
+		{
+			"cannot refund already acknowledged packet",
+			func() {
+				ack = channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInsufficientFunds).Acknowledgement()
+
+				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
+				suite.Require().True(ok)
+
+				suite.Require().NoError(cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, ack, suite.chainA.SenderAccount.GetAddress()))
+			},
+			errors.New("unable to unescrow tokens"),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			timeoutHeight := suite.chainA.GetTimeoutHeight()
+			msg := types.NewMsgTransfer(
+				path.EndpointA.ChannelConfig.PortID,
+				path.EndpointA.ChannelID,
+				ibctesting.TestCoin,
+				suite.chainA.SenderAccount.GetAddress().String(),
+				suite.chainB.SenderAccount.GetAddress().String(),
+				timeoutHeight,
+				0,
+				"",
+			)
+			res, err := suite.chainA.SendMsgs(msg)
+			suite.Require().NoError(err) // message committed
+
+			packet, err = ibctesting.ParsePacketFromEvents(res.Events)
+			suite.Require().NoError(err)
+
+			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
+			suite.Require().True(ok)
+
+			ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+
+			tc.malleate() // change fields in packet
+
+			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, ack, suite.chainA.SenderAccount.GetAddress())
+
+			if tc.expError == nil {
+				suite.Require().NoError(err)
+
+				if tc.expRefund {
+					escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
+					escrowBalanceAfter := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
+					suite.Require().Equal(sdkmath.NewInt(0), escrowBalanceAfter.Amount)
+				}
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.expError.Error())
+			}
+		})
+	}
+}
+
 func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 	var path *ibctesting.Path
 	var packet channeltypes.Packet
@@ -441,215 +557,6 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 	}
 }
 
-func (suite *TransferTestSuite) TestOnChanUpgradeInit() {
-	var path *ibctesting.Path
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success",
-			func() {}, // successful happy path for a standalone transfer app is swapping out the underlying connection
-			nil,
-		},
-		{
-			"invalid upgrade connection",
-			func() {
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{"connection-100"}
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{"connection-100"}
-			},
-			connectiontypes.ErrConnectionNotFound,
-		},
-		{
-			"invalid upgrade ordering",
-			func() {
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Ordering = channeltypes.ORDERED
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Ordering = channeltypes.ORDERED
-			},
-			channeltypes.ErrInvalidChannelOrdering,
-		},
-		{
-			"invalid upgrade version",
-			func() {
-				path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
-				path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.Version = ibctesting.InvalidID
-			},
-			types.ErrInvalidVersion,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			path.Setup()
-
-			// configure the channel upgrade to modify the underlying connection
-			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			upgradePath.SetupConnections()
-
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
-
-			tc.malleate()
-
-			err := path.EndpointA.ChanUpgradeInit()
-
-			if tc.expError == nil {
-				suite.Require().NoError(err)
-				upgrade := path.EndpointA.GetChannelUpgrade()
-				suite.Require().Equal(upgradePath.EndpointA.ConnectionID, upgrade.Fields.ConnectionHops[0])
-			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
-			}
-		})
-	}
-}
-
-func (suite *TransferTestSuite) TestOnChanUpgradeTry() {
-	var (
-		counterpartyUpgrade channeltypes.Upgrade
-		path                *ibctesting.Path
-	)
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success",
-			func() {}, // successful happy path for a standalone transfer app is swapping out the underlying connection
-			nil,
-		},
-		{
-			"success: invalid upgrade version from counterparty, we use our proposed version",
-			func() {
-				counterpartyUpgrade.Fields.Version = ibctesting.InvalidID
-			},
-			nil,
-		},
-		{
-			"invalid upgrade ordering",
-			func() {
-				counterpartyUpgrade.Fields.Ordering = channeltypes.ORDERED
-			},
-			channeltypes.ErrInvalidChannelOrdering,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			path.Setup()
-
-			// configure the channel upgrade to modify the underlying connection
-			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			upgradePath.SetupConnections()
-
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
-
-			err := path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
-
-			counterpartyUpgrade = path.EndpointA.GetChannelUpgrade()
-
-			tc.malleate()
-
-			app, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(types.PortID)
-			suite.Require().True(ok)
-
-			cbs, ok := app.(porttypes.UpgradableModule)
-			suite.Require().True(ok)
-
-			version, err := cbs.OnChanUpgradeTry(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
-				counterpartyUpgrade.Fields.Ordering, counterpartyUpgrade.Fields.ConnectionHops, counterpartyUpgrade.Fields.Version,
-			)
-
-			if tc.expError == nil {
-				suite.Require().NoError(err)
-				suite.Require().Equal(types.V1, version)
-			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
-			}
-		})
-	}
-}
-
-func (suite *TransferTestSuite) TestOnChanUpgradeAck() {
-	var path *ibctesting.Path
-
-	testCases := []struct {
-		name     string
-		malleate func()
-		expError error
-	}{
-		{
-			"success",
-			func() {}, // successful happy path for a standalone transfer app is swapping out the underlying connection
-			nil,
-		},
-		{
-			"invalid upgrade version",
-			func() {
-				path.EndpointB.ChannelConfig.Version = ibctesting.InvalidID
-			},
-			types.ErrInvalidVersion,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-
-			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
-			path.Setup()
-
-			// configure the channel upgrade to modify the underlying connection
-			upgradePath := ibctesting.NewPath(suite.chainA, suite.chainB)
-			upgradePath.SetupConnections()
-
-			path.EndpointA.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointA.ConnectionID}
-			path.EndpointB.ChannelConfig.ProposedUpgrade.Fields.ConnectionHops = []string{upgradePath.EndpointB.ConnectionID}
-
-			err := path.EndpointA.ChanUpgradeInit()
-			suite.Require().NoError(err)
-
-			err = path.EndpointB.ChanUpgradeTry()
-			suite.Require().NoError(err)
-
-			tc.malleate()
-
-			app, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(types.PortID)
-			suite.Require().True(ok)
-
-			cbs, ok := app.(porttypes.UpgradableModule)
-			suite.Require().True(ok)
-
-			err = cbs.OnChanUpgradeAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.Version)
-
-			if tc.expError == nil {
-				suite.Require().NoError(err)
-			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
-			}
-		})
-	}
-}
-
 func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	var (
 		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -721,7 +628,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 			if tc.expError == nil {
 				suite.Require().NoError(err)
 
-				v2PacketData, ok := packetData.(types.FungibleTokenPacketDataV2)
+				v2PacketData, ok := packetData.(types.InternalTransferRepresentation)
 				suite.Require().True(ok)
 				suite.Require().Equal(path.EndpointA.ChannelConfig.Version, version)
 
@@ -732,7 +639,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 					suite.Require().Equal(v1PacketData.Receiver, v2PacketData.Receiver)
 					suite.Require().Equal(v1PacketData.Memo, v2PacketData.Memo)
 				} else {
-					suite.Require().Equal(initialPacketData.(types.FungibleTokenPacketDataV2), v2PacketData)
+					suite.Require().Equal(initialPacketData.(types.InternalTransferRepresentation), v2PacketData)
 				}
 			} else {
 				suite.Require().Error(err)

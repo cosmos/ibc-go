@@ -34,12 +34,12 @@ func TestInterchainAccountsLocalhostTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(LocalhostInterchainAccountsTestSuite))
 }
 
-// compatibility:from_version: v7.4.0
+// compatibility:from_version: v7.10.0
 type LocalhostInterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// compatibility:TestInterchainAccounts_Localhost:from_versions: v7.4.0,v7.5.0,v7.6.0,v7.7.0,v7.8.0,v8.4.0,v8.5.0,v10.0.0
+// compatibility:TestInterchainAccounts_Localhost:from_versions: v7.10.0,v8.7.0,v10.0.0
 func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
@@ -334,7 +334,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 
 	t.Run("close interchain accounts host channel end", func(t *testing.T) {
 		// Pass in zero for counterpartyUpgradeSequence given that channel has not undergone any upgrades.
-		msgCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(icatypes.HostPortID, msgChanOpenTryRes.ChannelId, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(), 0)
+		msgCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(icatypes.HostPortID, msgChanOpenTryRes.ChannelId, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgCloseConfirm)
 		s.AssertTxSuccess(txResp)

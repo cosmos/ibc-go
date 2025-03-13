@@ -19,10 +19,10 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -229,6 +229,7 @@ func GetExpectedEvent(
 ) (abci.Event, bool) {
 	var (
 		callbackData types.CallbackData
+		isCbPacket   bool
 		err          error
 	)
 
@@ -238,12 +239,12 @@ func GetExpectedEvent(
 
 	if callbackType == types.CallbackTypeReceivePacket {
 		packet := channeltypes.NewPacket(data, seq, "", "", eventPortID, eventChannelID, clienttypes.ZeroHeight(), 0)
-		callbackData, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
+		callbackData, isCbPacket, err = types.GetDestCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	} else {
 		packet := channeltypes.NewPacket(data, seq, eventPortID, eventChannelID, "", "", clienttypes.ZeroHeight(), 0)
-		callbackData, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
+		callbackData, isCbPacket, err = types.GetSourceCallbackData(ctx, packetDataUnmarshaler, packet, maxCallbackGas)
 	}
-	if err != nil {
+	if !isCbPacket || err != nil {
 		return abci.Event{}, false
 	}
 

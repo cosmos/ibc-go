@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -226,7 +226,7 @@ func (s *CallbacksTestSuite) TestTransferSuccessAcknowledgementReplayProtection(
 			initialBalance := GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
 			// amountTransferred := ibctesting.TestCoin
-			s.ExecuteTransfer(tc.transferMemo)
+			s.ExecuteTransfer(tc.transferMemo, true)
 
 			// check that the callback is executed 1 times
 			s.Require().Equal(1, callbackCount)
@@ -290,7 +290,7 @@ func (s *CallbacksTestSuite) TestTransferRecvPacketReplayProtection() {
 			initialBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
 
 			// execute the transfer
-			s.ExecuteTransfer(tc.transferMemo)
+			s.ExecuteTransfer(tc.transferMemo, true)
 
 			// check that the callback is executed 1 times
 			s.Require().Equal(1, callbackCount)

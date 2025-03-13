@@ -7,10 +7,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
@@ -46,10 +47,10 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 			true,
 		},
 		{
-			"success: dest callback with missing address",
+			"failure: dest callback with missing address",
 			`{"dest_callback": {"address": ""}}`,
 			"none",
-			true,
+			false,
 		},
 		{
 			"success: source callback",
@@ -106,7 +107,7 @@ func (s *CallbacksTestSuite) TestTransferCallbacks() {
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
-			s.ExecuteTransfer(tc.transferMemo)
+			s.ExecuteTransfer(tc.transferMemo, tc.expSuccess)
 			s.AssertHasExecutedExpectedCallback(tc.expCallback, tc.expSuccess)
 		})
 	}
@@ -177,13 +178,15 @@ func (s *CallbacksTestSuite) TestTransferTimeoutCallbacks() {
 
 // ExecuteTransfer executes a transfer message on chainA for ibctesting.TestCoin (100 "stake").
 // It checks that the transfer is successful and that the packet is relayed to chainB.
-func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
+func (s *CallbacksTestSuite) ExecuteTransfer(memo string, recvSuccess bool) {
 	escrowAddress := transfertypes.GetEscrowAddress(s.path.EndpointA.ChannelConfig.PortID, s.path.EndpointA.ChannelID)
 	// record the balance of the escrow address before the transfer
 	escrowBalance := GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
 	// record the balance of the receiving address before the transfer
 	denom := transfertypes.NewDenom(sdk.DefaultBondDenom, transfertypes.NewHop(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID))
 	receiverBalance := GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom())
+	// record the balance of the sending address before the transfer
+	senderBalance := GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
 	amount := ibctesting.TestCoin
 	msg := transfertypes.NewMsgTransfer(
@@ -200,17 +203,43 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string) {
 		return // we return if send packet is rejected
 	}
 
+	// packet found, relay from A to B
+	err = s.path.EndpointB.UpdateClient()
+	s.Require().NoError(err)
+
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
 
-	// relay send
-	err = s.path.RelayPacket(packet)
-	s.Require().NoError(err) // relay committed
+	res, err = s.path.EndpointB.RecvPacketWithResult(packet)
+	s.Require().NoError(err)
 
-	// check that the escrow address balance increased by 100
-	s.Require().Equal(escrowBalance.Add(amount), GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom))
-	// check that the receiving address balance increased by 100
-	s.Require().Equal(receiverBalance.AddAmount(sdkmath.NewInt(100)), GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom()))
+	acknowledgement, err := ibctesting.ParseAckFromEvents(res.Events)
+	s.Require().NoError(err)
+
+	err = s.path.EndpointA.AcknowledgePacket(packet, acknowledgement)
+	s.Require().NoError(err)
+
+	var ack channeltypes.Acknowledgement
+	err = transfertypes.ModuleCdc.UnmarshalJSON(acknowledgement, &ack)
+	s.Require().NoError(err)
+
+	s.Require().Equal(recvSuccess, ack.Success(), "acknowledgement success is not as expected")
+
+	if recvSuccess {
+		// check that the escrow address balance increased by 100
+		s.Require().Equal(escrowBalance.Add(amount), GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom))
+		// check that the receiving address balance increased by 100
+		s.Require().Equal(receiverBalance.AddAmount(sdkmath.NewInt(100)), GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom()))
+		// check that the sending address balance decreased by 100
+		s.Require().Equal(senderBalance.Sub(amount), GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom))
+	} else {
+		// check that the escrow address balance is the same as before the transfer
+		s.Require().Equal(escrowBalance, GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom))
+		// check that the receiving address balance is the same as before the transfer
+		s.Require().Equal(receiverBalance, GetSimApp(s.chainB).BankKeeper.GetBalance(s.chainB.GetContext(), s.chainB.SenderAccount.GetAddress(), denom.IBCDenom()))
+		// check that the sending address balance is the same as before the transfer
+		s.Require().Equal(senderBalance, GetSimApp(s.chainA).BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom))
+	}
 }
 
 // ExecuteTransferTimeout executes a transfer message on chainA for 100 denom.

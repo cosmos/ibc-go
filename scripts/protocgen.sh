@@ -11,7 +11,8 @@ cd ..
 
 # move proto files to the right places
 cp -r github.com/cosmos/ibc-go/v*/modules/* modules/
-cp -r github.com/cosmos/ibc-go/modules/* modules/
+cp -r github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v*/* modules/light-clients/08-wasm/
+# If other modules are added later with protos, they need to be added above here 👆
 rm -rf github.com
 
 # copy legacy denom trace to internal/types
