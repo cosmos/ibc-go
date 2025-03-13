@@ -4,9 +4,6 @@ package ibc.applications.transfer.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types";
 
-import "ibc/applications/transfer/v1/token.proto";
-import "gogoproto/gogo.proto";
-
 // FungibleTokenPacketData defines a struct for the packet payload
 // See FungibleTokenPacketData spec:
 // https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
