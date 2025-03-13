@@ -47,7 +47,6 @@ message MsgSendPacketResponse {
 // MsgRecvPacket receives an incoming IBC packet.
 message MsgRecvPacket {
   option (cosmos.msg.v1.signer) = "signer";
-
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet           = 1 [(gogoproto.nullable) = false];
@@ -56,17 +55,17 @@ message MsgRecvPacket {
   string                    signer           = 4;
 }
 
-// ResponseResultType defines the possible outcomes of the execution of a message
+// ResponseResultType defines the possible outcomes of the execution of a message.
 enum ResponseResultType {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  // Default zero value enumeration
+  // Default zero value enumeration.
   RESPONSE_RESULT_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "UNSPECIFIED"];
-  // The message did not call the IBC application callbacks (because, for example, the packet had already been relayed)
+  // The message did not call the IBC application callbacks (because, for example, the packet had already been relayed).
   RESPONSE_RESULT_TYPE_NOOP = 1 [(gogoproto.enumvalue_customname) = "NOOP"];
-  // The message was executed successfully
+  // The message was executed successfully.
   RESPONSE_RESULT_TYPE_SUCCESS = 2 [(gogoproto.enumvalue_customname) = "SUCCESS"];
-  // The message was executed unsuccessfully
+  // The message failed execution.
   RESPONSE_RESULT_TYPE_FAILURE = 3 [(gogoproto.enumvalue_customname) = "FAILURE"];
 }
 
@@ -77,15 +76,15 @@ message MsgRecvPacketResponse {
   ResponseResultType result = 1;
 }
 
-// MsgTimeout receives timed-out packet
+// MsgTimeout receives timed-out packet.
 message MsgTimeout {
   option (cosmos.msg.v1.signer) = "signer";
-
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet           = 1 [(gogoproto.nullable) = false];
   bytes                     proof_unreceived = 2;
   ibc.core.client.v1.Height proof_height     = 3 [(gogoproto.nullable) = false];
+  uint64                    sequence         = 4;
   string                    signer           = 5;
 }
 
@@ -99,14 +98,14 @@ message MsgTimeoutResponse {
 // MsgAcknowledgement receives incoming IBC acknowledgement.
 message MsgAcknowledgement {
   option (cosmos.msg.v1.signer) = "signer";
-
   option (gogoproto.goproto_getters) = false;
 
   Packet                    packet          = 1 [(gogoproto.nullable) = false];
   Acknowledgement           acknowledgement = 2 [(gogoproto.nullable) = false];
-  bytes                     proof_acked     = 3;
-  ibc.core.client.v1.Height proof_height    = 4 [(gogoproto.nullable) = false];
-  string                    signer          = 5;
+  uint64                    sequence        = 3;
+  bytes                     proof_acked     = 4;
+  ibc.core.client.v1.Height proof_height    = 5 [(gogoproto.nullable) = false];
+  string                    signer          = 6;
 }
 
 // MsgAcknowledgementResponse defines the Msg/Acknowledgement response type.
