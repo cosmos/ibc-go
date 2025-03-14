@@ -1,6 +1,7 @@
 package ibctesting
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -102,6 +103,10 @@ type TestChain struct {
 // CONTRACT: Validator array must be provided in the order expected by Tendermint.
 // i.e. sorted first by power and then lexicographically by address.
 func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, valSet *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) *TestChain {
+	return newTestChainWithValSet(tb, coord, chainID, valSet, signers, DefaultTestingAppInit)
+}
+
+func newTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, valSet *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator, appCreator AppCreator) *TestChain {
 	tb.Helper()
 	genAccs := []authtypes.GenesisAccount{}
 	genBals := []banktypes.Balance{}
@@ -134,7 +139,7 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 		senderAccs = append(senderAccs, senderAcc)
 	}
 
-	app := SetupWithGenesisValSet(tb, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
+	app := setupWithGenesisValSet(tb, valSet, genAccs, chainID, sdk.DefaultPowerReduction, appCreator, genBals...)
 
 	// create current header and call begin block
 	header := cmtproto.Header{
@@ -169,9 +174,11 @@ func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 	return chain
 }
 
-// NewTestChain initializes a new test chain with a default of 4 validators
-// Use this function if the tests do not need custom control over the validator set
-func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
+// AppCreator is a function which returns a TestingApp and a GenesisState
+type AppCreator func() (TestingApp, map[string]json.RawMessage)
+
+// NewCustomAppTestChain creates a TestChain instance with the provided AppCreator function.
+func NewCustomAppTestChain(t *testing.T, coord *Coordinator, chainID string, appCreator AppCreator) *TestChain {
 	t.Helper()
 	// generate validators private/public key
 	var (
@@ -193,7 +200,14 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 	// or, if equal, by address lexical order
 	valSet := cmttypes.NewValidatorSet(validators)
 
-	return NewTestChainWithValSet(t, coord, chainID, valSet, signersByAddress)
+	return newTestChainWithValSet(t, coord, chainID, valSet, signersByAddress, appCreator)
+}
+
+// NewTestChain initializes a new test chain with a default of 4 validators
+// Use this function if the tests do not need custom control over the validator set
+func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
+	t.Helper()
+	return NewCustomAppTestChain(t, coord, chainID, DefaultTestingAppInit)
 }
 
 // GetContext returns the current context for the application.
