@@ -23,10 +23,6 @@ import (
 
 const maxCallbackGas = uint64(1000000)
 
-func init() {
-	ibctesting.DefaultTestingAppInit = SetupTestingApp
-}
-
 // SetupTestingApp provides the duplicated simapp which is specific to the callbacks module on chain creation.
 func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
@@ -58,7 +54,7 @@ type CallbacksTestSuite struct {
 
 // setupChains sets up a coordinator with 2 test chains.
 func (s *CallbacksTestSuite) setupChains() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+	s.coordinator = ibctesting.NewCustomAppCoordinator(s.T(), 2, SetupTestingApp)
 	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
 	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 	s.path = ibctesting.NewPath(s.chainA, s.chainB)

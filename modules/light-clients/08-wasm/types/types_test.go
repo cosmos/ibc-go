@@ -32,14 +32,8 @@ func TestWasmTestSuite(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
-
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.coordinator = ibctesting.NewCustomAppCoordinator(suite.T(), 1, setupTestingApp)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-}
-
-func init() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
 }
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
