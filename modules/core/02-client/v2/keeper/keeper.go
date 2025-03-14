@@ -42,3 +42,23 @@ func (k *Keeper) GetClientCounterparty(ctx sdk.Context, clientID string) (types.
 	k.cdc.MustUnmarshal(bz, &counterparty)
 	return counterparty, true
 }
+
+// GetConfig returns the ibc-client v2 configuration for the given clientID.
+func (k *Keeper) GetConfig(ctx sdk.Context, clientID string) types.Config {
+	store := k.ClientV1Keeper.ClientStore(ctx, clientID)
+	bz := store.Get(types.ConfigKey())
+	if len(bz) == 0 {
+		return types.NewConfig()
+	}
+
+	var config types.Config
+	k.cdc.MustUnmarshal(bz, &config)
+	return config
+}
+
+// SetConfig sets ibc-client v2 configuration for the given clientID.
+func (k *Keeper) SetConfig(ctx sdk.Context, clientID string, config types.Config) {
+	store := k.ClientV1Keeper.ClientStore(ctx, clientID)
+	bz := k.cdc.MustMarshal(&config)
+	store.Set(types.ConfigKey(), bz)
+}

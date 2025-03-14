@@ -382,6 +382,15 @@ func (k *Keeper) AcknowledgePacket(
 
 	packetCommitment := types.CommitPacket(packet)
 
+	var ack types.Acknowledgement
+	err := types.SubModuleCdc.UnmarshalJSON(acknowledgement, &ack)
+	if err == nil {
+		ackBz := ack.Acknowledgement()
+		if !bytes.Equal(ackBz, acknowledgement) {
+			return "", errorsmod.Wrap(types.ErrInvalidAcknowledgement, "acknowledgement marshalling error")
+		}
+	}
+
 	// verify we sent the packet and haven't cleared it out yet
 	if !bytes.Equal(commitment, packetCommitment) {
 		return "", errorsmod.Wrapf(types.ErrInvalidPacket, "commitment bytes are not equal: got (%v), expected (%v)", packetCommitment, commitment)

@@ -261,6 +261,24 @@ func (q *queryServer) ClientStatus(goCtx context.Context, req *types.QueryClient
 	}, nil
 }
 
+// ClientCreator implements the Query/ClientCreator gRPC method
+func (q *queryServer) ClientCreator(goCtx context.Context, req *types.QueryClientCreatorRequest) (*types.QueryClientCreatorResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := host.ClientIdentifierValidator(req.ClientId); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	creator := q.GetClientCreator(ctx, req.ClientId)
+
+	return &types.QueryClientCreatorResponse{
+		Creator: creator.String(),
+	}, nil
+}
+
 // ClientParams implements the Query/ClientParams gRPC method
 func (q *queryServer) ClientParams(goCtx context.Context, _ *types.QueryClientParamsRequest) (*types.QueryClientParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)

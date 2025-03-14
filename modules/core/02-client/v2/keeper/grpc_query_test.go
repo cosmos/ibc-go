@@ -87,3 +87,79 @@ func (suite *KeeperTestSuite) TestQueryCounterPartyInfo() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestQueryConfig() {
+	var (
+		req       *types.QueryConfigRequest
+		expConfig = types.Config{}
+	)
+
+	testCases := []struct {
+		msg      string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"req is nil",
+			func() {
+				req = nil
+			},
+			status.Error(codes.InvalidArgument, "empty request"),
+		},
+		{
+			"req has no ID",
+			func() {
+				req = &types.QueryConfigRequest{}
+			},
+			status.Error(codes.InvalidArgument, "identifier cannot be blank: invalid identifier"),
+		},
+		{
+			"success with default config",
+			func() {
+				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path1.SetupClients()
+
+				expConfig = types.DefaultConfig()
+				req = &types.QueryConfigRequest{
+					ClientId: path1.EndpointA.ClientID,
+				}
+			},
+			nil,
+		},
+		{
+			"success with custom config",
+			func() {
+				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path1.SetupClients()
+
+				expConfig = types.NewConfig(ibctesting.TestAccAddress)
+				suite.chainA.App.GetIBCKeeper().ClientV2Keeper.SetConfig(suite.chainA.GetContext(), path1.EndpointA.ClientID, expConfig)
+				req = &types.QueryConfigRequest{
+					ClientId: path1.EndpointA.ClientID,
+				}
+			},
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			suite.SetupTest() // reset
+			tc.malleate()
+
+			ctx := suite.chainA.GetContext()
+			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientV2Keeper)
+			res, err := queryServer.Config(ctx, req)
+			if tc.expErr == nil {
+				suite.Require().NoError(err)
+				suite.Require().NotNil(res)
+				suite.Require().Equal(expConfig, *res.Config)
+			} else {
+				suite.Require().Error(err)
+				suite.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
