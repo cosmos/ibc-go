@@ -2,6 +2,7 @@ package tendermint
 
 import (
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -93,12 +94,17 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		return errorsmod.Wrapf(err, "consensus state proof failed. Path: %s", upgradeConsStatePath.GetKeyPath())
 	}
 
+	trustingPeriod := cs.TrustingPeriod
+	if tmUpgradeClient.UnbondingPeriod < cs.UnbondingPeriod {
+		trustingPeriod = calculateNewTrustingPeriod(trustingPeriod, cs.UnbondingPeriod, tmUpgradeClient.UnbondingPeriod)
+	}
+
 	// Construct new client state and consensus state
 	// Relayer chosen client parameters are ignored.
 	// All chain-chosen parameters come from committed client, all client-chosen parameters
 	// come from current client.
 	newClientState := NewClientState(
-		tmUpgradeClient.ChainId, cs.TrustLevel, cs.TrustingPeriod, tmUpgradeClient.UnbondingPeriod,
+		tmUpgradeClient.ChainId, cs.TrustLevel, trustingPeriod, tmUpgradeClient.UnbondingPeriod,
 		cs.MaxClockDrift, tmUpgradeClient.LatestHeight, tmUpgradeClient.ProofSpecs, tmUpgradeClient.UpgradePath,
 	)
 
@@ -164,4 +170,9 @@ func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight export
 	}
 
 	return commitmenttypes.NewMerklePath(consStateKey...)
+}
+
+func calculateNewTrustingPeriod(trustingPeriod, originalUnbonding, newUnbonding time.Duration) time.Duration {
+	decreaseRatio := float64(originalUnbonding-newUnbonding) / float64(originalUnbonding)
+	return time.Duration(float64(trustingPeriod) * (1 - decreaseRatio))
 }

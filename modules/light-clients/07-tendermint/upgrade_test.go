@@ -2,6 +2,7 @@ package tendermint_test
 
 import (
 	"errors"
+	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -59,6 +60,38 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 			name: "successful upgrade to same revision",
 			setup: func() {
 				upgradedClient = ibctm.NewClientState(suite.chainB.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod+trustingPeriod, maxClockDrift, clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), upgradedClient.(*ibctm.ClientState).LatestHeight.GetRevisionHeight()+10), commitmenttypes.GetSDKSpecs(), upgradePath)
+				upgradedClient = upgradedClient.(*ibctm.ClientState).ZeroCustomFields()
+				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
+				suite.Require().NoError(err)
+
+				// upgrade Height is at next block
+				lastHeight = clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()+1))
+
+				// zero custom fields and store in upgrade store
+				suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedClientBz)            //nolint:errcheck // ignore error for test
+				suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(lastHeight.GetRevisionHeight()), upgradedConsStateBz) //nolint:errcheck // ignore error for test
+
+				// commit upgrade store changes and update clients
+
+				suite.coordinator.CommitBlock(suite.chainB)
+				err := path.EndpointA.UpdateClient()
+				suite.Require().NoError(err)
+
+				cs, found := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientState(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				suite.Require().True(found)
+				tmCs, ok := cs.(*ibctm.ClientState)
+				suite.Require().True(ok)
+
+				upgradedClientProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(lastHeight.GetRevisionHeight())), tmCs.LatestHeight.GetRevisionHeight())
+			},
+			expErr: nil,
+		},
+		{
+			name: "successful upgrade scales trusting period with unbonding period decrease",
+			setup: func() {
+				newUnbondingPeriod := time.Hour * 24 * 7 * 2
+				upgradedClient = ibctm.NewClientState(suite.chainB.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, newUnbondingPeriod, maxClockDrift, clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), upgradedClient.(*ibctm.ClientState).LatestHeight.GetRevisionHeight()+10), commitmenttypes.GetSDKSpecs(), upgradePath)
 				upgradedClient = upgradedClient.(*ibctm.ClientState).ZeroCustomFields()
 				upgradedClientBz, err = clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradedClient)
 				suite.Require().NoError(err)
