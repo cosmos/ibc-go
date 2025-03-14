@@ -173,9 +173,11 @@ def _add_test_entry(include_entries, seen, chain_arg, chain, version_a="", versi
 
 
 def _get_tags_to_test(min_version: semver.Version, all_versions: List[semver.Version]):
-    """return all tags that are between the min and max versions"""
+    """return all tags that are between the min and max versions and are not retracted"""
     max_version = max(all_versions)
-    return ["v" + str(v) for v in all_versions if min_version <= v <= max_version]
+    tags = ["v" + str(v) for v in all_versions if min_version <= v <= max_version]
+    # Filter out retracted versions
+    return [tag for tag in tags if not _is_version_retracted(tag)]
 
 
 def _validate(compatibility_json: Dict):
@@ -241,6 +243,33 @@ def _test_should_be_run(test_name: str, version: str, file_fields: Dict) -> bool
     return False
 
 
+def _is_version_retracted(tag: str) -> bool:
+    """Check if a version is retracted using the go list command."""
+    import subprocess
+    import re
+
+    if tag == "main":
+        return False
+
+    # Extract the major version from the tag (e.g., v7.1.0 -> v7)
+    match = re.match(r'v(\d+)\..*', tag)
+    if not match:
+        return False  # If we can't parse the version, assume it's not retracted
+    
+    major_version = match.group(1)
+    module_path = f"github.com/cosmos/ibc-go/v{major_version}"
+    
+    try:
+        # Run go list command to check if the version is retracted
+        cmd = ["go", "list", "-m", "-retracted", f"{module_path}@{tag}"]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        
+        # If "(retracted)" appears in the output, the version is retracted
+        return "(retracted)" in result.stdout
+    except Exception as e:
+        print(f"Warning: Error checking if {tag} is retracted: {e}")
+        return False  # On error, assume it's not retracted
+
 def _get_ibc_go_releases(from_version: str) -> List[str]:
     releases = []
 
@@ -262,8 +291,8 @@ def _get_ibc_go_releases(from_version: str) -> List[str]:
         except ValueError:  # skip any non semver tags.
             continue
 
-        # get all versions
-        if semver_tag <= from_version_semver:
+        # get all versions that are not retracted
+        if semver_tag <= from_version_semver and not _is_version_retracted(tag):
             releases.append(tag)
 
     return releases
