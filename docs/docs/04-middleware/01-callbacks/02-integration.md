@@ -19,21 +19,6 @@ The callbacks middleware is a minimal and stateless implementation of the IBC mi
 The callbacks middleware, as the name suggests, plays the role of an IBC middleware and as such must be configured by chain developers to route and handle IBC messages correctly.
 For Cosmos SDK chains this setup is done via the `app/app.go` file, where modules are constructed and configured in order to bootstrap the blockchain application.
 
-## Importing the callbacks middleware
-
-The callbacks middleware has no stable releases yet. To use it, you need to import the git commit that contains the module with the compatible version of `ibc-go`. To do so, run the following command with the desired git commit in your project:
-
-```sh
-go get github.com/cosmos/ibc-go/modules/apps/callbacks@342c00b0f8bd7feeebf0780f208a820b0faf90d1
-```
-
-The following table shows the compatibility matrix between the callbacks middleware, `ibc-go`.
-
-|      **Version**     |         **Git commit to import**         |
-|:--------------------:|:----------------------------------------:|
-| `v0.2.0+ibc-go-v8.0` | 342c00b0f8bd7feeebf0780f208a820b0faf90d1 |
-| `v0.1.0+ibc-go-v7.3` | 17cf1260a9cdc5292512acc9bcf6336ef0d917f4 |
-
 ## Configuring an application stack with the callbacks middleware
 
 As mentioned in [IBC middleware development](../../01-ibc/04-middleware/02-develop.md) an application stack may be composed of many or no middlewares that nest a base application.

@@ -17,9 +17,9 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
@@ -41,14 +41,8 @@ func TestWasmTestSuite(t *testing.T) {
 }
 
 func (suite *WasmTestSuite) SetupTest() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
-
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.coordinator = ibctesting.NewCustomAppCoordinator(suite.T(), 1, setupTestingApp)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-}
-
-func init() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
 }
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
@@ -70,9 +64,7 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 
 // SetupWasmWithMockVM sets up mock cometbft chain with a mock vm.
 func (suite *WasmTestSuite) SetupWasmWithMockVM() {
-	ibctesting.DefaultTestingAppInit = suite.setupWasmWithMockVM
-
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.coordinator = ibctesting.NewCustomAppCoordinator(suite.T(), 1, suite.setupWasmWithMockVM)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	suite.checksum = storeWasmCode(suite, wasmtesting.Code)
 }
@@ -111,8 +103,6 @@ func (suite *WasmTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[st
 	db := dbm.NewMemDB()
 	app := simapp.NewUnitTestSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, suite.mockVM)
 
-	// reset DefaultTestingAppInit to its original value
-	ibctesting.DefaultTestingAppInit = setupTestingApp
 	return app, app.DefaultGenesis()
 }
 

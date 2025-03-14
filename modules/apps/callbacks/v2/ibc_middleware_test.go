@@ -2,15 +2,16 @@ package v2_test
 
 import (
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
-	v2 "github.com/cosmos/ibc-go/modules/apps/callbacks/v2"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
+	v2 "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channelkeeperv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
@@ -474,7 +475,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			// NOTE: we call send packet so transfer is setup with the correct logic to
 			// succeed on timeout
 			userGasLimit := 600_000
-			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Unix())
+			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Second).Unix())
 			packetData = transfertypes.NewFungibleTokenPacketData(
 				ibctesting.TestCoin.Denom,
 				ibctesting.TestCoin.Amount.String(),

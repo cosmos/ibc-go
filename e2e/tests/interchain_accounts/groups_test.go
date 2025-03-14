@@ -59,7 +59,7 @@ const (
 	InitialProposalID = 1
 )
 
-// compatibility:from_version: v7.4.0
+// compatibility:from_version: v7.10.0
 func TestInterchainAccountsGroupsTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsGroupsTestSuite))
 }

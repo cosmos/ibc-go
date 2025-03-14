@@ -36,7 +36,7 @@ var orderMapping = map[channeltypes.Order][]string{
 	channeltypes.UNORDERED: {channeltypes.UNORDERED.String(), "Unordered"},
 }
 
-// compatibility:from_version: v7.4.0
+// compatibility:from_version: v7.10.0
 func TestInterchainAccountsTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsTestSuite))
 }
@@ -55,7 +55,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer() {
 	s.testMsgSendTxSuccessfulTransfer(channeltypes.ORDERED)
 }
 
-// compatibility:TestMsgSendTx_SuccessfulTransfer_UnorderedChannel:from_versions: v7.5.0,v7.6.0,v7.7.0,v7.8.0,v8.4.0,v8.5.0,v10.0.0
+// compatibility:TestMsgSendTx_SuccessfulTransfer_UnorderedChannel:from_versions: v7.10.0,v8.7.0,v10.0.0
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_UnorderedChannel() {
 	s.testMsgSendTxSuccessfulTransfer(channeltypes.UNORDERED)
 }
@@ -430,12 +430,11 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 }
 
-// compatibility:TestMsgSendTx_SuccessfulSubmitGovProposal:skip:true
-func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulSubmitGovProposal() {
+func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulSubmitGovProposal_OrderedChannel() {
 	s.testMsgSendTxSuccessfulGovProposal(channeltypes.ORDERED)
 }
 
-// compatibility:TestMsgSendTx_SuccessfulSubmitGovProposal_UnorderedChannel:skip:true
+// compatibility:TestMsgSendTx_SuccessfulSubmitGovProposal_UnorderedChannel:from_versions: v7.10.0,v8.7.0,v10.0.0
 func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulSubmitGovProposal_UnorderedChannel() {
 	s.testMsgSendTxSuccessfulGovProposal(channeltypes.UNORDERED)
 }
@@ -498,13 +497,8 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 			s.Require().NoError(err)
 			s.Require().NotNil(govModuleAddress)
 
-			testProposal := &controllertypes.MsgUpdateParams{
-				Signer: govModuleAddress.String(),
-				Params: controllertypes.NewParams(false),
-			}
-
 			msg, err := govv1.NewMsgSubmitProposal(
-				[]sdk.Msg{testProposal},
+				[]sdk.Msg{},
 				sdk.NewCoins(sdk.NewCoin(chainB.Config().Denom, sdkmath.NewInt(10_000_000))),
 				hostAccount, "e2e", "e2e", "e2e", false,
 			)

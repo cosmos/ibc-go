@@ -46,6 +46,10 @@ func SolomachineClientID(id int) string {
 	return fmt.Sprintf("06-solomachine-%d", id)
 }
 
+var ReflectionServiceFeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v7",
+}
+
 // TokenMetadataFeatureReleases represents the releases the token metadata was released in.
 var TokenMetadataFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v8",
@@ -115,5 +119,9 @@ var ChannelsV2FeatureReleases = semverutil.FeatureReleases{
 }
 
 var ClientV2FeatureReleases = semverutil.FeatureReleases{
+	MajorVersion: "v10",
+}
+
+var LocalhostWithDashFeatureReleases = semverutil.FeatureReleases{
 	MajorVersion: "v10",
 }

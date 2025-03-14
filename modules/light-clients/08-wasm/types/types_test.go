@@ -12,7 +12,7 @@ import (
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing/simapp"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
@@ -32,14 +32,8 @@ func TestWasmTestSuite(t *testing.T) {
 }
 
 func (suite *TypesTestSuite) SetupTest() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
-
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 1)
+	suite.coordinator = ibctesting.NewCustomAppCoordinator(suite.T(), 1, setupTestingApp)
 	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-}
-
-func init() {
-	ibctesting.DefaultTestingAppInit = setupTestingApp
 }
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.

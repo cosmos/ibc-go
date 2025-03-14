@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package ibc.core.client.v2;
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types";
+
+// Config is a **per-client** configuration struct that sets which relayers are allowed to relay v2 IBC messages
+// for a given client.
+// If it is set, then only relayers in the allow list can send v2 messages
+// If it is not set, then the client allows permissionless relaying of v2 messages
+message Config {
+  // allowed_relayers defines the set of allowed relayers for IBC V2 protocol for the given client
+  repeated string allowed_relayers = 1;
+}

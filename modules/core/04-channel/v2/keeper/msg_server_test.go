@@ -11,6 +11,7 @@ import (
 	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 	"github.com/cosmos/ibc-go/v10/testing/mock"
 	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
@@ -190,6 +191,27 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			expAckWritten: false,
 		},
 		{
+			name: "success: receive permissioned with msg sender",
+			malleate: func() {
+				creator := suite.chainB.SenderAccount.GetAddress()
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointB.ClientID, creator.String(), clientv2types.NewConfig(suite.chainA.SenderAccount.GetAddress().String(), creator.String()))
+				_, err := suite.chainB.App.GetIBCKeeper().UpdateClientConfig(suite.chainB.GetContext(), msg)
+				suite.Require().NoError(err)
+			},
+			expError:      nil,
+			expAckWritten: true,
+		},
+		{
+			name: "failure: relayer not permissioned",
+			malleate: func() {
+				creator := suite.chainB.SenderAccount.GetAddress()
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointB.ClientID, creator.String(), clientv2types.NewConfig(suite.chainA.SenderAccount.GetAddress().String()))
+				_, err := suite.chainB.App.GetIBCKeeper().UpdateClientConfig(suite.chainB.GetContext(), msg)
+				suite.Require().NoError(err)
+			},
+			expError: ibcerrors.ErrUnauthorized,
+		},
+		{
 			name: "failure: counterparty not found",
 			malleate: func() {
 				// change the destination id to a non-existent channel.
@@ -323,6 +345,27 @@ func (suite *KeeperTestSuite) TestMsgAcknowledgement() {
 			payload: mockv2.NewErrorMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
 		},
 		{
+			name: "success: relayer permissioned with msg sender",
+			malleate: func() {
+				creator := suite.chainA.SenderAccount.GetAddress()
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.NewConfig(suite.chainB.SenderAccount.GetAddress().String(), creator.String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), msg)
+				suite.Require().NoError(err)
+			},
+			payload: mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
+		},
+		{
+			name: "failure: relayer not permissioned",
+			malleate: func() {
+				creator := suite.chainA.SenderAccount.GetAddress()
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.NewConfig(suite.chainB.SenderAccount.GetAddress().String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), msg)
+				suite.Require().NoError(err)
+			},
+			payload:  mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
+			expError: ibcerrors.ErrUnauthorized,
+		},
+		{
 			name: "failure: callback fails",
 			malleate: func() {
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(sdk.Context, string, string, uint64, types.Payload, []byte, sdk.AccAddress) error {
@@ -405,8 +448,10 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 		expError error
 	}{
 		{
-			name:     "success",
-			malleate: func() {},
+			name: "success",
+			malleate: func() {
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+			},
 		},
 		{
 			name: "success: no-op",
@@ -418,7 +463,30 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(sdk.Context, string, string, uint64, types.Payload, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
+				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
+		},
+		{
+			name: "success: relayer permissioned with msg sender",
+			malleate: func() {
+				creator := suite.chainA.SenderAccount.GetAddress()
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.NewConfig(suite.chainB.SenderAccount.GetAddress().String(), creator.String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), msg)
+				suite.Require().NoError(err)
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+			},
+		},
+		{
+			name: "failure: relayer not permissioned",
+			malleate: func() {
+				// update first before permissioning the relayer in this case
+				suite.Require().NoError(path.EndpointA.UpdateClient())
+				creator := suite.chainA.SenderAccount.GetAddress()
+				msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.NewConfig(suite.chainB.SenderAccount.GetAddress().String()))
+				_, err := suite.chainA.App.GetIBCKeeper().UpdateClientConfig(suite.chainA.GetContext(), msg)
+				suite.Require().NoError(err)
+			},
+			expError: ibcerrors.ErrUnauthorized,
 		},
 		{
 			name: "failure: callback fails",
@@ -426,6 +494,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(sdk.Context, string, string, uint64, types.Payload, sdk.AccAddress) error {
 					return mock.MockApplicationCallbackError
 				}
+				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			expError: mock.MockApplicationCallbackError,
 		},
@@ -434,6 +503,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			malleate: func() {
 				// change the source id to a non-existent client.
 				packet.SourceClient = "not-existent-client"
+				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			expError: clientv2types.ErrCounterpartyNotFound,
 		},
@@ -441,6 +511,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			name: "failure: invalid commitment",
 			malleate: func() {
 				suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), packet.SourceClient, packet.Sequence, []byte("foo"))
+				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			expError: types.ErrInvalidPacket,
 		},
@@ -449,6 +520,7 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			malleate: func() {
 				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
 				suite.Require().NoError(path.EndpointB.UpdateClient())
+				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			expError: commitmenttypes.ErrInvalidProof,
 		},
@@ -461,7 +533,9 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			path.SetupV2()
 
 			// Send packet from A to B
-			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Unix())
+			// make timeoutTimestamp 1 second more than sending chain time to ensure it passes SendPacket
+			// and times out successfully after update
+			timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Second).Unix())
 			mockData := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			var err error
@@ -470,8 +544,6 @@ func (suite *KeeperTestSuite) TestMsgTimeout() {
 			suite.Require().NotEmpty(packet)
 
 			tc.malleate()
-
-			suite.Require().NoError(path.EndpointA.UpdateClient())
 
 			err = path.EndpointA.MsgTimeoutPacket(packet)
 

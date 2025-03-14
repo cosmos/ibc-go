@@ -33,7 +33,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
@@ -44,7 +44,7 @@ const (
 	invalidHashValue = "invalid_hash"
 )
 
-// compatibility:from_version: v7.4.0
+// compatibility:from_version: v7.10.0
 func TestClientTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(ClientTestSuite))
 }
@@ -62,7 +62,7 @@ func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Cha
 }
 
 // TestScheduleIBCUpgrade_Succeeds tests that a governance proposal to schedule an IBC software upgrade is successful.
-// compatibility:TestScheduleIBCUpgrade_Succeeds:from_versions: v8.4.0,v8.5.0,v10.0.0
+// compatibility:TestScheduleIBCUpgrade_Succeeds:from_versions: v8.7.0,v10.0.0
 func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
@@ -74,6 +74,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	const planHeight = int64(300)
+	const legacyPlanHeight = planHeight * 2
 	var newChainID string
 
 	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
@@ -131,10 +132,38 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().Equal("upgrade-client", plan.Name)
 		s.Require().Equal(planHeight, plan.Height)
 	})
+
+	t.Run("ensure legacy proposal does not succeed", func(t *testing.T) {
+		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
+		s.Require().NoError(err)
+		s.Require().NotNil(authority)
+
+		clientState, err := query.ClientState(ctx, chainB, ibctesting.FirstClientID)
+		s.Require().NoError(err)
+
+		originalChainID := clientState.(*ibctm.ClientState).ChainId
+		revisionNumber := clienttypes.ParseChainID(originalChainID)
+		// increment revision number even with new chain ID to prevent loss of misbehaviour detection support
+		newChainID, err = clienttypes.SetRevisionNumber(originalChainID, revisionNumber+1)
+		s.Require().NoError(err)
+		s.Require().NotEqual(originalChainID, newChainID)
+
+		upgradedClientState := clientState.(*ibctm.ClientState).ZeroCustomFields()
+		upgradedClientState.ChainId = newChainID
+
+		legacyUpgradeProposal, err := clienttypes.NewUpgradeProposal(ibctesting.Title, ibctesting.Description, upgradetypes.Plan{
+			Name:   "upgrade-client-legacy",
+			Height: legacyPlanHeight,
+		}, upgradedClientState)
+
+		s.Require().NoError(err)
+		txResp := s.ExecuteGovV1Beta1Proposal(ctx, chainA, chainAWallet, legacyUpgradeProposal)
+		s.AssertTxFailure(txResp, govtypes.ErrInvalidProposalType, govtypes.ErrInvalidProposalContent)
+	})
 }
 
 // TestRecoverClient_Succeeds tests that a governance proposal to recover a client using a MsgRecoverClient is successful.
-// compatibility:TestRecoverClient_Succeeds:from_versions: v8.4.0,v8.5.0,v10.0.0
+// compatibility:TestRecoverClient_Succeeds:from_versions: v8.7.0,v10.0.0
 func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()

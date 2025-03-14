@@ -6,6 +6,7 @@ option go_package = "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/type
 
 import "cosmos/msg/v1/msg.proto";
 import "gogoproto/gogo.proto";
+import "ibc/core/client/v2/config.proto";
 
 // Msg defines the ibc/client/v2 Msg service.
 service Msg {
@@ -13,6 +14,9 @@ service Msg {
 
   // RegisterCounterparty defines a rpc handler method for MsgRegisterCounterparty.
   rpc RegisterCounterparty(MsgRegisterCounterparty) returns (MsgRegisterCounterpartyResponse);
+
+  // UpdateClientConfig defines a rpc handler method for MsgUpdateClientConfig.
+  rpc UpdateClientConfig(MsgUpdateClientConfig) returns (MsgUpdateClientConfigResponse);
 }
 
 // MsgRegisterCounterparty defines a message to register a counterparty on a client
@@ -33,3 +37,22 @@ message MsgRegisterCounterparty {
 
 // MsgRegisterCounterpartyResponse defines the Msg/RegisterCounterparty response type.
 message MsgRegisterCounterpartyResponse {}
+
+// MsgUpdateClientConfig defines the sdk.Msg type to update the configuration for a given client
+message MsgUpdateClientConfig {
+  option (cosmos.msg.v1.signer) = "signer";
+
+  option (gogoproto.goproto_getters) = false;
+
+  // client identifier
+  string client_id = 1;
+  // allowed relayers
+  //
+  // NOTE: All fields in the config must be supplied.
+  Config config = 2 [(gogoproto.nullable) = false];
+  // signer address
+  string signer = 3;
+}
+
+// MsgUpdateClientConfigResponse defines the MsgUpdateClientConfig response type.
+message MsgUpdateClientConfigResponse {}

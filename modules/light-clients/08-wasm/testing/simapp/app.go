@@ -106,10 +106,10 @@ import (
 	cmtos "github.com/cometbft/cometbft/libs/os"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/blsverifier"
-	wasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/blsverifier"
+	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"
@@ -190,7 +190,7 @@ type SimApp struct {
 	ICAHostKeeper         icahostkeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
-	WasmClientKeeper      wasmkeeper.Keeper
+	WasmClientKeeper      ibcwasmkeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
@@ -226,7 +226,7 @@ func NewUnitTestSimApp(
 	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
-	mockVM wasmtypes.WasmEngine,
+	mockVM ibcwasmtypes.WasmEngine,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
 	wasmDir := path.Join("ibc_08-wasm_client_data", strconv.Itoa(rand.Intn(10000)))
@@ -239,7 +239,7 @@ func NewBinarySimApp(
 	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
-	mockVM wasmtypes.WasmEngine,
+	mockVM ibcwasmtypes.WasmEngine,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
 	wasmDir := "ibc_08-wasm_client_data"
@@ -253,7 +253,7 @@ func newSimApp(
 	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
-	mockVM wasmtypes.WasmEngine,
+	mockVM ibcwasmtypes.WasmEngine,
 	wasmDir string,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
@@ -312,7 +312,7 @@ func newSimApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, group.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
-		authzkeeper.StoreKey, consensusparamtypes.StoreKey, circuittypes.StoreKey, wasmtypes.StoreKey,
+		authzkeeper.StoreKey, consensusparamtypes.StoreKey, circuittypes.StoreKey, ibcwasmtypes.StoreKey,
 	)
 
 	// register streaming services
@@ -441,27 +441,27 @@ func newSimApp(
 	// runs using a different data directory. This is required because wasm VM forbids 2 or more
 	// different VM instances running in the same data directory. In production environments, the
 	// appended random string is not needed.
-	wasmConfig := wasmtypes.WasmConfig{
+	wasmConfig := ibcwasmtypes.WasmConfig{
 		DataDir:               filepath.Join(homePath, wasmDir),
 		SupportedCapabilities: []string{"iterator"},
 		ContractDebugMode:     false,
 	}
 	if mockVM != nil {
 		// NOTE: mockVM is used for testing purposes only!
-		app.WasmClientKeeper = wasmkeeper.NewKeeperWithVM(
-			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
+		app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithVM(
+			appCodec, runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), mockVM, app.GRPCQueryRouter(),
 		)
 	} else {
-		querierOption := wasmkeeper.WithQueryPlugins(&wasmkeeper.QueryPlugins{
+		querierOption := ibcwasmkeeper.WithQueryPlugins(&ibcwasmkeeper.QueryPlugins{
 			Custom: blsverifier.CustomQuerier(),
-			Stargate: wasmkeeper.AcceptListStargateQuerier(
+			Stargate: ibcwasmkeeper.AcceptListStargateQuerier(
 				[]string{"/cosmos.base.tendermint.v1beta1.Service/ABCIQuery"},
 				app.GRPCQueryRouter(),
 			),
 		})
-		app.WasmClientKeeper = wasmkeeper.NewKeeperWithConfig(
-			appCodec, runtime.NewKVStoreService(keys[wasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
+		app.WasmClientKeeper = ibcwasmkeeper.NewKeeperWithConfig(
+			appCodec, runtime.NewKVStoreService(keys[ibcwasmtypes.StoreKey]), app.IBCKeeper.ClientKeeper,
 			authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmConfig, app.GRPCQueryRouter(),
 			querierOption,
 		)
@@ -496,7 +496,7 @@ func newSimApp(
 		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.GetSubspace(ibctransfertypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeperV2,
+		app.MsgServiceRouter(),
 		app.AccountKeeper, app.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -569,8 +569,8 @@ func newSimApp(
 	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
 	clientKeeper.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
-	wasmLightClientModule := wasm.NewLightClientModule(app.WasmClientKeeper, storeProvider)
-	clientKeeper.AddRoute(wasmtypes.ModuleName, &wasmLightClientModule)
+	wasmLightClientModule := ibcwasm.NewLightClientModule(app.WasmClientKeeper, storeProvider)
+	clientKeeper.AddRoute(ibcwasmtypes.ModuleName, &wasmLightClientModule)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
@@ -617,7 +617,7 @@ func newSimApp(
 		mockModule,
 
 		// IBC light clients
-		wasm.NewAppModule(app.WasmClientKeeper), // TODO(damian): see if we want to pass the lightclient module here, keeper is used in AppModule.RegisterServices etc
+		ibcwasm.NewAppModule(app.WasmClientKeeper), // TODO(damian): see if we want to pass the lightclient module here, keeper is used in AppModule.RegisterServices etc
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
 	)
@@ -659,7 +659,7 @@ func newSimApp(
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		icatypes.ModuleName,
-		wasmtypes.ModuleName,
+		ibcwasmtypes.ModuleName,
 		ibcmock.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
@@ -671,7 +671,7 @@ func newSimApp(
 		genutiltypes.ModuleName,
 		feegrant.ModuleName,
 		icatypes.ModuleName,
-		wasmtypes.ModuleName,
+		ibcwasmtypes.ModuleName,
 		ibcmock.ModuleName,
 		group.ModuleName,
 	)
@@ -685,7 +685,7 @@ func newSimApp(
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, ibcmock.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
-		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, circuittypes.ModuleName, wasmtypes.ModuleName,
+		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, circuittypes.ModuleName, ibcwasmtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
@@ -741,7 +741,7 @@ func newSimApp(
 	// must be before Loading version
 	if manager := app.SnapshotManager(); manager != nil {
 		err := manager.RegisterExtensions(
-			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmClientKeeper),
+			ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmClientKeeper),
 		)
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
@@ -1047,7 +1047,7 @@ func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
 }
 
 // GetWasmKeeper implements the TestingApp interface.
-func (app *SimApp) GetWasmKeeper() wasmkeeper.Keeper {
+func (app *SimApp) GetWasmKeeper() ibcwasmkeeper.Keeper {
 	return app.WasmClientKeeper
 }
 

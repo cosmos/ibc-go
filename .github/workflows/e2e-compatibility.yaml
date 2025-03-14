@@ -13,14 +13,9 @@ on:
         required: true
         type: choice
         options:
-          - release/v7.4.x
-          - release/v7.5.x
-          - release/v7.6.x
-          - release/v7.7.x
-          - release/v7.8.x
-          - release/v8.4.x
-          - release/v8.5.x
-          - release/v10.0.x
+          - release/v7.10.x
+          - release/v8.7.x
+          - release/v10.1.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -54,14 +49,9 @@ jobs:
     strategy:
       matrix:
         release-branch:
-          - release/v7.4.x
-          - release/v7.5.x
-          - release/v7.6.x
-          - release/v7.7.x
-          - release/v7.8.x
-          - release/v8.4.x
-          - release/v8.5.x
-          - release/v10.0.x
+          - release/v7.10.x
+          - release/v8.7.x
+          - release/v10.1.x
           - main
     steps:
       - uses: actions/checkout@v4
@@ -71,7 +61,7 @@ jobs:
           fetch-depth: 0
       - name: Log in to the Container registry
         if: env.RELEASE_BRANCH == matrix.release-branch
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -169,15 +159,6 @@ jobs:
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file: "e2e/tests/interchain_accounts/query_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-
-  ica-upgrade-test:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/interchain_accounts/upgrades_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
   transfer-base-test-a:

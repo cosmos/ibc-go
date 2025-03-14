@@ -9,7 +9,7 @@ import (
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
 
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"

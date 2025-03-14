@@ -43,8 +43,8 @@ const sidebars = {
         },
         {
           type: "link",
-          label: "ibc-rs",
-          href: "https://github.com/cosmos/ibc-rs",
+          label: "Roadmap",
+          href: "https://github.com/orgs/cosmos/projects/38/views/14",
         },
       ],
     },

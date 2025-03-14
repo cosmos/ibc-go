@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 
@@ -8,15 +9,35 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/internal"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/internal"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/api"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
-var _ api.IBCModule = (*IBCMiddleware)(nil)
+var (
+	_ api.IBCModule            = (*IBCMiddleware)(nil)
+	_ exported.Acknowledgement = (*RecvAcknowledgement)(nil)
+)
+
+// Create internal implementation of exported.Acknowledgement
+// to pass the app acknowledgement bytes to contractKeeper IBCReceivePacketCallback
+// interface
+type RecvAcknowledgement []byte
+
+// RecvPacket only passes callback to contract if the acknowledgement
+// is successful. Thus, we can just return true here.
+func (rack RecvAcknowledgement) Success() bool {
+	return !bytes.Equal(rack, channeltypesv2.ErrorAcknowledgement[:])
+}
+
+// RecvPacket passes the application acknowledgment directly to contract
+func (rack RecvAcknowledgement) Acknowledgement() []byte {
+	return rack
+}
 
 // IBCMiddleware implements the IBC v2 middleware interface
 // with the underlying application.
@@ -187,9 +208,9 @@ func (im IBCMiddleware) OnRecvPacket(
 			TimeoutHeight:      clienttypes.Height{},
 			TimeoutTimestamp:   0,
 		}
-		// wrap the individual acknowledgement into the channeltypesv2.Acknowledgement since it implements the exported.Acknowledgement interface
+		// wrap the individual acknowledgement into the RecvAcknowledgement since it implements the exported.Acknowledgement interface
 		// since we return early on failure, we are guaranteed that the ack is a successful acknowledgement
-		ack := channeltypesv2.NewAcknowledgement(recvResult.Acknowledgement)
+		ack := RecvAcknowledgement(recvResult.Acknowledgement)
 		return im.contractKeeper.IBCReceivePacketCallback(cachedCtx, packetv1, ack, cbData.CallbackAddress, payload.Version)
 	}
 

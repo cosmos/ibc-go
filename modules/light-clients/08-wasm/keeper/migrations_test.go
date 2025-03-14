@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 )
 
 func (suite *KeeperTestSuite) TestMigrateWasmStore() {

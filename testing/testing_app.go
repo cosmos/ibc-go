@@ -31,7 +31,7 @@ import (
 	"github.com/cosmos/ibc-go/v10/testing/simapp"
 )
 
-var DefaultTestingAppInit = SetupTestingApp
+var DefaultTestingAppInit AppCreator = SetupTestingApp
 
 type TestingApp interface {
 	servertypes.ABCI
@@ -60,8 +60,12 @@ func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 // of one consensus engine unit (10^6) in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
 func SetupWithGenesisValSet(tb testing.TB, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction sdkmath.Int, balances ...banktypes.Balance) TestingApp {
+	return setupWithGenesisValSet(tb, valSet, genAccs, chainID, powerReduction, DefaultTestingAppInit, balances...)
+}
+
+func setupWithGenesisValSet(tb testing.TB, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction sdkmath.Int, appCreator AppCreator, balances ...banktypes.Balance) TestingApp {
 	tb.Helper()
-	app, genesisState := DefaultTestingAppInit()
+	app, genesisState := appCreator()
 
 	// ensure baseapp has a chain-id set before running InitChain
 	baseapp.SetChainID(chainID)(app.GetBaseApp())

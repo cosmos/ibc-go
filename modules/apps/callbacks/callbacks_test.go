@@ -19,10 +19,10 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/apps/callbacks/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -31,10 +31,6 @@ import (
 )
 
 const maxCallbackGas = uint64(1000000)
-
-func init() {
-	ibctesting.DefaultTestingAppInit = SetupTestingApp
-}
 
 // SetupTestingApp provides the duplicated simapp which is specific to the callbacks module on chain creation.
 func SetupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
@@ -67,7 +63,7 @@ type CallbacksTestSuite struct {
 
 // setupChains sets up a coordinator with 2 test chains.
 func (s *CallbacksTestSuite) setupChains() {
-	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+	s.coordinator = ibctesting.NewCustomAppCoordinator(s.T(), 2, SetupTestingApp)
 	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
 	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 	s.path = ibctesting.NewPath(s.chainA, s.chainB)

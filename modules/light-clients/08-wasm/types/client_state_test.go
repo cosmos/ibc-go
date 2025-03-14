@@ -3,8 +3,8 @@ package types_test
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 )
 

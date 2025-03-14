@@ -11,9 +11,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
