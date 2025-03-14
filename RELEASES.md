@@ -69,8 +69,8 @@ We reserve the right to drop support for releases if they are deemed unused (for
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v7.9.x`|March 17, 2025|
-|`v8.6.x`|May 10, 2025|
+|`v7.10.x`|March 17, 2025|
+|`v8.7.x`|May 10, 2025|
 
 ### Callbacks middleware
 
@@ -119,8 +119,8 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 
 | Go | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|--------|------------|---------------------|
-| 1.19 | v7.9.0 | v0.47.13 | v0.37.5  |
-| 1.21 | v8.6.0 | v0.50.9  | v0.38.11 |
+| 1.19 | v7.10.0 | v0.47.13 | v0.37.5  |
+| 1.21 | v8.7.0 | v0.50.9  | v0.38.11 |
 
 ### Callbacks middleware
 

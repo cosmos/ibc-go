@@ -13,9 +13,9 @@ on:
         required: true
         type: choice
         options:
-          - release/v7.9.x
-          - release/v8.6.x
-          - release/v10.0.x
+          - release/v7.10.x
+          - release/v8.7.x
+          - release/v10.1.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -49,9 +49,9 @@ jobs:
     strategy:
       matrix:
         release-branch:
-          - release/v7.9.x
-          - release/v8.6.x
-          - release/v10.0.x
+          - release/v7.10.x
+          - release/v8.7.x
+          - release/v10.1.x
           - main
     steps:
       - uses: actions/checkout@v4

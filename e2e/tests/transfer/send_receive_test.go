@@ -19,7 +19,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-// compatibility:from_version: v7.2.0
+// compatibility:from_version: v7.10.0
 func TestTransferTestSuiteSendReceive(t *testing.T) {
 	testifysuite.Run(t, new(TransferTestSuiteSendReceive))
 }
