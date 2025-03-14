@@ -699,6 +699,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		{
 			"fake acknowledgement",
 			func() {
+				expError = types.ErrInvalidAcknowledgement
 				// setup uses an UNORDERED channel
 				suite.coordinator.Setup(path)
 
