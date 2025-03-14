@@ -62,7 +62,7 @@ func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Cha
 }
 
 // TestScheduleIBCUpgrade_Succeeds tests that a governance proposal to schedule an IBC software upgrade is successful.
-// compatibility:TestScheduleIBCUpgrade_Succeeds:from_versions: v8.7.0,v10.0.0
+// compatibility:TestScheduleIBCUpgrade_Succeeds:from_versions: v8.7.0,v10.1.0
 func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
@@ -163,7 +163,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 }
 
 // TestRecoverClient_Succeeds tests that a governance proposal to recover a client using a MsgRecoverClient is successful.
-// compatibility:TestRecoverClient_Succeeds:from_versions: v8.7.0,v10.0.0
+// compatibility:TestRecoverClient_Succeeds:from_versions: v8.7.0,v10.1.0
 func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()

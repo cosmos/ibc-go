@@ -28,7 +28,7 @@ on:
         default: main
         options:
           - main
-          - v10.0.0
+          - v10.1.0
           - v8.7.0
           - v7.10.0
       chain-a-tag-override:
@@ -42,7 +42,7 @@ on:
         type: choice
         options:
           - main
-          - v10.0.0
+          - v10.1.0
           - v8.7.0
           - v7.10.0
       chain-b-tag-override:

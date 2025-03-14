@@ -322,7 +322,7 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 // TestMsgTransfer_EntireBalance tests that it is possible to transfer the entire balance
 // of a given denom by using types.UnboundedSpendLimit as the amount.
-// compatibility:TestMsgTransfer_EntireBalance:from_versions: v7.10.0,v8.7.0,v10.0.0
+// compatibility:TestMsgTransfer_EntireBalance:from_versions: v7.10.0,v8.7.0,v10.1.0
 func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 	t := s.T()
 	ctx := context.TODO()

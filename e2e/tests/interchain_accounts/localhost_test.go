@@ -39,7 +39,7 @@ type LocalhostInterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// compatibility:TestInterchainAccounts_Localhost:from_versions: v7.10.0,v8.7.0,v10.0.0
+// compatibility:TestInterchainAccounts_Localhost:from_versions: v7.10.0,v8.7.0,v10.1.0
 func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
