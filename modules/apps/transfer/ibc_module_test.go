@@ -414,6 +414,21 @@ func (suite *TransferTestSuite) TestOnAcknowledgePacket() {
 			errors.New("unable to unescrow tokens"),
 			false,
 		},
+		{
+			// See https://github.com/cosmos/ibc-go/security/advisories/GHSA-jg6f-48ff-5xrw
+			"non-deterministic JSON ack serialization should return an error",
+			func() {
+				// Create a valid acknowledgement using deterministic serialization.
+				ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
+				// Introduce non-determinism: insert an extra space after the first character '{'
+				// This will deserialize correctly but fail to re-serialize to the expected bytes.
+				if len(ack) > 0 && ack[0] == '{' {
+					ack = []byte("{ " + string(ack[1:]))
+				}
+			},
+			errors.New("acknowledgement did not marshal to expected bytes"),
+			false,
+		},
 	}
 
 	for _, tc := range testCases {
