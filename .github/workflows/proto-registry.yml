@@ -1,12 +1,14 @@
 name: Buf-Push
 # Protobuf runs buf (https://buf.build/) push updated proto files to https://buf.build/cosmos/ibc
-# This workflow is only run when a .proto file has been changed
+# This workflow is only run when a .proto file has been changed or a tag is created
 on:
   push:
     branches:
       - main
     paths:
       - "proto/**"
+    tags:
+      - 'v*.*.*'
 
 jobs:
   push:
@@ -14,7 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: bufbuild/buf-setup-action@v1.50.0
-      - uses: bufbuild/buf-push-action@v1
+      - name: Push to buf.build registry with appropriate labels
+        uses: bufbuild/buf-push-action@v1
         with:
           input: "proto"
           buf_token: ${{ secrets.BUF_TOKEN }}
+          # Add tag labels when this workflow is triggered by a tag
+          tag: ${{ startsWith(github.ref, 'refs/tags/') && format('commit:{0},{1}', github.sha, github.ref_name) || '' }}
