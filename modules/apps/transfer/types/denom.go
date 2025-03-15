@@ -192,19 +192,19 @@ func validateIBCDenom(denom string) error {
 		return err
 	}
 
-	denomSplit := strings.SplitN(denom, "/", 2)
+	prefix, remainder, found := strings.Cut(denom, "/")
 
-	switch {
-	case denom == DenomPrefix:
+	if denom == DenomPrefix {
 		return errorsmod.Wrapf(ErrInvalidDenomForTransfer, "denomination should be prefixed with the format 'ibc/{hash(trace + \"/\" + %s)}'", denom)
+	}
 
-	case len(denomSplit) == 2 && denomSplit[0] == DenomPrefix:
-		if strings.TrimSpace(denomSplit[1]) == "" {
+	if found && prefix == DenomPrefix {
+		if strings.TrimSpace(remainder) == "" {
 			return errorsmod.Wrapf(ErrInvalidDenomForTransfer, "denomination should be prefixed with the format 'ibc/{hash(trace + \"/\" + %s)}'", denom)
 		}
 
-		if _, err := ParseHexHash(denomSplit[1]); err != nil {
-			return errorsmod.Wrapf(err, "invalid denom trace hash %s", denomSplit[1])
+		if _, err := ParseHexHash(remainder); err != nil {
+			return errorsmod.Wrapf(err, "invalid denom trace hash %s", remainder)
 		}
 	}
 
