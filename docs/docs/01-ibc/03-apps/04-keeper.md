@@ -8,7 +8,7 @@ slug: /ibc/apps/keeper
 # Keeper
 
 :::note Synopsis
-Learn how to implement the IBC Module keeper.
+Learn how to implement the IBC Module keeper. Relevant for IBC classic and v2
 :::
 
 :::note
@@ -49,7 +49,6 @@ func NewKeeper(
 
     channelKeeper: channelKeeper,
     portKeeper:    portKeeper,
-    scopedKeeper:  scopedKeeper,
 
     // ... additional according to custom logic
   }
