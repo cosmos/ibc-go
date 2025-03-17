@@ -5,6 +5,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -18,8 +19,10 @@ import (
 )
 
 // VerifyUpgradeAndUpdateState checks if the upgraded client has been committed by the current client
-// It will zero out all client-specific fields (e.g. TrustingPeriod) and verify all data
-// in client state that must be the same across all valid Tendermint clients for the new chain.
+// It will zero out all client-specific fields and verify all data in client state that must
+// be the same across all valid Tendermint clients for the new chain.
+// Note, if there is a decrease in the UnbondingPeriod, then the TrustingPeriod, despite being a client-specific field
+// is scaled down by the same ratio.
 // VerifyUpgrade will return an error if:
 // - the upgradedClient is not a Tendermint ClientState
 // - the latest height of the client state does not have the same revision number or has a greater
@@ -172,7 +175,19 @@ func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight export
 	return commitmenttypes.NewMerklePath(consStateKey...)
 }
 
+// calculateNewTrustingPeriod converts the provided durations to decimal representation to avoid floating-point precision issues
+// and calculates the new trusting period, decreasing the provided trusting period by the percentage difference between
+// the original period and the new unbonding period.
 func calculateNewTrustingPeriod(trustingPeriod, originalUnbonding, newUnbonding time.Duration) time.Duration {
-	decreaseRatio := float64(originalUnbonding-newUnbonding) / float64(originalUnbonding)
-	return time.Duration(float64(trustingPeriod) * (1 - decreaseRatio))
+	origUnbondingDec := sdkmath.LegacyNewDec(originalUnbonding.Nanoseconds())
+	newUnbondingDec := sdkmath.LegacyNewDec(newUnbonding.Nanoseconds())
+	trustingPeriodDec := sdkmath.LegacyNewDec(trustingPeriod.Nanoseconds())
+
+	// compute decrease ratio: (originalUnbonding - newUnbonding) / originalUnbonding
+	decreaseRatio := origUnbondingDec.Sub(newUnbondingDec).Quo(origUnbondingDec)
+
+	// compute new trusting period: trustingPeriod * (1 - decreaseRatio)
+	newTrustingPeriodDec := trustingPeriodDec.Mul(sdkmath.LegacyOneDec().Sub(decreaseRatio))
+
+	return time.Duration(newTrustingPeriodDec.TruncateInt64()) * time.Nanosecond
 }
