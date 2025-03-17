@@ -5,17 +5,21 @@ sidebar_position: 0
 
 # IBC-Go Documentation
 
-Welcome to the documentation for IBC-Go, the Golang implementation of the Inter-Blockchain Communication Protocol! Looking for information on ibc-rs? [Click here to go to the ibc-rs github repo](https://github.com/cosmos/ibc-rs).
+Welcome to the documentation for IBC-Go, the Golang implementation of the Inter-Blockchain Communication Protocol! 
 
-The Inter-Blockchain Communication Protocol (IBC) is an end-to-end, connection-oriented, stateful protocol for reliable, ordered, and authenticated communication between heterogeneous blockchains arranged in an unknown and dynamic topology.
-
-IBC is a protocol that allows blockchains to talk to each other. Chains that speak IBC can share any type of data as long as it's encoded in bytes, enabling the industry’s most feature-rich cross-chain interactions. IBC is secure and permissionless.
+The Inter-Blockchain Communication Protocol (IBC) is a protocol that allows blockchains to talk to each other. Chains that speak IBC can share any type of data as long as it's encoded in bytes, enabling the industry’s most feature-rich cross-chain interactions. IBC can be used to build a wide range of cross-chain applications that include token transfers, atomic swaps, multi-chain smart contracts (with or without mutually comprehensible VMs), and cross-chain account control. IBC is secure and permissionless. 
 
 The protocol realizes this interoperability by specifying a set of data structures, abstractions, and semantics that can be implemented by any distributed ledger that satisfies a small set of requirements.
 
-IBC can be used to build a wide range of cross-chain applications that include token transfers, atomic swaps, multi-chain smart contracts (with or without mutually comprehensible VMs), cross-chain account control, and data and code sharding of various kinds.
+:::note Notice
+Since ibc-go v10, there are two versions of the protocol in the same release: IBC classic and IBC v2. The protocols are seperate - a connection uses either IBC classic or IBC v2
+:::
 
-## High-level overview of IBC
+## High-level overview of IBC v2
+
+For a high level overview of IBC v2, please refer to [this blog post.](https://ibcprotocol.dev/blog/ibc-v2-announcement) For a more detailed understanding of the IBC v2 protocol, please refer to the [IBC v2 protocol specification.](https://github.com/cosmos/ibc/pull/1143)
+
+## High-level overview of IBC Classic
 
 The following diagram shows how IBC works at a high level:
 
