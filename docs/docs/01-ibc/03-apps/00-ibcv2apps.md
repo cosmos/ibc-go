@@ -16,10 +16,16 @@ To build an IBC v2 application the following steps are required:
 4. [Implement application payload and success acknowledgement](#packets-and-payloads)
 5. [Set and Seal the IBC Router](#routing)
 
+Highlighted improvements for app developers with IBC v2:
+
+- No need to support channel handshake callbacks
+- Flexibility on upgrading application versioning, no need to use channel upgradability to renegotiate an application version, simply support the application version on both sides of the connection.
+- Flexibility to choose your desired encoding type.  
+
 ## Implement the `IBCModule` interface
 
 The Cosmos SDK expects all IBC modules to implement the [`IBCModule`
-interface](https://github.com/cosmos/ibc-go/blob/main/modules/core/api/module.go#L9-L53). This interface contains all of the callbacks IBC expects modules to implement. Note that for IBC v2, an application developer no longer needs to implement callbacks for the channel handshake. 
+interface](https://github.com/cosmos/ibc-go/blob/main/modules/core/api/module.go#L9-L53). This interface contains all of the callbacks IBC expects modules to implement. Note that for IBC v2, an application developer no longer needs to implement callbacks for the channel handshake. Note that this interface is distinct from the [porttypes.IBCModule interface][porttypes.IBCModule] used for IBC Classic. 
 
 ```go
 // IBCModule implements the application interface given the keeper.
@@ -88,10 +94,11 @@ return nil
 
 #### Receiving packets
 
-To handle receiving packets, the module must implement the `OnRecvPacket` callback. This gets
-invoked by the IBC module after the packet has been proved valid and correctly processed by the IBC
-keepers. Thus, the `OnRecvPacket` callback only needs to worry about making the appropriate state
-changes given the packet data without worrying about whether the packet is valid or not.
+To handle receiving packets, the module must implement the `OnRecvPacket` callback. An application module should validate and confirm support for the given version and encoding method used as there is greater flexibility in IBC v2 to support a range of versions and encoding methods.
+The `OnRecvPacket` callback is invoked by the IBC module after the packet has been proven to be valid and correctly processed by the IBC
+keepers. 
+Thus, the `OnRecvPacket` callback only needs to worry about making the appropriate state
+changes given the packet data without worrying about whether the packet is valid or not. 
 
 Modules may return to the IBC handler an acknowledgement which implements the `Acknowledgement` interface.
 The IBC handler will then commit this acknowledgement of the packet so that a relayer may relay the
@@ -305,3 +312,5 @@ It is also possible to define your own custom success acknowledgement which will
 ## Routing
 
 More information on implementing the IBC Router can be found in the [routing section](/docs/docs/01-ibc/03-apps/06-routing.md).
+
+[porttypes.IBCModule]: https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port/types/module.go
