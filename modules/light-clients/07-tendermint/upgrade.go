@@ -176,8 +176,7 @@ func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight export
 }
 
 // calculateNewTrustingPeriod converts the provided durations to decimal representation to avoid floating-point precision issues
-// and calculates the new trusting period, decreasing the provided trusting period by the percentage difference between
-// the original period and the new unbonding period.
+// and calculates the new trusting period, decreasing it by the ratio between the original and new unbonding period.
 func calculateNewTrustingPeriod(trustingPeriod, originalUnbonding, newUnbonding time.Duration) time.Duration {
 	origUnbondingDec := sdkmath.LegacyNewDec(originalUnbonding.Nanoseconds())
 	newUnbondingDec := sdkmath.LegacyNewDec(newUnbonding.Nanoseconds())
