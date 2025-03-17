@@ -11,7 +11,7 @@ In uncommon situations, a highly valued client may become frozen or expire due t
 circumstances. A highly valued client might have hundreds of channels being actively used.
 Some of those channels might have a significant amount of locked tokens used for ICS 20.
 
-### Frozen Light Clients
+## Frozen Light Clients
 
 If the one third of the validator set of the chain the client represents decides to collude,
 they can sign off on two valid but conflicting headers each signed by the other one third
@@ -26,7 +26,7 @@ or updating clients which have become "stuck". Without this mechanism, validator
 to construct a state root to unfreeze the client. Unfreezing clients, re-enables all of the channels
 built upon that client. This may result in recovery of otherwise lost funds.
 
-### Expired Light Clients
+## Expired Light Clients
 
 Tendermint light clients may become expired if the trusting period has passed since their
 last update. This may occur if relayers stop submitting headers to update the clients.

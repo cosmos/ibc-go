@@ -20,7 +20,7 @@ Integrating the IBC module to your SDK-based application is straightforward. The
 
 - [Define additional `Keeper` fields for the new modules on the `App` type](#add-application-fields-to-app).
 - [Add the module's `StoreKey`s and initialize their `Keeper`s](#configure-the-keepers).
-- [Create Application Stacks with Middleware](#create-application-stacks)
+- [Create Application Stacks with Middleware](#create-application-stacks-with-middleware)
 - [Set up IBC router and add route for the `transfer` module](#register-module-routes-in-the-ibc-router).
 - [Grant permissions to `transfer`'s `ModuleAccount`](#module-account-permissions).
 - [Add the modules to the module `Manager`](#module-manager-and-simulationmanager).
@@ -124,6 +124,7 @@ Middleware stacks in IBC allow you to wrap an `IBCModule` with additional logic 
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
 	)
 ```
+
 #### IBC v2 Application Stack
 
 For IBC v2, an example transfer stack is shown below. In this case the transfer stack is using the callbacks middleware.
