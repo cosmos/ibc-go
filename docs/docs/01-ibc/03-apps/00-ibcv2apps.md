@@ -311,6 +311,6 @@ It is also possible to define your own custom success acknowledgement which will
 
 ## Routing
 
-More information on implementing the IBC Router can be found in the [routing section](/docs/docs/01-ibc/03-apps/06-routing.md).
+More information on implementing the IBC Router can be found in the [routing section](../03-apps/06-routing.md).
 
 [porttypes.IBCModule]: https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port/types/module.go
