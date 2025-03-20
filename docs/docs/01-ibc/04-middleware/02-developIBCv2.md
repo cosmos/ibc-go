@@ -5,8 +5,16 @@ sidebar_position: 2
 slug: /ibc/middleware/developIBCv2
 ---
 
+# Quick Navigation
 
-# Create a custom IBC v2 middleware
+1. [Create a custom IBC v2 middleware](#create-a-custom-ibc-v2-middleware)
+2. [Implement `IBCModule` interface](#implement-ibcmodule-interface)
+3. [WriteAckWrapper](#writeackwrapper)
+4. [Integrate IBC v2 Middleware](#integrate-ibc-v2-middleware)
+5. [Security Model](#security-model)
+6. [Design Principles](#design-principles)
+
+## Create a custom IBC v2 middleware
 
 IBC middleware will wrap over an underlying IBC application (a base application or downstream middleware) and sits between core IBC and the base application.
 
