@@ -103,6 +103,7 @@ type TestChain struct {
 // CONTRACT: Validator array must be provided in the order expected by Tendermint.
 // i.e. sorted first by power and then lexicographically by address.
 func NewTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, valSet *cmttypes.ValidatorSet, signers map[string]cmttypes.PrivValidator) *TestChain {
+	tb.Helper()
 	return newTestChainWithValSet(tb, coord, chainID, valSet, signers, DefaultTestingAppInit)
 }
 
@@ -113,7 +114,7 @@ func newTestChainWithValSet(tb testing.TB, coord *Coordinator, chainID string, v
 	senderAccs := []SenderAccount{}
 
 	// generate genesis accounts
-	for i := 0; i < MaxAccounts; i++ {
+	for i := range MaxAccounts {
 		senderPrivKey := secp256k1.GenPrivKey()
 		acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), uint64(i), 0)
 		amount, ok := sdkmath.NewIntFromString(DefaultGenesisAccBalance)
@@ -187,7 +188,7 @@ func NewCustomAppTestChain(t *testing.T, coord *Coordinator, chainID string, app
 		signersByAddress   = make(map[string]cmttypes.PrivValidator, validatorsPerChain)
 	)
 
-	for i := 0; i < validatorsPerChain; i++ {
+	for range validatorsPerChain {
 		_, privVal := cmttypes.RandValidator(false, 100)
 		pubKey, err := privVal.GetPubKey()
 		require.NoError(t, err)
