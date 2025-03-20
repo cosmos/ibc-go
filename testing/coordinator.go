@@ -28,6 +28,7 @@ type Coordinator struct {
 
 // NewCoordinator initializes Coordinator with N TestChain's
 func NewCoordinator(t *testing.T, n int) *Coordinator {
+	t.Helper()
 	return NewCustomAppCoordinator(t, n, DefaultTestingAppInit)
 }
 
