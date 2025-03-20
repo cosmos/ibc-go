@@ -1,7 +1,7 @@
 ---
 title: Integrating IBC middleware into a chain
 sidebar_label: Integrating IBC middleware into a chain
-sidebar_position: 3
+sidebar_position: 4
 slug: /ibc/middleware/integration
 ---
 
@@ -21,6 +21,8 @@ The order of middleware **matters**, function calls from IBC to the application 
 ```go
 // app.go pseudocode
 
+
+
 // middleware 1 and middleware 3 are stateful middleware, 
 // perhaps implementing separate sdk.Msg and Handlers
 mw1Keeper := mw1.NewKeeper(storeKey1, ..., ics4Wrapper: channelKeeper, ...) // in stack 1 & 3
@@ -39,19 +41,15 @@ app.moduleManager = module.NewManager(
   custom.NewAppModule(customKeeper)
 )
 
-scopedKeeperTransfer := capabilityKeeper.NewScopedKeeper("transfer")
-scopedKeeperCustom1 := capabilityKeeper.NewScopedKeeper("custom1")
-scopedKeeperCustom2 := capabilityKeeper.NewScopedKeeper("custom2")
-
 // NOTE: IBC Modules may be initialized any number of times provided they use a separate
-// scopedKeeper and underlying port.
+// Keeper and underlying port.
 
-customKeeper1 := custom.NewKeeper(..., scopedKeeperCustom1, ...)
-customKeeper2 := custom.NewKeeper(..., scopedKeeperCustom2, ...)
+customKeeper1 := custom.NewKeeper(..., KeeperCustom1, ...)
+customKeeper2 := custom.NewKeeper(..., KeeperCustom2, ...)
 
 // initialize base IBC applications
 // if you want to create two different stacks with the same base application,
-// they must be given different scopedKeepers and assigned different ports.
+// they must be given different Keepers and assigned different ports.
 transferIBCModule := transfer.NewIBCModule(transferKeeper)
 customIBCModule1 := custom.NewIBCModule(customKeeper1, "portCustom1")
 customIBCModule2 := custom.NewIBCModule(customKeeper2, "portCustom2")
@@ -65,7 +63,7 @@ stack2 := mw3.NewIBCMiddleware(mw2.NewIBCMiddleware(customIBCModule1), mw3Keeper
 // stack 3 contains mw2 -> mw1 -> custom2
 stack3 := mw2.NewIBCMiddleware(mw1.NewIBCMiddleware(customIBCModule2, mw1Keeper))
 
-// associate each stack with the moduleName provided by the underlying scopedKeeper
+// associate each stack with the moduleName provided by the underlying Keeper
 ibcRouter := porttypes.NewRouter()
 ibcRouter.AddRoute("transfer", stack1)
 ibcRouter.AddRoute("custom1", stack2)
