@@ -20,7 +20,7 @@ Learn how to hook a route to the IBC router for the custom IBC module.
 :::
 
 As mentioned above, modules must implement the `IBCModule` interface (which contains both channel
-handshake callbacks and packet handling callbacks). The concrete implementation of this interface
+handshake callbacks for IBC classic only, and packet handling callbacks for IBC classic and v2). The concrete implementation of this interface
 must be registered with the module name as a route on the IBC `Router`.
 
 ```go
