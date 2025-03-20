@@ -8,7 +8,7 @@ slug: /ibc/light-clients/proposals
 
 # Handling proposals
 
-It is possible to update the client with the state of the substitute client through a governance proposal. [This type of governance proposal](../../01-ibc/06-proposals.md) is typically used to recover an expired or frozen client, as it can recover the entire state and therefore all existing channels built on top of the client. `RecoverClient` should be implemented to handle the proposal.
+It is possible to update the client with the state of the substitute client through a governance proposal. This type of governance proposal is typically used to recover an expired or frozen client, as it can recover the entire state and therefore all existing channels built on top of the client. `RecoverClient` should be implemented to handle the proposal.
 
 ## Implementing `RecoverClient`
 

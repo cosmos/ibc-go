@@ -1,7 +1,7 @@
 ---
 title: IBC Applications
 sidebar_label: IBC Applications
-sidebar_position: 2
+sidebar_position: 1
 slug: /ibc/apps/apps
 ---
 
