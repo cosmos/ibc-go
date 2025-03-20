@@ -10,7 +10,7 @@ slug: /ibc/middleware/developIBCv2
 
 IBC middleware will wrap over an underlying IBC application (a base application or downstream middleware) and sits between core IBC and the base application.
 
-The interfaces a middleware must implement are found in [core/api](https://github.com/cosmos/ibc-go/blob/main/modules/core/api/module.go#L11). Note that this interface has chanhged from IBC classic. 
+The interfaces a middleware must implement are found in [core/api](https://github.com/cosmos/ibc-go/blob/main/modules/core/api/module.go#L11). Note that this interface has changed from IBC classic. 
 
 An `IBCMiddleware` struct implementing the `Middleware` interface, can be defined with its constructor as follows:
 
@@ -72,11 +72,22 @@ func (im IBCMiddleware) OnRecvPacket(
 	payload channeltypesv2.Payload,
 	relayer sdk.AccAddress,
 ) channeltypesv2.RecvPacketResult {
-	recvResult := im.app.OnRecvPacket(ctx, sourceClient, destinationClient, sequence, payload, relayer)
-
-  doCustomLogic(recvResult) // middleware may modify success acknowledgment
+	// Middleware may choose to do custom preprocessing logic before calling the underlying app OnRecvPacket
+    // Middleware may choose to error early and return a RecvPacketResult Failure
+    // Middleware may choose to modify the payload before passing on to OnRecvPacket though this
+    // should only be done to support very advanced custom behavior
+    // Middleware MUST NOT modify client identifiers and sequence
+    doCustomPreProcessLogic()
     
-  return recvResult
+	// call underlying app OnRecvPacket
+    recvResult := im.app.OnRecvPacket(ctx, sourceClient, destinationClient, sequence, payload, relayer)
+	if recvResult.Status == PACKET_STATUS_FAILURE {
+		return recvResult
+	}
+
+    doCustomPostProcessLogic(recvResult) // middleware may modify recvResult
+    
+    return recvResult
 }
 ```
 
@@ -94,14 +105,27 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	payload channeltypesv2.Payload,
 	relayer sdk.AccAddress,
 ) error {
+	// preprocessing logic may modify the acknowledgement before passing to 
+	// the underlying app though this should only be done in advanced cases
+	// Middleware may return error early
+	// it MUST NOT change the identifiers of the clients or the sequence
+	doCustomPreProcessLogic(payload, acknowledgement)
 
-  doCustomLogic(payload, acknowledgement)
+	// call underlying app OnAcknowledgementPacket
+	err = im.app.OnAcknowledgementPacket(
+		sourceClient, destinationClient, sequence,
+		acknowledgement, payload, relayer
+	)
+	if err != nil {
+		return err
+	}
 
-  return nil
+	// may perform some post acknowledgement logic and return error here
+	return doCustomPostProcessLogic()
 }
 ```
 
-See [here](hhttps://github.com/cosmos/ibc-go/blob/main/modules/apps/callbacks/v2/ibc_middleware.go#L236-L302) an example implementation of this callback for the Callbacks Middleware module.
+See [here](https://github.com/cosmos/ibc-go/blob/main/modules/apps/callbacks/v2/ibc_middleware.go#L236-L302) an example implementation of this callback for the Callbacks Middleware module.
 
 #### `OnTimeoutPacket`
 
@@ -114,9 +138,21 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	payload channeltypesv2.Payload,
 	relayer sdk.AccAddress,
 ) error {
-  doCustomLogic(payload)
+	// Middleware may choose to do custom preprocessing logic before calling the underlying app OnTimeoutPacket
+	// Middleware may return error early
+	doCustomPreProcessLogic(payload)
 
-  return nil
+	// call underlying app OnTimeoutPacket
+	err = im.app.OnTimeoutPacket(
+		sourceClient, destinationClient, sequence,
+		payload, relayer
+	)
+	if err != nil {
+		return err
+	}
+
+	// may perform some post timeout logic and return error here
+	return doCustomPostProcessLogic()
 }
 ```
 
@@ -143,17 +179,20 @@ func (im *IBCMiddleware) GetWriteAckWrapper() api.WriteAcknowledgementWrapper {
 This is where the middleware acknowledgement handling is finalised. An example is shown in the [callbacks middleware](https://github.com/cosmos/ibc-go/blob/main/modules/apps/callbacks/v2/ibc_middleware.go#L369-L454)
 
 ```go
+// WriteAcknowledgement facilitates acknowledgment being written asynchronously
+// The call stack flows from the IBC application to the IBC core handler
+// Thus this function is called by the IBC app or a lower-level middleware
 func (im IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	clientID string,
 	sequence uint64,
 	ack channeltypesv2.Acknowledgement,
 ) error {
-  // packet and payload handling and validation
+	doCustomPreProcessLogic() // may modify acknowledgement
 
-  // custom middleware logic, for example callbacks. 
-
-return nil
+	return im.writeAckWrapper.WriteAcknowledgement(
+		ctx, clientId, sequence, ack,
+	)
 }
 ```
 
@@ -183,3 +222,17 @@ The example integration is detailed for an IBC v2 stack using transfer and the c
 	ibcRouterV2.AddRoute(ibctransfertypes.PortID, ibcv2TransferStack)
 	app.IBCKeeper.SetRouterV2(ibcRouterV2)
 ```
+
+## Security Model
+
+IBC Middleware completely wraps all communication between IBC core and the application that it is wired with. Thus, the IBC Middleware has complete control to modify any packets and acknowledgements the underlying application receives or sends. Thus, if a chain chooses to wrap an application with a given middleware, that middleware is **completely trusted** and part of the application's security model. **Do not use middlewares that are untrusted.**
+
+## Design Principles
+
+The middleware follows a decorator pattern that wraps an underlying application's connection to the IBC core handlers. Thus, when implementing a middleware for a specific purpose, it is recommended to be as **unintrusive** as possible in the middleware design while still accomplishing the intended behavior.
+
+The least intrusive middleware is stateless. They simply read the ICS26 callback arguments before calling the underlying app's callback and error if the arguments are not acceptable (e.g. whitelisting packets). Stateful middleware that are used solely for erroring are also very simple to build, an example of this would be a rate-limiting middleware that prevents transfer outflows from getting too high within a certain time frame.
+
+Middleware that directly interfere with the payload or acknowledgement before passing control to the underlying app are way more intrusive to the underyling app processing. This makes such middleware more error-prone when implementing as incorrect handling can cause the underlying app to break or worse execute unexpected behavior. Moreover, such middleware typically needs to be built for a specific underlying app rather than being generic. An example of this is the packet-forwarding middleware which modifies the payload and is specifically built for transfer.
+
+Middleware that modifies the payload or acknowledgement such that it is no longer readable by the underlying application is the most complicated middleware. Since it is not readable by the underlying apps, if these middleware write additional state into payloads and acknowledgements that get committed to IBC core provable state, there MUST be an equivalent counterparty middleware that is able to parse and intepret this additional state while also converting the payload and acknowledgment back to a readable form for the underlying application on its side. Thus, such middleware requires deployment on both sides of an IBC connection or the packet processing will break. This is the hardest type of middleware to implement, integrate and deploy. Thus, it is not recommended unless absolutely necessary to fulfill the given use case.
