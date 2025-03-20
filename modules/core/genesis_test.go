@@ -281,7 +281,6 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		err := tc.genState.Validate()
 		if tc.expError == nil {
 			suite.Require().NoError(err, tc.name)
@@ -418,8 +417,6 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		app := simapp.Setup(suite.T(), false)
 
 		suite.NotPanics(func() {
@@ -446,8 +443,6 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest()
 
