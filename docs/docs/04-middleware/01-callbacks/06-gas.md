@@ -24,14 +24,11 @@ Since the callbacks middleware does not have a keeper, it does not use a governa
 ```go
 // app.go
 
-maxCallbackGas := uint64(1_000_000)
+maxCallbackGas := uint64(10_000_000)
 
 var transferStack porttypes.IBCModule
 transferStack = transfer.NewIBCModule(app.TransferKeeper)
-transferStack = ibcfee.NewIBCMiddleware(transferStack, app.IBCFeeKeeper)
-transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCFeeKeeper, app.MockContractKeeper, maxCallbackGas)
-// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
-app.TransferKeeper.WithICS4Wrapper(transferStack.(porttypes.ICS4Wrapper))
+transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.MockContractKeeper, maxCallbackGas)
 
 // Add transfer stack to IBC Router
 ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
