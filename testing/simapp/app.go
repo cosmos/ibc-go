@@ -39,6 +39,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	unorderedtx "github.com/cosmos/cosmos-sdk/x/auth/ante/unorderedtx"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
@@ -160,6 +161,9 @@ type SimApp struct {
 	TransferKeeper        ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
+	// UnorderedTxManager is used for managing unordered transactions
+	UnorderedTxManager *unorderedtx.Manager
+
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
 	IBCMockModule ibcmock.IBCModule
@@ -272,6 +276,15 @@ func NewSimApp(
 		keys:              keys,
 		tkeys:             tkeys,
 		memKeys:           memKeys,
+	}
+
+	// create, start, and load the unordered tx manager
+	utxDataDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data")
+	app.UnorderedTxManager = unorderedtx.NewManager(utxDataDir)
+	app.UnorderedTxManager.Start()
+
+	if err := app.UnorderedTxManager.OnInit(); err != nil {
+		panic(fmt.Errorf("failed to initialize unordered tx manager: %w", err))
 	}
 
 	app.ParamsKeeper = initParamsKeeper(appCodec, legacyAmino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
@@ -608,6 +621,11 @@ func NewSimApp(
 	// upgrade.
 	app.setPostHandler()
 
+	// Register the UnorderedTxManager with the snapshot manager if available
+	if err := app.RegisterUnorderedTxManagerExtension(); err != nil {
+		app.Logger().Error("failed to register unordered tx manager snapshot extension", "error", err)
+	}
+
 	// At startup, after all modules have been registered, check that all proto
 	// annotations are correct.
 	protoFiles, err := proto.MergedRegistry()
@@ -643,6 +661,8 @@ func (app *SimApp) setAnteHandler(txConfig client.TxConfig) {
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
 			app.IBCKeeper,
+			app.UnorderedTxManager,
+			ante.DefaultSha256GasCost,
 		},
 	)
 	if err != nil {
@@ -668,7 +688,8 @@ func (app *SimApp) setPostHandler() {
 func (app *SimApp) Name() string { return app.BaseApp.Name() }
 
 // PreBlocker application updates every pre block
-func (app *SimApp) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
+func (app *SimApp) PreBlocker(ctx sdk.Context, req *abci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
+	app.UnorderedTxManager.OnNewBlock(ctx.BlockTime())
 	return app.ModuleManager.PreBlock(ctx)
 }
 
@@ -870,4 +891,27 @@ func (app *SimApp) GetTxConfig() client.TxConfig {
 // NOTE: This is solely used for testing purposes.
 func (app *SimApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return app.memKeys[storeKey]
+}
+
+// Close closes the app, ensuring the UnorderedTxManager state is flushed to disk
+func (app *SimApp) Close() error {
+	var err error
+
+	// close the unordered tx manager
+	if err = app.UnorderedTxManager.Close(); err != nil {
+		return err
+	}
+
+	return err
+}
+
+// RegisterUnorderedTxManagerExtension registers the UnorderedTxManager as a snapshot extension
+func (app *SimApp) RegisterUnorderedTxManagerExtension() error {
+	if manager := app.SnapshotManager(); manager != nil {
+		err := manager.RegisterExtensions(unorderedtx.NewSnapshotter(app.UnorderedTxManager))
+		if err != nil {
+			return fmt.Errorf("failed to register snapshot extension: %w", err)
+		}
+	}
+	return nil
 }
