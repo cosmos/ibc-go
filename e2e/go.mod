@@ -1,6 +1,8 @@
 module github.com/cosmos/ibc-go/e2e
 
-go 1.23.6
+go 1.24
+
+toolchain go1.24.1
 
 replace github.com/strangelove-ventures/interchaintest/v8 => github.com/gjermundgaraba/interchaintest/v8 v8.0.0-20250302163936-9fca2b7de400
 

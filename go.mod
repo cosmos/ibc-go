@@ -1,4 +1,6 @@
-go 1.24
+go 1.23.1
+
+toolchain go1.24.1
 
 module github.com/cosmos/ibc-go/v10
 
