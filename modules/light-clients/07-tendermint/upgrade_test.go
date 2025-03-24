@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
@@ -88,7 +89,7 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 			expErr: nil,
 		},
 		{
-			name: "successful upgrade scales trusting period with unbonding period decrease",
+			name: "successful upgrade with new unbonding period",
 			setup: func() {
 				newUnbondingPeriod := time.Hour * 24 * 7 * 2
 				upgradedClient = ibctm.NewClientState(suite.chainB.ChainID, ibctm.DefaultTrustLevel, trustingPeriod, newUnbondingPeriod, maxClockDrift, clienttypes.NewHeight(clienttypes.ParseChainID(suite.chainB.ChainID), upgradedClient.(*ibctm.ClientState).LatestHeight.GetRevisionHeight()+10), commitmenttypes.GetSDKSpecs(), upgradePath)
@@ -631,4 +632,68 @@ func (suite *TendermintTestSuite) TestVerifyUpgrade() {
 			}
 		})
 	}
+}
+
+func (suite *TendermintTestSuite) TestVerifyUpgradeWithNewUnbonding() {
+	suite.SetupTest()
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetupClients()
+
+	clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+	suite.Require().True(ok)
+
+	newUnbondingPeriod := time.Hour * 24 * 7 * 2 // update the unbonding period to two weeks
+	upgradeClient := ibctm.NewClientState(clientState.ChainId, ibctm.DefaultTrustLevel, trustingPeriod, newUnbondingPeriod, maxClockDrift, clienttypes.NewHeight(1, clientState.LatestHeight.GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
+
+	upgradedClientBz, err := clienttypes.MarshalClientState(suite.chainA.App.AppCodec(), upgradeClient.ZeroCustomFields())
+	suite.Require().NoError(err)
+
+	upgradedConsState := &ibctm.ConsensusState{NextValidatorsHash: []byte("nextValsHash")} // mocked consensus state
+	upgradedConsStateBz, err := clienttypes.MarshalConsensusState(suite.chainA.App.AppCodec(), upgradedConsState)
+	suite.Require().NoError(err)
+
+	// zero custom fields and store in chainB upgrade store
+	upgradeHeight := clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()+1)) // upgrade is at next block height
+	err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), upgradedClientBz)
+	suite.Require().NoError(err)
+	err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), upgradedConsStateBz)
+	suite.Require().NoError(err)
+
+	// commit upgrade store changes on chainB and update client on chainA
+	suite.coordinator.CommitBlock(suite.chainB)
+
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	upgradedClientProof, _ := suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(upgradeHeight.GetRevisionHeight())), uint64(suite.chainB.LatestCommittedHeader.Header.Height))
+	upgradedConsensusStateProof, _ := suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(upgradeHeight.GetRevisionHeight())), uint64(suite.chainB.LatestCommittedHeader.Header.Height))
+
+	tmClientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+	suite.Require().True(ok)
+
+	clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	err = tmClientState.VerifyUpgradeAndUpdateState(
+		suite.chainA.GetContext(),
+		suite.cdc,
+		clientStore,
+		upgradeClient,
+		upgradedConsState,
+		upgradedClientProof,
+		upgradedConsensusStateProof,
+	)
+	suite.Require().NoError(err)
+
+	upgradedClient, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
+	suite.Require().True(ok)
+
+	// assert the unbonding period and the trusting period have been updated correctly
+	suite.Require().Equal(newUnbondingPeriod, upgradedClient.UnbondingPeriod)
+
+	// expected trusting period = trustingPeriod * newUnbonding / originalUnbonding (224 hours = 9 days and 8 hours)
+	origUnbondingDec := sdkmath.LegacyNewDec(ubdPeriod.Nanoseconds())
+	newUnbondingDec := sdkmath.LegacyNewDec(newUnbondingPeriod.Nanoseconds())
+	trustingPeriodDec := sdkmath.LegacyNewDec(trustingPeriod.Nanoseconds())
+
+	expTrustingPeriod := trustingPeriodDec.Mul(newUnbondingDec).Quo(origUnbondingDec)
+	suite.Require().Equal(time.Duration(expTrustingPeriod.TruncateInt64()), upgradedClient.TrustingPeriod)
 }

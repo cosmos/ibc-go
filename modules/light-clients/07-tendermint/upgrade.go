@@ -182,11 +182,7 @@ func calculateNewTrustingPeriod(trustingPeriod, originalUnbonding, newUnbonding 
 	newUnbondingDec := sdkmath.LegacyNewDec(newUnbonding.Nanoseconds())
 	trustingPeriodDec := sdkmath.LegacyNewDec(trustingPeriod.Nanoseconds())
 
-	// compute decrease ratio: (originalUnbonding - newUnbonding) / originalUnbonding
-	decreaseRatio := origUnbondingDec.Sub(newUnbondingDec).Quo(origUnbondingDec)
-
-	// compute new trusting period: trustingPeriod * (1 - decreaseRatio)
-	newTrustingPeriodDec := trustingPeriodDec.Mul(sdkmath.LegacyOneDec().Sub(decreaseRatio))
-
-	return time.Duration(newTrustingPeriodDec.TruncateInt64()) * time.Nanosecond
+	// compute new trusting period: trustingPeriod * newUnbonding / originalUnbonding
+	newTrustingPeriodDec := trustingPeriodDec.Mul(newUnbondingDec).Quo(origUnbondingDec)
+	return time.Duration(newTrustingPeriodDec.TruncateInt64())
 }
