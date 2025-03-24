@@ -1,7 +1,7 @@
 ---
 title: Create a custom IBC middleware
 sidebar_label: Create a custom IBC middleware
-sidebar_position: 2
+sidebar_position: 3
 slug: /ibc/middleware/develop
 ---
 

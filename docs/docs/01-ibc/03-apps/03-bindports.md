@@ -32,7 +32,7 @@ message GenesisState {
 }
 ```
 
-1. Add port ID as a key to the module store:
+2. Add port ID as a key to the module store:
 
 ```go
 // x/<moduleName>/types/keys.go
@@ -51,12 +51,12 @@ const (
 )
 ```
 
-1. Add port ID to `x/<moduleName>/types/genesis.go`:
+3. Add port ID to `x/<moduleName>/types/genesis.go`:
 
 ```go
 // in x/<moduleName>/types/genesis.go
 
-// DefaultGenesisState returns a GenesisState with "transfer" as the default PortID.
+// DefaultGenesisState returns a GenesisState with "portID" as the default PortID.
 func DefaultGenesisState() *GenesisState {
   return &GenesisState{
     PortId:      PortID,
@@ -76,47 +76,31 @@ func (gs GenesisState) Validate() error {
 }
 ```
 
-1. Bind to port(s) in the module keeper's `InitGenesis`:
+4. Set the port in the module keeper's for `InitGenesis`:
+
+:::note
+The capability module has been removed so port binding has also changed
+:::
 
 ```go
-// InitGenesis initializes the ibc-module state and binds to PortID.
-func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
-  k.SetPort(ctx, state.PortId)
+// SetPort sets the portID for the transfer module. Used in InitGenesis
+func (k Keeper) SetPort(ctx sdk.Context, portID string) {
+	store := k.storeService.OpenKVStore(ctx)
+	if err := store.Set(types.PortKey, []byte(portID)); err != nil {
+		panic(err)
+	}
+}
 
+  // Initialize any other module state, like params with SetParams.
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	store := k.storeService.OpenKVStore(ctx)
+	bz := k.cdc.MustMarshal(&params)
+	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
+		panic(err)
+	}
+}
   // ...
 
-  // Only try to bind to port if it is not already bound, since we may already own
-  // port capability from capability InitGenesis
-  if !k.hasCapability(ctx, state.PortId) {
-    // transfer module binds to the transfer port on InitChain
-    // and claims the returned capability
-    err := k.BindPort(ctx, state.PortId)
-    if err != nil {
-      panic(fmt.Sprintf("could not claim port capability: %v", err))
-    }
-  }
-
-  // ...
-}
 ```
 
-With:
-
-```go
-// IsBound checks if the  module is already bound to the desired port
-func (k Keeper) IsBound(ctx sdk.Context, portID string) bool {
-  _, ok := k.scopedKeeper.GetCapability(ctx, host.PortPath(portID))
-  return ok
-}
-
-// BindPort defines a wrapper function for the port Keeper's function in
-// order to expose it to module's InitGenesis function
-func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
-  cap := k.portKeeper.BindPort(ctx, portID)
-  return k.ClaimCapability(ctx, cap, host.PortPath(portID))
-}
-```
-
-The module binds to the desired port(s) and returns the capabilities.
-
-In the above we find reference to keeper methods that wrap other keeper functionality, in the next section the keeper methods that need to be implemented will be defined.
+The module is set to the desired port. The setting and sealing happens during creation of the IBC router. 

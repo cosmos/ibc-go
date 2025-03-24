@@ -18,11 +18,3 @@ message Params {
   // chain.
   bool receive_enabled = 2;
 }
-
-// Hop defines a port ID, channel ID pair specifying where tokens must be forwarded
-// next in a multihop transfer.
-message Hop {
-  option (gogoproto.goproto_stringer) = false;
-  string port_id                      = 1;
-  string channel_id                   = 2;
-}

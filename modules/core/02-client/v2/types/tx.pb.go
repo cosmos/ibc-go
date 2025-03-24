@@ -116,6 +116,8 @@ type MsgUpdateClientConfig struct {
 	// client identifier
 	ClientId string `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 	// allowed relayers
+	//
+	// NOTE: All fields in the config must be supplied.
 	Config Config `protobuf:"bytes,2,opt,name=config,proto3" json:"config"`
 	// signer address
 	Signer string `protobuf:"bytes,3,opt,name=signer,proto3" json:"signer,omitempty"`
