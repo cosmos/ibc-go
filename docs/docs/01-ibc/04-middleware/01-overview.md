@@ -15,6 +15,8 @@ This documentation serves as a guide for middleware developers who want to write
 
 After going through the overview they can consult respectively:
 
+TESTING
+
 - [documentation on developing custom middleware](02-develop.md)
 - [documentation on integrating middleware into a stack on a chain](03-integration.md)
 
