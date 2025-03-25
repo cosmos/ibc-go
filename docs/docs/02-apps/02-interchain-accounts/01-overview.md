@@ -5,6 +5,9 @@ sidebar_position: 1
 slug: /apps/interchain-accounts/overview
 ---
 
+:::warning
+Interchain Accounts is only compatible with IBC Classic, not IBC v2
+:::
 
 # Overview
 
