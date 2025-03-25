@@ -7,6 +7,10 @@ slug: /ibc/apps/apps
 
 # IBC Applications
 
+:::warning
+This page is relevant for IBC Classic, naviagate to the IBC v2 applications page for information on v2 apps
+:::
+
 Learn how to configure your application to use IBC and send data packets to other chains.
 
 This document serves as a guide for developers who want to write their own Inter-blockchain
@@ -14,9 +18,7 @@ Communication Protocol (IBC) applications for custom use cases.
 
 Due to the modular design of the IBC protocol, IBC
 application developers do not need to concern themselves with the low-level details of clients,
-connections, and proof verification. Nevertheless a brief explanation of the lower levels of the
-stack is given so that application developers may have a high-level understanding of the IBC
-protocol. Then the document goes into detail on the abstraction layer most relevant for application
+connections, and proof verification, however a brief explaination is given.  Then the document goes into detail on the abstraction layer most relevant for application
 developers (channels and ports), and describes how to define your own custom packets, and
 `IBCModule` callbacks.
 

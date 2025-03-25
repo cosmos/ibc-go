@@ -20,5 +20,12 @@ message Denom {
   // the base token denomination
   string base = 1;
   // the trace of the token
-  repeated ibc.applications.transfer.v1.Hop trace = 3 [(gogoproto.nullable) = false];
+  repeated Hop trace = 3 [(gogoproto.nullable) = false];
+}
+
+// Hop defines a port ID, channel ID pair specifying a unique "hop" in a trace
+message Hop {
+  option (gogoproto.goproto_stringer) = false;
+  string port_id                      = 1;
+  string channel_id                   = 2;
 }
