@@ -5,10 +5,6 @@ sidebar_position: 7
 slug: /apps/transfer/ics20-v1/params
 ---
 
-:::warning
-This document is relevant only for fungible token transfers over channels on v1 of the ICS-20 protocol.
-:::
-
 # Parameters
 
 The IBC transfer application module contains the following parameters:
@@ -18,7 +14,7 @@ The IBC transfer application module contains the following parameters:
 | `SendEnabled`    | bool | `true`        |
 | `ReceiveEnabled` | bool | `true`        |
 
-The IBC transfer module stores its parameters in its keeper with the prefix of `0x03`.
+The IBC transfer module stores its parameters under its `StoreKey`
 
 ## `SendEnabled`
 

@@ -5,10 +5,6 @@ sidebar_position: 9
 slug: /apps/transfer/ics20-v1/client
 ---
 
-:::warning
-This document is relevant only for fungible token transfers over channels on v1 of the ICS-20 protocol.
-:::
-
 # Client
 
 ## CLI

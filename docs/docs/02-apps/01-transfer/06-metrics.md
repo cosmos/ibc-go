@@ -5,10 +5,6 @@ sidebar_position: 6
 slug: /apps/transfer/ics20-v1/metrics
 ---
 
-:::warning
-This document is relevant only for fungible token transfers over channels on v1 of the ICS-20 protocol.
-:::
-
 # Metrics
 
 The IBC transfer application module exposes the following set of [metrics](https://github.com/cosmos/cosmos-sdk/blob/main/docs/learn/advanced/09-telemetry.md).

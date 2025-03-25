@@ -5,10 +5,6 @@ sidebar_position: 1
 slug: /apps/transfer/ics20-v1/overview
 ---
 
-:::warning
-This document is relevant only for fungible token transfers over channels on v1 of the ICS-20 protocol.
-:::
-
 # Overview
 
 :::note Synopsis
@@ -36,6 +32,10 @@ with the error message in the `Response` field.
 The denomination trace corresponds to the information that allows a token to be traced back to its
 origin chain. It contains a sequence of port and channel identifiers ordered from the most recent to
 the oldest in the timeline of transfers.
+
+:::tip
+When using transfer with IBC v2 connecting to e.g. Ethereum, the source channel identifier will be the source client identifier instead. 
+:::
 
 This information is included on the token's base denomination field in the form of a hash to prevent an
 unbounded denomination length. For example, the token `transfer/channelToA/uatom` will be displayed
