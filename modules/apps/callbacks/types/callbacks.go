@@ -166,10 +166,7 @@ func computeExecAndCommitGasLimit(callbackData map[string]interface{}, remaining
 
 	// account for the remaining gas in the context being less than the desired gas limit for the callback execution
 	// in this case, the callback execution may be retried upon failure
-	executionGasLimit := commitGasLimit
-	if remainingGas < executionGasLimit {
-		executionGasLimit = remainingGas
-	}
+	executionGasLimit := min(remainingGas, commitGasLimit)
 
 	return executionGasLimit, commitGasLimit
 }
