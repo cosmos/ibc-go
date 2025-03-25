@@ -79,7 +79,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 	// NOTE: SpendLimit is an array of coins, with each one representing the remaining spend limit for an
 	// individual denomination.
 	if a.Allocations[index].SpendLimit.IsZero() {
-		a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
+		a.Allocations = slices.Delete(a.Allocations, index, index+1)
 	}
 
 	if len(a.Allocations) == 0 {
