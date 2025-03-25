@@ -17,6 +17,7 @@ Much of the core business logic of sending and recieving tokens between chains i
 - The [`Payload`](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel/v2/types/packet.pb.go#L146-L158) contains the [`FungibleTokenPacketData`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/types/packet.pb.go#L28-L39) for a token transfer. 
 
 The code snippet shows the `Payload` struct.
+
 ```go
 // Payload contains the source and destination ports and payload for the application (version, encoding, raw bytes)
 type Payload struct {
