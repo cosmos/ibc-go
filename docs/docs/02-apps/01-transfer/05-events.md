@@ -33,9 +33,13 @@ This document is relevant only for fungible token transfers over channels on v1 
 | fungible_token_packet | forwarding_hops | `nil`           |
 | fungible_token_packet | success         | \{ackSuccess\}  |
 | fungible_token_packet | error           | \{ackError\}    |
-| denomination          | trace_hash      | \{hex_hash\}    |
-| denomination          | denom           | \{jsonDenom\}   |
+| denom                 | trace_hash      | \{hex_hash\}    |
+| denom                 | denom           | \{jsonDenom\}   |
 | message               | module          | transfer        |
+
+:::note Deprecated
+The `denomination_trace` event has been replaced with `denom` event in ibc-go v9.
+:::
 
 ## `OnAcknowledgePacket` callback
 
