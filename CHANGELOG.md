@@ -121,29 +121,29 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#6664](https://github.com/cosmos/ibc-go/pull/6664) ... [\#7312](https://github.com/cosmos/ibc-go/pull/7312) Bump **cosmossdk.io/client/v2** from **2.0.0-beta.1** to **2.0.0-beta.5**
-* [\#7173](https://github.com/cosmos/ibc-go/pull/7173) ... [\#7169](https://github.com/cosmos/ibc-go/pull/7169) Bump **cosmossdk.io/tools/confix** from **0.1.1** to **0.1.2**
-* [\#4889](https://github.com/cosmos/ibc-go/pull/4889) ... [\#7859](https://github.com/cosmos/ibc-go/pull/7859) Bump **cosmossdk.io/x/tx** from **0.10.0** to **1.0.1**
-* [\#4890](https://github.com/cosmos/ibc-go/pull/4890) ... [\#7851](https://github.com/cosmos/ibc-go/pull/7851) Bump **cosmossdk.io/api** from **0.7.1** to **0.8.2**
-* [\#5009](https://github.com/cosmos/ibc-go/pull/5009) ... [\#7264](https://github.com/cosmos/ibc-go/pull/7264) Bump **cosmossdk.io/store** from **1.0.0-rc.0** to **1.1.1**
-* [\#5034](https://github.com/cosmos/ibc-go/pull/5034) ... [\#7827](https://github.com/cosmos/ibc-go/pull/7827) Bump **cosmossdk.io/math** from **1.1.3-rc.1** to **1.5.0**
-* [\#5583](https://github.com/cosmos/ibc-go/pull/5583) ... [\#7182](https://github.com/cosmos/ibc-go/pull/7182) Bump **cosmossdk.io/log** from **1.2.1** to **1.4.1**
-* [\#5581](https://github.com/cosmos/ibc-go/pull/5581) ... [\#5587](https://github.com/cosmos/ibc-go/pull/5587) Bump **cosmossdk.io/error** from **1.0.0** to **1.0.1**
-* [\#5025](https://github.com/cosmos/ibc-go/pull/5025) ... [\#7257](https://github.com/cosmos/ibc-go/pull/7257) Bump **golang.org/x/mod** from **0.13.0** to **0.21.0**
-* [\#5096](https://github.com/cosmos/ibc-go/pull/5096) ... [\#7765](https://github.com/cosmos/ibc-go/pull/7765) Bump **bufbuild/buf-setup-action** from **1.27.2** to **1.48.0**
-* [\#5117](https://github.com/cosmos/ibc-go/pull/5117) ... [\#8155](https://github.com/cosmos/ibc-go/pull/8155) Bump **github.com/CosmWasm/wasmvm** from **1.4.1** to **2.2.3**
-* [\#5126](https://github.com/cosmos/ibc-go/pull/5126) ... [\#7879](https://github.com/cosmos/ibc-go/pull/7879) Bump **docker/build-push-action** from **5.0.0** to **6.13.0**
-* [\#5130](https://github.com/cosmos/ibc-go/pull/5130) ... [\#7540](https://github.com/cosmos/ibc-go/pull/7540) Bump **github.com/cometbft/cometbft** from **0.38.0** to **0.38.15**
-* [\#5385](https://github.com/cosmos/ibc-go/pull/5385) ... [\#7746](https://github.com/cosmos/ibc-go/pull/7746) Bump **google.golang.org/grpc** from **1.59.0** to **1.69.2**
-* [\#5490](https://github.com/cosmos/ibc-go/pull/5490) ... [\#8021](https://github.com/cosmos/ibc-go/pull/8021) Bump **google.golang.org/protobuf** from **1.31.0** to **1.36.5**
-* [\#5619](https://github.com/cosmos/ibc-go/pull/5619) ... [\#8126](https://github.com/cosmos/ibc-go/pull/8126) Bump **github.com/cosmos/cosmos-sdk** from **0.50.2** to **0.50.12**
+* [\#7312](https://github.com/cosmos/ibc-go/pull/7312) Bump **cosmossdk.io/client/v2** to **2.0.0-beta.5**
+* [\#7169](https://github.com/cosmos/ibc-go/pull/7169) Bump **cosmossdk.io/tools/confix** to **0.1.2**
+* [\#7859](https://github.com/cosmos/ibc-go/pull/7859) Bump **cosmossdk.io/x/tx** to **1.0.1**
+* [\#7851](https://github.com/cosmos/ibc-go/pull/7851) Bump **cosmossdk.io/api** to **0.8.2**
+* [\#7264](https://github.com/cosmos/ibc-go/pull/7264) Bump **cosmossdk.io/store** to **1.1.1**
+* [\#7827](https://github.com/cosmos/ibc-go/pull/7827) Bump **cosmossdk.io/math** to **1.5.0**
+* [\#7182](https://github.com/cosmos/ibc-go/pull/7182) Bump **cosmossdk.io/log** to **1.4.1**
+* [\#5587](https://github.com/cosmos/ibc-go/pull/5587) Bump **cosmossdk.io/error** to **1.0.1**
+* [\#7257](https://github.com/cosmos/ibc-go/pull/7257) Bump **golang.org/x/mod** to **0.21.0**
+* [\#7765](https://github.com/cosmos/ibc-go/pull/7765) Bump **bufbuild/buf-setup-action** to **1.48.0**
+* [\#8155](https://github.com/cosmos/ibc-go/pull/8155) Bump **github.com/CosmWasm/wasmvm** to **2.2.3**
+* [\#7879](https://github.com/cosmos/ibc-go/pull/7879) Bump **docker/build-push-action** to **6.13.0**
+* [\#7540](https://github.com/cosmos/ibc-go/pull/7540) Bump **github.com/cometbft/cometbft** to **0.38.15**
+* [\#7746](https://github.com/cosmos/ibc-go/pull/7746) Bump **google.golang.org/grpc** to **1.69.2**
+* [\#8021](https://github.com/cosmos/ibc-go/pull/8021) Bump **google.golang.org/protobuf** to **1.36.5**
+* [\#8126](https://github.com/cosmos/ibc-go/pull/8126) Bump **github.com/cosmos/cosmos-sdk** to **0.50.12**
 * [\#7261](https://github.com/cosmos/ibc-go/pull/7261) Bump **github.com/cosmos/cosmos-sdk** to **0.52.0**
-* [\#5826](https://github.com/cosmos/ibc-go/pull/5826) ... [\#8182](https://github.com/cosmos/ibc-go/pull/8182) Bump **golangci/golangci-lint-action** from **3.7.0** to **6.5.1**
-* [\#5859](https://github.com/cosmos/ibc-go/pull/5859) ... [\#6183](https://github.com/cosmos/ibc-go/pull/6183) Bump **github.com/cosmos/cosmos-proto** from **1.0.0-beta.3** to **1.0.0-beta.5**
-* [\#5904](https://github.com/cosmos/ibc-go/pull/5904) ... [\#7942](https://github.com/cosmos/ibc-go/pull/7942) Bump **github.com/cosmos/cosmos-db** from **1.0.0** to **1.1.1**
-* [\#6044](https://github.com/cosmos/ibc-go/pull/6044) ... [\#7171](https://github.com/cosmos/ibc-go/pull/7171) Bump **github.com/cosmos/gogoproto** from **1.4.11** to **1.7.0**
+* [\#8182](https://github.com/cosmos/ibc-go/pull/8182) Bump **golangci/golangci-lint-action** to **6.5.1**
+* [\#6183](https://github.com/cosmos/ibc-go/pull/6183) Bump **github.com/cosmos/cosmos-proto** to **1.0.0-beta.5**
+* [\#7942](https://github.com/cosmos/ibc-go/pull/7942) Bump **github.com/cosmos/cosmos-db** to **1.1.1**
+* [\#7171](https://github.com/cosmos/ibc-go/pull/7171) Bump **github.com/cosmos/gogoproto** to **1.7.0**
 * [\#6380](https://github.com/cosmos/ibc-go/pull/6380) Bump **go** to **1.22**
-* [\#6380](https://github.com/cosmos/ibc-go/pull/8153) Bump **github.com/ethereum/go-ethereum** from **1.14.12** to **1.15.5**
+* [\#6380](https://github.com/cosmos/ibc-go/pull/8153) Bump **github.com/ethereum/go-ethereum** to **1.15.5**
 
 ### API Breaking
 
