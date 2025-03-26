@@ -135,8 +135,8 @@ jobs:
         if: ${{ inputs.build-and-push-docker-image-wasm }}
         id: build-args
         run: |
-          echo "version=$(scripts/get-libwasm-version.py --get-version)" >> $GITHUB_OUTPUT
-          echo "checksum=$(scripts/get-libwasm-version.py --get-checksum)" >> $GITHUB_OUTPUT
+          echo "version=$(scripts/get-libwasm-version.sh --get-version)" >> $GITHUB_OUTPUT
+          echo "checksum=$(scripts/get-libwasm-version.sh --get-checksum)" >> $GITHUB_OUTPUT
 
       - name: Log in to the Container registry
         if: ${{ inputs.build-and-push-docker-image-wasm }}
