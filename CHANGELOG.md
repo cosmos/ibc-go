@@ -121,29 +121,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#7312](https://github.com/cosmos/ibc-go/pull/7312) Bump **cosmossdk.io/client/v2** to **2.0.0-beta.5**
-* [\#7169](https://github.com/cosmos/ibc-go/pull/7169) Bump **cosmossdk.io/tools/confix** to **0.1.2**
-* [\#7859](https://github.com/cosmos/ibc-go/pull/7859) Bump **cosmossdk.io/x/tx** to **1.0.1**
-* [\#7851](https://github.com/cosmos/ibc-go/pull/7851) Bump **cosmossdk.io/api** to **0.8.2**
-* [\#7264](https://github.com/cosmos/ibc-go/pull/7264) Bump **cosmossdk.io/store** to **1.1.1**
-* [\#7827](https://github.com/cosmos/ibc-go/pull/7827) Bump **cosmossdk.io/math** to **1.5.0**
-* [\#7182](https://github.com/cosmos/ibc-go/pull/7182) Bump **cosmossdk.io/log** to **1.4.1**
-* [\#5587](https://github.com/cosmos/ibc-go/pull/5587) Bump **cosmossdk.io/error** to **1.0.1**
-* [\#7257](https://github.com/cosmos/ibc-go/pull/7257) Bump **golang.org/x/mod** to **0.21.0**
-* [\#7765](https://github.com/cosmos/ibc-go/pull/7765) Bump **bufbuild/buf-setup-action** to **1.48.0**
-* [\#8155](https://github.com/cosmos/ibc-go/pull/8155) Bump **github.com/CosmWasm/wasmvm** to **2.2.3**
-* [\#7879](https://github.com/cosmos/ibc-go/pull/7879) Bump **docker/build-push-action** to **6.13.0**
-* [\#7540](https://github.com/cosmos/ibc-go/pull/7540) Bump **github.com/cometbft/cometbft** to **0.38.15**
-* [\#7746](https://github.com/cosmos/ibc-go/pull/7746) Bump **google.golang.org/grpc** to **1.69.2**
-* [\#8021](https://github.com/cosmos/ibc-go/pull/8021) Bump **google.golang.org/protobuf** to **1.36.5**
-* [\#8126](https://github.com/cosmos/ibc-go/pull/8126) Bump **github.com/cosmos/cosmos-sdk** to **0.50.12**
 * [\#7261](https://github.com/cosmos/ibc-go/pull/7261) Bump **github.com/cosmos/cosmos-sdk** to **0.52.0**
-* [\#8182](https://github.com/cosmos/ibc-go/pull/8182) Bump **golangci/golangci-lint-action** to **6.5.1**
-* [\#6183](https://github.com/cosmos/ibc-go/pull/6183) Bump **github.com/cosmos/cosmos-proto** to **1.0.0-beta.5**
-* [\#7942](https://github.com/cosmos/ibc-go/pull/7942) Bump **github.com/cosmos/cosmos-db** to **1.1.1**
-* [\#7171](https://github.com/cosmos/ibc-go/pull/7171) Bump **github.com/cosmos/gogoproto** to **1.7.0**
 * [\#6380](https://github.com/cosmos/ibc-go/pull/6380) Bump **go** to **1.22**
-* [\#6380](https://github.com/cosmos/ibc-go/pull/8153) Bump **github.com/ethereum/go-ethereum** to **1.15.5**
 
 ### API Breaking
 
