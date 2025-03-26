@@ -161,6 +161,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
 * (core, apps) [\#7232](https://github.com/cosmos/ibc-go/pull/7232) Remove capabilities from channel handshake methods. TODO list all changes 
 * (core, apps) [\#7270](https://github.com/cosmos/ibc-go/pull/7270) Remove remaining dependencies on capability module.
+* (core, apps) [\#4811](https://github.com/cosmos/ibc-go/pull/4811) Use expected interface for legacy params subspace
 * (core/04-channel) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `LookupModuleByChannel`
 * (core/05-port) [\#7252](https://github.com/cosmos/ibc-go/pull/7252) Removed function `LookupModuleByPort`
 * (core/24-host) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Removed function `ChannelCapabilityPath`
@@ -195,6 +196,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#6902](https://github.com/cosmos/ibc-go/pull/6902) Add channel version to core application callbacks.
 * (core/03-connection, core/02-client) [\#6937](https://github.com/cosmos/ibc-go/pull/6937) Remove 'ConsensusHost' interface, also removing self client and consensus state validation in the connection handshake.
 * (core/24-host) [\#6882](https://github.com/cosmos/ibc-go/issues/6882) All functions ending in `Path` have been removed from 24-host in favour of their sybling functions ending in `Key`.
+* (23-commmitment) [\#6633](https://github.com/cosmos/ibc-go/pull/6633) MerklePath has been changed to use `repeated bytes` in favour of `repeated strings`.
+* (23-commmitment) [\#6644](https://github.com/cosmos/ibc-go/pull/6644) Introduce `commitment.v2.MerklePath` to include `repeated bytes` in favour of `repeated string`. This supports using merkle path keys which include non UTF-8 encoded runes.
+* (23-commmitment) [\#6870](https://github.com/cosmos/ibc-go/pull/6870) Remove `commitment.v1.MerklePath` in favour of `commitment.v2.MerklePath`.
+* [\#6923](https://github.com/cosmos/ibc-go/pull/6923) The JSON msg API for `VerifyMembershipMsg` and `VerifyNonMembershipMsg` payloads for client contract `SudoMsg` has been updated. The field `path` has been changed to `merkle_path`. This change requires updates to 08-wasm client contracts for integration.
+* (apps/callbacks) [\#7000](https://github.com/cosmos/ibc-go/pull/7000) Add base application version to contract keeper callbacks.
+
 
 ### State Machine Breaking
 
@@ -206,10 +213,17 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (testing)[\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update the block proposer in test chains for each block.
 * (apps/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) ICA host sets the host connection ID on `OnChanOpenTry`, so that ICA controller implementations are not obliged to set the value on `OnChanOpenInit` if they are not able.
 * (core/02-client, core/03-connection, apps/27-interchain-accounts) [\#6256](https://github.com/cosmos/ibc-go/pull/6256) Add length checking of array fields in messages.
+* (core/08-wasm) [\#5146](https://github.com/cosmos/ibc-go/pull/5146) Use global wasm VM instead of keeping an additional reference in keeper
+* (core/04-channels) [\#7935](https://github.com/cosmos/ibc-go/pull/7935) Limit payload size for both v1 and v2 packet
+* (core/runtime) [\#7601](https://github.com/cosmos/ibc-go/pull/7601) - IBC core runtime env
 
 ### Features
 
 * (apps/transfer) [\#7650](https://github.com/cosmos/ibc-go/pull/7650) Add support for transfer of entire balance for vesting accounts
+* (apps/wasm) [\#5079](https://github.com/cosmos/ibc-go/pull/5079) 08-wasm light client proxy module for wasm clients by
+* (core/02-client) [\#7936](https://github.com/cosmos/ibc-go/pull/7936) Clientv2 module
+* (core/04-channel) [\#7933](https://github.com/cosmos/ibc-go/pull/7933) Channel-v2 genesis
+* (core/04-channel, core/api) [\#7934](https://github.com/cosmos/ibc-go/pull/7934) - Callbacks Eureka
 
 ### Bug Fixes
 
