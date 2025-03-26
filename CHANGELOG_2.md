@@ -1,0 +1,1315 @@
+## What's Changed
+
+## [Unreleased]
+
+- Update repo cover image by @womensrights in <https://github.com/cosmos/ibc-go/pull/4794>
+
+### Testing
+
+- test: add ParsePacketsFromEvents by @tbruyelle in <https://github.com/cosmos/ibc-go/pull/4975>
+- test: adding e2e for grandpa client recovery test by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5027>
+- test: added tests for `UpdateChannelParams` by @MukulKolpe in <https://github.com/cosmos/ibc-go/pull/5494>
+- test: add mock middleware to block app upgrades and provide test coverage in core by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5406>
+- test: add unit tests for channel upgrade event emission by @charleenfei in <https://github.com/cosmos/ibc-go/pull/5475>
+- test: event emission on writing error receipts for channel upgrades by @charleenfei in <https://github.com/cosmos/ibc-go/pull/5549>
+- test: add additional test for iterator on fee mw migration by @charleenfei in <https://github.com/cosmos/ibc-go/pull/5667>
+- test: add test for unint64 overflow on limit by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5713>
+- test: follow up nits from coordinator method deprecations. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5721>
+- test: add UpdateConnection to endpoint and update usages in tests. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5719>
+- test: move 07-tendermint client state testing to use light client module entry points by @charleenfei in <https://github.com/cosmos/ibc-go/pull/6074>
+- test: don't pass keeper as argument to malleate function. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6161>
+- test: add panic cases in tests for `UpgradeOpen` by @neitdung in <https://github.com/cosmos/ibc-go/pull/5550>
+- test: refactor used expected errors by @hoank101 in <https://github.com/cosmos/ibc-go/pull/6217>
+- test: added packet data forwards compatibility test by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6089>
+- test: add coverage for both `token` and `tokens` set in `MsgTransfer` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6462>
+- test: add test for denom chain source methods by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6485>
+- test: add test case for invalid timeout packet amount by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6460>
+- test: cover more of transfer OnTimeoutPacket by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6456>
+- test: add secondary test coin to test chains by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6543>
+- test: add more multi-denom test cases by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6545>
+- test: e2e upgrade tests for v8 -> v9 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6791>
+- test: add v8 to v9 e2e upgrade tests with channel upgrade by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6806>
+- test: add NewForwardErrorAcknowledgement to multihop forwarding test by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6907>
+- test: add unwind + forwarding to sender test by @vishal-kanna in <https://github.com/cosmos/ibc-go/pull/6905>
+- test: update block proposer in testing by @sainoe in <https://github.com/cosmos/ibc-go/pull/7430>
+- test: ensure that the packet commit changes if the packed fields changes by @cl1ckname in <https://github.com/cosmos/ibc-go/pull/7514>
+- test: fix ica compatibility tests (backport #7976) by @mergify in <https://github.com/cosmos/ibc-go/pull/7994>
+
+### Dependencies
+
+- build(deps): Bump golang.org/x/mod from 0.12.0 to 0.13.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/4839>
+- build(deps): Bump github.com/spf13/viper from 1.16.0 to 1.17.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/4846>
+- build(deps): Bump bufbuild/buf-setup-action from 1.26.1 to 1.27.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/4847>
+- build(deps): Bump google.golang.org/grpc from 1.58.2 to 1.58.3 by @dependabot in <https://github.com/cosmos/ibc-go/pull/4855>
+- build(deps): Bump cosmossdk.io/x/tx from 0.10.0 to 0.11.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/4889>
+- build(deps): Bump cosmossdk.io/api from 0.7.1 to 0.7.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/4890>
+- build(deps): Bump bufbuild/buf-setup-action from 1.27.0 to 1.27.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/4906>
+- build(deps): Bump google.golang.org/grpc from 1.58.3 to 1.59.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/4904>
+- build(deps): Bump actions/setup-node from 3 to 4 by @dependabot in <https://github.com/cosmos/ibc-go/pull/4941>
+- build(deps): Bump tj-actions/changed-files from 39 to 40 by @dependabot in <https://github.com/cosmos/ibc-go/pull/4962>
+- deps: update hermes tag to v1.7.0 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/4968>
+- deps: bump Cosmos SDK to tip of `release/v0.50.x` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/4976>
+- build(deps): Bump bufbuild/buf-setup-action from 1.27.1 to 1.27.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/4988>
+
+- docs: added tutorial for Cosmoverse 2023 by @srdtrk in <https://github.com/cosmos/ibc-go/pull/4793>
+
+- fix: typos by @omahs in <https://github.com/cosmos/ibc-go/pull/4796>
+- imp!: use expected interface for legacy params subspace by @damiannolan in <https://github.com/cosmos/ibc-go/pull/4811>
+- Fix E2Es running on forks. by @chatton in <https://github.com/cosmos/ibc-go/pull/4813>
+- chore: mergify task and e2e tests for `release/v8.0.x` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/4765>
+- doc: adding migration doc info for nil legacy subspace by @damiannolan in <https://github.com/cosmos/ibc-go/pull/4816>
+- Change host relay tests to check error returned by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/4161>
+- e2e : migrate interchaintest.GetBalance to CosmosChain's GetBalance by @trinitys7 in <https://github.com/cosmos/ibc-go/pull/4683>
+- imp: add go mod tidy all script by @julienrbrt in <https://github.com/cosmos/ibc-go/pull/4845>
+- chores(e2e): add v4.5.0 tag and remove v5.2.x (end of life) by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/4840>
+- Fixing compatibility tests for v8 by @chatton in <https://github.com/cosmos/ibc-go/pull/4876>
+- imp: add init-simapp script by @julienrbrt in <https://github.com/cosmos/ibc-go/pull/4844>
+- chore: fixes for legacy amino encoding for ledger signing by @damiannolan in <https://github.com/cosmos/ibc-go/pull/4812>
+- Automate Discord Notification for New Releases by @adiraviraj in <https://github.com/cosmos/ibc-go/pull/4918>
+- docs: add google analytics 4 support by @srdtrk in <https://github.com/cosmos/ibc-go/pull/4933>
+- Add note for adding a build tag in new e2e files. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/4937>
+- docs: add microsoft clarity support by @srdtrk in <https://github.com/cosmos/ibc-go/pull/4935>
+- chores for new patch releases for v4, v5, v6, v7 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/4922>
+
+- fix(msg): register proto interface by @emidev98 in <https://github.com/cosmos/ibc-go/pull/4944>
+- chore: remove redundant code asserting token metadata by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/4952>
+- Register message service descriptor for host by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/4969>
+- docs: fee middleware tutorial improvements by @srdtrk in <https://github.com/cosmos/ibc-go/pull/4979>
+- removing AppModuleBasic from Capability by @muku314115 in <https://github.com/cosmos/ibc-go/pull/4982>
+
+- Add a test for 07-tendermint's GetTimestampAtHeight by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/4972>
+- refactor(simapp): re-wire autocli with latest client/v2 changes by @julienrbrt in <https://github.com/cosmos/ibc-go/pull/4843>
+- removing initmodule from ica by @muku314115 in <https://github.com/cosmos/ibc-go/pull/4977>
+- imp(statemachine)!: check length of unbounded string fields in messages by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/4992>
+- chore: EoL for v4 and v5 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/4995>
+- simplifying code in packet_test by @muku314115 in <https://github.com/cosmos/ibc-go/pull/4980>
+- build(deps): Bump cosmossdk.io/store from 1.0.0-rc.0 to 1.0.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5009>
+- docs: fix typos by @merkletreeibc in <https://github.com/cosmos/ibc-go/pull/5014>
+- docs: fix typos by @shuoer86 in <https://github.com/cosmos/ibc-go/pull/5019>
+- fix expect pointer error when unmarshalling misbehaviour file by @mmsqe in <https://github.com/cosmos/ibc-go/pull/5020>
+- build(deps): Bump cosmossdk.io/x/tx from 0.11.0 to 0.12.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5017>
+- build(deps): Bump github.com/spf13/cobra from 1.7.0 to 1.8.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5024>
+- build(deps): Bump golang.org/x/mod from 0.13.0 to 0.14.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/5025>
+- build(deps): Bump cosmossdk.io/math from 1.1.3-rc.1 to 1.2.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5034>
+- fix: correct error formatting in client status check in client recovery by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5039>
+- deps: bump SDK v0.50.1 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5038>
+- Bump dependencies by @chatton in <https://github.com/cosmos/ibc-go/pull/5064>
+- deps: update mod/capability to v1.0.0 by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5046>
+- docs: changed versioned docs' URLs by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5031>
+- docs: new social card for docs by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5080>
+- chore: add mergify backport for 08-wasm by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5077>
+- docs: add docs folder for v8.0.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5078>
+- ci: add PR labeler by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5081>
+- chore: post v8.0.0 release by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5082>
+- build(deps): Bump bufbuild/buf-setup-action from 1.27.2 to 1.28.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5096>
+- e2e: update tag of v7 to v8 upgrade test by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5083>
+- build(deps): Bump github.com/hashicorp/go-metrics from 0.5.1 to 0.5.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5113>
+- feat: 08-wasm light client proxy module for wasm clients by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5079>
+- Bump all dependabot actions. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5119>
+- build(deps): Bump github.com/CosmWasm/wasmvm from 1.4.1 to 1.5.0 in /modules/light-clients/08-wasm by @dependabot in <https://github.com/cosmos/ibc-go/pull/5117>
+- Run WASM E2E tests only when relevant changes are made by @chatton in <https://github.com/cosmos/ibc-go/pull/5092>
+- build(deps): Bump bufbuild/buf-setup-action from 1.28.0 to 1.28.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5125>
+- build(deps): Bump docker/build-push-action from 5.0.0 to 5.1.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5126>
+- build(deps): Bump github.com/cometbft/cometbft from 0.38.0 to 0.38.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5130>
+- Move check for upgraded client state height to 02-client layer. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/4368>
+- Rename e2e wasm contract to .gz suffix by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5131>
+
+- Consistent argument order in entrypoint wrappers. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5134>
+- docs: rename code hash to checksum in 08-wasm docs by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5133>
+- imp: use wasm VM CreateChecksum by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5123>
+- docs: update security.md by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5122>
+- Remove header from events by @mattverse in <https://github.com/cosmos/ibc-go/pull/5110>
+- Use global wasm VM instead of keeping an additional reference in keeper. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5146>
+- Remove stored contract for tendermint. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5149>
+- rm: unnecessary vuepress file by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5151>
+- Remove grandpa unit test contract, rm test_data. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5150>
+- nit(08-wasm): removed unused param from 'NewConsensusState' by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5159>
+- Fix newest linter complaints by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5156>
+- Validate before calculating checksum, move private functions at end, add context to mockvm errors. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5157>
+- Rename tm prefixed packages to cmt by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5158>
+- Add a helper function to create a mock contract. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5162>
+- docs: improved channel closure docs by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5170>
+- use GetPrefixedDenom to create IBC token denom by @0xstepit in <https://github.com/cosmos/ibc-go/pull/5175>
+- build(deps): Bump DavidAnson/markdownlint-cli2-action from 13 to 14 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5176>
+- docs: readme improvements by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5171>
+- Call `Pin` during app inisitalization by @vuong177 in <https://github.com/cosmos/ibc-go/pull/5161>
+- e2e: timeout transfer with grandpa light client by @charleenfei in <https://github.com/cosmos/ibc-go/pull/5018>
+- Change to StoreCodeUnchecked in Genesis and snapshotter by @GNaD13 in <https://github.com/cosmos/ibc-go/pull/5167>
+- build(deps): Bump JamesIves/github-pages-deploy-action from 4.4.3 to 4.5.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5188>
+- build(deps): Bump github.com/hashicorp/go-metrics from 0.5.2 to 0.5.3 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5182>
+- build(deps): Bump github.com/cometbft/cometbft from 0.38.1 to 0.38.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5180>
+- build(deps): Bump github.com/spf13/cast from 1.5.1 to 1.6.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5181>
+- chore: update swagger by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5179>
+- docs: add IBC overview diagram by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5166>
+- Drop step installing tparse in test.yml by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5191>
+- Add capability to dependabot. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5193>
+- build(deps): Bump sigs.k8s.io/yaml from 1.3.0 to 1.4.0 in /modules/capability by @dependabot in <https://github.com/cosmos/ibc-go/pull/5194>
+- build(deps): Bump github.com/cometbft/cometbft from 0.38.0 to 0.38.2 in /modules/capability by @dependabot in <https://github.com/cosmos/ibc-go/pull/5195>
+- build(deps): Bump cosmossdk.io/store from 1.0.0 to 1.0.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5199>
+- imp: use bytes in wasm contract api instead of wrapped types by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5154>
+- build(deps): Bump docker/metadata-action from 5.0.0 to 5.1.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5277>
+- Add workflow to build wasm simapp by @chatton in <https://github.com/cosmos/ibc-go/pull/5286>
+- Workflow to trigger wasm E2Es with a specific tag by @chatton in <https://github.com/cosmos/ibc-go/pull/5288>
+- feat: add custom queries to wasm module by @aeryz in <https://github.com/cosmos/ibc-go/pull/5261>
+- mergify task for callbacks v0.2.x and ibc-go v8.0.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5295>
+- build(deps): Bump docker/metadata-action from 5.1.0 to 5.2.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5297>
+- Update CODEOWNERS for 08-wasm by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5296>
+- build(deps): Bump docker/metadata-action from 5.2.0 to 5.3.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5301>
+- Don't panic during any store operations. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5294>
+- Support wasm tests on forks by @chatton in <https://github.com/cosmos/ibc-go/pull/5234>
+- docs: remove redundant code from code examples by @lukema95 in <https://github.com/cosmos/ibc-go/pull/5309>
+- fix: remove 08-wasm from 02-client exported by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5306>
+- Remove pr labeler. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5302>
+- chore: address vanity nits in 08-wasm (code structure, godocs) by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5320>
+- build(deps): Bump actions/setup-python from 4 to 5 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5326>
+- Remove GetSigners from `sdk.Msg` implementations by @ThanhNhann in <https://github.com/cosmos/ibc-go/pull/5305>
+- Add migration for checksums to collections.KeySet by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5324>
+- feat: add ibcwasm upgrade handler for store migrations by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5327>
+- docs: added connection delay documentation by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5312>
+- nit: error in migration panic by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5330>
+- Remove GetSigners for mock message. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5334>
+- build(deps): Bump actions/setup-go from 4 to 5 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5338>
+- e2e: adding ibcwasm e2e upgrade test by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5333>
+- docs: add docs for checksums migration by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5335>
+- fix: update incorrect test suite string in test exclusions by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5342>
+- docs: fix typos by @bodhi-crypo in <https://github.com/cosmos/ibc-go/pull/5344>
+- chore(proto/ibc): typo fix by @Ursulafe in <https://github.com/cosmos/ibc-go/pull/5354>
+- imp: check if clients params are duplicates by @lukema95 in <https://github.com/cosmos/ibc-go/pull/5349>
+- feat: check if controller enabled or not in `sendTx` by @vishal-kanna in <https://github.com/cosmos/ibc-go/pull/5343>
+- Chore: fix every typos by @hoangdv2429 in <https://github.com/cosmos/ibc-go/pull/5373>
+- Bump sdk dependencies by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5367>
+- Chore: mark GetTimestamp as deprecated by @sontrinh16 in <https://github.com/cosmos/ibc-go/pull/5353>
+- end of life for v6 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5341>
+- feat(08-wasm): querier plugins implemented by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5345>
+- build(deps): Bump google.golang.org/grpc from 1.59.0 to 1.60.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5385>
+- chore: update e2e upgrade workflow and test configuration by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5388>
+- Ensure docker tags are valid by @chatton in <https://github.com/cosmos/ibc-go/pull/5400>
+- docs: added docs on 08-wasm options api by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5398>
+- Make build_test_matrix workflows fail if exit code 1 by @anhductn2001 in <https://github.com/cosmos/ibc-go/pull/5356>
+- Add a helper function for parse out msg responses by @phamminh0811 in <https://github.com/cosmos/ibc-go/pull/5351>
+- Add list of allowed packet data keys to Allocation of TransferAuthorization by @GNaD13 in <https://github.com/cosmos/ibc-go/pull/5280>
+- e2e: fix wasm e2e tests by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5416>
+- chore: wait for sync nodes before stopping in e2e upgrade tests by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5408>
+- build(deps): Bump github/codeql-action from 2 to 3 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5418>
+- Collect hermes config.toml file in e2e diagnostics by @chatton in <https://github.com/cosmos/ibc-go/pull/5420>
+- build(deps): Bump actions/download-artifact from 3 to 4 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5426>
+- build(deps): Bump actions/upload-artifact from 3 to 4 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5427>
+- relocate audit reports + add migration handler for 08-wasm in docs by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5423>
+- Fix typos by @nnsW3 in <https://github.com/cosmos/ibc-go/pull/5422>
+- build(deps): Bump docker/metadata-action from 5.3.0 to 5.4.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5434>
+- e2e: update grandpa contract by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5431>
+- imp: add not allowed keys to error message of authorization by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5417>
+- Remove MustSortJson by @expertdicer in <https://github.com/cosmos/ibc-go/pull/5379>
+- chore: fix 08-wasm light client documentation by @Reecepbcups in <https://github.com/cosmos/ibc-go/pull/5439>
+- fix(statemachine)!: allow overwriting of 29-fee payee to relayer address by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/5441>
+- build(deps): Bump google.golang.org/grpc from 1.60.0 to 1.60.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5446>
+- build(deps): Bump cosmossdk.io/x/tx from 0.12.0 to 0.13.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5447>
+- build(deps): Bump github.com/spf13/viper from 1.17.0 to 1.18.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5448>
+- Channel upgradability requirements by @womensrights in <https://github.com/cosmos/ibc-go/pull/3240>
+- remove cosmosTx.getbytes() by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/5396>
+- remove mustsortjson usuage by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/5395>
+- chores: e2e, mergify for v8.1.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5470>
+- docs: update links in wasm docs + create versioned docs by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5445>
+- imp: if the allow all host messages is used, then the allow list should have only one element by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5461>
+- modify maxmemocharlength by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/5442>
+- Remove fmt.sprint() usage by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/5403>
+- Remove sdk.MustSortJSON from channel types Acknowledgement by @expertdicer in <https://github.com/cosmos/ibc-go/pull/5377>
+- feat: channel upgradability by @damiannolan in <https://github.com/cosmos/ibc-go/pull/1613>
+- fix: add MsgPruneAcknowledgements to codec registration by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5481>
+- chore: remove `syncUpgradeSequence` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5489>
+- build(deps): Bump google.golang.org/protobuf from 1.31.0 to 1.32.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5490>
+- build(deps): Bump actions/setup-go from 4 to 5 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5491>
+- fix migration log by @yihuang in <https://github.com/cosmos/ibc-go/pull/5497>
+- build(deps): Bump tj-actions/changed-files from 40 to 41 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5495>
+- Documentation Corrections by @joaolago1113 in <https://github.com/cosmos/ibc-go/pull/5496>
+- docs:fix link jump by @bodhi-crypo in <https://github.com/cosmos/ibc-go/pull/5505>
+
+- docs(deps): upgraded docusaurus to v3 by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5507>
+- fix: return bool in `GetPruningSequenceStart` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5488>
+- Improve testing for `PruneAcknowledgements` rpc by @ThanhNhann in <https://github.com/cosmos/ibc-go/pull/5508>
+- Add missing channel upgrade tests by @chatton in <https://github.com/cosmos/ibc-go/pull/5502>
+- docs: added section on hermes' fee based packet filtering by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5503>
+- feat: Removing restorechannel and adding SetUpgradeErrorReceipt by @vishal-kanna in <https://github.com/cosmos/ibc-go/pull/5405>
+- refactor: use explicit checks in ica controller upgrade handlers by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5472>
+- docs: updated version docs banners by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5516>
+- docs: added sitemap support to docs by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5521>
+- docs: channel upgrades packet flushing by @charleenfei in <https://github.com/cosmos/ibc-go/pull/5348>
+- Check for error returned in channel msg_tests by @expertdicer in <https://github.com/cosmos/ibc-go/pull/5492>
+- Improving docstrings for UpgradableModule interface by @chatton in <https://github.com/cosmos/ibc-go/pull/5474>
+- rename testing/app.go by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/5402>
+- build(deps): Bump docker/metadata-action from 5.4.0 to 5.5.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5528>
+
+- chore: missing upgrade msgs assertions by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5515>
+- feat: add cli for `MsgPruneAcknowledgements` by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5482>
+- feat: removed verifychannelupgradeErrorAbsence from the 03-connection by @vishal-kanna in <https://github.com/cosmos/ibc-go/pull/5532>
+
+- docs: fix typos by @vuittont60 in <https://github.com/cosmos/ibc-go/pull/5552>
+- Add cli to submit gov proposal to upgrade multiple channels by @chatton in <https://github.com/cosmos/ibc-go/pull/5548>
+- chore: fix cmd example for PruneAcknowledgements by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5554>
+- e2e(upgrades): upgrade ACK fails because counterparty upgrade timeout already passed by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5536>
+- imp: create and reuse errors in core channel upgrades handlers by @vishal-kanna in <https://github.com/cosmos/ibc-go/pull/5389>
+- add explicit checks in `OnChanUpgradeTry` callback of ICA host by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5519>
+- Docs for channel upgrades CLI by @chatton in <https://github.com/cosmos/ibc-go/pull/5553>
+- Docs for MsgPruneAcknowledgement by @chatton in <https://github.com/cosmos/ibc-go/pull/5510>
+- Add section about wiring up fee middleware and executing gov proposal by @chatton in <https://github.com/cosmos/ibc-go/pull/5504>
+- docs: channel upgrade timeout by @charleenfei in <https://github.com/cosmos/ibc-go/pull/5546>
+
+- fix: add packet seq in success log by @mmsqe in <https://github.com/cosmos/ibc-go/pull/5559>
+- build(deps): Bump github.com/CosmWasm/wasmvm from 1.5.0 to 1.5.1 in /modules/light-clients/08-wasm by @dependabot in <https://github.com/cosmos/ibc-go/pull/5563>
+- imp(core): allow huckleberry events with a prefix by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5541>
+- nit: remove stale comment by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5577>
+- build(deps): Bump cosmossdk.io/log from 1.2.1 to 1.3.0 in /modules/capability by @dependabot in <https://github.com/cosmos/ibc-go/pull/5583>
+- build(deps): Bump cosmossdk.io/errors from 1.0.0 to 1.0.1 in /modules/capability by @dependabot in <https://github.com/cosmos/ibc-go/pull/5581>
+- build(deps): Bump cosmossdk.io/errors from 1.0.0 to 1.0.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5587>
+- deps: bump cosmossdk.io/log to v1.3.0 in all go mods by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5595>
+- deps: upgrade cosmossdk.io/store to v1.0.2 for all go mods by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5594>
+- refactor: use timeout type when possible by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5572>
+- Update parameter names for better readability by @chatton in <https://github.com/cosmos/ibc-go/pull/5512>
+- chore: recurring typo by @Frierened in <https://github.com/cosmos/ibc-go/pull/5598>
+- Update go.work.example to use go 1.21 by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5604>
+- feat(statemachine)!: Add allow all client wildcard to AllowedClients param by @sontrinh16 in <https://github.com/cosmos/ibc-go/pull/5429>
+- docs: update stable release policy and add missing releases by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5606>
+- imp: separate height and timestamp attribute in upgrade timeout event by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5612>
+- remaining review comments from #1613 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5539>
+- docs: added a new themed overview image by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5618>
+- chore: rename `proofXyz` -> `xyzProof` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5599>
+- chore: remove `upgrade` prefix from upgrade event attributes by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5603>
+- Bump cosmos-sdk to 0.50.3 in modules by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5621>
+- build(deps): Bump github.com/cosmos/cosmos-sdk from 0.50.2 to 0.50.3 in /modules/capability by @dependabot in <https://github.com/cosmos/ibc-go/pull/5619>
+- imp(fee): capital efficient fee middleware by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5571>
+- chore: add default upgrade handler for v8.1 by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5636>
+- feat(ica): allow unordered ica channels by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5633>
+- docs: added capital efficiency to fee docs by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5643>
+- Add migration for channel params by @chatton in <https://github.com/cosmos/ibc-go/pull/5640>
+- build(deps): Bump tj-actions/changed-files from 41 to 42 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5654>
+- build(deps): Bump DavidAnson/markdownlint-cli2-action from 14 to 15 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5655>
+- build(deps): Bump github.com/CosmWasm/wasmvm from 1.5.1 to 1.5.2 in /modules/light-clients/08-wasm by @dependabot in <https://github.com/cosmos/ibc-go/pull/5660>
+- docs: add migration docs for v8.1 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5648>
+- docs: added docs on denom metadata by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5665>
+- rename currentheader to proposedheader by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/5673>
+- rename lastheader to latestcommittedheader by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/5672>
+- Rename Order to Ordering for MsgRegisterInterchainAccount. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5674>
+- e2e: v8.1 upgrade test for capital efficient escrows by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5652>
+- fix: add replay protection on upgraded channels  by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5651>
+- fix: allow `RecvPacket` and `WriteAcknowledgement` when channel is `FLUSHING` or `FLUSHCOMPLETE` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5668>
+- deps: bump cometbft to 0.38.4 in modules. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5662>
+- chore: add `make help` to display the usage for project `Makefile` by @Halimao in <https://github.com/cosmos/ibc-go/pull/5669>
+- imp: check order in validate basic of `MsgRegisterInterchainAccount` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5671>
+- Add event testing for connection handshake by @chatton in <https://github.com/cosmos/ibc-go/pull/5682>
+- items from first channel upgrades security audit session by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5664>
+
+- chore: remove IsOpen and IsClosed channel methods by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5691>
+- fix: guarentee proof availiability for channel upgrades by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5638>
+- Wrap error returned from upgrade ACK application callbacks by @chatton in <https://github.com/cosmos/ibc-go/pull/5695>
+- chore: remove `OnChanUpgradeRestore` callbacks and discard state changes on app upgrade callbacks by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5696>
+- Adding note about new channel states by @chatton in <https://github.com/cosmos/ibc-go/pull/5698>
+- imp: remove unexpected behaviour error string by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5702>
+- build(deps): Bump google.golang.org/grpc from 1.60.1 to 1.61.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5708>
+- Add `CommitHeader` to TestChain struct by @phamminh0811 in <https://github.com/cosmos/ibc-go/pull/5435>
+- Pass expected error as second argument to ErrorIs. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5712>
+- refactor!: remove unnecessary exported.ChannelI interface by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5703>
+- Refactor UpgradeError to use bullt in errors functions by @chatton in <https://github.com/cosmos/ibc-go/pull/5704>
+- deprecated: deprecate ErrPacketTimeout error by @natebeauregard in <https://github.com/cosmos/ibc-go/pull/5626>
+- Add coordinator Setup functions to the Path type by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/5397>
+- Add tests for querying the UpgradedClientState endpoint. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5711>
+
+- refactor(api)!: use cometbft's MockPV. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5709>
+- Add testing for client events by @chatton in <https://github.com/cosmos/ibc-go/pull/5686>
+
+- refactor(api)!: remove unnecessary channel getter functions by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5705>
+- chore: Fixed typos in the 'modules' folder by @keienWang in <https://github.com/cosmos/ibc-go/pull/5723>
+- build(deps): Bump bufbuild/buf-setup-action from 1.28.1 to 1.29.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5728>
+- build(deps): Bump github.com/cometbft/cometbft from 0.38.4 to 0.38.5 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5730>
+- ICS4: fix off by one error in non-crossing-hello case by @AdityaSripal in <https://github.com/cosmos/ibc-go/pull/5722>
+- ICS4: Write ErrorReceipt for previous upgrade on Reinitialization by @AdityaSripal in <https://github.com/cosmos/ibc-go/pull/5732>
+- Adding workflow to automatically create typo PRs by @chatton in <https://github.com/cosmos/ibc-go/pull/5724>
+- docs: add additional docs on edge case channel upgradability scenarios by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5735>
+- chore: typos fix by misspell-fixer by @github-actions in <https://github.com/cosmos/ibc-go/pull/5754>
+- build(deps): Bump sobolevn/misspell-fixer-action from e5368f1b21585248afad4d32df9bc100451dbbff to 8842a5615f83fed75e8a87015e9300a54d049961 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5757>
+- imp: add defensive check on WriteErrorReceipt in addition to more in-line docs on edge cases by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5734>
+- refactor(api)!: remove exported.CounterpartyChannelI interface by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5744>
+- build(deps): Bump andstor/file-existence-action from 2 to 3 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5766>
+- fix(e2e): re-enable ica unordered channel upgrade by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5756>
+- fix(e2e): compatibility e2e test fixes by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5761>
+- e2e(upgrades): ordered ICA channel can be closed after upgrade and packet timeout by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5537>
+- Add E2E Upgrade test which performs a software upgrade and then a channel upgrade by @chatton in <https://github.com/cosmos/ibc-go/pull/5661>
+
+- Remove usage of res.Block.Header, Header interface. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5753>
+- fix: set explicit allowed clients for versions < v8.1 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5768>
+- refactor!: remove GetState() on connection interface by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5769>
+- refactor!: remove connection interface by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5770>
+- exported.PacketI to concrete type by @hoangdv2429 in <https://github.com/cosmos/ibc-go/pull/5755>
+- e2e(upgrades): crossing hello test by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5535>
+- e2e: reorganize channel upgrade tests + add them to compatibility tests by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5772>
+- refactor!: remove counterparty connection interface by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5775>
+- refactor!: remove unnecessary getters on connection end by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5777>
+- build(deps): Bump peter-evans/create-pull-request from 5 to 6 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5786>
+- build(deps): Bump docker/metadata-action from 5.5.0 to 5.5.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5787>
+- refactor!: remove unnecessary getters on counterparty connection type by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5783>
+- chore: post release v7.2.3, v7.3.2, v8.0.1 and v8.1.0 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5780>
+- imp: Use json for marshalling/unmarshalling transfer packet data. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5778>
+- build(deps): Bump codecov/codecov-action from 3 to 4 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5792>
+- imp: return error on default branch of ack type switch statement by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5791>
+- refactor: improve the git hook script by @levisyin in <https://github.com/cosmos/ibc-go/pull/5689>
+- docs: style/formatting improvements for using ibc-go > overview by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5808>
+- build(deps): Bump cosmossdk.io/log from 1.3.0 to 1.3.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5809>
+- Feat: Delete upgrade information only rather than calling abort in TimeoutExecuted by @hoangdv2429 in <https://github.com/cosmos/ibc-go/pull/5764>
+- add IBCClientHeader func for endpoint and update tests by @expertdicer in <https://github.com/cosmos/ibc-go/pull/5493>
+- build(deps): Bump github.com/strangelove-ventures/interchaintest/v8 from 8.0.1-0.20231206154526-2f014d308bea to 8.1.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/5816>
+- build(deps): Bump golang.org/x/mod from 0.14.0 to 0.15.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/5820>
+- Add testing for ICA events by @chatton in <https://github.com/cosmos/ibc-go/pull/5687>
+- add  `UpdateChannel` method to `Endpoint` by @charleenfei in <https://github.com/cosmos/ibc-go/pull/5725>
+- build(deps): Bump golangci/golangci-lint-action from 3.7.0 to 3.7.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5826>
+- build(deps): Bump golangci/golangci-lint-action from 3.7.1 to 4.0.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5829>
+- nit: update godoc and arg casing on IterateClientStates by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5825>
+- chore: fix wrong comment by @zoereco in <https://github.com/cosmos/ibc-go/pull/5828>
+- fix: broken link by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5832>
+- build(deps): Bump sobolevn/misspell-fixer-action from 8842a5615f83fed75e8a87015e9300a54d049961 to 26173e641ba08255d0c9826b8a873f8b96f76932 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5835>
+- chore: add mergify backport for v8.2.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5838>
+- feat: add NewErrorAcknowledgementWithCodespace to allow codespaces in ack errors by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5788>
+- Add tests for fee events by @chatton in <https://github.com/cosmos/ibc-go/pull/5706>
+- refactor!: remove ZeroCustomFields from ClientState interface by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5830>
+- fix: move 02-client legacy v1beta gov types deprecation message to constructor functions by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5837>
+- refactor: rename GetValsAtHeight to GetTrustedValidators by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5831>
+- build(deps): Bump google.golang.org/grpc from 1.61.0 to 1.61.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5843>
+- refactor!: remove `ExportMetadata` inteface function by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5782>
+- feat: add rpc `VerifyMembershipProof` - querier approach for conditional clients by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5821>
+- Add small comment for removal of IterateConsensusMetadata in migration docs. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5849>
+- build(deps): Bump cosmossdk.io/api from 0.7.2 to 0.7.3 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5860>
+- build(deps): Bump github.com/cosmos/cosmos-proto from 1.0.0-beta.3 to 1.0.0-beta.4 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5859>
+- Add reusable workflow for scheduled jobs to notify on slack. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/3873>
+- chore: make unused block hashes in testing header creation explicit by @tungleanh0902 in <https://github.com/cosmos/ibc-go/pull/5857>
+- chore: add client status check to verify membership rpc by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5870>
+- imp: deny selected client types from VerifyMembership rpc by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5871>
+- ics10: add requirements doc by @blasrodri in <https://github.com/cosmos/ibc-go/pull/3140>
+- fix(08-wasm/test): register mockVm querier callbacks against TimestampAtHeightMsg to avoid recursive loops by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5878>
+- fix: return correct types in wasm tests and add expected err by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5883>
+- build(deps): Bump go.uber.org/zap from 1.26.0 to 1.27.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/5884>
+- ci: enable wasm lint/build/test on every PR and push to main. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/5879>
+- chore: mergify backport for `08-wasm/release/v0.2.x+ibc-go-v8.2.x-wasmvm-v2.0.x` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5869>
+- build(deps): Bump github.com/cosmos/cosmos-sdk from 0.50.3 to 0.50.4 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5872>
+- deps: bump grpc v1.62.0 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5891>
+- build(deps): Bump cosmossdk.io/math from 1.2.0 to 1.3.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/5892>
+- build(deps): Bump cosmossdk.io/math from 1.2.0 to 1.3.0 in /modules/capability by @dependabot in <https://github.com/cosmos/ibc-go/pull/5894>
+- deps: bump cosmossdk.io/math v1.3.0 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5898>
+- build(deps): Bump github.com/cosmos/cosmos-db from 1.0.0 to 1.0.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5904>
+- feat: Add defensive replay protection check into WriteAcknowledgement by @hoangdv2429 in <https://github.com/cosmos/ibc-go/pull/5880>
+- Update CODE_OF_CONDUCT.md by @merkletreeibc in <https://github.com/cosmos/ibc-go/pull/5918>
+- docs: added feedback widget by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5911>
+- build(deps): Bump github.com/stretchr/testify from 1.8.4 to 1.9.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5916>
+- refactor: use local clock time only for transfer CLI relative timeouts by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5908>
+- Chore: Addtional check against wrapped upgrade error in `ChannelUpgradeTry` by @hoangdv2429 in <https://github.com/cosmos/ibc-go/pull/5823>
+- add @chatton as full codeowner  by @colin-axner in <https://github.com/cosmos/ibc-go/pull/5922>
+- chore: fix typos in ibctesting package by @Hemanthghs in <https://github.com/cosmos/ibc-go/pull/5919>
+- docs: improvements to 08-wasm docs by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5856>
+- docs: fix imports and code snippets for x/wasm and ibcwasm app wiring by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5920>
+- docs: add documentation on default accept list in stargate wasm querier by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5921>
+- build(deps): Bump golang.org/x/mod from 0.15.0 to 0.16.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/5926>
+- docs: upgraded docusaurus from v3.0 to v3.1 by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5924>
+- chore: rm cliff config and update pr template by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5929>
+- build(deps): Bump cosmossdk.io/x/tx from 0.13.0 to 0.13.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5937>
+- build(deps): Bump github.com/golang/protobuf from 1.5.3 to 1.5.4 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5939>
+- build(deps): Bump google.golang.org/grpc from 1.62.0 to 1.62.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5940>
+- docs: fix typos by @omahs in <https://github.com/cosmos/ibc-go/pull/5930>
+- docs: update project structure by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5944>
+- nit: rename `currentChannel` to `channel` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5946>
+- chore(ci): add coderabbit settings by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5928>
+- ci: replace codecov with sonarcloud by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5931>
+- build(deps): Bump bufbuild/buf-setup-action from 1.29.0 to 1.30.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5949>
+- build(deps): Bump docker/build-push-action from 5.1.0 to 5.2.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5948>
+- docs(modules/core/keeper):fix typo by @AdventureSeeker987 in <https://github.com/cosmos/ibc-go/pull/5952>
+- docs: add AI assistant to docs by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5955>
+- docs: add changelog for callbacks and 08-wasm by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5910>
+- docs: removed v8.0.x docs, moving latest version to v8.1.x by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5951>
+- docs: update ADR 27 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5815>
+- docs: update pushfeedback receiver to shared account by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5956>
+- chore: make all keeper testsuite vars pointer receivers by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5961>
+- imp: add flat fee for queries to `VerifyMembership` by @charleenfei in <https://github.com/cosmos/ibc-go/pull/5927>
+- Allow host_connection_id in version metadata to be empty on ChanOpenInit by @GNaD13 in <https://github.com/cosmos/ibc-go/pull/5533>
+- Bump github.com/cometbft/cometbft from 0.38.5 to 0.38.6 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5981>
+- build(deps): Bump github.com/strangelove-ventures/interchaintest/v8 from 8.1.0 to 8.2.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/5958>
+- test(e2e): added gov proposal test case to interchain accounts by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5790>
+- docs: fix typo by @AtomicInnovation321 in <https://github.com/cosmos/ibc-go/pull/5989>
+- docs: add channel upgrades audit report by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5978>
+- build(deps): Bump docker/build-push-action from 5.2.0 to 5.3.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5994>
+- build(deps): Bump docker/login-action from 3.0.0 to 3.1.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5995>
+- build(deps): Bump tj-actions/changed-files from 42 to 43 by @dependabot in <https://github.com/cosmos/ibc-go/pull/5996>
+- deps: bump SDK v50.5 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5975>
+- refactor!: decouple client routing from encoding by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5806>
+- docs: add extra audit information by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5997>
+- removed QueryLatestConsensusState by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/5991>
+- nit: separate apps, lightclients in module manager. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6014>
+- test(02-client): adding tests for `GetLatestHeight` and refactor tests for `GetTimestamptAtHeight` by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6002>
+- docs: fix some broken links by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6012>
+- docs: updated discord link by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6016>
+- docs:fix broken link in 03-client-state.md by @AtomicInnovation321 in <https://github.com/cosmos/ibc-go/pull/6015>
+- Only run repo analysis on non forks by @chatton in <https://github.com/cosmos/ibc-go/pull/5957>
+- deps: bump wasmvm v2.0.0 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5909>
+- Add a Route method on client keeper to directly grab the light client module. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6013>
+- chore: rename `ClientKeeper` interface functions by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6017>
+- grammar fix by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6022>
+- add use case section to feature request template by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6025>
+- fix: fixed callbacks middleware wiring by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5950>
+- tests for 02-client router by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6034>
+- build(deps): Bump github.com/cosmos/gogoproto from 1.4.11 to 1.4.12 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6044>
+- docs: fix typo by @AtomicInnovation321 in <https://github.com/cosmos/ibc-go/pull/6050>
+- tests: add test for ReceiveEnabled set to false by @bznein in <https://github.com/cosmos/ibc-go/pull/6054>
+- chore: move initialization logic to light client module method by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6037>
+- e2e: add workflow for e2e module. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6051>
+- chore: rm stale method on expected UpgradeKeeper interface by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6062>
+- chore: Add gRPC validation for EscrowAddress by @bznein in <https://github.com/cosmos/ibc-go/pull/6059>
+- feat: allow module safe queries in ICA by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5785>
+- chore: mergify task for v7.4.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6057>
+- doc:fix typo by @seay404 in <https://github.com/cosmos/ibc-go/pull/6071>
+- build(deps): Bump tj-actions/changed-files from 43 to 44 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6066>
+- chore: remove repetitive words by @carehabit in <https://github.com/cosmos/ibc-go/pull/6072>
+- chore: add gRPC validation for 04-channel  by @bznein in <https://github.com/cosmos/ibc-go/pull/6064>
+- fix: failing test in 08-wasm expected err value by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6073>
+- e2e: verify disabled ics27 host params by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6067>
+- chore: use `NotEmpty(x)` instead `NotZero(len(x))` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6076>
+- imp: adding 08-wasm build opts with libwasmvm linking disabled by @damiannolan in <https://github.com/cosmos/ibc-go/pull/5923>
+- chore: separate code-analysis step from tests. Only run on non-fork PRs. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6077>
+- tests: remove duplicate NewTransferPath from tests by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6075>
+- feat: adding `ConsensusHost` interface for custom self client/consensus state validation by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6055>
+- tests: refactor solomachine tests to use light client module as entrypoint. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6038>
+- docs: ICA queries by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6068>
+- chore: add gRPC validation for 29-fee by @bznein in <https://github.com/cosmos/ibc-go/pull/6069>
+- chore: address solomachine testing refactor follow ups by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6085>
+- chore: refactor validategrpc into an internal shared package by @bznein in <https://github.com/cosmos/ibc-go/pull/6080>
+- docs: fix typo by @goofylfg in <https://github.com/cosmos/ibc-go/pull/6090>
+- Change signature of NewKeeper to directly accept a ConsensusHost by @chatton in <https://github.com/cosmos/ibc-go/pull/6084>
+- build(deps): Bump bufbuild/buf-setup-action from 1.30.0 to 1.30.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6094>
+- build(deps): Bump golang.org/x/mod from 0.16.0 to 0.17.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/6098>
+- chore: mergify for v8.3.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6101>
+- build(deps): Bump google.golang.org/grpc from 1.62.1 to 1.63.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6093>
+- chores after releases for ASA-2024-007 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6096>
+- build(deps): Bump DavidAnson/markdownlint-cli2-action from 15 to 16 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6118>
+- chore: mergify v7.5.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6112>
+- build(deps): Bump github.com/CosmWasm/wasmvm/v2 from 2.0.0 to 2.0.1 in /modules/light-clients/08-wasm by @dependabot in <https://github.com/cosmos/ibc-go/pull/6097>
+- chore: 08-wasm branch for conditional clients compatible with v8.3.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6102>
+- Chore: remove event emission on channel upgrade by @hoangdv2429 in <https://github.com/cosmos/ibc-go/pull/6063>
+- chore: address linting issues for more modules. by @bznein in <https://github.com/cosmos/ibc-go/pull/6121>
+- chore: Address linter findings on core/02-client by @bznein in <https://github.com/cosmos/ibc-go/pull/6119>
+- chore: Address linting issues in apps/ by @bznein in <https://github.com/cosmos/ibc-go/pull/6117>
+- chore: Address linter issues in e2e/ by @bznein in <https://github.com/cosmos/ibc-go/pull/6115>
+- build(deps): Bump google.golang.org/grpc from 1.63.0 to 1.63.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6129>
+- chore: renaming nits for SetConsensusHost by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6128>
+- chore: add extra defensive check to SendPacket by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6131>
+- refactor: standardise sub keeper usage in core ibc by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6081>
+- tests: add option to dump genesis files in E2E tests by @bznein in <https://github.com/cosmos/ibc-go/pull/6100>
+
+- chore(api!): replace Router with PortKeeper in IBCKeeper. by @bznein in <https://github.com/cosmos/ibc-go/pull/6138>
+- e2e cleanup by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6145>
+- chore: address linter issues in 04-channel, 06-solomachines, 09-localhost by @bznein in <https://github.com/cosmos/ibc-go/pull/6130>
+- build(deps): Bump cosmossdk.io/x/tx from 0.13.1 to 0.13.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6151>
+- chore: address linter findings in 07-tendermint by @bznein in <https://github.com/cosmos/ibc-go/pull/6136>
+- Refactor 08-wasm with improvements after 02-client refactor by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6088>
+- chore: Address linter findings in testing/ by @bznein in <https://github.com/cosmos/ibc-go/pull/6150>
+- imp(e2e): added generic grpc querier by @srdtrk in <https://github.com/cosmos/ibc-go/pull/5979>
+- chore:fix typo by @seay404 in <https://github.com/cosmos/ibc-go/pull/6168>
+
+- nit: add documentation for store/migrate contract on Keeper by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6162>
+- tests: nit, move storeWasmCode to be a method on suite. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6166>
+- refactor(api!): replace legacy event asserts with current one by @akaladarshi in <https://github.com/cosmos/ibc-go/pull/6070>
+- tests: simplify types_tests setup to remove uneeded setting up of a mock vm by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6164>
+- chore: address last linter findings and upgrade golanci-lint to latest version (1.57.2) by @bznein in <https://github.com/cosmos/ibc-go/pull/6169>
+- build(deps): Bump cosmossdk.io/api from 0.7.3 to 0.7.4 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6174>
+- Address additional feedback from 08-wasm refactor pr by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6176>
+- refactor(08-wasm)!: Move internal wasm types to internal folder. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6177>
+- chore: remove repetitive words by @careworry in <https://github.com/cosmos/ibc-go/pull/6181>
+- build(deps): Bump JamesIves/github-pages-deploy-action from 4.5.0 to 4.6.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6184>
+- build(deps): Bump github.com/cosmos/cosmos-proto from 1.0.0-beta.4 to 1.0.0-beta.5 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6183>
+
+- 08-wasm: rename client store by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6187>
+- fix: avoid panic when migrate param for newly added host by @mmsqe in <https://github.com/cosmos/ibc-go/pull/6167>
+- build(deps): Bump github.com/cosmos/cosmos-sdk from 0.50.5 to 0.50.6 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6193>
+- chore: split key and path functions in separate files by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5670>
+
+- chore: remove repetitive words by @goofylfg in <https://github.com/cosmos/ibc-go/pull/6222>
+- build(deps): Bump bufbuild/buf-setup-action from 1.30.1 to 1.31.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6219>
+- chore!: remove duplicate non-hexlified event attributes. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6023>
+- ci: specify coverage files for modules by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6224>
+- build(deps): Bump golangci/golangci-lint-action from 4.0.0 to 5.0.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6225>
+- feat(08-wasm): expose migrate entry point for 08-wasm by @duvbell in <https://github.com/cosmos/ibc-go/pull/6231>
+- build(deps): Bump golangci/golangci-lint-action from 5.0.0 to 5.1.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6244>
+- chore:fix export function name by @seay404 in <https://github.com/cosmos/ibc-go/pull/6247>
+- chore:fix export function name by @seay404 in <https://github.com/cosmos/ibc-go/pull/6249>
+- build(deps): Bump github.com/cometbft/cometbft from 0.38.6 to 0.38.7 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6239>
+- build(deps): Bump google.golang.org/protobuf from 1.33.0 to 1.34.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6245>
+- docs: add list of module safe queries and link to SDK docs by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6246>
+- build(deps): Bump golangci/golangci-lint-action from 5.1.0 to 5.3.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6258>
+- imp(apps): allow one sided fee middleware handshakes to complete by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6253>
+- chore: disable failing grandpa tests due to hyperspace event attr parsing by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6259>
+- chore: reduce allocations  by @hoank101 in <https://github.com/cosmos/ibc-go/pull/6233>
+- chore(api!): move additional methods to light client module by @TropicalDog17 in <https://github.com/cosmos/ibc-go/pull/6230>
+- build(deps): Bump golangci/golangci-lint-action from 5.3.0 to 6.0.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6266>
+- build(deps): Bump google.golang.org/protobuf from 1.34.0 to 1.34.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6265>
+- fix: delete already refunded fees from state if some fee cannot be refunded on channel closure by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6255>
+- imp: check length of slices of messages by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6256>
+- nit: remove needless logger variables by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6262>
+- build(deps): Bump golangci/golangci-lint-action from 6.0.0 to 6.0.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6277>
+- chore: fix minor typos by @icarus012832 in <https://github.com/cosmos/ibc-go/pull/6285>
+- build(deps): Bump cosmossdk.io/api from 0.7.4 to 0.7.5 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6282>
+- e2e: add compatibility tests for v7.5.x and v8.3.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6228>
+- imp: allow memo strings instead of keys for transfer authorizations by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6268>
+- fix: noop on UpdateState for invalid misbehaviour by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6276>
+- docs: bump docusaurus to v3.3 and improve kapa ai by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6294>
+- Typo fix by @ma68584703 in <https://github.com/cosmos/ibc-go/pull/6298>
+- imp: add updateClientCheckTx to redunant relayer ante decorator by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6279>
+- docs: documentation for v7.5.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6271>
+- fix(e2e/internal/directories): fix potential infinite loop  by @kien6034 in <https://github.com/cosmos/ibc-go/pull/6287>
+- docs: fixed compile error by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6312>
+- upgrade checkout action to version using node20 by @cario-dev in <https://github.com/cosmos/ibc-go/pull/6308>
+- chore: fix portkeeper `Route` arg naming by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6316>
+- refactor: remove unnecessary exported.Proof interface type by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6320>
+- build(deps): Bump google.golang.org/grpc from 1.63.2 to 1.64.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6318>
+- chore: update compatibility tests with v7.5.0 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6309>
+- docs: documentation for v8.3.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6311>
+- chore(ante): refactor ante tests to use expected errors by @TropicalDog17 in <https://github.com/cosmos/ibc-go/pull/6310>
+- fix: no-op rather than panic in solomachine update state by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6313>
+- perf: exclude pruning from tendermint update client in ante handler execution by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6278>
+- perf: minimize necessary execution on recvpacket checktx by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6302>
+- build(deps): Bump JamesIves/github-pages-deploy-action from 4.6.0 to 4.6.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6332>
+- build(deps): Bump bufbuild/buf-setup-action from 1.31.0 to 1.32.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6326>
+- docs: fix kapa.ai analytics config by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6338>
+- perf: minimize logic on rechecktx for recvpacket by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6280>
+- ci: added paths-ignore to e2e-wasm by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6340>
+- docs: added a version matrix to callbacks and 08-wasm by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6339>
+- chore: update compatibility tests after v8.3.0 release by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6322>
+- chore: follow up for testing rest of methods on 07-tendermint light client module by @charleenfei in <https://github.com/cosmos/ibc-go/pull/6135>
+- docs: fix the warning syntax error across docs by @polymaer in <https://github.com/cosmos/ibc-go/pull/6351>
+- build(deps): Bump bufbuild/buf-setup-action from 1.32.0 to 1.32.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6355>
+- docs: updates due to `02-client` routing refactoring by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6049>
+- docs: update 08-wasm v8.3.x docs  by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6361>
+- chore(deps): bump SonarSource/sonarcloud-github-action from 2.1.1 to 2.2.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6366>
+- [FEAT] ICS20-V2 by @chatton in <https://github.com/cosmos/ibc-go/pull/6352>
+- deps: bump go 1.22 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6380>
+- refactor: transfer relay tests by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6321>
+- Revert invalid schema change to wasm.yaml by @chatton in <https://github.com/cosmos/ibc-go/pull/6390>
+- Restore missing log lines by @chatton in <https://github.com/cosmos/ibc-go/pull/6392>
+- fix(transfer): Continue packet processing in recv, refund by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6401>
+- chore(deps): bump docker/login-action from 3.1.0 to 3.2.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6405>
+- refactor: add Denom type and embed into Token by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6409>
+- fix: add toolchain directive to remaining go.mod files by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6408>
+- refactor: remove encoding funcs for DenomTrace by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6411>
+- Refactor panic to use return error by @chatton in <https://github.com/cosmos/ibc-go/pull/6391>
+- refactor: switch usage from `DenomTrace` to `Denom` by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6417>
+- chore(deps): bump bufbuild/buf-setup-action from 1.32.1 to 1.32.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6420>
+- Add additional v2 test cases to callbacks by @chatton in <https://github.com/cosmos/ibc-go/pull/6403>
+- Updated test to use v2 as well as check for acks written by @chatton in <https://github.com/cosmos/ibc-go/pull/6394>
+- refactor: rename GetFullPath to FullPath, add tests, rework impl by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6423>
+- docs: fixed and improved "View Source" on docusaurus code blocks by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6396>
+- refactor: add constructTokenFromCoin func + move IsSource funcs to Denom type by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6426>
+- refactor: remove GetTransferCoin by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6427>
+- refactor: condense v1 denom parsing to single function by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6424>
+- Add more unit tests for ExtractDenomFromFullPath by @chatton in <https://github.com/cosmos/ibc-go/pull/6431>
+- fix(transfer): Don't allow unknown fields during json unmarshalling. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6428>
+- refactor: use typed Trace by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6432>
+- chore: remove RPCs, Request types, add mock responses until removed from dependency. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6433>
+- chore: remove repetitive words in comment and error msg by @suiyuan1314 in <https://github.com/cosmos/ibc-go/pull/6439>
+- cleanup: remove `GetPrefixedDenom` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6440>
+- nit(transfer): rename private functions for coin/token consistency. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6446>
+- nit: rename `FullPath` to `Path` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6437>
+- chore(deps): bump github.com/spf13/viper from 1.18.2 to 1.19.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6450>
+- fix(transfer): look-up channel version before sending a packet by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6410>
+- docs: fix typo by @healthyyyoung in <https://github.com/cosmos/ibc-go/pull/6455>
+- imp: add migration handler for DenomTrace to Denom by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6453>
+- imp: move packet data unmarshalling code to internal pkg by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6452>
+- fix(testing/simapp): append to slice with non-zero initialized length by @BabyHalimao in <https://github.com/cosmos/ibc-go/pull/6444>
+- chore: make function comments match function names by @tcpdumppy in <https://github.com/cosmos/ibc-go/pull/6458>
+- docs: update signature of `UnmarshalPacketData` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6441>
+- chore: rename `refundPacketToken` to `refundPacketTokens` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6463>
+- docs: fix typo by @argentpapa in <https://github.com/cosmos/ibc-go/pull/6488>
+- deps: bump cosmos-sdk to v0.50.7 by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6486>
+- chore: rename `ExtractDenomFromFullPath` to `ExtractDenomFromPath` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6464>
+- chore(transfer): move event functions into internal by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6461>
+- deps: bump cosmossdk.io/upgrade to v0.1.3 by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6489>
+- chore: move logic for getting packet data to its own function by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6475>
+- imp: omit tokens from ledger device display when empty by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6498>
+- Add additional tests and comments for Transfer Authz by @chatton in <https://github.com/cosmos/ibc-go/pull/6484>
+- chore: rename `denomination_trace` event type to `denomination` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6467>
+- Adding helper function to fetch ics20 version by @chatton in <https://github.com/cosmos/ibc-go/pull/6491>
+- chore: emit tokens as json marshalled strings. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6495>
+- Deprecating Token field on MsgTransfer by @chatton in <https://github.com/cosmos/ibc-go/pull/6492>
+- imp: use UNORDERED as default ordering for new ICA channels by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6434>
+- docs: update transfer msg docs with ics20-2 fields by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6504>
+- tests(transfer): remove denom trace usage from relay_tests. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6507>
+- Remove unnecessary methods on client keeper by @GNaD13 in <https://github.com/cosmos/ibc-go/pull/6490>
+- chore(deps): bump goreleaser/goreleaser-action from 5 to 6 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6506>
+- chore(deps): bump golang.org/x/mod from 0.17.0 to 0.18.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/6510>
+- feat(transfer): move telemetry to internal folder by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6513>
+- Disable auto review from coderabbit unless explicitly asked by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6511>
+- refactor: replaced `fmt.Sprintf` with `strconv.FormatBool` for boolean conversions by @MukulKolpe in <https://github.com/cosmos/ibc-go/pull/6516>
+- fix(ica-host): refactor newModuleQuerySafeAllowList to avoid panic by @GAtom22 in <https://github.com/cosmos/ibc-go/pull/6436>
+- chore: Rework Denoms.Sort() to sort by base denom and then trace by @neitdung in <https://github.com/cosmos/ibc-go/pull/6493>
+- feat(transfer): move denom trace to internal folder. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6508>
+- chore:fix comment by @jjjike2021 in <https://github.com/cosmos/ibc-go/pull/6525>
+- fix(transfer): emit denoms as json. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6518>
+- docs: fixed typo for IBC product name in intro section by @merkletreeibc in <https://github.com/cosmos/ibc-go/pull/6523>
+- chore(04-channel): be consistent when formatting enums by @tuantran1702 in <https://github.com/cosmos/ibc-go/pull/6291>
+- chore: use `NewDenom` instead of initialising with `types.Denom` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6514>
+- fix: IBC logo display failure by @tianyeyouyou in <https://github.com/cosmos/ibc-go/pull/6457>
+- tests(transfer): refactor msg_server_test to use multiple coins by default by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6517>
+- codeowners: add Gjermund, remove Charly by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6539>
+- chore: fix typo by @trungnt1811 in <https://github.com/cosmos/ibc-go/pull/6538>
+- chore(deps): bump github.com/cosmos/gogoproto from 1.4.12 to 1.5.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6526>
+- e2e: cache go module dependencies by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6535>
+- ci: only lint on new changes. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6542>
+- e2e: set transfer version depending on the chains' version by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6515>
+- chore: more `types.Denom` to `NewDenom` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6544>
+- docs: update transfer events for previous versions by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6533>
+- ci: add merge_group tag to all required workflows. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6540>
+- chore(deps): bump docker/build-push-action from 5.3.0 to 5.4.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6552>
+- Update ica simulated proposals to check which modules are instantianted. by @Taztingo in <https://github.com/cosmos/ibc-go/pull/6377>
+- chore: fix typo  by @petersssong in <https://github.com/cosmos/ibc-go/pull/6565>
+- docs: made v8 the landing version and bumped docusaurus to v3.4 by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6570>
+- chore(deps): bump google.golang.org/protobuf from 1.34.1 to 1.34.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6572>
+- imp: update style breadcumb for prevent conflict with link item by @tiendn in <https://github.com/cosmos/ibc-go/pull/6573>
+- Update E2E infra to support more than 2 chains by @chatton in <https://github.com/cosmos/ibc-go/pull/6524>
+- chore: use Denom type in transfer/simulation. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6522>
+- chore(deps): bump SonarSource/sonarcloud-github-action from 2.2.0 to 2.3.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6594>
+- code owners: add Nikolas (@bznein) 🥳  by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6597>
+- chore(deps): bump bufbuild/buf-setup-action from 1.32.2 to 1.33.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6601>
+- chore: fix spelling errors by @jgscr in <https://github.com/cosmos/ibc-go/pull/6603>
+- chore: mergify for v7.6.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6611>
+- chore(deps): bump github.com/spf13/cobra from 1.8.0 to 1.8.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6615>
+- fix: ChennelChecker-> ChannelChecker by @lido333 in <https://github.com/cosmos/ibc-go/pull/6620>
+- chore(deps): bump docker/build-push-action from 5.4.0 to 6.0.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6617>
+- tests(e2e): ics20 v2 multidenom by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6290>
+- chore: fix comments by @winniehere in <https://github.com/cosmos/ibc-go/pull/6628>
+- chore: add compatibility tests for v7.6.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6639>
+- Restructure E2Es to setup chain in SetupSuite and create channel in SetupTest #1 by @chatton in <https://github.com/cosmos/ibc-go/pull/6629>
+- refactor!: adapt merkle path to use repeated bytes in favour of strings by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6633>
+- chore(deps): bump docker/build-push-action from 6.0.0 to 6.0.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6649>
+- docs: updates and improvements to integration section by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6438>
+- chore: fix missing arguments in error message by @bznein in <https://github.com/cosmos/ibc-go/pull/6652>
+- chore(deps): bump cosmossdk.io/client/v2 from 2.0.0-beta.1 to 2.0.0-beta.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6664>
+- chore(deps): bump docker/build-push-action from 6.0.1 to 6.1.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6673>
+- docs: explain risk of possible DoS attack on ics29 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6602>
+- (chore) Update wrong comment by @bznein in <https://github.com/cosmos/ibc-go/pull/6684>
+- chore(deps): bump bufbuild/buf-setup-action from 1.33.0 to 1.34.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6686>
+- Fix Wasm E2E Tests by @chatton in <https://github.com/cosmos/ibc-go/pull/6660>
+- Fix the search button overlap with the menu button on mobile by @lichdu29 in <https://github.com/cosmos/ibc-go/pull/6690>
+- chore: fix links by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6672>
+- Wait for blocks after wallet creation by @chatton in <https://github.com/cosmos/ibc-go/pull/6689>
+- chore:fix comments by @lfgtwo in <https://github.com/cosmos/ibc-go/pull/6699>
+- Configure relayers to watch only channels associated with an individual test by @chatton in <https://github.com/cosmos/ibc-go/pull/6685>
+- chore(deps): bump docker/build-push-action from 6.1.0 to 6.2.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6711>
+- chores: post v7.5, v7.6 and v8.3 releases by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6670>
+- docs: add a hyperlink for relayers in the documentation by @lichdu29 in <https://github.com/cosmos/ibc-go/pull/6692>
+- docs: document limits in string fields by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6671>
+- docs: add best practices doc for identifying which channel to use by @colin-axner in <https://github.com/cosmos/ibc-go/pull/6717>
+- deps: update hermes to v1.10.0 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6459>
+- chore(deps): bump github.com/cometbft/cometbft from 0.38.7 to 0.38.8 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6720>
+- [FEAT] ICS20-V2 Path Forwarding by @chatton in <https://github.com/cosmos/ibc-go/pull/6693>
+- (test) Add test for more than one forwarding hop by @bznein in <https://github.com/cosmos/ibc-go/pull/6713>
+- (chore) fix linter issue. by @bznein in <https://github.com/cosmos/ibc-go/pull/6726>
+- chore(api!): mark MsgModuleQuerySafe requests field as non-nullable by @neitdung in <https://github.com/cosmos/ibc-go/pull/6598>
+- refactor: add and use `NewHop` constructor by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6727>
+- imp: replace `Sender/ReceiverChainIsSource` with `HasPrefix` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6705>
+- [chores] Use ibctestcoin.TestCoin through-out tests by @NisTun in <https://github.com/cosmos/ibc-go/pull/6681>
+- nit: prebuild the token array during send transfer by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6729>
+- chore: remove Trace type from protos, replace with Hop by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6728>
+- chore: inline smaller helper functions. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6730>
+- Add support to run full test suite in run-e2e.sh by @chatton in <https://github.com/cosmos/ibc-go/pull/6694>
+- feat: add a method to check if the scope module already exists in the capability keeper by @Pantani in <https://github.com/cosmos/ibc-go/pull/6716>
+- docs: migration docs for transfer multidenom by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6393>
+- [chores] Refactor tests to use different addresses for payee, relayer by @NisTun in <https://github.com/cosmos/ibc-go/pull/6687>
+- [Chores]Setup `ibctesting` with multiple coins by @NisTun in <https://github.com/cosmos/ibc-go/pull/6679>
+- docs: update v9 migration doc for merkle path v2 by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6708>
+- ci: add cron for compatibility tests on main. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6735>
+- chore: move back to nullable forwarding. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6733>
+- chore: propagate ics20 forwarding path in error acknowledgements by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6731>
+- chore:fix var name by @AtomicInnovation321 in <https://github.com/cosmos/ibc-go/pull/6744>
+- Docs improvements by @cratiu222 in <https://github.com/cosmos/ibc-go/pull/6746>
+- refactor!: add v2 `MerklePath` with bytes in favour of strings by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6644>
+- feat: make 09-localhost stateless by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6683>
+- chore(deps): bump docker/build-push-action from 6.2.0 to 6.3.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6751>
+- imp: modify ica controller `NewIBCMiddleware` to default to nil auth module by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6749>
+- chore(deps): bump github.com/cometbft/cometbft from 0.38.8 to 0.38.9 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6737>
+- (test): generate different channelIDs in testing. by @bznein in <https://github.com/cosmos/ibc-go/pull/6748>
+- Cancel in progress workflows on new commit by @chatton in <https://github.com/cosmos/ibc-go/pull/6759>
+- deps: bump capability to v1.0.1 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6747>
+- nit: move isBlocked check outside of loop. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6770>
+- nit(lint): fix linter issue. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6762>
+- feat(transfer): use protobuf for packet data v2 serialisation by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6734>
+- nit(transfer): further simplify telemetry calls. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6761>
+- docs: channel upgrades tutorial by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/5746>
+- chore(deps): bump golang.org/x/mod from 0.18.0 to 0.19.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/6773>
+- chore: mergify for new 08-wasm branches by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6771>
+- refactor: bundle the transition to FLUSHCOMPLETE into a single function by @TropicalDog17 in <https://github.com/cosmos/ibc-go/pull/6327>
+- (test) Test that tokens are successfully forwarded from A to C through B by @bznein in <https://github.com/cosmos/ibc-go/pull/6758>
+- Disable wasm fork workflows by @chatton in <https://github.com/cosmos/ibc-go/pull/6776>
+- chore: refactor TestRefundFeesOnChannelClosure by @TropicalDog17 in <https://github.com/cosmos/ibc-go/pull/6323>
+- Add NoForwarding and EmptyForwardingPacketData helper function to use… by @hakuno2000 in <https://github.com/cosmos/ibc-go/pull/6774>
+- chore(deps): bump JamesIves/github-pages-deploy-action from 4.6.1 to 4.6.3 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6779>
+- doc: fix small spell check by @healthyyyoung in <https://github.com/cosmos/ibc-go/pull/6780>
+- Enable Parallel Transfer Test Suite by @chatton in <https://github.com/cosmos/ibc-go/pull/6721>
+- chore: Create a new test suite ForwardingTestSuite  by @NisTun in <https://github.com/cosmos/ibc-go/pull/6785>
+- nit: settle on forwarded packet terminology by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6788>
+- (test)  - Three chains path forwarding with unwind by @bznein in <https://github.com/cosmos/ibc-go/pull/6778>
+- fix: loc badge by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6789>
+- chore(core/02-client): remove the legacy handler for 02-client. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6777>
+- docs: restructure function docs to mention both cases separately. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6781>
+- imp: remove `Route` method in favour of `Verify(Non)Membership` on client keeper by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6760>
+- feat(simapp): move simapp binary into its own go.mod by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6710>
+- docs: update migration docs for merkle path v2 changes by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6757>
+- chore(core/02-client): remove legacy proposal types. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6782>
+- ci: update workflow fork conditions to allow run on copies by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6783>
+- refactor(core)!: move telemetry into internal folder by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6763>
+- ci: update manual docker build wasm-simd workflow by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6772>
+- fix: add condition to e2e-fork workflow by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6796>
+- (test) Add test for path forwarding with channel upgrade  by @bznein in <https://github.com/cosmos/ibc-go/pull/6793>
+- Make keep containers configurable by @chatton in <https://github.com/cosmos/ibc-go/pull/6795>
+- Enabling additional tests to run in parallel by @chatton in <https://github.com/cosmos/ibc-go/pull/6766>
+- chore: remove gov v1beta1 from simapp by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6798>
+- chore: remove UnmarshalJSON implementation for packet data v2. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6803>
+- nit: use getters that guard against a nil pointer. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6804>
+- refactor: use unexported types for core query servers by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6794>
+- create generic helper function for parsing event attributes by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/6792>
+- IBC Permissioning Guide by @AdityaSripal in <https://github.com/cosmos/ibc-go/pull/6797>
+- chore(deps): bump github.com/CosmWasm/wasmvm/v2 from 2.0.1 to 2.1.0 in /modules/light-clients/08-wasm by @dependabot in <https://github.com/cosmos/ibc-go/pull/6807>
+- nit: move telemetry out of if clauses. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6799>
+- refactor(tests): use multidenom by default in relay_test by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6767>
+- fix(08-wasm): decode checksum hex string to bytes in migrate contract CLI by @kien6034 in <https://github.com/cosmos/ibc-go/pull/6815>
+- nit: make panics into errors for CreatePacketDataFromVersion by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6816>
+- chore: update example go work file by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6819>
+- chore(deps): bump docker/build-push-action from 6.3.0 to 6.4.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6821>
+- nit: remove nil check on module address. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6811>
+- imp: pass client store provider as arg to client modules by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6028>
+- feat: Assert packet acknowledgement in e2e tests by @PanGan21 in <https://github.com/cosmos/ibc-go/pull/6802>
+- use generic helper function for parsing event attributes by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/6836>
+- nit: remove unecessary wrapping of acknowledgment error in recv callback by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6846>
+- chore: remove UpdateLocalhostClient func from 02-client by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6839>
+- docs: update transfer docs with support for path forwarding by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6813>
+- chore: make forward packet key a byte key, use big endian for sequence by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6847>
+- e2e: add `forwarding` to `Transfer` function of e2e test suite by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6840>
+- nit: add interface assertions for packet v2. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6844>
+- chore(deps): bump github.com/cometbft/cometbft from 0.38.9 to 0.38.10 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6848>
+- refactor: simplify 02-client router funcs by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6837>
+- chore(deps): bump docker/build-push-action from 6.4.0 to 6.4.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6859>
+- chore: bump module path to v9 by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6820>
+- imp: remove ClientStoreProvider interface in favour of concrete type by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6863>
+- chore: rm ClientStore method from expected client keeper by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6862>
+- nit: move sender checks outside loop, tweak error message. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6812>
+- imp: rm internal/keeper from 07-tendermint until its needed by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6864>
+- imp(transfer): allow unwinding of multiple tokens by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6841>
+- chore: mergify task for v9.0.x backport by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6856>
+- docs: remove non-hex attributes by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6868>
+- all: use `errors.New` to replace `fmt.Errorf` with no parameters by @yukionfire in <https://github.com/cosmos/ibc-go/pull/6869>
+- events: add channel ordering to write acknowledgement event by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6867>
+- chore(transfer): remove legacy denomtrace grpc responses. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6866>
+- imp: add syntax highlight for go and diff on doc site by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6873>
+- (test) Add tests for callback execution when forwarding a packet by @bznein in <https://github.com/cosmos/ibc-go/pull/6805>
+- (chore) update imports to v9 by @bznein in <https://github.com/cosmos/ibc-go/pull/6885>
+- fix(compat): fix localhost failing on invalid version being passed. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6875>
+- (tests): e2e test for failed forwarding by @bznein in <https://github.com/cosmos/ibc-go/pull/6876>
+- chore(core, solomachine)!: remove TypeClientMisbehaviour and Type method on Misbehaviour by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6888>
+- chore(core): rename back to VerifyMembership. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6887>
+- docs: add `forwarding` argument to `NewMsgTransfer` by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6895>
+- nit(08-wasm): export expected interfaces used as args in functions. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6889>
+- nit(07-tendermint): remove unused authority argument. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6890>
+- feat(core): return client identifier in create client response. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6886>
+- docs: migration doc updates for 08-wasm v8 to v9 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6845>
+- e2e: compatibility tests for v9 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6892>
+- chore: fix some comments by @yingshanghuangqiao in <https://github.com/cosmos/ibc-go/pull/6909>
+- chore(06-solomachine, 07-tendermint): make client state methods moved to lcm private by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6891>
+- chore: make UnmarshalPacketData public by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6897>
+- chore: moved the CONTRACT godoc to doc.go by @vishal-kanna in <https://github.com/cosmos/ibc-go/pull/6894>
+- chore(deps): bump docker/login-action from 3.2.0 to 3.3.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6914>
+- chore(deps): bump docker/build-push-action from 6.4.1 to 6.5.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6915>
+- (feat) Add possibility to transfer entire balance. by @bznein in <https://github.com/cosmos/ibc-go/pull/6877>
+- chore(deps): bump bufbuild/buf-setup-action from 1.34.0 to 1.35.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6922>
+- chore: mergify for v7.7.x and v8.4.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6917>
+- nit: rename arguments of `acknowledgeForwardedPacket` for clarity by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6932>
+- chore(api!): Replace GetRouter with AddRoute in 02-client keeper. by @bznein in <https://github.com/cosmos/ibc-go/pull/6934>
+- (chore) disallow unknown fields29 fee ack by @bznein in <https://github.com/cosmos/ibc-go/pull/6933>
+- docs: polishing and adding more API breaking changes to changelog and v9 migration by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6925>
+- fix(state!): check upgrade compatibility in channel upgrade confirm by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6935>
+- e2e: send entire balance of single denom in v1 channels by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6939>
+- e2e: compatibility tests for v7.7.x and 8.4.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6940>
+- chore(deps): bump bufbuild/buf-setup-action from 1.35.0 to 1.35.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6946>
+- imp: emit defaults when marshalling clienttypes.Height to json by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6640>
+- feat: add channel version to core app callbacks by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/6902>
+- docs: update migration docs for 08-wasm pre-releases by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6927>
+- e2e: entire balance compatibility for v7.7.x, v8.4.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6956>
+- Add error for indicating Mashal/Unmarshaling failures by @chandiniv1 in <https://github.com/cosmos/ibc-go/pull/6904>
+- megify(08-wasm): adding backport for latest release lines, removing for previous ones by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6964>
+- docs: changelog and migration docs for #6960 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6973>
+- docs(`update_client` event): remove header, add consensus heights by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6963>
+- add @DimitrisJim as codeowner of transfer module by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6959>
+- docs: v7.7.x and v8.4.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6957>
+- refactor: use client module for status checks in 02-client handlers by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6919>
+- chores after releases by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6966>
+- api!: delete v1 merkle path and register v2 merkle path against interface on cdc by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6870>
+- api!: rename path to merkle path for contract api json msgs  by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/6962>
+- chore(deps): bump golangci/golangci-lint-action from 6.0.1 to 6.1.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/6991>
+- Fix transfer entire balance E2E by @chatton in <https://github.com/cosmos/ibc-go/pull/6993>
+- chore: make handleFlushing return void. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6979>
+- Adding version to UnmarshalPacketData interface by @chatton in <https://github.com/cosmos/ibc-go/pull/6988>
+- Update changelog for unmarshal packet data interface change by @chatton in <https://github.com/cosmos/ibc-go/pull/7001>
+- Update mergify.yml for new 08-wasm release branches by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6998>
+- docs: amend docs for 08 wasm releases by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/7002>
+- Update E2E Readme and simplify configuration by @chatton in <https://github.com/cosmos/ibc-go/pull/6834>
+- fix(transfer): add forwarded packets to genesis. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/6861>
+- refactor!: remove 24-host path function in favour of sybling key functions by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7016>
+- chore: fix function names by @pengbanban in <https://github.com/cosmos/ibc-go/pull/7040>
+- Supply app version to contract keeper by @chatton in <https://github.com/cosmos/ibc-go/pull/7000>
+- imp!: removed 'ConsensusHost' interface by @srdtrk in <https://github.com/cosmos/ibc-go/pull/6937>
+- deps: bump cosmos-sdk to v0.50.9 by @damiannolan in <https://github.com/cosmos/ibc-go/pull/6828>
+- chore(deps): bump github.com/cosmos/cosmos-sdk from 0.50.8 to 0.50.9 in /modules/capability by @dependabot in <https://github.com/cosmos/ibc-go/pull/7077>
+- chore(deps): bump bufbuild/buf-setup-action from 1.35.1 to 1.36.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7070>
+- chore(deps): bump docker/build-push-action from 6.5.0 to 6.6.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7071>
+- chore(deps): bump golang.org/x/mod from 0.19.0 to 0.20.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/7050>
+- chore(deps): bump github.com/spf13/cast from 1.6.0 to 1.7.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7079>
+- chore: regen swagger docs using make proto-swagger-gen by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/7005>
+- chore: add simapp to dependabot by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/7039>
+- chore(deps): bump cosmossdk.io/log from 1.3.1 to 1.4.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7078>
+- docs: Path unwinding and forwarding requirements by @womensrights in <https://github.com/cosmos/ibc-go/pull/6027>
+- chore: setup new major release cycle docs/workflow by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7054>
+- chore(deps): bump cosmossdk.io/client/v2 from 2.0.0-beta.3 to 2.0.0-beta.4 in /simapp by @dependabot in <https://github.com/cosmos/ibc-go/pull/7085>
+- refactor: remove ics27 channel capability migration introduced in v6 by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7053>
+- chore(deps): bump docker/build-push-action from 6.6.0 to 6.6.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7097>
+- chore(deps): bump github.com/cosmos/gogoproto from 1.5.0 to 1.6.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7101>
+- chore(deps): bump github.com/CosmWasm/wasmvm/v2 from 2.1.0 to 2.1.1 in /modules/light-clients/08-wasm by @dependabot in <https://github.com/cosmos/ibc-go/pull/7099>
+- fix: allow unwind on its own and don't fail if only two arguments are provided by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/7090>
+- chore: fix some function names by @drawdrop in <https://github.com/cosmos/ibc-go/pull/7131>
+- chore: fix typos by @Hemanthghs in <https://github.com/cosmos/ibc-go/pull/7137>
+- chore(deps): bump github.com/CosmWasm/wasmvm/v2 from 2.1.1 to 2.1.2 in /modules/light-clients/08-wasm by @dependabot in <https://github.com/cosmos/ibc-go/pull/7114>
+- revert: accidental change of consensus height to pointer by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7130>
+- chore(deps): bump docker/build-push-action from 6.6.1 to 6.7.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7157>
+- chore(deps): bump github.com/cometbft/cometbft from 0.38.10 to 0.38.11 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7126>
+- chore(deps): bump cosmossdk.io/tools/confix from 0.1.1 to 0.1.2 in /simapp by @dependabot in <https://github.com/cosmos/ibc-go/pull/7173>
+- chore(deps): bump github.com/cosmos/gogoproto from 1.6.0 to 1.7.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7171>
+- chore(deps): bump cosmossdk.io/tools/confix from 0.1.1 to 0.1.2 in /modules/apps/callbacks by @dependabot in <https://github.com/cosmos/ibc-go/pull/7168>
+- chore(deps): bump cosmossdk.io/tools/confix from 0.1.1 to 0.1.2 in /modules/light-clients/08-wasm by @dependabot in <https://github.com/cosmos/ibc-go/pull/7169>
+- Tendermint Light Client Documentation by @AdityaSripal in <https://github.com/cosmos/ibc-go/pull/6801>
+- chore(deps): bump cosmossdk.io/log from 1.4.0 to 1.4.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7182>
+- chore: use expected errors in ica host test. by @bznein in <https://github.com/cosmos/ibc-go/pull/7181>
+- Fix failing transfer e2es by @chatton in <https://github.com/cosmos/ibc-go/pull/7187>
+- (chore) change tests in 27ica/controller to expect specific error by @bznein in <https://github.com/cosmos/ibc-go/pull/7177>
+- chore(deps): bump bufbuild/buf-setup-action from 1.36.0 to 1.37.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7189>
+- chore(deps): bump SonarSource/sonarcloud-github-action from 2.3.0 to 3.0.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7192>
+- chore(deps): bump tj-actions/changed-files from 44 to 45 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7202>
+- chores for release branches v7.8.x and v8.5.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7188>
+- Fix email link in SECURITY.md by @webmaster128 in <https://github.com/cosmos/ibc-go/pull/7203>
+- docs: update transfer cli docs by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7113>
+- chore(deps): bump bufbuild/buf-setup-action from 1.37.0 to 1.38.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7206>
+- mergify for 08-wasm with v9.0.x by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7200>
+- chore: fix some comments by @haouvw in <https://github.com/cosmos/ibc-go/pull/7208>
+- refactor: migrate from sdk.Context to Context.Context (1/n) by @tac0turtle in <https://github.com/cosmos/ibc-go/pull/7058>
+- (chore): use expected errors in 29fee by @bznein in <https://github.com/cosmos/ibc-go/pull/7191>
+- refactor: migrate from sdk.Context to Context.Context (2/n) by @tac0turtle in <https://github.com/cosmos/ibc-go/pull/7081>
+- chore: expect specific errors in apps/transfer by @bznein in <https://github.com/cosmos/ibc-go/pull/7205>
+- chore(deps): bump bufbuild/buf-setup-action from 1.38.0 to 1.39.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7214>
+- chore(deps): bump google.golang.org/grpc from 1.65.0 to 1.66.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/7215>
+- chore(deps): bump google.golang.org/grpc from 1.65.0 to 1.66.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7219>
+- chore (api)!: remove capabilities from SendPacket by @bznein in <https://github.com/cosmos/ibc-go/pull/7213>
+- deps: bump ics23 to v0.11.0 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7224>
+- nit: remove useless code by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7228>
+- chore (api)!: remove capabilities from WriteAcknowledgement by @bznein in <https://github.com/cosmos/ibc-go/pull/7225>
+- chore: rewrite capability to not use sdk.Context by @tac0turtle in <https://github.com/cosmos/ibc-go/pull/7089>
+- chore: context cleanup (4/n) by @tac0turtle in <https://github.com/cosmos/ibc-go/pull/7217>
+- chore (api)!: remove capabilities from channel handshakes by @bznein in <https://github.com/cosmos/ibc-go/pull/7232>
+- chore: remove exp pkg by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7237>
+- chore(deps): bump JamesIves/github-pages-deploy-action from 4.6.3 to 4.6.4 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7240>
+- chore(deps): bump peter-evans/create-pull-request from 6 to 7 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7241>
+- chore(deps): bump github.com/cometbft/cometbft from 0.38.11 to 0.38.12 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7247>
+- chore: remove unused capabilities methods and clean up tests. by @bznein in <https://github.com/cosmos/ibc-go/pull/7239>
+- chore (api)!: remove LookupModuleByPort by @bznein in <https://github.com/cosmos/ibc-go/pull/7252>
+- chore: after v7.8.0 and v8.5.0 by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7233>
+- docs: discourage usage of source callbacks in memo field by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7253>
+- chore(deps): bump bufbuild/buf-setup-action from 1.39.0 to 1.40.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7256>
+- chore(deps): bump golang.org/x/mod from 0.20.0 to 0.21.0 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/7257>
+- chore(deps): bump cosmossdk.io/store from 1.1.0 to 1.1.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7264>
+- chore(deps): bump bufbuild/buf-setup-action from 1.40.0 to 1.40.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7268>
+- chore: remove capabilities methods from testing by @bznein in <https://github.com/cosmos/ibc-go/pull/7269>
+- docs: some improvements to v9 migration docs by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7258>
+- chore: update go work example go toolchain by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7272>
+- chore(deps): bump google.golang.org/grpc from 1.66.0 to 1.66.1 in /e2e by @dependabot in <https://github.com/cosmos/ibc-go/pull/7274>
+- api!: remove capabilities by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7270>
+- chore (api!): removal of capabilites module and all references to it. by @bznein in <https://github.com/cosmos/ibc-go/pull/7279>
+- chore(deps): bump google.golang.org/grpc from 1.66.0 to 1.66.1 in /modules/light-clients/08-wasm by @dependabot in <https://github.com/cosmos/ibc-go/pull/7276>
+- fix: attempt to fix panics for unresolvable imports by using GogoResolver by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7277>
+- chore(deps): bump google.golang.org/grpc from 1.66.0 to 1.66.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7275>
+- chore(deps): bump DavidAnson/markdownlint-cli2-action from 16 to 17 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7286>
+- chore(deps): bump bufbuild/buf-setup-action from 1.40.1 to 1.41.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7290>
+- chore(deps): bump google.golang.org/grpc from 1.66.1 to 1.66.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7289>
+- chore(deps): bump bufbuild/buf-setup-action from 1.41.0 to 1.42.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7311>
+- docs: fix some typos by @odyslaeth in <https://github.com/cosmos/ibc-go/pull/7320>
+- chore(deps): bump cosmossdk.io/x/tx from 0.13.4 to 0.13.5 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7306>
+- chore(deps): bump cosmossdk.io/client/v2 from 2.0.0-beta.3 to 2.0.0-beta.5 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7312>
+- chore(deps): bump google.golang.org/grpc from 1.66.2 to 1.67.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7319>
+- fix: update eol dates for callbacks and wasm by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7322>
+- chore: remove capabilities from docs by @bznein in <https://github.com/cosmos/ibc-go/pull/7293>
+- chore: rm capabilities references in workflows, markdown files by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7323>
+- chore: refactored README for interactivity and readability by @goodylili in <https://github.com/cosmos/ibc-go/pull/7321>
+- refactor: remove internal dep on historical info in testing package by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7305>
+- chore(deps): bump cosmossdk.io/api from 0.7.5 to 0.7.6 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7330>
+- add ics20 v2 audit report by @adiraviraj in <https://github.com/cosmos/ibc-go/pull/7339>
+- chore: remove myself as codeowner by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7338>
+- docs: add transfer v2 audit information by @adiraviraj in <https://github.com/cosmos/ibc-go/pull/7340>
+- chore(deps): bump docker/build-push-action from 6.7.0 to 6.8.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7341>
+- fix: avoid Address cannot be empty error when upgrade-channels by @mmsqe in <https://github.com/cosmos/ibc-go/pull/7342>
+- chore(deps): bump JamesIves/github-pages-deploy-action from 4.6.4 to 4.6.8 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7343>
+- chore(deps): bump docker/build-push-action from 6.8.0 to 6.9.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7344>
+- chore(deps): bump bufbuild/buf-setup-action from 1.42.0 to 1.43.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7360>
+- chore(deps): bump google.golang.org/grpc from 1.67.0 to 1.67.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7363>
+- chores after v9.0.0 release by @crodriguezvega in <https://github.com/cosmos/ibc-go/pull/7376>
+- chore(deps): bump golangci/golangci-lint-action from 6.1.0 to 6.1.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7391>
+- chore(deps): bump SonarSource/sonarcloud-github-action from 3.0.0 to 3.1.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7395>
+- docs: fix some typos by @odyslaeth in <https://github.com/cosmos/ibc-go/pull/7393>
+- chore(deps): bump bufbuild/buf-setup-action from 1.43.0 to 1.44.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7394>
+- fix: avoid invalid identifier error when validate genesis by @mmsqe in <https://github.com/cosmos/ibc-go/pull/7397>
+- chore(deps): bump google.golang.org/protobuf from 1.34.2 to 1.35.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7402>
+- chore(deps): bump bufbuild/buf-setup-action from 1.44.0 to 1.45.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7427>
+- ci: mergify updates by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7439>
+- feat(ci): proto-breaking-check workflow by @kobakaku in <https://github.com/cosmos/ibc-go/pull/7440>
+- fix(lint): replace loopvar linter by @kobakaku in <https://github.com/cosmos/ibc-go/pull/7442>
+- chore: prune unnecessary cosmossdk.io/client/v2 dependency by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7455>
+- chore: remove mock from top level simapp app.go by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7444>
+- nit: use CommitmentProof_Nonexist in expected type error by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7474>
+- chore: remove autocli references in testing structure by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7475>
+- refactor: remove `Batch` proof fn's by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7486>
+- imp: use error returns in VerifyMembership fns by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7492>
+- chore(deps): bump bufbuild/buf-setup-action from 1.45.0 to 1.46.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7526>
+- chore(docs): delete not exist file path by @odyslaeth in <https://github.com/cosmos/ibc-go/pull/7518>
+- chore: remove myself, @colin-axner, as codeowner by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7527>
+- chore: lockin cosmos-sdk v0.50.10 by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7532>
+- chore(deps): bump github.com/cometbft/cometbft from 0.38.12 to 0.38.13 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7516>
+- Ignore files with no tests when searching for test files by @chatton in <https://github.com/cosmos/ibc-go/pull/7541>
+- chore(deps): bump github.com/cometbft/cometbft from 0.38.13 to 0.38.15 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7540>
+- chore(deps): bump google.golang.org/grpc from 1.67.1 to 1.68.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7545>
+- refactor: remove simd from callbacks module by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7506>
+- chore: init receipts in new genesis state function. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/7542>
+- chore(deps): bump JamesIves/github-pages-deploy-action from 4.6.8 to 4.6.9 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7548>
+- docs: land on v9 by default by @srdtrk in <https://github.com/cosmos/ibc-go/pull/7553>
+- Dynamically generate compatibility test files by @chatton in <https://github.com/cosmos/ibc-go/pull/7547>
+- chore(deps): bump google.golang.org/protobuf from 1.35.1 to 1.35.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7567>
+- chore(deps): bump bufbuild/buf-setup-action from 1.46.0 to 1.47.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7565>
+- chore(deps): bump DavidAnson/markdownlint-cli2-action from 17 to 18 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7572>
+- chore(deps): bump actions/setup-python from 4 to 5 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7570>
+- chore(deps): bump bufbuild/buf-setup-action from 1.47.0 to 1.47.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7571>
+- imp: cleanup verifcation arg code for 23-commitment by @colin-axner in <https://github.com/cosmos/ibc-go/pull/7493>
+- Correctly parse the skip field for compatibility tests by @chatton in <https://github.com/cosmos/ibc-go/pull/7573>
+- chore(deps): bump docker/metadata-action from 5.5.1 to 5.6.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7575>
+- Update CI Documentation by @chatton in <https://github.com/cosmos/ibc-go/pull/7539>
+- chore(deps): bump docker/build-push-action from 6.9.0 to 6.10.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7602>
+- chore: fix some problematic comment by @mountcount in <https://github.com/cosmos/ibc-go/pull/7609>
+- chore(deps): bump JamesIves/github-pages-deploy-action from 4.6.9 to 4.7.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7612>
+- chore(deps): bump github.com/stretchr/testify from 1.9.0 to 1.10.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7598>
+- chore(deps): bump github.com/cosmos/cosmos-db from 1.0.2 to 1.1.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7599>
+- chore(deps): bump cosmossdk.io/math from 1.3.0 to 1.4.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7585>
+- Simplify E2E Configuration by @chatton in <https://github.com/cosmos/ibc-go/pull/7568>
+- Remove myself @chatton from CODEOWNERS file by @chatton in <https://github.com/cosmos/ibc-go/pull/7611>
+- ci(mergify): upgrade configuration to current format by @mergify in <https://github.com/cosmos/ibc-go/pull/7589>
+- chore(deps): bump JamesIves/github-pages-deploy-action from 4.7.1 to 4.7.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7620>
+- chore(deps): bump SonarSource/sonarcloud-github-action from 3.1.0 to 4.0.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7623>
+- chore(deps): bump google.golang.org/grpc from 1.68.0 to 1.68.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7622>
+- (chore): Remove @bznein from codeowners by @bznein in <https://github.com/cosmos/ibc-go/pull/7626>
+- chore: use errors.New to replace fmt.Errorf with no parameters by @ChengenH in <https://github.com/cosmos/ibc-go/pull/7640>
+- chore: uses errors.New by @biemoh in <https://github.com/cosmos/ibc-go/pull/7653>
+- chore: fix some function names in comment by @soonsouth in <https://github.com/cosmos/ibc-go/pull/7651>
+- (chore) change tests in 23-commitment/types to expect specific error by @NagaTulasi in <https://github.com/cosmos/ibc-go/pull/7652>
+- chore: use errors in connection msg by @biemoh in <https://github.com/cosmos/ibc-go/pull/7656>
+- Clean up: linting, formatting, and spelling corrections by @likesToEatFish in <https://github.com/cosmos/ibc-go/pull/7655>
+- (chore) update tests in core/24-host to expect specific error by @PrathyushaLakkireddy in <https://github.com/cosmos/ibc-go/pull/7657>
+- chores: fix function name by @biemoh in <https://github.com/cosmos/ibc-go/pull/7663>
+- fix tests: update tests in 02-client, use expected errors by @likesToEatFish in <https://github.com/cosmos/ibc-go/pull/7662>
+- chores: fix more connection tests by @biemoh in <https://github.com/cosmos/ibc-go/pull/7664>
+- (chore) update tests in modules/core/keeper tests to expect specific error by @NagaTulasi in <https://github.com/cosmos/ibc-go/pull/7660>
+- (chore) update tests in internal and 09-localhost tests to expect specific error by @NagaTulasi in <https://github.com/cosmos/ibc-go/pull/7661>
+- fix tests: update tests in 08-wasm, use expected errors by @likesToEatFish in <https://github.com/cosmos/ibc-go/pull/7667>
+- fix tests: update tests in 03-connection, use expected errors by @likesToEatFish in <https://github.com/cosmos/ibc-go/pull/7666>
+- (chore) update tests in light-clients/06-solomachine to expect specific error by @PrathyushaLakkireddy in <https://github.com/cosmos/ibc-go/pull/7659>
+- chores: fix codec tests to use error by @biemoh in <https://github.com/cosmos/ibc-go/pull/7669>
+- chores: fix final connection tests by @biemoh in <https://github.com/cosmos/ibc-go/pull/7670>
+- fix mispells in code by @ikalyak in <https://github.com/cosmos/ibc-go/pull/7672>
+- (chore) update tests in modules/light-clients/07-tendermint/ tests to expect specific error by @NagaTulasi in <https://github.com/cosmos/ibc-go/pull/7665>
+- feat: add support for transfer entire balance for vesting accounts by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7650>
+- chore(deps): bump cosmossdk.io/x/tx from 0.13.5 to 0.13.6 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7678>
+- fix tests: update tests in 04-channel/keeper , use expected errors by @likesToEatFish in <https://github.com/cosmos/ibc-go/pull/7671>
+- chores: use error in test unmarshal by @biemoh in <https://github.com/cosmos/ibc-go/pull/7679>
+- chore(deps): bump google.golang.org/grpc from 1.68.1 to 1.69.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7690>
+- docs: The method description should be standardized. by @RiceChuan in <https://github.com/cosmos/ibc-go/pull/7692>
+- Fix: Correct Typographical Errors in Documentation by @vipocenka in <https://github.com/cosmos/ibc-go/pull/7693>
+- chore: remove duplicate words by @lfgtwo in <https://github.com/cosmos/ibc-go/pull/7674>
+- deps: update to cosmos-sdk v0.52 (Olympus) by @tac0turtle in <https://github.com/cosmos/ibc-go/pull/7261>
+- chore: update import alias to align by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7710>
+- chore(deps): bump google.golang.org/protobuf from 1.35.2 to 1.36.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7708>
+- fix experror in two places by @iIvaki in <https://github.com/cosmos/ibc-go/pull/7704>
+- fix many typos by @iIvaki in <https://github.com/cosmos/ibc-go/pull/7703>
+- fix tests: update tests in 04-channel/types , use expected errors by @likesToEatFish in <https://github.com/cosmos/ibc-go/pull/7680>
+- refactor: update icahost to use runtime.Environment by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7600>
+- refactor: use header info for interchain accounts address generation by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7713>
+- chore(docs):spellchecker by @argentpapa in <https://github.com/cosmos/ibc-go/pull/7719>
+- code-Update Dockerfile by @romashka-btc in <https://github.com/cosmos/ibc-go/pull/7718>
+- Corrected spelling and grammar mistakes by @detrina in <https://github.com/cosmos/ibc-go/pull/7716>
+- chore: fix linter repeated string error by @biemoh in <https://github.com/cosmos/ibc-go/pull/7714>
+- fix: use experror. by @ikalyak in <https://github.com/cosmos/ibc-go/pull/7717>
+- [chores] Update spell checker by @NisTun in <https://github.com/cosmos/ibc-go/pull/7721>
+- Remove circuit module by @ikalyak in <https://github.com/cosmos/ibc-go/pull/7715>
+- refactor: update transfer to use runtime.Environment by @bznein in <https://github.com/cosmos/ibc-go/pull/7615>
+- nit: axe stale mispell ignore file. by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/7723>
+- refactor: use event service in transfer mod by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7725>
+- refactor: update 29-fee to use runtime.Environment by @bznein in <https://github.com/cosmos/ibc-go/pull/7617>
+- chore(deps): bump github.com/spf13/cast from 1.7.0 to 1.7.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7726>
+- chore (04-channel): use IBC channel sentinel errors in genesis validate by @DongLieu in <https://github.com/cosmos/ibc-go/pull/7675>
+- chore: fix spelling errors by @github-actions in <https://github.com/cosmos/ibc-go/pull/7724>
+- chore: refactor event service to 29-fee by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7728>
+- fix experror in param test by @iIvaki in <https://github.com/cosmos/ibc-go/pull/7731>
+- chore: remove reference to TestGrandpaTestSuite by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7733>
+- chore: address some linter complaints by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7734>
+- fix: linter errors by @ikalyak in <https://github.com/cosmos/ibc-go/pull/7738>
+- fix: use experror by @ikalyak in <https://github.com/cosmos/ibc-go/pull/7737>
+- chore: fix test TestValidateGenesisState, use expected errors by @essenmeoikia in <https://github.com/cosmos/ibc-go/pull/7730>
+- refactor: use branch service in 29-fee by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7732>
+- chore: fix struct field name in comment by @goodfirm in <https://github.com/cosmos/ibc-go/pull/7740>
+- chore(deps): bump google.golang.org/grpc from 1.69.0 to 1.69.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7746>
+- chore(deps): bump github.com/cosmos/cosmos-db from 1.1.0 to 1.1.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7747>
+- chore(deps): bump cosmossdk.io/x/accounts/defaults/base from 0.0.0-20241218104812-cb56c6e47f76 to 0.2.0-rc.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7745>
+- fixed exp error in modules/04-channel/types/packet-test.go by @iIvaki in <https://github.com/cosmos/ibc-go/pull/7749>
+- fixed exp error in modules/02-client/types/client-test.go by @iIvaki in <https://github.com/cosmos/ibc-go/pull/7741>
+- chore: add backport tasks for new release branches by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7748>
+- chore: fix test  TestValidateControllerGenesisState, use expected errors by @meoaka3 in <https://github.com/cosmos/ibc-go/pull/7753>
+- chore: added changelog entry for vesting account balance transfer by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7755>
+- refactor: ibc core runtime env by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7601>
+- chore: fix test TestValidateHostGenesisState, use expected errors by @meoaka3 in <https://github.com/cosmos/ibc-go/pull/7756>
+- chore(deps): bump wasmvm to v2.1.4 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7735>
+- chore: use header service in localhost client by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7757>
+- chore: fix mergify task for 08-wasm by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7759>
+- Axe myself from CODEOWNERS by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/7750>
+- chore: fix test TestGenesisAccountValidate, use expected errors by @meoaka3 in <https://github.com/cosmos/ibc-go/pull/7763>
+- chore(deps): bump bufbuild/buf-setup-action from 1.47.2 to 1.48.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7765>
+- chore: fix spell-checker by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7774>
+- chore: fix spelling errors by @github-actions in <https://github.com/cosmos/ibc-go/pull/7776>
+- chore: remove unecessary/unused github actions by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7772>
+- chore: no need to declare new variables by @essenmeoikia in <https://github.com/cosmos/ibc-go/pull/7751>
+- chore: fix test TestValidateControllerMetadata, use expected errors by @meoaka3 in <https://github.com/cosmos/ibc-go/pull/7773>
+- chore: fix test TestValidateBasic(27-interchain-accounts/packet), use expected errors by @essenmeoikia in <https://github.com/cosmos/ibc-go/pull/7775>
+- chore: fix test TestNewControllerPortID, use expected errors by @solkorap7 in <https://github.com/cosmos/ibc-go/pull/7777>
+- chore: fix to use exp error in test TestValidateHostMetadata by @Noulodado in <https://github.com/cosmos/ibc-go/pull/7778>
+- chore: use exp error in test TestParseClientIdentifier by @solkorap7 in <https://github.com/cosmos/ibc-go/pull/7779>
+- chore: fix test TestSerializeAndDeserializeCosmosTx, use expected errors by @meoaka3 in <https://github.com/cosmos/ibc-go/pull/7780>
+- docs: update integration guide for ibc-go v7 and v8 by @ronething-bot in <https://github.com/cosmos/ibc-go/pull/7781>
+- Combine functions TestGetSourceCallbackDataTransfer and TestGetDestCallbackDataTransfer by @lacsomot in <https://github.com/cosmos/ibc-go/pull/7694>
+- fix: typos in documentation files by @vtjl10 in <https://github.com/cosmos/ibc-go/pull/7784>
+- Fix Typographical Errors by @Pricstas in <https://github.com/cosmos/ibc-go/pull/7786>
+- chore: update codeowners by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7793>
+- chore: fix and update linter by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7792>
+- Use wrap instead of wrapf by @Noulodado in <https://github.com/cosmos/ibc-go/pull/7796>
+- chore : lint (unused field) by @solkorap7 in <https://github.com/cosmos/ibc-go/pull/7795>
+- chore: docs: Update AI Bot to Unified Bot by @olliegilbey in <https://github.com/cosmos/ibc-go/pull/7788>
+- perf: decode proposal id from tx resp by @duvbell in <https://github.com/cosmos/ibc-go/pull/7785>
+- chore(deps): bump google.golang.org/protobuf from 1.36.0 to 1.36.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7791>
+- doc: fix invalid link 03-client-state.md by @osrm in <https://github.com/cosmos/ibc-go/pull/7794>
+- Fix typographical errors by @Dimitrolito in <https://github.com/cosmos/ibc-go/pull/7799>
+- fix: typo bug-report.md by @futreall in <https://github.com/cosmos/ibc-go/pull/7803>
+- docs: fix typographical errors by @oliveredget in <https://github.com/cosmos/ibc-go/pull/7806>
+- chore: add hidden folders to codespell by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7808>
+- docs: create ics27-multiplexed-requirements.md by @womensrights in <https://github.com/cosmos/ibc-go/pull/6281>
+- chore(deps): bump DavidAnson/markdownlint-cli2-action from 18 to 19 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7807>
+- chore(deps): bump docker/build-push-action from 6.10.0 to 6.11.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7828>
+- chore(deps): bump bufbuild/buf-setup-action from 1.48.0 to 1.49.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7829>
+- fix(09-localhost): TestVerifyClientMessage by @1ch0 in <https://github.com/cosmos/ibc-go/pull/7804>
+- chore(deps): bump google.golang.org/protobuf from 1.36.1 to 1.36.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7826>
+- chore(deps): bump cosmossdk.io/math from 1.4.0 to 1.5.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7827>
+- chore(deps): bump github.com/hashicorp/go-metrics from 0.5.3 to 0.5.4 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7834>
+- chore: bump sdk versions by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7843>
+- refactor: using slices.Contains to simplify the code by @dashangcun in <https://github.com/cosmos/ibc-go/pull/7833>
+- Update ics27-multiplexed-requirements.md by @womensrights in <https://github.com/cosmos/ibc-go/pull/7858>
+- chore(deps): bump golangci/golangci-lint-action from 6.1.1 to 6.2.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7852>
+- chore(deps): bump cosmossdk.io/x/tx from 1.0.0 to 1.0.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7859>
+- chore(deps): bump bufbuild/buf-setup-action from 1.49.0 to 1.50.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7860>
+- chore(deps): bump cosmossdk.io/api from 0.8.1 to 0.8.2 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7851>
+- fix: sanitize gov v1 proposal in e2e tests for compatibility with 0.52 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7861>
+- chore(deps): bump docker/build-push-action from 6.11.0 to 6.12.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7849>
+- chore: clean up module impls by @technicallyty in <https://github.com/cosmos/ibc-go/pull/7865>
+- chore: fix spelling errors by @github-actions in <https://github.com/cosmos/ibc-go/pull/7867>
+- chore: bump to sdk v0.52-rc.2 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7882>
+- chore: migrate to core modules by @technicallyty in <https://github.com/cosmos/ibc-go/pull/7866>
+- [chores] add setup order for msg server test by @NisTun in <https://github.com/cosmos/ibc-go/pull/7840>
+- chore: migrate to address codec in transfer by @technicallyty in <https://github.com/cosmos/ibc-go/pull/7892>
+- chore: make all keepers use address codecs by @technicallyty in <https://github.com/cosmos/ibc-go/pull/7896>
+- chore: change usage of deprecated module.NewManager in SimApps by @NisTun in <https://github.com/cosmos/ibc-go/pull/7886>
+- chore(deps): bump docker/build-push-action from 6.12.0 to 6.13.0 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7879>
+- chore: use context.Context and appmodule.Environment in 08-wasm  by @technicallyty in <https://github.com/cosmos/ibc-go/pull/7880>
+- chore: add mergify task for v10 release branch by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7912>
+- deps: bump wasmvm to v2.2.2 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7911>
+- chore: revert sdk changes not merged into feat/eureka by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7930>
+- feat(ibc-eureka): add ibc-go eureka implementation by @DimitrisJim in <https://github.com/cosmos/ibc-go/pull/7505>
+- chore: revert SDK to 0.50 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7932>
+- imp: limit payload size for both v1 and v2 packet by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7935>
+- Callbacks Eureka by @AdityaSripal in <https://github.com/cosmos/ibc-go/pull/7934>
+- feat: channel-v2 genesis by @aljo242 in <https://github.com/cosmos/ibc-go/pull/7933>
+- chore: update interchaintest + cleanup by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7937>
+- chore: remove ics20-2 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7951>
+- Assert sending ibc denom directly is not allowed by @AdityaSripal in <https://github.com/cosmos/ibc-go/pull/7956>
+- feat: clientv2 module by @aljo242 in <https://github.com/cosmos/ibc-go/pull/7936>
+- Async Packet Genesis by @AdityaSripal in <https://github.com/cosmos/ibc-go/pull/7952>
+- chore: move bls verifier to separate module by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7953>
+- chore: add v10 to e2e compatbility workflows by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7959>
+- fix: only use relative timeout timestamps in ica cli by @damiannolan in <https://github.com/cosmos/ibc-go/pull/7961>
+- chore: remove unused inputs from e2e-manual-simd.yaml by @hungdinh82 in <https://github.com/cosmos/ibc-go/pull/7904>
+- chore: remove v9 references + minor readme updates by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7962>
+- ci: move at the speed of light (deprecate github actions runners) by @Zygimantass in <https://github.com/cosmos/ibc-go/pull/7967>
+- chore: rename go module from v9 to v10 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7971>
+- deps: update interchaintest by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7972>
+- Reverting context changes by @Eric-Warehime in <https://github.com/cosmos/ibc-go/pull/7970>
+- chore(deps): bump github.com/cosmos/cosmos-db from 1.1.0 to 1.1.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7942>
+- chore(deps): bump github.com/spf13/cast from 1.7.0 to 1.7.1 by @dependabot in <https://github.com/cosmos/ibc-go/pull/7944>
+- fix: use main for v10 upgrades by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/7973>
+- chore: update sonarqube gh action (backport #7985) by @mergify in <https://github.com/cosmos/ibc-go/pull/7988>
+- Document ICS23 MerklePath (backport #7993) by @mergify in <https://github.com/cosmos/ibc-go/pull/7995>
+- MsgTransfer For Eureka (backport #7957) by @mergify in <https://github.com/cosmos/ibc-go/pull/8001>
+- Remove 29-fee (backport #8000) by @mergify in <https://github.com/cosmos/ibc-go/pull/8002>
+- feat: add cli commands for client v2 counterparty (backport #7997) by @mergify in <https://github.com/cosmos/ibc-go/pull/8007>
+- chore: add deprecated functions for backwards compat (backport #8005) by @mergify in <https://github.com/cosmos/ibc-go/pull/8009>
+- chore: add backport mergify tasks (backport #7989) by @mergify in <https://github.com/cosmos/ibc-go/pull/8015>
+- chore: use ibc v2 name consistently (backport #8006) by @mergify in <https://github.com/cosmos/ibc-go/pull/8017>
+- callbacks: Error on RecvPacket callback execution (backport #8014) by @mergify in <https://github.com/cosmos/ibc-go/pull/8020>
+- chore(deps): bump google.golang.org/protobuf from 1.36.4 to 1.36.5 (backport #7920) by @mergify in <https://github.com/cosmos/ibc-go/pull/8021>
+- chore(deps): bump golangci/golangci-lint-action from 6.2.0 to 6.4.1 (backport #7969) by @mergify in <https://github.com/cosmos/ibc-go/pull/8022>
+- chore: remove remnants of ics20-2 (backport #8016) by @mergify in <https://github.com/cosmos/ibc-go/pull/8045>
+- chore(deps): bump JamesIves/github-pages-deploy-action from 4.7.2 to 4.7.3 (backport #7991) by @mergify in <https://github.com/cosmos/ibc-go/pull/8048>
+- chore(deps): bump golangci/golangci-lint-action from 6.4.1 to 6.5.0 (backport #7983) by @mergify in <https://github.com/cosmos/ibc-go/pull/8049>
+- feat: remove channel upgradability (backport #8008) by @mergify in <https://github.com/cosmos/ibc-go/pull/8053>
+- fix: upgrades after moving ics20-2 (backport #8054) by @mergify in <https://github.com/cosmos/ibc-go/pull/8055>
+- fix: remove packet data remarshaling (backport #8060) by @mergify in <https://github.com/cosmos/ibc-go/pull/8064>
+- chore(deps): bump docker/metadata-action from 5.6.1 to 5.7.0 (backport #8059) by @mergify in <https://github.com/cosmos/ibc-go/pull/8067>
+- chore: add v7.9 and v8.6 to mergify (backport #8061) by @mergify in <https://github.com/cosmos/ibc-go/pull/8068>
+- chore: update supported verisons (backport #8071) by @mergify in <https://github.com/cosmos/ibc-go/pull/8075>
+- fix: ica gov e2e test (backport #8076) by @mergify in <https://github.com/cosmos/ibc-go/pull/8077>
+- fix: only run unordered tests on correct versions (backport #8079) by @mergify in <https://github.com/cosmos/ibc-go/pull/8080>
+- chore: set release versions for callbacks and light clients by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/8081>
+- chore: update to latest interchaintest with latest ibc-go (backport #8082) by @mergify in <https://github.com/cosmos/ibc-go/pull/8083>
+- chore: update modules for rc1 release by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/8084>
+- chore: change modules to follow ibc-go version (backport #8089) by @mergify in <https://github.com/cosmos/ibc-go/pull/8090>
+- chore: move blsverifier to 08-wasm (backport #8091) by @mergify in <https://github.com/cosmos/ibc-go/pull/8092>
+- chore: bump modules to rc2 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/8093>
+- chore: move callbacks to ibc-go top-level go.mod (backport #8101) by @mergify in <https://github.com/cosmos/ibc-go/pull/8104>
+- deps: bump sdk from v0.50.11 to v0.50.12 (backport #8124) by @mergify in <https://github.com/cosmos/ibc-go/pull/8126>
+- Use BaseRouter instead of channelV2Keeper (backport #8125) by @mergify in <https://github.com/cosmos/ibc-go/pull/8128>
+- chore(deps): bump github.com/CosmWasm/wasmvm/v2 from 2.1.2 to 2.2.2 in /modules/light-clients/08-wasm (backport #8129) by @mergify in <https://github.com/cosmos/ibc-go/pull/8131>
+- Consistent timeout behaviour between solidity and go (backport #8130) by @mergify in <https://github.com/cosmos/ibc-go/pull/8133>
+- chore: prep 08-wasm rc.3 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/8135>
+- imp: allow 4 character client ids (backport #8140) by @mergify in <https://github.com/cosmos/ibc-go/pull/8141>
+- docs: remove disabled timeout option in docs (backport #8139) by @mergify in <https://github.com/cosmos/ibc-go/pull/8142>
+- chore: Revert #6782 (backport #8137) by @mergify in <https://github.com/cosmos/ibc-go/pull/8143>
+- chore(deps): bump github.com/ethereum/go-ethereum from 1.14.12 to 1.15.5 (backport #8147) by @mergify in <https://github.com/cosmos/ibc-go/pull/8153>
+- chore(deps): bump github.com/CosmWasm/wasmvm/v2 from 2.2.2 to 2.2.3 in /modules/light-clients/08-wasm (backport #8149) by @mergify in <https://github.com/cosmos/ibc-go/pull/8155>
+- ibc-callbacks: Use custom callback type to satisfy interface (backport #8156) by @mergify in <https://github.com/cosmos/ibc-go/pull/8157>
+- fix: e2e scheduled ibc upgrade (backport #8158) by @mergify in <https://github.com/cosmos/ibc-go/pull/8160>
+- Enforce clientID format (backport #8159) by @mergify in <https://github.com/cosmos/ibc-go/pull/8161>
+- fix: upgrade tests after localhost name change (backport #8162) by @mergify in <https://github.com/cosmos/ibc-go/pull/8163>
+- chore: bump wasmd to ibc-go v10.0.0 by @gjermundgaraba in <https://github.com/cosmos/ibc-go/pull/8164>
+- revert localhost-id change (backport #8165) by @mergify in <https://github.com/cosmos/ibc-go/pull/8171>
+- Permission rly v2 per client (backport #8172) by @mergify in <https://github.com/cosmos/ibc-go/pull/8180>
+- chore(deps): bump golangci/golangci-lint-action from 6.5.0 to 6.5.1 (backport #8175) by @mergify in <https://github.com/cosmos/ibc-go/pull/8182>
+- chore: bump sdk from 0.50.12 to 0.50.13 (backport #8181) by @mergify in <https://github.com/cosmos/ibc-go/pull/8183>
+
+## New Contributors
+
+- @omahs made their first contribution in <https://github.com/cosmos/ibc-go/pull/4796>
+
+- @merkletreeibc made their first contribution in <https://github.com/cosmos/ibc-go/pull/5014>
+- @shuoer86 made their first contribution in <https://github.com/cosmos/ibc-go/pull/5019>
+- @mmsqe made their first contribution in <https://github.com/cosmos/ibc-go/pull/5020>
+- @mattverse made their first contribution in <https://github.com/cosmos/ibc-go/pull/5110>
+- @0xstepit made their first contribution in <https://github.com/cosmos/ibc-go/pull/5175>
+- @aeryz made their first contribution in <https://github.com/cosmos/ibc-go/pull/5261>
+- @lukema95 made their first contribution in <https://github.com/cosmos/ibc-go/pull/5309>
+- @bodhi-crypo made their first contribution in <https://github.com/cosmos/ibc-go/pull/5344>
+- @Ursulafe made their first contribution in <https://github.com/cosmos/ibc-go/pull/5354>
+- @hoangdv2429 made their first contribution in <https://github.com/cosmos/ibc-go/pull/5373>
+- @anhductn2001 made their first contribution in <https://github.com/cosmos/ibc-go/pull/5356>
+- @nnsW3 made their first contribution in <https://github.com/cosmos/ibc-go/pull/5422>
+- @yihuang made their first contribution in <https://github.com/cosmos/ibc-go/pull/5497>
+- @joaolago1113 made their first contribution in <https://github.com/cosmos/ibc-go/pull/5496>
+- @MukulKolpe made their first contribution in <https://github.com/cosmos/ibc-go/pull/5494>
+- @vuittont60 made their first contribution in <https://github.com/cosmos/ibc-go/pull/5552>
+- @Frierened made their first contribution in <https://github.com/cosmos/ibc-go/pull/5598>
+- @Halimao made their first contribution in <https://github.com/cosmos/ibc-go/pull/5669>
+- @natebeauregard made their first contribution in <https://github.com/cosmos/ibc-go/pull/5626>
+- @keienWang made their first contribution in <https://github.com/cosmos/ibc-go/pull/5723>
+- @github-actions made their first contribution in <https://github.com/cosmos/ibc-go/pull/5754>
+- @levisyin made their first contribution in <https://github.com/cosmos/ibc-go/pull/5689>
+- @zoereco made their first contribution in <https://github.com/cosmos/ibc-go/pull/5828>
+- @tungleanh0902 made their first contribution in <https://github.com/cosmos/ibc-go/pull/5857>
+- @blasrodri made their first contribution in <https://github.com/cosmos/ibc-go/pull/3140>
+- @Hemanthghs made their first contribution in <https://github.com/cosmos/ibc-go/pull/5919>
+- @AdventureSeeker987 made their first contribution in <https://github.com/cosmos/ibc-go/pull/5952>
+- @AtomicInnovation321 made their first contribution in <https://github.com/cosmos/ibc-go/pull/5989>
+- @seay404 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6071>
+- @carehabit made their first contribution in <https://github.com/cosmos/ibc-go/pull/6072>
+- @goofylfg made their first contribution in <https://github.com/cosmos/ibc-go/pull/6090>
+- @akaladarshi made their first contribution in <https://github.com/cosmos/ibc-go/pull/6070>
+- @careworry made their first contribution in <https://github.com/cosmos/ibc-go/pull/6181>
+- @hoank101 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6217>
+- @duvbell made their first contribution in <https://github.com/cosmos/ibc-go/pull/6231>
+- @TropicalDog17 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6230>
+- @icarus012832 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6285>
+- @ma68584703 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6298>
+- @kien6034 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6287>
+- @cario-dev made their first contribution in <https://github.com/cosmos/ibc-go/pull/6308>
+- @polymaer made their first contribution in <https://github.com/cosmos/ibc-go/pull/6351>
+- @suiyuan1314 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6439>
+- @healthyyyoung made their first contribution in <https://github.com/cosmos/ibc-go/pull/6455>
+- @BabyHalimao made their first contribution in <https://github.com/cosmos/ibc-go/pull/6444>
+- @tcpdumppy made their first contribution in <https://github.com/cosmos/ibc-go/pull/6458>
+- @argentpapa made their first contribution in <https://github.com/cosmos/ibc-go/pull/6488>
+- @jjjike2021 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6525>
+- @tuantran1702 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6291>
+- @tianyeyouyou made their first contribution in <https://github.com/cosmos/ibc-go/pull/6457>
+- @trungnt1811 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6538>
+- @petersssong made their first contribution in <https://github.com/cosmos/ibc-go/pull/6565>
+- @tiendn made their first contribution in <https://github.com/cosmos/ibc-go/pull/6573>
+- @jgscr made their first contribution in <https://github.com/cosmos/ibc-go/pull/6603>
+- @lido333 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6620>
+- @winniehere made their first contribution in <https://github.com/cosmos/ibc-go/pull/6628>
+- @lichdu29 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6690>
+- @lfgtwo made their first contribution in <https://github.com/cosmos/ibc-go/pull/6699>
+- @NisTun made their first contribution in <https://github.com/cosmos/ibc-go/pull/6681>
+- @Pantani made their first contribution in <https://github.com/cosmos/ibc-go/pull/6716>
+- @cratiu222 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6746>
+- @hakuno2000 made their first contribution in <https://github.com/cosmos/ibc-go/pull/6774>
+- @yukionfire made their first contribution in <https://github.com/cosmos/ibc-go/pull/6869>
+- @yingshanghuangqiao made their first contribution in <https://github.com/cosmos/ibc-go/pull/6909>
+- @pengbanban made their first contribution in <https://github.com/cosmos/ibc-go/pull/7040>
+- @drawdrop made their first contribution in <https://github.com/cosmos/ibc-go/pull/7131>
+- @haouvw made their first contribution in <https://github.com/cosmos/ibc-go/pull/7208>
+- @odyslaeth made their first contribution in <https://github.com/cosmos/ibc-go/pull/7320>
+- @goodylili made their first contribution in <https://github.com/cosmos/ibc-go/pull/7321>
+- @kobakaku made their first contribution in <https://github.com/cosmos/ibc-go/pull/7440>
+- @sainoe made their first contribution in <https://github.com/cosmos/ibc-go/pull/7430>
+- @cl1ckname made their first contribution in <https://github.com/cosmos/ibc-go/pull/7514>
+- @mountcount made their first contribution in <https://github.com/cosmos/ibc-go/pull/7609>
+- @ChengenH made their first contribution in <https://github.com/cosmos/ibc-go/pull/7640>
+- @soonsouth made their first contribution in <https://github.com/cosmos/ibc-go/pull/7651>
+- @NagaTulasi made their first contribution in <https://github.com/cosmos/ibc-go/pull/7652>
+- @likesToEatFish made their first contribution in <https://github.com/cosmos/ibc-go/pull/7655>
+- @PrathyushaLakkireddy made their first contribution in <https://github.com/cosmos/ibc-go/pull/7657>
+- @RiceChuan made their first contribution in <https://github.com/cosmos/ibc-go/pull/7692>
+- @vipocenka made their first contribution in <https://github.com/cosmos/ibc-go/pull/7693>
+- @romashka-btc made their first contribution in <https://github.com/cosmos/ibc-go/pull/7718>
+- @detrina made their first contribution in <https://github.com/cosmos/ibc-go/pull/7716>
+- @DongLieu made their first contribution in <https://github.com/cosmos/ibc-go/pull/7675>
+- @essenmeoikia made their first contribution in <https://github.com/cosmos/ibc-go/pull/7730>
+- @goodfirm made their first contribution in <https://github.com/cosmos/ibc-go/pull/7740>
+- @meoaka3 made their first contribution in <https://github.com/cosmos/ibc-go/pull/7753>
+- @solkorap7 made their first contribution in <https://github.com/cosmos/ibc-go/pull/7777>
+- @Noulodado made their first contribution in <https://github.com/cosmos/ibc-go/pull/7778>
+- @ronething-bot made their first contribution in <https://github.com/cosmos/ibc-go/pull/7781>
+- @vtjl10 made their first contribution in <https://github.com/cosmos/ibc-go/pull/7784>
+- @Pricstas made their first contribution in <https://github.com/cosmos/ibc-go/pull/7786>
+- @olliegilbey made their first contribution in <https://github.com/cosmos/ibc-go/pull/7788>
+- @osrm made their first contribution in <https://github.com/cosmos/ibc-go/pull/7794>
+- @Dimitrolito made their first contribution in <https://github.com/cosmos/ibc-go/pull/7799>
+- @futreall made their first contribution in <https://github.com/cosmos/ibc-go/pull/7803>
+- @oliveredget made their first contribution in <https://github.com/cosmos/ibc-go/pull/7806>
+- @1ch0 made their first contribution in <https://github.com/cosmos/ibc-go/pull/7804>
+- @dashangcun made their first contribution in <https://github.com/cosmos/ibc-go/pull/7833>
+- @hungdinh82 made their first contribution in <https://github.com/cosmos/ibc-go/pull/7904>
+- @Zygimantass made their first contribution in <https://github.com/cosmos/ibc-go/pull/7967>
+
+**Full Changelog**: <https://github.com/cosmos/ibc-go/compare/v8.7.0...v10.1.0>
