@@ -105,7 +105,7 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite stri
 
 		suiteNameForFile, testCases, err := extractSuiteAndTestNames(f)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		if testName != "" && slices.Contains(testCases, testName) {
