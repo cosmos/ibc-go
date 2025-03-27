@@ -148,7 +148,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#6805](https://github.com/cosmos/ibc-go/pull/6805) Add tests for callback execution when forwarding a packet
 * [\#7305](https://github.com/cosmos/ibc-go/pull/7305) Remove internal dep on historical info in testing package
 * [\#6758](https://github.com/cosmos/ibc-go/pull/6758) Tokens are successfully forwarded from A to C through B
-
+* [\#5306](https://github.com/cosmos/ibc-go/pull/5306) Remove 08-wasm from 02-client exported by
 
 ### Dependencies
 
@@ -158,7 +158,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### API Breaking
 
 * (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7213) Remove capabilities from `SendPacket`.
-* (core, apps) [\#7213](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
+* (core, apps) [\#7225](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
 * (core, apps) [\#7232](https://github.com/cosmos/ibc-go/pull/7232) Remove capabilities from channel handshake methods. TODO list all changes 
 * (core, apps) [\#7270](https://github.com/cosmos/ibc-go/pull/7270) Remove remaining dependencies on capability module.
 * (core, apps) [\#4811](https://github.com/cosmos/ibc-go/pull/4811) Use expected interface for legacy params subspace
@@ -201,29 +201,56 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (23-commmitment) [\#6870](https://github.com/cosmos/ibc-go/pull/6870) Remove `commitment.v1.MerklePath` in favour of `commitment.v2.MerklePath`.
 * [\#6923](https://github.com/cosmos/ibc-go/pull/6923) The JSON msg API for `VerifyMembershipMsg` and `VerifyNonMembershipMsg` payloads for client contract `SudoMsg` has been updated. The field `path` has been changed to `merkle_path`. This change requires updates to 08-wasm client contracts for integration.
 * (apps/callbacks) [\#7000](https://github.com/cosmos/ibc-go/pull/7000) Add base application version to contract keeper callbacks.
-
+* (core, core/08-wasm) [\#5154](https://github.com/cosmos/ibc-go/pull/5154) Use bytes in wasm contract api instead of wrapped.
+* (core, core/08-wasm) [\#5397](https://github.com/cosmos/ibc-go/pull/5397) Add coordinator Setup functions to the Path type.
+* (core/05-port) [\#6341](https://github.com/cosmos/ibc-go/pull/6341) Modify `UnmarshalPacketData` interface to take in the context, portID, and channelID. This allows for packet data's to be unmarshaled based on the channel version.
+* (core/02-client) [\#6863](https://github.com/cosmos/ibc-go/pull/6863) remove ClientStoreProvider interface in favour of concrete type.
+* (core/05-port) [\#6988](https://github.com/cosmos/ibc-go/pull/6988) Modify `UnmarshalPacketData` interface to return the underlying application version.
+* (apps/27-interchain-accounts) [\#7053](https://github.com/cosmos/ibc-go/pull/7053) Remove ICS27 channel capability migration introduced in v6.
+* (apps/27-interchain-accounts) [\#7713](https://github.com/cosmos/ibc-go/pull/7713) Update interchain accounts `GenerateAddress` func to now accept `header.Info` in favour of `sdk.Context`. This function now uses `AppHash` and `Hash` (merkle root of block) instead of `AppHash` and `DataHash` as pre-image data for address generation.
 
 ### State Machine Breaking
 
 * (light-clients/06-solomachine) [\#6313](https://github.com/cosmos/ibc-go/pull/6313) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
 * (apps/callbacks) [\#8014](https://github.com/cosmos/ibc-go/pull/8014) Callbacks will now return an error acknowledgement if the recvPacket callback fails. This reverts all app callback changes whereas before we only reverted the callback changes. We also error on all callbacks if the callback data is set but malformed whereas before we ignored the error and continued processing.
+* (apps/callbacks) [\#5349](https://github.com/cosmos/ibc-go/pull/5349) Check if clients params are duplicates.
+* (apps/transfer) [\#6268](https://github.com/cosmos/ibc-go/pull/6268) Use memo strings instead of JSON keys in `AllowedPacketData` of transfer authorization.
+* (light-clients/07-tendermint) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
+* (light-clients/06-solomachine) [\#6313](https://github.com/cosmos/ibc-go/pull/6313) Fix: No-op to avoid panicking on `UpdateState` for invalid misbehaviour submissions.
 
 ### Improvements
 
 * (testing)[\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update the block proposer in test chains for each block.
 * (apps/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) ICA host sets the host connection ID on `OnChanOpenTry`, so that ICA controller implementations are not obliged to set the value on `OnChanOpenInit` if they are not able.
 * (core/02-client, core/03-connection, apps/27-interchain-accounts) [\#6256](https://github.com/cosmos/ibc-go/pull/6256) Add length checking of array fields in messages.
-* (core/08-wasm) [\#5146](https://github.com/cosmos/ibc-go/pull/5146) Use global wasm VM instead of keeping an additional reference in keeper
-* (core/04-channels) [\#7935](https://github.com/cosmos/ibc-go/pull/7935) Limit payload size for both v1 and v2 packet
-* (core/runtime) [\#7601](https://github.com/cosmos/ibc-go/pull/7601) - IBC core runtime env
+* (core/08-wasm) [\#5146](https://github.com/cosmos/ibc-go/pull/5146) Use global wasm VM instead of keeping an additional reference in keeper.
+* (core/04-channels) [\#7935](https://github.com/cosmos/ibc-go/pull/7935) Limit payload size for both v1 and v2 packet.
+* (core/runtime) [\#7601](https://github.com/cosmos/ibc-go/pull/7601) - IBC core runtime env.
+* (core/08-wasm) [\#5294](https://github.com/cosmos/ibc-go/pull/5294) Don't panic during any store operations.
+* (apps) [\#5305](https://github.com/cosmos/ibc-go/pull/5305)- Remove GetSigners from `sdk.Msg` implementations.
+* (apps) [\#/5778](https://github.com/cosmos/ibc-go/pull/5778) Use json for marshalling/unmarshalling transfer packet data.
+* (core/08-wasm) [\#5785](https://github.com/cosmos/ibc-go/pull/5785) Allow module safe queries in ICA.
+* (core/ante) [\#6278](https://github.com/cosmos/ibc-go/pull/6278) Performance: Exclude pruning from tendermint client updates in ante handler executions.
+* (core/ante) [\#6302](https://github.com/cosmos/ibc-go/pull/6302) Performance: Skip app callbacks during RecvPacket execution in checkTx within the redundant relay ante handler.
+* (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
+* [\#6716](https://github.com/cosmos/ibc-go/pull/6716) Add `HasModule` to capability keeper to allow checking if a scoped module already exists.
+* (core/08-wasm) [\#]()
 
 ### Features
 
-* (apps/transfer) [\#7650](https://github.com/cosmos/ibc-go/pull/7650) Add support for transfer of entire balance for vesting accounts
-* (apps/wasm) [\#5079](https://github.com/cosmos/ibc-go/pull/5079) 08-wasm light client proxy module for wasm clients by
-* (core/02-client) [\#7936](https://github.com/cosmos/ibc-go/pull/7936) Clientv2 module
-* (core/04-channel) [\#7933](https://github.com/cosmos/ibc-go/pull/7933) Channel-v2 genesis
-* (core/04-channel, core/api) [\#7934](https://github.com/cosmos/ibc-go/pull/7934) - Callbacks Eureka
+* (apps/transfer) [\#7650](https://github.com/cosmos/ibc-go/pull/7650) Add support for transfer of entire balance for vesting accounts.
+* (apps/wasm) [\#5079](https://github.com/cosmos/ibc-go/pull/5079) 08-wasm light client proxy module for wasm clients by.
+* (core/02-client) [\#7936](https://github.com/cosmos/ibc-go/pull/7936) Clientv2 module.
+* (core/04-channel) [\#7933](https://github.com/cosmos/ibc-go/pull/7933) Channel-v2 genesis.
+* (core/04-channel, core/api) [\#7934](https://github.com/cosmos/ibc-go/pull/7934) - Callbacks Eureka.
+* (core/04-channel) [\#3240](https://github.com/cosmos/ibc-go/pull/3240) - Channel upgradability requirements.
+* (core/04-channel) [\#1613](https://github.com/cosmos/ibc-go/pull/1613) - Channel upgradability implementation.
+* (core/04-channel) [\#5548](https://github.com/cosmos/ibc-go/pull/5548) - Add cli to submit gov proposal to upgrade multiple channels.
+* (core/04-channel) [\#5764](https://github.com/cosmos/ibc-go/pull/5764) - Delete upgrade information only rather than calling abort in TimeoutExecuted.
+* (apps/transfer) [\#6693](https://github.com/cosmos/ibc-go/pull/6693) Added new `Forwarding` field to `MsgTransfer` to enable forwarding tokens through multiple intermediary chains with a single transaction. This also enables automatic unwinding of tokens to their native chain. `x/authz` support for transfer allows granters to specify a set of possible forwarding hops that are allowed for grantees.
+* (core/09-localhost) [\#6683](https://github.com/cosmos/ibc-go/pull/6683) Make 09-localhost stateless.
+* (core, app) [\#6902](https://github.com/cosmos/ibc-go/pull/6902) Add channel version to core app callbacks.
+
 
 ### Bug Fixes
 
@@ -231,6 +258,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#7342](https://github.com/cosmos/ibc-go/pull/7342) Read Tx cmd flags including from address to avoid Address cannot be empty error when upgrade-channels via cli.
 * (core/03-connection) [\#7397](https://github.com/cosmos/ibc-go/pull/7397) Skip the genesis validation connectionID for localhost client.
 * (apps/27-interchain-accounts) [\#6377](https://github.com/cosmos/ibc-go/pull/6377) Generate ICA simtest proposals only for provided keepers.
+* (apps/04-channel) [\#5651](https://github.com/cosmos/ibc-go/pull/5651) Add replay protection on upgraded channels.
+* (app/29-fee) [\#6255](https://github.com/cosmos/ibc-go/pull/6255) Delete refunded fees from state if some fee(s) cannot be refunded on channel closure.
 
 ## [v8.5.0](https://github.com/cosmos/ibc-go/releases/tag/v8.5.0) - 2024-08-30
 
