@@ -247,7 +247,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#5548](https://github.com/cosmos/ibc-go/pull/5548) - Add cli to submit gov proposal to upgrade multiple channels.
 * (core/04-channel) [\#5764](https://github.com/cosmos/ibc-go/pull/5764) - Delete upgrade information only rather than calling abort in TimeoutExecuted.
 * (apps/transfer) [\#6693](https://github.com/cosmos/ibc-go/pull/6693) Added new `Forwarding` field to `MsgTransfer` to enable forwarding tokens through multiple intermediary chains with a single transaction. This also enables automatic unwinding of tokens to their native chain. `x/authz` support for transfer allows granters to specify a set of possible forwarding hops that are allowed for grantees.
-* (core/09-localhost) [\#6683](https://github.com/cosmos/ibc-go/pull/6683) Make 09-localhost stateless.
+* (light-clients/09-localhost) [\#6683](https://github.com/cosmos/ibc-go/pull/6683) Make 09-localhost stateless.
 * (core, app) [\#6902](https://github.com/cosmos/ibc-go/pull/6902) Add channel version to core app callbacks.
 
 
