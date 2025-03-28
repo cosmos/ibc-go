@@ -114,42 +114,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-### Testing
-
-* [\#7688](https://github.com/cosmos/ibc-go/pull/7688) Added `SendMsgsWithSender` to `TestChain`.
-* [\#4975](https://github.com/cosmos/ibc-go/pull/4975) Add ParsePacketsFromEvents
-* [\#5406](https://github.com/cosmos/ibc-go/pull/5406) Add mock middleware to block app upgrades and provide test coverage in core
-* [\#5721](https://github.com/cosmos/ibc-go/pull/5721) Follow up nits from coordinator method deprecations.
-* [\#5719](https://github.com/cosmos/ibc-go/pull/5719) Add UpdateConnection to endpoint and update usages in tests.
-* [\#6161](https://github.com/cosmos/ibc-go/pull/6161) Don't pass keeper as argument to malleate function.
-* [\#6485](https://github.com/cosmos/ibc-go/pull/6485) Add test for denom chain source methods
-* [\#6460](https://github.com/cosmos/ibc-go/pull/6460) Add test case for invalid timeout packet amount
-* [\#6543](https://github.com/cosmos/ibc-go/pull/6543) Add secondary test coin to test chains
-* [\#6545](https://github.com/cosmos/ibc-go/pull/6545) Add more multi-denom test cases
-* [\#6907](https://github.com/cosmos/ibc-go/pull/6907) Add NewForwardErrorAcknowledgement to multihop forwarding test
-* [\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update block proposer in testing
-* [\#4161](https://github.com/cosmos/ibc-go/pull/4161) Change host relay tests to check error returned
-* [\#5150](https://github.com/cosmos/ibc-go/pull/5150) Remove grandpa unit test contract, rm test_data.
-* [\#5502](https://github.com/cosmos/ibc-go/pull/5502) Add missing channel upgrade tests
-* [\#5492](https://github.com/cosmos/ibc-go/pull/5492) Check for error returned in channel msg_tests
-* [\#5682](https://github.com/cosmos/ibc-go/pull/5682) Add event testing for connection handshake
-* [\#5686](https://github.com/cosmos/ibc-go/pull/5686) Add testing for client events
-* [\#5493](https://github.com/cosmos/ibc-go/pull/5493) Add IBCClientHeader func for endpoint and update tests
-* [\#5857](https://github.com/cosmos/ibc-go/pull/5857) Make unused block hashes in testing header creation explicit
-* [\#6002](https://github.com/cosmos/ibc-go/pull/6002) Adding tests for `GetLatestHeight` and refactor tests for `GetTimestamptAtHeight`
-* [\#6034](https://github.com/cosmos/ibc-go/pull/6034) 02-client router
-* [\#6038](https://github.com/cosmos/ibc-go/pull/6038) Refactor solomachine tests to use light client module as entrypoint.
-* [\#6135](https://github.com/cosmos/ibc-go/pull/6135) Methods on 07-tendermint light client module
-* [\#6484](https://github.com/cosmos/ibc-go/pull/6484) Transfer Authz
-* [\#6685](https://github.com/cosmos/ibc-go/pull/6685) Configure relayers to watch only channels associated with an individual test
-* [\#6713](https://github.com/cosmos/ibc-go/pull/6713) Add test for more than one forwarding hop
-* [\#6681](https://github.com/cosmos/ibc-go/pull/6681) Use ibctestcoin.TestCoin through-out tests
-* [\#6793](https://github.com/cosmos/ibc-go/pull/6793) Add test for path forwarding with channel upgrade
-* [\#6805](https://github.com/cosmos/ibc-go/pull/6805) Add tests for callback execution when forwarding a packet
-* [\#7305](https://github.com/cosmos/ibc-go/pull/7305) Remove internal dep on historical info in testing package
-* [\#6758](https://github.com/cosmos/ibc-go/pull/6758) Tokens are successfully forwarded from A to C through B
-* [\#5306](https://github.com/cosmos/ibc-go/pull/5306) Remove 08-wasm from 02-client exported by
-
 ### Dependencies
 
 * [\#7261](https://github.com/cosmos/ibc-go/pull/7261) Bump **github.com/cosmos/cosmos-sdk** to **0.52.0**
@@ -259,6 +223,42 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#6377](https://github.com/cosmos/ibc-go/pull/6377) Generate ICA simtest proposals only for provided keepers.
 * (apps/04-channel) [\#5651](https://github.com/cosmos/ibc-go/pull/5651) Add replay protection on upgraded channels.
 * (app/29-fee) [\#6255](https://github.com/cosmos/ibc-go/pull/6255) Delete refunded fees from state if some fee(s) cannot be refunded on channel closure.
+
+### Testing API
+
+* [\#7688](https://github.com/cosmos/ibc-go/pull/7688) Added `SendMsgsWithSender` to `TestChain`.
+* [\#4975](https://github.com/cosmos/ibc-go/pull/4975) Add ParsePacketsFromEvents
+* [\#5406](https://github.com/cosmos/ibc-go/pull/5406) Add mock middleware to block app upgrades and provide test coverage in core
+* [\#5721](https://github.com/cosmos/ibc-go/pull/5721) Follow up nits from coordinator method deprecations.
+* [\#5719](https://github.com/cosmos/ibc-go/pull/5719) Add UpdateConnection to endpoint and update usages in tests.
+* [\#6161](https://github.com/cosmos/ibc-go/pull/6161) Don't pass keeper as argument to malleate function.
+* [\#6485](https://github.com/cosmos/ibc-go/pull/6485) Add test for denom chain source methods
+* [\#6460](https://github.com/cosmos/ibc-go/pull/6460) Add test case for invalid timeout packet amount
+* [\#6543](https://github.com/cosmos/ibc-go/pull/6543) Add secondary test coin to test chains
+* [\#6545](https://github.com/cosmos/ibc-go/pull/6545) Add more multi-denom test cases
+* [\#6907](https://github.com/cosmos/ibc-go/pull/6907) Add NewForwardErrorAcknowledgement to multihop forwarding test
+* [\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update block proposer in testing
+* [\#4161](https://github.com/cosmos/ibc-go/pull/4161) Change host relay tests to check error returned
+* [\#5150](https://github.com/cosmos/ibc-go/pull/5150) Remove grandpa unit test contract, rm test_data.
+* [\#5502](https://github.com/cosmos/ibc-go/pull/5502) Add missing channel upgrade tests
+* [\#5492](https://github.com/cosmos/ibc-go/pull/5492) Check for error returned in channel msg_tests
+* [\#5682](https://github.com/cosmos/ibc-go/pull/5682) Add event testing for connection handshake
+* [\#5686](https://github.com/cosmos/ibc-go/pull/5686) Add testing for client events
+* [\#5493](https://github.com/cosmos/ibc-go/pull/5493) Add IBCClientHeader func for endpoint and update tests
+* [\#5857](https://github.com/cosmos/ibc-go/pull/5857) Make unused block hashes in testing header creation explicit
+* [\#6002](https://github.com/cosmos/ibc-go/pull/6002) Adding tests for `GetLatestHeight` and refactor tests for `GetTimestamptAtHeight`
+* [\#6034](https://github.com/cosmos/ibc-go/pull/6034) 02-client router
+* [\#6038](https://github.com/cosmos/ibc-go/pull/6038) Refactor solomachine tests to use light client module as entrypoint.
+* [\#6135](https://github.com/cosmos/ibc-go/pull/6135) Methods on 07-tendermint light client module
+* [\#6484](https://github.com/cosmos/ibc-go/pull/6484) Transfer Authz
+* [\#6685](https://github.com/cosmos/ibc-go/pull/6685) Configure relayers to watch only channels associated with an individual test
+* [\#6713](https://github.com/cosmos/ibc-go/pull/6713) Add test for more than one forwarding hop
+* [\#6681](https://github.com/cosmos/ibc-go/pull/6681) Use ibctestcoin.TestCoin through-out tests
+* [\#6793](https://github.com/cosmos/ibc-go/pull/6793) Add test for path forwarding with channel upgrade
+* [\#6805](https://github.com/cosmos/ibc-go/pull/6805) Add tests for callback execution when forwarding a packet
+* [\#7305](https://github.com/cosmos/ibc-go/pull/7305) Remove internal dep on historical info in testing package
+* [\#6758](https://github.com/cosmos/ibc-go/pull/6758) Tokens are successfully forwarded from A to C through B
+* [\#5306](https://github.com/cosmos/ibc-go/pull/5306) Remove 08-wasm from 02-client exported by
 
 ## [v8.5.0](https://github.com/cosmos/ibc-go/releases/tag/v8.5.0) - 2024-08-30
 
