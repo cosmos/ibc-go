@@ -223,7 +223,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (testing)[\#7430](https://github.com/cosmos/ibc-go/pull/7430) Update the block proposer in test chains for each block.
 * (apps/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) ICA host sets the host connection ID on `OnChanOpenTry`, so that ICA controller implementations are not obliged to set the value on `OnChanOpenInit` if they are not able.
 * (core/02-client, core/03-connection, apps/27-interchain-accounts) [\#6256](https://github.com/cosmos/ibc-go/pull/6256) Add length checking of array fields in messages.
-* (core/08-wasm) [\#5146](https://github.com/cosmos/ibc-go/pull/5146) Use global wasm VM instead of keeping an additional reference in keeper.
+* (light-clients/08-wasm) [\#5146](https://github.com/cosmos/ibc-go/pull/5146) Use global wasm VM instead of keeping an additional reference in keeper.
 * (core/04-channels) [\#7935](https://github.com/cosmos/ibc-go/pull/7935) Limit payload size for both v1 and v2 packet.
 * (core/runtime) [\#7601](https://github.com/cosmos/ibc-go/pull/7601) - IBC core runtime env.
 * (core/08-wasm) [\#5294](https://github.com/cosmos/ibc-go/pull/5294) Don't panic during any store operations.
