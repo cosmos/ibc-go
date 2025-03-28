@@ -201,7 +201,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (23-commmitment) [\#6870](https://github.com/cosmos/ibc-go/pull/6870) Remove `commitment.v1.MerklePath` in favour of `commitment.v2.MerklePath`.
 * [\#6923](https://github.com/cosmos/ibc-go/pull/6923) The JSON msg API for `VerifyMembershipMsg` and `VerifyNonMembershipMsg` payloads for client contract `SudoMsg` has been updated. The field `path` has been changed to `merkle_path`. This change requires updates to 08-wasm client contracts for integration.
 * (apps/callbacks) [\#7000](https://github.com/cosmos/ibc-go/pull/7000) Add base application version to contract keeper callbacks.
-* (core, core/08-wasm) [\#5154](https://github.com/cosmos/ibc-go/pull/5154) Use bytes in wasm contract api instead of wrapped.
+* (light-clients/08-wasm) [\#5154](https://github.com/cosmos/ibc-go/pull/5154) Use bytes in wasm contract api instead of wrapped.
 * (core, core/08-wasm) [\#5397](https://github.com/cosmos/ibc-go/pull/5397) Add coordinator Setup functions to the Path type.
 * (core/05-port) [\#6341](https://github.com/cosmos/ibc-go/pull/6341) Modify `UnmarshalPacketData` interface to take in the context, portID, and channelID. This allows for packet data's to be unmarshaled based on the channel version.
 * (core/02-client) [\#6863](https://github.com/cosmos/ibc-go/pull/6863) remove ClientStoreProvider interface in favour of concrete type.
@@ -234,7 +234,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/ante) [\#6302](https://github.com/cosmos/ibc-go/pull/6302) Performance: Skip app callbacks during RecvPacket execution in checkTx within the redundant relay ante handler.
 * (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
 * [\#6716](https://github.com/cosmos/ibc-go/pull/6716) Add `HasModule` to capability keeper to allow checking if a scoped module already exists.
-* (core/08-wasm) [\#]()
 
 ### Features
 
