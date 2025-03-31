@@ -257,3 +257,5 @@ replace github.com/cosmos/ibc-go/v10 => ../
 replace github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => ../modules/light-clients/08-wasm
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+
+replace cosmossdk.io/api => ../api
