@@ -206,11 +206,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/02-client) [\#7936](https://github.com/cosmos/ibc-go/pull/7936) Clientv2 module.
 * (core/04-channel) [\#7933](https://github.com/cosmos/ibc-go/pull/7933) Channel-v2 genesis.
 * (core/04-channel, core/api) [\#7934](https://github.com/cosmos/ibc-go/pull/7934) - Callbacks Eureka.
-* (core/04-channel) [\#3240](https://github.com/cosmos/ibc-go/pull/3240) - Channel upgradability requirements.
-* (core/04-channel) [\#1613](https://github.com/cosmos/ibc-go/pull/1613) - Channel upgradability implementation.
-* (core/04-channel) [\#5548](https://github.com/cosmos/ibc-go/pull/5548) - Add cli to submit gov proposal to upgrade multiple channels.
 * (core/04-channel) [\#5764](https://github.com/cosmos/ibc-go/pull/5764) - Delete upgrade information only rather than calling abort in TimeoutExecuted.
-* (apps/transfer) [\#6693](https://github.com/cosmos/ibc-go/pull/6693) Added new `Forwarding` field to `MsgTransfer` to enable forwarding tokens through multiple intermediary chains with a single transaction. This also enables automatic unwinding of tokens to their native chain. `x/authz` support for transfer allows granters to specify a set of possible forwarding hops that are allowed for grantees.
 * (light-clients/09-localhost) [\#6683](https://github.com/cosmos/ibc-go/pull/6683) Make 09-localhost stateless.
 * (core, app) [\#6902](https://github.com/cosmos/ibc-go/pull/6902) Add channel version to core app callbacks.
 
