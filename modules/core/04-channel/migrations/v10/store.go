@@ -27,19 +27,19 @@ const (
 
 // PruningSequenceStartKey returns the store key for the pruning sequence start of a particular channel
 func PruningSequenceStartKey(portID, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", KeyPruningSequenceStart, channelPath(portID, channelID)))
+	return fmt.Appendf(nil, "%s/%s", KeyPruningSequenceStart, channelPath(portID, channelID))
 }
 
 func ChannelUpgradeKey(portID, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradePrefix, channelPath(portID, channelID)))
+	return fmt.Appendf(nil, "%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradePrefix, channelPath(portID, channelID))
 }
 
 func ChannelUpgradeErrorKey(portID, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeErrorPrefix, channelPath(portID, channelID)))
+	return fmt.Appendf(nil, "%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeErrorPrefix, channelPath(portID, channelID))
 }
 
 func ChannelCounterpartyUpgradeKey(portID, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", KeyChannelUpgradePrefix, KeyCounterpartyUpgrade, channelPath(portID, channelID)))
+	return fmt.Appendf(nil, "%s/%s/%s", KeyChannelUpgradePrefix, KeyCounterpartyUpgrade, channelPath(portID, channelID))
 }
 
 func channelPath(portID, channelID string) string {

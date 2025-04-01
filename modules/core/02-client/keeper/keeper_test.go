@@ -192,7 +192,7 @@ func (suite *KeeperTestSuite) TestGetAllGenesisMetadata() {
 		types.NewIdentifiedGenesisMetadata(
 			clientA,
 			[]types.GenesisMetadata{
-				types.NewGenesisMetadata([]byte(fmt.Sprintf("%s/%s", host.KeyClientState, "clientMetadata")), []byte("value")),
+				types.NewGenesisMetadata(fmt.Appendf(nil, "%s/%s", host.KeyClientState, "clientMetadata"), []byte("value")),
 				types.NewGenesisMetadata(ibctm.ProcessedTimeKey(types.NewHeight(0, 1)), []byte("foo")),
 				types.NewGenesisMetadata(ibctm.ProcessedTimeKey(types.NewHeight(0, 2)), []byte("bar")),
 				types.NewGenesisMetadata(ibctm.ProcessedTimeKey(types.NewHeight(0, 3)), []byte("baz")),

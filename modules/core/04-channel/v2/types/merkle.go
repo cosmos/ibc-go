@@ -2,6 +2,7 @@ package types
 
 import (
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	"slices"
 )
 
 // BuildMerklePath takes the merkle path prefix and an ICS24 path
@@ -13,7 +14,7 @@ func BuildMerklePath(prefix [][]byte, path []byte) commitmenttypesv2.MerklePath 
 	}
 
 	// copy prefix to avoid modifying the original slice
-	fullPath := append([][]byte(nil), prefix...)
+	fullPath := slices.Clone(prefix)
 	// append path to last element
 	fullPath[prefixLength-1] = append(fullPath[prefixLength-1], path...)
 	return commitmenttypesv2.NewMerklePath(fullPath...)

@@ -105,7 +105,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		malleate     func()
 		callbackType types.CallbackType
 		expPanic     bool
-		expValue     interface{}
+		expValue     any
 	}{
 		{
 			"success",
@@ -403,7 +403,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		name      string
 		malleate  func()
 		expResult expResult
-		expValue  interface{}
+		expValue  any
 	}{
 		{
 			"success",

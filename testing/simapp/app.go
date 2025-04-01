@@ -105,6 +105,7 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
+	"maps"
 )
 
 const appName = "SimApp"
@@ -812,9 +813,7 @@ func (app *SimApp) RegisterNodeService(clientCtx client.Context, cfg config.Conf
 // NOTE: This is solely to be used for testing purposes.
 func GetMaccPerms() map[string][]string {
 	dupMaccPerms := make(map[string][]string)
-	for k, v := range maccPerms {
-		dupMaccPerms[k] = v
-	}
+	maps.Copy(dupMaccPerms, maccPerms)
 
 	return dupMaccPerms
 }
