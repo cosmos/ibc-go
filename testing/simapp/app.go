@@ -94,6 +94,8 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	transferv2 "github.com/cosmos/ibc-go/v10/modules/apps/transfer/v2"
+	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	ibc "github.com/cosmos/ibc-go/v10/modules/core"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	ibcapi "github.com/cosmos/ibc-go/v10/modules/core/api"
@@ -156,6 +158,7 @@ type SimApp struct {
 	TransferKeeper        ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	PFMKeeper             *packetforwardkeeper.Keeper
+	RateLimitKeeper       ratelimitkeeper.Keeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -250,6 +253,7 @@ func NewSimApp(
 		govtypes.StoreKey, group.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		packetforwardtypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
 		authzkeeper.StoreKey, consensusparamtypes.StoreKey,
+		ratelimittypes.StoreKey,
 	)
 
 	// register streaming services
@@ -372,6 +376,19 @@ func NewSimApp(
 	)
 
 	app.PFMKeeper.SetTransferKeeper(app.TransferKeeper)
+
+	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(
+		appCodec, 
+		runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), 
+		// app.GetSubspace(ratelimittypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.MsgServiceRouter(),
+		app.GRPCQueryRouter(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 
 	// Mock Module Stack
 
