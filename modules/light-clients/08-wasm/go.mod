@@ -2,6 +2,8 @@ module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10
 
 go 1.23.6
 
+toolchain go1.24.1
+
 replace github.com/cosmos/ibc-go/v10 => ../../../
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
@@ -35,7 +37,7 @@ require (
 	github.com/spf13/viper v1.20.0
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250106144421-5f5ef82da422
-	google.golang.org/grpc v1.71.0
+	google.golang.org/grpc v1.71.1
 )
 
 require (
