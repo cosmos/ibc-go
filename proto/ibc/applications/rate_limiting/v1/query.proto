@@ -1,0 +1,88 @@
+syntax = "proto3";
+package ibc.applications.rate_limiting.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "ibc/applications/rate_limiting/v1/rate_limiting.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Queries all rate limits
+  rpc AllRateLimits(QueryAllRateLimitsRequest) returns (QueryAllRateLimitsResponse) {
+    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimits";
+  }
+
+  // Queries a specific rate limit by channel ID and denom
+  // Ex:
+  //  - /ratelimit/{channel_or_client_id}/by_denom?denom={denom}
+  rpc RateLimit(QueryRateLimitRequest) returns (QueryRateLimitResponse) {
+    option (google.api.http).get =
+      "/ibc/apps/rate-limiting/v1/ratelimit/"
+      "ratelimit/{channel_or_client_id}/by_denom";
+  }
+
+  // Queries all the rate limits for a given chain
+  rpc RateLimitsByChainId(QueryRateLimitsByChainIdRequest) returns (QueryRateLimitsByChainIdResponse) {
+    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/ratelimits/{chain_id}";
+  }
+
+  // Queries all the rate limits for a given channel ID
+  rpc RateLimitsByChannelOrClientId(QueryRateLimitsByChannelOrClientIdRequest) returns (QueryRateLimitsByChannelOrClientIdResponse) {
+    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/ratelimits/{channel_or_client_id}";
+  }
+
+  // Queries all blacklisted denoms
+  rpc AllBlacklistedDenoms(QueryAllBlacklistedDenomsRequest) returns (QueryAllBlacklistedDenomsResponse) {
+    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/blacklisted_denoms";
+  }
+
+  // Queries all whitelisted address pairs
+  rpc AllWhitelistedAddresses(QueryAllWhitelistedAddressesRequest) returns (QueryAllWhitelistedAddressesResponse) {
+    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/whitelisted_addresses";
+  }
+}
+
+// Queries all rate limits
+message QueryAllRateLimitsRequest {}
+message QueryAllRateLimitsResponse {
+  repeated RateLimit rate_limits = 1 [(gogoproto.nullable) = false];
+}
+
+// Queries a specific rate limit by channel ID and denom
+message QueryRateLimitRequest {
+  string denom = 1;
+  string channel_or_client_id = 2;
+}
+message QueryRateLimitResponse {
+  RateLimit rate_limit = 1;
+}
+
+// Queries all the rate limits for a given chain
+message QueryRateLimitsByChainIdRequest {
+  string chain_id = 1;
+}
+message QueryRateLimitsByChainIdResponse {
+  repeated RateLimit rate_limits = 1 [(gogoproto.nullable) = false];
+}
+
+// Queries all the rate limits for a given channel or client ID
+message QueryRateLimitsByChannelOrClientIdRequest {
+  string channel_or_client_id = 1;
+}
+message QueryRateLimitsByChannelOrClientIdResponse {
+  repeated RateLimit rate_limits = 1 [(gogoproto.nullable) = false];
+}
+
+// Queries all blacklisted denoms
+message QueryAllBlacklistedDenomsRequest {}
+message QueryAllBlacklistedDenomsResponse {
+  repeated string denoms = 1;
+}
+
+// Queries all whitelisted address pairs
+message QueryAllWhitelistedAddressesRequest {}
+message QueryAllWhitelistedAddressesResponse {
+  repeated WhitelistedAddressPair address_pairs = 1 [(gogoproto.nullable) = false];
+}
