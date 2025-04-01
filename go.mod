@@ -1,4 +1,4 @@
-go 1.24
+go 1.23.7
 
 module github.com/cosmos/ibc-go/v10
 

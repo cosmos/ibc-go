@@ -19,7 +19,6 @@ linters:
     - revive
     - staticcheck
     - stylecheck
-    - usetesting
     - thelper
     - typecheck
     - unconvert
