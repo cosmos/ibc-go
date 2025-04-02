@@ -232,7 +232,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#7688](https://github.com/cosmos/ibc-go/pull/7688) Added `SendMsgsWithSender` to `TestChain`.
 * [\#4975](https://github.com/cosmos/ibc-go/pull/4975) Add ParsePacketsFromEvents
-* [\#5406](https://github.com/cosmos/ibc-go/pull/5406) Add mock middleware to block app upgrades and provide test coverage in core
 * [\#5721](https://github.com/cosmos/ibc-go/pull/5721) Follow up nits from coordinator method deprecations.
 * [\#5719](https://github.com/cosmos/ibc-go/pull/5719) Add UpdateConnection to endpoint and update usages in tests.
 * [\#6161](https://github.com/cosmos/ibc-go/pull/6161) Don't pass keeper as argument to malleate function.
