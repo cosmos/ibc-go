@@ -74,8 +74,6 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
@@ -155,8 +153,6 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -214,8 +210,6 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -417,7 +411,6 @@ func (suite *TransferTestSuite) TestOnAcknowledgePacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -512,7 +505,6 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -610,7 +602,6 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			tc.malleate()
 

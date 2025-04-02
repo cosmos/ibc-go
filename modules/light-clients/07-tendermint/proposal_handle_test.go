@@ -40,8 +40,6 @@ func (suite *TendermintTestSuite) TestCheckSubstituteUpdateStateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -85,8 +83,6 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -224,8 +220,6 @@ func (suite *TendermintTestSuite) TestIsMatchingClientState() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 

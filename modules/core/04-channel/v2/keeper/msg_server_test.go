@@ -101,8 +101,6 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -240,8 +238,6 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 

@@ -79,8 +79,6 @@ func (suite *TypesTestSuite) TestMarshalMsgCreateClient() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -233,8 +231,6 @@ func (suite *TypesTestSuite) TestMarshalMsgUpdateClient() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -366,8 +362,6 @@ func (suite *TypesTestSuite) TestMarshalMsgUpgradeClient() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -460,7 +454,6 @@ func (suite *TypesTestSuite) TestMsgUpgradeClient_ValidateBasic() {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 
 		clientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 		consState := &ibctm.ConsensusState{NextValidatorsHash: []byte("nextValsHash")}
@@ -512,8 +505,6 @@ func (suite *TypesTestSuite) TestMarshalMsgSubmitMisbehaviour() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -936,7 +927,6 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 			if tc.expErr == nil {
@@ -961,7 +951,6 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		msg := types.MsgUpdateParams{
 			Signer: tc.address.String(),
