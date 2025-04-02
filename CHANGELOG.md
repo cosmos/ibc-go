@@ -28,91 +28,34 @@ Types of changes (Stanzas):
 "Bug Fixes" for any bug fixes.
 "Client Breaking" for breaking CLI commands and REST routes used by end-users.
 "API Breaking" for breaking exported APIs used by developers building on SDK.
-
-## [v10.0.0](https://github.com/cosmos/ibc-go/releases/tag/v10.0.0) - 2025-03-13
-
-### Security Fixes
-
-* Fix [ISA-2025-001](https://github.com/cosmos/ibc-go/security/advisories/GHSA-4wf3-5qj9-368v) security vulnerability.
-* Fix [ASA-2025-004](https://github.com/cosmos/ibc-go/security/advisories/GHSA-jg6f-48ff-5xrw) security vulnerability.
-
-### Dependencies
-
-* [\#8124](https://github.com/cosmos/ibc-go/pull/8124) Bump Cosmos SDK from v0.50.11 to v0.50.12.
-* [\#8147](https://github.com/cosmos/ibc-go/pull/8147) Bump github.com/ethereum/go-ethereum from v1.14.12 to v1.15.5.
-* [\#7325](https://github.com/cosmos/ibc-go/pull/7325) Update Go requirement to 1.23.6.
-* [\#8129](https://github.com/cosmos/ibc-go/pull/8129) Bump github.com/CosmWasm/wasmvm/v2 from 2.1.2 to 2.2.2 in modules/light-clients/08-wasm.
-
-### API Breaking
-
-* (core) [\#7279](https://github.com/cosmos/ibc-go/pull/7279) Remove capabilities module and all references to it.
-* (core) [\#7213](https://github.com/cosmos/ibc-go/pull/7213) Remove capabilities from `SendPacket`.
-* (core) [\#7225](https://github.com/cosmos/ibc-go/pull/7225) Remove capabilities from `WriteAcknowledgement`.
-* (core) [\#7232](https://github.com/cosmos/ibc-go/pull/7232) Remove capabilities from channel handshake methods.
-* (core) [\#7239](https://github.com/cosmos/ibc-go/pull/7239) Remove `LookupModuleByChannel` and `ChannelCapabilityPath`.
-* (core) [\#7252](https://github.com/cosmos/ibc-go/pull/7252) Remove `LookupModuleByPort`.
-* (core/27-interchain-accounts) [\#7961](https://github.com/cosmos/ibc-go/pull/7961) Remove multiple functions and capabilities from ICA.
-* (core) [\#5705](https://github.com/cosmos/ibc-go/pull/5705) Remove unnecessary channel getter functions.
-* (core) [\#5775](https://github.com/cosmos/ibc-go/pull/5775) Remove counterparty connection interface.
-* (core) [\#5806](https://github.com/cosmos/ibc-go/pull/5806) Decouple client routing from encoding.
-* (core) [\#6138](https://github.com/cosmos/ibc-go/pull/6138) Replace Router with PortKeeper in IBCKeeper.
-* (core) [\#8008](https://github.com/cosmos/ibc-go/pull/8008) Remove channel upgradability feature.
-* (core) [\#8000](https://github.com/cosmos/ibc-go/pull/8000) Remove 29-fee module.
-
-### State Machine Breaking
-
-* (apps/callbacks) [\#8014](https://github.com/cosmos/ibc-go/pull/8014) Callbacks will now return an error acknowledgement if the recvPacket callback fails, reverting all app callback changes.
-* (light-clients/06-solomachine) [\#6313](https://github.com/cosmos/ibc-go/pull/6313) No-op rather than panic in solomachine update state for invalid misbehaviour submissions.
-* (core) [\#6023](https://github.com/cosmos/ibc-go/pull/6023) Remove duplicate non-hexlified event attributes.
-
-### Features
-
-* (core) [\#7505](https://github.com/cosmos/ibc-go/pull/7505) Add IBC Eureka (IBC v2) implementation, enabling more efficient IBC packet handling without channel dependencies, bringing significant performance improvements.
-* (core/02-client) [\#7997](https://github.com/cosmos/ibc-go/pull/7997) Add CLI commands for client v2 counterparty to register and query client counterparties.
-* (core/04-channel) [\#7140](https://github.com/cosmos/ibc-go/pull/7140) Allow 4 character client IDs.
-* (core/04-channel) [\#7931](https://github.com/cosmos/ibc-go/pull/7931) Allow 8 character client IDs.
-* (apps/transfer) [\#7650](https://github.com/cosmos/ibc-go/pull/7650) Add support for transferring entire balance for vesting accounts.
-* (apps/transfer) [\#7592](https://github.com/cosmos/ibc-go/pull/7592) Add Solidity ABI support in ICS20Transfer for better Ethereum/Cosmos interoperability.
-* (core) [\#7952](https://github.com/cosmos/ibc-go/pull/7952) Add async packet receipt genesis support.
-* (core/04-channel) [\#7935](https://github.com/cosmos/ibc-go/pull/7935) Limit payload size for both v1 and v2 packets.
-* (core/02-client) [\#7936](https://github.com/cosmos/ibc-go/pull/7936) Add clientv2 module implementation.
-* (core/04-channel) [\#7933](https://github.com/cosmos/ibc-go/pull/7933) Add channel-v2 genesis support.
-* (core) [\#5541](https://github.com/cosmos/ibc-go/pull/5541) Enable emission of events on erroneous IBC application callbacks.
-* (core/04-channel) [\#6902](https://github.com/cosmos/ibc-go/pull/6902) Add channel version to core application callbacks.
-* (light-clients/09-localhost) [\#6683](https://github.com/cosmos/ibc-go/pull/6683) Make 09-localhost stateless.
-
-### Improvements
-
-* (core/27-interchain-accounts) [\#5533](https://github.com/cosmos/ibc-go/pull/5533) Set `host_connection_id` in version metadata on `ChanOpenTry`.
-* (core) [\#6256](https://github.com/cosmos/ibc-go/pull/6256) Add length checking of array fields in messages for better validation.
-* (core) [\#8130](https://github.com/cosmos/ibc-go/pull/8130) Consistent behaviour across Go and Solidity for timeout behaviour.
-* (apps/27-interchain-accounts) [\#6251](https://github.com/cosmos/ibc-go/pull/6251) Use `UNORDERED` as the default ordering for new ICA channels.
-* (core) [\#7635](https://github.com/cosmos/ibc-go/pull/7635) Rename v2 event attribute key for encoded data.
-* (core) [\#5603](https://github.com/cosmos/ibc-go/pull/5603) Remove `upgrade` prefix from upgrade event attributes.
-* (core) [\#7492](https://github.com/cosmos/ibc-go/pull/7492) Use error returns in VerifyMembership functions.
-* (core/23-commitment) [\#7493](https://github.com/cosmos/ibc-go/pull/7493) Clean up verification arg code for 23-commitment.
-* (core) [\#7673](https://github.com/cosmos/ibc-go/pull/7673) Add telemetry reporting for packet methods.
-* (core) [\#8162](https://github.com/cosmos/ibc-go/pull/8162) Upgrade tests after localhost name change.
-
-### Bug Fixes
-
-* (core/27-interchain-accounts) [\#7277](https://github.com/cosmos/ibc-go/pull/7277) Use `GogoResolver` when populating module query safe allow list to avoid panics.
-* (core/client) [\#7342](https://github.com/cosmos/ibc-go/pull/7342) Read Tx cmd flags including from address to avoid "Address cannot be empty" error in channel upgrade CLI.
-* (core) [\#7397](https://github.com/cosmos/ibc-go/pull/7397) Skip the genesis validation connectionID for localhost client.
-* (core/27-interchain-accounts) [\#6377](https://github.com/cosmos/ibc-go/pull/6377) Generate ICA simtest proposals only for provided keepers.
-* (core) [\#8060](https://github.com/cosmos/ibc-go/pull/8060) Remove unnecessary packet data re-marshaling.
-* (core) [\#7646](https://github.com/cosmos/ibc-go/pull/7646) Fix packet commitment path used for timeout.
-* (core) [\#7649](https://github.com/cosmos/ibc-go/pull/7649) Correct error message for payload validation in packet ValidateBasic.
-* (core) [\#7633](https://github.com/cosmos/ibc-go/pull/7633) Document packet commitment keys and move prefixes to 24-host.
-* (core/04-channel) [\#7857](https://github.com/cosmos/ibc-go/pull/7857) Compare timeout timestamps in seconds instead of nanoseconds.
-* (core) [\#7903](https://github.com/cosmos/ibc-go/pull/7903) Enable noop error in v2 timeout.
 "State Machine Breaking" for any changes that result in a different AppState given the same genesisState and txList.
 Ref: https://keepachangelog.com/en/1.0.0/
 -->
 
 # Changelog
 
+## [Unreleased]
+
+### Features
+
+### Dependencies
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Bug Fixes
+
+### Testing API
+
 ## [v10.1.0](https://github.com/cosmos/ibc-go/releases/tag/v10.1.0) - 2022-03-14
+
+### Security Fixes
+
+* Fix [ISA-2025-001](https://github.com/cosmos/ibc-go/security/advisories/GHSA-4wf3-5qj9-368v) security vulnerability.
+* Fix [ASA-2025-004](https://github.com/cosmos/ibc-go/security/advisories/GHSA-jg6f-48ff-5xrw) security vulnerability.
 
 ### Features
 
