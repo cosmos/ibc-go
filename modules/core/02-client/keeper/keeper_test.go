@@ -79,7 +79,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app := simapp.Setup(suite.T(), isCheckTx)
 
 	suite.cdc = app.AppCodec()
-	suite.ctx = app.BaseApp.NewContext(isCheckTx)
+	suite.ctx = app.NewContext(isCheckTx)
 	suite.keeper = app.IBCKeeper.ClientKeeper
 	suite.privVal = cmttypes.NewMockPV()
 	pubKey, err := suite.privVal.GetPubKey()

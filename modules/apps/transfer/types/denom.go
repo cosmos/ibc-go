@@ -71,7 +71,7 @@ func (d Denom) Path() string {
 
 	var sb strings.Builder
 	for _, t := range d.Trace {
-		sb.WriteString(t.String()) // nolint:revive // no error returned by WriteString
+		sb.WriteString(t.String()) //nolint:revive // no error returned by WriteString
 		sb.WriteByte('/')          //nolint:revive // no error returned by WriteByte
 	}
 	sb.WriteString(d.Base) //nolint:revive

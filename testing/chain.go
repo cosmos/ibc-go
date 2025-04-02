@@ -483,7 +483,7 @@ func CommitHeader(proposedHeader cmttypes.Header, valSet *cmttypes.ValidatorSet,
 	// Thus we iterate over the ordered validator set and construct a signer array
 	// from the signer map in the same order.
 	signerArr := make([]cmttypes.PrivValidator, len(valSet.Validators))
-	for i, v := range valSet.Validators { //nolint:staticcheck // need to check for nil validator set
+	for i, v := range valSet.Validators {
 		signerArr[i] = signers[v.Address.String()]
 	}
 

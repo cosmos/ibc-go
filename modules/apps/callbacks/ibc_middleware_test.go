@@ -112,7 +112,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		{
 			"success: callback data doesn't exist",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 			},
 			"none", // nonexistent callback data should result in no callback execution
@@ -257,7 +256,6 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"success: callback data doesn't exist",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 				packet.Data = packetData.GetBytes()
 			},
@@ -275,7 +273,6 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"failure: no-op on callback data is not valid",
 			func() {
-				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
@@ -428,7 +425,6 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"success: callback data doesn't exist",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 				packet.Data = packetData.GetBytes()
 			},
@@ -446,7 +442,6 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"failure: no-op on callback data is not valid",
 			func() {
-				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
@@ -604,7 +599,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"success: callback data doesn't exist",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 				packet.Data = packetData.GetBytes()
 			},
@@ -622,7 +616,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"failure: callback data is not valid",
 			func() {
-				//nolint:goconst
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
@@ -772,7 +765,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 		{
 			"success: callback data doesn't exist",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 				packet.Data = packetData.GetBytes()
 			},

@@ -124,7 +124,7 @@ func (k *Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrad
 // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
 // Warning: DEPRECATED
 // This handler is redundant as `MsgUpdateClient` is now capable of handling both a Header and a Misbehaviour
-func (k *Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) { //nolint:staticcheck // for now, we're using msgsubmitmisbehaviour.
+func (k *Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	misbehaviour, err := clienttypes.UnpackClientMessage(msg.Misbehaviour)

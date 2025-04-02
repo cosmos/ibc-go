@@ -432,7 +432,7 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 				}
 
 				// append non packet and update message to msgs to ensure multimsg tx should pass
-				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{}) //nolint:staticcheck // we're using the deprecated message for testing
+				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{})
 				return msgs
 			},
 			nil,

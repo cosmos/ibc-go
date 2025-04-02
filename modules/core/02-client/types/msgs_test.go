@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/proto" //nolint:staticcheck
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 

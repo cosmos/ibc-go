@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
 
@@ -100,7 +101,6 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
-	"maps"
 )
 
 const appName = "SimApp"
@@ -798,7 +798,7 @@ func (app *SimApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 
 // RegisterTxService implements the Application.RegisterTxService method.
 func (app *SimApp) RegisterTxService(clientCtx client.Context) {
-	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
+	authtx.RegisterTxService(app.GRPCQueryRouter(), clientCtx, app.Simulate, app.interfaceRegistry)
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
@@ -806,7 +806,7 @@ func (app *SimApp) RegisterTendermintService(clientCtx client.Context) {
 	cmtApp := server.NewCometABCIWrapper(app)
 	cmtservice.RegisterTendermintService(
 		clientCtx,
-		app.BaseApp.GRPCQueryRouter(),
+		app.GRPCQueryRouter(),
 		app.interfaceRegistry,
 		cmtApp.Query,
 	)

@@ -31,7 +31,7 @@ func (ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, 
 		if existingConsState, found := GetConsensusState(clientStore, cdc, tmHeader.GetHeight()); found {
 			// This header has already been submitted and the necessary state is already stored
 			// in client store, thus we can return early without further validation.
-			if reflect.DeepEqual(existingConsState, tmHeader.ConsensusState()) { //nolint:gosimple
+			if reflect.DeepEqual(existingConsState, tmHeader.ConsensusState()) {
 				return false
 			}
 
@@ -57,12 +57,12 @@ func (ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, 
 		// if heights are equal check that this is valid misbehaviour of a fork
 		// otherwise if heights are unequal check that this is valid misbehavior of BFT time violation
 		if msg.Header1.GetHeight().EQ(msg.Header2.GetHeight()) {
-			blockID1, err := cmttypes.BlockIDFromProto(&msg.Header1.SignedHeader.Commit.BlockID)
+			blockID1, err := cmttypes.BlockIDFromProto(&msg.Header1.Commit.BlockID)
 			if err != nil {
 				return false
 			}
 
-			blockID2, err := cmttypes.BlockIDFromProto(&msg.Header2.SignedHeader.Commit.BlockID)
+			blockID2, err := cmttypes.BlockIDFromProto(&msg.Header2.Commit.BlockID)
 			if err != nil {
 				return false
 			}
@@ -72,7 +72,7 @@ func (ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, 
 				return true
 			}
 
-		} else if !msg.Header1.SignedHeader.Header.Time.After(msg.Header2.SignedHeader.Header.Time) {
+		} else if !msg.Header1.Header.Time.After(msg.Header2.Header.Time) {
 			// Header1 is at greater height than Header2, therefore Header1 time must be less than or equal to
 			// Header2 time in order to be valid misbehaviour (violation of monotonic time).
 			return true
