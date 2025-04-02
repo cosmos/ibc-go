@@ -60,6 +60,7 @@ func SetupTestingApp() (TestingApp, map[string]json.RawMessage) {
 // of one consensus engine unit (10^6) in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
 func SetupWithGenesisValSet(tb testing.TB, valSet *cmttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, chainID string, powerReduction sdkmath.Int, balances ...banktypes.Balance) TestingApp {
+	tb.Helper()
 	return setupWithGenesisValSet(tb, valSet, genAccs, chainID, powerReduction, DefaultTestingAppInit, balances...)
 }
 
