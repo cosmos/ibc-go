@@ -182,7 +182,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/02-client) [\#6863](https://github.com/cosmos/ibc-go/pull/6863) remove ClientStoreProvider interface in favour of concrete type.
 * (core/05-port) [\#6988](https://github.com/cosmos/ibc-go/pull/6988) Modify `UnmarshalPacketData` interface to return the underlying application version.
 * (apps/27-interchain-accounts) [\#7053](https://github.com/cosmos/ibc-go/pull/7053) Remove ICS27 channel capability migration introduced in v6.
-* (apps/27-interchain-accounts) [\#7713](https://github.com/cosmos/ibc-go/pull/7713) Update interchain accounts `GenerateAddress` func to now accept `header.Info` in favour of `sdk.Context`. This function now uses `AppHash` and `Hash` (merkle root of block) instead of `AppHash` and `DataHash` as pre-image data for address generation.
 
 ### State Machine Breaking
 
