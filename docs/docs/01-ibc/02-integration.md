@@ -127,7 +127,7 @@ cbStack := ibccallbacks.NewIBCMiddleware(transferStack, app.PacketForwardKeeper,
 transferStack = packetforward.NewIBCMiddleware(
   cbStack,
   app.PacketForwardKeeper,
-  0,
+  0, // retries on timeout
   packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
 )
 ```
