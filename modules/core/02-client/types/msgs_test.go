@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -699,7 +698,7 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 		expError error
 	}{
 		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
-		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
+		{"failure: nil address", nil, errors.New("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
@@ -778,7 +777,7 @@ func TestMsgIBCSoftwareUpgrade_GetSigners(t *testing.T) {
 		{
 			"failure: nil address",
 			nil,
-			fmt.Errorf("empty address string is not allowed"),
+			errors.New("empty address string is not allowed"),
 		},
 	}
 
@@ -931,7 +930,7 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 		{
 			"failure: invalid allowed client",
 			types.NewMsgUpdateParams(signer, types.NewParams("")),
-			fmt.Errorf("client type 0 cannot be blank"),
+			errors.New("client type 0 cannot be blank"),
 		},
 	}
 
@@ -957,7 +956,7 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 		expErr  error
 	}{
 		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
-		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
+		{"failure: nil address", nil, errors.New("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
