@@ -284,7 +284,7 @@ func (suite *WasmTestSuite) TestInitialize() {
 			func() {
 				clientState = &solomachine.ClientState{Sequence: 20}
 			},
-			fmt.Errorf("proto: wrong wireType = 0 for field Data"),
+			errors.New("proto: wrong wireType = 0 for field Data"),
 		},
 		{
 			"failure: client state is invalid",
