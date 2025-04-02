@@ -126,7 +126,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#7932](https://github.com/cosmos/ibc-go/pull/7932) Rollback **github.com/cometbft/cometbft** to **0.38.15**
 * [\#7932](https://github.com/cosmos/ibc-go/pull/7932) Rollback **github.com/cometbft/cometbft** to **0.38.15**
 * [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump **cosmossdk.io/x/upgrade** to **0.1.4**
-* [\#8124](https://github.com/cosmos/ibc-go/pull/7932) Bump **cosmossdk.io/x/tx** to **0.13.7**
+* [\#8124](https://github.com/cosmos/ibc-go/pull/8124) Bump **cosmossdk.io/x/tx** to **0.13.7**
 * [\#7942](https://github.com/cosmos/ibc-go/pull/7942) Bump **github.com/cosmos/cosmos-db** to **1.1.1**
 * [\#7224](https://github.com/cosmos/ibc-go/pull/7224) Bump **github.com/cosmos/ics23/go** to **0.11.0**
 
