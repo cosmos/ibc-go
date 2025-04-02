@@ -20,11 +20,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: golangci/golangci-lint-action@v6.5.2
+      - uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.62
+          version: v2.0
           only-new-issues: true
-          args: --timeout 10m
           working-directory: modules/light-clients/08-wasm
 
   build:
