@@ -85,7 +85,7 @@ func UnmarshalMsgResponses(cdc codec.Codec, data []byte, msgs ...codec.ProtoMars
 }
 
 // RequireErrorIsOrContains verifies that the passed error is either a target error or contains its error message.
-func RequireErrorIsOrContains(t *testing.T, err, targetError error, msgAndArgs ...interface{}) {
+func RequireErrorIsOrContains(t *testing.T, err, targetError error, msgAndArgs ...any) {
 	t.Helper()
 	require.Error(t, err)
 	require.True(

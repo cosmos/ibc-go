@@ -113,7 +113,7 @@ func GetDestCallbackData(
 // The addressGetter and gasLimitGetter functions are used to retrieve the callback
 // address and gas limit from the callback data.
 func GetCallbackData(
-	packetData interface{},
+	packetData any,
 	version, srcPortID string,
 	remainingGas, maxGas uint64,
 	callbackKey string,
@@ -123,7 +123,7 @@ func GetCallbackData(
 		return CallbackData{}, false, ErrNotPacketDataProvider
 	}
 
-	callbackData, ok := packetDataProvider.GetCustomPacketData(callbackKey).(map[string]interface{})
+	callbackData, ok := packetDataProvider.GetCustomPacketData(callbackKey).(map[string]any)
 	if callbackData == nil || !ok {
 		return CallbackData{}, false, ErrCallbackKeyNotFound
 	}
@@ -155,7 +155,7 @@ func GetCallbackData(
 	}, true, nil
 }
 
-func computeExecAndCommitGasLimit(callbackData map[string]interface{}, remainingGas, maxGas uint64) (uint64, uint64) {
+func computeExecAndCommitGasLimit(callbackData map[string]any, remainingGas, maxGas uint64) (uint64, uint64) {
 	// get the gas limit from the callback data
 	commitGasLimit := getUserDefinedGasLimit(callbackData)
 
@@ -166,10 +166,7 @@ func computeExecAndCommitGasLimit(callbackData map[string]interface{}, remaining
 
 	// account for the remaining gas in the context being less than the desired gas limit for the callback execution
 	// in this case, the callback execution may be retried upon failure
-	executionGasLimit := commitGasLimit
-	if remainingGas < executionGasLimit {
-		executionGasLimit = remainingGas
-	}
+	executionGasLimit := min(remainingGas, commitGasLimit)
 
 	return executionGasLimit, commitGasLimit
 }
@@ -182,7 +179,7 @@ func computeExecAndCommitGasLimit(callbackData map[string]interface{}, remaining
 // { "{callbackKey}": { ... , "gas_limit": {stringForCallback} }
 //
 // Note: the user defined gas limit must be set as a string and not a json number.
-func getUserDefinedGasLimit(callbackData map[string]interface{}) uint64 {
+func getUserDefinedGasLimit(callbackData map[string]any) uint64 {
 	// the gas limit must be specified as a string and not a json number
 	gasLimit, ok := callbackData[UserDefinedGasLimitKey].(string)
 	if !ok {
@@ -206,7 +203,7 @@ func getUserDefinedGasLimit(callbackData map[string]interface{}) uint64 {
 //
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).
-func getCallbackAddress(callbackData map[string]interface{}) string {
+func getCallbackAddress(callbackData map[string]any) string {
 	callbackAddress, ok := callbackData[CallbackAddressKey].(string)
 	if !ok {
 		return ""
