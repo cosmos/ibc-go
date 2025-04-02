@@ -182,6 +182,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/05-port) [\#6988](https://github.com/cosmos/ibc-go/pull/6988) Modify `UnmarshalPacketData` interface to return the underlying application version.
 * (apps/27-interchain-accounts) [\#7053](https://github.com/cosmos/ibc-go/pull/7053) Remove ICS27 channel capability migration introduced in v6.
 * (apps/27-interchain-accounts) [\#8002](https://github.com/cosmos/ibc-go/issues/8002) Remove ICS-29: fee middleware.
+* (core/04-channel) [\#8053](https://github.com/cosmos/ibc-go/issues/8053) Remove channel upgradability.
 
 ### State Machine Breaking
 
