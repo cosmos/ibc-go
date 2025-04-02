@@ -16,7 +16,7 @@ Some of the interface differences are:
 - The callbacks middleware for IBC v2 requires the [`Underlying Application`](../01-callbacks/01-overview.md) to implement the new [`CallbacksCompatibleModuleV2`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/callbacks/types/callbacks.go#L53-L58) interface. 
 - `channeltypesv2.Payload` is now used instead of `channeltypes.Packet`
 - With IBC classic, the `OnRecvPacket` callback returns the `ack`, whereas v2 returns the `recvResult` which is the [status of the packet](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel/v2/types/packet.pb.go#L26-L38): unspecified, success, failue or asynchronous
-- `api.WriteAcknowledgementWrapper` is used instead of `ICS4Wrapper.WriteAcknowledgement`. 
+- `api.WriteAcknowledgementWrapper` is used instead of `ICS4Wrapper.WriteAcknowledgement`. It is only needed if the lower level application is going to write an asynchronous acknowledgement.
 
 ## Contract Developers
 
