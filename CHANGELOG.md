@@ -212,6 +212,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* (core) [\#7505](https://github.com/cosmos/ibc-go/pull/7505) Add IBC Eureka (IBC v2) implementation, enabling more efficient IBC packet handling without channel dependencies, bringing significant performance improvements.
 * (apps/transfer) [\#7650](https://github.com/cosmos/ibc-go/pull/7650) Add support for transfer of entire balance for vesting accounts.
 * (apps/wasm) [\#5079](https://github.com/cosmos/ibc-go/pull/5079) 08-wasm light client proxy module for wasm clients by.
 * (core/02-client) [\#7936](https://github.com/cosmos/ibc-go/pull/7936) Clientv2 module.
