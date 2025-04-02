@@ -5,10 +5,6 @@ sidebar_position: 3
 slug: /apps/transfer/ics20-v1/state-transitions
 ---
 
-:::warning
-This document is relevant only for fungible token transfers over channels on v1 of the ICS-20 protocol.
-:::
-
 # State transitions
 
 ## Send fungible tokens
