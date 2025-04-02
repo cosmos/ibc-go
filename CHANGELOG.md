@@ -89,7 +89,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#6902](https://github.com/cosmos/ibc-go/pull/6902) Add channel version to core application callbacks.
 * (core/03-connection, core/02-client) [\#6937](https://github.com/cosmos/ibc-go/pull/6937) Remove 'ConsensusHost' interface, also removing self client and consensus state validation in the connection handshake.
 * (core/24-host) [\#6882](https://github.com/cosmos/ibc-go/issues/6882) All functions ending in `Path` have been removed from 24-host in favour of their sybling functions ending in `Key`.
-* (apps/27-interchain-accounts) [\#8002](https://github.com/cosmos/ibc-go/issues/8002) Remove ICS-29: fee middleware
 
 ### State Machine Breaking
 
