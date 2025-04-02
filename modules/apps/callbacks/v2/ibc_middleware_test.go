@@ -238,7 +238,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		userGasLimit uint64
 	)
 
-	panicError := fmt.Errorf("panic error")
+	panicError := errors.New("panic error")
 
 	testCases := []struct {
 		name      string
