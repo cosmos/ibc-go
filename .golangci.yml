@@ -104,13 +104,13 @@ linters:
         text: Use of weak random number generator
       - linters:
           - gosec
-        text: 'G115: integer overflow conversion'
+        text: "G115: integer overflow conversion"
       - linters:
           - staticcheck
-        text: 'SA1019:'
+        text: "SA1019:"
       - linters:
           - gosec
-        text: 'G115: integer overflow conversion'
+        text: "G115: integer overflow conversion"
     paths:
       - third_party$
       - builtin$

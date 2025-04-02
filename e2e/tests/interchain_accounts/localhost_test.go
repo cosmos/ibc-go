@@ -230,6 +230,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 }
 
 func (s *LocalhostInterchainAccountsTestSuite) setupInitialChannel(ctx context.Context, t *testing.T, chainA ibc.Chain, userAWallet, rlyWallet ibc.Wallet) (string, channeltypes.MsgChannelOpenInitResponse, channeltypes.MsgChannelOpenTryResponse) {
+	t.Helper()
 	var (
 		msgChanOpenInitRes channeltypes.MsgChannelOpenInitResponse
 		msgChanOpenTryRes  channeltypes.MsgChannelOpenTryResponse
@@ -262,6 +263,7 @@ func (s *LocalhostInterchainAccountsTestSuite) setupInitialChannel(ctx context.C
 }
 
 func (s *LocalhostInterchainAccountsTestSuite) verifyInitialChannelState(ctx context.Context, t *testing.T, chainA ibc.Chain, controllerPortID string, msgChanOpenInitRes channeltypes.MsgChannelOpenInitResponse, msgChanOpenTryRes channeltypes.MsgChannelOpenTryResponse) {
+	t.Helper()
 	channelEndA, err := query.Channel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 	s.Require().NoError(err)
 	s.Require().NotNil(channelEndA)
@@ -274,6 +276,7 @@ func (s *LocalhostInterchainAccountsTestSuite) verifyInitialChannelState(ctx con
 }
 
 func (s *LocalhostInterchainAccountsTestSuite) fundAndVerifyInterchainAccount(ctx context.Context, t *testing.T, chainA ibc.Chain, userAWallet ibc.Wallet, chainADenom string) string {
+	t.Helper()
 	interchainAccAddress, err := query.InterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(interchainAccAddress)
@@ -289,6 +292,7 @@ func (s *LocalhostInterchainAccountsTestSuite) fundAndVerifyInterchainAccount(ct
 }
 
 func (s *LocalhostInterchainAccountsTestSuite) testPacketTimeoutAndChannelClosure(ctx context.Context, t *testing.T, chainA ibc.Chain, userAWallet, userBWallet, rlyWallet ibc.Wallet, interchainAccAddress, chainADenom, controllerPortID string, msgChanOpenInitRes channeltypes.MsgChannelOpenInitResponse, msgChanOpenTryRes channeltypes.MsgChannelOpenTryResponse) {
+	t.Helper()
 	// Send packet with timeout
 	msgSend := &banktypes.MsgSend{
 		FromAddress: interchainAccAddress,
@@ -335,6 +339,7 @@ func (s *LocalhostInterchainAccountsTestSuite) testPacketTimeoutAndChannelClosur
 }
 
 func (s *LocalhostInterchainAccountsTestSuite) reopenChannelAndVerify(ctx context.Context, t *testing.T, chainA ibc.Chain, userAWallet, rlyWallet ibc.Wallet, controllerPortID, interchainAccAddress, chainADenom string) {
+	t.Helper()
 	version := icatypes.NewDefaultMetadataString(exported.LocalhostConnectionID, exported.LocalhostConnectionID)
 
 	// Register new interchain account
@@ -376,6 +381,7 @@ func (s *LocalhostInterchainAccountsTestSuite) reopenChannelAndVerify(ctx contex
 }
 
 func (s *LocalhostInterchainAccountsTestSuite) testSuccessfulPacketTransfer(ctx context.Context, t *testing.T, chainA ibc.Chain, userAWallet, userBWallet, rlyWallet ibc.Wallet, interchainAccAddress, chainADenom, controllerPortID string, msgChanOpenInitRes channeltypes.MsgChannelOpenInitResponse) {
+	t.Helper()
 	msgSend := &banktypes.MsgSend{
 		FromAddress: interchainAccAddress,
 		ToAddress:   userBWallet.FormattedAddress(),
