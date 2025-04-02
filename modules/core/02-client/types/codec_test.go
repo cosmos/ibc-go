@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	"fmt"
+	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -227,7 +227,7 @@ func (suite *TypesTestSuite) TestCodecTypeRegistration() {
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			fmt.Errorf("unable to resolve type URL ibc.invalid.MsgTypeURL"),
+			errors.New("unable to resolve type URL ibc.invalid.MsgTypeURL"),
 		},
 	}
 

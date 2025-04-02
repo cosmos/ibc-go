@@ -1368,7 +1368,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence 0 cannot be 0").Error(),
+				errors.New("packet sequence 0 cannot be 0").Error(),
 			),
 		},
 		{

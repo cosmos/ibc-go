@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"errors"
-	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -38,7 +37,7 @@ func (suite *TypesTestSuite) TestAcknowledgement() {
 		},
 		{
 			"valid failed ack",
-			types.NewErrorAcknowledgement(fmt.Errorf("error")),
+			types.NewErrorAcknowledgement(errors.New("error")),
 			true,
 			[]byte(`{"error":"ABCI code: 1: error handling packet: see events for details"}`),
 			false,
@@ -52,7 +51,7 @@ func (suite *TypesTestSuite) TestAcknowledgement() {
 		},
 		{
 			"empty failed ack",
-			types.NewErrorAcknowledgement(fmt.Errorf("  ")),
+			types.NewErrorAcknowledgement(errors.New("  ")),
 			true,
 			[]byte(`{"error":"ABCI code: 1: error handling packet: see events for details"}`),
 			false,

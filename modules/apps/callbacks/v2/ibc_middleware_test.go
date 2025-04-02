@@ -1,7 +1,9 @@
 package v2_test
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -41,35 +43,35 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 			func() {
 				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, nil, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
-			fmt.Errorf("write acknowledgement wrapper cannot be nil"),
+			errors.New("write acknowledgement wrapper cannot be nil"),
 		},
 		{
 			"panics with nil underlying app",
 			func() {
 				_ = v2.NewIBCMiddleware(nil, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
-			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
+			errors.New("underlying application does not implement " + reflect.TypeOf((*types.CallbacksCompatibleModule)(nil)).String()),
 		},
 		{
 			"panics with nil contract keeper",
 			func() {
 				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, nil, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
-			fmt.Errorf("contract keeper cannot be nil"),
+			errors.New("contract keeper cannot be nil"),
 		},
 		{
 			"panics with nil channel v2 keeper",
 			func() {
 				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, nil, maxCallbackGas)
 			},
-			fmt.Errorf("channel keeper v2 cannot be nil"),
+			errors.New("channel keeper v2 cannot be nil"),
 		},
 		{
 			"panics with zero maxCallbackGas",
 			func() {
 				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, uint64(0))
 			},
-			fmt.Errorf("maxCallbackGas cannot be zero"),
+			errors.New("maxCallbackGas cannot be zero"),
 		},
 	}
 
