@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -20,7 +21,7 @@ const (
 )
 
 // tests acknowledgement.ValidateBasic and acknowledgement.Acknowledgement
-func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *TypesTestSuite) TestAcknowledgement() {
 	testCases := []struct {
 		name         string
 		ack          types.Acknowledgement
@@ -142,7 +143,7 @@ func (suite *TypesTestSuite) TestAcknowledgementError() {
 	suite.Require().NotEqual(ack, ackDifferentABCICode)
 }
 
-func (suite TypesTestSuite) TestAcknowledgementWithCodespace() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *TypesTestSuite) TestAcknowledgementWithCodespace() {
 	testCases := []struct {
 		name     string
 		ack      types.Acknowledgement
@@ -155,7 +156,7 @@ func (suite TypesTestSuite) TestAcknowledgementWithCodespace() { //nolint:govet 
 		},
 		{
 			"unknown error",
-			types.NewErrorAcknowledgementWithCodespace(fmt.Errorf("unknown error")),
+			types.NewErrorAcknowledgementWithCodespace(errors.New("unknown error")),
 			[]byte(`{"error":"ABCI error: undefined/1: error handling packet: see events for details"}`),
 		},
 		{

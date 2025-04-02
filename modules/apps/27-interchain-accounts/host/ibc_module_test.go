@@ -1,6 +1,7 @@
 package host_test
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"testing"
@@ -161,7 +162,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 					portID, channelID string,
 					counterparty channeltypes.Counterparty, counterpartyVersion string,
 				) (string, error) {
-					return "", fmt.Errorf("mock ica auth fails")
+					return "", errors.New("mock ica auth fails")
 				}
 			}, nil,
 		},

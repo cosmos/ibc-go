@@ -550,7 +550,7 @@ func (endpoint *Endpoint) TimeoutPacketWithResult(packet channeltypes.Packet) (*
 	case channeltypes.UNORDERED:
 		packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	default:
-		return nil, fmt.Errorf("unsupported order type %s", endpoint.ChannelConfig.Order)
+		return nil, errors.New("unsupported order type " + endpoint.ChannelConfig.Order.String())
 	}
 
 	counterparty := endpoint.Counterparty
