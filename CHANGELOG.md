@@ -112,18 +112,29 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v10.1.0](https://github.com/cosmos/ibc-go/releases/tag/v10.1.0) - 2022-03-14
+
+### Features
+
+* (core) [\#7505](https://github.com/cosmos/ibc-go/pull/7505) Add IBC Eureka (IBC v2) implementation, enabling more efficient IBC packet handling without channel dependencies, bringing significant performance improvements.
+* (apps/transfer) [\#7650](https://github.com/cosmos/ibc-go/pull/7650) Add support for transfer of entire balance for vesting accounts.
+* (apps/wasm) [\#5079](https://github.com/cosmos/ibc-go/pull/5079) 08-wasm light client proxy module for wasm clients by.
+* (core/02-client) [\#7936](https://github.com/cosmos/ibc-go/pull/7936) Clientv2 module.
+* (core/04-channel) [\#7933](https://github.com/cosmos/ibc-go/pull/7933) Channel-v2 genesis.
+* (core/04-channel, core/api) [\#7934](https://github.com/cosmos/ibc-go/pull/7934) - Callbacks Eureka.
+* (light-clients/09-localhost) [\#6683](https://github.com/cosmos/ibc-go/pull/6683) Make 09-localhost stateless.
+* (core, app) [\#6902](https://github.com/cosmos/ibc-go/pull/6902) Add channel version to core app callbacks.
 
 ### Dependencies
 
-* [\#7261](https://github.com/cosmos/ibc-go/pull/7261) Bump **github.com/cosmos/cosmos-sdk** to **0.52.0**
+* [\#8181](https://github.com/cosmos/ibc-go/pull/8181) Bump **github.com/cosmos/cosmos-sdk** to **0.50.13**
 * [\#7932](https://github.com/cosmos/ibc-go/pull/7932) Bump **go** to **1.23**
-* [\#7932](https://github.com/cosmos/ibc-go/pull/7932) Rollback **cosmossdk.io/api** to **0.7.6**
-* [\#7932](https://github.com/cosmos/ibc-go/pull/7932) Rollback **cosmossdk.io/core** to **0.11.1**
-* [\#7932](https://github.com/cosmos/ibc-go/pull/7932) Rollback **cosmossdk.io/log** to **1.4.1**
-* [\#7932](https://github.com/cosmos/ibc-go/pull/7932) Rollback **cosmossdk.io/store** to **1.1.1**
-* [\#7932](https://github.com/cosmos/ibc-go/pull/7932) Rollback **cosmossdk.io/math** to **1.4.0**
-* [\#7932](https://github.com/cosmos/ibc-go/pull/7932) Rollback **github.com/cometbft/cometbft** to **0.38.15**
+* [\#7330](https://github.com/cosmos/ibc-go/pull/7330) Bump **cosmossdk.io/api** to **0.7.6**
+* [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump **cosmossdk.io/core** to **0.11.1**
+* [\#7182](https://github.com/cosmos/ibc-go/pull/7182) Bump **cosmossdk.io/log** to **1.4.1**
+* [\#7264](https://github.com/cosmos/ibc-go/pull/7264) Bump **cosmossdk.io/store** to **1.1.1**
+* [\#7585](https://github.com/cosmos/ibc-go/pull/7585) Bump **cosmossdk.io/math** to **1.4.0**
+* [\#7540](https://github.com/cosmos/ibc-go/pull/7540) Bump **github.com/cometbft/cometbft** to **0.38.15**
 * [\#6828](https://github.com/cosmos/ibc-go/pull/6828) Bump **cosmossdk.io/x/upgrade** to **0.1.4**
 * [\#8124](https://github.com/cosmos/ibc-go/pull/8124) Bump **cosmossdk.io/x/tx** to **0.13.7**
 * [\#7942](https://github.com/cosmos/ibc-go/pull/7942) Bump **github.com/cosmos/cosmos-db** to **1.1.1**
@@ -209,18 +220,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/ante) [\#6302](https://github.com/cosmos/ibc-go/pull/6302) Performance: Skip app callbacks during RecvPacket execution in checkTx within the redundant relay ante handler.
 * (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
 * [\#6716](https://github.com/cosmos/ibc-go/pull/6716) Add `HasModule` to capability keeper to allow checking if a scoped module already exists.
-
-### Features
-
-* (core) [\#7505](https://github.com/cosmos/ibc-go/pull/7505) Add IBC Eureka (IBC v2) implementation, enabling more efficient IBC packet handling without channel dependencies, bringing significant performance improvements.
-* (apps/transfer) [\#7650](https://github.com/cosmos/ibc-go/pull/7650) Add support for transfer of entire balance for vesting accounts.
-* (apps/wasm) [\#5079](https://github.com/cosmos/ibc-go/pull/5079) 08-wasm light client proxy module for wasm clients by.
-* (core/02-client) [\#7936](https://github.com/cosmos/ibc-go/pull/7936) Clientv2 module.
-* (core/04-channel) [\#7933](https://github.com/cosmos/ibc-go/pull/7933) Channel-v2 genesis.
-* (core/04-channel, core/api) [\#7934](https://github.com/cosmos/ibc-go/pull/7934) - Callbacks Eureka.
-* (light-clients/09-localhost) [\#6683](https://github.com/cosmos/ibc-go/pull/6683) Make 09-localhost stateless.
-* (core, app) [\#6902](https://github.com/cosmos/ibc-go/pull/6902) Add channel version to core app callbacks.
-
 
 ### Bug Fixes
 
