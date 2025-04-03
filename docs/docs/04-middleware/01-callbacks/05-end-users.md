@@ -94,3 +94,15 @@ These goals are achieved by creating a minimum gas amount required for callback 
 :::tip
 `SendPacket` callback is always reverted if the callback execution fails or returns an error for any reason. This is so that the packet is not sent if the callback execution fails.
 :::
+
+# Developer Resources
+
+When working with callbacks, you may find the following resources helpful:
+
+## CosmWasm Contracts
+
+If you're developing CosmWasm contracts that interact with callbacks middleware, refer to the [CosmWasm documentation on IBC Callbacks](https://cosmwasm.cosmos.network/ibc/extensions/callbacks). This documentation provides implementation details and best practices for handling callbacks in your CosmWasm contracts.
+
+## Helper Functions for Parsing ICS20 Packets
+
+For workflows that involve transfers and subsequent actions (such as a transfer followed by a swap on receive), you'll need to parse the ICS20 packet data to determine the IBC denom that has been received. Helper functions for this purpose are available in the [solidity-ibc-eureka repository](https://github.com/cosmos/solidity-ibc-eureka/blob/a8870b023e58622fb7b3f733572c684851f8e5ee/packages/cosmwasm/ibc-callbacks-helpers/src/ics20.rs).
