@@ -257,7 +257,7 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.ZeroInt()
 
 				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
-				store.Set([]byte(fmt.Sprintf("wrong-prefix/%s", denom)), bz)
+				store.Set(fmt.Appendf(nil, "wrong-prefix/%s", denom), bz)
 			},
 			false,
 		},

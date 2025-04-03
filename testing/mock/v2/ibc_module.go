@@ -67,7 +67,7 @@ func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, sourceChannel string, desti
 	return nil
 }
 
-func (IBCModule) UnmarshalPacketData(payload channeltypesv2.Payload) (interface{}, error) {
+func (IBCModule) UnmarshalPacketData(payload channeltypesv2.Payload) (any, error) {
 	if bytes.Equal(payload.Value, mockv1.MockPacketData) {
 		return mockv1.MockPacketData, nil
 	}

@@ -14,5 +14,5 @@ func ClientConnectionsKey(clientID string) []byte {
 
 // ConnectionKey returns the store key for a particular connection
 func ConnectionKey(connectionID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", KeyConnectionPrefix, connectionID))
+	return fmt.Appendf(nil, "%s/%s", KeyConnectionPrefix, connectionID)
 }

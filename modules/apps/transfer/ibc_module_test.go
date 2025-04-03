@@ -578,7 +578,7 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 
 		data              []byte
-		initialPacketData interface{}
+		initialPacketData any
 	)
 
 	testCases := []struct {
