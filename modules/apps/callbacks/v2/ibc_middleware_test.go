@@ -76,7 +76,6 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			if tc.expError == nil {
 				s.Require().NotPanics(tc.instantiateFn, "unexpected panic: NewIBCMiddleware")
@@ -165,7 +164,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
@@ -305,7 +303,6 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
@@ -465,7 +462,6 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
@@ -636,7 +632,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
@@ -778,7 +773,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 

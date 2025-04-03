@@ -4,6 +4,7 @@ run:
 linters:
   default: none
   enable:
+    - copyloopvar
     - errcheck
     - exhaustive
     - goconst
@@ -11,7 +12,6 @@ linters:
     - gosec
     - govet
     - ineffassign
-    - maintidx
     - misspell
     - nakedret
     - nolintlint

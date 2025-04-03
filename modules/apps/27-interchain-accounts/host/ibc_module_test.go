@@ -174,8 +174,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 
@@ -288,8 +286,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 				path := NewICAPath(suite.chainA, suite.chainB, ordering)
@@ -358,8 +354,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 
@@ -424,8 +418,6 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 
@@ -537,8 +529,6 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 
@@ -589,8 +579,6 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 

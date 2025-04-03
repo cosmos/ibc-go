@@ -62,8 +62,6 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 	suite.Require().Equal(exported.Tendermint, suite.header.ClientType())
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 

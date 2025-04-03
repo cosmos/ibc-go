@@ -95,7 +95,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 	}
 
 	for i, tc := range testCases {
-		tc := tc
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.name, i, len(testCases)), func() {
 			suite.SetupTest() // reset
 
@@ -202,8 +201,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -300,7 +297,6 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -408,7 +404,6 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -556,8 +551,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			// initialize freezeClient to false

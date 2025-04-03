@@ -604,8 +604,6 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			// reset suite
 			suite.SetupTest()
@@ -713,8 +711,6 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			// reset suite
 			suite.SetupTest()

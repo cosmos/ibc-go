@@ -46,8 +46,6 @@ func TestCodecTypeRegistration(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(tendermint.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)

@@ -47,8 +47,6 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		Ports: ports,
 	}
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
