@@ -67,5 +67,5 @@ type WriteAcknowledgementWrapper interface {
 type PacketDataUnmarshaler interface {
 	// UnmarshalPacketData unmarshals the packet data into a concrete type
 	// the payload is provided and the packet data interface is returned
-	UnmarshalPacketData(payload channeltypesv2.Payload) (interface{}, error)
+	UnmarshalPacketData(payload channeltypesv2.Payload) (any, error)
 }

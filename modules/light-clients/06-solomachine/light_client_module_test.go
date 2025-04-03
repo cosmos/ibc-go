@@ -59,8 +59,6 @@ func (suite *SoloMachineTestSuite) TestStatus() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			clientID = suite.solomachine.ClientID
 
@@ -115,8 +113,6 @@ func (suite *SoloMachineTestSuite) TestGetTimestampAtHeight() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			clientID = suite.solomachine.ClientID
 			clientState := suite.solomachine.ClientState()
@@ -188,8 +184,6 @@ func (suite *SoloMachineTestSuite) TestInitialize() {
 		}
 
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 				clientID := sm.ClientID
@@ -624,8 +618,6 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 		}
 
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 				testingPath = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -849,8 +841,6 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 		}
 
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 
@@ -968,7 +958,6 @@ func (suite *SoloMachineTestSuite) TestRecoverClient() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -1057,8 +1046,6 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 		}
 
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 
@@ -1150,8 +1137,6 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 		}
 
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 
@@ -1207,8 +1192,6 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 		}
 
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 				clientID = sm.ClientID
@@ -1384,8 +1367,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 		}
 
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 				clientID = sm.ClientID
@@ -1629,8 +1610,6 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 		}
 
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 				clientID = sm.ClientID
@@ -1688,7 +1667,6 @@ func (suite *SoloMachineTestSuite) TestLatestHeight() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			clientID = suite.solomachine.ClientID

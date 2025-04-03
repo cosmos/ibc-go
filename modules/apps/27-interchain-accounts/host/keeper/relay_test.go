@@ -500,8 +500,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	for _, ordering := range testedOrderings {
 		for _, encoding := range testedEncodings {
 			for _, tc := range testCases {
-				tc := tc
-
 				suite.Run(tc.msg, func() {
 					suite.SetupTest() // reset
 
@@ -590,7 +588,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 				// this is the way cosmwasm encodes byte arrays by default
 				// golang doesn't use this encoding by default, but it can still deserialize:
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",")
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
 
 				packetData = []byte(`{
 					"type": 1,
@@ -615,7 +613,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",")
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
 
 				packetData = []byte(`{
 					"type": 1,
@@ -644,7 +642,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",")
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
 
 				packetData = []byte(`{
 					"type": 1,
@@ -677,7 +675,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",")
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
 
 				packetData = []byte(`{
 					"type": 1,
@@ -718,7 +716,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",")
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
 
 				packetData = []byte(`{
 					"type": 1,
@@ -752,7 +750,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",")
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
 
 				packetData = []byte(`{
 					"type": 1,
@@ -768,7 +766,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			"unregistered sdk.Msg",
 			func(icaAddress string) {
 				msgBytes := []byte(`{"messages":[{}]}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",")
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
 
 				packetData = []byte(`{
 					"type": 1,
@@ -793,7 +791,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",")
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
 
 				packetData = []byte(`{
 					"type": 1,
@@ -818,7 +816,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",")
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
 
 				packetData = []byte(`{
 					"type": 1,
@@ -834,8 +832,6 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.msg, func() {
 				suite.SetupTest() // reset
 
