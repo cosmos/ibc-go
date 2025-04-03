@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -37,7 +38,7 @@ func TestCodecTypeRegistration(t *testing.T) {
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			fmt.Errorf("unable to resolve type URL"),
+			errors.New("unable to resolve type URL"),
 		},
 	}
 

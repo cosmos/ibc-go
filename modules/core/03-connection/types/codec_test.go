@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -47,7 +47,7 @@ func TestCodecTypeRegistration(t *testing.T) {
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			fmt.Errorf("unable to resolve type URL ibc.invalid.MsgTypeURL"),
+			errors.New("unable to resolve type URL ibc.invalid.MsgTypeURL"),
 		},
 	}
 

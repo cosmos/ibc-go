@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -79,7 +80,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app := simapp.Setup(suite.T(), isCheckTx)
 
 	suite.cdc = app.AppCodec()
-	suite.ctx = app.BaseApp.NewContext(isCheckTx)
+	suite.ctx = app.NewContext(isCheckTx)
 	suite.keeper = app.IBCKeeper.ClientKeeper
 	suite.privVal = cmttypes.NewMockPV()
 	pubKey, err := suite.privVal.GetPubKey()
@@ -622,7 +623,7 @@ func (suite *KeeperTestSuite) TestParams() {
 		{"success: set default params", types.DefaultParams(), nil},
 		{"success: empty allowedClients", types.NewParams(), nil},
 		{"success: subset of allowedClients", types.NewParams(exported.Tendermint, exported.Localhost), nil},
-		{"failure: contains a single empty string value as allowedClient", types.NewParams(exported.Localhost, ""), fmt.Errorf("client type 1 cannot be blank")},
+		{"failure: contains a single empty string value as allowedClient", types.NewParams(exported.Localhost, ""), errors.New("client type 1 cannot be blank")},
 	}
 
 	for _, tc := range testCases {

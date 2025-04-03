@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	"fmt"
+	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -35,7 +35,7 @@ func (suite *MerkleTestSuite) TestCodecTypeRegistration() {
 		{
 			"type not registered on codec",
 			"ibc.invalid.MsgTypeURL",
-			fmt.Errorf("unable to resolve type URL ibc.invalid.MsgTypeURL"),
+			errors.New("unable to resolve type URL ibc.invalid.MsgTypeURL"),
 		},
 	}
 

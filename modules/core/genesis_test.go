@@ -423,7 +423,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 		app := simapp.Setup(suite.T(), false)
 
 		suite.NotPanics(func() {
-			ibc.InitGenesis(app.BaseApp.NewContext(false), *app.IBCKeeper, tc.genState)
+			ibc.InitGenesis(app.NewContext(false), *app.IBCKeeper, tc.genState)
 		})
 	}
 }

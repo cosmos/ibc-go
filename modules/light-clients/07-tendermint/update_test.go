@@ -177,7 +177,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 			name: "unsuccessful verify header: header basic validation failed",
 			malleate: func() {
 				// cause header to fail validatebasic by changing commit height to mismatch header height
-				header.SignedHeader.Commit.Height = revisionHeight - 1
+				header.Commit.Height = revisionHeight - 1
 			},
 			expErr: errors.New("header and commit height mismatch"),
 		},

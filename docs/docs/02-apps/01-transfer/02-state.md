@@ -5,13 +5,10 @@ sidebar_position: 2
 slug: /apps/transfer/ics20-v1/state
 ---
 
-:::warning
-This document is relevant only for fungible token transfers over channels on v1 of the ICS-20 protocol.
-:::
-
 # State
 
-The IBC transfer application module keeps state of the port to which the module is binded and the denomination trace information as outlined in [ADR 001](/architecture/adr-001-coin-source-tracing).
+The IBC transfer application module keeps state of the port to which the module is binded and the denomination trace information.
 
-- `Port`: `0x01 -> ProtocolBuffer(string)`
-- `DenomTrace`: `0x02 | []bytes(traceHash) -> ProtocolBuffer(DenomTrace)`
+- `PortKey`: `0x01 -> ProtocolBuffer(string)`
+- `DenomTraceKey`: `0x02 | []bytes(traceHash) -> ProtocolBuffer(Denom)`
+- `DenomKey` : `0x03 | []bytes(traceHash) -> ProtocolBuffer(Denom)`

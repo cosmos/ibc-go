@@ -651,7 +651,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		successAck      = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-		failedAck       = channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
+		failedAck       = channeltypes.NewErrorAcknowledgement(errors.New("failed packet transfer"))
 		denom           types.Denom
 		amount          sdkmath.Int
 		path            *ibctesting.Path
@@ -788,7 +788,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	*/
 
 	amount := defaultAmount
-	ack := channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
+	ack := channeltypes.NewErrorAcknowledgement(errors.New("failed packet transfer"))
 
 	// set up
 	// 2 transfer channels between chain A and chain B

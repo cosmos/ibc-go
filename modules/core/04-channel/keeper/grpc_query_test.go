@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 
 	"google.golang.org/grpc/codes"
@@ -705,7 +706,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence cannot be 0").Error(),
+				errors.New("packet sequence cannot be 0").Error(),
 			),
 		},
 		{
@@ -737,7 +738,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 			},
 			status.Error(
 				codes.NotFound,
-				fmt.Errorf("packet commitment hash not found").Error(),
+				errors.New("packet commitment hash not found").Error(),
 			),
 		},
 		{
@@ -944,7 +945,7 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence cannot be 0").Error(),
+				errors.New("packet sequence cannot be 0").Error(),
 			),
 		},
 		{
@@ -1074,7 +1075,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence cannot be 0").Error(),
+				errors.New("packet sequence cannot be 0").Error(),
 			),
 		},
 		{
@@ -1093,7 +1094,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 			},
 			status.Error(
 				codes.NotFound,
-				fmt.Errorf("packet acknowledgement hash not found").Error(),
+				errors.New("packet acknowledgement hash not found").Error(),
 			),
 		},
 		{
@@ -1329,7 +1330,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence 0 cannot be 0").Error(),
+				errors.New("packet sequence 0 cannot be 0").Error(),
 			),
 		},
 		{
@@ -1347,7 +1348,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence 0 cannot be 0").Error(),
+				errors.New("packet sequence 0 cannot be 0").Error(),
 			),
 		},
 		{
@@ -1588,7 +1589,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence 0 cannot be 0").Error(),
+				errors.New("packet sequence 0 cannot be 0").Error(),
 			),
 		},
 		{

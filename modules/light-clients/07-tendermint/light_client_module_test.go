@@ -2,7 +2,7 @@ package tendermint_test
 
 import (
 	"crypto/sha256"
-	"fmt"
+	"errors"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -54,21 +54,21 @@ func (suite *TendermintTestSuite) TestInitialize() {
 			func() {
 				clientState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ClientState()
 			},
-			fmt.Errorf("failed to unmarshal client state bytes into client state"),
+			errors.New("failed to unmarshal client state bytes into client state"),
 		},
 		{
 			"invalid consensus: consensus state is solomachine consensus",
 			func() {
 				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
 			},
-			fmt.Errorf("failed to unmarshal consensus state bytes into consensus state"),
+			errors.New("failed to unmarshal consensus state bytes into consensus state"),
 		},
 		{
 			"invalid consensus state",
 			func() {
 				consensusState = ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), []byte("invalidNextValsHash"))
 			},
-			fmt.Errorf("next validators hash is invalid"),
+			errors.New("next validators hash is invalid"),
 		},
 	}
 

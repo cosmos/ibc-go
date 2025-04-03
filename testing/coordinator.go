@@ -129,14 +129,6 @@ func (*Coordinator) CreateTransferChannels(path *Path) {
 	path.CreateChannels()
 }
 
-// CreateChannels constructs and executes channel handshake messages in order to create
-// OPEN channels on chainA and chainB. The function expects the channels to be successfully
-// opened otherwise testing will fail.
-// Deprecated: please use path.CreateChannels(), this function will be removed in v10
-func (*Coordinator) CreateChannels(path *Path) {
-	path.CreateChannels()
-}
-
 // GetChain returns the TestChain using the given chainID and returns an error if it does
 // not exist.
 func (coord *Coordinator) GetChain(chainID string) *TestChain {
