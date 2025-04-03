@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -96,7 +95,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			malleate: func() {
 				payload.SourcePort = "foo"
 			},
-			expError: fmt.Errorf("no route for foo"),
+			expError: errors.New("no route for foo"),
 		},
 	}
 

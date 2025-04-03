@@ -1,6 +1,7 @@
 package v10
 
 import (
+	"errors"
 	fmt "fmt"
 
 	corestore "cosmossdk.io/core/store"
@@ -83,7 +84,7 @@ func handleChannelMigration(ctx sdk.Context, store corestore.KVStore, cdc codec.
 		cdc.MustUnmarshal(iterator.Value(), &channel)
 
 		if channel.State == FLUSHING || channel.State == FLUSHCOMPLETE {
-			return fmt.Errorf("channel in state FLUSHING or FLUSHCOMPLETE found, to proceed with migration, please ensure no channels are currently upgrading")
+			return errors.New("channel in state FLUSHING or FLUSHCOMPLETE found, to proceed with migration, please ensure no channels are currently upgrading")
 		}
 
 		newChannel := types.Channel{

@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -36,12 +36,12 @@ func (suite *TypesTestSuite) TestDenomsValidate() {
 				types.NewDenom("uatom", types.NewHop("transfer", "channel-1"), types.NewHop("transfer", "channel-2")),
 				types.NewDenom("uatom", types.NewHop("transfer", "channel-1"), types.NewHop("transfer", "channel-2")),
 			},
-			fmt.Errorf("duplicated denomination with hash"),
+			errors.New("duplicated denomination with hash"),
 		},
 		{
 			"empty base denom with trace",
 			types.Denoms{types.NewDenom("", types.NewHop("transfer", "channel-1"))},
-			fmt.Errorf("base denomination cannot be blank"),
+			errors.New("base denomination cannot be blank"),
 		},
 	}
 
