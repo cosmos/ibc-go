@@ -49,7 +49,7 @@ func KeyRateLimitItem(denom string, channelId string) []byte {
 // The channel ID must be fixed length to allow for extracting the underlying
 // values from a key
 func KeyPendingSendPacket(channelId string, sequenceNumber uint64) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%20d", PendingSendPacketPrefix, channelId, sequenceNumber))
+	return []byte(fmt.Sprintf("%s/%d", channelId, sequenceNumber))
 }
 
 // Get the whitelist path key from a sender and receiver address

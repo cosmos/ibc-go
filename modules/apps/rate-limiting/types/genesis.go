@@ -47,11 +47,11 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	// Validate the format of the pending send packets
-	// for _, pendingPacketId := range gs.PendingSendPacketSequenceNumbers {
-	// 	if _, _, err := ParsePendingPacketId(pendingPacketId); err != nil {
-	// 		return err
-	// 	}
-	// }
+	for _, pendingPacketId := range gs.PendingSendPacketSequenceNumbers {
+		if _, _, err := ParsePendingPacketId(pendingPacketId); err != nil {
+			return err
+		}
+	}
 
 	// Verify the epoch hour duration is specified
 	if gs.HourEpoch.Duration == 0 {
