@@ -1,7 +1,7 @@
 package host_test
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 	"testing"
 
@@ -161,7 +161,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 					portID, channelID string,
 					counterparty channeltypes.Counterparty, counterpartyVersion string,
 				) (string, error) {
-					return "", fmt.Errorf("mock ica auth fails")
+					return "", errors.New("mock ica auth fails")
 				}
 			}, nil,
 		},
@@ -174,8 +174,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenTry() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 
@@ -275,7 +273,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenConfirm = func(
 					ctx sdk.Context, portID, channelID string,
 				) error {
-					return fmt.Errorf("mock ica auth fails")
+					return errors.New("mock ica auth fails")
 				}
 			}, nil,
 		},
@@ -288,8 +286,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenConfirm() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 				path := NewICAPath(suite.chainA, suite.chainB, ordering)
@@ -358,8 +354,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 
@@ -409,7 +403,7 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 				suite.chainB.GetSimApp().ICAAuthModule.IBCApp.OnRecvPacket = func(
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) exported.Acknowledgement {
-					return channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed OnRecvPacket mock callback"))
+					return channeltypes.NewErrorAcknowledgement(errors.New("failed OnRecvPacket mock callback"))
 				}
 			}, true,
 			"failed OnRecvPacket mock callback",
@@ -424,8 +418,6 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 
@@ -537,8 +529,6 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 
@@ -589,8 +579,6 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 

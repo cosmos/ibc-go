@@ -63,5 +63,5 @@ func ParseChannelSequence(channelID string) (uint64, error) {
 
 // FilteredPortPrefix returns the prefix key for the given port prefix.
 func FilteredPortPrefix(portPrefix string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", host.KeyChannelEndPrefix, host.KeyPortPrefix, portPrefix))
+	return fmt.Appendf(nil, "%s/%s/%s", host.KeyChannelEndPrefix, host.KeyPortPrefix, portPrefix)
 }

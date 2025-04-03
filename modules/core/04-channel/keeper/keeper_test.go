@@ -131,7 +131,6 @@ func (suite *KeeperTestSuite) TestGetAllChannelsWithPortPrefix() {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 

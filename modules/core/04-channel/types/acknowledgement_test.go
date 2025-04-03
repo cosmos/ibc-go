@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	"fmt"
+	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -37,7 +37,7 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 		},
 		{
 			"valid failed ack",
-			types.NewErrorAcknowledgement(fmt.Errorf("error")),
+			types.NewErrorAcknowledgement(errors.New("error")),
 			true,
 			[]byte(`{"error":"ABCI code: 1: error handling packet: see events for details"}`),
 			false,
@@ -51,7 +51,7 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 		},
 		{
 			"empty failed ack",
-			types.NewErrorAcknowledgement(fmt.Errorf("  ")),
+			types.NewErrorAcknowledgement(errors.New("  ")),
 			true,
 			[]byte(`{"error":"ABCI code: 1: error handling packet: see events for details"}`),
 			false,
@@ -68,8 +68,6 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -155,7 +153,7 @@ func (suite TypesTestSuite) TestAcknowledgementWithCodespace() { //nolint:govet 
 		},
 		{
 			"unknown error",
-			types.NewErrorAcknowledgementWithCodespace(fmt.Errorf("unknown error")),
+			types.NewErrorAcknowledgementWithCodespace(errors.New("unknown error")),
 			[]byte(`{"error":"ABCI error: undefined/1: error handling packet: see events for details"}`),
 		},
 		{
@@ -166,8 +164,6 @@ func (suite TypesTestSuite) TestAcknowledgementWithCodespace() { //nolint:govet 
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.Require().Equal(tc.expBytes, tc.ack.Acknowledgement())
 		})

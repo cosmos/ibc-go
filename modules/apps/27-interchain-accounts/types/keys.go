@@ -49,20 +49,20 @@ var (
 
 // KeyActiveChannel creates and returns a new key used for active channels store operations
 func KeyActiveChannel(portID, connectionID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", ActiveChannelKeyPrefix, portID, connectionID))
+	return fmt.Appendf(nil, "%s/%s/%s", ActiveChannelKeyPrefix, portID, connectionID)
 }
 
 // KeyOwnerAccount creates and returns a new key used for interchain account store operations
 func KeyOwnerAccount(portID, connectionID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", OwnerKeyPrefix, portID, connectionID))
+	return fmt.Appendf(nil, "%s/%s/%s", OwnerKeyPrefix, portID, connectionID)
 }
 
 // KeyPort creates and returns a new key used for port store operations
 func KeyPort(portID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", PortKeyPrefix, portID))
+	return fmt.Appendf(nil, "%s/%s", PortKeyPrefix, portID)
 }
 
 // KeyIsMiddlewareEnabled creates and returns a new key used for signaling legacy API callback routing via ibc middleware
 func KeyIsMiddlewareEnabled(portID, connectionID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", IsMiddlewareEnabledPrefix, portID, connectionID))
+	return fmt.Appendf(nil, "%s/%s/%s", IsMiddlewareEnabledPrefix, portID, connectionID)
 }
