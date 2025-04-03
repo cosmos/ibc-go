@@ -40,6 +40,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#8264](https://github.com/cosmos/ibc-go/pull/8264) Bump **github.com/prysmaticlabs/prysm** to **v5.3.0**
+
 ### API Breaking
 
 ### State Machine Breaking
