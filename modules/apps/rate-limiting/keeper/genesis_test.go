@@ -26,8 +26,7 @@ func createRateLimits() []types.RateLimit {
 
 func (s *KeeperTestSuite) TestGenesis() {
 	currentHour := 13
-	blockTime := time.Date(2024, 1, 1, currentHour, 55, 8, 0, time.UTC)            // 13:55:08
-	defaultEpochStartTime := time.Date(2024, 1, 1, currentHour, 0, 0, 0, time.UTC) // 13:00:00 (truncated to hour)
+	blockTime := time.Date(2024, 1, 1, currentHour, 55, 8, 0, time.UTC) // 13:55:08
 	blockHeight := int64(10)
 
 	testCases := []struct {
@@ -85,13 +84,23 @@ func (s *KeeperTestSuite) TestGenesis() {
 			}()
 			s.chainA.GetSimApp().RateLimitKeeper.InitGenesis(s.chainA.GetContext(), tc.genesisState)
 
-			// If the hour epoch was not uninitialized in the raw genState,
+			// If the hour epoch was not initialized in the raw genState,
 			// it will be initialized during InitGenesis
 			expectedGenesis := tc.genesisState
+
+			// For the default genesis with firstEpoch=true, InitGenesis will set the HourEpoch fields
+			// based on the current block time and height
 			if tc.firstEpoch {
-				expectedGenesis.HourEpoch.EpochNumber = uint64(currentHour) //nolint:gosec
-				expectedGenesis.HourEpoch.EpochStartTime = defaultEpochStartTime
-				expectedGenesis.HourEpoch.EpochStartHeight = blockHeight
+				// Get the context to retrieve current height
+				ctx := s.chainA.GetContext()
+
+				// For a new epoch, InitGenesis will:
+				// - Set EpochNumber to current hour (13 from blockTime)
+				// - Set EpochStartTime to the truncated hour (13:00:00)
+				// - Set EpochStartHeight to current block height
+				expectedGenesis.HourEpoch.EpochNumber = uint64(blockTime.Hour())
+				expectedGenesis.HourEpoch.EpochStartTime = blockTime.Truncate(time.Hour)
+				expectedGenesis.HourEpoch.EpochStartHeight = ctx.BlockHeight()
 			}
 
 			// Check that the exported state matches the imported state
