@@ -71,8 +71,6 @@ func TestMsgRegisterInterchainAccountValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		i, tc := i, tc
-
 		msg = types.NewMsgRegisterInterchainAccount(
 			ibctesting.FirstConnectionID,
 			ibctesting.TestAccAddress,
@@ -153,8 +151,6 @@ func TestMsgSendTxValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		i, tc := i, tc
-
 		msgBankSend := &banktypes.MsgSend{
 			FromAddress: ibctesting.TestAccAddress,
 			ToAddress:   ibctesting.TestAccAddress,
@@ -233,8 +229,6 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		i, tc := i, tc
-
 		err := tc.msg.ValidateBasic()
 		if tc.expErr == nil {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)

@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -65,7 +65,7 @@ func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 		expErr  error
 	}{
 		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
-		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
+		{"failure: nil address", nil, errors.New("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
@@ -168,7 +168,7 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 		expErr  error
 	}{
 		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
-		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
+		{"failure: nil address", nil, errors.New("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
@@ -246,7 +246,7 @@ func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 		expError error
 	}{
 		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
-		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
+		{"failure: nil address", nil, errors.New("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {

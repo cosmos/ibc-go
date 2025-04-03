@@ -60,8 +60,6 @@ func (suite *TypesTestSuite) TestPackClientState() {
 	}
 
 	for i, tc := range testCasesAny {
-		i, tc := i, tc
-
 		cs, err := types.UnpackClientState(tc.any)
 		if tc.expErr == nil {
 			suite.Require().NoError(err, tc.name)

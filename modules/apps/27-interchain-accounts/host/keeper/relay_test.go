@@ -588,7 +588,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 				// this is the way cosmwasm encodes byte arrays by default
 				// golang doesn't use this encoding by default, but it can still deserialize:
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(string(msgBytes))), ",")
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
 
 				packetData = []byte(`{
 					"type": 1,
