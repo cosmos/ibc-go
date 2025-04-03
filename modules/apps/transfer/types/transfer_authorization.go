@@ -79,7 +79,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 	// NOTE: SpendLimit is an array of coins, with each one representing the remaining spend limit for an
 	// individual denomination.
 	if a.Allocations[index].SpendLimit.IsZero() {
-		a.Allocations = append(a.Allocations[:index], a.Allocations[index+1:]...)
+		a.Allocations = slices.Delete(a.Allocations, index, index+1)
 	}
 
 	if len(a.Allocations) == 0 {
@@ -127,7 +127,7 @@ func (a TransferAuthorization) ValidateBasic() error {
 		}
 
 		found := make(map[string]bool, 0)
-		for i := 0; i < len(allocation.AllowList); i++ {
+		for i := range allocation.AllowList {
 			if found[allocation.AllowList[i]] {
 				return errorsmod.Wrapf(ErrInvalidAuthorization, "duplicate entry in allow list %s", allocation.AllowList[i])
 			}

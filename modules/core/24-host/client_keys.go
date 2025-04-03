@@ -17,14 +17,14 @@ const (
 // FullClientKey returns the full path of specific client path in the format:
 // "clients/{clientID}/{path}" as a byte array.
 func FullClientKey(clientID string, path []byte) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", KeyClientStorePrefix, clientID, path))
+	return fmt.Appendf(nil, "%s/%s/%s", KeyClientStorePrefix, clientID, path)
 }
 
 // PrefixedClientStoreKey returns a key which can be used for prefixed
 // key store iteration. The prefix may be a clientType, clientID, or any
 // valid key prefix which may be concatenated with the client store constant.
 func PrefixedClientStoreKey(prefix []byte) []byte {
-	return []byte(fmt.Sprintf("%s/%s", KeyClientStorePrefix, prefix))
+	return fmt.Appendf(nil, "%s/%s", KeyClientStorePrefix, prefix)
 }
 
 // FullClientStateKey takes a client identifier and returns a Key under which to store a
@@ -48,5 +48,5 @@ func FullConsensusStateKey(clientID string, height exported.Height) []byte {
 // ConsensusStateKey returns the store key for a the consensus state of a particular
 // client stored in a client prefixed store.
 func ConsensusStateKey(height exported.Height) []byte {
-	return []byte(fmt.Sprintf("%s/%s", KeyConsensusStatePrefix, height))
+	return fmt.Appendf(nil, "%s/%s", KeyConsensusStatePrefix, height)
 }

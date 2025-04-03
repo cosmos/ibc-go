@@ -25,7 +25,6 @@ func TestIsAllowedRelayer(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		require.Equal(t, tc.expPass, tc.config.IsAllowedRelayer(tc.relayer), tc.name)
 	}
 }
@@ -49,7 +48,6 @@ func TestValidateConfig(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := tc.config.Validate()
 		if tc.expPass {

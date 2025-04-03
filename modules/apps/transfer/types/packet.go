@@ -101,12 +101,12 @@ func (ftpd FungibleTokenPacketData) GetPacketSender(sourcePortID string) string 
 // GetCustomPacketData interprets the memo field of the packet data as a JSON object
 // and returns the value associated with the given key.
 // If the key is missing or the memo is not properly formatted, then nil is returned.
-func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) interface{} {
+func (ftpd FungibleTokenPacketData) GetCustomPacketData(key string) any {
 	if len(ftpd.Memo) == 0 {
 		return nil
 	}
 
-	jsonObject := make(map[string]interface{})
+	jsonObject := make(map[string]any)
 	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
 	if err != nil {
 		return nil
@@ -160,12 +160,12 @@ func (ftpd InternalTransferRepresentation) ValidateBasic() error {
 // GetCustomPacketData interprets the memo field of the packet data as a JSON object
 // and returns the value associated with the given key.
 // If the key is missing or the memo is not properly formatted, then nil is returned.
-func (ftpd InternalTransferRepresentation) GetCustomPacketData(key string) interface{} {
+func (ftpd InternalTransferRepresentation) GetCustomPacketData(key string) any {
 	if len(ftpd.Memo) == 0 {
 		return nil
 	}
 
-	jsonObject := make(map[string]interface{})
+	jsonObject := make(map[string]any)
 	err := json.Unmarshal([]byte(ftpd.Memo), &jsonObject)
 	if err != nil {
 		return nil
