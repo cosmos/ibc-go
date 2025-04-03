@@ -120,7 +120,7 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 	testCases := []struct {
 		name          string
 		packetData    types.InterchainAccountPacketData
-		expCustomData interface{}
+		expCustomData any
 	}{
 		{
 			"success: src_callback key in memo",
@@ -129,7 +129,7 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 				Data: []byte("data"),
 				Memo: fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, expCallbackAddr),
 			},
-			map[string]interface{}{
+			map[string]any{
 				"address": expCallbackAddr,
 			},
 		},
@@ -140,7 +140,7 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 				Data: []byte("data"),
 				Memo: fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, expCallbackAddr),
 			},
-			map[string]interface{}{
+			map[string]any{
 				"address":   expCallbackAddr,
 				"gas_limit": "200000",
 			},

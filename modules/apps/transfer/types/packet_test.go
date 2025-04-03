@@ -69,7 +69,7 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 	testCases := []struct {
 		name          string
 		packetData    types.FungibleTokenPacketData
-		expCustomData interface{}
+		expCustomData any
 	}{
 		{
 			"success: src_callback key in memo",
@@ -80,7 +80,7 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 				Receiver: receiver,
 				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver),
 			},
-			map[string]interface{}{
+			map[string]any{
 				"address": receiver,
 			},
 		},
@@ -93,7 +93,7 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 				Receiver: receiver,
 				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver),
 			},
-			map[string]interface{}{
+			map[string]any{
 				"address":   receiver,
 				"gas_limit": "200000",
 			},
@@ -374,7 +374,7 @@ func TestPacketDataProvider(t *testing.T) {
 	testCases := []struct {
 		name          string
 		packetData    types.InternalTransferRepresentation
-		expCustomData interface{}
+		expCustomData any
 	}{
 		{
 			"success: src_callback key in memo",
@@ -388,7 +388,7 @@ func TestPacketDataProvider(t *testing.T) {
 				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver),
 			),
 
-			map[string]interface{}{
+			map[string]any{
 				"address": receiver,
 			},
 		},
@@ -403,7 +403,7 @@ func TestPacketDataProvider(t *testing.T) {
 				receiver,
 				fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver),
 			),
-			map[string]interface{}{
+			map[string]any{
 				"address":   receiver,
 				"gas_limit": "200000",
 			},

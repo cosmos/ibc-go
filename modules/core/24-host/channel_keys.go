@@ -12,7 +12,7 @@ const (
 
 // ChannelKey returns the store key for a particular channel
 func ChannelKey(portID, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", KeyChannelEndPrefix, channelPath(portID, channelID)))
+	return fmt.Appendf(nil, "%s/%s", KeyChannelEndPrefix, channelPath(portID, channelID))
 }
 
 func channelPath(portID, channelID string) string {

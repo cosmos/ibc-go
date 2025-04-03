@@ -419,7 +419,7 @@ func (k *Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
 // ClientStore returns isolated prefix store for each client so they can read/write in separate
 // namespace without being able to read/write other client's data
 func (k *Keeper) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
-	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
+	clientPrefix := fmt.Appendf(nil, "%s/%s/", host.KeyClientStorePrefix, clientID)
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	return prefix.NewStore(store, clientPrefix)
 }
