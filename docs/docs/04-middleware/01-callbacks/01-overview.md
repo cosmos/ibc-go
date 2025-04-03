@@ -49,3 +49,11 @@ And the following diagram shows how a typical `SendPacket` and `WriteAcknowledge
 - Maximum gas limit is hardcoded manually during wiring. It requires a coordinated upgrade to change the maximum gas limit.
 - The receive packet callback does not pass the relayer address to the secondary application. This is so that we can use the same callback for both synchronous and asynchronous acknowledgements.
 - The receive packet callback does not pass IBC Actor's address, this is because the IBC Actor lives in the counterparty chain and cannot be trusted.
+
+## Helper Resources
+
+For developers working with callbacks middleware, the following resources are available:
+
+- **CosmWasm Documentation**: For CosmWasm smart contract developers, detailed information about working with IBC callbacks can be found in the [CosmWasm documentation](https://cosmwasm.cosmos.network/ibc/extensions/callbacks).
+
+- **Solidity Helper Functions**: For parsing ICS20 packets in callbacks, helper functions are available in the [solidity-ibc-eureka repository](https://github.com/cosmos/solidity-ibc-eureka/blob/a8870b023e58622fb7b3f733572c684851f8e5ee/packages/cosmwasm/ibc-callbacks-helpers/src/ics20.rs). These functions can assist with workflows that require knowledge of the IBC denom that has been received.
