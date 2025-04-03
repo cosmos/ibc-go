@@ -59,8 +59,6 @@ func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 		}
 
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				err := tc.consensusState.ValidateBasic()
 

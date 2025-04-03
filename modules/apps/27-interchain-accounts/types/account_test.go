@@ -85,8 +85,6 @@ func (suite *TypesTestSuite) TestValidateAccountAddress() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := types.ValidateAccountAddress(tc.address)
 
@@ -137,7 +135,6 @@ func (suite *TypesTestSuite) TestGenesisAccountValidate() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := tc.acc.Validate()
 

@@ -68,8 +68,6 @@ func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a 
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -166,8 +164,6 @@ func (suite TypesTestSuite) TestAcknowledgementWithCodespace() { //nolint:govet 
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.Require().Equal(tc.expBytes, tc.ack.Acknowledgement())
 		})

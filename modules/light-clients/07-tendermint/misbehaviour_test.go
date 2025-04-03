@@ -224,8 +224,6 @@ func (suite *TendermintTestSuite) TestMisbehaviourValidateBasic() {
 	}
 
 	for i, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := tc.malleateMisbehaviour(tc.misbehaviour)
 			suite.Require().NoError(err)
