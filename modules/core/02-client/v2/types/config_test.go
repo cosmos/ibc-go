@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	fmt "fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -35,25 +36,25 @@ func TestValidateConfig(t *testing.T) {
 		tooManyRelayers[i] = ibctesting.TestAccAddress
 	}
 	testCases := []struct {
-		name    string
-		config  types.Config
-		expPass bool
+		name   string
+		config types.Config
+		expErr error
 	}{
-		{"default config", types.DefaultConfig(), true},
-		{"custom config", types.NewConfig(ibctesting.TestAccAddress), true},
-		{"multiple relayers", types.NewConfig(ibctesting.TestAccAddress, signer2.String()), true},
-		{"too many allowed relayers", types.NewConfig(tooManyRelayers...), false},
-		{"invalid relayer address", types.NewConfig("invalidAddress"), false},
-		{"invalid relayer address with valid ones", types.NewConfig("invalidAddress", ibctesting.TestAccAddress), false},
+		{"default config", types.DefaultConfig(), nil},
+		{"custom config", types.NewConfig(ibctesting.TestAccAddress), nil},
+		{"multiple relayers", types.NewConfig(ibctesting.TestAccAddress, signer2.String()), nil},
+		{"too many allowed relayers", types.NewConfig(tooManyRelayers...), fmt.Errorf("allowed relayers length must not exceed 20 items")},
+		{"invalid relayer address", types.NewConfig("invalidAddress"), fmt.Errorf("invalid relayer address")},
+		{"invalid relayer address with valid ones", types.NewConfig("invalidAddress", ibctesting.TestAccAddress), fmt.Errorf("invalid relayer address")},
 	}
 
 	for _, tc := range testCases {
-
 		err := tc.config.Validate()
-		if tc.expPass {
+		if tc.expErr == nil {
 			require.NoError(t, err, tc.name)
 		} else {
 			require.Error(t, err, tc.name)
+			ibctesting.RequireErrorIsOrContains(t, err, tc.expErr, err.Error())
 		}
 	}
 }
