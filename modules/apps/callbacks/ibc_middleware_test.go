@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -44,7 +45,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 			func() {
 				_ = ibccallbacks.NewIBCMiddleware(nil, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
 			},
-			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
+			errors.New("underlying application does not implement " + reflect.TypeOf((*types.CallbacksCompatibleModule)(nil)).String()),
 		},
 		{
 			"panics with nil contract keeper",
@@ -112,7 +113,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		{
 			"success: callback data doesn't exist",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 			},
 			"none", // nonexistent callback data should result in no callback execution
@@ -256,7 +256,6 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"success: callback data doesn't exist",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 				packet.Data = packetData.GetBytes()
 			},
@@ -274,7 +273,6 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"failure: no-op on callback data is not valid",
 			func() {
-				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
@@ -426,7 +424,6 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"success: callback data doesn't exist",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 				packet.Data = packetData.GetBytes()
 			},
@@ -444,7 +441,6 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"failure: no-op on callback data is not valid",
 			func() {
-				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
@@ -601,7 +597,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"success: callback data doesn't exist",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 				packet.Data = packetData.GetBytes()
 			},
@@ -619,7 +614,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"failure: callback data is not valid",
 			func() {
-				//nolint:goconst
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 				packet.Data = packetData.GetBytes()
 			},
@@ -768,7 +762,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 		{
 			"success: callback data doesn't exist",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 				packet.Data = packetData.GetBytes()
 			},

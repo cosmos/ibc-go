@@ -724,7 +724,7 @@ func (s *E2ETestSuite) SuiteName() string {
 func ThreeChainSetup() ChainOptionConfiguration {
 	// copy all values of existing chains and tweak to make unique to new chain.
 	return func(options *ChainOptions) {
-		chainCSpec := *options.ChainSpecs[0] // nolint
+		chainCSpec := *options.ChainSpecs[0] //nolint
 
 		chainCSpec.ChainID = "chainC-1"
 		chainCSpec.Name = "simapp-c"

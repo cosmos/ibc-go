@@ -133,6 +133,7 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
+	"maps"
 )
 
 const appName = "SimApp"
