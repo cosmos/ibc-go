@@ -1,7 +1,7 @@
 package types
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -126,7 +126,7 @@ func TestValidate(t *testing.T) {
 				},
 				Amount: amount,
 			},
-			fmt.Errorf("invalid token denom: invalid trace: invalid hop source channel ID : identifier cannot be blank: invalid identifier"),
+			errors.New("invalid token denom: invalid trace: invalid hop source channel ID : identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"failure: empty identifier in trace",
@@ -137,7 +137,7 @@ func TestValidate(t *testing.T) {
 				},
 				Amount: amount,
 			},
-			fmt.Errorf("invalid token denom: invalid trace: invalid hop source port ID : identifier cannot be blank: invalid identifier"),
+			errors.New("invalid token denom: invalid trace: invalid hop source port ID : identifier cannot be blank: invalid identifier"),
 		},
 	}
 

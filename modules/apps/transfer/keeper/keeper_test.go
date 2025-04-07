@@ -95,7 +95,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
+
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
@@ -151,8 +151,6 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			expAmount = sdkmath.NewInt(100)
@@ -257,15 +255,13 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.ZeroInt()
 
 				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
-				store.Set([]byte(fmt.Sprintf("wrong-prefix/%s", denom)), bz)
+				store.Set(fmt.Appendf(nil, "wrong-prefix/%s", denom), bz)
 			},
 			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -304,8 +300,6 @@ func (suite *KeeperTestSuite) TestParams() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			ctx := suite.chainA.GetContext()
@@ -377,8 +371,6 @@ func (suite *KeeperTestSuite) TestIsBlockedAddr() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.Require().Equal(tc.expBlock, suite.chainA.GetSimApp().TransferKeeper.IsBlockedAddr(tc.addr))
 		})
