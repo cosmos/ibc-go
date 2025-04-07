@@ -77,7 +77,10 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 		if err != nil {
 			panic(err)
 		}
-		_, _ = app.DistrKeeper.WithdrawValidatorCommission(ctx, valBz)
+		_, err := app.DistrKeeper.WithdrawValidatorCommission(ctx, valBz)
+		if err != nil {
+			log.Printf("failed to withdraw validator commission for %s: %v", val.GetOperator(), err)
+		}
 		return false
 	})
 	if err != nil {
@@ -94,14 +97,17 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 		valAddr, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
 		if err != nil {
 			panic(err)
-		}
+	        }
 
 		delAddr, err := sdk.AccAddressFromBech32(delegation.DelegatorAddress)
 		if err != nil {
 			panic(err)
 		}
-		_, _ = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
-	}
+		_, err = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
+		if err != nil {
+			log.Printf("failed to withdraw delegation reward: delegator=%s, validator=%s, err=%v", delAddr.String(), valAddr.String(), err)
+		}
+	 }
 
 	// clear validator slash events
 	app.DistrKeeper.DeleteAllValidatorSlashEvents(ctx)
@@ -201,6 +207,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 	// update bond intra-tx counters.
 	store := ctx.KVStore(app.keys[stakingtypes.StoreKey])
 	iter := storetypes.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
+	defer iter.Close()
 	counter := int16(0)
 
 	for ; iter.Valid(); iter.Next() {
@@ -217,12 +224,10 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 
 		err = app.StakingKeeper.SetValidator(ctx, validator)
 		if err != nil {
-			panic(errors.New("couldn't set validator"))
+			panic(fmt.Errorf("couldn't set validator %s: %w", addr.String(), err))
 		}
 		counter++
 	}
-
-	iter.Close()
 
 	_, err = app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
 	if err != nil {
