@@ -34,23 +34,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v10.1.1](https://github.com/cosmos/ibc-go/releases/tag/v10.1.1) - 2022-04-08
 
-### Features
+### Dependencies 
 
-### Dependencies
-
-* [\#8264](https://github.com/cosmos/ibc-go/pull/8264) Bump **github.com/prysmaticlabs/prysm** to **v5.3.0**
-
-### API Breaking
-
-### State Machine Breaking
-
-### Improvements
-
-### Bug Fixes
+* (light-clients/08-wasm) [\#8264](https://github.com/cosmos/ibc-go/pull/8264) Bump **github.com/prysmaticlabs/prysm** to **v5.3.0**
 
 ### Testing API
+
+* [\#8154](https://github.com/cosmos/ibc-go/pull/8154) Enable creating test chains with custom app creation functions
 
 ## [v10.1.0](https://github.com/cosmos/ibc-go/releases/tag/v10.1.0) - 2022-03-14
 
