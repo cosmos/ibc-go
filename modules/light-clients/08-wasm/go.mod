@@ -5,8 +5,6 @@ go 1.23.6
 // Contains ISA-2025-001 vulnerability
 retract v10.0.0
 
-replace github.com/cosmos/ibc-go/v10 => ../../../
-
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 require (
@@ -29,7 +27,7 @@ require (
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-sdk v0.50.13
 	github.com/cosmos/gogoproto v1.7.0
-	github.com/cosmos/ibc-go/v10 v10.1.0
+	github.com/cosmos/ibc-go/v10 v10.1.1
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/prysmaticlabs/prysm/v5 v5.3.0
