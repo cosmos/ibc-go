@@ -120,33 +120,33 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success: with non-zero escrow amount",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"success: with escrow amount > 2^63",
 			func() {
 				expAmount, _ = sdkmath.NewIntFromString("100000000000000000000")
 			},
-			true,
+			nil,
 		},
 		{
 			"success: escrow amount 0 is not stored",
 			func() {
 				expAmount = sdkmath.ZeroInt()
 			},
-			true,
+			nil,
 		},
 		{
 			"failure: setter panics with negative escrow amount",
 			func() {
 				expAmount = sdkmath.NewInt(-1)
 			},
-			false,
+			errors.New("negative coin amount: -1"),
 		},
 	}
 
@@ -158,7 +158,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 
 			tc.malleate()
 
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
 				suite.Require().Equal(expAmount, total.Amount)
@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 					suite.Require().True(store.Has(key))
 				}
 			} else {
-				suite.Require().PanicsWithError("negative coin amount: -1", func() {
+				suite.Require().PanicsWithError(tc.expError.Error(), func() {
 					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
 				})
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
