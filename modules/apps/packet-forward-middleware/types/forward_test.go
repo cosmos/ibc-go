@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestForwardMetadataUnmarshalStringNext(t *testing.T) {
