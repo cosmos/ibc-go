@@ -18,6 +18,20 @@ slug: /ibc/middleware/developIBCv2
 
 IBC middleware will wrap over an underlying IBC application (a base application or downstream middleware) and sits between core IBC and the base application.
 
+:::warning
+middleware developers must use the same serialization and deserialization method as in ibc-go's codec: transfertypes.ModuleCdc.[Must]MarshalJSON
+:::
+
+For middleware builders this means:
+
+```go
+import transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+transfertypes.ModuleCdc.[Must]MarshalJSON
+func MarshalAsIBCDoes(ack channeltypes.Acknowledgement) ([]byte, error) {
+	return transfertypes.ModuleCdc.MarshalJSON(&ack)
+}
+```
+
 The interfaces a middleware must implement are found in [core/api](https://github.com/cosmos/ibc-go/blob/main/modules/core/api/module.go#L11). Note that this interface has changed from IBC classic. 
 
 An `IBCMiddleware` struct implementing the `Middleware` interface, can be defined with its constructor as follows:
