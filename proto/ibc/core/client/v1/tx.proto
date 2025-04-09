@@ -195,4 +195,3 @@ message MsgDeleteClientCreator {
 
 // MsgDeleteClientCreatorResponse defines the Msg/DeleteClientCreator response type.
 message MsgDeleteClientCreatorResponse {}
-
