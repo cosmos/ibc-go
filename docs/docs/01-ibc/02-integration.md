@@ -197,7 +197,7 @@ With IBC v2, there is a new [router](https://github.com/cosmos/ibc-go/blob/main/
 
 ### Module `Manager` and `SimulationManager`
 
-In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager`, in case your application supports [simulations](https://github.com/cosmos/cosmos-sdk/blob/main/docs/build/building-modules/14-simulator.md).
+In order to use IBC, we need to add the new modules to the module `Manager` and to the `SimulationManager`, in case your application supports [simulations](https://docs.cosmos.network/main/learn/advanced/simulation).
 
 ```go title="app.go"
 import (

@@ -7,7 +7,7 @@ slug: /apps/transfer/ics20-v1/metrics
 
 # Metrics
 
-The IBC transfer application module exposes the following set of [metrics](https://github.com/cosmos/cosmos-sdk/blob/main/docs/learn/advanced/09-telemetry.md).
+The IBC transfer application module exposes the following set of [metrics](https://docs.cosmos.network/main/learn/advanced/telemetry).
 
 | Metric                          | Description                                                                               | Unit            | Type    |
 |:--------------------------------|:------------------------------------------------------------------------------------------|:----------------|:--------|
