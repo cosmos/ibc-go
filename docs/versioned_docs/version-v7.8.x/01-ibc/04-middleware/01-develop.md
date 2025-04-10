@@ -41,6 +41,20 @@ Middleware allows developers to define the extensions as separate modules that c
 
 IBC middleware will wrap over an underlying IBC application and sits between core IBC and the application. It has complete control in modifying any message coming from IBC to the application, and any message coming from the application to core IBC. Thus, middleware must be completely trusted by chain developers who wish to integrate them, however this gives them complete flexibility in modifying the application(s) they wrap.
 
+:::warning
+middleware developers must use the same serialization and deserialization method as in ibc-go's codec: transfertypes.ModuleCdc.[Must]MarshalJSON
+:::
+
+For middleware builders this means:
+
+```go
+import transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+transfertypes.ModuleCdc.[Must]MarshalJSON
+func MarshalAsIBCDoes(ack channeltypes.Acknowledgement) ([]byte, error) {
+	return transfertypes.ModuleCdc.MarshalJSON(&ack)
+}
+```
+
 ### Interfaces
 
 ```go
