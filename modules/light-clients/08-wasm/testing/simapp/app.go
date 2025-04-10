@@ -643,6 +643,7 @@ func newSimApp(
 	// NOTE: upgrade module is required to be prioritized
 	app.ModuleManager.SetOrderPreBlockers(
 		upgradetypes.ModuleName,
+		authtypes.ModuleName,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
