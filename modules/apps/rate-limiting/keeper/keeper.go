@@ -2,11 +2,11 @@ package keeper
 
 import (
 	"errors"
-	"strings"
 	"fmt"
+	"strings"
 
-	"cosmossdk.io/log"
 	corestore "cosmossdk.io/core/store"
+	"cosmossdk.io/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
@@ -16,25 +16,29 @@ import (
 
 // Keeper maintains the link to storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
-	storeService corestore.KVStoreService
-	cdc      codec.BinaryCodec
+	storeService   corestore.KVStoreService
+	cdc            codec.BinaryCodec
+	legacySubspace types.ParamSubspace
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
-	accountKeeper    types.AccountKeeper
-	
-	bankKeeper    types.BankKeeper
-	msgRouter types.MessageRouter
+	clientKeeper  types.ClientKeeper
+	accountKeeper types.AccountKeeper
+
+	bankKeeper  types.BankKeeper
+	msgRouter   types.MessageRouter
 	queryRouter types.QueryRouter
-	authority string
+	authority   string
 }
 
 // NewKeeper creates a new rate-limiting Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService corestore.KVStoreService,
+	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
+	clientKeeper types.ClientKeeper,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	msgRouter types.MessageRouter,
@@ -42,23 +46,26 @@ func NewKeeper(
 	authority string,
 ) Keeper {
 	// set KeyTable if it has not already been set
-	// if !paramSpace.HasKeyTable() {
-	// 	paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	// }
+	if legacySubspace != nil && !legacySubspace.HasKeyTable() {
+		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
+	}
 
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
 	return Keeper{
-		cdc:      cdc,
-		storeService: storeService,
-		ics4Wrapper: ics4Wrapper,
-		channelKeeper: channelKeeper,
-		accountKeeper: accountKeeper,
-		bankKeeper: bankKeeper,
-		msgRouter: msgRouter,
-		authority: authority,
+		cdc:            cdc,
+		storeService:   storeService,
+		legacySubspace: legacySubspace,
+		ics4Wrapper:    ics4Wrapper,
+		channelKeeper:  channelKeeper,
+		clientKeeper:   clientKeeper,
+		accountKeeper:  accountKeeper,
+		bankKeeper:     bankKeeper,
+		msgRouter:      msgRouter,
+		queryRouter:    queryRouter,
+		authority:      authority,
 	}
 }
 
@@ -81,6 +88,102 @@ func (k Keeper) GetPort(ctx sdk.Context) string {
 func (k Keeper) setPort(ctx sdk.Context, portID string) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Set(types.KeyPort(portID), []byte{0x01}); err != nil {
+		panic(err)
+	}
+}
+
+// GetParams returns the current rate-limiting module parameters
+func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+	if k.legacySubspace != nil {
+		var params types.Params
+		k.legacySubspace.GetParamSet(ctx, &params)
+		return params
+	}
+
+	// If no legacy subspace, use direct store access
+	var params types.Params
+	store := k.storeService.OpenKVStore(ctx)
+
+	// Try to get Enabled parameter
+	bz, err := store.Get(types.KeyEnabled)
+	if err != nil {
+		panic(err)
+	}
+	if len(bz) > 0 {
+		params.Enabled = bz[0] == 1
+	} else {
+		params.Enabled = types.DefaultParams().Enabled
+	}
+
+	// Try to get DefaultMaxOutflow parameter
+	bz, err = store.Get(types.KeyDefaultMaxOutflow)
+	if err != nil {
+		panic(err)
+	}
+	if len(bz) > 0 {
+		params.DefaultMaxOutflow = string(bz)
+	} else {
+		params.DefaultMaxOutflow = types.DefaultParams().DefaultMaxOutflow
+	}
+
+	// Try to get DefaultMaxInflow parameter
+	bz, err = store.Get(types.KeyDefaultMaxInflow)
+	if err != nil {
+		panic(err)
+	}
+	if len(bz) > 0 {
+		params.DefaultMaxInflow = string(bz)
+	} else {
+		params.DefaultMaxInflow = types.DefaultParams().DefaultMaxInflow
+	}
+
+	// Try to get DefaultPeriod parameter
+	bz, err = store.Get(types.KeyDefaultPeriod)
+	if err != nil {
+		panic(err)
+	}
+	if len(bz) > 0 && len(bz) == 8 { // uint64 is 8 bytes
+		params.DefaultPeriod = sdk.BigEndianToUint64(bz)
+	} else {
+		params.DefaultPeriod = types.DefaultParams().DefaultPeriod
+	}
+
+	return params
+}
+
+// SetParams sets the rate-limiting module parameters
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	if k.legacySubspace != nil {
+		k.legacySubspace.SetParamSet(ctx, &params)
+		return
+	}
+
+	// If no legacy subspace, use direct store access
+	store := k.storeService.OpenKVStore(ctx)
+
+	// Set Enabled parameter
+	if params.Enabled {
+		if err := store.Set(types.KeyEnabled, []byte{1}); err != nil {
+			panic(err)
+		}
+	} else {
+		if err := store.Set(types.KeyEnabled, []byte{0}); err != nil {
+			panic(err)
+		}
+	}
+
+	// Set DefaultMaxOutflow parameter
+	if err := store.Set(types.KeyDefaultMaxOutflow, []byte(params.DefaultMaxOutflow)); err != nil {
+		panic(err)
+	}
+
+	// Set DefaultMaxInflow parameter
+	if err := store.Set(types.KeyDefaultMaxInflow, []byte(params.DefaultMaxInflow)); err != nil {
+		panic(err)
+	}
+
+	// Set DefaultPeriod parameter
+	if err := store.Set(types.KeyDefaultPeriod, sdk.Uint64ToBigEndian(params.DefaultPeriod)); err != nil {
 		panic(err)
 	}
 }
@@ -124,19 +227,6 @@ func (k Keeper) setPort(ctx sdk.Context, portID string) {
 
 // // IsRateLimitEnabled checks if rate limiting is enabled globally
 // func (k Keeper) IsRateLimitEnabled(ctx sdk.Context) bool {
-// 	var enabled bool
-// 	k.paramSpace.Get(ctx, types.KeyEnabled, &enabled)
-// 	return enabled
-// }
-
-// // GetParams returns the current rate-limiting module parameters
-// func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-// 	var params types.Params
-// 	k.paramSpace.GetParamSet(ctx, &params)
-// 	return params
-// }
-
-// // SetParams sets the rate-limiting module parameters
-// func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-// 	k.paramSpace.SetParamSet(ctx, &params)
+// 	params := k.GetParams(ctx)
+// 	return params.Enabled
 // }

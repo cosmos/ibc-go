@@ -4,8 +4,11 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // AccountKeeper defines the expected account keeper
@@ -35,4 +38,29 @@ type ChannelKeeper interface {
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, error)
 	GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []channeltypes.IdentifiedChannel
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (clientID string, clientState exported.ClientState, err error)
+}
+
+// ClientKeeper defines the expected IBC client keeper
+type ClientKeeper interface {
+	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
+}
+
+// ParamSubspace defines the expected Subspace interface for module parameters.
+type ParamSubspace interface {
+	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
+	GetParamSetIfExists(ctx sdk.Context, ps paramtypes.ParamSet)
+	SetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
+	HasKeyTable() bool
+	WithKeyTable(table paramtypes.KeyTable) paramtypes.Subspace
+}
+
+// MessageRouter defines the expected message router
+type MessageRouter interface {
+	Handler(msg sdk.Msg) func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error)
+}
+
+// QueryRouter defines the expected query router
+type QueryRouter interface {
+	Route(path string) func(ctx sdk.Context, req interface{}) ([]byte, error)
 }

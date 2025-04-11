@@ -56,6 +56,16 @@ func (p Params) Validate() error {
 	return nil
 }
 
+// String implements fmt.Stringer
+func (p Params) String() string {
+	return fmt.Sprintf(`Rate Limiting Params:
+  Enabled:              %t
+  Default Max Outflow:  %s
+  Default Max Inflow:   %s
+  Default Period:       %d
+`, p.Enabled, p.DefaultMaxOutflow, p.DefaultMaxInflow, p.DefaultPeriod)
+}
+
 func validateBool(i interface{}) error {
 	_, ok := i.(bool)
 	if !ok {
@@ -84,12 +94,4 @@ func validateUint64(i interface{}) error {
 		return fmt.Errorf("value cannot be zero")
 	}
 	return nil
-}
-
-// Params defines the parameters for the rate-limiting module
-type Params struct {
-	Enabled           bool   `json:"enabled" yaml:"enabled"`
-	DefaultMaxOutflow string `json:"default_max_outflow" yaml:"default_max_outflow"`
-	DefaultMaxInflow  string `json:"default_max_inflow" yaml:"default_max_inflow"`
-	DefaultPeriod     uint64 `json:"default_period" yaml:"default_period"` // in seconds
 }
