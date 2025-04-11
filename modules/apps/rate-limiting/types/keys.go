@@ -22,6 +22,9 @@ const (
 
 	// Version defines the current version for the rate-limiting module
 	Version = "ratelimiting-1"
+
+	// ParamsKey is the store key for rate-limiting module parameters
+	ParamsKey = "params"
 )
 
 var (

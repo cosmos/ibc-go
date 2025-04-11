@@ -1,20 +1,21 @@
 package keeper_test
 
 import (
-	// "fmt"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	// authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
 	// channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
 	// channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	// ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	keeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 var (
@@ -24,6 +25,24 @@ var (
 	// // TestPortID defines a reusable port identifier for testing purposes
 	// TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
 )
+
+// MockQueryRouter is a mock implementation of the QueryRouter interface
+type MockQueryRouter struct{}
+
+func (MockQueryRouter) Route(path string) func(ctx sdk.Context, req interface{}) ([]byte, error) {
+	return func(ctx sdk.Context, req interface{}) ([]byte, error) {
+		return nil, nil
+	}
+}
+
+// MockMsgRouter is a mock implementation of the MessageRouter interface
+type MockMsgRouter struct{}
+
+func (MockMsgRouter) Handler(msg sdk.Msg) func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+		return nil, nil
+	}
+}
 
 type KeeperTestSuite struct {
 	testifysuite.Suite
@@ -57,44 +76,32 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
-				// suite.chainA.GetSimApp().GetSubspace(ratelimittypes.SubModuleName),
+				suite.chainA.GetSimApp().GetSubspace(ratelimittypes.ModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // This is now used as ics4Wrapper
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, // Add clientKeeper
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().GRPCQueryRouter(),
+				&MockMsgRouter{},   // Mock MessageRouter
+				&MockQueryRouter{}, // Mock QueryRouter
 				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
 		}, ""},
-		// {"failure: interchain accounts module account does not exist", func() {
-		// 	keeper.NewKeeper(
-		// 		suite.chainA.GetSimApp().AppCodec(),
-		// 		runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
-		// 		// suite.chainA.GetSimApp().GetSubspace(ratelimittypes.SubModuleName),
-		// 		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-		// 		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-		// 		authkeeper.AccountKeeper{}, // empty account keeper
-		// 		suite.chainA.GetSimApp().BankKeeper,
-		// 		suite.chainA.GetSimApp().MsgServiceRouter(),
-		// 		suite.chainA.GetSimApp().GRPCQueryRouter(),
-		// 		suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
-		// 	)
-		// }, "the Interchain Accounts module account has not been set"},
-		// {"failure: empty mock staking keeper", func() {
-		// 	keeper.NewKeeper(
-		// 		suite.chainA.GetSimApp().AppCodec(),
-		// 		runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
-		// 		// suite.chainA.GetSimApp().GetSubspace(ratelimittypes.SubModuleName),
-		// 		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-		// 		suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-		// 		suite.chainA.GetSimApp().AccountKeeper,
-		// 		suite.chainA.GetSimApp().BankKeeper,
-		// 		suite.chainA.GetSimApp().MsgServiceRouter(),
-		// 		suite.chainA.GetSimApp().GRPCQueryRouter(),
-		// 		"", // authority
-		// 	)
-		// }, "authority must be non-empty"},
+		{"failure: empty authority", func() {
+			keeper.NewKeeper(
+				suite.chainA.GetSimApp().AppCodec(),
+				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
+				suite.chainA.GetSimApp().GetSubspace(ratelimittypes.ModuleName),
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // ics4Wrapper
+				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, // clientKeeper
+				suite.chainA.GetSimApp().AccountKeeper,
+				suite.chainA.GetSimApp().BankKeeper,
+				&MockMsgRouter{},   // Mock MessageRouter
+				&MockQueryRouter{}, // Mock QueryRouter
+				"",                 // empty authority
+			)
+		}, "authority must be non-empty"},
 	}
 
 	for _, tc := range testCases {
