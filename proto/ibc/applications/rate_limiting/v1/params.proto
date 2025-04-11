@@ -1,0 +1,21 @@
+syntax = "proto3";
+package ibc.applications.rate_limiting.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types";
+
+// Params defines the set of rate-limiting parameters.
+message Params {
+  option (gogoproto.equal)            = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  // enabled enables or disables rate limiting
+  bool enabled = 1 [(gogoproto.moretags) = "yaml:\"enabled\""];
+  // default_max_outflow defines the default maximum outflow percentage
+  string default_max_outflow = 2 [(gogoproto.moretags) = "yaml:\"default_max_outflow\""];
+  // default_max_inflow defines the default maximum inflow percentage
+  string default_max_inflow = 3 [(gogoproto.moretags) = "yaml:\"default_max_inflow\""];
+  // default_period defines the default period in seconds for rate limiting
+  uint64 default_period = 4 [(gogoproto.moretags) = "yaml:\"default_period\""];
+}
