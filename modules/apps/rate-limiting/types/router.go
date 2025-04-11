@@ -1,20 +1,15 @@
 package types
 
 import (
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// MessageRouter ADR 031 request type routing
-// https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-031-msg-service.md
-type MessageRouter interface {
-	Handler(msg sdk.Msg) baseapp.MsgServiceHandler
+// EmptyMsgs is an empty implementation of the SDK Handler interface
+func EmptyMsgs() []sdk.Msg {
+	return []sdk.Msg{}
 }
 
-// QueryRouter ADR 021 query type routing
-// https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-021-protobuf-query-encoding.md
-type QueryRouter interface {
-	// Route returns the GRPCQueryHandler for a given query route path or nil
-	// if not found
-	Route(path string) baseapp.GRPCQueryHandler
+// EmptyRoute is an empty implementation of the SDK Route interface
+func EmptyRoute() string {
+	return ""
 }
