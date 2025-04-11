@@ -36,12 +36,7 @@ type IBCMiddleware struct {
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application.
-func NewIBCMiddleware(
-	app porttypes.IBCModule,
-	k *keeper.Keeper,
-	retriesOnTimeout uint8,
-	forwardTimeout time.Duration,
-) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, k *keeper.Keeper, retriesOnTimeout uint8, forwardTimeout time.Duration) IBCMiddleware {
 	return IBCMiddleware{
 		app:              app,
 		keeper:           k,
@@ -51,37 +46,17 @@ func NewIBCMiddleware(
 }
 
 // OnChanOpenInit implements the IBCModule interface.
-func (im IBCMiddleware) OnChanOpenInit(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID string,
-	channelID string,
-	counterparty channeltypes.Counterparty,
-	version string,
-) (string, error) {
+func (im IBCMiddleware) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, counterparty channeltypes.Counterparty, version string) (string, error) {
 	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)
 }
 
 // OnChanOpenTry implements the IBCModule interface.
-func (im IBCMiddleware) OnChanOpenTry(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID, channelID string,
-	counterparty channeltypes.Counterparty,
-	counterpartyVersion string,
-) (version string, err error) {
+func (im IBCMiddleware) OnChanOpenTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, counterparty channeltypes.Counterparty, counterpartyVersion string) (version string, err error) {
 	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 }
 
 // OnChanOpenAck implements the IBCModule interface.
-func (im IBCMiddleware) OnChanOpenAck(
-	ctx sdk.Context,
-	portID, channelID string,
-	counterpartyChannelID string,
-	counterpartyVersion string,
-) error {
+func (im IBCMiddleware) OnChanOpenAck(ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
 	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 }
 
@@ -158,12 +133,7 @@ func newErrorAcknowledgement(err error) channeltypes.Acknowledgement {
 // OnRecvPacket checks the memo field on this packet and if the metadata inside's root key indicates this packet
 // should be handled by the swap middleware it attempts to perform a swap. If the swap is successful
 // the underlying application's OnRecvPacket callback is invoked, an ack error is returned otherwise.
-func (im IBCMiddleware) OnRecvPacket(
-	ctx sdk.Context,
-	channelVersion string,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
-) ibcexported.Acknowledgement {
+func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	logger := im.keeper.Logger(ctx)
 
 	var data transfertypes.FungibleTokenPacketData
@@ -174,12 +144,16 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	logger.Debug("packetForwardMiddleware OnRecvPacket",
 		"sequence", packet.Sequence,
-		"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-		"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
-		"amount", data.Amount, "denom", data.Denom, "memo", data.Memo,
+		"src-channel", packet.SourceChannel,
+		"src-port", packet.SourcePort,
+		"dst-channel", packet.DestinationChannel,
+		"dst-port", packet.DestinationPort,
+		"amount", data.Amount,
+		"denom", data.Denom,
+		"memo", data.Memo,
 	)
 
-	d := make(map[string]interface{})
+	d := make(map[string]any)
 	err := json.Unmarshal([]byte(data.Memo), &d)
 	if err != nil || d["forward"] == nil {
 		// not a packet that should be forwarded
@@ -220,11 +194,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	// we do not need to do any further composition of the denom before forwarding the packet
 	denomOnThisChain := data.Denom
 	if !disableDenomComposition {
-		denomOnThisChain = getDenomForThisChain(
-			packet.DestinationPort, packet.DestinationChannel,
-			packet.SourcePort, packet.SourceChannel,
-			data.Denom,
-		)
+		denomOnThisChain = getDenomForThisChain(packet.DestinationPort, packet.DestinationChannel, packet.SourcePort, packet.SourceChannel, data.Denom)
 	}
 
 	amountInt, ok := sdkmath.NewIntFromString(data.Amount)
@@ -261,14 +231,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 // receiveFunds receives funds from the packet into the override receiver
 // address and returns an error if the funds cannot be received.
-func (im IBCMiddleware) receiveFunds(
-	ctx sdk.Context,
-	channelVersion string,
-	packet channeltypes.Packet,
-	data transfertypes.FungibleTokenPacketData,
-	overrideReceiver string,
-	relayer sdk.AccAddress,
-) error {
+func (im IBCMiddleware) receiveFunds(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData, overrideReceiver string, relayer sdk.AccAddress) error {
 	overrideData := transfertypes.FungibleTokenPacketData{
 		Denom:    data.Denom,
 		Amount:   data.Amount,
@@ -289,7 +252,6 @@ func (im IBCMiddleware) receiveFunds(
 	}
 
 	ack := im.app.OnRecvPacket(ctx, channelVersion, overridePacket, relayer)
-
 	if ack == nil {
 		return fmt.Errorf("ack is nil")
 	}
@@ -302,19 +264,15 @@ func (im IBCMiddleware) receiveFunds(
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface.
-func (im IBCMiddleware) OnAcknowledgementPacket(
-	ctx sdk.Context,
-	channelVersion string,
-	packet channeltypes.Packet,
-	acknowledgement []byte,
-	relayer sdk.AccAddress,
-) error {
+func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		im.keeper.Logger(ctx).Error("packetForwardMiddleware error parsing packet data from ack packet",
 			"sequence", packet.Sequence,
-			"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-			"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
+			"src-channel", packet.SourceChannel,
+			"src-port", packet.SourcePort,
+			"dst-channel", packet.DestinationChannel,
+			"dst-port", packet.DestinationPort,
 			"error", err,
 		)
 		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
@@ -322,9 +280,12 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	im.keeper.Logger(ctx).Debug("packetForwardMiddleware OnAcknowledgementPacket",
 		"sequence", packet.Sequence,
-		"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-		"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
-		"amount", data.Amount, "denom", data.Denom,
+		"src-channel", packet.SourceChannel,
+		"src-port", packet.SourcePort,
+		"dst-channel", packet.DestinationChannel,
+		"dst-port", packet.DestinationPort,
+		"amount", data.Amount,
+		"denom", data.Denom,
 	)
 
 	var ack channeltypes.Acknowledgement
@@ -332,7 +293,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	inFlightPacket := im.keeper.GetAndClearInFlightPacket(ctx, packet.SourceChannel, packet.SourcePort, packet.Sequence)
+	inFlightPacket := im.keeper.TakeInFlightPacket(ctx, packet.SourceChannel, packet.SourcePort, packet.Sequence)
 	if inFlightPacket != nil {
 		// this is a forwarded packet, so override handling to avoid refund from being processed.
 		return im.keeper.WriteAcknowledgementForForwardedPacket(ctx, packet, data, inFlightPacket, ack)
@@ -343,7 +304,6 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 // OnTimeoutPacket implements the IBCModule interface.
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
-
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		im.keeper.Logger(ctx).Error("packetForwardMiddleware error parsing packet data from timeout packet",
@@ -381,29 +341,15 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 }
 
 // SendPacket implements the ICS4 Wrapper interface.
-func (im IBCMiddleware) SendPacket(
-	ctx sdk.Context,
-	sourcePort string, sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (sequence uint64, err error) {
+func (im IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
 	return im.keeper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface.
-func (im IBCMiddleware) WriteAcknowledgement(
-	ctx sdk.Context,
-	packet ibcexported.PacketI,
-	ack ibcexported.Acknowledgement,
-) error {
+func (im IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, ack ibcexported.Acknowledgement) error {
 	return im.keeper.WriteAcknowledgement(ctx, packet, ack)
 }
 
-func (im IBCMiddleware) GetAppVersion(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) (string, bool) {
+func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }

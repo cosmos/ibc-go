@@ -19,10 +19,5 @@ func NewMigrator(k *Keeper) Migrator {
 // Migrate2to3 migrates the module state from the consensus version 2 to
 // version 3
 func (m Migrator) Migrate2to3(ctx sdk.Context) error {
-	return v3.Migrate(
-		ctx,
-		m.keeper.bankKeeper,
-		m.keeper.channelKeeper,
-		m.keeper.transferKeeper,
-	)
+	return v3.Migrate(ctx, m.keeper.bankKeeper, m.keeper.channelKeeper, m.keeper.transferKeeper)
 }
