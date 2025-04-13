@@ -19,5 +19,5 @@ type (
 )
 
 func RefundPacketKey(channelID, portID string, sequence uint64) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%d", channelID, portID, sequence))
+	return fmt.Appendf(nil, "%s/%s/%d", channelID, portID, sequence)
 }
