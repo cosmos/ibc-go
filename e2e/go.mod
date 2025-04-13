@@ -6,8 +6,13 @@ replace github.com/strangelove-ventures/interchaintest/v8 => github.com/gjermund
 
 require (
 	cosmossdk.io/api v0.7.6
+<<<<<<< HEAD
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.4.0
+=======
+	cosmossdk.io/errors v1.0.2
+	cosmossdk.io/math v1.5.3
+>>>>>>> 273df04c (chore: bump sdk math to 1.5.3 (#8293))
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/cometbft/cometbft v0.38.15
 	github.com/cosmos/cosmos-sdk v0.50.13
@@ -113,7 +118,7 @@ require (
 	github.com/golang/snappy v0.0.5-0.20231225225746-43d5d4cd4e0e // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/flatbuffers v24.3.25+incompatible // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/orderedcode v0.0.1 // indirect
 	github.com/google/pprof v0.0.0-20231023181126-ff6d637d2a7b // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
