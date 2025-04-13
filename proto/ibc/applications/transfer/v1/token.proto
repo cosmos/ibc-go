@@ -2,10 +2,9 @@ syntax = "proto3";
 
 package ibc.applications.transfer.v1;
 
-option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types";
-
-import "ibc/applications/transfer/v1/transfer.proto";
 import "gogoproto/gogo.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types";
 
 // Token defines a struct which represents a token to be transferred.
 message Token {
