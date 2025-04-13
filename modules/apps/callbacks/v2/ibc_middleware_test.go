@@ -3,6 +3,7 @@ package v2_test
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -49,7 +50,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 			func() {
 				_ = v2.NewIBCMiddleware(nil, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
-			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
+			errors.New("underlying application does not implement " + reflect.TypeOf((*types.CallbacksCompatibleModule)(nil)).String()),
 		},
 		{
 			"panics with nil contract keeper",
@@ -117,7 +118,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		{
 			"success: callback data nonexistent",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 			},
 			"none",
@@ -253,7 +253,6 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"success: callback data nonexistent",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 			},
 			noExecution,
@@ -270,7 +269,6 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		{
 			"failure: callback data is not valid",
 			func() {
-				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			noExecution,
@@ -412,7 +410,6 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"success: callback data nonexistent",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 			},
 			noExecution,
@@ -429,7 +426,6 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		{
 			"failure: callback data is not valid",
 			func() {
-				//nolint:goconst
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			noExecution,
@@ -586,7 +582,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"success: callback data nonexistent",
 			func() {
-				//nolint:goconst
 				packetData.Memo = ""
 			},
 			noExecution,
@@ -603,7 +598,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 		{
 			"failure: no-op on callback data is not valid",
 			func() {
-				//nolint:goconst
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 			},
 			noExecution,

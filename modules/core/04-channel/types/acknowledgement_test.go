@@ -20,7 +20,7 @@ const (
 )
 
 // tests acknowledgement.ValidateBasic and acknowledgement.Acknowledgement
-func (suite TypesTestSuite) TestAcknowledgement() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *TypesTestSuite) TestAcknowledgement() {
 	testCases := []struct {
 		name         string
 		ack          types.Acknowledgement
@@ -140,7 +140,7 @@ func (suite *TypesTestSuite) TestAcknowledgementError() {
 	suite.Require().NotEqual(ack, ackDifferentABCICode)
 }
 
-func (suite TypesTestSuite) TestAcknowledgementWithCodespace() { //nolint:govet // this is a test, we are okay with copying locks
+func (suite *TypesTestSuite) TestAcknowledgementWithCodespace() {
 	testCases := []struct {
 		name     string
 		ack      types.Acknowledgement

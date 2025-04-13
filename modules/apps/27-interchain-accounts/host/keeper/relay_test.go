@@ -613,7 +613,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(string(msgBytes))), ",")
 
 				packetData = []byte(`{
 					"type": 1,
@@ -642,7 +642,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(string(msgBytes))), ",")
 
 				packetData = []byte(`{
 					"type": 1,
@@ -675,7 +675,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(string(msgBytes))), ",")
 
 				packetData = []byte(`{
 					"type": 1,
@@ -716,7 +716,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(string(msgBytes))), ",")
 
 				packetData = []byte(`{
 					"type": 1,
@@ -750,7 +750,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(string(msgBytes))), ",")
 
 				packetData = []byte(`{
 					"type": 1,
@@ -766,7 +766,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			"unregistered sdk.Msg",
 			func(icaAddress string) {
 				msgBytes := []byte(`{"messages":[{}]}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(string(msgBytes))), ",")
 
 				packetData = []byte(`{
 					"type": 1,
@@ -791,7 +791,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(string(msgBytes))), ",")
 
 				packetData = []byte(`{
 					"type": 1,
@@ -816,7 +816,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						}
 					]
 				}`)
-				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(string(msgBytes))), ",")
 
 				packetData = []byte(`{
 					"type": 1,

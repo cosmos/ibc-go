@@ -28,9 +28,9 @@ func (suite *KeeperTestSuite) TestQueryDenom() {
 			"success: correct ibc denom",
 			func() {
 				expDenom = types.NewDenom(
-					"uatom",                                //nolint:goconst
-					types.NewHop("transfer", "channelToA"), //nolint:goconst
-					types.NewHop("transfer", "channelToB"), //nolint:goconst
+					"uatom",
+					types.NewHop("transfer", "channelToA"),
+					types.NewHop("transfer", "channelToB"),
 				)
 				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), expDenom)
 
@@ -44,9 +44,9 @@ func (suite *KeeperTestSuite) TestQueryDenom() {
 			"success: correct hex hash",
 			func() {
 				expDenom = types.NewDenom(
-					"uatom",                                //nolint:goconst
-					types.NewHop("transfer", "channelToA"), //nolint:goconst
-					types.NewHop("transfer", "channelToB"), //nolint:goconst
+					"uatom",
+					types.NewHop("transfer", "channelToA"),
+					types.NewHop("transfer", "channelToB"),
 				)
 				suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), expDenom)
 
@@ -69,9 +69,9 @@ func (suite *KeeperTestSuite) TestQueryDenom() {
 			"failure: not found denom trace",
 			func() {
 				expDenom = types.NewDenom(
-					"uatom",                                //nolint:goconst
-					types.NewHop("transfer", "channelToA"), //nolint:goconst
-					types.NewHop("transfer", "channelToB"), //nolint:goconst
+					"uatom",
+					types.NewHop("transfer", "channelToA"),
+					types.NewHop("transfer", "channelToB"),
 				)
 
 				req = &types.QueryDenomRequest{

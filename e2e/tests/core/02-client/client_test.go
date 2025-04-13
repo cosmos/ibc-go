@@ -485,7 +485,7 @@ func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight cl
 		AppHash:            tmhash.Sum([]byte(invalidHashValue)),
 		LastResultsHash:    tmhash.Sum([]byte(invalidHashValue)),
 		EvidenceHash:       tmhash.Sum([]byte(invalidHashValue)),
-		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
+		ProposerAddress:    tmValSet.Proposer.Address,
 	}
 
 	hhash := tmHeader.Hash()

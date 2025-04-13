@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestRecvPacketReCheckTx() {
 		{
 			"channel not found",
 			func() {
-				packet.DestinationPort = "invalid-port" //nolint:goconst
+				packet.DestinationPort = "invalid-port"
 			},
 			types.ErrChannelNotFound,
 		},
