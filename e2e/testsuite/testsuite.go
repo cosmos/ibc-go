@@ -308,6 +308,21 @@ func (s *E2ETestSuite) GetChainAChannelForTest(testName string) ibc.ChannelOutpu
 	return s.GetChannelsForTest(s.GetAllChains()[0], testName)[0]
 }
 
+// GetChainBChannelForTest returns the ibc.ChannelOutput for the current test.
+func (s *E2ETestSuite) GetChainBChannelForTest(testName string) ibc.ChannelOutput {
+	return s.GetChannelsForTest(s.GetAllChains()[1], testName)[0]
+}
+
+// GetChainCChannelForTest returns the ibc.ChannelOutput for the current test.
+func (s *E2ETestSuite) GetChainCChannelForTest(testName string) ibc.ChannelOutput {
+	return s.GetChannelsForTest(s.GetAllChains()[2], testName)[0]
+}
+
+// GetChainDChannelForTest returns the ibc.ChannelOutput for the current test.
+func (s *E2ETestSuite) GetChainDChannelForTest(testName string) ibc.ChannelOutput {
+	return s.GetChannelsForTest(s.GetAllChains()[3], testName)[0]
+}
+
 // GetChannelsForTest returns all channels for the specified test.
 func (s *E2ETestSuite) GetChannelsForTest(chain ibc.Chain, testName string) []ibc.ChannelOutput {
 	channels, ok := s.channels[testName][chain]
@@ -552,6 +567,11 @@ func (s *E2ETestSuite) CreateUserOnChainB(ctx context.Context, amount int64) ibc
 // CreateUserOnChainC creates a user with the given amount of funds on chain C.
 func (s *E2ETestSuite) CreateUserOnChainC(ctx context.Context, amount int64) ibc.Wallet {
 	return s.createWalletOnChainIndex(ctx, amount, 2)
+}
+
+// CreateUserOnChainD creates a user with the given amount of funds on chain C.
+func (s *E2ETestSuite) CreateUserOnChainD(ctx context.Context, amount int64) ibc.Wallet {
+	return s.createWalletOnChainIndex(ctx, amount, 3)
 }
 
 // createWalletOnChainIndex creates a wallet with the given amount of funds on the chain of the given index.

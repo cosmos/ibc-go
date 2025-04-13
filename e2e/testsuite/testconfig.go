@@ -76,7 +76,7 @@ const (
 )
 
 // defaultChainNames contains the default name for chainA and chainB.
-var defaultChainNames = []string{"simapp-a", "simapp-b", "simapp-c"}
+var defaultChainNames = []string{"simapp-a", "simapp-b", "simapp-c", "simapp-d"}
 
 func getChainImage(binary string) string {
 	if binary == "" {
@@ -286,6 +286,25 @@ func (tc TestConfig) GetChainBID() string {
 		return tc.ChainConfigs[1].ChainID
 	}
 	return "chainB-1"
+}
+
+// TODO: Refactor func (tc TestConfig) ChainID(i int) string {}
+// GetChainCID returns the chain-id for chain C.
+// NOTE: the default return value will ensure that ParseChainID will return 1 as the revision number.
+func (tc TestConfig) GetChainCID() string {
+	if tc.ChainConfigs[2].ChainID != "" {
+		return tc.ChainConfigs[2].ChainID
+	}
+	return "chainC-1"
+}
+
+// GetChainDID returns the chain-id for chain D.
+// NOTE: the default return value will ensure that ParseChainID will return 1 as the revision number.
+func (tc TestConfig) GetChainDID() string {
+	if tc.ChainConfigs[3].ChainID != "" {
+		return tc.ChainConfigs[3].ChainID
+	}
+	return "chainD-1"
 }
 
 // GetChainName returns the name of the chain given an index.
@@ -620,27 +639,43 @@ type ChainOptions struct {
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
 type ChainOptionConfiguration func(options *ChainOptions)
 
-// DefaultChainOptions returns the default configuration for the chains.
+// DefaultChainOptions returns the default configuration for four chains.
 // These options can be configured by passing configuration functions to E2ETestSuite.GetChains.
 func DefaultChainOptions() ChainOptions {
 	tc := LoadConfig()
 
-	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], tc.GetChainName(0), tc.GetChainAID(), "atoma", tc.CometBFTConfig)
-	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], tc.GetChainName(1), tc.GetChainBID(), "atomb", tc.CometBFTConfig)
+	aCfg := newDefaultSimappConfig(tc.ChainConfigs[0], tc.GetChainName(0), tc.GetChainAID(), "atoma", tc.CometBFTConfig)
+	bCfg := newDefaultSimappConfig(tc.ChainConfigs[1], tc.GetChainName(1), tc.GetChainBID(), "atomb", tc.CometBFTConfig)
+	cCfg := newDefaultSimappConfig(tc.ChainConfigs[2], tc.GetChainName(2), tc.GetChainCID(), "atomc", tc.CometBFTConfig)
+	dCfg := newDefaultSimappConfig(tc.ChainConfigs[3], tc.GetChainName(3), tc.GetChainDID(), "atomd", tc.CometBFTConfig)
 
-	chainAVal, chainAFn := getValidatorsAndFullNodes(0)
-	chainBVal, chainBFn := getValidatorsAndFullNodes(1)
+	aValidators, aFullNodes := getValidatorsAndFullNodes(0)
+	bValidators, bFullNodes := getValidatorsAndFullNodes(1)
+	cValidators, cFullNodes := getValidatorsAndFullNodes(2)
+	dValidators, dFullNodes := getValidatorsAndFullNodes(3)
 
-	chainASpec := &interchaintest.ChainSpec{
-		ChainConfig:   chainACfg,
-		NumFullNodes:  &chainAFn,
-		NumValidators: &chainAVal,
+	aSpec := &interchaintest.ChainSpec{
+		ChainConfig:   aCfg,
+		NumFullNodes:  &aFullNodes,
+		NumValidators: &aValidators,
 	}
 
-	chainBSpec := &interchaintest.ChainSpec{
-		ChainConfig:   chainBCfg,
-		NumFullNodes:  &chainBFn,
-		NumValidators: &chainBVal,
+	bSpec := &interchaintest.ChainSpec{
+		ChainConfig:   bCfg,
+		NumFullNodes:  &bFullNodes,
+		NumValidators: &bValidators,
+	}
+
+	cSpec := &interchaintest.ChainSpec{
+		ChainConfig:   cCfg,
+		NumFullNodes:  &cFullNodes,
+		NumValidators: &cValidators,
+	}
+
+	dSpec := &interchaintest.ChainSpec{
+		ChainConfig:   dCfg,
+		NumFullNodes:  &dFullNodes,
+		NumValidators: &dValidators,
 	}
 
 	// if running a single test, only one relayer is needed.
@@ -652,7 +687,7 @@ func DefaultChainOptions() ChainOptions {
 	}
 
 	return ChainOptions{
-		ChainSpecs:   []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+		ChainSpecs:   []*interchaintest.ChainSpec{aSpec, bSpec, cSpec, dSpec},
 		RelayerCount: numRelayers,
 	}
 }
