@@ -148,7 +148,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 				expAmount = sdkmath.NewInt(-1)
 			},
 			errors.New("amount cannot be negative: -1"),
-		},		
+		},
 	}
 
 	for _, tc := range testCases {
