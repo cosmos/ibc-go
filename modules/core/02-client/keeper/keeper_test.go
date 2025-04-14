@@ -362,7 +362,7 @@ func (suite *KeeperTestSuite) TestGetClientLatestHeight() {
 				suite.Require().True(ok, "expected header height to be types.Height")
 				return h
 			}(),
-		},		
+		},
 		{
 			"invalid client type",
 			func() {
