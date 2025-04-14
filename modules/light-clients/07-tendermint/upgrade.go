@@ -2,8 +2,10 @@ package tendermint
 
 import (
 	"fmt"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -17,8 +19,10 @@ import (
 )
 
 // VerifyUpgradeAndUpdateState checks if the upgraded client has been committed by the current client
-// It will zero out all client-specific fields (e.g. TrustingPeriod) and verify all data
-// in client state that must be the same across all valid Tendermint clients for the new chain.
+// It will zero out all client-specific fields and verify all data in client state that must
+// be the same across all valid Tendermint clients for the new chain.
+// Note, if there is a decrease in the UnbondingPeriod, then the TrustingPeriod, despite being a client-specific field
+// is scaled down by the same ratio.
 // VerifyUpgrade will return an error if:
 // - the upgradedClient is not a Tendermint ClientState
 // - the latest height of the client state does not have the same revision number or has a greater
@@ -93,12 +97,17 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 		return errorsmod.Wrapf(err, "consensus state proof failed. Path: %s", upgradeConsStatePath.GetKeyPath())
 	}
 
+	trustingPeriod := cs.TrustingPeriod
+	if tmUpgradeClient.UnbondingPeriod < cs.UnbondingPeriod {
+		trustingPeriod = calculateNewTrustingPeriod(trustingPeriod, cs.UnbondingPeriod, tmUpgradeClient.UnbondingPeriod)
+	}
+
 	// Construct new client state and consensus state
 	// Relayer chosen client parameters are ignored.
 	// All chain-chosen parameters come from committed client, all client-chosen parameters
 	// come from current client.
 	newClientState := NewClientState(
-		tmUpgradeClient.ChainId, cs.TrustLevel, cs.TrustingPeriod, tmUpgradeClient.UnbondingPeriod,
+		tmUpgradeClient.ChainId, cs.TrustLevel, trustingPeriod, tmUpgradeClient.UnbondingPeriod,
 		cs.MaxClockDrift, tmUpgradeClient.LatestHeight, tmUpgradeClient.ProofSpecs, tmUpgradeClient.UpgradePath,
 	)
 
@@ -164,4 +173,16 @@ func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight export
 	}
 
 	return commitmenttypes.NewMerklePath(consStateKey...)
+}
+
+// calculateNewTrustingPeriod converts the provided durations to decimal representation to avoid floating-point precision issues
+// and calculates the new trusting period, decreasing it by the ratio between the original and new unbonding period.
+func calculateNewTrustingPeriod(trustingPeriod, originalUnbonding, newUnbonding time.Duration) time.Duration {
+	origUnbondingDec := sdkmath.LegacyNewDec(originalUnbonding.Nanoseconds())
+	newUnbondingDec := sdkmath.LegacyNewDec(newUnbonding.Nanoseconds())
+	trustingPeriodDec := sdkmath.LegacyNewDec(trustingPeriod.Nanoseconds())
+
+	// compute new trusting period: trustingPeriod * newUnbonding / originalUnbonding
+	newTrustingPeriodDec := trustingPeriodDec.Mul(newUnbondingDec).Quo(origUnbondingDec)
+	return time.Duration(newTrustingPeriodDec.TruncateInt64())
 }
