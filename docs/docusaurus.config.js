@@ -56,6 +56,10 @@ const config = {
               path: "main",
               banner: "unreleased",
             },
+            "v10.1.x": {
+              path: "v10",
+              banner: "none",
+            },
             "v8.5.x": {
               path: "v8",
               banner: "none",
@@ -299,7 +303,7 @@ const config = {
           },
           {
             from: ["/", "/docs"],
-            to: "/v8/",
+            to: "/v10/",
           }
         ],
       },
