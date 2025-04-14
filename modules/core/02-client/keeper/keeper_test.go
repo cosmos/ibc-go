@@ -350,53 +350,58 @@ func (suite *KeeperTestSuite) TestGetClientLatestHeight() {
 	var path *ibctesting.Path
 
 	cases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name           string
+		malleate       func()
+		expectedHeight types.Height
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			func() types.Height {
+				return suite.chainB.LatestCommittedHeader.GetHeight().(types.Height)
+			}(),
 		},
 		{
 			"invalid client type",
 			func() {
 				path.EndpointA.ClientID = ibctesting.InvalidID
 			},
-			false,
+			types.ZeroHeight(),
 		},
 		{
 			"client type is not allowed", func() {
 				params := types.NewParams(exported.Localhost)
 				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
 			},
-			false,
+			types.ZeroHeight(),
 		},
 		{
 			"client type is not registered on router", func() {
 				path.EndpointA.ClientID = types.FormatClientIdentifier("08-wasm", 0)
 			},
-			false,
+			types.ZeroHeight(),
 		},
 	}
 
 	for _, tc := range cases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
-
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupConnections()
 
 			tc.malleate()
 
-			height := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientLatestHeight(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			actualHeight := suite.chainA.App.GetIBCKeeper().ClientKeeper.
+				GetClientLatestHeight(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-			if tc.expPass {
-				suite.Require().Equal(suite.chainB.LatestCommittedHeader.GetHeight().(types.Height), height)
+			var expectedHeight types.Height
+			if tc.name == "success" {
+				expectedHeight = suite.chainB.LatestCommittedHeader.GetHeight().(types.Height)
 			} else {
-				suite.Require().Equal(types.ZeroHeight(), height)
+				expectedHeight = types.ZeroHeight()
 			}
+
+			suite.Require().Equal(expectedHeight, actualHeight)
 		})
 	}
 }
