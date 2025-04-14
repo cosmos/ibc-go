@@ -358,9 +358,11 @@ func (suite *KeeperTestSuite) TestGetClientLatestHeight() {
 			"success",
 			func() {},
 			func() types.Height {
-				return suite.chainB.LatestCommittedHeader.GetHeight().(types.Height)
+				h, ok := suite.chainB.LatestCommittedHeader.GetHeight().(types.Height)
+				suite.Require().True(ok, "expected header height to be types.Height")
+				return h
 			}(),
-		},
+		},		
 		{
 			"invalid client type",
 			func() {
