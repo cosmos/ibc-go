@@ -147,8 +147,8 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 			func() {
 				expAmount = sdkmath.NewInt(-1)
 			},
-			errors.New("negative coin amount: -1"),
-		},
+			errors.New("amount cannot be negative: -1"),
+		},		
 	}
 
 	for _, tc := range testCases {
@@ -159,8 +159,13 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 
 			tc.malleate()
 
+			coin := sdk.Coin{
+				Denom:  denom,
+				Amount: expAmount,
+			}
+
 			if tc.expError == nil {
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, coin)
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
 				suite.Require().Equal(expAmount, total.Amount)
 
@@ -174,8 +179,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 				}
 			} else {
 				suite.Require().PanicsWithError(tc.expError.Error(), func() {
-					// Panic occurs during sdk.NewCoin() construction, not inside SetTotalEscrowForDenom.
-					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
+					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, coin)
 				})
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
 				suite.Require().Equal(sdkmath.ZeroInt(), total.Amount)
