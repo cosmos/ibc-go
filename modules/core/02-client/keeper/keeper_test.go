@@ -396,7 +396,9 @@ func (suite *KeeperTestSuite) TestGetClientLatestHeight() {
 
 			var expectedHeight types.Height
 			if tc.name == "success" {
-				expectedHeight = suite.chainB.LatestCommittedHeader.GetHeight().(types.Height)
+				h, ok := suite.chainB.LatestCommittedHeader.GetHeight().(types.Height)
+				suite.Require().True(ok)
+				expectedHeight = h
 			} else {
 				expectedHeight = types.ZeroHeight()
 			}
