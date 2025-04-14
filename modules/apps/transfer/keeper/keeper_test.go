@@ -174,6 +174,7 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 				}
 			} else {
 				suite.Require().PanicsWithError(tc.expError.Error(), func() {
+					// Panic occurs during sdk.NewCoin() construction, not inside SetTotalEscrowForDenom.
 					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
 				})
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
