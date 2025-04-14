@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -231,8 +230,8 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 		{
 			"failure: wrong prefix key",
 			func() {
-				key := fmt.Sprintf("wrong-prefix/uatom")
-				store.Set([]byte(key), cdc.MustMarshal(&sdk.IntProto{Int: sdkmath.ZeroInt()}))
+				key := []byte("wrong-prefix/uatom")
+				store.Set(key, cdc.MustMarshal(&sdk.IntProto{Int: sdkmath.ZeroInt()}))
 			},
 			sdk.Coins{},
 		},
