@@ -184,104 +184,73 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 
 func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 	var (
-		store           storetypes.KVStore
-		cdc             codec.Codec
-		expDenomEscrows sdk.Coins
+		store storetypes.KVStore
+		cdc   codec.Codec
 	)
 
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expected sdk.Coins
 	}{
 		{
 			"success",
 			func() {
 				denom := "uatom" //nolint:goconst
 				amount := sdkmath.NewInt(100)
-				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
-
 				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
 				store.Set(types.TotalEscrowForDenomKey(denom), bz)
 			},
-			true,
+			sdk.NewCoins(sdk.NewInt64Coin("uatom", 100)),
 		},
 		{
 			"success: multiple denoms",
 			func() {
-				denom := "uatom"
-				amount := sdkmath.NewInt(100)
-				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
-
-				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
-				store.Set(types.TotalEscrowForDenomKey(denom), bz)
-
-				denom = "bar/foo"
-				amount = sdkmath.NewInt(50)
-				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
-
-				bz = cdc.MustMarshal(&sdk.IntProto{Int: amount})
-				store.Set(types.TotalEscrowForDenomKey(denom), bz)
+				store.Set(types.TotalEscrowForDenomKey("uatom"), cdc.MustMarshal(&sdk.IntProto{Int: sdkmath.NewInt(100)}))
+				store.Set(types.TotalEscrowForDenomKey("bar/foo"), cdc.MustMarshal(&sdk.IntProto{Int: sdkmath.NewInt(50)}))
 			},
-			true,
+			sdk.NewCoins(
+				sdk.NewInt64Coin("uatom", 100),
+				sdk.NewInt64Coin("bar/foo", 50),
+			),
 		},
 		{
 			"success: denom with non-alphanumeric characters",
 			func() {
-				denom := "ibc/123-456"
-				amount := sdkmath.NewInt(100)
-				expDenomEscrows = append(expDenomEscrows, sdk.NewCoin(denom, amount))
-
-				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
-				store.Set(types.TotalEscrowForDenomKey(denom), bz)
+				store.Set(types.TotalEscrowForDenomKey("ibc/123-456"), cdc.MustMarshal(&sdk.IntProto{Int: sdkmath.NewInt(100)}))
 			},
-			true,
+			sdk.NewCoins(sdk.NewInt64Coin("ibc/123-456", 100)),
 		},
 		{
 			"failure: empty denom",
 			func() {
-				denom := ""
-				amount := sdkmath.ZeroInt()
-
-				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
-				store.Set(types.TotalEscrowForDenomKey(denom), bz)
+				store.Set(types.TotalEscrowForDenomKey(""), cdc.MustMarshal(&sdk.IntProto{Int: sdkmath.ZeroInt()}))
 			},
-			false,
+			sdk.Coins{},
 		},
 		{
 			"failure: wrong prefix key",
 			func() {
-				denom := "uatom"
-				amount := sdkmath.ZeroInt()
-
-				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
-				store.Set(fmt.Appendf(nil, "wrong-prefix/%s", denom), bz)
+				key := fmt.Sprintf("wrong-prefix/uatom")
+				store.Set([]byte(key), cdc.MustMarshal(&sdk.IntProto{Int: sdkmath.ZeroInt()}))
 			},
-			false,
+			sdk.Coins{},
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+			suite.SetupTest()
 
-			expDenomEscrows = sdk.Coins{}
 			ctx := suite.chainA.GetContext()
-
 			storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
 			store = ctx.KVStore(storeKey)
 			cdc = suite.chainA.App.AppCodec()
 
 			tc.malleate()
 
-			denomEscrows := suite.chainA.GetSimApp().TransferKeeper.GetAllTotalEscrowed(ctx)
-
-			if tc.expPass {
-				suite.Require().Len(expDenomEscrows, len(denomEscrows))
-				suite.Require().ElementsMatch(expDenomEscrows, denomEscrows)
-			} else {
-				suite.Require().Empty(denomEscrows)
-			}
+			actual := suite.chainA.GetSimApp().TransferKeeper.GetAllTotalEscrowed(ctx)
+			suite.Require().ElementsMatch(tc.expected, actual)
 		})
 	}
 }
