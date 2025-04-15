@@ -1,8 +1,6 @@
 module github.com/cosmos/ibc-go/e2e
 
-go 1.24.0
-
-toolchain go1.24.2
+go 1.23.8
 
 replace (
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => ../modules/light-clients/08-wasm

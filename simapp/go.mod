@@ -1,8 +1,11 @@
-go 1.23.6
-
 module github.com/cosmos/ibc-go/simapp
 
-replace github.com/cosmos/ibc-go/v10 => ../
+go 1.23.8
+
+replace (
+	github.com/cosmos/ibc-go/v10 => ../
+	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+)
 
 require (
 	cosmossdk.io/api v0.7.6
@@ -218,5 +221,3 @@ require (
 	pgregory.net/rapid v1.2.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
-
-replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
