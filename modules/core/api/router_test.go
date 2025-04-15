@@ -36,6 +36,20 @@ func (suite *APITestSuite) TestRouter() {
 			},
 		},
 		{
+			name: "success: prefix based routing works",
+			malleate: func() {
+				router.AddRoute("somemodule", &mockv2.IBCModule{})
+				router.AddRoute("port01", &mockv2.IBCModule{})
+			},
+			assertionFn: func() {
+				suite.Require().True(router.HasRoute("somemodule"))
+				suite.Require().False(router.HasRoute("somemoduleport01"))
+				suite.Require().True(router.HasPrefixRoute("somemoduleport01"))
+				suite.Require().NotNil(router.Route("somemoduleport01"))
+				suite.Require().True(router.HasRoute("port01"))
+			},
+		},
+		{
 			name: "failure: panics on duplicate module",
 			malleate: func() {
 				router.AddRoute("port01", &mockv2.IBCModule{})
