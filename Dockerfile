@@ -1,4 +1,4 @@
-FROM golang:1.23.6-alpine AS builder
+FROM golang:1.23.8-alpine AS builder
 ARG IBC_GO_VERSION
 
 RUN set -eux; apk add --no-cache gcc git libusb-dev linux-headers make musl-dev;
