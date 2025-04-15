@@ -12,8 +12,8 @@ require (
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cosmos/cosmos-sdk v0.50.13
 	github.com/cosmos/gogoproto v1.7.0
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.1.0
-	github.com/cosmos/ibc-go/v10 v10.1.0
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.2.0
+	github.com/cosmos/ibc-go/v10 v10.2.0
 	github.com/docker/docker v27.3.1+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/strangelove-ventures/interchaintest/v8 v8.2.1-0.20240419152858-c8b741617cd8
