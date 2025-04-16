@@ -116,8 +116,6 @@ func (suite *SoloMachineTestSuite) TestMisbehaviourValidateBasic() {
 		}
 
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				misbehaviour := sm.CreateMisbehaviour()
 				tc.malleateMisbehaviour(misbehaviour)

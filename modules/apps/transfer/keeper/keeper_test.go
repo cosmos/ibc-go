@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 
@@ -95,7 +96,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
+
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
@@ -120,39 +121,37 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success: with non-zero escrow amount",
 			func() {},
-			true,
+			nil,
 		},
 		{
 			"success: with escrow amount > 2^63",
 			func() {
 				expAmount, _ = sdkmath.NewIntFromString("100000000000000000000")
 			},
-			true,
+			nil,
 		},
 		{
 			"success: escrow amount 0 is not stored",
 			func() {
 				expAmount = sdkmath.ZeroInt()
 			},
-			true,
+			nil,
 		},
 		{
 			"failure: setter panics with negative escrow amount",
 			func() {
 				expAmount = sdkmath.NewInt(-1)
 			},
-			false,
+			errors.New("amount cannot be negative: -1"),
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			expAmount = sdkmath.NewInt(100)
@@ -160,8 +159,13 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 
 			tc.malleate()
 
-			if tc.expPass {
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
+			coin := sdk.Coin{
+				Denom:  denom,
+				Amount: expAmount,
+			}
+
+			if tc.expError == nil {
+				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, coin)
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
 				suite.Require().Equal(expAmount, total.Amount)
 
@@ -174,8 +178,8 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 					suite.Require().True(store.Has(key))
 				}
 			} else {
-				suite.Require().PanicsWithError("negative coin amount: -1", func() {
-					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewCoin(denom, expAmount))
+				suite.Require().PanicsWithError(tc.expError.Error(), func() {
+					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, coin)
 				})
 				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
 				suite.Require().Equal(sdkmath.ZeroInt(), total.Amount)
@@ -257,15 +261,13 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 				amount := sdkmath.ZeroInt()
 
 				bz := cdc.MustMarshal(&sdk.IntProto{Int: amount})
-				store.Set([]byte(fmt.Sprintf("wrong-prefix/%s", denom)), bz)
+				store.Set(fmt.Appendf(nil, "wrong-prefix/%s", denom), bz)
 			},
 			false,
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -304,8 +306,6 @@ func (suite *KeeperTestSuite) TestParams() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			ctx := suite.chainA.GetContext()
@@ -377,8 +377,6 @@ func (suite *KeeperTestSuite) TestIsBlockedAddr() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.Require().Equal(tc.expBlock, suite.chainA.GetSimApp().TransferKeeper.IsBlockedAddr(tc.addr))
 		})

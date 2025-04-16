@@ -118,7 +118,7 @@ func AddressFromTla(addr []string) string {
 func DenomFromTla(denom []string) string {
 	var i int
 	for i = 0; i+1 < len(denom); i += 2 {
-		if !(len(denom[i]) == 0 && len(denom[i+1]) == 0) {
+		if len(denom[i]) != 0 || len(denom[i+1]) != 0 {
 			break
 		}
 	}
@@ -382,7 +382,7 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 					registerDenomFn()
 					err = suite.chainB.GetSimApp().TransferKeeper.OnAcknowledgementPacket(
 						suite.chainB.GetContext(), packet.SourcePort, packet.SourceChannel, tc.packet.Data,
-						channeltypes.NewErrorAcknowledgement(fmt.Errorf("MBT Error Acknowledgement")))
+						channeltypes.NewErrorAcknowledgement(errors.New("MBT Error Acknowledgement")))
 				default:
 					err = fmt.Errorf("Unknown handler:  %s", tc.handler)
 				}

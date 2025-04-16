@@ -72,8 +72,6 @@ func (suite *TendermintTestSuite) TestConsensusStateValidateBasic() {
 	}
 
 	for i, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.msg, func() {
 			// check just to increase coverage
 			suite.Require().Equal(exported.Tendermint, tc.consensusState.ClientType())

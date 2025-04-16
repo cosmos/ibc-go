@@ -19,7 +19,6 @@ func TestDenomTrace_IBCDenom(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		denom := tc.trace.IBCDenom()
 		require.Equal(t, tc.expDenom, denom, tc.name)

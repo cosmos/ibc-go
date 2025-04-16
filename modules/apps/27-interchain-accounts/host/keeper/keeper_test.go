@@ -180,7 +180,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
+
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
@@ -376,8 +376,6 @@ func (suite *KeeperTestSuite) TestParams() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			ctx := suite.chainA.GetContext()

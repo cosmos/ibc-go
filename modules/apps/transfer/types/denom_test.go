@@ -1,7 +1,7 @@
 package types_test
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -36,17 +36,16 @@ func (suite *TypesTestSuite) TestDenomsValidate() {
 				types.NewDenom("uatom", types.NewHop("transfer", "channel-1"), types.NewHop("transfer", "channel-2")),
 				types.NewDenom("uatom", types.NewHop("transfer", "channel-1"), types.NewHop("transfer", "channel-2")),
 			},
-			fmt.Errorf("duplicated denomination with hash"),
+			errors.New("duplicated denomination with hash"),
 		},
 		{
 			"empty base denom with trace",
 			types.Denoms{types.NewDenom("", types.NewHop("transfer", "channel-1"))},
-			fmt.Errorf("base denomination cannot be blank"),
+			errors.New("base denomination cannot be blank"),
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			err := tc.denoms.Validate()
 			if tc.expError == nil {
@@ -112,7 +111,6 @@ func (suite *TypesTestSuite) TestPath() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.Require().Equal(tc.expPath, tc.denom.Path())
 		})
@@ -181,7 +179,6 @@ func (suite *TypesTestSuite) TestSort() {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.Require().Equal(tc.expDenoms, tc.denoms.Sort())
 		})
@@ -265,7 +262,6 @@ func (suite *TypesTestSuite) TestDenomChainSource() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.Require().Equal(tc.expHasPrefix, tc.denom.HasPrefix(tc.sourcePort, tc.sourceChannel))
 		})
@@ -291,7 +287,6 @@ func TestValidateIBCDenom(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := types.ValidateIBCDenom(tc.denom)
 		if tc.expError {
@@ -331,7 +326,6 @@ func TestExtractDenomFromPath(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		denom := types.ExtractDenomFromPath(tc.fullPath)
 		require.Equal(t, tc.expDenom, denom, tc.name)

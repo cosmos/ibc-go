@@ -1,6 +1,7 @@
 package v2_test
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -41,7 +42,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 			func() {
 				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, nil, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
-			fmt.Errorf("write acknowledgement wrapper cannot be nil"),
+			errors.New("write acknowledgement wrapper cannot be nil"),
 		},
 		{
 			"panics with nil underlying app",
@@ -55,26 +56,25 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 			func() {
 				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, nil, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
-			fmt.Errorf("contract keeper cannot be nil"),
+			errors.New("contract keeper cannot be nil"),
 		},
 		{
 			"panics with nil channel v2 keeper",
 			func() {
 				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, nil, maxCallbackGas)
 			},
-			fmt.Errorf("channel keeper v2 cannot be nil"),
+			errors.New("channel keeper v2 cannot be nil"),
 		},
 		{
 			"panics with zero maxCallbackGas",
 			func() {
 				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, uint64(0))
 			},
-			fmt.Errorf("maxCallbackGas cannot be zero"),
+			errors.New("maxCallbackGas cannot be zero"),
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			if tc.expError == nil {
 				s.Require().NotPanics(tc.instantiateFn, "unexpected panic: NewIBCMiddleware")
@@ -105,7 +105,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		malleate     func()
 		callbackType types.CallbackType
 		expPanic     bool
-		expValue     interface{}
+		expValue     any
 	}{
 		{
 			"success",
@@ -164,7 +164,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
@@ -237,7 +236,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		userGasLimit uint64
 	)
 
-	panicError := fmt.Errorf("panic error")
+	panicError := errors.New("panic error")
 
 	testCases := []struct {
 		name      string
@@ -306,7 +305,6 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
@@ -403,7 +401,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		name      string
 		malleate  func()
 		expResult expResult
-		expValue  interface{}
+		expValue  any
 	}{
 		{
 			"success",
@@ -468,7 +466,6 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
@@ -641,7 +638,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
@@ -783,7 +779,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 

@@ -55,8 +55,6 @@ func (s *TypesTestSuite) TestBuildMerklePath() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		s.Run(tc.name, func() {
 			if tc.expPanics == nil {
 				merklePath := types.BuildMerklePath(tc.prefix, tc.path)

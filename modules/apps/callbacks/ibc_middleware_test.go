@@ -2,6 +2,7 @@ package ibccallbacks_test
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -50,26 +51,25 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 			func() {
 				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, nil, maxCallbackGas)
 			},
-			fmt.Errorf("contract keeper cannot be nil"),
+			errors.New("contract keeper cannot be nil"),
 		},
 		{
 			"panics with nil ics4Wrapper",
 			func() {
 				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, nil, simapp.ContractKeeper{}, maxCallbackGas)
 			},
-			fmt.Errorf("ICS4Wrapper cannot be nil"),
+			errors.New("ICS4Wrapper cannot be nil"),
 		},
 		{
 			"panics with zero maxCallbackGas",
 			func() {
 				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, uint64(0))
 			},
-			fmt.Errorf("maxCallbackGas cannot be zero"),
+			errors.New("maxCallbackGas cannot be zero"),
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			if tc.expError == nil {
 				s.Require().NotPanics(tc.instantiateFn, "unexpected panic: NewIBCMiddleware")
@@ -100,7 +100,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 		malleate     func()
 		callbackType types.CallbackType
 		expPanic     bool
-		expValue     interface{}
+		expValue     any
 	}{
 		{
 			"success",
@@ -168,7 +168,6 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
@@ -240,7 +239,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 		userGasLimit uint64
 	)
 
-	panicError := fmt.Errorf("panic error")
+	panicError := errors.New("panic error")
 
 	testCases := []struct {
 		name      string
@@ -314,7 +313,6 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
@@ -417,7 +415,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 		name      string
 		malleate  func()
 		expResult expResult
-		expValue  interface{}
+		expValue  any
 	}{
 		{
 			"success",
@@ -487,7 +485,6 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
@@ -587,7 +584,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	)
 
 	successAck := channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-	panicAck := channeltypes.NewErrorAcknowledgement(fmt.Errorf("panic"))
+	panicAck := channeltypes.NewErrorAcknowledgement(errors.New("panic"))
 
 	testCases := []struct {
 		name      string
@@ -661,7 +658,6 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
@@ -799,7 +795,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
@@ -863,13 +858,13 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 		expGasConsumed   uint64
 	)
 
-	callbackError := fmt.Errorf("callbackExecutor error")
+	callbackError := errors.New("callbackExecutor error")
 
 	testCases := []struct {
 		name     string
 		malleate func()
 		expPanic bool
-		expValue interface{}
+		expValue any
 	}{
 		{
 			"success",
@@ -941,7 +936,6 @@ func (s *CallbacksTestSuite) TestProcessCallback() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.setupChains()
 

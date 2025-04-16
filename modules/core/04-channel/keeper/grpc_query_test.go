@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 
 	"google.golang.org/grpc/codes"
@@ -101,8 +102,6 @@ func (suite *KeeperTestSuite) TestQueryChannel() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -201,8 +200,6 @@ func (suite *KeeperTestSuite) TestQueryChannels() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -325,8 +322,6 @@ func (suite *KeeperTestSuite) TestQueryConnectionChannels() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -469,8 +464,6 @@ func (suite *KeeperTestSuite) TestQueryChannelClientState() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -628,8 +621,6 @@ func (suite *KeeperTestSuite) TestQueryChannelConsensusState() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -715,7 +706,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence cannot be 0").Error(),
+				errors.New("packet sequence cannot be 0").Error(),
 			),
 		},
 		{
@@ -747,7 +738,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 			},
 			status.Error(
 				codes.NotFound,
-				fmt.Errorf("packet commitment hash not found").Error(),
+				errors.New("packet commitment hash not found").Error(),
 			),
 		},
 		{
@@ -782,8 +773,6 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -858,7 +847,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 				expCommitments = make([]*types.PacketState, 9)
 
 				for i := uint64(0); i < 9; i++ {
-					commitment := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, []byte(fmt.Sprintf("hash_%d", i)))
+					commitment := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, fmt.Appendf(nil, "hash_%d", i))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), commitment.PortId, commitment.ChannelId, commitment.Sequence, commitment.Data)
 					expCommitments[i] = &commitment
 				}
@@ -878,8 +867,6 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -958,7 +945,7 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence cannot be 0").Error(),
+				errors.New("packet sequence cannot be 0").Error(),
 			),
 		},
 		{
@@ -1010,8 +997,6 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1090,7 +1075,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence cannot be 0").Error(),
+				errors.New("packet sequence cannot be 0").Error(),
 			),
 		},
 		{
@@ -1109,7 +1094,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 			},
 			status.Error(
 				codes.NotFound,
-				fmt.Errorf("packet acknowledgement hash not found").Error(),
+				errors.New("packet acknowledgement hash not found").Error(),
 			),
 		},
 		{
@@ -1145,8 +1130,6 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1221,7 +1204,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 				var commitments []uint64
 
 				for i := uint64(0); i < 100; i++ {
-					ack := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, []byte(fmt.Sprintf("hash_%d", i)))
+					ack := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, fmt.Appendf(nil, "hash_%d", i))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.PortId, ack.ChannelId, ack.Sequence, ack.Data)
 
 					if i < 10 { // populate the store with 100 and query for 10 specific acks
@@ -1248,7 +1231,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 				expAcknowledgements = make([]*types.PacketState, 9)
 
 				for i := uint64(0); i < 9; i++ {
-					ack := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, []byte(fmt.Sprintf("hash_%d", i)))
+					ack := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, fmt.Appendf(nil, "hash_%d", i))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.PortId, ack.ChannelId, ack.Sequence, ack.Data)
 					expAcknowledgements[i] = &ack
 				}
@@ -1268,8 +1251,6 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1349,7 +1330,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence 0 cannot be 0").Error(),
+				errors.New("packet sequence 0 cannot be 0").Error(),
 			),
 		},
 		{
@@ -1367,7 +1348,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence 0 cannot be 0").Error(),
+				errors.New("packet sequence 0 cannot be 0").Error(),
 			),
 		},
 		{
@@ -1516,8 +1497,6 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1610,7 +1589,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 			},
 			status.Error(
 				codes.InvalidArgument,
-				fmt.Errorf("packet sequence 0 cannot be 0").Error(),
+				errors.New("packet sequence 0 cannot be 0").Error(),
 			),
 		},
 		{
@@ -1674,8 +1653,6 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1789,8 +1766,6 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceReceive() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1906,8 +1881,6 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 

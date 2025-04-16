@@ -1,7 +1,7 @@
 package controller_test
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 	"testing"
 
@@ -146,9 +146,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
-					return "", fmt.Errorf("mock ica auth fails")
+					return "", errors.New("mock ica auth fails")
 				}
-			}, fmt.Errorf("mock ica auth fails"),
+			}, errors.New("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
@@ -163,7 +163,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 					portID, channelID string,
 					counterparty channeltypes.Counterparty, version string,
 				) (string, error) {
-					return "", fmt.Errorf("error should be unreachable")
+					return "", errors.New("error should be unreachable")
 				}
 			}, nil,
 		},
@@ -171,8 +171,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 				isNilApp = false
@@ -302,9 +300,9 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenAck = func(
 					ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
 				) error {
-					return fmt.Errorf("mock ica auth fails")
+					return errors.New("mock ica auth fails")
 				}
-			}, fmt.Errorf("mock ica auth fails"),
+			}, errors.New("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
@@ -318,7 +316,7 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnChanOpenAck = func(
 					ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string,
 				) error {
-					return fmt.Errorf("error should be unreachable")
+					return errors.New("error should be unreachable")
 				}
 			}, nil,
 		},
@@ -326,8 +324,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 				isNilApp = false
@@ -455,8 +451,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanCloseConfirm() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 				isNilApp = false
@@ -502,8 +496,6 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
 
@@ -576,9 +568,9 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
 				) error {
-					return fmt.Errorf("mock ica auth fails")
+					return errors.New("mock ica auth fails")
 				}
-			}, fmt.Errorf("mock ica auth fails"),
+			}, errors.New("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
@@ -592,7 +584,7 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnAcknowledgementPacket = func(
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress,
 				) error {
-					return fmt.Errorf("error should be unreachable")
+					return errors.New("error should be unreachable")
 				}
 			}, nil,
 		},
@@ -600,8 +592,6 @@ func (suite *InterchainAccountsTestSuite) TestOnAcknowledgementPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.msg, func() {
 				suite.SetupTest() // reset
 				isNilApp = false
@@ -670,9 +660,9 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
-					return fmt.Errorf("mock ica auth fails")
+					return errors.New("mock ica auth fails")
 				}
-			}, fmt.Errorf("mock ica auth fails"),
+			}, errors.New("mock ica auth fails"),
 		},
 		{
 			"nil underlying app", func() {
@@ -686,7 +676,7 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 				suite.chainA.GetSimApp().ICAAuthModule.IBCApp.OnTimeoutPacket = func(
 					ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress,
 				) error {
-					return fmt.Errorf("error should be unreachable")
+					return errors.New("error should be unreachable")
 				}
 			}, nil,
 		},
@@ -694,8 +684,6 @@ func (suite *InterchainAccountsTestSuite) TestOnTimeoutPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.msg, func() {
 				suite.SetupTest() // reset
 				isNilApp = false
@@ -756,8 +744,6 @@ func (suite *InterchainAccountsTestSuite) TestSingleHostMultipleControllers() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.msg, func() {
 				// reset
 				suite.SetupTest()

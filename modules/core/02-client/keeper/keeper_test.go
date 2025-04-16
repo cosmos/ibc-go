@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -79,7 +80,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app := simapp.Setup(suite.T(), isCheckTx)
 
 	suite.cdc = app.AppCodec()
-	suite.ctx = app.BaseApp.NewContext(isCheckTx)
+	suite.ctx = app.NewContext(isCheckTx)
 	suite.keeper = app.IBCKeeper.ClientKeeper
 	suite.privVal = cmttypes.NewMockPV()
 	pubKey, err := suite.privVal.GetPubKey()
@@ -192,7 +193,7 @@ func (suite *KeeperTestSuite) TestGetAllGenesisMetadata() {
 		types.NewIdentifiedGenesisMetadata(
 			clientA,
 			[]types.GenesisMetadata{
-				types.NewGenesisMetadata([]byte(fmt.Sprintf("%s/%s", host.KeyClientState, "clientMetadata")), []byte("value")),
+				types.NewGenesisMetadata(fmt.Appendf(nil, "%s/%s", host.KeyClientState, "clientMetadata"), []byte("value")),
 				types.NewGenesisMetadata(ibctm.ProcessedTimeKey(types.NewHeight(0, 1)), []byte("foo")),
 				types.NewGenesisMetadata(ibctm.ProcessedTimeKey(types.NewHeight(0, 2)), []byte("bar")),
 				types.NewGenesisMetadata(ibctm.ProcessedTimeKey(types.NewHeight(0, 3)), []byte("baz")),
@@ -333,7 +334,6 @@ func (suite *KeeperTestSuite) TestIterateClientStates() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			var clientIDs []string
 			suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.IterateClientStates(suite.chainA.GetContext(), tc.prefix, func(clientID string, _ exported.ClientState) bool {
@@ -623,12 +623,10 @@ func (suite *KeeperTestSuite) TestParams() {
 		{"success: set default params", types.DefaultParams(), nil},
 		{"success: empty allowedClients", types.NewParams(), nil},
 		{"success: subset of allowedClients", types.NewParams(exported.Tendermint, exported.Localhost), nil},
-		{"failure: contains a single empty string value as allowedClient", types.NewParams(exported.Localhost, ""), fmt.Errorf("client type 1 cannot be blank")},
+		{"failure: contains a single empty string value as allowedClient", types.NewParams(exported.Localhost, ""), errors.New("client type 1 cannot be blank")},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			ctx := suite.chainA.GetContext()
@@ -695,8 +693,6 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()  // reset
 			oldPlan.Height = 0 // reset
