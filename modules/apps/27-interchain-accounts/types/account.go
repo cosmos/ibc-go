@@ -49,7 +49,6 @@ func GenerateAddress(ctx sdk.Context, connectionID, portID string) sdk.AccAddres
 
 	buf := []byte(connectionID + portID)
 	buf = append(buf, header.AppHash...)
-	buf = append(buf, header.DataHash...)
 
 	return sdkaddress.Derive(hostModuleAcc, buf)
 }
