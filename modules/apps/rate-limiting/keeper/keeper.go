@@ -16,56 +16,39 @@ import (
 
 // Keeper maintains the link to storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
-	storeService   corestore.KVStoreService
-	cdc            codec.BinaryCodec
-	legacySubspace types.ParamSubspace
+	storeService corestore.KVStoreService
+	cdc          codec.BinaryCodec
 
-	ics4Wrapper   porttypes.ICS4Wrapper
+	ics4Wrapper porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	clientKeeper  types.ClientKeeper
-	accountKeeper types.AccountKeeper
 
-	bankKeeper  types.BankKeeper
-	msgRouter   types.MessageRouter
-	queryRouter types.QueryRouter
-	authority   string
+	bankKeeper types.BankKeeper
+	authority  string
 }
 
 // NewKeeper creates a new rate-limiting Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService corestore.KVStoreService,
-	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	clientKeeper types.ClientKeeper,
-	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
-	msgRouter types.MessageRouter,
-	queryRouter types.QueryRouter,
 	authority string,
 ) Keeper {
-	// set KeyTable if it has not already been set
-	if legacySubspace != nil && !legacySubspace.HasKeyTable() {
-		legacySubspace = legacySubspace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
 	return Keeper{
-		cdc:            cdc,
-		storeService:   storeService,
-		legacySubspace: legacySubspace,
-		ics4Wrapper:    ics4Wrapper,
-		channelKeeper:  channelKeeper,
+		cdc:           cdc,
+		storeService:  storeService,
+		ics4Wrapper:   ics4Wrapper,
+		channelKeeper: channelKeeper,
 		clientKeeper:   clientKeeper,
-		accountKeeper:  accountKeeper,
-		bankKeeper:     bankKeeper,
-		msgRouter:      msgRouter,
-		queryRouter:    queryRouter,
-		authority:      authority,
+		bankKeeper:    bankKeeper,
+		authority:     authority,
 	}
 }
 
@@ -106,13 +89,6 @@ func (k Keeper) setPort(ctx sdk.Context, portID string) {
 
 // GetParams returns the current rate-limiting module parameters
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	if k.legacySubspace != nil {
-		var params types.Params
-		k.legacySubspace.GetParamSet(ctx, &params)
-		return params
-	}
-
-	// If no legacy subspace, use direct store access
 	var params types.Params
 	store := k.storeService.OpenKVStore(ctx)
 
@@ -165,12 +141,6 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 
 // SetParams sets the rate-limiting module parameters
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	if k.legacySubspace != nil {
-		k.legacySubspace.SetParamSet(ctx, &params)
-		return
-	}
-
-	// If no legacy subspace, use direct store access
 	store := k.storeService.OpenKVStore(ctx)
 
 	// Set Enabled parameter
@@ -200,45 +170,8 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	}
 }
 
-// // GetRateLimit returns a rate limit by channel ID and denom ID
-// func (k Keeper) GetRateLimit(ctx sdk.Context, channelID, denomID string) (types.RateLimit, bool) {
-
-// }
-
-// // SetRateLimit sets a rate limit for a specific channel and denom
-// func (k Keeper) SetRateLimit(ctx sdk.Context, rateLimit types.RateLimit) {
-// 	store := k.storeService.OpenKVStore(ctx)
-// 	key := types.KeyRateLimitItem(rateLimit.ChannelID, rateLimit.DenomID)
-
-// 	bz := k.cdc.MustMarshal(&rateLimit)
-// 	store.Set(key, bz)
-// }
-
-// // DeleteRateLimit deletes a rate limit for a specific channel and denom
-// func (k Keeper) DeleteRateLimit(ctx sdk.Context, channelID, denomID string) {
-// 	store := k.storeService.OpenKVStore(ctx)
-// 	key := types.KeyRateLimitItem(channelID, denomID)
-// 	store.Delete(key)
-// }
-
-// // GetAllRateLimits returns all rate limits
-// func (k Keeper) GetAllRateLimits(ctx sdk.Context) []types.RateLimit {
-// 	store := k.storeService.OpenKVStore(ctx)
-// 	iterator := storetypes.KVStorePrefixIterator(store, []byte(types.RateLimitKeyPrefix))
-// 	defer iterator.Close()
-
-// 	var rateLimits []types.RateLimit
-// 	for ; iterator.Valid(); iterator.Next() {
-// 		var rateLimit types.RateLimit
-// 		k.cdc.MustUnmarshal(iterator.Value(), &rateLimit)
-// 		rateLimits = append(rateLimits, rateLimit)
-// 	}
-
-// 	return rateLimits
-// }
-
-// // IsRateLimitEnabled checks if rate limiting is enabled globally
-// func (k Keeper) IsRateLimitEnabled(ctx sdk.Context) bool {
-// 	params := k.GetParams(ctx)
-// 	return params.Enabled
-// }
+// IsRateLimitEnabled checks if rate limiting is enabled globally
+func (k Keeper) IsRateLimitEnabled(ctx sdk.Context) bool {
+	params := k.GetParams(ctx)
+	return params.Enabled
+}

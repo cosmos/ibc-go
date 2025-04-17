@@ -59,11 +59,11 @@ func (msg MsgAddRateLimit) Route() string {
 }
 
 func (msg *MsgAddRateLimit) GetSigners() []sdk.AccAddress {
-	staker, err := sdk.AccAddressFromBech32(msg.Authority)
+	signerAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{staker}
+	return []sdk.AccAddress{signerAddr}
 }
 
 func (msg *MsgAddRateLimit) GetSignBytes() []byte {
@@ -72,9 +72,9 @@ func (msg *MsgAddRateLimit) GetSignBytes() []byte {
 }
 
 func (msg *MsgAddRateLimit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address (%s)", err)
 	}
 
 	if msg.Denom == "" {
@@ -135,11 +135,11 @@ func (msg MsgUpdateRateLimit) Route() string {
 }
 
 func (msg *MsgUpdateRateLimit) GetSigners() []sdk.AccAddress {
-	staker, err := sdk.AccAddressFromBech32(msg.Authority)
+	signerAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{staker}
+	return []sdk.AccAddress{signerAddr}
 }
 
 func (msg *MsgUpdateRateLimit) GetSignBytes() []byte {
@@ -148,9 +148,9 @@ func (msg *MsgUpdateRateLimit) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateRateLimit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address (%s)", err)
 	}
 
 	if msg.Denom == "" {
@@ -208,11 +208,11 @@ func (msg MsgRemoveRateLimit) Route() string {
 }
 
 func (msg *MsgRemoveRateLimit) GetSigners() []sdk.AccAddress {
-	staker, err := sdk.AccAddressFromBech32(msg.Authority)
+	signerAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{staker}
+	return []sdk.AccAddress{signerAddr}
 }
 
 func (msg *MsgRemoveRateLimit) GetSignBytes() []byte {
@@ -221,9 +221,9 @@ func (msg *MsgRemoveRateLimit) GetSignBytes() []byte {
 }
 
 func (msg *MsgRemoveRateLimit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address (%s)", err)
 	}
 
 	if msg.Denom == "" {
@@ -262,11 +262,11 @@ func (msg MsgResetRateLimit) Route() string {
 }
 
 func (msg *MsgResetRateLimit) GetSigners() []sdk.AccAddress {
-	staker, err := sdk.AccAddressFromBech32(msg.Authority)
+	signerAddr, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{staker}
+	return []sdk.AccAddress{signerAddr}
 }
 
 func (msg *MsgResetRateLimit) GetSignBytes() []byte {
@@ -275,9 +275,9 @@ func (msg *MsgResetRateLimit) GetSignBytes() []byte {
 }
 
 func (msg *MsgResetRateLimit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address (%s)", err)
 	}
 
 	if msg.Denom == "" {

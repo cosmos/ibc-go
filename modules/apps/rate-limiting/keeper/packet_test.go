@@ -698,6 +698,3 @@ func (s *KeeperTestSuite) TestTimeoutRateLimitedPacket() {
 // 	s.Require().True(found)
 // 	s.Require().True(rateLimit.Flow.Outflow.IsZero(), "outflow should NOT be updated")
 // }
-
-// // TODO: Add tests for OnAcknowledgementPacket (success and failure) and OnTimeoutPacket
-// // These will be similar structure to the Ack/Timeout tests already present, but called via the middleware interface.
