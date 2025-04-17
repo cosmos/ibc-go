@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
-	"context"
+	// "context" // Removed unused import
 	"fmt"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types" // Add sdk import
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
@@ -48,7 +49,7 @@ func (s *KeeperTestSuite) setupQueryRateLimitTests() []types.RateLimit {
 
 func (s *KeeperTestSuite) TestQueryAllRateLimits() {
 	expectedRateLimits := s.setupQueryRateLimitTests()
-	queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.AllRateLimits(context.Background(), &types.QueryAllRateLimitsRequest{})
+	queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.AllRateLimits(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryAllRateLimitsRequest{}) // Wrap context
 	s.Require().NoError(err)
 	s.Require().ElementsMatch(expectedRateLimits, queryResponse.RateLimits)
 }
@@ -56,7 +57,7 @@ func (s *KeeperTestSuite) TestQueryAllRateLimits() {
 func (s *KeeperTestSuite) TestQueryRateLimit() {
 	allRateLimits := s.setupQueryRateLimitTests()
 	for _, expectedRateLimit := range allRateLimits {
-		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimit(context.Background(), &types.QueryRateLimitRequest{
+		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimit(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryRateLimitRequest{ // Wrap context
 			Denom:             expectedRateLimit.Path.Denom,
 			ChannelOrClientId: expectedRateLimit.Path.ChannelOrClientId,
 		})
@@ -69,7 +70,7 @@ func (s *KeeperTestSuite) TestQueryRateLimitsByChainId() {
 	allRateLimits := s.setupQueryRateLimitTests()
 	for i, expectedRateLimit := range allRateLimits {
 		chainId := fmt.Sprintf("chain-%d", i)
-		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimitsByChainId(context.Background(), &types.QueryRateLimitsByChainIdRequest{
+		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimitsByChainId(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryRateLimitsByChainIdRequest{ // Wrap context
 			ChainId: chainId,
 		})
 		s.Require().NoError(err, "no error expected when querying rate limit on chain: %s", chainId)
@@ -82,7 +83,7 @@ func (s *KeeperTestSuite) TestQueryRateLimitsByChannelOrClientId() {
 	allRateLimits := s.setupQueryRateLimitTests()
 	for i, expectedRateLimit := range allRateLimits {
 		channelId := fmt.Sprintf("channel-%d", i)
-		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimitsByChannelOrClientId(context.Background(), &types.QueryRateLimitsByChannelOrClientIdRequest{
+		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimitsByChannelOrClientId(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryRateLimitsByChannelOrClientIdRequest{ // Wrap context
 			ChannelOrClientId: channelId,
 		})
 		s.Require().NoError(err, "no error expected when querying rate limit on channel: %s", channelId)
@@ -95,7 +96,7 @@ func (s *KeeperTestSuite) TestQueryAllBlacklistedDenoms() {
 	s.chainA.GetSimApp().RateLimitKeeper.AddDenomToBlacklist(s.chainA.GetContext(), "denom-A")
 	s.chainA.GetSimApp().RateLimitKeeper.AddDenomToBlacklist(s.chainA.GetContext(), "denom-B")
 
-	queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.AllBlacklistedDenoms(context.Background(), &types.QueryAllBlacklistedDenomsRequest{})
+	queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.AllBlacklistedDenoms(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryAllBlacklistedDenomsRequest{}) // Wrap context
 	s.Require().NoError(err, "no error expected when querying blacklisted denoms")
 	s.Require().Equal([]string{"denom-A", "denom-B"}, queryResponse.Denoms)
 }
@@ -109,7 +110,7 @@ func (s *KeeperTestSuite) TestQueryAllWhitelistedAddresses() {
 		Sender:   "address-C",
 		Receiver: "address-D",
 	})
-	queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.AllWhitelistedAddresses(context.Background(), &types.QueryAllWhitelistedAddressesRequest{})
+	queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.AllWhitelistedAddresses(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryAllWhitelistedAddressesRequest{}) // Wrap context
 	s.Require().NoError(err, "no error expected when querying whitelisted addresses")
 
 	expectedWhitelist := []types.WhitelistedAddressPair{
