@@ -76,14 +76,10 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
-				suite.chainA.GetSimApp().GetSubspace(ratelimittypes.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // This is now used as ics4Wrapper
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, // Add clientKeeper
-				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
-				&MockMsgRouter{},   // Mock MessageRouter
-				&MockQueryRouter{}, // Mock QueryRouter
 				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
 		}, ""},
@@ -91,15 +87,11 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
-				suite.chainA.GetSimApp().GetSubspace(ratelimittypes.ModuleName),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // ics4Wrapper
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, // clientKeeper
-				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
-				&MockMsgRouter{},   // Mock MessageRouter
-				&MockQueryRouter{}, // Mock QueryRouter
-				"",                 // empty authority
+				"", // empty authority
 			)
 		}, "authority must be non-empty"},
 	}

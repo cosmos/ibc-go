@@ -394,14 +394,10 @@ func NewSimApp(
 	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]),
-		app.GetSubspace(ratelimittypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper, // ics4Wrapper
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ClientKeeper,
-		app.AccountKeeper,
 		app.BankKeeper,
-		NewMsgRouterAdapter(app.MsgServiceRouter()),
-		NewQueryRouterAdapter(app.GRPCQueryRouter()),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -565,6 +561,7 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		icatypes.ModuleName,
+		ratelimittypes.ModuleName,
 		ibcmock.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(

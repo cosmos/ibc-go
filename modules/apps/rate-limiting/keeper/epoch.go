@@ -15,21 +15,36 @@ func (k Keeper) SetHourEpoch(ctx sdk.Context, epoch types.HourEpoch) {
 }
 
 // Reads the hour epoch from the store
+// Returns a zero-value epoch and logs an error if the epoch is not found or fails to unmarshal.
 func (k Keeper) GetHourEpoch(ctx sdk.Context) (epoch types.HourEpoch) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 
 	epochBz := store.Get([]byte(types.HourEpochKey))
 	if len(epochBz) == 0 {
-		panic("Hour epoch not found")
+		// Log an error if the epoch key is not found (should be initialized at genesis)
+		k.Logger(ctx).Error("hour epoch not found in store")
+		return types.HourEpoch{} // Return zero-value epoch
 	}
 
-	k.cdc.MustUnmarshal(epochBz, &epoch)
+	if err := k.cdc.Unmarshal(epochBz, &epoch); err != nil {
+		// Log an error if unmarshalling fails (indicates corrupted data)
+		k.Logger(ctx).Error("failed to unmarshal hour epoch", "error", err)
+		return types.HourEpoch{} // Return zero-value epoch
+	}
+
 	return epoch
 }
 
 // Checks if it's time to start the new hour epoch
 func (k Keeper) CheckHourEpochStarting(ctx sdk.Context) (epochStarting bool, epochNumber uint64) {
 	hourEpoch := k.GetHourEpoch(ctx)
+
+	// If GetHourEpoch returned a zero-value epoch (due to error or missing key),
+	// we cannot proceed with the check.
+	if hourEpoch.Duration == 0 || hourEpoch.EpochStartTime.IsZero() {
+		k.Logger(ctx).Error("cannot check hour epoch starting: epoch data is invalid or missing")
+		return false, 0
+	}
 
 	// If the block time is later than the current epoch start time + epoch duration,
 	// move onto the next epoch by incrementing the epoch number, height, and start time

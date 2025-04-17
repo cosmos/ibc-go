@@ -58,9 +58,12 @@ func (k Keeper) GetAllRateLimits(ctx sdk.Context) []types.RateLimit {
 
 	allRateLimits := []types.RateLimit{}
 	for ; iterator.Valid(); iterator.Next() {
-
 		rateLimit := types.RateLimit{}
-		k.cdc.MustUnmarshal(iterator.Value(), &rateLimit)
+		if err := k.cdc.Unmarshal(iterator.Value(), &rateLimit); err != nil {
+			// Log the error and skip this entry if unmarshalling fails
+			k.Logger(ctx).Error("failed to unmarshal rate limit", "key", string(iterator.Key()), "error", err)
+			continue
+		}
 		allRateLimits = append(allRateLimits, rateLimit)
 	}
 

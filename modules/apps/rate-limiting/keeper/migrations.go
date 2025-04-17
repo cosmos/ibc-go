@@ -22,10 +22,8 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 	// Default to the module's default params if no legacy params exist
 	params := types.DefaultParams()
 
-	// If we have a legacy subspace, retrieve the params from it
-	if m.keeper.legacySubspace != nil {
-		m.keeper.legacySubspace.GetParamSetIfExists(ctx, &params)
-	}
+	// Note: Legacy subspace access removed. Parameters are now self-managed.
+	// The migration now effectively sets the parameters to default if they weren't already set directly.
 
 	if err := params.Validate(); err != nil {
 		return err
