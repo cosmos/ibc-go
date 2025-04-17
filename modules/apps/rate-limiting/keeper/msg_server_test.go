@@ -20,7 +20,7 @@ var (
 	authority = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	addRateLimitMsg = types.MsgAddRateLimit{
-		Authority:         authority,
+		Signer:            authority,
 		Denom:             "denom",
 		ChannelOrClientId: "channel-0",
 		MaxPercentRecv:    sdkmath.NewInt(10),
@@ -29,7 +29,7 @@ var (
 	}
 
 	updateRateLimitMsg = types.MsgUpdateRateLimit{
-		Authority:         authority,
+		Signer:            authority,
 		Denom:             "denom",
 		ChannelOrClientId: "channel-0",
 		MaxPercentRecv:    sdkmath.NewInt(20),
@@ -38,13 +38,13 @@ var (
 	}
 
 	removeRateLimitMsg = types.MsgRemoveRateLimit{
-		Authority:         authority,
+		Signer:            authority,
 		Denom:             "denom",
 		ChannelOrClientId: "channel-0",
 	}
 
 	resetRateLimitMsg = types.MsgResetRateLimit{
-		Authority:         authority,
+		Signer:            authority,
 		Denom:             "denom",
 		ChannelOrClientId: "channel-0",
 	}
