@@ -6,6 +6,10 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 
 	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"                               // Added import
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types" // Re-add import
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"                     // Added import
 )
 
 const (
@@ -92,4 +96,52 @@ func (s *KeeperTestSuite) TestGetAllRateLimits() {
 	actualRateLimits := s.chainA.GetSimApp().RateLimitKeeper.GetAllRateLimits(s.chainA.GetContext())
 	s.Require().Len(actualRateLimits, len(expectedRateLimits))
 	s.Require().ElementsMatch(expectedRateLimits, actualRateLimits, "all rate limits")
+}
+
+func (s *KeeperTestSuite) TestAddRateLimit_ClientId() {
+	// Setup client between chain A and chain B
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	s.coordinator.SetupClients(path)
+	clientId := path.EndpointA.ClientID
+
+	// Mock GetChannelValue to return non-zero
+	// Note: This might require adjusting the test suite setup if GetChannelValue isn't easily mockable.
+	// For now, assume it works or the underlying bank keeper has supply.
+	// A more robust test might involve actually sending tokens.
+	// Mint some tokens for the denom to ensure channel value is non-zero
+	mintAmount := sdkmath.NewInt(1000)
+	mintCoins := sdk.NewCoins(sdk.NewCoin("clientdenom", mintAmount))
+	// Revert: Mint back to the transfer module account
+	err := s.chainA.GetSimApp().BankKeeper.MintCoins(s.chainA.GetContext(), transfertypes.ModuleName, mintCoins)
+	s.Require().NoError(err, "minting coins failed")
+
+	msg := &types.MsgAddRateLimit{
+		Authority:         s.chainA.GetSimApp().RateLimitKeeper.GetAuthority(), // Use the correct authority
+		Denom:             "clientdenom",
+		ChannelOrClientId: clientId, // Use Client ID here
+		MaxPercentSend:    sdkmath.NewInt(10),
+		MaxPercentRecv:    sdkmath.NewInt(10),
+		DurationHours:     24,
+	}
+
+	// Add the rate limit using the client ID
+	err = s.chainA.GetSimApp().RateLimitKeeper.AddRateLimit(s.chainA.GetContext(), msg) // Changed := to =
+	s.Require().NoError(err, "adding rate limit with client ID should succeed")
+
+	// Verify the rate limit was stored correctly
+	_, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), msg.Denom, clientId)
+	s.Require().True(found, "rate limit added with client ID should be found")
+
+	// Test adding with an invalid ID (neither channel nor client)
+	invalidId := "invalid-id"
+	msgInvalid := &types.MsgAddRateLimit{
+		Authority:         s.chainA.GetSimApp().RateLimitKeeper.GetAuthority(),
+		Denom:             "clientdenom",
+		ChannelOrClientId: invalidId,
+		MaxPercentSend:    sdkmath.NewInt(10),
+		MaxPercentRecv:    sdkmath.NewInt(10),
+		DurationHours:     24,
+	}
+	err = s.chainA.GetSimApp().RateLimitKeeper.AddRateLimit(s.chainA.GetContext(), msgInvalid)
+	s.Require().ErrorIs(err, types.ErrChannelNotFound, "adding rate limit with invalid ID should fail")
 }

@@ -19,8 +19,9 @@ import (
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/client/cli"
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	ratesim "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/simulation"
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	// porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types" // Removed unused import
 )
 
 var (
@@ -33,7 +34,7 @@ var (
 	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 
-	_ porttypes.IBCModule = (*IBCModule)(nil)
+	// Note: IBCMiddleware implements porttypes.Middleware and porttypes.ICS4Wrapper
 )
 
 // AppModuleBasic is the rate-limiting AppModuleBasic
@@ -63,7 +64,7 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 // DefaultGenesis returns default genesis state as raw bytes for the rate-limiting
 // module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesisState())
+	return cdc.MustMarshalJSON(types.DefaultGenesis())
 }
 
 // ValidateGenesis performs genesis state validation for the rate-limiting module.
@@ -108,7 +109,7 @@ func NewAppModule(k keeper.Keeper) AppModule {
 
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper)) // Use the msgServer implementation
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
 	m := keeper.NewMigrator(am.keeper)
@@ -137,5 +138,20 @@ func (AppModule) ConsensusVersion() uint64 { return 2 }
 
 // ProposalMsgs returns msgs used for governance proposals for simulations.
 func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
-	return nil
+	return ratesim.ProposalMsgs()
+}
+
+// RegisterStoreDecoder registers a decoder for rate-limiting module's types
+func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
+	sdr[types.StoreKey] = ratesim.NewDecodeStore()
+}
+
+// WeightedOperations returns the all the rate-limiting module operations with their respective weights.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return []simtypes.WeightedOperation{}
+}
+
+// GenerateGenesisState creates a randomized GenState of the rate-limiting module.
+func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+	ratesim.RandomizedGenState(simState)
 }

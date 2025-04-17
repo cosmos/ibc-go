@@ -44,6 +44,7 @@ type ChannelKeeper interface {
 // ClientKeeper defines the expected IBC client keeper
 type ClientKeeper interface {
 	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
+	GetClientStatus(ctx sdk.Context, clientID string) exported.Status
 }
 
 // ParamSubspace defines the expected Subspace interface for module parameters.
