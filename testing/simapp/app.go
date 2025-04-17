@@ -87,7 +87,9 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting" // Add rate-limiting import
 	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	// ratelimitingmodule "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/module" // Remove incorrect import
 	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
 	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
@@ -418,11 +420,15 @@ func NewSimApp(
 	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// create IBC module from bottom to top of stack
-	transferStack := packetforward.NewIBCMiddleware(transfer.NewIBCModule(app.TransferKeeper), app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
+	transferIBCModule := packetforward.NewIBCMiddleware(transfer.NewIBCModule(app.TransferKeeper), app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
 	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
 
-	// Add transfer stack to IBC Router
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+	// Create the rate-limiting middleware, wrapping the transfer IBC module
+	// The ICS4Wrapper is the IBC ChannelKeeper
+	rateLimitMiddleware := ratelimiting.NewIBCMiddleware(transferIBCModule, app.RateLimitKeeper, app.IBCKeeper.ChannelKeeper)
+
+	// Add transfer stack with rate-limiting middleware to IBC Router
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, rateLimitMiddleware)
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -498,6 +504,7 @@ func NewSimApp(
 		// IBC modules
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
+		ratelimiting.NewAppModule(app.RateLimitKeeper), // Use correct package alias
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		mockModule,
 		packetforward.NewAppModule(app.PFMKeeper),
@@ -562,8 +569,8 @@ func NewSimApp(
 		authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
-		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
-		packetforwardtypes.ModuleName, icatypes.ModuleName, ibcmock.ModuleName, upgradetypes.ModuleName,
+		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName, ratelimittypes.ModuleName, // Add rate-limiting module to genesis order
+		packetforwardtypes.ModuleName, icatypes.ModuleName, ibcmock.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)

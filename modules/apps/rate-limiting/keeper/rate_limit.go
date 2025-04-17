@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported" 
 )
 
 // Stores/Updates a rate limit object in the store
@@ -80,10 +81,17 @@ func (k Keeper) AddRateLimit(ctx sdk.Context, msg *types.MsgAddRateLimit) error 
 		return types.ErrRateLimitAlreadyExists
 	}
 
-	// Confirm the channel exists
+	// Confirm the channel or client exists
 	_, found = k.channelKeeper.GetChannel(ctx, transfertypes.PortID, msg.ChannelOrClientId)
 	if !found {
-		return types.ErrChannelNotFound
+		// Check if the channelId is actually a clientId
+		status := k.clientKeeper.GetClientStatus(ctx, msg.ChannelOrClientId)
+		// If the status is Unauthorized or Unknown, it means the client doesn't exist or is invalid
+		if status == ibcexported.Unknown || status == ibcexported.Unauthorized {
+			// Return specific error indicating neither channel nor client was found
+			return types.ErrChannelNotFound // Re-using ErrChannelNotFound, consider a more specific error if needed
+		}
+		// If status is Active, Expired, or Frozen, the client exists, proceed.
 	}
 
 	// Create and store the rate limit object

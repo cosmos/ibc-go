@@ -21,4 +21,7 @@ var (
 	ErrDenomIsBlacklisted = errorsmod.Register(ModuleName, 7,
 		"denom is blacklisted",
 	)
+	ErrUnsupportedAttribute = errorsmod.Register(ModuleName, 8,
+		"unsupported attribute",
+	)
 )
