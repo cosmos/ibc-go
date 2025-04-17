@@ -15,16 +15,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-const (
-	maxCallbackGas = uint64(1000000)
-	V1             = "ics20-1"
-)
-
-var (
-	testDenom  = "uatom"
-	testAmount = "100"
-)
-
 // CallbacksTestSuite defines the needed instances and methods to test callbacks
 type PFMTestSuite struct {
 	suite.Suite
@@ -58,39 +48,27 @@ func (s *PFMTestSuite) setupChains() {
 }
 
 func (s *PFMTestSuite) TestOnRecvPacket() {
-	s.T().Skip("Later")
 	s.setupChains()
 
-	pfmKeeper := s.chainA.GetSimApp().PFMKeeper
-
-	ibcModule, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	ibcMiddleware := packetforward.NewIBCMiddleware(ibcModule, &pfmKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
 	ctx := s.chainA.GetContext()
 	version := s.pathAB.EndpointA.GetChannel().Version
 	relayerAddr := s.chainA.SenderAccount.GetAddress()
-	ack := ibcMiddleware.OnRecvPacket(ctx, version, channeltypes.Packet{}, relayerAddr)
-	s.Require().True(ack.Success())
+
+	// PacketForwardMiddleware
+	pfm := s.pktForwardMiddleware(s.chainA, transfertypes.ModuleName)
+	ack := pfm.OnRecvPacket(ctx, version, channeltypes.Packet{}, relayerAddr)
+	s.Require().False(ack.Success())
 
 	expectedAck := &channeltypes.Acknowledgement{}
-
 	err := s.chainA.Codec.UnmarshalJSON(ack.Acknowledgement(), expectedAck)
 	s.Require().NoError(err)
 
-	s.Require().Equal("", expectedAck.GetError())
-
+	s.Require().Equal("ABCI code: 12: error handling packet: see events for details", expectedAck.GetError())
 }
 
 func (s *PFMTestSuite) TestOnRecvPacket_Nomemo() {
 	s.setupChains()
 
-	pfmKeeper := s.chainA.GetSimApp().PFMKeeper
-
-	ibcModule, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	ibcMiddleware := packetforward.NewIBCMiddleware(ibcModule, &pfmKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
 	ctx := s.chainA.GetContext()
 	version := s.pathAB.EndpointA.GetChannel().Version
 	relayerAddr := s.chainA.SenderAccount.GetAddress()
@@ -98,11 +76,12 @@ func (s *PFMTestSuite) TestOnRecvPacket_Nomemo() {
 
 	packet := s.transferPacket(relayerAddr.String(), receiverAddr.String(), s.pathAB, 0, "{}")
 
-	ack := ibcMiddleware.OnRecvPacket(ctx, version, packet, relayerAddr)
+	// PacketForwardMiddleware
+	pfm := s.pktForwardMiddleware(s.chainA, transfertypes.ModuleName)
+	ack := pfm.OnRecvPacket(ctx, version, packet, relayerAddr)
 	s.Require().True(ack.Success())
 
 	expectedAck := &channeltypes.Acknowledgement{}
-
 	err := s.chainA.Codec.UnmarshalJSON(ack.Acknowledgement(), expectedAck)
 	s.Require().NoError(err)
 
@@ -113,23 +92,18 @@ func (s *PFMTestSuite) TestOnRecvPacket_Nomemo() {
 func (s *PFMTestSuite) TestOnRecvPacket_InvalidReceiver() {
 	s.setupChains()
 
-	pfmKeeper := s.chainA.GetSimApp().PFMKeeper
-
-	ibcModule, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	ibcMiddleware := packetforward.NewIBCMiddleware(ibcModule, &pfmKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
 	ctx := s.chainA.GetContext()
 	version := s.pathAB.EndpointA.GetChannel().Version
 	relayerAddr := s.chainA.SenderAccount.GetAddress()
 
 	packet := s.transferPacket(relayerAddr.String(), "", s.pathAB, 0, nil)
 
-	ack := ibcMiddleware.OnRecvPacket(ctx, version, packet, relayerAddr)
+	// PacketForwardMiddleware
+	pfm := s.pktForwardMiddleware(s.chainA, transfertypes.ModuleName)
+	ack := pfm.OnRecvPacket(ctx, version, packet, relayerAddr)
 	s.Require().False(ack.Success())
 
 	expectedAck := &channeltypes.Acknowledgement{}
-
 	err := s.chainA.Codec.UnmarshalJSON(ack.Acknowledgement(), expectedAck)
 	s.Require().NoError(err)
 
@@ -140,12 +114,6 @@ func (s *PFMTestSuite) TestOnRecvPacket_InvalidReceiver() {
 func (s *PFMTestSuite) TestOnRecvPacket_NoForward() {
 	s.setupChains()
 
-	pfmKeeper := s.chainA.GetSimApp().PFMKeeper
-
-	ibcModule, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	ibcMiddleware := packetforward.NewIBCMiddleware(ibcModule, &pfmKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
 	ctx := s.chainA.GetContext()
 	version := s.pathAB.EndpointA.GetChannel().Version
 
@@ -154,11 +122,12 @@ func (s *PFMTestSuite) TestOnRecvPacket_NoForward() {
 
 	packet := s.transferPacket(senderAddr.String(), receiverAddr.String(), s.pathAB, 0, nil)
 
-	ack := ibcMiddleware.OnRecvPacket(ctx, version, packet, senderAddr)
+	// PacketForwardMiddleware
+	pfm := s.pktForwardMiddleware(s.chainA, transfertypes.ModuleName)
+	ack := pfm.OnRecvPacket(ctx, version, packet, senderAddr)
 	s.Require().True(ack.Success())
 
 	expectedAck := &channeltypes.Acknowledgement{}
-
 	err := s.chainA.Codec.UnmarshalJSON(ack.Acknowledgement(), expectedAck)
 	s.Require().NoError(err)
 	s.Require().Equal("", expectedAck.GetError())
@@ -168,18 +137,12 @@ func (s *PFMTestSuite) TestOnRecvPacket_NoForward() {
 
 func (s *PFMTestSuite) TestOnRecvPacket_RecvPacketFailed() {
 	s.setupChains()
-	ctx := s.chainA.GetContext()
 
-	pfmKeeper := s.chainA.GetSimApp().PFMKeeper
 	transferKeeper := s.chainA.GetSimApp().TransferKeeper
-
+	ctx := s.chainA.GetContext()
 	// Also can be done if send amount is 0
 	transferKeeper.SetParams(ctx, transfertypes.Params{ReceiveEnabled: false})
 
-	ibcModule, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
-	s.Require().True(ok)
-
-	ibcMiddleware := packetforward.NewIBCMiddleware(ibcModule, &pfmKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
 	version := s.pathAB.EndpointA.GetChannel().Version
 
 	senderAddr := s.chainA.SenderAccount.GetAddress()
@@ -193,7 +156,9 @@ func (s *PFMTestSuite) TestOnRecvPacket_RecvPacketFailed() {
 	}
 	packet := s.transferPacket(senderAddr.String(), receiverAddr.String(), s.pathAB, 0, metadata)
 
-	ack := ibcMiddleware.OnRecvPacket(ctx, version, packet, senderAddr)
+	// PacketForwardMiddleware
+	pfm := s.pktForwardMiddleware(s.chainA, transfertypes.ModuleName)
+	ack := pfm.OnRecvPacket(ctx, version, packet, senderAddr)
 	s.Require().False(ack.Success())
 
 	expectedAck := &channeltypes.Acknowledgement{}
@@ -208,12 +173,9 @@ func (s *PFMTestSuite) TestOnRecvPacket_RecvPacketFailed() {
 
 func (s *PFMTestSuite) TestOnRecvPacket_ForwardNoFee() {
 	s.setupChains()
-	ctxB := s.chainB.GetContext()
 
-	pfmB := s.ibcMiddleware(s.chainB, transfertypes.ModuleName)
 	senderAddr := s.chainA.SenderAccount.GetAddress()
 	receiverAddr := s.chainC.SenderAccount.GetAddress()
-
 	metadata := &packetforwardtypes.PacketMetadata{
 		Forward: &packetforwardtypes.ForwardMetadata{
 			Receiver: receiverAddr.String(),
@@ -222,20 +184,22 @@ func (s *PFMTestSuite) TestOnRecvPacket_ForwardNoFee() {
 		},
 	}
 	packet := s.transferPacket(senderAddr.String(), receiverAddr.String(), s.pathAB, 0, metadata)
-
 	version := s.pathAB.EndpointA.GetChannel().Version
+	ctxB := s.chainB.GetContext()
+
+	pfmB := s.pktForwardMiddleware(s.chainB, transfertypes.ModuleName)
 	ack := pfmB.OnRecvPacket(ctxB, version, packet, senderAddr)
 	s.Require().Nil(ack)
 
 	// Check that chain C has received the packet
 	//
 	ctxC := s.chainC.GetContext()
-	pfmC := s.ibcMiddleware(s.chainC, transfertypes.ModuleName)
-
 	packet = s.transferPacket(senderAddr.String(), receiverAddr.String(), s.pathBC, 0, nil)
-
 	version = s.pathBC.EndpointA.GetChannel().Version
+
+	pfmC := s.pktForwardMiddleware(s.chainC, transfertypes.ModuleName)
 	ack = pfmC.OnRecvPacket(ctxC, version, packet, senderAddr)
+	s.Require().NotNil(ack)
 
 	// Ack on chainC
 	packet = s.transferPacket(senderAddr.String(), receiverAddr.String(), s.pathBC, 1, nil)
@@ -247,7 +211,7 @@ func (s *PFMTestSuite) TestOnRecvPacket_ForwardNoFee() {
 	s.Require().NoError(err)
 }
 
-func (s *PFMTestSuite) ibcMiddleware(chain *ibctesting.TestChain, module string) packetforward.IBCMiddleware {
+func (s *PFMTestSuite) pktForwardMiddleware(chain *ibctesting.TestChain, module string) packetforward.IBCMiddleware {
 	pfmKeeper := chain.GetSimApp().PFMKeeper
 
 	ibcModule, ok := chain.App.GetIBCKeeper().PortKeeper.Route(module)
@@ -260,8 +224,8 @@ func (s *PFMTestSuite) ibcMiddleware(chain *ibctesting.TestChain, module string)
 func (s *PFMTestSuite) transferPacket(sender string, receiver string, path *ibctesting.Path, seq uint64, metadata any) channeltypes.Packet {
 	s.T().Helper()
 	tokenPacket := transfertypes.FungibleTokenPacketData{
-		Denom:    testDenom,
-		Amount:   testAmount,
+		Denom:    "uatom",
+		Amount:   "100",
 		Sender:   sender,
 		Receiver: receiver,
 	}
