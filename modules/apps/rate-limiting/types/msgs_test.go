@@ -39,7 +39,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "valid add msg with channel id",
 			msg: &types.MsgAddRateLimit{
-				Authority:         suite.authority,
+				Signer:            suite.authority,
 				Denom:             "uatom",
 				ChannelOrClientId: suite.validChannelId,
 				MaxPercentSend:    sdkmath.NewInt(10),
@@ -51,7 +51,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "valid add msg with client id",
 			msg: &types.MsgAddRateLimit{
-				Authority:         suite.authority,
+				Signer:            suite.authority,
 				Denom:             "uatom",
 				ChannelOrClientId: suite.validClientId,
 				MaxPercentSend:    sdkmath.NewInt(10),
@@ -63,7 +63,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "invalid authority",
 			msg: &types.MsgAddRateLimit{
-				Authority:         "invalid",
+				Signer:            "invalid",
 				Denom:             "uatom",
 				ChannelOrClientId: suite.validChannelId,
 				MaxPercentSend:    sdkmath.NewInt(10),
@@ -75,7 +75,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "denom can't be empty",
 			msg: &types.MsgAddRateLimit{
-				Authority:         suite.authority,
+				Signer:            suite.authority,
 				Denom:             "",
 				ChannelOrClientId: suite.validChannelId,
 				MaxPercentSend:    sdkmath.NewInt(10),
@@ -87,7 +87,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "invalid client ID",
 			msg: &types.MsgAddRateLimit{
-				Authority:         suite.authority,
+				Signer:            suite.authority,
 				Denom:             "uatom",
 				ChannelOrClientId: "invalid-client-id",
 				MaxPercentSend:    sdkmath.NewInt(10),
@@ -99,7 +99,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "invalid channel ID",
 			msg: &types.MsgAddRateLimit{
-				Authority:         suite.authority,
+				Signer:            suite.authority,
 				Denom:             "uatom",
 				ChannelOrClientId: "channel",
 				MaxPercentSend:    sdkmath.NewInt(10),
@@ -111,7 +111,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "max percent send > 100",
 			msg: &types.MsgAddRateLimit{
-				Authority:         suite.authority,
+				Signer:            suite.authority,
 				Denom:             "uatom",
 				ChannelOrClientId: suite.validChannelId,
 				MaxPercentSend:    sdkmath.NewInt(101),
@@ -123,7 +123,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "max percent recv > 100",
 			msg: &types.MsgAddRateLimit{
-				Authority:         suite.authority,
+				Signer:            suite.authority,
 				Denom:             "uatom",
 				ChannelOrClientId: suite.validChannelId,
 				MaxPercentSend:    sdkmath.NewInt(10),
@@ -135,7 +135,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "send and recv both zero",
 			msg: &types.MsgAddRateLimit{
-				Authority:         suite.authority,
+				Signer:            suite.authority,
 				Denom:             "uatom",
 				ChannelOrClientId: suite.validChannelId,
 				MaxPercentSend:    sdkmath.ZeroInt(),
@@ -147,7 +147,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "duration is zero hours",
 			msg: &types.MsgAddRateLimit{
-				Authority:         suite.authority,
+				Signer:            suite.authority,
 				Denom:             "uatom",
 				ChannelOrClientId: suite.validChannelId,
 				MaxPercentSend:    sdkmath.NewInt(10),

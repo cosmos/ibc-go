@@ -21,7 +21,6 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 	ratesim "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/simulation"
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-	// porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types" // Removed unused import
 )
 
 var (
@@ -33,6 +32,7 @@ var (
 	_ module.HasServices         = (*AppModule)(nil)
 	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
+	_ appmodule.HasBeginBlocker  = (*AppModule)(nil) // Add HasBeginBlocker
 
 	// Note: IBCMiddleware implements porttypes.Middleware and porttypes.ICS4Wrapper
 )
@@ -154,4 +154,12 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 // GenerateGenesisState creates a randomized GenState of the rate-limiting module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	ratesim.RandomizedGenState(simState)
+}
+
+// BeginBlock implements the AppModule interface
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	am.keeper.BeginBlocker(sdkCtx)
+	// we do not want to raise an error in block processing if rate limit reset fails
+	return nil
 }

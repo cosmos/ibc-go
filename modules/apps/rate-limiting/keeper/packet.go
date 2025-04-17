@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"bytes" // Re-added for ack check
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -15,10 +15,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	// clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types" // Removed unused import
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types" // Re-added for ack check
-	// ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported" // Removed unused import
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types" 
 )
 
 type RateLimitedPacketInfo struct {
@@ -229,10 +227,16 @@ func (k Keeper) SendRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packe
 func (k Keeper) ReceiveRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packet) error {
 	packetInfo, err := ParsePacketInfo(packet, types.PACKET_RECV)
 	if err != nil {
-		return err
+		// If the packet data is unparseable, we can't apply rate limiting.
+		// Log the error and allow the packet to proceed to the underlying app
+		// which is responsible for handling invalid packet data.
+		k.Logger(ctx).Debug(fmt.Sprintf("Unable to parse packet data for rate limiting: %s", err.Error()))
+		return nil // Returning nil allows the packet to continue down the stack
 	}
 
+	// If parsing was successful, check the rate limit
 	_, err = k.CheckRateLimitAndUpdateFlow(ctx, types.PACKET_RECV, packetInfo)
+	// If CheckRateLimitAndUpdateFlow returns an error (e.g., quota exceeded), return it to generate an error ack.
 	return err
 }
 
