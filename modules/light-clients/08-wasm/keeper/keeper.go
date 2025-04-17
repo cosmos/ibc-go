@@ -38,17 +38,17 @@ type Keeper struct {
 }
 
 // Codec returns the 08-wasm module's codec.
-func (k Keeper) Codec() codec.BinaryCodec {
+func (k *Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }
 
 // GetAuthority returns the 08-wasm module's authority.
-func (k Keeper) GetAuthority() string {
+func (k *Keeper) GetAuthority() string {
 	return k.authority
 }
 
 // Logger returns a module-specific logger.
-func (Keeper) Logger(ctx sdk.Context) log.Logger {
+func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 	return moduleLogger(ctx)
 }
 
@@ -57,17 +57,17 @@ func moduleLogger(ctx sdk.Context) log.Logger {
 }
 
 // GetVM returns the keeper's vm engine.
-func (k Keeper) GetVM() types.WasmEngine {
+func (k *Keeper) GetVM() types.WasmEngine {
 	return k.vm
 }
 
 // GetChecksums returns the stored checksums.
-func (k Keeper) GetChecksums() collections.KeySet[[]byte] {
+func (k *Keeper) GetChecksums() collections.KeySet[[]byte] {
 	return k.checksums
 }
 
 // getQueryPlugins returns the set query plugins.
-func (k Keeper) getQueryPlugins() QueryPlugins {
+func (k *Keeper) getQueryPlugins() QueryPlugins {
 	return k.queryPlugins
 }
 
@@ -76,7 +76,7 @@ func (k *Keeper) setQueryPlugins(plugins QueryPlugins) {
 	k.queryPlugins = plugins
 }
 
-func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *queryHandler {
+func (k *Keeper) newQueryHandler(ctx sdk.Context, callerID string) *queryHandler {
 	return newQueryHandler(ctx, k.getQueryPlugins(), callerID)
 }
 
@@ -85,7 +85,7 @@ func (k Keeper) newQueryHandler(ctx sdk.Context, callerID string) *queryHandler 
 // contract code before storing:
 // - Size bounds are checked. Contract length must not be 0 or exceed a specific size (maxWasmSize).
 // - The contract must not have already been stored in store.
-func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
+func (k *Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wasmvm.WasmCode, gasLimit uint64) (wasmvm.Checksum, uint64, error)) ([]byte, error) {
 	var err error
 	if types.IsGzip(code) {
 		ctx.GasMeter().ConsumeGas(types.VMGasRegister.UncompressCosts(len(code)), "Uncompress gzip bytecode")
@@ -139,7 +139,7 @@ func (k Keeper) storeWasmCode(ctx sdk.Context, code []byte, storeFn func(code wa
 
 // migrateContractCode migrates the contract for a given light client to one denoted by the given new checksum. The checksum we
 // are migrating to must first be stored using storeWasmCode and must not match the checksum currently stored for this light client.
-func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksum, migrateMsg []byte) error {
+func (k *Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksum, migrateMsg []byte) error {
 	clientStore := k.clientKeeper.ClientStore(ctx, clientID)
 	wasmClientState, found := types.GetClientState(clientStore, k.cdc)
 	if !found {
@@ -184,7 +184,7 @@ func (k Keeper) migrateContractCode(ctx sdk.Context, clientID string, newChecksu
 }
 
 // GetWasmClientState returns the 08-wasm client state for the given client identifier.
-func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.ClientState, error) {
+func (k *Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.ClientState, error) {
 	clientState, found := k.clientKeeper.GetClientState(ctx, clientID)
 	if !found {
 		return nil, errorsmod.Wrapf(clienttypes.ErrClientTypeNotFound, "clientID %s", clientID)
@@ -200,7 +200,7 @@ func (k Keeper) GetWasmClientState(ctx sdk.Context, clientID string) (*types.Cli
 
 // GetAllChecksums is a helper to get all checksums from the store.
 // It returns an empty slice if no checksums are found
-func (k Keeper) GetAllChecksums(ctx sdk.Context) ([]types.Checksum, error) {
+func (k *Keeper) GetAllChecksums(ctx sdk.Context) ([]types.Checksum, error) {
 	iterator, err := k.GetChecksums().Iterate(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -221,7 +221,7 @@ func (k Keeper) GetAllChecksums(ctx sdk.Context) ([]types.Checksum, error) {
 
 // HasChecksum returns true if the given checksum exists in the store and
 // false otherwise.
-func (k Keeper) HasChecksum(ctx sdk.Context, checksum types.Checksum) bool {
+func (k *Keeper) HasChecksum(ctx sdk.Context, checksum types.Checksum) bool {
 	found, err := k.GetChecksums().Has(ctx, checksum)
 	if err != nil {
 		return false
@@ -231,7 +231,7 @@ func (k Keeper) HasChecksum(ctx sdk.Context, checksum types.Checksum) bool {
 }
 
 // InitializePinnedCodes updates wasmvm to pin to cache all contracts marked as pinned
-func (k Keeper) InitializePinnedCodes(ctx sdk.Context) error {
+func (k *Keeper) InitializePinnedCodes(ctx sdk.Context) error {
 	checksums, err := k.GetAllChecksums(ctx)
 	if err != nil {
 		return err
