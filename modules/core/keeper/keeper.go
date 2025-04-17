@@ -29,8 +29,7 @@ type Keeper struct {
 	ChannelKeeper    *channelkeeper.Keeper
 	ChannelKeeperV2  *channelkeeperv2.Keeper
 	PortKeeper       *portkeeper.Keeper
-	// PFMKeeper        *packerforward.Keeper
-	cdc codec.BinaryCodec
+	cdc              codec.BinaryCodec
 
 	authority string
 }
@@ -54,7 +53,6 @@ func NewKeeper(
 	connectionKeeper := connectionkeeper.NewKeeper(cdc, storeService, paramSpace, clientKeeper)
 	portKeeper := portkeeper.NewKeeper()
 	channelKeeper := channelkeeper.NewKeeper(cdc, storeService, clientKeeper, connectionKeeper)
-	// packetForwardKeeper := packerforward.NewKeeper(cdc, storeService, nil, channelKeeper, bankKeeper, ica)
 	channelKeeperV2 := channelkeeperv2.NewKeeper(cdc, storeService, clientKeeper, clientV2Keeper, channelKeeper, connectionKeeper)
 
 	return &Keeper{
