@@ -69,6 +69,18 @@ func NewKeeper(
 	}
 }
 
+// SetICS4Wrapper sets the ICS4Wrapper.
+// It is used after the middleware is created since the keeper needs the underlying module's SendPacket capability,
+// creating a dependency cycle.
+func (k *Keeper) SetICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = ics4Wrapper
+}
+
+// GetAuthority returns the module's authority.
+func (k Keeper) GetAuthority() string {
+	return k.authority
+}
+
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))

@@ -1,8 +1,10 @@
 package keeper
 
 import (
+	"bytes" // Re-added for ack check
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 
@@ -13,9 +15,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	// clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types" // Removed unused import
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types" // Re-added for ack check
+	// ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported" // Removed unused import
 )
 
 type RateLimitedPacketInfo struct {
@@ -29,6 +32,11 @@ type RateLimitedPacketInfo struct {
 // CheckAcknowledementSucceeded unmarshals IBC Acknowledgements, and determines
 // whether the tx was successful
 func (k Keeper) CheckAcknowledementSucceeded(ctx sdk.Context, ack []byte) (success bool, err error) {
+	// Check if the ack is the IBC v2 universal error acknowledgement
+	if bytes.Equal(ack, channeltypesv2.ErrorAcknowledgement[:]) {
+		return false, nil
+	}
+
 	// Unmarshal the raw ack response
 	var acknowledgement channeltypes.Acknowledgement
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(ack, &acknowledgement); err != nil {
@@ -64,11 +72,16 @@ func (k Keeper) CheckAcknowledementSucceeded(ctx sdk.Context, ack []byte) (succe
 // For NATIVE denoms, return as is (e.g. ustrd)
 // For NON-NATIVE denoms, take the ibc hash (e.g. hash "transfer/channel-2/usoms" into "ibc/...")
 func ParseDenomFromSendPacket(packet transfertypes.FungibleTokenPacketData) (denom string) {
+	// Check if the denom is already an IBC denom (starts with "ibc/")
+	if strings.HasPrefix(packet.Denom, "ibc/") {
+		return packet.Denom
+	}
+
 	// Determine the denom by looking at the denom trace path
-	denomTrace := transfertypes.ParseDenomTrace(packet.Denom)
+	denomTrace := transfertypes.ExtractDenomFromPath(packet.Denom)
 
 	// Native assets will have an empty trace path and can be returned as is
-	if denomTrace.Path() == "" {
+	if len(denomTrace.Trace) == 0 {
 		denom = packet.Denom
 	} else {
 		// Non-native assets should be hashed
@@ -111,14 +124,20 @@ func ParseDenomFromSendPacket(packet transfertypes.FungibleTokenPacketData) (den
 //	        -> Remove Prefix: transfer/channel-Z/ujuno
 //	        -> Hash:          ibc/...
 func ParseDenomFromRecvPacket(packet channeltypes.Packet, packetData transfertypes.FungibleTokenPacketData) (denom string) {
+	sourcePort := packet.GetSourcePort()
+	sourceChannel := packet.GetSourceChannel()
+
 	// To determine the denom, first check whether Stride is acting as source
-	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), packetData.Denom) {
+	// Build the source prefix and check if the denom starts with it
+	sourcePrefix := transfertypes.NewHop(sourcePort, sourceChannel)
+	sourcePrefixStr := sourcePrefix.String() + "/"
+
+	if strings.HasPrefix(packetData.Denom, sourcePrefixStr) {
 		// Remove the source prefix (e.g. transfer/channel-X/transfer/channel-Z/ujuno -> transfer/channel-Z/ujuno)
-		sourcePrefix := transfertypes.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
-		unprefixedDenom := packetData.Denom[len(sourcePrefix):]
+		unprefixedDenom := packetData.Denom[len(sourcePrefixStr):]
 
 		// Native assets will have an empty trace path and can be returned as is
-		denomTrace := transfertypes.ParseDenomTrace(unprefixedDenom)
+		denomTrace := transfertypes.ExtractDenomFromPath(unprefixedDenom)
 		if denomTrace.Path() == "" {
 			denom = unprefixedDenom
 		} else {
@@ -127,11 +146,11 @@ func ParseDenomFromRecvPacket(packet channeltypes.Packet, packetData transfertyp
 		}
 	} else {
 		// Prefix the destination channel - this will contain the trailing slash (e.g. transfer/channel-X/)
-		destinationPrefix := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
-		prefixedDenom := destinationPrefix + packetData.Denom
+		destinationPrefix := transfertypes.NewHop(packet.GetDestPort(), packet.GetDestChannel())
+		prefixedDenom := destinationPrefix.String() + "/" + packetData.Denom
 
 		// Hash the denom trace
-		denomTrace := transfertypes.ParseDenomTrace(prefixedDenom)
+		denomTrace := transfertypes.ExtractDenomFromPath(prefixedDenom)
 		denom = denomTrace.IBCDenom()
 	}
 
@@ -251,52 +270,4 @@ func (k Keeper) TimeoutRateLimitedPacket(ctx sdk.Context, packet channeltypes.Pa
 	}
 
 	return k.UndoSendPacket(ctx, packetInfo.ChannelID, packet.Sequence, packetInfo.Denom, packetInfo.Amount)
-}
-
-// SendPacket wraps IBC ChannelKeeper's SendPacket function
-// If the packet does not get rate limited, it passes the packet to the IBC Channel keeper
-func (k Keeper) SendPacket(
-	ctx sdk.Context,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (sequence uint64, err error) {
-	// The packet must first be sent up the stack to get the sequence number from the channel keeper
-	sequence, err = k.ics4Wrapper.SendPacket(
-		ctx,
-		sourcePort,
-		sourceChannel,
-		timeoutHeight,
-		timeoutTimestamp,
-		data,
-	)
-	if err != nil {
-		return sequence, err
-	}
-
-	err = k.SendRateLimitedPacket(ctx, channeltypes.Packet{
-		Sequence:         sequence,
-		SourceChannel:    sourceChannel,
-		SourcePort:       sourcePort,
-		TimeoutHeight:    timeoutHeight,
-		TimeoutTimestamp: timeoutTimestamp,
-		Data:             data,
-	})
-	if err != nil {
-		k.Logger(ctx).Error(fmt.Sprintf("ICS20 packet send was denied: %s", err.Error()))
-		return 0, err
-	}
-	return sequence, err
-}
-
-// WriteAcknowledgement wraps IBC ChannelKeeper's WriteAcknowledgement function
-func (k Keeper) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, acknowledgement ibcexported.Acknowledgement) error {
-	return k.ics4Wrapper.WriteAcknowledgement(ctx, packet, acknowledgement)
-}
-
-// GetAppVersion wraps IBC ChannelKeeper's GetAppVersion function
-func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-	return k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }

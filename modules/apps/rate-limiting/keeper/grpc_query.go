@@ -3,6 +3,9 @@ package keeper
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"   // Added import
+	"google.golang.org/grpc/status" // Added import
+
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 
 	errorsmod "cosmossdk.io/errors"
@@ -18,14 +21,24 @@ var _ types.QueryServer = Keeper{}
 
 // Query all rate limits
 func (k Keeper) AllRateLimits(c context.Context, req *types.QueryAllRateLimitsRequest) (*types.QueryAllRateLimitsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(c) // Already present, no change needed here for context
+
+	if req == nil { // Added nil check based on previous attempt's logic
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	rateLimits := k.GetAllRateLimits(ctx)
 	return &types.QueryAllRateLimitsResponse{RateLimits: rateLimits}, nil
 }
 
 // Query a rate limit by denom and channelId
 func (k Keeper) RateLimit(c context.Context, req *types.QueryRateLimitRequest) (*types.QueryRateLimitResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
+	ctx := sdk.UnwrapSDKContext(c) // Already present, no change needed here for context
+
+	if req == nil { // Added nil check
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	rateLimit, found := k.GetRateLimit(ctx, req.Denom, req.ChannelOrClientId)
 	if !found {
 		return &types.QueryRateLimitResponse{}, nil

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"regexp"
 
 	errorsmod "cosmossdk.io/errors"
@@ -25,12 +26,14 @@ var (
 	_ sdk.Msg = &MsgUpdateRateLimit{}
 	_ sdk.Msg = &MsgRemoveRateLimit{}
 	_ sdk.Msg = &MsgResetRateLimit{}
+	_ sdk.Msg = &MsgUpdateParams{}
 
 	// Implement legacy interface for ledger support
 	_ legacytx.LegacyMsg = &MsgAddRateLimit{}
 	_ legacytx.LegacyMsg = &MsgUpdateRateLimit{}
 	_ legacytx.LegacyMsg = &MsgRemoveRateLimit{}
 	_ legacytx.LegacyMsg = &MsgResetRateLimit{}
+	_ legacytx.LegacyMsg = &MsgUpdateParams{}
 )
 
 // ----------------------------------------------
@@ -291,4 +294,76 @@ func (msg *MsgResetRateLimit) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+// ----------------------------------------------
+//               MsgUpdateParams
+// ----------------------------------------------
+
+// TypeMsgUpdateParams defines the type for MsgUpdateParams
+const TypeMsgUpdateParams = "UpdateParams"
+
+// MsgUpdateParams defines the Msg/UpdateParams request type
+type MsgUpdateParams struct {
+	// Signer is the governance account that signs the message
+	Signer string `json:"signer,omitempty"`
+	// Params defines the rate-limiting parameters to update
+	Params Params `json:"params,omitempty"`
+}
+
+// Reset implements proto.Message
+func (msg *MsgUpdateParams) Reset() {
+	*msg = MsgUpdateParams{}
+}
+
+// String implements proto.Message
+func (msg *MsgUpdateParams) String() string {
+	return fmt.Sprintf("MsgUpdateParams{Signer: %s, Params: %s}",
+		msg.Signer, msg.Params.String())
+}
+
+// ProtoMessage implements proto.Message
+func (*MsgUpdateParams) ProtoMessage() {}
+
+// NewMsgUpdateParams creates a new MsgUpdateParams instance
+func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Signer: signer,
+		Params: params,
+	}
+}
+
+// Route implements sdk.Msg
+func (msg MsgUpdateParams) Route() string {
+	return RouterKey
+}
+
+// Type implements sdk.Msg
+func (msg MsgUpdateParams) Type() string {
+	return TypeMsgUpdateParams
+}
+
+// GetSigners implements sdk.Msg
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	signer, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{signer}
+}
+
+// GetSignBytes implements sdk.Msg
+func (msg *MsgUpdateParams) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Signer)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address (%s)", err)
+	}
+
+	return msg.Params.Validate()
 }
