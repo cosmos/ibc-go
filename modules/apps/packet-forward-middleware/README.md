@@ -167,8 +167,8 @@ Generally without `memo` to handle, all handling by this module is delegated to 
 5. `B` Handle denom. If denom prefix is from `B`, remove it. If denom prefix is other chain - add `B` prefix.
 6. `B` Take fee, create new ICS-004 packet with timeout from forward for next step, and remaining inner `memo`.
 7. `B` Send transfer to `C` with parameters obtained from `memo`. Tokens burnt or escrowed here.
-8.  `B` Store tracking `in flight packet` under next `(channel, port, ICS-20 transfer sequence)`, do not `ACK` packet yet.
-9.  `C` Handle ICS-020 packet as usual.
+8. `B` Store tracking `in flight packet` under next `(channel, port, ICS-20 transfer sequence)`, do not `ACK` packet yet.
+9. `C` Handle ICS-020 packet as usual.
 10. `B` On ICS-020 ACK from `C` find `in flight packet`, delete it and write `ACK` for original packet from `A`.
 11. `A` Handle ICS-020 `ACK` as usual
 

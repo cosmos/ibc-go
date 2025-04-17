@@ -338,9 +338,12 @@ func (k *Keeper) ForwardTransferPacket(
 	)
 
 	k.Logger(ctx).Debug("packetForwardMiddleware ForwardTransferPacket",
-		"port", metadata.Port, "channel", metadata.Channel,
-		"sender", receiver, "receiver", metadata.Receiver,
-		"amount", token.Amount.String(), "denom", token.Denom,
+		"port", metadata.Port,
+		"channel", metadata.Channel,
+		"sender", receiver,
+		"receiver", metadata.Receiver,
+		"amount", token.Amount.String(),
+		"denom", token.Denom,
 	)
 
 	// send tokens to destination
