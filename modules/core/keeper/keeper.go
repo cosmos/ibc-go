@@ -29,7 +29,8 @@ type Keeper struct {
 	ChannelKeeper    *channelkeeper.Keeper
 	ChannelKeeperV2  *channelkeeperv2.Keeper
 	PortKeeper       *portkeeper.Keeper
-	cdc              codec.BinaryCodec
+
+	cdc codec.BinaryCodec
 
 	authority string
 }
