@@ -55,12 +55,12 @@ func newQueryHandler(ctx sdk.Context, plugins QueryPlugins, callerID string) *qu
 
 // GasConsumed implements the wasmvmtypes.Querier interface.
 func (q *queryHandler) GasConsumed() uint64 {
-	return VMGasRegister.ToWasmVMGas(q.Ctx.GasMeter().GasConsumed())
+	return types.VMGasRegister.ToWasmVMGas(q.Ctx.GasMeter().GasConsumed())
 }
 
 // Query implements the wasmvmtypes.Querier interface.
 func (q *queryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) ([]byte, error) {
-	sdkGas := VMGasRegister.FromWasmVMGas(gasLimit)
+	sdkGas := types.VMGasRegister.FromWasmVMGas(gasLimit)
 
 	// discard all changes/events in subCtx by not committing the cached context
 	subCtx, _ := q.Ctx.WithGasMeter(storetypes.NewGasMeter(sdkGas)).CacheContext()
@@ -75,7 +75,7 @@ func (q *queryHandler) Query(request wasmvmtypes.QueryRequest, gasLimit uint64) 
 		return res, nil
 	}
 
-	moduleLogger(q.Ctx).Debug("Redacting query error", "cause", err)
+	q.Ctx.Logger().With("module", "x/ibc-wasm").Debug("Redacting query error", "cause", err)
 	return nil, redactError(err)
 }
 
@@ -91,10 +91,10 @@ type (
 )
 
 // Merge merges the query plugin with a provided one.
-func (e QueryPlugins) Merge(x *QueryPlugins) QueryPlugins {
+func (e *QueryPlugins) Merge(x *QueryPlugins) QueryPlugins {
 	// only update if this is non-nil and then only set values
 	if x == nil {
-		return e
+		return *e
 	}
 
 	if x.Custom != nil {
@@ -105,11 +105,11 @@ func (e QueryPlugins) Merge(x *QueryPlugins) QueryPlugins {
 		e.Stargate = x.Stargate
 	}
 
-	return e
+	return *e
 }
 
 // HandleQuery implements the ibcwasm.QueryPluginsI interface.
-func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error) {
+func (e *QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error) {
 	if request.Stargate != nil {
 		return e.Stargate(ctx, request.Stargate)
 	}
