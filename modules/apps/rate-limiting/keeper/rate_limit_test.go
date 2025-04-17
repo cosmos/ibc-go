@@ -7,9 +7,9 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"                               // Added import
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types" // Re-add import
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"                     // Added import
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 const (
@@ -116,7 +116,7 @@ func (s *KeeperTestSuite) TestAddRateLimit_ClientId() {
 	s.Require().NoError(err, "minting coins failed")
 
 	msg := &types.MsgAddRateLimit{
-		Authority:         s.chainA.GetSimApp().RateLimitKeeper.GetAuthority(), // Use the correct authority
+		Signer:            s.chainA.GetSimApp().RateLimitKeeper.GetAuthority(), // Use the correct authority
 		Denom:             "clientdenom",
 		ChannelOrClientId: clientId, // Use Client ID here
 		MaxPercentSend:    sdkmath.NewInt(10),
@@ -125,7 +125,7 @@ func (s *KeeperTestSuite) TestAddRateLimit_ClientId() {
 	}
 
 	// Add the rate limit using the client ID
-	err = s.chainA.GetSimApp().RateLimitKeeper.AddRateLimit(s.chainA.GetContext(), msg) // Changed := to =
+	err = s.chainA.GetSimApp().RateLimitKeeper.AddRateLimit(s.chainA.GetContext(), msg) 
 	s.Require().NoError(err, "adding rate limit with client ID should succeed")
 
 	// Verify the rate limit was stored correctly
@@ -135,7 +135,7 @@ func (s *KeeperTestSuite) TestAddRateLimit_ClientId() {
 	// Test adding with an invalid ID (neither channel nor client)
 	invalidId := "invalid-id"
 	msgInvalid := &types.MsgAddRateLimit{
-		Authority:         s.chainA.GetSimApp().RateLimitKeeper.GetAuthority(),
+		Signer:            s.chainA.GetSimApp().RateLimitKeeper.GetAuthority(),
 		Denom:             "clientdenom",
 		ChannelOrClientId: invalidId,
 		MaxPercentSend:    sdkmath.NewInt(10),

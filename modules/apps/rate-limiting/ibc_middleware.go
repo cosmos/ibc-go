@@ -24,9 +24,7 @@ var (
 type IBCMiddleware struct {
 	app         porttypes.IBCModule
 	keeper      keeper.Keeper
-	ics4Wrapper porttypes.ICS4Wrapper // Added: The underlying ICS4Wrapper
-	// Note: We wrap the keeper with the ICS4Wrapper, which calls the underlying stack.
-	// The keeper needs access to the underlying stack to send packets.
+	ics4Wrapper porttypes.ICS4Wrapper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application, and underlying ics4wrapper.
@@ -37,7 +35,7 @@ func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper, ics4Wrapper port
 	return IBCMiddleware{
 		app:         app,
 		keeper:      k,
-		ics4Wrapper: ics4Wrapper, // Store the wrapper on the middleware itself
+		ics4Wrapper: ics4Wrapper,
 	}
 }
 
@@ -59,11 +57,6 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	// Call underlying app's OnChanOpenInit
-	// Pass chanCap from the IBC stack if it's required by the underlying app potentially?
-	// For now, assume underlying app matches the Middleware interface without chanCap.
-	// If the underlying app *needs* chanCap, this middleware might need to retrieve it.
-	// Let's stick to the interface for now.
 	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)
 }
 
@@ -74,12 +67,9 @@ func (im IBCMiddleware) OnChanOpenTry(
 	connectionHops []string,
 	portID,
 	channelID string,
-	// chanCap *channeltypes.Capability, // Removed: Not part of porttypes.Middleware interface
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	// Call underlying app's OnChanOpenTry
-	// See comment in OnChanOpenInit regarding chanCap
 	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 }
 
@@ -88,10 +78,9 @@ func (im IBCMiddleware) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
-	counterpartyChannelID string, // Note: Signature differs from reference, matches ibc-go v10 api.IBCModule
+	counterpartyChannelID string, 
 	counterpartyVersion string,
 ) error {
-	// Call underlying app's OnChanOpenAck
 	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 }
 
@@ -101,7 +90,6 @@ func (im IBCMiddleware) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	// Call underlying app's OnChanOpenConfirm
 	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
@@ -111,7 +99,6 @@ func (im IBCMiddleware) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	// Call underlying app's OnChanCloseInit
 	return im.app.OnChanCloseInit(ctx, portID, channelID)
 }
 
@@ -121,7 +108,6 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	// Call underlying app's OnChanCloseConfirm
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
@@ -136,12 +122,11 @@ func (im IBCMiddleware) OnRecvPacket(
 	// Check if the packet would cause the rate limit inflow quota to be exceeded
 	if err := im.keeper.ReceiveRateLimitedPacket(ctx, packet); err != nil {
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("Receive packet rate limited: %s", err.Error()))
-		// Return error acknowledgement
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	// If the packet was not rate-limited, pass it down to the underlying app's OnRecvPacket callback
-	return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer) // Added channelVersion
+	return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface.
@@ -161,14 +146,14 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	// Call underlying app's OnAcknowledgementPacket
-	return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer) // Added channelVersion
+	return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface.
 // Revert the outflow amount. Then, call underlying app's OnTimeoutPacket.
 func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
-	channelVersion string, // Added: Matches porttypes.Middleware interface
+	channelVersion string,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
@@ -194,8 +179,6 @@ func (im IBCMiddleware) SendPacket(
 	data []byte,
 ) (sequence uint64, err error) {
 	// Check rate limit first using the keeper's specific logic for sends
-	// Note: We need a keeper method that *only* checks the limit and updates flow,
-	// without calling the underlying SendPacket itself. Let's assume SendRateLimitedPacket does this for now.
 	// The actual call to the underlying stack happens here.
 
 	// Get sequence number and pass packet down the stack
