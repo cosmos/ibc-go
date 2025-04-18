@@ -306,9 +306,9 @@ const TypeMsgUpdateParams = "UpdateParams"
 // MsgUpdateParams defines the Msg/UpdateParams request type
 type MsgUpdateParams struct {
 	// Signer is the governance account that signs the message
-	Signer string `json:"signer,omitempty"`
+	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
 	// Params defines the rate-limiting parameters to update
-	Params Params `json:"params,omitempty"`
+	Params Params `protobuf:"bytes,2,opt,name=params,proto3" json:"params"`
 }
 
 // Reset implements proto.Message
