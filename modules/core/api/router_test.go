@@ -43,8 +43,10 @@ func (suite *APITestSuite) TestRouter() {
 			},
 			assertionFn: func() {
 				suite.Require().True(router.HasRoute("somemodule"))
-				suite.Require().False(router.HasRoute("somemoduleport01"))
-				suite.Require().True(router.HasPrefixRoute("somemoduleport01"))
+				suite.Require().True(router.HasRoute("somemoduleport01"))
+				ok, prefix := router.HasRoute("somemoduleport01")
+				suite.Require().Equal(true, ok)
+				suite.Require().Equal("somemodule", prefix)
 				suite.Require().NotNil(router.Route("somemoduleport01"))
 				suite.Require().True(router.HasRoute("port01"))
 			},
@@ -55,7 +57,7 @@ func (suite *APITestSuite) TestRouter() {
 				router.AddRoute("port01", &mockv2.IBCModule{})
 			},
 			assertionFn: func() {
-				suite.Require().PanicsWithError("route port01 has already been registered", func() {
+				suite.Require().PanicsWithError("route port01 has already been covered by registered prefix: port01", func() {
 					router.AddRoute("port01", &mockv2.IBCModule{})
 				})
 			},
@@ -66,6 +68,16 @@ func (suite *APITestSuite) TestRouter() {
 			assertionFn: func() {
 				suite.Require().PanicsWithError("route expressions can only contain alphanumeric characters", func() {
 					router.AddRoute("port-02", &mockv2.IBCModule{})
+				})
+			},
+		},
+		{
+			name:     "failure: panics conflicting routes registered",
+			malleate: func() {},
+			assertionFn: func() {
+				suite.Require().PanicsWithError("route someModuleWithSpecificPath has already been covered by registered prefix: someModule", func() {
+					router.AddRoute("someModule", &mockv2.IBCModule{})
+					router.AddRoute("someModuleWithSpecificPath", &mockv2.IBCModule{})
 				})
 			},
 		},
