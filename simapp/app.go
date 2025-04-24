@@ -110,6 +110,9 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
+	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
@@ -181,6 +184,7 @@ type SimApp struct {
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	CircuitKeeper         circuitkeeper.Keeper
+	PFMKeeper             *packetforwardkeeper.Keeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -266,7 +270,7 @@ func NewSimApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, group.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
-		authzkeeper.StoreKey, consensusparamtypes.StoreKey, circuittypes.StoreKey,
+		authzkeeper.StoreKey, consensusparamtypes.StoreKey, circuittypes.StoreKey, packetforwardtypes.StoreKey,
 	)
 
 	// register streaming services
@@ -387,6 +391,9 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	// Packet Forward Middleware keeper
+	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.ICAControllerKeeper.GetICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
+
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
 
@@ -417,6 +424,10 @@ func NewSimApp(
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+
+	// Packet Forward Middleware Stack.
+	pfmStack := packetforward.NewIBCMiddleware(transferStack, app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
+	ibcRouter.AddRoute(packetforwardtypes.ModuleName, pfmStack)
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -487,6 +498,7 @@ func NewSimApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		packetforward.NewAppModule(app.PFMKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),

@@ -22,15 +22,15 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 )
 
-type PFMTestSuite struct {
+type PFMTimeoutTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-func TestForwardTransferSuite(t *testing.T) {
-	testifysuite.Run(t, new(PFMTestSuite))
+func TestForwardTransferTimeoutSuite(t *testing.T) {
+	testifysuite.Run(t, new(PFMTimeoutTestSuite))
 }
 
-func (s *PFMTestSuite) TestTimeoutOnForward() {
+func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	t := s.T()
 	t.Parallel()
 
