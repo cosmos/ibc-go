@@ -465,7 +465,6 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	s.Require().True(firstHopEscrowBalance.Equal(zeroBal))
 	s.Require().True(secondHopEscrowBalance.Equal(zeroBal))
 	s.Require().True(thirdHopEscrowBalance.Equal(zeroBal))
-
 }
 
 type PacketMetadata struct {
