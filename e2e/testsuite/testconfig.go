@@ -44,6 +44,10 @@ const (
 	// ChainBTagEnv specifies the tag that Chain B will use. If unspecified
 	// the value will default to the same value as Chain A.
 	ChainBTagEnv = "CHAIN_B_TAG"
+	// ChainCTagEnv specifies the tag that Chain C will use.
+	ChainCTagEnv = "CHAIN_C_TAG"
+	// ChainDTagEnv specifies the tag that Chain D will use.
+	ChainDTagEnv = "CHAIN_D_TAG"
 	// RelayerIDEnv specifies the ID of the relayer to use.
 	RelayerIDEnv = "RELAYER_ID"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
@@ -461,6 +465,14 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 
 	if os.Getenv(ChainBTagEnv) != "" {
 		fromFile.ChainConfigs[1].Tag = envTc.ChainConfigs[1].Tag
+	}
+
+	if os.Getenv(ChainCTagEnv) != "" {
+		fromFile.ChainConfigs[2].Tag = envTc.ChainConfigs[2].Tag
+	}
+
+	if os.Getenv(ChainDTagEnv) != "" {
+		fromFile.ChainConfigs[3].Tag = envTc.ChainConfigs[3].Tag
 	}
 
 	if os.Getenv(ChainBinaryEnv) != "" {
