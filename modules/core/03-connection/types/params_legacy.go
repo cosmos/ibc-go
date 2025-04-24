@@ -27,7 +27,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
-func validateParams(i interface{}) error {
+func validateParams(i any) error {
 	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter. expected %T, got type: %T", uint64(1), i)

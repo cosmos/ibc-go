@@ -108,7 +108,6 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenInit() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := tc.msg.ValidateBasic()
 
@@ -143,7 +142,6 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenTry() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := tc.msg.ValidateBasic()
 
@@ -170,7 +168,6 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenAck() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := tc.msg.ValidateBasic()
 
@@ -195,7 +192,6 @@ func (suite *MsgTestSuite) TestNewMsgConnectionOpenConfirm() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := tc.msg.ValidateBasic()
 
@@ -233,7 +229,6 @@ func (suite *MsgTestSuite) TestMsgUpdateParamsValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := tc.msg.ValidateBasic()
 		if tc.expError == nil {
@@ -256,7 +251,6 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		msg := types.MsgUpdateParams{
 			Signer: tc.address.String(),

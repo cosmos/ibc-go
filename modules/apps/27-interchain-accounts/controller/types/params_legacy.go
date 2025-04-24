@@ -27,7 +27,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
-func validateEnabledTypeLegacy(i interface{}) error {
+func validateEnabledTypeLegacy(i any) error {
 	_, ok := i.(bool)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

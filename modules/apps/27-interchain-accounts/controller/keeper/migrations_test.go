@@ -42,8 +42,6 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 

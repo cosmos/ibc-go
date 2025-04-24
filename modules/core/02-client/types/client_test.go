@@ -39,8 +39,6 @@ func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -76,7 +74,6 @@ func TestValidateClientType(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := types.ValidateClientType(tc.clientType)
 

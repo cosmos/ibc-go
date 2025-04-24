@@ -35,8 +35,6 @@ func TestParseConnectionSequence(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			seq, err := types.ParseConnectionSequence(tc.connectionID)
 			valid := types.IsValidConnectionID(tc.connectionID)

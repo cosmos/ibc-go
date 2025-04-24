@@ -83,7 +83,7 @@ func (s *E2ETestSuite) retryNtimes(f func() (sdk.TxResponse, error), attempts in
 	var resp sdk.TxResponse
 	var err error
 	// If the response's raw log doesn't contain any of the allowed prefixes we return, else, we retry.
-	for i := 0; i < attempts; i++ {
+	for range attempts {
 		resp, err = f()
 		if err != nil {
 			return sdk.TxResponse{}, err

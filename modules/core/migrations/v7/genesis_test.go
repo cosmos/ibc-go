@@ -45,7 +45,7 @@ func (suite *MigrationsV7TestSuite) SetupTest() {
 // NOTE: this test is mainly copied from 02-client/migrations/v7/genesis_test.go
 func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// create tendermint clients
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
 		path.SetupClients()

@@ -143,5 +143,5 @@ type PacketDataUnmarshaler interface {
 	// UnmarshalPacketData unmarshals the packet data into a concrete type
 	// ctx, portID, channelID are provided as arguments, so that (if needed)
 	// the packet data can be unmarshaled based on the channel version.
-	UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error)
+	UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (any, string, error)
 }

@@ -15,7 +15,7 @@ on:
         options:
           - release/v7.10.x
           - release/v8.7.x
-          - release/v10.1.x
+          - release/v10.2.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -51,7 +51,7 @@ jobs:
         release-branch:
           - release/v7.10.x
           - release/v8.7.x
-          - release/v10.1.x
+          - release/v10.2.x
           - main
     steps:
       - uses: actions/checkout@v4

@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -79,8 +78,6 @@ func (suite *TypesTestSuite) TestMarshalMsgCreateClient() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -233,8 +230,6 @@ func (suite *TypesTestSuite) TestMarshalMsgUpdateClient() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -366,8 +361,6 @@ func (suite *TypesTestSuite) TestMarshalMsgUpgradeClient() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -460,7 +453,6 @@ func (suite *TypesTestSuite) TestMsgUpgradeClient_ValidateBasic() {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 
 		clientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 		consState := &ibctm.ConsensusState{NextValidatorsHash: []byte("nextValsHash")}
@@ -512,8 +504,6 @@ func (suite *TypesTestSuite) TestMarshalMsgSubmitMisbehaviour() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -699,7 +689,7 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 		expError error
 	}{
 		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
-		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
+		{"failure: nil address", nil, errors.New("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
@@ -778,7 +768,7 @@ func TestMsgIBCSoftwareUpgrade_GetSigners(t *testing.T) {
 		{
 			"failure: nil address",
 			nil,
-			fmt.Errorf("empty address string is not allowed"),
+			errors.New("empty address string is not allowed"),
 		},
 	}
 
@@ -931,12 +921,11 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 		{
 			"failure: invalid allowed client",
 			types.NewMsgUpdateParams(signer, types.NewParams("")),
-			fmt.Errorf("client type 0 cannot be blank"),
+			errors.New("client type 0 cannot be blank"),
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 			if tc.expErr == nil {
@@ -957,11 +946,10 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 		expErr  error
 	}{
 		{"success: valid address", sdk.AccAddress(ibctesting.TestAccAddress), nil},
-		{"failure: nil address", nil, fmt.Errorf("empty address string is not allowed")},
+		{"failure: nil address", nil, errors.New("empty address string is not allowed")},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		msg := types.MsgUpdateParams{
 			Signer: tc.address.String(),

@@ -40,7 +40,6 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := tc.msg.ValidateBasic()
 		if tc.expErr == nil {
@@ -62,7 +61,6 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		msg := types.NewMsgUpdateParams(tc.address.String(), types.DefaultParams())
 		encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
@@ -105,8 +103,6 @@ func TestMsgModuleQuerySafeValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.msg.ValidateBasic()
 
@@ -131,8 +127,6 @@ func TestMsgModuleQuerySafeGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			msg := types.NewMsgModuleQuerySafe(tc.address.String(), []types.QueryRequest{})
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})

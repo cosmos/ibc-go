@@ -73,5 +73,5 @@ func GetEscrowAddress(portID, channelID string) sdk.AccAddress {
 // TotalEscrowForDenomKey returns the store key of under which the total amount of
 // source chain tokens in escrow is stored.
 func TotalEscrowForDenomKey(denom string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", KeyTotalEscrowPrefix, denom))
+	return fmt.Appendf(nil, "%s/%s", KeyTotalEscrowPrefix, denom)
 }

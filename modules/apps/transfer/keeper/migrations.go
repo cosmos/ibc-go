@@ -105,7 +105,7 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 		return fmt.Errorf("length of denoms does not match length of denom traces, %d != %d", len(denoms), len(denomTraces))
 	}
 
-	for i := 0; i < len(denoms); i++ {
+	for i := range denoms {
 		m.keeper.SetDenom(ctx, denoms[i])
 		m.keeper.deleteDenomTrace(ctx, denomTraces[i])
 	}

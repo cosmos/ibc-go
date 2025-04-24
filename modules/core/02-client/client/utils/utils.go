@@ -152,7 +152,7 @@ func QueryTendermintHeader(clientCtx client.Context) (ibctm.Header, int64, error
 		return ibctm.Header{}, 0, err
 	}
 
-	protoCommit := commit.SignedHeader.ToProto()
+	protoCommit := commit.ToProto()
 	protoValset, err := cmttypes.NewValidatorSet(validators.Validators).ToProto()
 	if err != nil {
 		return ibctm.Header{}, 0, err

@@ -17,7 +17,7 @@ import (
 
 func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// create tendermint clients
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
 		path.SetupClients()
@@ -122,7 +122,7 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	suite.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
-	var jsonObj map[string]interface{}
+	var jsonObj map[string]any
 	err = json.Unmarshal(bz, &jsonObj)
 	suite.Require().NoError(err)
 	expectedIndentedBz, err := json.MarshalIndent(jsonObj, "", "\t")

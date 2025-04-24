@@ -153,7 +153,7 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 // if the above issue is resolved, it should be possible to lazily create relayers in each test.
 func (s *E2ETestSuite) initializeRelayerPool(n int) []ibc.Relayer {
 	var relayers []ibc.Relayer
-	for i := 0; i < n; i++ {
+	for range n {
 		relayers = append(relayers, relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network))
 	}
 	return relayers
@@ -217,7 +217,7 @@ func (s *E2ETestSuite) CreatePaths(clientOpts ibc.CreateClientOptions, channelOp
 
 	ctx := context.TODO()
 	allChains := s.GetAllChains()
-	for i := 0; i < len(allChains)-1; i++ {
+	for i := range len(allChains) - 1 {
 		chainA, chainB := allChains[i], allChains[i+1]
 		s.CreatePath(ctx, r, chainA, chainB, clientOpts, channelOpts, testName)
 	}
@@ -383,7 +383,7 @@ func (s *E2ETestSuite) newInterchain(relayers []ibc.Relayer, chains []ibc.Chain,
 	// - chainA and chainB
 	// - chainB and chainC
 	// - chainC and chainD etc
-	for i := 0; i < len(chains)-1; i++ {
+	for i := range len(chains) - 1 {
 		pathName := s.generatePathName()
 		channelOpts := DefaultChannelOpts(chains)
 		chain1, chain2 := chains[i], chains[i+1]

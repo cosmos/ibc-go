@@ -238,8 +238,6 @@ func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
@@ -409,8 +407,6 @@ func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
@@ -519,8 +515,6 @@ func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
@@ -613,8 +607,6 @@ func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
@@ -702,8 +694,6 @@ func (suite *TypesTestSuite) TestMsgChannelCloseInitValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
@@ -801,8 +791,6 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
@@ -857,8 +845,6 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
@@ -918,8 +904,6 @@ func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
@@ -989,8 +973,6 @@ func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
@@ -1050,8 +1032,6 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 

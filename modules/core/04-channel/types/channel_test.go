@@ -25,7 +25,6 @@ func TestChannelValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		tc := tc
 
 		err := tc.channel.ValidateBasic()
 		if tc.expErr == nil {
@@ -49,7 +48,6 @@ func TestCounterpartyValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		tc := tc
 
 		err := tc.counterparty.ValidateBasic()
 		if tc.expErr == nil {
@@ -88,7 +86,6 @@ func TestIdentifiedChannelValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := tc.identifiedChannel.ValidateBasic()
 		require.ErrorIs(t, err, tc.expErr)

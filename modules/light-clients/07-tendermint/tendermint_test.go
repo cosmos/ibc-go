@@ -91,7 +91,7 @@ func (suite *TendermintTestSuite) SetupTest() {
 	suite.valSet = cmttypes.NewValidatorSet([]*cmttypes.Validator{val})
 	suite.valsHash = suite.valSet.Hash()
 	suite.header = suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now, suite.valSet, suite.valSet, suite.valSet, suite.signers)
-	suite.ctx = app.BaseApp.NewContext(checkTx)
+	suite.ctx = app.NewContext(checkTx)
 }
 
 func getAltSigners(altVal *cmttypes.Validator, altPrivVal cmttypes.PrivValidator) map[string]cmttypes.PrivValidator {

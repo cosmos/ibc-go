@@ -27,7 +27,7 @@ func NewStoreProvider(storeService corestore.KVStoreService) StoreProvider {
 
 // ClientStore returns isolated prefix store for each client so they can read/write in separate namespaces.
 func (s StoreProvider) ClientStore(ctx sdk.Context, clientID string) storetypes.KVStore {
-	clientPrefix := []byte(fmt.Sprintf("%s/%s/", host.KeyClientStorePrefix, clientID))
+	clientPrefix := fmt.Appendf(nil, "%s/%s/", host.KeyClientStorePrefix, clientID)
 	return prefix.NewStore(runtime.KVStoreAdapter(s.storeService.OpenKVStore(ctx)), clientPrefix)
 }
 

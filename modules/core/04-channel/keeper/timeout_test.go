@@ -194,7 +194,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.msg, func() {
 			var (
 				proof       []byte
@@ -279,7 +278,6 @@ func (suite *KeeperTestSuite) TestTimeoutExecuted() {
 	}
 
 	for i, tc := range testCases {
-		tc := tc
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -440,7 +438,6 @@ func (suite *KeeperTestSuite) TestTimeoutOnClose() {
 	}
 
 	for i, tc := range testCases {
-		tc := tc
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			var proof []byte
 

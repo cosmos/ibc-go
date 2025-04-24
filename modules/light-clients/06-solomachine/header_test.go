@@ -69,8 +69,6 @@ func (suite *SoloMachineTestSuite) TestHeaderValidateBasic() {
 		suite.Require().Equal(exported.Solomachine, header.ClientType())
 
 		for _, tc := range cases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				err := tc.header.ValidateBasic()
 

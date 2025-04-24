@@ -180,8 +180,6 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 
@@ -372,8 +370,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -502,8 +498,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -657,7 +651,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCT
 func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	var (
 		successAck      = channeltypes.NewResultAcknowledgement([]byte{byte(1)})
-		failedAck       = channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
+		failedAck       = channeltypes.NewErrorAcknowledgement(errors.New("failed packet transfer"))
 		denom           types.Denom
 		amount          sdkmath.Int
 		path            *ibctesting.Path
@@ -720,8 +714,6 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -796,7 +788,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountFo
 	*/
 
 	amount := defaultAmount
-	ack := channeltypes.NewErrorAcknowledgement(fmt.Errorf("failed packet transfer"))
+	ack := channeltypes.NewErrorAcknowledgement(errors.New("failed packet transfer"))
 
 	// set up
 	// 2 transfer channels between chain A and chain B
@@ -941,8 +933,6 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -1122,7 +1112,6 @@ func (suite *KeeperTestSuite) TestPacketForwardsCompatibility() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.msg, func() {
 			suite.SetupTest() // reset
 			packetData = nil

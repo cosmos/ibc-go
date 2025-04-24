@@ -84,8 +84,6 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitment() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -126,7 +124,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 
 				expCommitments = make([]*types.PacketState, 0, 10) // reset expected commitments
 				for i := uint64(1); i <= 10; i++ {
-					pktStateCommitment := types.NewPacketState(path.EndpointA.ClientID, i, []byte(fmt.Sprintf("hash_%d", i)))
+					pktStateCommitment := types.NewPacketState(path.EndpointA.ClientID, i, fmt.Appendf(nil, "hash_%d", i))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), pktStateCommitment.ClientId, pktStateCommitment.Sequence, pktStateCommitment.Data)
 					expCommitments = append(expCommitments, &pktStateCommitment)
 				}
@@ -150,7 +148,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 
 				expCommitments = make([]*types.PacketState, 0, 10) // reset expected commitments
 				for i := uint64(1); i <= 10; i++ {
-					pktStateCommitment := types.NewPacketState(path.EndpointA.ClientID, i, []byte(fmt.Sprintf("hash_%d", i)))
+					pktStateCommitment := types.NewPacketState(path.EndpointA.ClientID, i, fmt.Appendf(nil, "hash_%d", i))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), pktStateCommitment.ClientId, pktStateCommitment.Sequence, pktStateCommitment.Data)
 					expCommitments = append(expCommitments, &pktStateCommitment)
 				}
@@ -188,8 +186,6 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -282,8 +278,6 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -325,7 +319,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 				var commitments []uint64
 
 				for i := uint64(0); i < 100; i++ {
-					ack := types.NewPacketState(path.EndpointA.ClientID, i, []byte(fmt.Sprintf("hash_%d", i)))
+					ack := types.NewPacketState(path.EndpointA.ClientID, i, fmt.Appendf(nil, "hash_%d", i))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.ClientId, ack.Sequence, ack.Data)
 
 					if i < 10 { // populate the store with 100 and query for 10 specific acks
@@ -351,7 +345,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 				expAcknowledgements = make([]*types.PacketState, 0, 10)
 
 				for i := uint64(1); i <= 10; i++ {
-					ack := types.NewPacketState(path.EndpointA.ClientID, i, []byte(fmt.Sprintf("hash_%d", i)))
+					ack := types.NewPacketState(path.EndpointA.ClientID, i, fmt.Appendf(nil, "hash_%d", i))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.ClientId, ack.Sequence, ack.Data)
 					expAcknowledgements = append(expAcknowledgements, &ack)
 				}
@@ -386,8 +380,6 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -481,8 +473,6 @@ func (suite *KeeperTestSuite) TestQueryPacketReceipt() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -552,8 +542,6 @@ func (suite *KeeperTestSuite) TestQueryNextSequenceSend() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -692,8 +680,6 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 
@@ -804,8 +790,6 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedAcks() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)

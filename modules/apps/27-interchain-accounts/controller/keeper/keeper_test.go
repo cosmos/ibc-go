@@ -140,7 +140,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
+
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
@@ -307,31 +307,22 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 
 func (suite *KeeperTestSuite) TestSetAndGetParams() {
 	testCases := []struct {
-		name    string
-		input   types.Params
-		expPass bool // This is currently always true.
+		name  string
+		input types.Params
 	}{
-		// it is not possible to set invalid booleans
-		{"success: set params false", types.NewParams(false), true},
-		{"success: set params true", types.NewParams(true), true},
+		{"success: set params false", types.NewParams(false)},
+		{"success: set params true", types.NewParams(true)},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			ctx := suite.chainA.GetContext()
-			if tc.expPass {
-				suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(ctx, tc.input)
-				expected := tc.input
-				p := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
-				suite.Require().Equal(expected, p)
-			} else { // currently not possible to set invalid params
-				suite.Require().Panics(func() {
-					suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(ctx, tc.input)
-				})
-			}
+
+			suite.chainA.GetSimApp().ICAControllerKeeper.SetParams(ctx, tc.input)
+			expected := tc.input
+			p := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(ctx)
+			suite.Require().Equal(expected, p)
 		})
 	}
 }
