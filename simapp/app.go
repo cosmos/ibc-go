@@ -391,6 +391,9 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	// Packet Forward Middleware keeper
+	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.ICAControllerKeeper.GetICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
+
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
 
@@ -427,6 +430,10 @@ func NewSimApp(
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+
+	// Packet Forward Middleware Stack.
+	pfmStack := packetforward.NewIBCMiddleware(transferStack, app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
+	ibcRouter.AddRoute(packetforwardtypes.ModuleName, pfmStack)
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
