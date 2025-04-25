@@ -92,6 +92,7 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
 	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting" // Add rate-limiting import
 	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+
 	// ratelimitingmodule "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/module" // Remove incorrect import
 	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
@@ -467,6 +468,9 @@ func NewSimApp(
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
 	app.IBCKeeper.SetRouterV2(ibcRouterV2)
+
+	// **** Set the middleware wrapper on TransferKeeper ****
+	app.TransferKeeper.WithICS4Wrapper(rateLimitMiddleware) // Use the middleware instance directly
 
 	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()

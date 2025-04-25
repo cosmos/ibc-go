@@ -1,4 +1,3 @@
-
 package keeper_test
 
 import (
@@ -180,47 +179,42 @@ func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_BidirectionalFlow() {
 		{
 			name: "send_then_recv_over_inflow",
 			actions: []action{
-				{direction: types.PACKET_SEND, amount: 2}, //   -2, Net: -2
-				{direction: types.PACKET_RECV, amount: 6}, //   +6, Net: +4
-				{direction: types.PACKET_SEND, amount: 2}, //   -2, Net: +2
-				{direction: types.PACKET_RECV, amount: 6}, //   +6, Net: +8
-				{direction: types.PACKET_SEND, amount: 2}, //   -2, Net: +6
-				{direction: types.PACKET_RECV, amount: 6, //    +6, Net: +12 (exceeds threshold)
+				{direction: types.PACKET_SEND, amount: 2},
+				{direction: types.PACKET_RECV, amount: 6},
+				{direction: types.PACKET_SEND, amount: 2},
+				{direction: types.PACKET_RECV, amount: 6},
+				{direction: types.PACKET_SEND, amount: 2},
+				{direction: types.PACKET_RECV, amount: 6,
 					expectedError: "Inflow exceeds quota"},
 			},
 		},
 		{
 			name: "send_then_recv_over_outflow",
 			actions: []action{
-				{direction: types.PACKET_SEND, amount: 6}, //   -6, Net: -6
-				{direction: types.PACKET_RECV, amount: 2}, //   +2, Net: -4
-				{direction: types.PACKET_SEND, amount: 6}, //   -6, Net: -10
-				{direction: types.PACKET_RECV, amount: 2}, //   +2, Net: -8
-				{direction: types.PACKET_SEND, amount: 6, //    -6, Net: -14 (exceeds threshold)
-					expectedError: "Outflow exceeds quota"},
+				{direction: types.PACKET_SEND, amount: 6},
+				{direction: types.PACKET_RECV, amount: 2},
+				{direction: types.PACKET_SEND, amount: 6},
+				{direction: types.PACKET_RECV, amount: 1, expectedError: "Outflow exceeds quota"},
 			},
 		},
 		{
 			name: "recv_then_send_over_inflow",
 			actions: []action{
-				{direction: types.PACKET_RECV, amount: 6}, //   +6, Net: +6
-				{direction: types.PACKET_SEND, amount: 2}, //   -2, Net: +4
-				{direction: types.PACKET_RECV, amount: 6}, //   +6, Net: +10
-				{direction: types.PACKET_SEND, amount: 2}, //   -2, Net: +8
-				{direction: types.PACKET_RECV, amount: 6, //    +6, Net: +14 (exceeds threshold)
-					expectedError: "Inflow exceeds quota"},
+				{direction: types.PACKET_RECV, amount: 6},
+				{direction: types.PACKET_SEND, amount: 2},
+				{direction: types.PACKET_RECV, amount: 6},
+				{direction: types.PACKET_RECV, amount: 1, expectedError: "Inflow exceeds quota"},
 			},
 		},
 		{
 			name: "recv_then_send_over_outflow",
 			actions: []action{
-				{direction: types.PACKET_RECV, amount: 2}, //  +2, Net: +2
-				{direction: types.PACKET_SEND, amount: 6}, //  -6, Net: -4
-				{direction: types.PACKET_RECV, amount: 2}, //  +2, Net: -2
-				{direction: types.PACKET_SEND, amount: 6}, //  -6, Net: -8
-				{direction: types.PACKET_RECV, amount: 2}, //  +2, Net: -6
-				{direction: types.PACKET_SEND, amount: 10, //  +6, Net: -12 (exceeds threshold)
-					expectedError: "Outflow exceeds quota"},
+				{direction: types.PACKET_RECV, amount: 2},
+				{direction: types.PACKET_SEND, amount: 6},
+				{direction: types.PACKET_RECV, amount: 2},
+				{direction: types.PACKET_SEND, amount: 6},
+				{direction: types.PACKET_RECV, amount: 2},
+				{direction: types.PACKET_SEND, amount: 6, expectedError: "Outflow exceeds quota"},
 			},
 		},
 	}
@@ -235,7 +229,7 @@ func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_BidirectionalFlow() {
 func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_DenomBlacklist() {
 	testCases := []checkRateLimitTestCase{
 		{
-			name: "add_then_remove_from_blacklist", // should succeed
+			name: "add_then_remove_from_blacklist",
 			actions: []action{
 				{direction: types.PACKET_RECV, amount: 6},
 				{direction: types.PACKET_SEND, amount: 6},
@@ -305,7 +299,7 @@ func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_DenomBlacklist() {
 func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_AddressWhitelist() {
 	testCases := []checkRateLimitTestCase{
 		{
-			name: "send_whitelist_send", // should succeed
+			name: "send_whitelist_send",
 			actions: []action{
 				{direction: types.PACKET_SEND, amount: 6},
 				{addToWhitelist: true},
@@ -313,7 +307,7 @@ func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_AddressWhitelist() {
 			},
 		},
 		{
-			name: "recv_whitelist_recv", // should succeed
+			name: "recv_whitelist_recv",
 			actions: []action{
 				{direction: types.PACKET_RECV, amount: 6},
 				{addToWhitelist: true},
@@ -321,25 +315,25 @@ func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_AddressWhitelist() {
 			},
 		},
 		{
-			name: "send_send_whitelist_send", // should succeed
+			name: "send_send_whitelist_send",
 			actions: []action{
 				{direction: types.PACKET_SEND, amount: 6},
-				{direction: types.PACKET_SEND, amount: 6, expectedError: "Outflow exceeds quota"}, // fails
+				{direction: types.PACKET_SEND, amount: 6, expectedError: "Outflow exceeds quota"},
 				{addToWhitelist: true},
-				{direction: types.PACKET_SEND, amount: 6, skipFlowUpdate: true}, // succeeds
+				{direction: types.PACKET_SEND, amount: 6, skipFlowUpdate: true},
 			},
 		},
 		{
-			name: "recv_recv_whitelist_recv", // should succeed
+			name: "recv_recv_whitelist_recv",
 			actions: []action{
 				{direction: types.PACKET_RECV, amount: 6},
-				{direction: types.PACKET_RECV, amount: 6, expectedError: "Inflow exceeds quota"}, // fails
+				{direction: types.PACKET_RECV, amount: 6, expectedError: "Inflow exceeds quota"},
 				{addToWhitelist: true},
-				{direction: types.PACKET_RECV, amount: 6, skipFlowUpdate: true}, // succeeds
+				{direction: types.PACKET_RECV, amount: 6, skipFlowUpdate: true},
 			},
 		},
 		{
-			name: "send_recv_send_whitelist_send", // should succeed
+			name: "send_recv_send_whitelist_send",
 			actions: []action{
 				{direction: types.PACKET_SEND, amount: 6},
 				{direction: types.PACKET_RECV, amount: 6},
@@ -349,7 +343,7 @@ func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_AddressWhitelist() {
 			},
 		},
 		{
-			name: "recv_send_recv_whitelist_recv", // should succeed
+			name: "recv_send_recv_whitelist_recv",
 			actions: []action{
 				{direction: types.PACKET_RECV, amount: 6},
 				{direction: types.PACKET_SEND, amount: 6},
