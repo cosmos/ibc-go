@@ -18,5 +18,6 @@ func (q *Quota) CheckExceedsQuota(direction PacketDirection, amount sdkmath.Int,
 		threshold = totalValue.Mul(q.MaxPercentSend).Quo(sdkmath.NewInt(100))
 	}
 
+	// Revert to GT check as in the original reference module
 	return amount.GT(threshold)
 }
