@@ -78,7 +78,7 @@ func (suite *MigrationsV10TestSuite) TestMigrateStore() {
 	store := storeService.OpenKVStore(ctx)
 	numberOfChannels := 100
 
-	for i := 0; i < numberOfChannels; i++ {
+	for range numberOfChannels {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)
 		path.Setup()
 	}

@@ -2,7 +2,7 @@ package tendermint_test
 
 import (
 	"crypto/sha256"
-	"fmt"
+	"errors"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -54,26 +54,25 @@ func (suite *TendermintTestSuite) TestInitialize() {
 			func() {
 				clientState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ClientState()
 			},
-			fmt.Errorf("failed to unmarshal client state bytes into client state"),
+			errors.New("failed to unmarshal client state bytes into client state"),
 		},
 		{
 			"invalid consensus: consensus state is solomachine consensus",
 			func() {
 				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
 			},
-			fmt.Errorf("failed to unmarshal consensus state bytes into consensus state"),
+			errors.New("failed to unmarshal consensus state bytes into consensus state"),
 		},
 		{
 			"invalid consensus state",
 			func() {
 				consensusState = ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), []byte("invalidNextValsHash"))
 			},
-			fmt.Errorf("next validators hash is invalid"),
+			errors.New("next validators hash is invalid"),
 		},
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -140,7 +139,6 @@ func (suite *TendermintTestSuite) TestVerifyClientMessage() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -478,8 +476,6 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -706,8 +702,6 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -799,7 +793,6 @@ func (suite *TendermintTestSuite) TestStatus() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -818,7 +811,6 @@ func (suite *TendermintTestSuite) TestStatus() {
 			status := lightClientModule.Status(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			suite.Require().Equal(tc.expStatus, status)
 		})
-
 	}
 }
 
@@ -849,7 +841,6 @@ func (suite *TendermintTestSuite) TestLatestHeight() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -904,7 +895,6 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -990,7 +980,6 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			ctx := suite.chainA.GetContext()
@@ -1138,7 +1127,6 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 

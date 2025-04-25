@@ -137,7 +137,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	testCases := []struct {
 		name          string
 		instantiateFn func()
-		expPass       bool
 		expError      error
 	}{
 		{
@@ -152,7 +151,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
-			true,
 			nil,
 		},
 		{
@@ -167,7 +165,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
-			false,
 			errors.New("authority must be non-empty"),
 		},
 		{
@@ -182,7 +179,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
-			false,
 			errors.New("client keeper must not be nil"),
 		},
 		{
@@ -197,7 +193,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
-			false,
 			errors.New("wasm VM must not be nil"),
 		},
 		{
@@ -212,7 +207,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					GetSimApp(suite.chainA).GRPCQueryRouter(),
 				)
 			},
-			false,
 			errors.New("store service must not be nil"),
 		},
 		{
@@ -227,7 +221,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 					nil,
 				)
 			},
-			false,
 			errors.New("query router must not be nil"),
 		},
 	}
@@ -237,7 +230,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
-			if tc.expPass {
+			if tc.expError == nil {
 				suite.Require().NotPanics(
 					tc.instantiateFn,
 				)

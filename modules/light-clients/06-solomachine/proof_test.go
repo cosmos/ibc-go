@@ -54,8 +54,6 @@ func (suite *SoloMachineTestSuite) TestVerifySignature() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			err := solomachine.VerifySignature(tc.publicKey, signBytes, tc.sigData)
 

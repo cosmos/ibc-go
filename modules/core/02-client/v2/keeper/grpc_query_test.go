@@ -67,8 +67,6 @@ func (suite *KeeperTestSuite) TestQueryCounterPartyInfo() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			tc.malleate()
@@ -143,8 +141,6 @@ func (suite *KeeperTestSuite) TestQueryConfig() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.SetupTest() // reset
 			tc.malleate()

@@ -23,7 +23,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 	var (
 		sender       = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 		receiver     = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
-		packetData   interface{}
+		packetData   any
 		remainingGas uint64
 		callbackKey  string
 		version      string
@@ -346,7 +346,6 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
@@ -458,7 +457,6 @@ func (s *CallbacksTypesTestSuite) TestGetDestSourceCallbackDataTransfer() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTest()
 
@@ -590,9 +588,8 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
-			callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackKey).(map[string]interface{})
+			callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackKey).(map[string]any)
 			s.Require().Equal(ok, callbackData != nil)
 			s.Require().Equal(tc.expAddress, types.GetCallbackAddress(callbackData), tc.name)
 		})
@@ -712,9 +709,8 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
-			callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackKey).(map[string]interface{})
+			callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackKey).(map[string]any)
 			s.Require().Equal(ok, callbackData != nil)
 			s.Require().Equal(tc.expUserGas, types.GetUserDefinedGasLimit(callbackData), tc.name)
 		})

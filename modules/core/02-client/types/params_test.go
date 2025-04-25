@@ -25,7 +25,6 @@ func TestIsAllowedClient(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		require.Equal(t, tc.expPass, tc.params.IsAllowedClient(tc.clientType), tc.name)
 	}
 }
@@ -45,7 +44,6 @@ func TestValidateParams(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 
 		err := tc.params.Validate()
 		if tc.expError == nil {

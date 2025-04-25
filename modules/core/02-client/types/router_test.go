@@ -49,8 +49,6 @@ func (suite *TypesTestSuite) TestAddRoute() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			cdc := suite.chainA.App.AppCodec()
@@ -105,8 +103,6 @@ func (suite *TypesTestSuite) TestHasGetRoute() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			cdc := suite.chainA.App.AppCodec()

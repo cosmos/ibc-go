@@ -44,8 +44,6 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				suite.SetupTest()
 

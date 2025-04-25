@@ -57,8 +57,6 @@ func (suite *APITestSuite) TestRouter() {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			router = api.NewRouter()
 

@@ -786,13 +786,13 @@ func defaultGovv1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]
 func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte) ([]byte, error) {
 	const appStateKey = "app_state"
 	return func(chainConfig ibc.ChainConfig, genbz []byte) ([]byte, error) {
-		genesisDocMap := map[string]interface{}{}
+		genesisDocMap := map[string]any{}
 		err := json.Unmarshal(genbz, &genesisDocMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal genesis bytes into genesis doc: %w", err)
 		}
 
-		appStateMap, ok := genesisDocMap[appStateKey].(map[string]interface{})
+		appStateMap, ok := genesisDocMap[appStateKey].(map[string]any)
 		if !ok {
 			return nil, errors.New("failed to extract to app_state")
 		}
@@ -807,7 +807,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 			return nil, err
 		}
 
-		govModuleGenesisMap := map[string]interface{}{}
+		govModuleGenesisMap := map[string]any{}
 		err = json.Unmarshal(govModuleGenesisBytes, &govModuleGenesisMap)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
@@ -824,7 +824,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 				return nil, err
 			}
 
-			ibcModuleGenesisMap := map[string]interface{}{}
+			ibcModuleGenesisMap := map[string]any{}
 			err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
 			if err != nil {
 				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
@@ -843,7 +843,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 				return nil, err
 			}
 
-			ibcModuleGenesisMap := map[string]interface{}{}
+			ibcModuleGenesisMap := map[string]any{}
 			err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
 			if err != nil {
 				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
@@ -863,7 +863,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 				return nil, err
 			}
 
-			ibcModuleGenesisMap := map[string]interface{}{}
+			ibcModuleGenesisMap := map[string]any{}
 			err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
 			if err != nil {
 				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
@@ -882,7 +882,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 				return nil, err
 			}
 
-			ibcModuleGenesisMap := map[string]interface{}{}
+			ibcModuleGenesisMap := map[string]any{}
 			err = json.Unmarshal(ibcGenesisBytes, &ibcModuleGenesisMap)
 			if err != nil {
 				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
@@ -977,14 +977,14 @@ func modifyClientGenesisAppState(ibcAppState []byte) ([]byte, error) {
 // modifyChannelGenesisAppState takes the existing ibc app state, unmarshals it to a map and removes the `params` entry from ibc channel genesis.
 // It marshals and returns the ibc GenesisState JSON map as bytes.
 func modifyChannelGenesisAppState(ibcAppState []byte) ([]byte, error) {
-	var ibcGenesisMap map[string]interface{}
+	var ibcGenesisMap map[string]any
 	if err := json.Unmarshal(ibcAppState, &ibcGenesisMap); err != nil {
 		return nil, err
 	}
 
-	var channelGenesis map[string]interface{}
+	var channelGenesis map[string]any
 	// be ashamed, be very ashamed
-	channelGenesis, ok := ibcGenesisMap["channel_genesis"].(map[string]interface{})
+	channelGenesis, ok := ibcGenesisMap["channel_genesis"].(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("can't convert IBC genesis map entry into type %T", &channelGenesis)
 	}
@@ -994,7 +994,7 @@ func modifyChannelGenesisAppState(ibcAppState []byte) ([]byte, error) {
 }
 
 func modifyChannelV2GenesisAppState(ibcAppState []byte) ([]byte, error) {
-	var ibcGenesisMap map[string]interface{}
+	var ibcGenesisMap map[string]any
 	if err := json.Unmarshal(ibcAppState, &ibcGenesisMap); err != nil {
 		return nil, err
 	}
@@ -1004,7 +1004,7 @@ func modifyChannelV2GenesisAppState(ibcAppState []byte) ([]byte, error) {
 }
 
 func modifyClientV2GenesisAppState(ibcAppState []byte) ([]byte, error) {
-	var ibcGenesisMap map[string]interface{}
+	var ibcGenesisMap map[string]any
 	if err := json.Unmarshal(ibcAppState, &ibcGenesisMap); err != nil {
 		return nil, err
 	}

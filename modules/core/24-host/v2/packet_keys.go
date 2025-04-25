@@ -50,5 +50,5 @@ func PacketAcknowledgementKey(channelID string, sequence uint64) []byte {
 
 // NextSequenceSendKey returns the store key for the next sequence send of a given channelID.
 func NextSequenceSendKey(channelID string) []byte {
-	return []byte(fmt.Sprintf("nextSequenceSend/%s", channelID))
+	return fmt.Appendf(nil, "nextSequenceSend/%s", channelID)
 }

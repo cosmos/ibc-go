@@ -34,7 +34,6 @@ func (suite *TypesTestSuite) TestNewControllerPortID() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 

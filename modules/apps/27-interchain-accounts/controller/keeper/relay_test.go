@@ -142,8 +142,6 @@ func (suite *KeeperTestSuite) TestSendTx() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.msg, func() {
 				suite.SetupTest()             // reset
 				timeoutTimestamp = ^uint64(0) // default
@@ -186,8 +184,6 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.msg, func() {
 				suite.SetupTest() // reset
 

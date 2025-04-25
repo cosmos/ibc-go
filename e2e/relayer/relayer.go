@@ -62,12 +62,12 @@ func ApplyPacketFilter(ctx context.Context, t *testing.T, r ibc.Relayer, chainID
 		return nil
 	}
 
-	return modifyHermesConfigFile(ctx, h, func(config map[string]interface{}) error {
-		chains, ok := config["chains"].([]map[string]interface{})
+	return modifyHermesConfigFile(ctx, h, func(config map[string]any) error {
+		chains, ok := config["chains"].([]map[string]any)
 		if !ok {
 			return errors.New("failed to get chains from hermes config")
 		}
-		var chain map[string]interface{}
+		var chain map[string]any
 		for _, c := range chains {
 			if c["id"] == chainID {
 				chain = c
@@ -97,7 +97,7 @@ func ApplyPacketFilter(ctx context.Context, t *testing.T, r ibc.Relayer, chainID
 		channelEndpoints = append(channelEndpoints, []string{"ica*", "*"})
 
 		// we explicitly override the full list, this allows this function to provide a complete set of channels to watch.
-		chain["packet_filter"] = map[string]interface{}{
+		chain["packet_filter"] = map[string]any{
 			"policy": "allow",
 			"list":   channelEndpoints,
 		}
@@ -107,13 +107,13 @@ func ApplyPacketFilter(ctx context.Context, t *testing.T, r ibc.Relayer, chainID
 }
 
 // modifyHermesConfigFile reads the hermes config file, applies a modification function and returns an error if any.
-func modifyHermesConfigFile(ctx context.Context, h *hermes.Relayer, modificationFn func(map[string]interface{}) error) error {
+func modifyHermesConfigFile(ctx context.Context, h *hermes.Relayer, modificationFn func(map[string]any) error) error {
 	bz, err := h.ReadFileFromHomeDir(ctx, relativeHermesConfigFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to read hermes config file: %w", err)
 	}
 
-	var config map[string]interface{}
+	var config map[string]any
 	if err := toml.Unmarshal(bz, &config); err != nil {
 		return errors.New("failed to unmarshal hermes config bytes")
 	}

@@ -65,7 +65,6 @@ func (suite *KeeperTestSuite) TestRegisterCounterparty() {
 		},
 	}
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -209,8 +208,6 @@ func (suite *KeeperTestSuite) TestHandleRecvPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -311,7 +308,6 @@ func (suite *KeeperTestSuite) TestUpdateClient() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -362,7 +358,6 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
@@ -516,8 +511,6 @@ func (suite *KeeperTestSuite) TestHandleAcknowledgePacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -675,8 +668,6 @@ func (suite *KeeperTestSuite) TestHandleTimeoutPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -854,8 +845,6 @@ func (suite *KeeperTestSuite) TestHandleTimeoutOnClosePacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -979,7 +968,7 @@ func (suite *KeeperTestSuite) TestUpgradeClient() {
 	}
 
 	for _, tc := range cases {
-		tc := tc
+
 		path = ibctesting.NewPath(suite.chainA, suite.chainB)
 		path.SetupClients()
 
@@ -1060,7 +1049,6 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupClients()
@@ -1143,7 +1131,6 @@ func (suite *KeeperTestSuite) TestUpdateClientParams() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			_, err := suite.chainA.App.GetIBCKeeper().UpdateClientParams(suite.chainA.GetContext(), tc.msg)
@@ -1195,7 +1182,6 @@ func (suite *KeeperTestSuite) TestUpdateConnectionParams() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			_, err := suite.chainA.App.GetIBCKeeper().UpdateConnectionParams(suite.chainA.GetContext(), tc.msg)
@@ -1285,7 +1271,6 @@ func (suite *KeeperTestSuite) TestUpdateClientConfig() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -1368,7 +1353,6 @@ func (suite *KeeperTestSuite) TestDeleteClientCreator() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)

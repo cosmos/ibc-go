@@ -57,8 +57,6 @@ func (suite *TypesTestSuite) TestCodecTypeRegistration() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)

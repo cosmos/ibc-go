@@ -39,7 +39,7 @@ func TestClientTestSuite(t *testing.T) {
 }
 
 func (suite *ClientTestSuite) TestBeginBlocker() {
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		// increment height
 		suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
 

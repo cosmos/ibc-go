@@ -194,7 +194,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 	}
 
 	for i, tc := range testCases {
-		tc := tc
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -482,7 +481,6 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -596,7 +594,6 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		},
 	}
 	for i, tc := range testCases {
-		tc := tc
 		suite.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			suite.SetupTest() // reset
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
@@ -984,7 +981,6 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest() // reset
 			// reset ack

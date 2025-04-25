@@ -1,133 +1,139 @@
+version: "2"
 run:
   tests: true
-  timeout: 10m
-
 linters:
-  disable-all: true
+  default: none
   enable:
     - errcheck
-    - gci
     - goconst
     - gocritic
-    - gofumpt
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - misspell
     - nakedret
     - revive
     - staticcheck
-    - stylecheck
-    - tenv
     - thelper
-    - typecheck
     - unconvert
-    # Prefer unparam over revive's unused param. It is more thorough in its checking.
     - unparam
     - unused
-
+  settings:
+    gocritic:
+      disabled-checks:
+        - appendAssign
+    gosec:
+      excludes:
+        - G101
+        - G107
+        - G115
+        - G404
+      confidence: medium
+    revive:
+      enable-all-rules: true
+      rules:
+        - name: redundant-import-alias
+          disabled: true
+        - name: use-any
+          disabled: true
+        - name: if-return
+          disabled: true
+        - name: max-public-structs
+          disabled: true
+        - name: cognitive-complexity
+          disabled: true
+        - name: argument-limit
+          disabled: true
+        - name: cyclomatic
+          disabled: true
+        - name: file-header
+          disabled: true
+        - name: function-length
+          disabled: true
+        - name: function-result-limit
+          disabled: true
+        - name: line-length-limit
+          disabled: true
+        - name: flag-parameter
+          disabled: true
+        - name: add-constant
+          disabled: true
+        - name: empty-lines
+          disabled: true
+        - name: banned-characters
+          disabled: true
+        - name: deep-exit
+          disabled: true
+        - name: confusing-results
+          disabled: true
+        - name: unused-parameter
+          disabled: true
+        - name: modifies-value-receiver
+          disabled: true
+        - name: early-return
+          disabled: true
+        - name: confusing-naming
+          disabled: true
+        - name: defer
+          disabled: true
+        - name: unused-parameter
+          disabled: true
+        - name: unhandled-error
+          arguments:
+            - fmt.Printf
+            - fmt.Print
+            - fmt.Println
+            - myFunction
+          disabled: false
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - revive
+        text: differs only by capitalization to method
+      - linters:
+          - gosec
+        text: Use of weak random number generator
+      - linters:
+          - gosec
+        text: 'G115: integer overflow conversion'
+      - linters:
+          - staticcheck
+        text: 'SA1019:'
+      - linters:
+          - gosec
+        text: 'G115: integer overflow conversion'
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  exclude-rules:
-    - text: "differs only by capitalization to method"
-      linters:
-        - revive
-    - text: "Use of weak random number generator"
-      linters:
-        - gosec
-    - text: "G115: integer overflow conversion"
-      linters:
-        - gosec
-    - linters:
-        - staticcheck
-      text: "SA1019:" # silence errors on usage of deprecated funcs
-    - text: "G115: integer overflow conversion"
-      linters:
-        - gosec
-
   max-issues-per-linter: 10000
   max-same-issues: 10000
-
-linters-settings:
-  gci:
-    sections:
-      - standard # Standard section: captures all standard packages.
-      - default # Default section: contains all imports that could not be matched to another section type.
-      - blank # blank imports
-      - dot # dot imports
-      - prefix(cosmossdk.io)
-      - prefix(github.com/cosmos/cosmos-sdk)
-      - prefix(github.com/cometbft/cometbft)
-      - prefix(github.com/cosmos/ibc-go)
-    custom-order: true
-  gocritic:
-    disabled-checks:
-      - appendAssign
-  gosec:
-    # Available rules: https://github.com/securego/gosec#available-rules
-    excludes:
-      - G101 # Potential hardcoded credentials
-      - G107 # Potential HTTP request made with variable url
-      - G115 # Integer overflow conversion (used everywhere with int64 -> uint64 block height)
-      - G404 # Use of weak random number generator (math/rand instead of crypto/rand)
-    exclude-generated: true
-    confidence: medium
-  revive:
-    enable-all-rules: true
-    # Do NOT whine about the following, full explanation found in:
-    # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#description-of-available-rules
-    rules:
-      - name: redundant-import-alias
-        disabled: true
-      - name: use-any
-        disabled: true
-      - name: if-return
-        disabled: true
-      - name: max-public-structs
-        disabled: true
-      - name: cognitive-complexity
-        disabled: true
-      - name: argument-limit
-        disabled: true
-      - name: cyclomatic
-        disabled: true
-      - name: file-header
-        disabled: true
-      - name: function-length
-        disabled: true
-      - name: function-result-limit
-        disabled: true
-      - name: line-length-limit
-        disabled: true
-      - name: flag-parameter
-        disabled: true
-      - name: add-constant
-        disabled: true
-      - name: empty-lines
-        disabled: true
-      - name: banned-characters
-        disabled: true
-      - name: deep-exit
-        disabled: true
-      - name: confusing-results
-        disabled: true
-      - name: unused-parameter
-        disabled: true
-      - name: modifies-value-receiver
-        disabled: true
-      - name: early-return
-        disabled: true
-      - name: confusing-naming
-        disabled: true
-      - name: defer
-        disabled: true
-      # Disabled in favour of unparam.
-      - name: unused-parameter
-        disabled: true
-      - name: unhandled-error
-        disabled: false
-        arguments:
-          - "fmt.Printf"
-          - "fmt.Print"
-          - "fmt.Println"
-          - "myFunction"
+formatters:
+  enable:
+    - gci
+    - gofumpt
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - blank
+        - dot
+        - prefix(cosmossdk.io)
+        - prefix(github.com/cosmos/cosmos-sdk)
+        - prefix(github.com/cometbft/cometbft)
+        - prefix(github.com/cosmos/ibc-go)
+      custom-order: true
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

@@ -144,7 +144,7 @@ func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackT
 
 // GetExpectedEvent returns the expected event for a callback.
 func GetExpectedEvent(
-	ctx sdk.Context, packetData interface{}, remainingGas uint64, version string,
+	ctx sdk.Context, packetData any, remainingGas uint64, version string,
 	eventPortID, eventChannelID string, seq uint64, callbackType types.CallbackType, expError error,
 ) (abci.Event, bool) {
 	callbackKey := types.SourceCallbackKey

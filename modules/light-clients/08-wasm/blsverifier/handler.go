@@ -51,7 +51,7 @@ func CustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 			}
 
 			msg := [MessageSize]byte{}
-			for i := 0; i < MessageSize; i++ {
+			for i := range MessageSize {
 				msg[i] = customQuery.AggregateVerify.Message[i]
 			}
 			result, err := VerifySignature(customQuery.AggregateVerify.Signature, msg, customQuery.AggregateVerify.PublicKeys)

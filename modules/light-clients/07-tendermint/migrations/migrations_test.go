@@ -43,7 +43,7 @@ func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 	numTMClients := 3
 	paths := make([]*ibctesting.Path, numTMClients)
 
-	for i := 0; i < numTMClients; i++ {
+	for i := range numTMClients {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)
 		path.SetupClients()
 
@@ -72,7 +72,7 @@ func (suite *MigrationsTestSuite) TestPruneExpiredConsensusStates() {
 		pruneHeights = append(pruneHeights, path.EndpointA.GetClientLatestHeight())
 
 		// these heights will be expired and also pruned
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			err := path.EndpointA.UpdateClient()
 			suite.Require().NoError(err)
 

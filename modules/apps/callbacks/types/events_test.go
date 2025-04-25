@@ -217,7 +217,6 @@ func (s *CallbacksTypesTestSuite) TestEvents() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			newCtx := sdk.Context{}.WithEventManager(sdk.NewEventManager())
 			switch tc.callbackType {

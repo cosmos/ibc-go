@@ -30,7 +30,6 @@ func TestCompareHeights(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		i, tc := i, tc
 		t.Run(tc.name, func(t *testing.T) {
 			compare := tc.height1.Compare(tc.height2)
 

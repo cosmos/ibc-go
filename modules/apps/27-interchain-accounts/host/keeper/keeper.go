@@ -266,7 +266,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 func newModuleQuerySafeAllowList() []string {
 	allowList := []string{}
 	gogoproto.GogoResolver.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
-		for i := 0; i < fd.Services().Len(); i++ {
+		for i := range fd.Services().Len() {
 			// Get the service descriptor
 			sd := fd.Services().Get(i)
 
@@ -281,7 +281,7 @@ func newModuleQuerySafeAllowList() []string {
 				}
 			}
 
-			for j := 0; j < sd.Methods().Len(); j++ {
+			for j := range sd.Methods().Len() {
 				// Get the method descriptor
 				md := sd.Methods().Get(j)
 

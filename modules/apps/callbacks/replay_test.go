@@ -26,7 +26,6 @@ func (s *CallbacksTestSuite) TestTransferTimeoutReplayProtection() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
@@ -91,7 +90,6 @@ func (s *CallbacksTestSuite) TestTransferTimeoutReplayProtection() {
 			// expected is not a malicious amount
 			s.Require().Equal(initialBalance.Amount, afterBalance.Amount)
 		})
-
 	}
 }
 
@@ -107,7 +105,6 @@ func (s *CallbacksTestSuite) TestTransferErrorAcknowledgementReplayProtection() 
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
@@ -169,7 +166,6 @@ func (s *CallbacksTestSuite) TestTransferErrorAcknowledgementReplayProtection() 
 			// expected is not a malicious amount
 			s.Require().Equal(expBalance.Amount, afterBalance.Amount)
 		})
-
 	}
 }
 
@@ -185,7 +181,6 @@ func (s *CallbacksTestSuite) TestTransferSuccessAcknowledgementReplayProtection(
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 
@@ -238,7 +233,6 @@ func (s *CallbacksTestSuite) TestTransferSuccessAcknowledgementReplayProtection(
 			// expected is not a malicious amount
 			s.Require().Equal(expBalance.Amount, afterBalance.Amount)
 		})
-
 	}
 }
 
@@ -254,7 +248,6 @@ func (s *CallbacksTestSuite) TestTransferRecvPacketReplayProtection() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.Run(tc.name, func() {
 			s.SetupTransferTest()
 

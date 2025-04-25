@@ -254,8 +254,6 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 
 	for i, encoding := range testedEncodings {
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				tc.malleate()
 
@@ -433,8 +431,6 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			msgs, errDeserialize := types.DeserializeCosmosTx(suite.chainA.Codec, tc.jsonBytes, types.EncodingProto3JSON)
 			if tc.expError == nil {

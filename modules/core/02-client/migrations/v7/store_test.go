@@ -150,7 +150,7 @@ func (suite *MigrationsV7TestSuite) createLocalhostClients() {
 
 		clientStore.Set(host.ClientStateKey(), []byte("clientState"))
 
-		for i := 0; i < numCreations; i++ {
+		for i := range numCreations {
 			clientStore.Set(host.ConsensusStateKey(types.NewHeight(1, uint64(i))), []byte("consensusState"))
 		}
 	}

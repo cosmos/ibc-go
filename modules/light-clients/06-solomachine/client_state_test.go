@@ -57,8 +57,6 @@ func (suite *SoloMachineTestSuite) TestClientStateValidate() {
 		}
 
 		for _, tc := range testCases {
-			tc := tc
-
 			suite.Run(tc.name, func() {
 				err := tc.clientState.Validate()
 
