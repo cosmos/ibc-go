@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package ibc.applications.gmp.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types";
+
+// GMPPacketData defines a struct for the packet payload
+message GMPPacketData {
+  // the sender address
+  string sender = 1;
+  // the recipient address on the destination chain
+  string receiver = 2;
+  // The salt used to generate the caller account address
+  bytes salt = 3;
+  // The payload of the call
+  bytes payload = 4;
+  // optional memo
+  string memo = 5;
+}
