@@ -1,74 +1,112 @@
 package cli
 
 import (
+	"context"
+	"fmt"
+	"strings"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/version"
 )
 
-// GetQueryCmd returns the CLI query commands for the rate-limiting module
+const (
+	FlagDenom = "denom"
+)
+
+// GetQueryCmd returns the cli query commands for this module.
 func GetQueryCmd() *cobra.Command {
-	queryCmd := &cobra.Command{
+	// Group ratelimit queries under a subcommand
+	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the rate-limiting module",
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
-	// Add query commands here when defined
-	// Example:
-	// queryCmd.AddCommand(
-	//     GetCmdQueryRateLimit(),
-	//     GetCmdQueryParams(),
-	// )
-
-	return queryCmd
+	cmd.AddCommand(
+		GetCmdQueryRateLimit(),
+		GetCmdQueryAllRateLimits(),
+		GetCmdQueryRateLimitsByChainId(),
+		GetCmdQueryAllBlacklistedDenoms(),    // Add Blacklisted Denoms query
+		GetCmdQueryAllWhitelistedAddresses(), // Add Whitelisted Addresses query
+		// TODO: Add GetCmdQueryParams if needed
+	)
+	return cmd
 }
 
-// Example query command structure to be implemented
-/*
-// GetCmdQueryRateLimit returns the command to query a rate limit
+// GetCmdQueryRateLimit implements a command to query rate limits by channel-id or client-id and denom
 func GetCmdQueryRateLimit() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "rate-limit [channel-id] [denom]",
-		Short: "Query a rate limit for a specific channel and denomination",
-		Args:  cobra.ExactArgs(2),
+		Use:   "rate-limit [channel-or-client-id]",
+		Short: "Query rate limits by channel-id/client-id and denom",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query rate limits by channel-id/client-id and denom.
+If the denom flag is omitted, all rate limits for the given channel-id/client-id are returned.
+
+Example:
+  $ %s query %s rate-limit [channel-or-client-id]
+  $ %s query %s rate-limit [channel-or-client-id] --denom=[denom]
+`,
+				version.AppName, types.ModuleName, version.AppName, types.ModuleName,
+			),
+		),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			channelOrClientId := args[0]
+			denom, err := cmd.Flags().GetString(FlagDenom)
+			if err != nil {
+				return err
+			}
+
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			channelID := args[0]
-			denom := args[1]
-
-			req := &types.QueryRateLimitRequest{
-				ChannelId: channelID,
-				Denom:     denom,
+			if denom == "" {
+				// Query all rate limits for the channel/client ID if denom is not specified
+				req := &types.QueryRateLimitsByChannelOrClientIdRequest{
+					ChannelOrClientId: channelOrClientId,
+				}
+				res, err := queryClient.RateLimitsByChannelOrClientId(context.Background(), req)
+				if err != nil {
+					return err
+				}
+				// Use PrintProto for slice types as PrintObjectLegacy might not work well
+				return clientCtx.PrintProto(res)
 			}
 
-			res, err := queryClient.RateLimit(cmd.Context(), req)
+			// Query specific rate limit if denom is provided
+			req := &types.QueryRateLimitRequest{
+				Denom:             denom,
+				ChannelOrClientId: channelOrClientId,
+			}
+			res, err := queryClient.RateLimit(context.Background(), req)
 			if err != nil {
 				return err
 			}
 
-			return clientCtx.PrintProto(res)
+			return clientCtx.PrintProto(res.RateLimit)
 		},
 	}
 
+	cmd.Flags().String(FlagDenom, "", "The denom identifying a specific rate limit")
 	flags.AddQueryFlagsToCmd(cmd)
+
 	return cmd
 }
 
-// GetCmdQueryParams returns the command to query the module parameters
-func GetCmdQueryParams() *cobra.Command {
+// GetCmdQueryAllRateLimits return all available rate limits.
+func GetCmdQueryAllRateLimits() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "params",
-		Short: "Query the current rate-limiting module parameters",
+		Use:   "list-rate-limits",
+		Short: "Query all rate limits",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -77,7 +115,69 @@ func GetCmdQueryParams() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			req := &types.QueryAllRateLimitsRequest{}
+			res, err := queryClient.AllRateLimits(context.Background(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdQueryRateLimitsByChainId return all rate limits that exist between this chain
+// and the specified ChainId
+func GetCmdQueryRateLimitsByChainId() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "rate-limits-by-chain [chain-id]",
+		Short: "Query all rate limits associated with the channels/clients connecting to the given ChainID",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			chainId := args[0]
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryRateLimitsByChainIdRequest{
+				ChainId: chainId,
+			}
+			res, err := queryClient.RateLimitsByChainId(context.Background(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdQueryAllBlacklistedDenoms returns the command to query all blacklisted denoms
+func GetCmdQueryAllBlacklistedDenoms() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list-blacklisted-denoms",
+		Short: "Query all blacklisted denoms",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryAllBlacklistedDenomsRequest{}
+			res, err := queryClient.AllBlacklistedDenoms(context.Background(), req)
 			if err != nil {
 				return err
 			}
@@ -89,4 +189,30 @@ func GetCmdQueryParams() *cobra.Command {
 	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
-*/
+
+// GetCmdQueryAllWhitelistedAddresses returns the command to query all whitelisted address pairs
+func GetCmdQueryAllWhitelistedAddresses() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list-whitelisted-addresses",
+		Short: "Query all whitelisted address pairs",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryAllWhitelistedAddressesRequest{}
+			res, err := queryClient.AllWhitelistedAddresses(context.Background(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
