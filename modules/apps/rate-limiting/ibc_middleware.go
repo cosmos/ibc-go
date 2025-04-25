@@ -65,7 +65,6 @@ func (im IBCMiddleware) OnChanOpenInit(
 	connectionHops []string,
 	portID string,
 	channelID string,
-	// chanCap *channeltypes.Capability, // Removed: Not part of porttypes.Middleware interface
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
