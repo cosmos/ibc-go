@@ -91,6 +91,9 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
+	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
@@ -160,6 +163,7 @@ type SimApp struct {
 	ICAHostKeeper         icahostkeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
+	PFMKeeper             *packetforwardkeeper.Keeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -252,7 +256,7 @@ func NewSimApp(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, group.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
-		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
+		packetforwardtypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
 		authzkeeper.StoreKey, consensusparamtypes.StoreKey,
 	)
 
@@ -376,6 +380,8 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.ICAControllerKeeper.GetICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
+
 	// Mock Module Stack
 
 	// Mock Module setup for testing IBC and also acts as the interchain accounts authentication module
@@ -403,7 +409,8 @@ func NewSimApp(
 	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// create IBC module from bottom to top of stack
-	var transferStack porttypes.IBCModule = transfer.NewIBCModule(app.TransferKeeper)
+	transferStack := packetforward.NewIBCMiddleware(transfer.NewIBCModule(app.TransferKeeper), app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
+	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
@@ -485,6 +492,7 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		mockModule,
+		packetforward.NewAppModule(app.PFMKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
@@ -524,6 +532,7 @@ func NewSimApp(
 		stakingtypes.ModuleName,
 		ibcexported.ModuleName,
 		ibctransfertypes.ModuleName,
+		packetforwardtypes.ModuleName,
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		icatypes.ModuleName,
@@ -534,6 +543,7 @@ func NewSimApp(
 		stakingtypes.ModuleName,
 		ibcexported.ModuleName,
 		ibctransfertypes.ModuleName,
+		packetforwardtypes.ModuleName,
 		genutiltypes.ModuleName,
 		icatypes.ModuleName,
 		ibcmock.ModuleName,
@@ -548,7 +558,7 @@ func NewSimApp(
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
-		icatypes.ModuleName, ibcmock.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
+		packetforwardtypes.ModuleName, icatypes.ModuleName, ibcmock.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)

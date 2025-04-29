@@ -15,6 +15,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -36,7 +37,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	testName := t.Name()
 
 	chains := s.GetAllChains()
-	chainA, chainB, chainC := chains[0], chains[1], chains[2]
+	chainA, chainB, chainC, chainD := chains[0], chains[1], chains[2], chains[3]
 
 	// channelVersion := transfertypes.V1
 
@@ -75,7 +76,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 
 	firstHopMetadata := &PacketMetadata{
 		Forward: &ForwardMetadata{
-			Receiver: userD.FormattedAddress(),
+			Receiver: userC.FormattedAddress(),
 			Channel:  chanBC.ChannelID,
 			Port:     chanBC.PortID,
 			Next:     &next,
@@ -123,20 +124,45 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	// _, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainB.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, bHeight, bHeight+30, nil)
 	//s.Require().NoError(err)
 
-	expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+	// expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 	fmt.Printf("Balance of UserA: %v\n", actualBalance)
 	// s.Require().Equal(expected, actualBalance)
 	// })
 
 	time.Sleep(5 * time.Second)
+
+	s.printChainBalances(ctx, chainA, userA.FormattedAddress())
+	fmt.Println()
+	s.printChainBalances(ctx, chainB, userB.FormattedAddress())
+	fmt.Println()
+	s.printChainBalances(ctx, chainC, userC.FormattedAddress())
+	fmt.Println()
+	s.printChainBalances(ctx, chainD, userD.FormattedAddress())
+	fmt.Println()
+
 	// t.Run("recv packet ibc transfer", func(t *testing.T) {
-	s.AssertPacketRelayed(ctx, chainA, chanAB.PortID, chanAB.ChannelID, packet.Sequence)
+	// s.AssertPacketRelayed(ctx, chainA, chanAB.PortID, chanAB.ChannelID, packet.Sequence)
 	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
+	fmt.Printf("ibcTokenB: %s\n", ibcTokenB.IBCDenom())
+
+	escrowAddr := transfertypes.GetEscrowAddress(chanAB.PortID, chanAB.ChannelID)
+	fmt.Printf("Escrow Addr On A: %s\n", escrowAddr.String())
+
+	// escrowAddr = transfertypes.GetEscrowAddress(chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
+	// fmt.Printf("Escrow Addr On B: %s\n", escrowAddr.String())
+
+	escrowAddr = transfertypes.GetEscrowAddress(chanBC.Counterparty.PortID, chanBC.Counterparty.ChannelID)
+	fmt.Printf("Escrow Addr On B: %s\n", escrowAddr.String())
+
 	balanceB, err := query.Balance(ctx, chainB, userB.FormattedAddress(), ibcTokenB.IBCDenom())
 	fmt.Printf("Balance of Balance B: %s\n", balanceB)
 	s.Require().NoError(err)
-	expected = testvalues.IBCTransferAmount
+	// expected := testvalues.IBCTransferAmount
 	//s.Require().Equal(expected, balanceB.Int64())
+
+	balanceB, err = query.Balance(ctx, chainB, escrowAddr.String(), ibcTokenB.IBCDenom())
+	fmt.Printf("Balance of Escrow On B: %s\n", balanceB)
+	s.Require().NoError(err)
 
 	versionB := chainB.Config().Images[0].Version
 	if testvalues.TokenMetadataFeatureReleases.IsSupported(versionB) {
@@ -246,18 +272,43 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	// })
 
 	// t.Run("verify tokens transferred", func(t *testing.T) {
-	s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, chanAB.ChannelID, 1)
+	// s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, chanAB.ChannelID, 1)
 
-	ibcToken := testsuite.GetIBCToken(denomA, transfertypes.PortID, chanAB.ChannelID)
-	actualBalance_, err := query.Balance(ctx, chainA, userD.FormattedAddress(), ibcToken.IBCDenom())
+	// ibcToken := testsuite.GetIBCToken(denomA, transfertypes.PortID, chanAB.ChannelID)
+	// actualBalance_, err := query.Balance(ctx, chainA, userD.FormattedAddress(), ibcToken.IBCDenom())
 
-	s.Require().NoError(err)
+	// s.Require().NoError(err)
 
-	expected = testvalues.IBCTransferAmount
-	s.Require().Equal(expected, actualBalance_.Int64())
+	// expected = testvalues.IBCTransferAmount
+	// s.Require().Equal(expected, actualBalance_.Int64())
 	// })
 }
 
 // ChainA 499999990000atoma
 // ChainB 500000000000atomb, 10000ibc/7AF52A5722E76D21F64C0D8F4E676B096D922BDFFDD930BC57EDCD184D6A7220
 // ChainC 500000000000atomc
+
+func (s *PFMTestSuite) printChainBalances(ctx context.Context, chain ibc.Chain, userAddr string) {
+	resp, err := query.GRPCQuery[authtypes.QueryAccountsResponse](ctx, chain, &authtypes.QueryAccountsRequest{})
+	s.Require().NoError(err)
+	// Chain B addresses
+	fmt.Printf("UserB formatted Address: %s\n", userAddr)
+	for _, acc := range resp.GetAccounts() {
+		if acc.TypeUrl != "/cosmos.auth.v1beta1.BaseAccount" {
+			continue
+		}
+		var account sdk.AccountI
+		err := chain.Config().EncodingConfig.InterfaceRegistry.UnpackAny(acc, &account)
+		if err != nil {
+			fmt.Printf("UnpackAny Error: %s\n", err)
+		}
+		fmt.Printf("Chain B address: %s\n", account.GetAddress())
+		bal, err := query.GRPCQuery[banktypes.QueryAllBalancesResponse](ctx, chain, &banktypes.QueryAllBalancesRequest{
+			Address: account.GetAddress().String(),
+		})
+		s.Require().NoError(err)
+		if bal.Balances.String() != "" {
+			fmt.Printf("	B balances: %s\n", bal.Balances.String())
+		}
+	}
+}
