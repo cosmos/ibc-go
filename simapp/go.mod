@@ -9,14 +9,14 @@ replace (
 
 require (
 	cosmossdk.io/api v0.9.2
-	cosmossdk.io/client/v2 v2.0.0-beta.5
+	cosmossdk.io/client/v2 v2.0.0-beta.9
 	cosmossdk.io/core v0.11.3
 	cosmossdk.io/log v1.5.1
 	cosmossdk.io/store v1.1.2
 	cosmossdk.io/tools/confix v0.1.2
-	cosmossdk.io/x/circuit v0.2.0-rc.2
-	cosmossdk.io/x/evidence v0.2.0-rc.2
-	cosmossdk.io/x/feegrant v0.2.0-rc.2
+	cosmossdk.io/x/circuit v0.2.0
+	cosmossdk.io/x/evidence v0.2.0
+	cosmossdk.io/x/feegrant v0.2.0
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.2.0
 	github.com/cometbft/cometbft v0.38.17
