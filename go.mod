@@ -19,7 +19,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.53.0-rc.4
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ics23/go v0.11.0
-	github.com/ethereum/go-ethereum v1.15.8
+	github.com/ethereum/go-ethereum v1.15.10
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/hashicorp/go-metrics v0.5.4
