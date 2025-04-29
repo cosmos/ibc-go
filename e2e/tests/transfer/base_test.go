@@ -46,7 +46,7 @@ func (s *transferTester) QueryTransferParams(ctx context.Context, chain ibc.Chai
 // CreateTransferPath sets up a path between chainA and chainB with a transfer channel and returns the relayer wired
 // up to watch the channel and port IDs created.
 func (s *transferTester) CreateTransferPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	relayer, channel := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
+	relayer, channel := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAToBChannelForTest(testName)
 	s.T().Logf("test %s running on portID %s channelID %s", testName, channel.PortID, channel.ChannelID)
 	return relayer, channel
 }

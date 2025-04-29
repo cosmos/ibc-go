@@ -155,6 +155,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 
 	d := make(map[string]any)
 	err := json.Unmarshal([]byte(data.Memo), &d)
+	logger.Debug("packetForwardMiddleware json", "memo", data.Memo)
 	if err != nil || d["forward"] == nil {
 		// not a packet that should be forwarded
 		logger.Debug("packetForwardMiddleware OnRecvPacket forward metadata does not exist")

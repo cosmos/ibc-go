@@ -34,7 +34,7 @@ type AuthzTransferTestSuite struct {
 }
 
 func (suite *AuthzTransferTestSuite) CreateAuthzTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	return suite.CreatePaths(ibc.DefaultClientOpts(), suite.TransferChannelOptions(), testName), suite.GetChainAChannelForTest(testName)
+	return suite.CreatePaths(ibc.DefaultClientOpts(), suite.TransferChannelOptions(), testName), suite.GetChainAToBChannelForTest(testName)
 }
 
 // QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
