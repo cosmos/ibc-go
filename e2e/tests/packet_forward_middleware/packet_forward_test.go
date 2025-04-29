@@ -48,12 +48,24 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	userC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
 	userD := s.CreateUserOnChainD(ctx, testvalues.StartingTokenAmount)
 
+	fmt.Println("UserA formatted Address: ", userA.FormattedAddress())
+	fmt.Println("UserB formatted Address: ", userB.FormattedAddress())
+	fmt.Println("UserC formatted Address: ", userC.FormattedAddress())
+	fmt.Println("UserD formatted Address: ", userD.FormattedAddress())
+
 	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
 	s.StartRelayer(relayer, testName)
 
-	chanAB := s.GetChainAChannelForTest(testName)
-	chanBC := s.GetChainBChannelForTest(testName)
-	chanCD := s.GetChainCChannelForTest(testName)
+	chanAB := s.GetChainAToBChannelForTest(testName)
+	chanBC := s.GetChainBToCChannelForTest(testName)
+	chanCD := s.GetChainCToDChannelForTest(testName)
+
+	fmt.Printf("channel a id: %s\n", chanAB.ChannelID)
+	fmt.Printf("channel a counterparty id: %s\n", chanAB.Counterparty.ChannelID)
+	fmt.Printf("channel b id: %s\n", chanBC.ChannelID)
+	fmt.Printf("channel b counterparty id: %s\n", chanBC.Counterparty.ChannelID)
+	fmt.Printf("channel c id: %s\n", chanCD.ChannelID)
+	fmt.Printf("channel c counterparty id: %s\n", chanCD.Counterparty.ChannelID)
 
 	// t.Run("query localhost transfer channel ends", func(t *testing.T) {
 	channelEndA, err := query.Channel(ctx, chainA, transfertypes.PortID, chanAB.ChannelID)
@@ -112,6 +124,10 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	s.Require().NoError(err)
 	s.Require().NotNil(packet)
 
+	packetData, err := transfertypes.UnmarshalPacketData(packet.Data, transfertypes.V1, transfertypes.EncodingJSON)
+	s.Require().NoError(err)
+	fmt.Printf("PacketData sent: %+v\n", packetData)
+
 	s.Require().NotNil(txResp)
 
 	// })
@@ -129,7 +145,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	// s.Require().Equal(expected, actualBalance)
 	// })
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(60 * time.Second)
 
 	s.printChainBalances(ctx, chainA, userA.FormattedAddress())
 	fmt.Println()

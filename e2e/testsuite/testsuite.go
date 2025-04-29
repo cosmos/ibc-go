@@ -301,26 +301,21 @@ func getLatestChannel(channels []ibc.ChannelOutput) ibc.ChannelOutput {
 	})
 }
 
-// GetChainAChannelForTest returns the ibc.ChannelOutput for the current test.
+// GetChainAToBChannelForTest returns the ibc.ChannelOutput for the current test.
 // this defaults to the first entry in the list, and will be what is needed in the case of
 // a single channel test.
-func (s *E2ETestSuite) GetChainAChannelForTest(testName string) ibc.ChannelOutput {
+func (s *E2ETestSuite) GetChainAToBChannelForTest(testName string) ibc.ChannelOutput {
 	return s.GetChannelsForTest(s.GetAllChains()[0], testName)[0]
 }
 
-// GetChainBChannelForTest returns the ibc.ChannelOutput for the current test.
-func (s *E2ETestSuite) GetChainBChannelForTest(testName string) ibc.ChannelOutput {
-	return s.GetChannelsForTest(s.GetAllChains()[1], testName)[0]
+// GetChainBToCChannelForTest returns the ibc.ChannelOutput for the current test.
+func (s *E2ETestSuite) GetChainBToCChannelForTest(testName string) ibc.ChannelOutput {
+	return s.GetChannelsForTest(s.GetAllChains()[1], testName)[1]
 }
 
-// GetChainCChannelForTest returns the ibc.ChannelOutput for the current test.
-func (s *E2ETestSuite) GetChainCChannelForTest(testName string) ibc.ChannelOutput {
-	return s.GetChannelsForTest(s.GetAllChains()[2], testName)[0]
-}
-
-// GetChainDChannelForTest returns the ibc.ChannelOutput for the current test.
-func (s *E2ETestSuite) GetChainDChannelForTest(testName string) ibc.ChannelOutput {
-	return s.GetChannelsForTest(s.GetAllChains()[3], testName)[0]
+// GetChainCToDChannelForTest returns the ibc.ChannelOutput for the current test.
+func (s *E2ETestSuite) GetChainCToDChannelForTest(testName string) ibc.ChannelOutput {
+	return s.GetChannelsForTest(s.GetAllChains()[2], testName)[1]
 }
 
 // GetChannelsForTest returns all channels for the specified test.
