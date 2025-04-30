@@ -48,11 +48,11 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	usrC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
 	usrD := s.CreateUserOnChainD(ctx, testvalues.StartingTokenAmount)
 
-	abChan := s.GetChainAToBChannelForTest(t.Name())
+	abChan := s.ChanAToB(t.Name())
 	baChan := abChan.Counterparty
-	bcChan := s.GetChainBToCChannelForTest(t.Name())
+	bcChan := s.ChanBToC(t.Name())
 	cbChan := bcChan.Counterparty
-	cdChan := s.GetChainCToDChannelForTest(t.Name())
+	cdChan := s.ChanCToD(t.Name())
 	dcChan := cdChan.Counterparty
 
 	retries := uint8(0)
