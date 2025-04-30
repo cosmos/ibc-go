@@ -40,8 +40,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* [\#8264](https://github.com/cosmos/ibc-go/pull/8264) Bump **github.com/prysmaticlabs/prysm** to **v5.3.0**
-
 ### API Breaking
 
 ### State Machine Breaking
@@ -51,6 +49,30 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 ### Testing API
+
+## [v10.2.0](https://github.com/cosmos/ibc-go/releases/tag/v10.2.0) - 2022-04-30
+
+### Features
+
+* (light-clients/07-tendermint) [\#8185](https://github.com/cosmos/ibc-go/pull/8185) Allow scaling of trusting period for client upgrades
+
+### Dependencies
+
+* [\#8254](https://github.com/cosmos/ibc-go/pull/8254) Bump **github.com/cosmos/cosmos-sdk** to **0.53.0**
+* [\#8326](https://github.com/cosmos/ibc-go/pull/8329) Bump **cosmossdk.io/x/upgrade** to **0.2.0**
+* [\#8326](https://github.com/cosmos/ibc-go/pull/8326) Bump **cosmossdk.io/api** to **0.9.2**
+* [\#8293](https://github.com/cosmos/ibc-go/pull/8293) Bump **cosmossdk.io/math** to **1.5.3**
+* [\#8254](https://github.com/cosmos/ibc-go/pull/8254) Bump **cosmossdk.io/core** to **0.11.3**
+* [\#8254](https://github.com/cosmos/ibc-go/pull/8254) Bump **cosmossdk.io/store** to **1.1.2**
+* [\#8254](https://github.com/cosmos/ibc-go/pull/8254) Bump **cosmossdk.io/x/tx** to **0.14.0**
+* [\#8253](https://github.com/cosmos/ibc-go/pull/8253) Bump **cosmossdk.io/errors** to **1.0.2**
+* [\#8253](https://github.com/cosmos/ibc-go/pull/8253) Bump **cosmossdk.io/log** to **1.5.1**
+* [\#8253](https://github.com/cosmos/ibc-go/pull/8253) Bump **github.com/cometbft/cometbft** to **0.38.17**
+* [\#8264](https://github.com/cosmos/ibc-go/pull/8264) Bump **github.com/prysmaticlabs/prysm** to **v5.3.0**
+
+### Bug Fixes
+
+* [\#8287](https://github.com/cosmos/ibc-go/pull/8287) rename total_escrow REST query from `denoms` to `total_escrow`
 
 ## [v10.1.0](https://github.com/cosmos/ibc-go/releases/tag/v10.1.0) - 2022-03-14
 
