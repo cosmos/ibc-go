@@ -37,10 +37,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	chains := s.GetAllChains()
 	chainA, chainB, chainC, chainD := chains[0], chains[1], chains[2], chains[3]
 
-	// channelVersion := transfertypes.V1
-
-	denomA := chainA.Config().Denom
-
 	userA := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	userC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
@@ -92,9 +88,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	memo, err := json.Marshal(firstHopMetadata)
 	s.Require().NoError(err)
 
-	bHeight, err := chainB.Height(ctx)
-	s.Require().NoError(err)
-
+	denomA := chainA.Config().Denom
 	txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
 	s.AssertTxSuccess(txResp)
 
@@ -103,6 +97,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	s.Require().NotNil(packet)
 
 	// Poll for MsgRecvPacket on chainB
+	bHeight, err := chainB.Height(ctx)
+	s.Require().NoError(err)
 	_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainB.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, bHeight, bHeight+40, nil)
 	s.Require().NoError(err)
 
@@ -119,9 +115,16 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	escrowBalA, err := query.Balance(ctx, chainA, escrowAddrA.String(), denomA)
 	s.Require().NoError(err)
 	s.Require().Equal(testvalues.IBCTransferAmount, escrowBalA.Int64())
-	// })
 
-	time.Sleep(60 * time.Second)
+	// Assart Packet relayed
+	s.Require().Eventually(func() bool {
+		_, err := query.GRPCQuery[chantypes.QueryPacketCommitmentResponse](ctx, chainA, &chantypes.QueryPacketCommitmentRequest{
+			PortId:    chanAB.PortID,
+			ChannelId: chanAB.ChannelID,
+			Sequence:  packet.Sequence,
+		})
+		return err != nil && strings.Contains(err.Error(), "packet commitment hash not found")
+	}, time.Second*70, time.Second)
 
 	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.PortID, chanAB.ChannelID)
 	escrowBalB, err := query.Balance(ctx, chainB, escrowAddrB.String(), ibcTokenB.IBCDenom())
@@ -139,16 +142,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	s.Require().Equal(testvalues.IBCTransferAmount, balanceD.Int64())
 
 	// t.Run("recv packet ibc transfer", func(t *testing.T) {
-
-	// Assart Packet relayed
-	s.Require().Eventually(func() bool {
-		_, err := query.GRPCQuery[chantypes.QueryPacketCommitmentResponse](ctx, chainA, &chantypes.QueryPacketCommitmentRequest{
-			PortId:    chanAB.PortID,
-			ChannelId: chanAB.ChannelID,
-			Sequence:  packet.Sequence,
-		})
-		return strings.Contains(err.Error(), "packet commitment hash not found")
-	}, time.Second*60, time.Second)
 
 	versionB := chainB.Config().Images[0].Version
 	if testvalues.TokenMetadataFeatureReleases.IsSupported(versionB) {
