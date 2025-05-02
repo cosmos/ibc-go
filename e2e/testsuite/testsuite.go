@@ -592,15 +592,11 @@ func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wall
 
 // GetChainBalanceForDenom returns the balance for a given denom given a chain.
 func GetChainBalanceForDenom(ctx context.Context, chain ibc.Chain, denom string, user ibc.Wallet) (int64, error) {
-	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chain, &banktypes.QueryBalanceRequest{
-		Address: user.FormattedAddress(),
-		Denom:   denom,
-	})
+	resp, err := query.Balance(ctx, chain, user.FormattedAddress(), denom)
 	if err != nil {
 		return 0, err
 	}
-
-	return balanceResp.Balance.Amount.Int64(), nil
+	return resp.Int64(), nil
 }
 
 // AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.
