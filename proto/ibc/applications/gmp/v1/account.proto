@@ -4,8 +4,7 @@ package ibc.applications.gmp.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types";
 
-import "gogoproto/gogo.proto";
-import "cosmos/auth/v1beta1/auth.proto";
+import "cosmos_proto/cosmos.proto";
 
 // AccountIdentifier is used to identify a ICS27 account.
 message AccountIdentifier {
@@ -19,9 +18,6 @@ message AccountIdentifier {
 
 // An ICS27Account is defined as a BaseAccount & the account identifier
 message ICS27Account {
-  option (gogoproto.goproto_getters)  = false;
-  option (gogoproto.goproto_stringer) = false;
-
-  cosmos.auth.v1beta1.BaseAccount base_account = 1 [(gogoproto.embed) = true];
-  AccountIdentifier               account_id   = 2;
+  string            address    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  AccountIdentifier account_id = 2;
 }

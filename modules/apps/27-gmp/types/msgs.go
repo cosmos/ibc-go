@@ -43,6 +43,9 @@ func (msg MsgSendCall) ValidateBasic() error {
 	if len(msg.Payload) > MaximumPayloadLength {
 		return errorsmod.Wrapf(ErrInvalidPayload, "payload must not exceed %d bytes", MaximumPayloadLength)
 	}
+	if len(msg.Salt) > MaximumSaltLength {
+		return errorsmod.Wrapf(ErrInvalidSalt, "salt must not exceed %d bytes", MaximumSaltLength)
+	}
 	if len(msg.Memo) > MaximumMemoLength {
 		return errorsmod.Wrapf(ErrInvalidMemo, "memo must not exceed %d bytes", MaximumMemoLength)
 	}

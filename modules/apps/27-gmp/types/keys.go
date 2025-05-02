@@ -1,5 +1,7 @@
 package types
 
+import "cosmossdk.io/collections"
+
 const (
 	// ModuleName defines the interchain accounts module name
 	ModuleName = "gmp"
@@ -18,4 +20,9 @@ const (
 
 	// accountsKey is the key used when generating a module address for the gmp module
 	accountsKey = "gmp-accounts"
+)
+
+var (
+	// AccountsKey is the key used to store the accounts in the keeper
+	AccountsKey = collections.NewPrefix(0)
 )
