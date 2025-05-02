@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package ibc.applications.gmp.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types";
+
+import "ibc/applications/gmp/v1/account.proto";
+import "gogoproto/gogo.proto";
+
+// GenesisState defines the 27-gmp genesis state
+message GenesisState {
+  // The list of registered ICS27 accounts
+  repeated RegisteredICS27Account ics27_accounts = 2 [(gogoproto.nullable) = false];
+}
+
+// RegisteredICS27Account contains an account identifier and associated interchain account address
+message RegisteredICS27Account {
+  /// The address of the ics27 account
+  string account_address = 1;
+  /// The account identifier
+  AccountIdentifier account_id = 2 [(gogoproto.nullable) = false];
+}
