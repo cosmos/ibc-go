@@ -199,7 +199,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	s.Require().NoError(err)
 	s.Require().NotNil(packet)
 
-	fmt.Printf("D -> A Packer Sequence: %v\n", packet.Sequence)
+	// fmt.Printf("D -> A Packer Sequence: %v\n", packet.Sequence)
 
 	// Poll for MsgRecvPacket on chainC
 	_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainC.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, cHeight, cHeight+40, nil)
@@ -227,7 +227,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	// All escrow accounts have been cleared
 	escrowBalA, err = query.Balance(ctx, chainA, escrowAddrA.String(), denomA)
 	s.Require().NoError(err)
-	s.Require().Equal(testvalues.IBCTransferAmount, escrowBalA.Int64())
+	s.Require().Zero(escrowBalA.Int64())
 
 	escrowBalB, err = query.Balance(ctx, chainB, escrowAddrB.String(), ibcTokenB.IBCDenom())
 	s.Require().NoError(err)
@@ -243,6 +243,60 @@ func (s *PFMTestSuite) TestForwardPacket() {
 
 	// User A has his asset back
 	balance, err := s.GetChainANativeBalance(ctx, userA)
+	s.Require().NoError(err)
+	s.Require().Equal(testvalues.StartingTokenAmount, balance)
+
+	// Error in forwarding: Refunded
+	// Send from A -> B -> C -< D
+	secondHopMetadata = &PacketMetadata{
+		Forward: &ForwardMetadata{
+			Receiver: "GurbageAddress",
+			Channel:  chanCD.ChannelID,
+			Port:     chanCD.PortID,
+		},
+	}
+	nextBz, err = json.Marshal(secondHopMetadata)
+	s.Require().NoError(err)
+	next = string(nextBz)
+
+	firstHopMetadata = &PacketMetadata{
+		Forward: &ForwardMetadata{
+			Receiver: userC.FormattedAddress(),
+			Channel:  chanBC.ChannelID,
+			Port:     chanBC.PortID,
+			Next:     &next,
+		},
+	}
+
+	memo, err = json.Marshal(firstHopMetadata)
+	s.Require().NoError(err)
+
+	txResp = s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
+	s.AssertTxFailure(txResp, transfertypes.ErrDenomNotFound)
+
+	packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
+	s.Require().ErrorContains(err, "acknowledgement event attribute not found")
+
+	// C -> D should not happen.
+	// Refunded UserA on chain A.
+	escrowBalA, err = query.Balance(ctx, chainA, escrowAddrA.String(), denomA)
+	s.Require().NoError(err)
+	s.Require().Zero(escrowBalA.Int64())
+
+	escrowBalB, err = query.Balance(ctx, chainB, escrowAddrB.String(), ibcTokenB.IBCDenom())
+	s.Require().NoError(err)
+	s.Require().Zero(escrowBalB.Int64())
+
+	escrowBalC, err = query.Balance(ctx, chainC, escrowAddrC.String(), ibcTokenC.IBCDenom())
+	s.Require().NoError(err)
+	s.Require().Zero(escrowBalC.Int64())
+
+	escrowBalD, err = query.Balance(ctx, chainD, userD.FormattedAddress(), ibcTokenD.IBCDenom())
+	s.Require().NoError(err)
+	s.Require().Zero(escrowBalD.Int64())
+
+	// User A has his asset back
+	balance, err = s.GetChainANativeBalance(ctx, userA)
 	s.Require().NoError(err)
 	s.Require().Equal(testvalues.StartingTokenAmount, balance)
 
