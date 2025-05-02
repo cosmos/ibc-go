@@ -6,6 +6,8 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types";
 
+import "gogoproto/gogo.proto";
+
 // Token defines a struct which represents a token to be transferred.
 message Token {
   // the token denomination
