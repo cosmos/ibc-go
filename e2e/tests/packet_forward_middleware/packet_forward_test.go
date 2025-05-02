@@ -248,6 +248,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 
 	// Error in forwarding: Refunded
 	// Send from A -> B -> C -< D
+	//
 	secondHopMetadata = &PacketMetadata{
 		Forward: &ForwardMetadata{
 			Receiver: "GurbageAddress",
@@ -300,6 +301,40 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	s.Require().NoError(err)
 	s.Require().Equal(testvalues.StartingTokenAmount, balance)
 
+	// send normal IBC transfer from B->A to get funds in IBC denom, then do multihop A->B(native)->C->D
+	// this lets us test the burn from escrow account on chain C and the escrow to escrow transfer on chain B.
+
+	// Compose the prefixed denoms and ibc denom for asserting balances
+	denomB := chainB.Config().Denom
+	ibcTokenA := testsuite.GetIBCToken(denomB, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
+	escrowAddrB = transfertypes.GetEscrowAddress(chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
+
+	txResp = s.Transfer(ctx, chainB, userB, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID, testvalues.DefaultTransferAmount(denomB), userB.FormattedAddress(), userA.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
+	s.AssertTxSuccess(txResp)
+
+	s.printChainBalances(ctx, chainB, userB.FormattedAddress())
+	escrowBalB, err = query.Balance(ctx, chainB, escrowAddrB.String(), denomB)
+	s.Require().NoError(err)
+	s.Require().Equal(escrowBalB.Int64(), testvalues.IBCTransferAmount)
+
+	s.printChainBalances(ctx, chainA, userA.FormattedAddress())
+	balanceA, err := query.Balance(ctx, chainA, userA.FormattedAddress(), ibcTokenA.IBCDenom())
+	s.Require().NoError(err)
+	s.Require().Equal(balanceA.Int64(), testvalues.IBCTransferAmount)
+
+	// Proof that unwinding happenes.
+	txResp = s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcTokenA.IBCDenom()), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
+	s.AssertTxSuccess(txResp)
+
+	// Escrow account is cleared on chain B
+	escrowBalB, err = query.Balance(ctx, chainB, escrowAddrB.String(), denomB)
+	s.Require().NoError(err)
+	s.Require().Zero(escrowBalB.Int64())
+
+	// ChainB user now has the same amount he started with
+	balanceB, err := s.GetChainBNativeBalance(ctx, userB)
+	s.Require().NoError(err)
+	s.Require().Equal(testvalues.StartingTokenAmount, balanceB)
 }
 
 func (s *PFMTestSuite) printChainBalances(ctx context.Context, chain ibc.Chain, userAddr string) {
