@@ -27,7 +27,7 @@ type PFMTimeoutTestSuite struct {
 
 func TestForwardTransferTimeoutSuite(t *testing.T) {
 	t.Skip()
-	//testifysuite.Run(t, new(PFMTimeoutTestSuite))
+	// testifysuite.Run(t, new(PFMTimeoutTestSuite))
 }
 
 func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {

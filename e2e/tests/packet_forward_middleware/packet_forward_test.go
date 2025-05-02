@@ -150,7 +150,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		balanceD, err := query.Balance(ctx, chainD, escrowAddrD, ibcTokenD.IBCDenom())
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.IBCTransferAmount, balanceD.Int64())
-
 	})
 
 	// Send from D -> C -> B -> A
@@ -301,7 +300,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		s.Require().NoError(err)
 		s.Require().Equal(balanceA.Int64(), testvalues.IBCTransferAmount)
 
-		// Proof that unwinding happenes.
+		// Proof that unwinding happens.
 		txResp = s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcTokenA.IBCDenom()), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(txResp)
 
