@@ -30,9 +30,6 @@ var (
 	_ module.HasServices         = (*AppModule)(nil)
 	// _ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule = (*AppModule)(nil)
-
-	// TODO: add IBCModule
-	// _ porttypes.IBCModule = (*IBCModule)(nil)
 )
 
 // AppModuleBasic is the IBC Transfer AppModuleBasic
