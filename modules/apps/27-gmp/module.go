@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
 
+	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	"cosmossdk.io/core/appmodule"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -16,8 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	// "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/client/cli"
-	// "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/simulation"
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
 )
@@ -82,16 +80,6 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 	}
 }
 
-// GetTxCmd implements AppModuleBasic interface
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.NewTxCmd()
-}
-
-// GetQueryCmd implements AppModuleBasic interface
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
-}
-
 // AppModule represents the AppModule for this module
 type AppModule struct {
 	AppModuleBasic
@@ -103,6 +91,11 @@ func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,
 	}
+}
+
+// AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
+func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
+	return types.AutoCLIOptions()
 }
 
 // RegisterServices registers module services.
