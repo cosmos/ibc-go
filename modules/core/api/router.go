@@ -22,15 +22,28 @@ func NewRouter() *Router {
 }
 
 // AddRoute registers a route for a given port ID prefix to a given IBCModule.
-// Panics if a prefix of portIDprefix is already a registered route.
+// There can be up to one prefix registered for a given port ID in the router.
+//
+// Panics:
+//   - if a prefix of `portIDprefix` is already a registered route.
+//   - if `portIDprefix` is a prefix of already registered route.
 func (rtr *Router) AddRoute(portIDprefix string, cbs IBCModule) *Router {
 	if !sdk.IsAlphaNumeric(portIDprefix) {
 		panic(errors.New("route expressions can only contain alphanumeric characters"))
 	}
 
-	prefixExists, prefix := rtr.HasRoute(portIDprefix)
-	if prefixExists {
-		panic(fmt.Errorf("route %s has already been covered by registered prefix: %s", portIDprefix, prefix))
+	for prefix := range rtr.routes {
+		// Prevent two scenarios:
+		//  * Adding a string that prefix is already registered e.g.
+		//    add prefix "portPrefix" and try to add "portPrefixSomeSuffix".
+		//  * Adding a string that is a prefix of already registered route e.g.
+		//    add prefix "portPrefix" and try to add "port".
+		if strings.HasPrefix(portIDprefix, prefix) {
+			panic(fmt.Errorf("route %s has already been covered by registered prefix: %s", portIDprefix, prefix))
+		}
+		if strings.HasPrefix(prefix, portIDprefix) {
+			panic(fmt.Errorf("route %s is a prefix for already registered route: %s", portIDprefix, prefix))
+		}
 	}
 
 	rtr.routes[portIDprefix] = cbs

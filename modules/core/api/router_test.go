@@ -81,6 +81,16 @@ func (suite *APITestSuite) TestRouter() {
 				})
 			},
 		},
+		{
+			name:     "failure: panics conflicting routes registered, when shorter prefix is added",
+			malleate: func() {},
+			assertionFn: func() {
+				suite.Require().PanicsWithError("route someLonger is a prefix for already registered route: someLongerPrefixModule", func() {
+					router.AddRoute("someLongerPrefixModule", &mockv2.IBCModule{})
+					router.AddRoute("someLonger", &mockv2.IBCModule{})
+				})
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
