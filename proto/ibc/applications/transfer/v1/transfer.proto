@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package ibc.applications.transfer.v1;
 
-import "gogoproto/gogo.proto";
-
 option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types";
 
 // Params defines the set of IBC transfer parameters.
