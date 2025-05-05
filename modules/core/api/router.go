@@ -3,23 +3,21 @@ package api
 import (
 	"errors"
 	"fmt"
+	"strings"
 
-	radix "github.com/armon/go-radix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Router contains all the module-defined callbacks required by IBC Protocol V2.
 type Router struct {
-	// routes is a radix trie that provides a prefix-based
-	// look-up structure. It maps portIDs and their prefixes to
-	// IBCModules.
-	routes radix.Tree
+	// routes is a map associating port prefixes to the IBCModules implementations.
+	routes map[string]IBCModule
 }
 
 // NewRouter creates a new Router instance.
 func NewRouter() *Router {
 	return &Router{
-		routes: *radix.New(),
+		routes: make(map[string]IBCModule),
 	}
 }
 
@@ -35,23 +33,32 @@ func (rtr *Router) AddRoute(portIDprefix string, cbs IBCModule) *Router {
 		panic(fmt.Errorf("route %s has already been covered by registered prefix: %s", portIDprefix, prefix))
 	}
 
-	rtr.routes.Insert(portIDprefix, cbs)
+	rtr.routes[portIDprefix] = cbs
 
 	return rtr
 }
 
 // Route returns the IBCModule for a given portID.
 func (rtr *Router) Route(portID string) IBCModule {
-	_, route, ok := rtr.routes.LongestPrefix(portID)
+	_, route, ok := rtr.getRoute(portID)
 	if !ok {
 		panic(fmt.Sprintf("no route for %s", portID))
 	}
 	return route.(IBCModule)
 }
 
-// HasPrefixRoute returns true if the Router has a module registered for the given portID or its prefix.
-// Returns false otherwise.
+// HasRoute returns true along with a prefix if the router has a module
+// registered for the given portID or its prefix. Returns false otherwise.
 func (rtr *Router) HasRoute(portID string) (bool, string) {
-	prefix, _, ok := rtr.routes.LongestPrefix(portID)
+	prefix, _, ok := rtr.getRoute(portID)
 	return ok, prefix
+}
+
+func (rtr *Router) getRoute(portID string) (string, IBCModule, bool) {
+	for prefix, module := range rtr.routes {
+		if strings.HasPrefix(portID, prefix) {
+			return prefix, module, true
+		}
+	}
+	return "", nil, false
 }
