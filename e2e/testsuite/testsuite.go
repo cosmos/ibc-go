@@ -321,6 +321,10 @@ func (s *E2ETestSuite) ChanCToD(testName string) ibc.ChannelOutput {
 // GetChannelsForTest returns all channels for the specified test.
 func (s *E2ETestSuite) GetChannelsForTest(chain ibc.Chain, testName string) []ibc.ChannelOutput {
 	channels, ok := s.channels[testName][chain]
+	fmt.Printf("------ Channels ------ chain: %s\n", chain.Config().ChainID)
+	for _, ch := range channels {
+		fmt.Printf("\tID:%s  PortID: %s  Connection Hopes: %v\n", ch.ChannelID, ch.PortID, ch.ConnectionHops)
+	}
 	s.Require().True(ok, "channel not found for test %s", testName)
 	return channels
 }

@@ -77,7 +77,9 @@ func (k Keeper) SendTransfer(
 
 	// if the denom is prefixed by the port and channel on which we are sending
 	// the token, then we must be returning the token back to the chain they originated from
+	k.Logger(ctx).Warn("\t\t\tkeeper/relayer.go (k Keeper) Sendtransfer()", "tokenDenom Base", token.Denom.GetBase(), "tokenDenom trace", token.Denom.GetTrace())
 	if token.Denom.HasPrefix(sourcePort, sourceChannel) {
+		k.Logger(ctx).Warn("\t\t\tHasPrefix", "source port", sourcePort, "SourceChannel", sourceChannel, "Burning IBC converted coin", coin.String())
 		// transfer the coins to the module account and burn them
 		if err := k.BankKeeper.SendCoinsFromAccountToModule(
 			ctx, sender, types.ModuleName, sdk.NewCoins(coin),
@@ -96,6 +98,7 @@ func (k Keeper) SendTransfer(
 	} else {
 		// obtain the escrow address for the source channel end
 		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+		k.Logger(ctx).Warn("\t\t\tPrefix did not match", "escrow addr", escrowAddress.String())
 		if err := k.EscrowCoin(ctx, sender, escrowAddress, coin); err != nil {
 			return err
 		}
@@ -118,6 +121,8 @@ func (k Keeper) OnRecvPacket(
 	destPort string,
 	destChannel string,
 ) error {
+	logger := k.Logger(ctx)
+	logger.Warn("\t\tkeeper/relay.go (k Keeper) OnRecvPacket", "chainID", ctx.ChainID())
 	// validate packet data upon receiving
 	if err := data.ValidateBasic(); err != nil {
 		return errorsmod.Wrapf(err, "error validating ICS-20 transfer packet data")
@@ -151,6 +156,8 @@ func (k Keeper) OnRecvPacket(
 	// NOTE: We use SourcePort and SourceChannel here, because the counterparty
 	// chain would have prefixed with DestPort and DestChannel when originally
 	// receiving this token.
+	logger.Warn("\t\t(k Keeper) OnRecvPacket", "SourcePort", sourcePort, "SourceChannel", sourceChannel)
+	logger.Warn("\t\t(k Keeper) OnRecvPacket", "denom.Base", token.Denom.Base, "denom.trace", token.Denom.Trace)
 	if token.Denom.HasPrefix(sourcePort, sourceChannel) {
 		// sender chain is not the source, unescrow tokens
 
@@ -160,10 +167,12 @@ func (k Keeper) OnRecvPacket(
 		coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
 		escrowAddress := types.GetEscrowAddress(destPort, destChannel)
+		logger.Warn("\t\t(k Keeper) OnRecvPacket", "UnescrowCoin Receiver", receiver, "coin", coin)
 		if err := k.UnescrowCoin(ctx, escrowAddress, receiver, coin); err != nil {
 			return err
 		}
 	} else {
+		logger.Warn("\t\t(k Keeper) OnRecvPacket Prefix did not match")
 		// sender chain is the source, mint vouchers
 
 		// since SendPacket did not prefix the denomination, we must add the destination port and channel to the trace
@@ -182,6 +191,7 @@ func (k Keeper) OnRecvPacket(
 		events.EmitDenomEvent(ctx, token)
 
 		voucher := sdk.NewCoin(voucherDenom, transferAmount)
+		logger.Warn("\t\t(k Keeper) OnRecvPacket", "Voucher", voucher, "Receiver", receiver.String())
 
 		// mint new tokens if the source of the transfer is the same chain
 		if err := k.BankKeeper.MintCoins(
@@ -216,12 +226,15 @@ func (k Keeper) OnAcknowledgementPacket(
 	data types.InternalTransferRepresentation,
 	ack channeltypes.Acknowledgement,
 ) error {
+	k.Logger(ctx).Warn("keeper/relay.go (k Keeper) OnAcknowlegdementPacket()", "ack.Response.(type)", ack.Response)
 	switch ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Result:
+		k.Logger(ctx).Warn("keeper/relay.go (k Keeper) OnAcknowlegdementPacket()", "ack.Response.(type)", "Result")
 		// the acknowledgement succeeded on the receiving chain so nothing
 		// needs to be executed and no error needs to be returned
 		return nil
 	case *channeltypes.Acknowledgement_Error:
+		k.Logger(ctx).Warn("keeper/relay.go (k Keeper) OnAcknowlegdementPacket()", "ack.Response.(type)", "Error")
 		if err := k.refundPacketTokens(ctx, sourcePort, sourceChannel, data); err != nil {
 			return err
 		}
@@ -257,12 +270,14 @@ func (k Keeper) refundPacketTokens(
 	if err != nil {
 		return err
 	}
+	k.Logger(ctx).Warn("\tkeeper/relay.go (k Keeper) refundPacketTokens()", "Sender", sender.String())
 	if k.IsBlockedAddr(sender) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
 	}
 
 	// escrow address for unescrowing tokens back to sender
 	escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
+	k.Logger(ctx).Warn("\t", "escrowAddress", escrowAddress.String())
 
 	moduleAccountAddr := k.AuthKeeper.GetModuleAddress(types.ModuleName)
 	token := data.Token
@@ -271,6 +286,8 @@ func (k Keeper) refundPacketTokens(
 		return err
 	}
 
+	k.Logger(ctx).Warn("\t", "Token.Denom.Base", token.Denom.Base, "Token.Denom.Trace", token.Denom.Trace)
+	k.Logger(ctx).Warn("\t", "Source Port", sourcePort, "Source Channel", sourceChannel)
 	// if the token we must refund is prefixed by the source port and channel
 	// then the tokens were burnt when the packet was sent and we must mint new tokens
 	if token.Denom.HasPrefix(sourcePort, sourceChannel) {
@@ -281,10 +298,12 @@ func (k Keeper) refundPacketTokens(
 			return err
 		}
 
+		k.Logger(ctx).Warn("\tSending Coin", "from", moduleAccountAddr.String(), "To", sender.String(), "coin", coin)
 		if err := k.BankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
 			panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
 		}
 	} else {
+		k.Logger(ctx).Warn("\tUnescrow Coin", "EscrowAddr", escrowAddress.String(), "To", sender.String(), "coin", coin)
 		if err := k.UnescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
 			return err
 		}

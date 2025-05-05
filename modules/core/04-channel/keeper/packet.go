@@ -25,6 +25,7 @@ func (k *Keeper) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (uint64, error) {
+	k.Logger(ctx).Warn("***** Ping from 04-channel/keeper/packet.go (k *Keper) SendPacket")
 	channel, found := k.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
 		return 0, errorsmod.Wrap(types.ErrChannelNotFound, sourceChannel)
@@ -83,8 +84,8 @@ func (k *Keeper) SendPacket(
 
 	emitSendPacketEvent(ctx, packet, channel, timeoutHeight)
 
-	k.Logger(ctx).Info(
-		"packet sent",
+	k.Logger(ctx).Warn(
+		"\t\t\t04-channel/keeper/packet.go packet sent",
 		"sequence", strconv.FormatUint(packet.GetSequence(), 10),
 		"src_port", sourcePort,
 		"src_channel", sourceChannel,

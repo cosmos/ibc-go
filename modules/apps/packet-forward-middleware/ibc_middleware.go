@@ -138,11 +138,13 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		logger.Debug(fmt.Sprintf("packetForwardMiddleware OnRecvPacket payload is not a FungibleTokenPacketData: %s", err.Error()))
+		logger.Warn(fmt.Sprintf("packetForwardMiddleware OnRecvPacket payload is not a FungibleTokenPacketData: %s", err.Error()))
 		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
-	logger.Debug("packetForwardMiddleware OnRecvPacket",
+	logger.Warn("pfm/ibc_middleware/(im IBCMiddleware) OnRecvPacket", "chain", ctx.ChainID(), "Relayer", relayer.String())
+
+	logger.Warn("Packet",
 		"sequence", packet.Sequence,
 		"src-channel", packet.SourceChannel,
 		"src-port", packet.SourcePort,
@@ -155,10 +157,10 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 
 	d := make(map[string]any)
 	err := json.Unmarshal([]byte(data.Memo), &d)
-	logger.Debug("packetForwardMiddleware json", "memo", data.Memo)
+	logger.Warn("json", "memo", data.Memo)
 	if err != nil || d["forward"] == nil {
 		// not a packet that should be forwarded
-		logger.Debug("packetForwardMiddleware OnRecvPacket forward metadata does not exist")
+		logger.Warn("packetForwardMiddleware OnRecvPacket forward metadata does not exist")
 		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 	m := &types.PacketMetadata{}
@@ -186,6 +188,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 		return newErrorAcknowledgement(fmt.Errorf("failed to construct override receiver: %w", err))
 	}
 
+	logger.Warn("191", "Initial Receiver", metadata.Receiver, "Override Receiver", overrideReceiver)
 	if err := im.receiveFunds(ctx, channelVersion, packet, data, overrideReceiver, relayer); err != nil {
 		logger.Error("packetForwardMiddleware OnRecvPacket error receiving packet", "error", err)
 		return newErrorAcknowledgement(fmt.Errorf("error receiving packet: %w", err))
@@ -194,10 +197,11 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 	// if this packet's token denom is already the base denom for some native token on this chain,
 	// we do not need to do any further composition of the denom before forwarding the packet
 	denomOnThisChain := data.Denom
+	logger.Warn("200", "denomOnThisChain Before", denomOnThisChain)
 	if !disableDenomComposition {
 		denomOnThisChain = getDenomForThisChain(packet.DestinationPort, packet.DestinationChannel, packet.SourcePort, packet.SourceChannel, data.Denom)
 	}
-
+	logger.Warn("204", "denomOnThisChain After", denomOnThisChain)
 	amountInt, ok := sdkmath.NewIntFromString(data.Amount)
 	if !ok {
 		logger.Error("packetForwardMiddleware OnRecvPacket error parsing amount for forward", "amount", data.Amount)
@@ -251,7 +255,7 @@ func (im IBCMiddleware) receiveFunds(ctx sdk.Context, channelVersion string, pac
 		TimeoutHeight:      packet.TimeoutHeight,
 		TimeoutTimestamp:   packet.TimeoutTimestamp,
 	}
-
+	im.keeper.Logger(ctx).Warn("\t(im IBCMiddleware) receiveFunds", "Overriden Data", overrideData, "Override Packet", overridePacket)
 	ack := im.app.OnRecvPacket(ctx, channelVersion, overridePacket, relayer)
 	if ack == nil {
 		return fmt.Errorf("ack is nil")
@@ -279,7 +283,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion 
 		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
 
-	im.keeper.Logger(ctx).Debug("packetForwardMiddleware OnAcknowledgementPacket",
+	im.keeper.Logger(ctx).Warn("packetForwardMiddleware OnAcknowledgementPacket",
 		"sequence", packet.Sequence,
 		"src-channel", packet.SourceChannel,
 		"src-port", packet.SourcePort,
@@ -316,7 +320,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
 
-	im.keeper.Logger(ctx).Debug("packetForwardMiddleware OnTimeoutPacket",
+	im.keeper.Logger(ctx).Warn("packetForwardMiddleware OnTimeoutPacket",
 		"sequence", packet.Sequence,
 		"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
 		"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
@@ -343,6 +347,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 
 // SendPacket implements the ICS4 Wrapper interface.
 func (im IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
+	im.keeper.Logger(ctx).Warn("******* Ping from packet-forward-middleware/ibc_middleware.go")
 	return im.keeper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 

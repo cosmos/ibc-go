@@ -255,7 +255,7 @@ func (k *Keeper) unescrowToken(ctx sdk.Context, token sdk.Coin) {
 
 func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.InFlightPacket, srcPacket channeltypes.Packet, srcPacketSender, receiver string, metadata *types.ForwardMetadata, token sdk.Coin, maxRetries uint8, timeout time.Duration, labels []metrics.Label, nonrefundable bool) error {
 	memo := ""
-
+	k.Logger(ctx).Warn("\t258 keeper/keeper.go (k *Keeper) ForwardTransferPacket", "chainID", ctx.ChainID())
 	// set memo for next transfer with next from this transfer.
 	if metadata.Next != nil {
 		memoBz, err := json.Marshal(metadata.Next)
@@ -266,7 +266,7 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 		memo = string(memoBz)
 	}
 
-	k.Logger(ctx).Debug("packetForwardMiddleware ForwardTransferPacket",
+	k.Logger(ctx).Warn("\tpacketForwardMiddleware ForwardTransferPacket",
 		"port", metadata.Port,
 		"channel", metadata.Channel,
 		"sender", receiver,
@@ -277,7 +277,7 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 
 	msgTransfer := transfertypes.NewMsgTransfer(metadata.Port, metadata.Channel, token, receiver, metadata.Receiver, DefaultTransferPacketTimeoutHeight, uint64(ctx.BlockTime().UnixNano())+uint64(timeout.Nanoseconds()), memo)
 	// send tokens to destination
-	res, err := k.transferKeeper.Transfer(ctx, msgTransfer)
+	res, err := k.transferKeeper.Transfer(ctx, msgTransfer) // Save IBC token to the escrow account
 	if err != nil {
 		k.Logger(ctx).Error("packetForwardMiddleware ForwardTransferPacket error",
 			"port", metadata.Port,
@@ -290,7 +290,6 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 		)
 		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, err.Error())
 	}
-
 	// Store the following information in keeper:
 	// key - information about forwarded packet: src_channel (parsedReceiver.Channel), src_port (parsedReceiver.Port), sequence
 	// value - information about original packet for refunding if necessary: retries, srcPacketSender, srcPacket.DestinationChannel, srcPacket.DestinationPort
@@ -315,12 +314,15 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 		inFlightPacket.RetriesRemaining--
 	}
 
+	k.Logger(ctx).Warn("\tTransfer Keeper Success", "inflight Packet", inFlightPacket)
 	key := types.RefundPacketKey(metadata.Channel, metadata.Port, res.Sequence)
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(inFlightPacket)
 	if err := store.Set(key, bz); err != nil {
 		return err
 	}
+
+	k.Logger(ctx).Warn("\tInflight Key is stored on the store")
 
 	defer func() {
 		if token.Amount.IsInt64() {
@@ -448,6 +450,7 @@ func (k *Keeper) TakeInFlightPacket(ctx sdk.Context, channel string, port string
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
 func (k *Keeper) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
+	k.Logger(ctx).Warn("****** Ping from packet-forward-middleware/keeper/keeper.go")
 	return k.ics4Wrapper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 

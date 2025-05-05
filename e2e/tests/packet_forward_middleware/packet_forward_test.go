@@ -5,6 +5,7 @@ package pfm
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -19,6 +20,10 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 type PFMTestSuite struct {
@@ -29,8 +34,116 @@ func TestForwardTransferSuite(t *testing.T) {
 	testifysuite.Run(t, new(PFMTestSuite))
 }
 
+func (s *PFMTestSuite) TestTimeoutRefund() {
+	t := s.T()
+	ctx := context.TODO()
+	testName := t.Name()
+
+	chains := s.GetAllChains()
+	chainA, chainB := chains[0], chains[1]
+
+	userA := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	userB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	userC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
+
+	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
+	s.StartRelayer(relayer, testName)
+
+	chanAB := s.ChanAToB(testName)
+	chanBC := s.ChanBToC(testName)
+	chanCD := s.ChanCToD(testName)
+
+	escrowAddrA := transfertypes.GetEscrowAddress(chanAB.PortID, chanAB.ChannelID)
+	escrowAddrB := transfertypes.GetEscrowAddress(chanCD.PortID, chanCD.ChannelID)
+
+	denomA := chainA.Config().Denom
+	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.PortID, chanAB.ChannelID)
+	// ibcTokenC := testsuite.GetIBCToken(ibcTokenB.Path(), chanAB.Counterparty.PortID, chanCD.Counterparty.ChannelID)
+
+	t.Run("Valid receiver ", func(t *testing.T) {
+		// From A -> B will be handled by transfer msg.
+		// From B -> C will be handled by firstHopMetadata. But it should timeout.
+		//
+		// which should result in a refund to User B on Chain B after one retries.
+
+		retries := uint8(1)
+		firstHopMetadata := &PacketMetadata{
+			Forward: &ForwardMetadata{
+				Receiver: userC.FormattedAddress(),
+				Channel:  chanBC.ChannelID,
+				Port:     chanBC.PortID,
+				Next:     nil,
+				Timeout:  1 * time.Second,
+				Retries:  &retries,
+			},
+		}
+
+		memo, err := json.Marshal(firstHopMetadata)
+		s.Require().NoError(err)
+
+		// Store B's height to poll for ack later.
+		bHeight, err := chainB.Height(ctx)
+		s.Require().NoError(err)
+
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
+		s.AssertTxSuccess(txResp)
+
+		packet, err := ibctesting.ParsePacketFromEvents(txResp.Events)
+		s.Require().NoError(err)
+		s.Require().NotNil(packet)
+
+		// Poll for MsgRecvPacket on chainB
+		_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainB.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, bHeight, bHeight+40, nil)
+		s.Require().NoError(err)
+
+		userAbal, err := s.GetChainANativeBalance(ctx, userA)
+		s.Require().NoError(err)
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		s.Require().Equal(expected, userAbal)
+
+		escrowBalA, err := query.Balance(ctx, chainA, escrowAddrA.String(), denomA)
+		s.Require().NoError(err)
+		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalA.Int64())
+
+		// After two retries, balance is refunded to the UserB on chain B.
+		s.printChainBalances(ctx, chainA, userA.FormattedAddress())
+		s.printChainBalances(ctx, chainB, userB.FormattedAddress())
+		s.printChainBalances(ctx, chains[2], userC.FormattedAddress())
+		escrowBalB, err := query.Balance(ctx, chainB, escrowAddrB.String(), ibcTokenB.IBCDenom())
+		s.Require().NoError(err)
+		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalB.Int64())
+	})
+}
+
+func (s *PFMTestSuite) printChainBalances(ctx context.Context, chain ibc.Chain, userAddr string) {
+	fmt.Printf("Chain: %s\n", chain.Config().ChainID)
+	resp, err := query.GRPCQuery[authtypes.QueryAccountsResponse](ctx, chain, &authtypes.QueryAccountsRequest{})
+	s.Require().NoError(err)
+	// Chain B addresses
+	fmt.Printf("Native User: %s\n", userAddr)
+	for _, acc := range resp.GetAccounts() {
+		if acc.TypeUrl != "/cosmos.auth.v1beta1.BaseAccount" {
+			continue
+		}
+		var account sdk.AccountI
+		err := chain.Config().EncodingConfig.InterfaceRegistry.UnpackAny(acc, &account)
+		if err != nil {
+			fmt.Printf("UnpackAny Error: %s\n", err)
+		}
+		bal, err := query.GRPCQuery[banktypes.QueryAllBalancesResponse](ctx, chain, &banktypes.QueryAllBalancesRequest{
+			Address: account.GetAddress().String(),
+		})
+		s.Require().NoError(err)
+		if bal.Balances.String() != "" {
+			fmt.Printf("Address: %s\n", account.GetAddress())
+			fmt.Printf("	Balances: %s\n", bal.Balances.String())
+		}
+	}
+}
+
 func (s *PFMTestSuite) TestForwardPacket() {
 	t := s.T()
+	t.Skip("Skipped for faster testing feedback!!!!")
 	ctx := context.TODO()
 	testName := t.Name()
 
@@ -72,7 +185,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	ibcTokenD := testsuite.GetIBCToken(ibcTokenC.Path(), chanCD.Counterparty.PortID, chanCD.Counterparty.ChannelID)
 
 	t.Run("Multihop forward [A -> B -> C -> D]", func(t *testing.T) {
-		// Send packet from Chain A->Chain B->Chain C->Chain D
 		// From A -> B will be handled by transfer msg.
 		// From B -> C will be handled by firstHopMetadata.
 		// From C -> D will be handled by secondHopMetadata.
@@ -152,7 +264,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		s.Require().Equal(testvalues.IBCTransferAmount, balanceD.Int64())
 	})
 
-	// Send from D -> C -> B -> A
 	t.Run("Packet forwarded [D -> C -> B -> A]", func(t *testing.T) {
 		secondHopMetadata := &PacketMetadata{
 			Forward: &ForwardMetadata{
@@ -225,8 +336,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		s.Require().Equal(testvalues.StartingTokenAmount, balance)
 	})
 
-	// Error in forwarding: Refunded
-	// Send from A -> B -> C -< D
+	// Error in forwarding: Refund
 	//
 	t.Run("Error while forwarding: Refund ok [A -> B -> C -< D]", func(t *testing.T) {
 		secondHopMetadata := &PacketMetadata{

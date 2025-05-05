@@ -22,6 +22,7 @@ var _ types.MsgServer = (*Keeper)(nil)
 // Transfer defines an rpc handler method for MsgTransfer.
 func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.Logger(ctx).Warn("\t\tkeeper/msg_transfer.go (k Keeper) Transfer()", "MsgTransfer", msg, "chainID", ctx.ChainID())
 
 	if !k.GetParams(ctx).SendEnabled {
 		return nil, types.ErrSendDisabled
@@ -33,6 +34,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}
 
 	coin := msg.Token
+	k.Logger(ctx).Warn("\t\t37 (k Keeper) Transfer()", "Sender", sender.String())
 
 	// Using types.UnboundedSpendLimit allows us to send the entire balance of a given denom.
 	if coin.Amount.Equal(types.UnboundedSpendLimit()) {
@@ -46,7 +48,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	if err != nil {
 		return nil, err
 	}
-
+	k.Logger(ctx).Warn("\t\tCoin -> Token", "Coin", coin.String(), "Token Base", token.Denom.GetBase(), "Token Trace", token.Denom.GetTrace())
 	packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender.String(), msg.Receiver, msg.Memo)
 
 	if err := packetData.ValidateBasic(); err != nil {
@@ -59,6 +61,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	var sequence uint64
 	if isIBCV1 {
+		k.Logger(ctx).Warn("\t\tTransfering V1 Packet", "MsgTransfer", msg, "chainID", ctx.ChainID())
 		// if a V1 channel exists for the source channel, then use IBC V1 protocol
 		sequence, err = k.transferV1Packet(ctx, msg.SourceChannel, token, msg.TimeoutHeight, msg.TimeoutTimestamp, packetData)
 		// telemetry for transfer occurs here, in IBC V2 this is done in the onSendPacket callback
@@ -78,11 +81,13 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 }
 
 func (k Keeper) transferV1Packet(ctx sdk.Context, sourceChannel string, token types.Token, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData types.FungibleTokenPacketData) (uint64, error) {
+	k.Logger(ctx).Warn("\t\t(k Keeper) transferV1Packet()", "sourceChannel", sourceChannel, "packetData", packetData)
 	if err := k.SendTransfer(ctx, types.PortID, sourceChannel, token, sdk.MustAccAddressFromBech32(packetData.Sender)); err != nil {
 		return 0, err
 	}
 
 	packetDataBytes := packetData.GetBytes()
+	k.Logger(ctx).Warn("\t\t(k Keeper) transferV1Packet() -> Seding k.icsWrapper.SendPacket()")
 	sequence, err := k.ics4Wrapper.SendPacket(ctx, types.PortID, sourceChannel, timeoutHeight, timeoutTimestamp, packetDataBytes)
 	if err != nil {
 		return 0, err

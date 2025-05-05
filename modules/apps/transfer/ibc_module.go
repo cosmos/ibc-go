@@ -170,6 +170,7 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) ibcexported.Acknowledgement {
+	im.keeper.Logger(ctx).Warn("\t\ttransfer/ibc_module.go", "(im IBCModule) OnRecvPacket  chainID", ctx.ChainID())
 	var (
 		ack    ibcexported.Acknowledgement
 		ackErr error
@@ -208,7 +209,7 @@ func (im IBCModule) OnRecvPacket(
 
 	telemetry.ReportOnRecvPacket(packet.SourcePort, packet.SourceChannel, packet.DestinationPort, packet.DestinationChannel, data.Token)
 
-	im.keeper.Logger(ctx).Info("successfully handled ICS-20 packet", "sequence", packet.Sequence)
+	im.keeper.Logger(ctx).Warn("successfully handled ICS-20 packet", "sequence", packet.Sequence)
 
 	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
 	return ack
@@ -222,10 +223,13 @@ func (im IBCModule) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	im.keeper.Logger(ctx).Warn("transfer/ibc_module.go (im IBCModule) OnAcknowledgementPacket")
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
+
+	// im.keeper.Logger(ctx).Warn("Unmarshall", "ack", ack.Response)
 
 	data, err := types.UnmarshalPacketData(packet.GetData(), channelVersion, "")
 	if err != nil {
