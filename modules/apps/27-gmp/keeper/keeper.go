@@ -20,6 +20,8 @@ type Keeper struct {
 	ics4Wrapper porttypes.ICS4Wrapper
 	msgRouter   types.MessageRouter
 
+	accountKeeper types.AccountKeeper
+
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
@@ -31,7 +33,11 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, storeService storetypes.KVStoreService, authority string) Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec, storeService storetypes.KVStoreService,
+	accountKeeper types.AccountKeeper, msgRouter types.MessageRouter,
+	authority string,
+) Keeper {
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}

@@ -368,6 +368,8 @@ func NewSimApp(
 	app.GMPKeeper = gmpkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[gmptypes.ModuleName]),
+		app.AccountKeeper,
+		app.MsgServiceRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
