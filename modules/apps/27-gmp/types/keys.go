@@ -3,8 +3,11 @@ package types
 import "cosmossdk.io/collections"
 
 const (
-	// ModuleName defines the interchain accounts module name
+	// ModuleName defines the gmp module name
 	ModuleName = "gmp"
+
+	// StoreKey is the primary storage key for the gmp module
+	StoreKey = ModuleName
 
 	// PortID is the default IBC port id that the gmp module
 	PortID = "gmpport"

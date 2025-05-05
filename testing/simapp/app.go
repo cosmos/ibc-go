@@ -83,6 +83,9 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	gmp "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp"
+	gmpkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/keeper"
+	gmptypes "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
 	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"
@@ -158,6 +161,7 @@ type SimApp struct {
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	ICAControllerKeeper   icacontrollerkeeper.Keeper
 	ICAHostKeeper         icahostkeeper.Keeper
+	GMPKeeper             gmpkeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
@@ -252,7 +256,7 @@ func NewSimApp(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, group.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
-		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
+		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey, gmptypes.StoreKey,
 		authzkeeper.StoreKey, consensusparamtypes.StoreKey,
 	)
 
@@ -360,6 +364,13 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	// ICS-27 GMP keeper
+	app.GMPKeeper = gmpkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[gmptypes.ModuleName]),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
 	ibcRouterV2 := ibcapi.NewRouter()
@@ -445,6 +456,9 @@ func NewSimApp(
 	// register the transfer v2 module.
 	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeper))
 
+	// Register the ICS-27 GMP module
+	ibcRouterV2.AddRoute(gmptypes.PortID, gmp.NewIBCModule(app.GMPKeeper))
+
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
 	app.IBCKeeper.SetRouterV2(ibcRouterV2)
@@ -484,6 +498,7 @@ func NewSimApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		gmp.NewAppModule(&app.GMPKeeper),
 		mockModule,
 
 		// IBC light clients
@@ -528,6 +543,7 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		icatypes.ModuleName,
+		gmptypes.ModuleName,
 		ibcmock.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
@@ -537,6 +553,7 @@ func NewSimApp(
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		icatypes.ModuleName,
+		gmptypes.ModuleName,
 		ibcmock.ModuleName,
 		group.ModuleName,
 	)
@@ -549,8 +566,8 @@ func NewSimApp(
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
-		icatypes.ModuleName, ibcmock.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
-		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
+		icatypes.ModuleName, gmptypes.ModuleName, ibcmock.ModuleName, paramstypes.ModuleName,
+		upgradetypes.ModuleName, vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)

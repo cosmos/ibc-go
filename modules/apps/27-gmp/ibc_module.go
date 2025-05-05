@@ -16,8 +16,8 @@ type IBCModule struct {
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper) IBCModule {
-	return IBCModule{
+func NewIBCModule(k keeper.Keeper) *IBCModule {
+	return &IBCModule{
 		keeper: k,
 	}
 }
