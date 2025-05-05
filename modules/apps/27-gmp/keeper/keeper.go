@@ -10,15 +10,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
-	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 )
 
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
 	cdc codec.BinaryCodec
 
-	ics4Wrapper porttypes.ICS4Wrapper
-	msgRouter   types.MessageRouter
+	msgRouter types.MessageRouter
 
 	accountKeeper types.AccountKeeper
 
