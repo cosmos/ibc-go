@@ -44,7 +44,7 @@ func (rtr *Router) Route(portID string) IBCModule {
 	if !ok {
 		panic(fmt.Sprintf("no route for %s", portID))
 	}
-	return route.(IBCModule)
+	return route
 }
 
 // HasRoute returns true along with a prefix if the router has a module
