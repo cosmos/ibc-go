@@ -71,7 +71,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	ibcTokenC := testsuite.GetIBCToken(ibcTokenB.Path(), chanAB.Counterparty.PortID, chanCD.Counterparty.ChannelID)
 	ibcTokenD := testsuite.GetIBCToken(ibcTokenC.Path(), chanCD.Counterparty.PortID, chanCD.Counterparty.ChannelID)
 
-	t.Run("Multihop forward [A -> B -> C -> D]", func(t *testing.T) {
+	t.Run("Multihop forward [A -> B -> C -> D]", func(_ *testing.T) {
 		// Send packet from Chain A->Chain B->Chain C->Chain D
 		// From A -> B will be handled by transfer msg.
 		// From B -> C will be handled by firstHopMetadata.
@@ -153,7 +153,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	})
 
 	// Send from D -> C -> B -> A
-	t.Run("Packet forwarded [D -> C -> B -> A]", func(t *testing.T) {
+	t.Run("Packet forwarded [D -> C -> B -> A]", func(_ *testing.T) {
 		secondHopMetadata := &PacketMetadata{
 			Forward: &ForwardMetadata{
 				Receiver: userA.FormattedAddress(),
@@ -228,7 +228,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	// Error in forwarding: Refunded
 	// Send from A -> B -> C -< D
 	//
-	t.Run("Error while forwarding: Refund ok [A -> B -> C -< D]", func(t *testing.T) {
+	t.Run("Error while forwarding: Refund ok [A -> B -> C -< D]", func(_ *testing.T) {
 		secondHopMetadata := &PacketMetadata{
 			Forward: &ForwardMetadata{
 				Receiver: "GurbageAddress",
@@ -316,7 +316,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	})
 
 	// A -> B -> A Nothing changes
-	t.Run("A -> B -> A", func(t *testing.T) {
+	t.Run("A -> B -> A", func(_ *testing.T) {
 		balanceAInt, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
 		balanceBInt, err := s.GetChainBNativeBalance(ctx, userB)

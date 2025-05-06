@@ -36,6 +36,16 @@ on:
         description: 'The tag to use for chain B'
         required: true
         type: string
+      chain-c-tag:
+        description: 'The tag to use for chain C'
+        required: true
+        type: string
+        default: main
+      chain-d-tag:
+        default: main
+        description: 'The tag to use for chain D'
+        required: true
+        type: string
       # upgrade-plan-name is only required during upgrade tests, and is otherwise ignored.
       upgrade-plan-name:
         default: ''
@@ -78,6 +88,8 @@ jobs:
           echo "Chain Image:       ${{ inputs.chain-image }}"
           echo "Chain A Tag:       ${{ inputs.chain-a-tag }}"
           echo "Chain B Tag:       ${{ inputs.chain-b-tag }}"
+          echo "Chain C Tag:       ${{ inputs.chain-c-tag }}"
+          echo "Chain D Tag:       ${{ inputs.chain-d-tag }}"
           echo "Upgrade Plan Name: ${{ inputs.upgrade-plan-name }}"
           echo "Test Entry Point:  ${{ inputs.test-entry-point }}"
           echo "Test:              ${{ inputs.test }}"
@@ -205,6 +217,8 @@ jobs:
       CHAIN_UPGRADE_PLAN: '${{ inputs.upgrade-plan-name }}'
       CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
       CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
+      CHAIN_C_TAG: '${{ inputs.chain-c-tag }}'
+      CHAIN_D_TAG: '${{ inputs.chain-d-tag }}'
       E2E_CONFIG_PATH: '${{ inputs.e2e-config-path }}'
     strategy:
       fail-fast: false
@@ -243,6 +257,8 @@ jobs:
       CHAIN_IMAGE: '${{ inputs.chain-image }}'
       CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
       CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
+      CHAIN_C_TAG: '${{ inputs.chain-c-tag }}'
+      CHAIN_D_TAG: '${{ inputs.chain-d-tag }}'
       E2E_CONFIG_PATH: '${{ inputs.e2e-config-path }}'
     strategy:
       fail-fast: false
@@ -256,6 +272,7 @@ jobs:
           - entrypoint: TestTransferLocalhostTestSuite
           - entrypoint: TestConnectionTestSuite
           - entrypoint: TestInterchainAccountsGovTestSuite
+          - entrypoint: TestForwardTransferSuite
     steps:
       - uses: actions/checkout@v4
         with:

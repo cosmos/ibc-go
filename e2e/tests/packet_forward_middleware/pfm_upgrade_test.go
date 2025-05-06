@@ -105,7 +105,7 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("Send from B -> A", func(t *testing.T) {
+	t.Run("Send from B -> A", func(_ *testing.T) {
 		aHeight, err := chainA.Height(ctx)
 		s.Require().NoError(err)
 
@@ -134,7 +134,7 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 	})
 
 	// Send the IBC denom that chain A received from the previous step
-	t.Run("Send from A -> B -> C ->X D", func(t *testing.T) {
+	t.Run("Send from A -> B -> C ->X D", func(_ *testing.T) {
 		secondHopMetadata := &PacketMetadata{
 			Forward: &ForwardMetadata{
 				Receiver: "cosmos1wgz9ntx6e5vu4npeabcde88d7kfsymag62p6y2",
@@ -174,7 +174,7 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 		_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainB.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, bHeight, bHeight+40, nil)
 		s.Require().NoError(err)
 
-		actualBalance, err := query.Balance(ctx, chainA, userA.FormattedAddress(), ibcDenomOnA) //s.GetChainANativeBalance(ctx, userA)
+		actualBalance, err := query.Balance(ctx, chainA, userA.FormattedAddress(), ibcDenomOnA)
 		s.Require().NoError(err)
 		s.Require().Zero(actualBalance)
 
@@ -191,6 +191,5 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 			})
 			return err != nil && strings.Contains(err.Error(), "packet commitment hash not found")
 		}, time.Second*70, time.Second)
-
 	})
 }
