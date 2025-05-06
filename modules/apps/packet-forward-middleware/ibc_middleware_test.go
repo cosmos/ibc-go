@@ -64,7 +64,7 @@ func (s *PFMTestSuite) TestOnRecvPacket() {
 	s.Require().Equal("ABCI code: 12: error handling packet: see events for details", expectedAck.GetError())
 }
 
-func (s *PFMTestSuite) TestOnRecvPacket_Nomemo() {
+func (s *PFMTestSuite) TestOnRecvPacket_NoMemo() {
 	s.setupChains()
 
 	ctx := s.chainA.GetContext()
