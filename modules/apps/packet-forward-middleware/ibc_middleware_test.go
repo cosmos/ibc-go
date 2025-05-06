@@ -136,7 +136,6 @@ func (s *PFMTestSuite) TestOnRecvPacket_RecvPacketFailed() {
 
 	transferKeeper := s.chainA.GetSimApp().TransferKeeper
 	ctx := s.chainA.GetContext()
-	// Also can be done if send amount is 0
 	transferKeeper.SetParams(ctx, transfertypes.Params{ReceiveEnabled: false})
 
 	version := s.pathAB.EndpointA.GetChannel().Version
