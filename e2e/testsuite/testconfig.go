@@ -400,7 +400,11 @@ func getConfig() TestConfig {
 // fromFile returns a TestConfig from a json file and a boolean indicating if the file was found.
 func fromFile() (TestConfig, bool) {
 	var tc TestConfig
-	bz, err := os.ReadFile(getConfigFilePath())
+	filePath := getConfigFilePath()
+	if filePath != "" {
+		panic(fmt.Sprintf("***** ***** **** [%s] &&&&&&&&&&&&&&&&\n", filePath))
+	}
+	bz, err := os.ReadFile(filePath)
 	if err != nil {
 		return TestConfig{}, false
 	}
