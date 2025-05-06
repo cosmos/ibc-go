@@ -53,7 +53,6 @@ func (s *PFMTestSuite) TestOnRecvPacket() {
 	version := s.pathAB.EndpointA.GetChannel().Version
 	relayerAddr := s.chainA.SenderAccount.GetAddress()
 
-	// PacketForwardMiddleware
 	pfm := s.pktForwardMiddleware(s.chainA)
 	ack := pfm.OnRecvPacket(ctx, version, channeltypes.Packet{}, relayerAddr)
 	s.Require().False(ack.Success())
