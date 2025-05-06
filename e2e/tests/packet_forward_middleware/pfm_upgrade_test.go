@@ -5,14 +5,10 @@ package pfm
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -121,13 +117,6 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, bBal)
 
-		// fmt.Printf("Escrow Addr A: %s\n", escrowAddrA.String())
-		// fmt.Printf("IBC token on A: %s\n", ibcTokenA.IBCDenom())
-		// s.printChainBalances(ctx, chainA, userA.FormattedAddress())
-		// fmt.Printf("*** *** ***\n")
-		// fmt.Printf("IBC token on B: %s\n", ibcTokenB.IBCDenom())
-		// s.printChainBalances(ctx, chainB, userB.FormattedAddress())
-
 		// Poll for MsgRecvPacket on chainA
 		_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainA.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, aHeight, aHeight+40, nil)
 		s.Require().NoError(err)
@@ -184,14 +173,6 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 		_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainB.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, bHeight, bHeight+40, nil)
 		s.Require().NoError(err)
 
-		fmt.Printf("Escrow Addr A: %s\n", escrowAddrA.String())
-		fmt.Printf("IBC token on A: %s\n", ibcDenomOnA)
-		s.printChainBalances(ctx, chainA, userA.FormattedAddress())
-		fmt.Printf("*** *** ***\n")
-		s.printChainBalances(ctx, chainB, userB.FormattedAddress())
-		fmt.Printf("*** *** ***\n")
-		s.printChainBalances(ctx, chainC, userC.FormattedAddress())
-
 		actualBalance, err := query.Balance(ctx, chainA, userA.FormattedAddress(), ibcDenomOnA) //s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
 		s.Require().Zero(actualBalance)
@@ -211,30 +192,4 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 		}, time.Second*70, time.Second)
 
 	})
-}
-
-func (s *PFMUpgradeTestSuite) printChainBalances(ctx context.Context, chain ibc.Chain, userAddr string) {
-	fmt.Printf("Chain: %s\n", chain.Config().ChainID)
-	resp, err := query.GRPCQuery[authtypes.QueryAccountsResponse](ctx, chain, &authtypes.QueryAccountsRequest{})
-	s.Require().NoError(err)
-	// Chain B addresses
-	fmt.Printf("Native User: %s\n", userAddr)
-	for _, acc := range resp.GetAccounts() {
-		if acc.TypeUrl != "/cosmos.auth.v1beta1.BaseAccount" {
-			continue
-		}
-		var account sdk.AccountI
-		err := chain.Config().EncodingConfig.InterfaceRegistry.UnpackAny(acc, &account)
-		if err != nil {
-			fmt.Printf("UnpackAny Error: %s\n", err)
-		}
-		bal, err := query.GRPCQuery[banktypes.QueryAllBalancesResponse](ctx, chain, &banktypes.QueryAllBalancesRequest{
-			Address: account.GetAddress().String(),
-		})
-		s.Require().NoError(err)
-		if bal.Balances.String() != "" {
-			fmt.Printf("Address: %s\n", account.GetAddress())
-			fmt.Printf("	Balances: %s\n", bal.Balances.String())
-		}
-	}
 }
