@@ -9,4 +9,6 @@ var (
 	ErrInvalidPayload          = errorsmod.Register(ModuleName, 4, "invalid payload")
 	ErrInvalidTimeoutTimestamp = errorsmod.Register(ModuleName, 5, "invalid timeout timestamp")
 	ErrInvalidEncoding         = errorsmod.Register(ModuleName, 6, "invalid encoding")
+	ErrAbiDecoding             = errorsmod.Register(ModuleName, 7, "abi decoding error")
+	ErrAbiEncoding             = errorsmod.Register(ModuleName, 8, "abi encoding error")
 )

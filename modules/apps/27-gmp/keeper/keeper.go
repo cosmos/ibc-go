@@ -6,10 +6,13 @@ import (
 
 	"cosmossdk.io/collections"
 	storetypes "cosmossdk.io/core/store"
+	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
+	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // Keeper defines the IBC fungible transfer keeper
@@ -60,4 +63,9 @@ func NewKeeper(
 // GetAuthority returns the module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
+}
+
+// Logger returns a module-specific logger.
+func (Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }
