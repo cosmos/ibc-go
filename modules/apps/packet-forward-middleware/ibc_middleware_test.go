@@ -55,7 +55,7 @@ func (s *PFMTestSuite) TestOnRecvPacket() {
 	relayerAddr := s.chainA.SenderAccount.GetAddress()
 
 	// PacketForwardMiddleware
-	pfm := s.pktForwardMiddleware(s.chainA, transfertypes.ModuleName)
+	pfm := s.pktForwardMiddleware(s.chainA)
 	ack := pfm.OnRecvPacket(ctx, version, channeltypes.Packet{}, relayerAddr)
 	s.Require().False(ack.Success())
 
@@ -77,7 +77,7 @@ func (s *PFMTestSuite) TestOnRecvPacket_Nomemo() {
 	packet := s.transferPacket(relayerAddr.String(), receiverAddr.String(), s.pathAB, 0, "{}")
 
 	// PacketForwardMiddleware
-	pfm := s.pktForwardMiddleware(s.chainA, transfertypes.ModuleName)
+	pfm := s.pktForwardMiddleware(s.chainA)
 	ack := pfm.OnRecvPacket(ctx, version, packet, relayerAddr)
 	s.Require().True(ack.Success())
 
@@ -99,7 +99,7 @@ func (s *PFMTestSuite) TestOnRecvPacket_InvalidReceiver() {
 	packet := s.transferPacket(relayerAddr.String(), "", s.pathAB, 0, nil)
 
 	// PacketForwardMiddleware
-	pfm := s.pktForwardMiddleware(s.chainA, transfertypes.ModuleName)
+	pfm := s.pktForwardMiddleware(s.chainA)
 	ack := pfm.OnRecvPacket(ctx, version, packet, relayerAddr)
 	s.Require().False(ack.Success())
 
@@ -123,7 +123,7 @@ func (s *PFMTestSuite) TestOnRecvPacket_NoForward() {
 	packet := s.transferPacket(senderAddr.String(), receiverAddr.String(), s.pathAB, 0, nil)
 
 	// PacketForwardMiddleware
-	pfm := s.pktForwardMiddleware(s.chainA, transfertypes.ModuleName)
+	pfm := s.pktForwardMiddleware(s.chainA)
 	ack := pfm.OnRecvPacket(ctx, version, packet, senderAddr)
 	s.Require().True(ack.Success())
 
@@ -157,7 +157,7 @@ func (s *PFMTestSuite) TestOnRecvPacket_RecvPacketFailed() {
 	packet := s.transferPacket(senderAddr.String(), receiverAddr.String(), s.pathAB, 0, metadata)
 
 	// PacketForwardMiddleware
-	pfm := s.pktForwardMiddleware(s.chainA, transfertypes.ModuleName)
+	pfm := s.pktForwardMiddleware(s.chainA)
 	ack := pfm.OnRecvPacket(ctx, version, packet, senderAddr)
 	s.Require().False(ack.Success())
 
@@ -187,7 +187,7 @@ func (s *PFMTestSuite) TestOnRecvPacket_ForwardNoFee() {
 	version := s.pathAB.EndpointA.GetChannel().Version
 	ctxB := s.chainB.GetContext()
 
-	pfmB := s.pktForwardMiddleware(s.chainB, transfertypes.ModuleName)
+	pfmB := s.pktForwardMiddleware(s.chainB)
 	ack := pfmB.OnRecvPacket(ctxB, version, packet, senderAddr)
 	s.Require().Nil(ack)
 
@@ -197,7 +197,7 @@ func (s *PFMTestSuite) TestOnRecvPacket_ForwardNoFee() {
 	packet = s.transferPacket(senderAddr.String(), receiverAddr.String(), s.pathBC, 0, nil)
 	version = s.pathBC.EndpointA.GetChannel().Version
 
-	pfmC := s.pktForwardMiddleware(s.chainC, transfertypes.ModuleName)
+	pfmC := s.pktForwardMiddleware(s.chainC)
 	ack = pfmC.OnRecvPacket(ctxC, version, packet, senderAddr)
 	s.Require().NotNil(ack)
 
@@ -211,10 +211,10 @@ func (s *PFMTestSuite) TestOnRecvPacket_ForwardNoFee() {
 	s.Require().NoError(err)
 }
 
-func (s *PFMTestSuite) pktForwardMiddleware(chain *ibctesting.TestChain, module string) packetforward.IBCMiddleware {
+func (s *PFMTestSuite) pktForwardMiddleware(chain *ibctesting.TestChain) packetforward.IBCMiddleware {
 	pfmKeeper := chain.GetSimApp().PFMKeeper
 
-	ibcModule, ok := chain.App.GetIBCKeeper().PortKeeper.Route(module)
+	ibcModule, ok := chain.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 	s.Require().True(ok)
 
 	ibcMiddleware := packetforward.NewIBCMiddleware(ibcModule, &pfmKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
