@@ -118,7 +118,6 @@ func (s *PFMTestSuite) TestOnRecvPacket_NoForward() {
 
 	packet := s.transferPacket(senderAddr.String(), receiverAddr.String(), s.pathAB, 0, nil)
 
-	// PacketForwardMiddleware
 	pfm := s.pktForwardMiddleware(s.chainA)
 	ack := pfm.OnRecvPacket(ctx, version, packet, senderAddr)
 	s.Require().True(ack.Success())
