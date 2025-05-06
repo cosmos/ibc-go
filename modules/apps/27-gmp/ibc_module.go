@@ -56,7 +56,7 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 	return nil
 }
 
-func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 	if payload.SourcePort != types.PortID || payload.DestinationPort != types.PortID {
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
@@ -76,14 +76,24 @@ func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destina
 		}
 	}
 
-	if ackErr = im.keeper.OnRecvPacket(
+	result, ackErr := im.keeper.OnRecvPacket(
 		ctx,
 		packetData,
 		payload.SourcePort,
 		sourceChannel,
 		payload.DestinationPort,
 		destinationChannel,
-	); ackErr != nil {
+	)
+	if ackErr != nil {
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+		return channeltypesv2.RecvPacketResult{
+			Status: channeltypesv2.PacketStatus_Failure,
+		}
+	}
+
+	ack := types.NewAcknowledgement(result)
+	ackBz, ackErr := types.MarshalAcknowledgement(&ack, types.Version, payload.Encoding)
+	if ackErr != nil {
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
@@ -93,7 +103,11 @@ func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destina
 	im.keeper.Logger(ctx).Info("successfully handled ICS-27 GMP packet", "sequence", sequence)
 
 	// TODO: implement telemetry
-	panic("implement telemetry")
+
+	return channeltypesv2.RecvPacketResult{
+		Status:          channeltypesv2.PacketStatus_Success,
+		Acknowledgement: ackBz,
+	}
 }
 
 func (im *IBCModule) OnTimeoutPacket(_ sdk.Context, _, _ string, _ uint64, _ channeltypesv2.Payload, _ sdk.AccAddress) error {

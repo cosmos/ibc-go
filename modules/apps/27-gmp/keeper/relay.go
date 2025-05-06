@@ -7,11 +7,7 @@ import (
 )
 
 // OnRecvPacket processes a GMP packet.
-//
-// If the sender chain is the source of minted tokens then vouchers will be minted
-// and sent to the receiving address. Otherwise if the sender chain is sending
-// back tokens this chain originally transferred to it, the tokens are
-// unescrowed and sent to the receiving address.
+// Returns the data result of the execution if successful.
 func (k Keeper) OnRecvPacket(
 	ctx sdk.Context,
 	data *types.GMPPacketData,
@@ -19,6 +15,6 @@ func (k Keeper) OnRecvPacket(
 	sourceChannel,
 	destPort,
 	destChannel string,
-) error {
+) ([]byte, error) {
 	panic("not implemented") // TODO: Implement
 }
