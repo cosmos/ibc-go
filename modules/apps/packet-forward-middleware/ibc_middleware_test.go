@@ -95,7 +95,6 @@ func (s *PFMTestSuite) TestOnRecvPacket_InvalidReceiver() {
 
 	packet := s.transferPacket(relayerAddr.String(), "", s.pathAB, 0, nil)
 
-	// PacketForwardMiddleware
 	pfm := s.pktForwardMiddleware(s.chainA)
 	ack := pfm.OnRecvPacket(ctx, version, packet, relayerAddr)
 	s.Require().False(ack.Success())
