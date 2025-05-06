@@ -2,7 +2,6 @@ package packetforward_test
 
 import (
 	"encoding/json"
-	"log"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
