@@ -460,10 +460,6 @@ func populateDefaults(tc TestConfig) TestConfig {
 func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 	envTc := fromEnv()
 
-	if true {
-		panic(fmt.Sprintf("**** **** ***\n%+v\n", fromFile))
-	}
-
 	if os.Getenv(ChainATagEnv) != "" {
 		fromFile.ChainConfigs[0].Tag = envTc.ChainConfigs[0].Tag
 	}
