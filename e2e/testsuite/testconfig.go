@@ -400,11 +400,7 @@ func getConfig() TestConfig {
 // fromFile returns a TestConfig from a json file and a boolean indicating if the file was found.
 func fromFile() (TestConfig, bool) {
 	var tc TestConfig
-	filePath := getConfigFilePath()
-	if filePath != "" {
-		panic(fmt.Sprintf("***** ***** **** [%s] &&&&&&&&&&&&&&&&\n", filePath))
-	}
-	bz, err := os.ReadFile(filePath)
+	bz, err := os.ReadFile(getConfigFilePath())
 	if err != nil {
 		return TestConfig{}, false
 	}
@@ -423,6 +419,11 @@ func populateDefaults(tc TestConfig) TestConfig {
 		"chainA-1",
 		"chainB-1",
 		"chainC-1",
+		"chainD-1",
+	}
+
+	if true {
+		panic(fmt.Sprintf("**** **** ***\n%+v\n", tc))
 	}
 
 	for i := range tc.ChainConfigs {
