@@ -530,6 +530,16 @@ func getChainConfigsFromEnv() []ChainConfig {
 		chainBTag = chainATag
 	}
 
+	chainCTag, ok := os.LookupEnv(ChainCTagEnv)
+	if !ok {
+		chainCTag = chainATag
+	}
+
+	chainDTag, ok := os.LookupEnv(ChainDTagEnv)
+	if !ok {
+		chainDTag = chainATag
+	}
+
 	chainAImage := getChainImage(chainBinary)
 	specifiedChainImage, ok := os.LookupEnv(ChainImageEnv)
 	if ok {
@@ -540,6 +550,9 @@ func getChainConfigsFromEnv() []ChainConfig {
 	numFullNodes := 1
 
 	chainBImage := chainAImage
+	chainCImage := chainAImage
+	chainDImage := chainAImage
+
 	return []ChainConfig{
 		{
 			Image:         chainAImage,
@@ -551,6 +564,20 @@ func getChainConfigsFromEnv() []ChainConfig {
 		{
 			Image:         chainBImage,
 			Tag:           chainBTag,
+			Binary:        chainBinary,
+			NumValidators: numValidators,
+			NumFullNodes:  numFullNodes,
+		},
+		{
+			Image:         chainCImage,
+			Tag:           chainCTag,
+			Binary:        chainBinary,
+			NumValidators: numValidators,
+			NumFullNodes:  numFullNodes,
+		},
+		{
+			Image:         chainDImage,
+			Tag:           chainDTag,
 			Binary:        chainBinary,
 			NumValidators: numValidators,
 			NumFullNodes:  numFullNodes,
