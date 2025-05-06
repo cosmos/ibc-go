@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
