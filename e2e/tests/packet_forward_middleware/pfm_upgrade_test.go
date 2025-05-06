@@ -26,6 +26,7 @@ type PFMUpgradeTestSuite struct {
 }
 
 func TestPFMUpgradeTestSuite(t *testing.T) {
+	t.Skip("Skipping as relayer is not relaying failed packets")
 	testCfg := testsuite.LoadConfig()
 	if testCfg.UpgradePlanName == "" {
 		t.Fatalf("%s must be set when running an upgrade test", testsuite.ChainUpgradePlanEnv)
