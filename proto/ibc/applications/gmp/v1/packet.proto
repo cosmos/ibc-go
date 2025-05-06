@@ -17,3 +17,9 @@ message GMPPacketData {
   // optional memo
   string memo = 5;
 }
+
+// Acknowledgement defines a struct for the ICS27-2 acknowledgement
+message Acknowledgement {
+  // The result of the call
+  bytes result = 1;
+}
