@@ -74,7 +74,6 @@ func (s *PFMTestSuite) TestOnRecvPacket_NoMemo() {
 
 	packet := s.transferPacket(relayerAddr.String(), receiverAddr.String(), s.pathAB, 0, "{}")
 
-	// PacketForwardMiddleware
 	pfm := s.pktForwardMiddleware(s.chainA)
 	ack := pfm.OnRecvPacket(ctx, version, packet, relayerAddr)
 	s.Require().True(ack.Success())
