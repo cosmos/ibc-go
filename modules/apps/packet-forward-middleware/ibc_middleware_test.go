@@ -15,7 +15,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-// CallbacksTestSuite defines the needed instances and methods to test callbacks
 type PFMTestSuite struct {
 	suite.Suite
 
