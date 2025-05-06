@@ -192,7 +192,6 @@ func (s *PFMTestSuite) TestOnRecvPacket_ForwardNoFee() {
 	s.Require().Nil(ack)
 
 	// Check that chain C has received the packet
-	//
 	ctxC := s.chainC.GetContext()
 	packet = s.transferPacket(senderAddr.String(), receiverAddr.String(), s.pathBC, 0, nil)
 	version = s.pathBC.EndpointA.GetChannel().Version
