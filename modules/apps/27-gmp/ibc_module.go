@@ -1,6 +1,8 @@
 package gmp
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -55,8 +57,43 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 }
 
 func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
-	// TODO: implement
-	panic("not implemented")
+	if payload.SourcePort != types.PortID || payload.DestinationPort != types.PortID {
+		return channeltypesv2.RecvPacketResult{
+			Status: channeltypesv2.PacketStatus_Failure,
+		}
+	}
+	if payload.Version != types.Version {
+		return channeltypesv2.RecvPacketResult{
+			Status: channeltypesv2.PacketStatus_Failure,
+		}
+	}
+
+	packetData, ackErr := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
+	if ackErr != nil {
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+		return channeltypesv2.RecvPacketResult{
+			Status: channeltypesv2.PacketStatus_Failure,
+		}
+	}
+
+	if ackErr = im.keeper.OnRecvPacket(
+		ctx,
+		packetData,
+		payload.SourcePort,
+		sourceChannel,
+		payload.DestinationPort,
+		destinationChannel,
+	); ackErr != nil {
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+		return channeltypesv2.RecvPacketResult{
+			Status: channeltypesv2.PacketStatus_Failure,
+		}
+	}
+
+	im.keeper.Logger(ctx).Info("successfully handled ICS-27 GMP packet", "sequence", sequence)
+
+	// TODO: implement telemetry
+	panic("implement telemetry")
 }
 
 func (im *IBCModule) OnTimeoutPacket(_ sdk.Context, _, _ string, _ uint64, _ channeltypesv2.Payload, _ sdk.AccAddress) error {
