@@ -156,7 +156,6 @@ func (s *PFMTestSuite) TestOnRecvPacket_RecvPacketFailed() {
 	}
 	packet := s.transferPacket(senderAddr.String(), receiverAddr.String(), s.pathAB, 0, metadata)
 
-	// PacketForwardMiddleware
 	pfm := s.pktForwardMiddleware(s.chainA)
 	ack := pfm.OnRecvPacket(ctx, version, packet, senderAddr)
 	s.Require().False(ack.Success())
