@@ -59,12 +59,10 @@ func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destina
 	panic("not implemented")
 }
 
-func (im *IBCModule) OnTimeoutPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
-	// TODO: implement
-	panic("not implemented")
+func (im *IBCModule) OnTimeoutPacket(_ sdk.Context, _, _ string, _ uint64, _ channeltypesv2.Payload, _ sdk.AccAddress) error {
+	return nil
 }
 
-func (im *IBCModule) OnAcknowledgementPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
-	// TODO: implement
-	panic("not implemented")
+func (im *IBCModule) OnAcknowledgementPacket(_ sdk.Context, _, _ string, _ uint64, _ []byte, _ channeltypesv2.Payload, _ sdk.AccAddress) error {
+	return nil
 }
