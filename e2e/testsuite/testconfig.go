@@ -422,10 +422,6 @@ func populateDefaults(tc TestConfig) TestConfig {
 		"chainD-1",
 	}
 
-	if true {
-		panic(fmt.Sprintf("**** **** ***\n%+v\n", tc))
-	}
-
 	for i := range tc.ChainConfigs {
 		if tc.ChainConfigs[i].ChainID == "" {
 			tc.ChainConfigs[i].ChainID = chainIDs[i]
@@ -463,6 +459,10 @@ func populateDefaults(tc TestConfig) TestConfig {
 // loaded from a file.
 func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 	envTc := fromEnv()
+
+	if true {
+		panic(fmt.Sprintf("**** **** ***\n%+v\n", fromFile))
+	}
 
 	if os.Getenv(ChainATagEnv) != "" {
 		fromFile.ChainConfigs[0].Tag = envTc.ChainConfigs[0].Tag
