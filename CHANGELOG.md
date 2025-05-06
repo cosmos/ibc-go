@@ -45,6 +45,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking
 
 ### Improvements
+* [\#8303](https://github.com/cosmos/ibc-go/pull/8303) Prefix-based routing in IBCv2 Router
 
 ### Bug Fixes
 
