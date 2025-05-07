@@ -9,7 +9,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec/unknownproto"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
@@ -34,8 +33,8 @@ func NewGMPPacketData(
 }
 
 func (p GMPPacketData) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromBech32(p.Sender); err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	if strings.TrimSpace(p.Sender) == "" {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing sender address")
 	}
 	if strings.TrimSpace(p.Receiver) == "" {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing recipient address")

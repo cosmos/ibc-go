@@ -12,9 +12,16 @@ func (k Keeper) OnRecvPacket(
 	ctx sdk.Context,
 	data *types.GMPPacketData,
 	sourcePort,
-	sourceChannel,
+	sourceClient,
 	destPort,
-	destChannel string,
+	destClient string,
 ) ([]byte, error) {
+	accountId := types.NewAccountIdentifier(destClient, data.Sender, data.Salt)
+
+	_, err := k.getOrCreateICS27Account(ctx, &accountId)
+	if err != nil {
+		return nil, err
+	}
+
 	panic("not implemented") // TODO: Implement
 }

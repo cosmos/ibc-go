@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -66,6 +67,6 @@ func (k Keeper) GetAuthority() string {
 }
 
 // Logger returns a module-specific logger.
-func (Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
+func (Keeper) Logger(goCtx context.Context) log.Logger {
+	return sdk.UnwrapSDKContext(goCtx).Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }

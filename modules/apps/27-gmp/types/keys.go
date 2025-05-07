@@ -23,6 +23,9 @@ const (
 
 	// accountsKey is the key used when generating a module address for the gmp module
 	accountsKey = "gmp-accounts"
+
+	// AccountAddrLen is the length of the ICS27 account address
+	AccountAddrLen = 32
 )
 
 var (

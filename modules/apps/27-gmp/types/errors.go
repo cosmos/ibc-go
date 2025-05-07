@@ -11,4 +11,5 @@ var (
 	ErrInvalidEncoding         = errorsmod.Register(ModuleName, 6, "invalid encoding")
 	ErrAbiDecoding             = errorsmod.Register(ModuleName, 7, "abi decoding error")
 	ErrAbiEncoding             = errorsmod.Register(ModuleName, 8, "abi encoding error")
+	ErrAccountAlreadyExists    = errorsmod.Register(ModuleName, 9, "account already exists")
 )
