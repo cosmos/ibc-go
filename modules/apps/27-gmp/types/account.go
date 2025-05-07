@@ -26,10 +26,10 @@ func NewAccountIdentifier(clientId, sender string, salt []byte) AccountIdentifie
 }
 
 // NewICS27Account creates a new ICS27Account with the given address and accountId.
-func NewICS27Account(address string, accountId *AccountIdentifier) ICS27Account {
+func NewICS27Account(addr string, accountID *AccountIdentifier) ICS27Account {
 	return ICS27Account{
-		Address:   address,
-		AccountId: accountId,
+		Address:   addr,
+		AccountId: accountID,
 	}
 }
 
@@ -42,21 +42,21 @@ func NewICS27Account(address string, accountId *AccountIdentifier) ICS27Account 
 //
 // This function was copied from wasmd and modified.
 // <https://github.com/CosmWasm/wasmd/blob/632fc333d01a84fa5426de6783f7797ad2825e25/x/wasm/keeper/addresses.go#L49>
-func BuildAddressPredictable(accountId *AccountIdentifier) (sdk.AccAddress, error) {
-	if err := host.ClientIdentifierValidator(accountId.ClientId); err != nil {
-		return nil, errorsmod.Wrapf(err, "invalid client ID %s", accountId.ClientId)
+func BuildAddressPredictable(accountID *AccountIdentifier) (sdk.AccAddress, error) {
+	if err := host.ClientIdentifierValidator(accountID.ClientId); err != nil {
+		return nil, errorsmod.Wrapf(err, "invalid client ID %s", accountID.ClientId)
 	}
-	if strings.TrimSpace(accountId.Sender) == "" {
+	if strings.TrimSpace(accountID.Sender) == "" {
 		return nil, errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing sender address")
 	}
 
-	clientIdBz := uint64LengthPrefix([]byte(accountId.ClientId))
-	senderBz := uint64LengthPrefix([]byte(accountId.Sender))
-	saltBz := uint64LengthPrefix(accountId.Salt)
-	key := make([]byte, len(clientIdBz)+len(senderBz)+len(saltBz))
-	copy(key[0:], clientIdBz)
-	copy(key[len(clientIdBz):], senderBz)
-	copy(key[len(clientIdBz)+len(senderBz):], saltBz)
+	clientIDBz := uint64LengthPrefix([]byte(accountID.ClientId))
+	senderBz := uint64LengthPrefix([]byte(accountID.Sender))
+	saltBz := uint64LengthPrefix(accountID.Salt)
+	key := make([]byte, len(clientIDBz)+len(senderBz)+len(saltBz))
+	copy(key[0:], clientIDBz)
+	copy(key[len(clientIDBz):], senderBz)
+	copy(key[len(clientIDBz)+len(senderBz):], saltBz)
 	return address.Module(accountsKey, key)[:AccountAddrLen], nil
 }
 

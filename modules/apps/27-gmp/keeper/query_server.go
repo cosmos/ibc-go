@@ -16,8 +16,8 @@ func (k Keeper) AccountAddress(ctx context.Context, req *types.QueryAccountAddre
 		return nil, err
 	}
 
-	accountId := types.NewAccountIdentifier(req.ClientId, req.Sender, salt)
-	address, err := k.getOrComputeICS27Address(ctx, &accountId)
+	accountID := types.NewAccountIdentifier(req.ClientId, req.Sender, salt)
+	address, err := k.getOrComputeICS27Address(ctx, &accountID)
 	if err != nil {
 		return nil, err
 	}

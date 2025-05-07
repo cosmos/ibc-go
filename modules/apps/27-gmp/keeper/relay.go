@@ -24,9 +24,9 @@ func (k Keeper) OnRecvPacket(
 	destPort,
 	destClient string,
 ) ([]byte, error) {
-	accountId := types.NewAccountIdentifier(destClient, data.Sender, data.Salt)
+	accountID := types.NewAccountIdentifier(destClient, data.Sender, data.Salt)
 
-	ics27Acc, err := k.getOrCreateICS27Account(ctx, &accountId)
+	ics27Acc, err := k.getOrCreateICS27Account(ctx, &accountID)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (k Keeper) executeTx(ctx sdk.Context, account sdk.AccountI, payload []byte)
 }
 
 // authenticateTx checks that the transaction is signed by the expected signer.
-func (k Keeper) authenticateTx(ctx sdk.Context, account sdk.AccountI, msgs []sdk.Msg) error {
+func (k Keeper) authenticateTx(_ sdk.Context, account sdk.AccountI, msgs []sdk.Msg) error {
 	if len(msgs) == 0 {
 		return errorsmod.Wrapf(types.ErrInvalidPayload, "empty message list")
 	}
