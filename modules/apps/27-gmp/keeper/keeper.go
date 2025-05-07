@@ -18,7 +18,7 @@ import (
 
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
-	cdc codec.BinaryCodec
+	cdc codec.Codec
 
 	msgRouter types.MessageRouter
 
@@ -36,7 +36,7 @@ type Keeper struct {
 
 // NewKeeper creates a new Keeper instance
 func NewKeeper(
-	cdc codec.BinaryCodec, storeService storetypes.KVStoreService,
+	cdc codec.Codec, storeService storetypes.KVStoreService,
 	accountKeeper types.AccountKeeper, msgRouter types.MessageRouter,
 	authority string,
 ) Keeper {

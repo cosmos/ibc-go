@@ -3,8 +3,12 @@ package types
 import (
 	"strings"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	errorsmod "cosmossdk.io/errors"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 
@@ -59,4 +63,55 @@ func BuildAddressPredictable(accountId *AccountIdentifier) (sdk.AccAddress, erro
 // uint64LengthPrefix prepend big endian encoded byte length
 func uint64LengthPrefix(bz []byte) []byte {
 	return append(sdk.Uint64ToBigEndian(uint64(len(bz))), bz...)
+}
+
+// DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes into a slice of sdk.Msg's.
+// The transaction bytes are unmarshaled depending on the encoding type passed in. The sdk.Msg's are
+// unpacked from Any's and returned.
+func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte) ([]sdk.Msg, error) {
+	var cosmosTx CosmosTx
+	if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal CosmosTx with protobuf: %v", err)
+	}
+
+	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
+
+	for i, protoAny := range cosmosTx.Messages {
+		var msg sdk.Msg
+		err := cdc.UnpackAny(protoAny, &msg)
+		if err != nil {
+			return nil, err
+		}
+		msgs[i] = msg
+	}
+
+	return msgs, nil
+}
+
+// SerializeCosmosTx serializes a slice of sdk.Msg's using the CosmosTx type. The sdk.Msg's are
+// packed into Any's and inserted into the Messages field of a CosmosTx. The CosmosTx is marshaled
+// depending on the encoding type passed in. The marshaled bytes are returned.
+func SerializeCosmosTx(cdc codec.BinaryCodec, msgs []proto.Message) ([]byte, error) {
+	var (
+		bz  []byte
+		err error
+	)
+	msgAnys := make([]*codectypes.Any, len(msgs))
+	for i, msg := range msgs {
+		msgAnys[i], err = codectypes.NewAnyWithValue(msg)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	cosmosTx := &CosmosTx{
+		Messages: msgAnys,
+	}
+
+	bz, err = cdc.Marshal(cosmosTx)
+	if err != nil {
+		return nil, errorsmod.Wrapf(err, "cannot marshal CosmosTx with protobuf")
+	}
+
+	return bz, nil
 }

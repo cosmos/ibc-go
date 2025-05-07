@@ -12,4 +12,6 @@ var (
 	ErrAbiDecoding             = errorsmod.Register(ModuleName, 7, "abi decoding error")
 	ErrAbiEncoding             = errorsmod.Register(ModuleName, 8, "abi encoding error")
 	ErrAccountAlreadyExists    = errorsmod.Register(ModuleName, 9, "account already exists")
+	ErrAccountNotFound         = errorsmod.Register(ModuleName, 10, "account not found")
+	ErrInvalidMsgRoute         = errorsmod.Register(ModuleName, 11, "invalid msg route")
 )

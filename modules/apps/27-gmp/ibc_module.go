@@ -42,6 +42,10 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 		return err
 	}
 
+	if err := data.ValidateBasic(); err != nil {
+		return errorsmod.Wrapf(err, "failed to validate %s packet data", types.Version)
+	}
+
 	sender, err := sdk.AccAddressFromBech32(data.Sender)
 	if err != nil {
 		return err
@@ -70,6 +74,13 @@ func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel, destinationCha
 
 	packetData, ackErr := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if ackErr != nil {
+		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+		return channeltypesv2.RecvPacketResult{
+			Status: channeltypesv2.PacketStatus_Failure,
+		}
+	}
+
+	if ackErr := packetData.ValidateBasic(); ackErr != nil {
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
