@@ -45,7 +45,7 @@ func (s *PFMTestSuite) setupChains() {
 	s.pathBC.Setup()
 }
 
-func (s *PFMTestSuite) TestOnRecvPacket() {
+func (s *PFMTestSuite) TestOnRecvPacket_NonfungibleToken() {
 	s.setupChains()
 
 	ctx := s.chainA.GetContext()
@@ -60,6 +60,7 @@ func (s *PFMTestSuite) TestOnRecvPacket() {
 	err := s.chainA.Codec.UnmarshalJSON(ack.Acknowledgement(), expectedAck)
 	s.Require().NoError(err)
 
+	// Transfer keeper returns this error if the packet received is not a fungible token.
 	s.Require().Equal("ABCI code: 12: error handling packet: see events for details", expectedAck.GetError())
 }
 
