@@ -128,7 +128,7 @@ func setupWithGenesisValSet(tb testing.TB, valSet *cmttypes.ValidatorSet, genAcc
 
 	// init chain will set the validator set and initialize the genesis accounts
 	_, err = app.InitChain(
-		&abci.RequestInitChain{
+		&abci.InitChainRequest{
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
 			AppStateBytes:   stateBytes,

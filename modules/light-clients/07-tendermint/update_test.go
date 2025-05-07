@@ -143,7 +143,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time, altValSet, altValSet, trustedVals, altSigners)
 			},
-			expErr: errors.New("failed to verify header: cant trust new val set"),
+			expErr: errors.New("failed to verify header: can't trust new val set"),
 		},
 		{
 			name: "unsuccessful verify header: header height revision and trusted height revision mismatch",

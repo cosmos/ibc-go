@@ -10,7 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v1"
 
 	client "github.com/cosmos/ibc-go/v10/modules/core/02-client"
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
