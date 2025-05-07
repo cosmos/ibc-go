@@ -794,7 +794,10 @@ func newSimApp(
 
 		// Initialize pinned codes in wasmvm as they are not persisted there
 		if err := app.WasmClientKeeper.InitializePinnedCodes(ctx); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to initialize pinned codes: %v\n", err)
+			_, err := fmt.Fprintf(os.Stderr, "failed to initialize pinned codes: %v\n", err)
+			if err != nil {
+				fmt.Println("could not write to stderr")
+			}
 			os.Exit(1)
 		}
 	}

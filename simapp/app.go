@@ -364,8 +364,7 @@ func NewSimApp(
 	)
 
 	app.GovKeeper = *govKeeper.SetHooks(
-		govtypes.NewMultiGovHooks(
-			// register the governance hooks
+		govtypes.NewMultiGovHooks( // register the governance hooks
 		),
 	)
 
