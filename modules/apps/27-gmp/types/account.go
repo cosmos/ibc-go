@@ -17,9 +17,9 @@ import (
 )
 
 // NewAccountIdentifier creates a new AccountIdentifier with the given clientId, sender, and salt.
-func NewAccountIdentifier(clientId, sender string, salt []byte) AccountIdentifier {
+func NewAccountIdentifier(clientID, sender string, salt []byte) AccountIdentifier {
 	return AccountIdentifier{
-		ClientId: clientId,
+		ClientId: clientID,
 		Sender:   sender,
 		Salt:     salt,
 	}

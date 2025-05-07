@@ -20,7 +20,7 @@ func NewAcknowledgement(result []byte) Acknowledgement {
 }
 
 // ValidateBasic performs basic validation on the Acknowledgement
-func (_ Acknowledgement) ValidateBasic() error {
+func (Acknowledgement) ValidateBasic() error {
 	return nil
 }
 

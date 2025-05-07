@@ -91,7 +91,7 @@ func NewAppModule(k *keeper.Keeper) AppModule {
 }
 
 // AutoCLIOptions implements the autocli.HasAutoCLIConfig interface.
-func (_ AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
+func (AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return types.AutoCLIOptions()
 }
 
