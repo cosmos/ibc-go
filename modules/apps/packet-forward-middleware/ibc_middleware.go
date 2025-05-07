@@ -174,12 +174,16 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	logger.Debug("packetForwardMiddleware OnRecvPacket",
 		"sequence", packet.Sequence,
-		"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-		"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
-		"amount", data.Amount, "denom", data.Denom, "memo", data.Memo,
+		"src-channel", packet.SourceChannel,
+		"src-port", packet.SourcePort,
+		"dst-channel", packet.DestinationChannel,
+		"dst-port", packet.DestinationPort,
+		"amount", data.Amount,
+		"denom", data.Denom,
+		"memo", data.Memo,
 	)
 
-	d := make(map[string]interface{})
+	d := make(map[string]any)
 	err := json.Unmarshal([]byte(data.Memo), &d)
 	if err != nil || d["forward"] == nil {
 		// not a packet that should be forwarded
@@ -343,7 +347,6 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 // OnTimeoutPacket implements the IBCModule interface.
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
-
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		im.keeper.Logger(ctx).Error("packetForwardMiddleware error parsing packet data from timeout packet",
