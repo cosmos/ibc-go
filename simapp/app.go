@@ -395,7 +395,8 @@ func NewSimApp(
 	ibcRouter := porttypes.NewRouter()
 
 	// Middleware Stacks
-	// Packet Forward Middleware keeper
+
+	// PacketForwardMiddleware must be created before TransferKeeper
 	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.ICAControllerKeeper.GetICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// Create Transfer Keeper

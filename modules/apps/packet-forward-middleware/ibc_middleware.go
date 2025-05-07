@@ -24,11 +24,12 @@ import (
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
+var _ porttypes.PacketUnmarshalarModule = &IBCMiddleware{}
 
 // IBCMiddleware implements the ICS26 callbacks for the forward middleware given the
 // forward keeper and the underlying application.
 type IBCMiddleware struct {
-	app    porttypes.IBCModule
+	app    porttypes.PacketUnmarshalarModule
 	keeper *keeper.Keeper
 
 	retriesOnTimeout uint8
@@ -36,7 +37,7 @@ type IBCMiddleware struct {
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application.
-func NewIBCMiddleware(app porttypes.IBCModule, k *keeper.Keeper, retriesOnTimeout uint8, forwardTimeout time.Duration) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.PacketUnmarshalarModule, k *keeper.Keeper, retriesOnTimeout uint8, forwardTimeout time.Duration) IBCMiddleware {
 	return IBCMiddleware{
 		app:              app,
 		keeper:           k,
@@ -73,6 +74,11 @@ func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID strin
 // OnChanCloseConfirm implements the IBCModule interface.
 func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
+}
+
+// UnmarshalPacketData implements PacketDataUnmarshaler.
+func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (any, string, error) {
+	return im.app.UnmarshalPacketData(ctx, portID, channelID, bz)
 }
 
 func getDenomForThisChain(port, channel, counterpartyPort, counterpartyChannel, denomPath string) string {
