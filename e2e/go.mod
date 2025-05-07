@@ -7,7 +7,7 @@ replace (
 	// uncomment to use the local version of ibc-go, you will need to run `go mod tidy` in e2e directory.
 	github.com/cosmos/ibc-go/v10 => ../
 
-	github.com/strangelove-ventures/interchaintest/v8 => github.com/gjermundgaraba/interchaintest/v8 v8.0.0-20250302163936-9fca2b7de400
+	github.com/strangelove-ventures/interchaintest/v8 => github.com/fcecin/interchaintest/v8 v8.0.0-20250507011843-28af7570d3a1
 
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
