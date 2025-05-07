@@ -432,8 +432,6 @@ func NewSimApp(
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 
 	// Packet Forward Middleware Stack.
-	pfmStack := packetforward.NewIBCMiddleware(transferStack, app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
-	ibcRouter.AddRoute(packetforwardtypes.ModuleName, pfmStack)
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:

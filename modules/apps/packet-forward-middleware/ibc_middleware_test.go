@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
 	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	"github.com/stretchr/testify/suite"
 )
 
 type PFMTestSuite struct {
@@ -208,7 +208,10 @@ func (s *PFMTestSuite) pktForwardMiddleware(chain *ibctesting.TestChain) packetf
 	ibcModule, ok := chain.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 	s.Require().True(ok)
 
-	ibcMiddleware := packetforward.NewIBCMiddleware(ibcModule, &pfmKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
+	transferStack, ok := ibcModule.(porttypes.PacketUnmarshalarModule)
+	s.Require().True(ok)
+
+	ibcMiddleware := packetforward.NewIBCMiddleware(transferStack, pfmKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
 	return ibcMiddleware
 }
 
