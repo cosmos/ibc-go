@@ -13,6 +13,7 @@ slug: /ibc/middleware/developIBCv2
 4. [Integrate IBC v2 Middleware](#integrate-ibc-v2-middleware)
 5. [Security Model](#security-model)
 6. [Design Principles](#design-principles)
+7. [Rate Limiting Middleware](#rate-limiting-middleware)
 
 ## Create a custom IBC v2 middleware
 
@@ -258,3 +259,134 @@ The least intrusive middleware is stateless. They simply read the ICS26 callback
 Middleware that directly interfere with the payload or acknowledgement before passing control to the underlying app are way more intrusive to the underyling app processing. This makes such middleware more error-prone when implementing as incorrect handling can cause the underlying app to break or worse execute unexpected behavior. Moreover, such middleware typically needs to be built for a specific underlying app rather than being generic. An example of this is the packet-forwarding middleware which modifies the payload and is specifically built for transfer.
 
 Middleware that modifies the payload or acknowledgement such that it is no longer readable by the underlying application is the most complicated middleware. Since it is not readable by the underlying apps, if these middleware write additional state into payloads and acknowledgements that get committed to IBC core provable state, there MUST be an equivalent counterparty middleware that is able to parse and intepret this additional state while also converting the payload and acknowledgment back to a readable form for the underlying application on its side. Thus, such middleware requires deployment on both sides of an IBC connection or the packet processing will break. This is the hardest type of middleware to implement, integrate and deploy. Thus, it is not recommended unless absolutely necessary to fulfill the given use case.
+
+## Rate Limiting Middleware
+
+### Overview
+
+A rate limiting middleware is an IBC middleware that restricts the amount or frequency of outgoing IBC transfers over a channel or port within a specified time window. This is useful for scenarios where a chain wants to prevent excessive outflows (e.g., to protect liquidity or comply with regulations).
+
+### Use Cases
+
+- Preventing large outflows in a short period
+- Throttling IBC transfer volume to avoid draining liquidity
+- Regulatory compliance for cross-chain transfers
+- Protecting against potential attacks or market manipulation
+
+### Design
+
+The rate limiting middleware should:
+- Track the amount of tokens transferred over a given period (e.g., per hour, per day)
+- Reject or delay packets that would exceed the configured limit
+- Provide query endpoints for current usage and limits
+- Support multiple time windows and limits per channel/port
+
+### Example Implementation
+
+Here's a basic example of how to implement a rate limiting middleware:
+
+```go
+type RateLimitMiddleware struct {
+    app porttypes.IBCModule
+    // Store for tracking transfer amounts per channel/period
+    store sdk.KVStore
+    // Configurable limits
+    maxAmountPerPeriod sdk.Int
+    periodDuration     time.Duration
+}
+
+func NewRateLimitMiddleware(
+    app porttypes.IBCModule,
+    store sdk.KVStore,
+    maxAmountPerPeriod sdk.Int,
+    periodDuration time.Duration,
+) RateLimitMiddleware {
+    return RateLimitMiddleware{
+        app:               app,
+        store:            store,
+        maxAmountPerPeriod: maxAmountPerPeriod,
+        periodDuration:    periodDuration,
+    }
+}
+
+func (rlm RateLimitMiddleware) OnRecvPacket(
+    ctx sdk.Context,
+    channelVersion string,
+    packet channeltypes.Packet,
+    relayer sdk.AccAddress,
+) ibcexported.Acknowledgement {
+    // Parse the packet data to get transfer amount
+    transferData, err := types.UnmarshalPacketData(packet.Data)
+    if err != nil {
+        return channeltypes.NewErrorAcknowledgement(err)
+    }
+
+    // Check if accepting this packet would exceed the limit
+    currentAmount := rlm.getCurrentPeriodAmount(ctx, packet.GetSourceChannel())
+    if currentAmount.Add(transferData.Amount).GT(rlm.maxAmountPerPeriod) {
+        return channeltypes.NewErrorAcknowledgement(
+            fmt.Errorf("rate limit exceeded for channel %s", packet.GetSourceChannel()),
+        )
+    }
+
+    // Update the current period amount
+    rlm.updatePeriodAmount(ctx, packet.GetSourceChannel(), transferData.Amount)
+
+    // Call the underlying app
+    return rlm.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
+}
+
+func (rlm RateLimitMiddleware) getCurrentPeriodAmount(ctx sdk.Context, channelID string) sdk.Int {
+    // Implementation to get current period amount from store
+    // ...
+}
+
+func (rlm RateLimitMiddleware) updatePeriodAmount(ctx sdk.Context, channelID string, amount sdk.Int) {
+    // Implementation to update period amount in store
+    // ...
+}
+```
+
+### Integration
+
+Register the middleware in your app's IBC stack:
+
+```go
+// Create the rate limiting middleware
+rateLimitMiddleware := NewRateLimitMiddleware(
+    app.TransferKeeper,
+    app.GetKVStore(types.StoreKey),
+    sdk.NewInt(1000000), // max amount per period
+    time.Hour,           // period duration
+)
+
+// Create the IBC stack with rate limiting
+var ibcStack porttypes.IBCModule
+ibcStack = transfer.NewIBCModule(app.TransferKeeper)
+ibcStack = rateLimitMiddleware.NewIBCMiddleware(ibcStack)
+
+// Add the stack to the IBC router
+ibcRouter.AddRoute(ibctransfertypes.PortID, ibcStack)
+```
+
+### Configuration
+
+The middleware can be configured with:
+- Maximum amount per period
+- Period duration
+- Channel-specific limits
+- Token-specific limits
+- Custom rate limiting rules
+
+### Security Considerations
+
+- The middleware must be trusted, as it can block or allow IBC transfers
+- State tracking must be robust to avoid bypassing limits
+- Consider using a sliding window for more accurate rate limiting
+- Implement proper cleanup of old rate limit data
+- Add monitoring and alerting for rate limit events
+
+### Further Reading
+
+- [Osmosis rate limiting use case](https://github.com/cosmos/ibc-go/issues/2664)
+- [Callbacks middleware example](https://github.com/cosmos/ibc-go/blob/main/modules/apps/callbacks/ibc_middleware.go)
