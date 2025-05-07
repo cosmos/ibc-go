@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	"github.com/hashicorp/go-metrics"
 
 	corestore "cosmossdk.io/core/store"
@@ -21,6 +20,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -76,7 +76,7 @@ func (k *Keeper) SetTransferKeeper(transferKeeper types.TransferKeeper) {
 }
 
 // Logger returns a module-specific logger.
-func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
+func (*Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+types.ModuleName)
 }
 
@@ -150,7 +150,7 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 	// Lookup module by channel capability
 	_, found := k.channelKeeper.GetChannel(ctx, inFlightPacket.RefundPortId, inFlightPacket.RefundChannelId)
 	if !found {
-		return fmt.Errorf("could not retrieve module from port-id")
+		return errors.New("could not retrieve module from port-id")
 	}
 
 	if ack.Success() {
@@ -439,7 +439,9 @@ func (k *Keeper) TakeInFlightPacket(ctx sdk.Context, channel string, port string
 	}
 
 	// done with packet key now, delete.
-	store.Delete(key)
+	if err := store.Delete(key); err != nil {
+		panic(err)
+	}
 
 	var inFlightPacket types.InFlightPacket
 	k.cdc.MustUnmarshal(bz, &inFlightPacket)

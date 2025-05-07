@@ -31,7 +31,7 @@ type Duration time.Duration
 
 func (m *ForwardMetadata) Validate() error {
 	if m.Receiver == "" {
-		return fmt.Errorf("failed to validate metadata. receiver cannot be empty")
+		return errors.New("failed to validate metadata. receiver cannot be empty")
 	}
 	if err := host.PortIdentifierValidator(m.Port); err != nil {
 		return fmt.Errorf("failed to validate metadata: %w", err)
@@ -96,7 +96,7 @@ func (d *Duration) MarshalJSON() ([]byte, error) {
 }
 
 func (d *Duration) UnmarshalJSON(b []byte) error {
-	var v interface{}
+	var v any
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}

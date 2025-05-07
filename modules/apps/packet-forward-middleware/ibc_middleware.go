@@ -2,11 +2,10 @@ package packetforward
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	"github.com/hashicorp/go-metrics"
 
 	errorsmod "cosmossdk.io/errors"
@@ -16,6 +15,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -23,8 +24,10 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
-var _ porttypes.Middleware = &IBCMiddleware{}
-var _ porttypes.PacketUnmarshalarModule = &IBCMiddleware{}
+var (
+	_ porttypes.Middleware              = &IBCMiddleware{}
+	_ porttypes.PacketUnmarshalarModule = &IBCMiddleware{}
+)
 
 // IBCMiddleware implements the ICS26 callbacks for the forward middleware given the
 // forward keeper and the underlying application.
@@ -260,7 +263,7 @@ func (im IBCMiddleware) receiveFunds(ctx sdk.Context, channelVersion string, pac
 
 	ack := im.app.OnRecvPacket(ctx, channelVersion, overridePacket, relayer)
 	if ack == nil {
-		return fmt.Errorf("ack is nil")
+		return errors.New("ack is nil")
 	}
 
 	if !ack.Success() {

@@ -8,15 +8,17 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+
+	"cosmossdk.io/math"
+
+	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
 
 type PFMTimeoutTestSuite struct {

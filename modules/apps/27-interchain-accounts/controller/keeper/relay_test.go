@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestSendTx() {
 		{
 			"active channel not found",
 			func() {
-				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
+				path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 			},
 			icatypes.ErrActiveChannelNotFound,
 		},

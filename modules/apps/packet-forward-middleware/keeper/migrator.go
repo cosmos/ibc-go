@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	v3 "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/migrations/v3"
 )
 
