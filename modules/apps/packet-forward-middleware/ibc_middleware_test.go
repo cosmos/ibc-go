@@ -31,7 +31,7 @@ func TestPFMTestSuite(t *testing.T) {
 	suite.Run(t, new(PFMTestSuite))
 }
 
-// setupChains sets up a coordinator with 2 test chains.
+// setupChains sets up a coordinator with 3 test chains.
 func (s *PFMTestSuite) setupChains() {
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
 	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
