@@ -13,7 +13,6 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/suite"
-	"go.uber.org/zap"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -38,26 +37,8 @@ type GenesisTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// TODO: this configuration was originally being applied to `GetChains` in the test body, but it is not
-// actually being propagated correctly. If we want to apply the configuration, we can uncomment this code
-// however the test actually fails when this is done.
-// func (s *GenesisTestSuite) SetupSuite() {
-//	configFileOverrides := make(map[string]any)
-//	appTomlOverrides := make(test.Toml)
-//
-//	appTomlOverrides["halt-height"] = haltHeight
-//	configFileOverrides["config/app.toml"] = appTomlOverrides
-//
-//	s.SetupChains(context.TODO(), nil, func(options *testsuite.ChainOptions) {
-//		// create chains with specified chain configuration options
-//		options.ChainSpecs[0].ConfigFileOverrides = configFileOverrides
-//	})
-// }
-
 func (s *GenesisTestSuite) TestIBCGenesis() {
 	t := s.T()
-
-	haltHeight := int64(100)
 
 	chainA, chainB := s.GetChains()
 
@@ -78,7 +59,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
@@ -145,7 +126,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("Halt chain and export genesis", func(t *testing.T) {
-		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain), haltHeight)
+		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain))
 	})
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
@@ -208,38 +189,24 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 }
 
-func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain *cosmos.CosmosChain, haltHeight int64) {
+func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain *cosmos.CosmosChain) {
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
-	err := test.WaitForBlocks(timeoutCtx, int(haltHeight), chain)
-	s.Require().Error(err, "chain did not halt at halt height")
+	beforeHaltHeight, err := chain.Height(timeoutCtx)
+	s.Require().NoError(err, "error fetching height before halt")
+
+	err = test.WaitForBlocks(timeoutCtx, 1, chain)
+	s.Require().NoError(err, "failed to wait for blocks")
 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
-	state, err := chain.ExportState(ctx, haltHeight)
+	state, err := chain.ExportState(ctx, beforeHaltHeight)
 	s.Require().NoError(err)
-
-	appTomlOverrides := make(test.Toml)
-
-	appTomlOverrides["halt-height"] = 0
 
 	for _, node := range chain.Nodes() {
 		err := node.OverwriteGenesisFile(ctx, []byte(state))
-		s.Require().NoError(err)
-	}
-
-	for _, node := range chain.Nodes() {
-		err := test.ModifyTomlConfigFile(
-			ctx,
-			zap.NewExample(),
-			node.DockerClient,
-			node.TestName,
-			node.VolumeName,
-			"config/app.toml",
-			appTomlOverrides,
-		)
 		s.Require().NoError(err)
 
 		_, _, err = node.ExecBin(ctx, "comet", "unsafe-reset-all")
@@ -258,5 +225,5 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err, "error fetching height after halt")
 
-	s.Require().Greater(height, haltHeight, "height did not increment after halt")
+	s.Require().Greater(height, beforeHaltHeight+1, "height did not increment after halt")
 }
