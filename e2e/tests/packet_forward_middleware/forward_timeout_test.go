@@ -468,6 +468,7 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	s.Require().True(thirdHopEscrowBalance.Equal(zeroBal))
 }
 
+// TODO: Try to replace this with PFM's own version of this struct #8360
 type PacketMetadata struct {
 	Forward *ForwardMetadata `json:"forward"`
 }
