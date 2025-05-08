@@ -46,9 +46,11 @@ func NewKeeper(
 
 	sb := collections.NewSchemaBuilder(storeService)
 	k := Keeper{
-		cdc:       cdc,
-		authority: authority,
-		Accounts:  collections.NewMap(sb, types.AccountsKey, "accounts", collections.TripleKeyCodec(collections.StringKey, collections.StringKey, collections.BytesKey), codec.CollValue[types.ICS27Account](cdc)),
+		cdc:           cdc,
+		msgRouter:     msgRouter,
+		accountKeeper: accountKeeper,
+		authority:     authority,
+		Accounts:      collections.NewMap(sb, types.AccountsKey, "accounts", collections.TripleKeyCodec(collections.StringKey, collections.StringKey, collections.BytesKey), codec.CollValue[types.ICS27Account](cdc)),
 	}
 
 	schema, err := sb.Build()
