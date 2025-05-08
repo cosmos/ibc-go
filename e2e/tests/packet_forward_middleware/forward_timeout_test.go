@@ -26,6 +26,7 @@ type PFMTimeoutTestSuite struct {
 }
 
 func TestForwardTransferTimeoutSuite(t *testing.T) {
+	// TODO: Enable as we clean up these tests #8360
 	t.Skip("Skipping as relayer is not relaying failed packets")
 	// testifysuite.Run(t, new(PFMTimeoutTestSuite))
 }
