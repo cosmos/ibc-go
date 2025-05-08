@@ -68,10 +68,7 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 	userA := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	userC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
-	// userD := s.CreateUserOnChainD(ctx, testvalues.StartingTokenAmount)
 
-	// Create Paths and Relayer
-	// Assign to a variable later.
 	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
 	s.StartRelayer(relayer, testName)
 
@@ -92,17 +89,9 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 	s.Require().NotNil(cd)
 
 	escrowAddrA := transfertypes.GetEscrowAddress(chanAB.PortID, chanAB.ChannelID)
-	// escrowAddrB := transfertypes.GetEscrowAddress(chanCD.PortID, chanCD.ChannelID)
-	// escrowAddrC := escrowAddrB
-	// escrowAddrD := userD.FormattedAddress()
 
-	// denomA := chainA.Config().Denom
 	denomB := chainB.Config().Denom
-
 	ibcTokenA := testsuite.GetIBCToken(denomB, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
-	// ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.PortID, chanAB.ChannelID)
-	// ibcTokenC := testsuite.GetIBCToken(ibcTokenB.Path(), chanAB.Counterparty.PortID, chanCD.Counterparty.ChannelID)
-	// ibcTokenD := testsuite.GetIBCToken(ibcTokenC.Path(), chanCD.Counterparty.PortID, chanCD.Counterparty.ChannelID)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
@@ -113,22 +102,18 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 		txResp := s.Transfer(ctx, chainB, userB, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID, testvalues.DefaultTransferAmount(denomB), userB.FormattedAddress(), userA.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(txResp)
 
-		// testvalues.IBCTransferAmount subtracted from the Wallet B
 		bBal, err := s.GetChainBNativeBalance(ctx, userB)
 		s.Require().NoError(err)
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, bBal)
 
-		// Poll for MsgRecvPacket on chainA
 		_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainA.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, aHeight, aHeight+40, nil)
 		s.Require().NoError(err)
 
-		// testvalues.IBCTransferAmount added to the escrow account on ChainB
 		escrowBalB, err := query.Balance(ctx, chainB, escrowAddrA.String(), denomB)
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalB.Int64())
 
-		// testvalues.IBCTransferAmount added to the escrow account on ChainA
 		escrowBalA, err := query.Balance(ctx, chainA, userA.FormattedAddress(), ibcTokenA.IBCDenom())
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalA.Int64())
@@ -159,7 +144,6 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 		memo, err := json.Marshal(firstHopMetadata)
 		s.Require().NoError(err)
 
-		// Store B's height to poll for ack later.
 		bHeight, err := chainB.Height(ctx)
 		s.Require().NoError(err)
 
@@ -171,7 +155,6 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 
-		// Poll for MsgRecvPacket on chainB
 		_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainB.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, bHeight, bHeight+40, nil)
 		s.Require().NoError(err)
 

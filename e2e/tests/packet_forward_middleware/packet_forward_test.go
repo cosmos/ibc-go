@@ -99,7 +99,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		memo, err := json.Marshal(firstHopMetadata)
 		s.Require().NoError(err)
 
-		// Store B's height to poll for ack later.
 		bHeight, err := chainB.Height(ctx)
 		s.Require().NoError(err)
 
@@ -110,7 +109,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 
-		// Poll for MsgRecvPacket on chainB
 		_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainB.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, bHeight, bHeight+40, nil)
 		s.Require().NoError(err)
 
@@ -123,7 +121,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalA.Int64())
 
-		// Assart Packet relayed
 		s.Require().Eventually(func() bool {
 			_, err := query.GRPCQuery[chantypes.QueryPacketCommitmentResponse](ctx, chainA, &chantypes.QueryPacketCommitmentRequest{
 				PortId:    chanAB.PortID,
@@ -133,7 +130,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 			return err != nil && strings.Contains(err.Error(), "packet commitment hash not found")
 		}, time.Second*70, time.Second)
 
-		// Assert human readable denom.
 		versionB := chainB.Config().Images[0].Version
 		if testvalues.TokenMetadataFeatureReleases.IsSupported(versionB) {
 			s.AssertHumanReadableDenom(ctx, chainB, denomA, chanAB)
@@ -152,7 +148,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		s.Require().Equal(testvalues.IBCTransferAmount, balanceD.Int64())
 	})
 
-	// Send from D -> C -> B -> A
 	t.Run("Packet forwarded [D -> C -> B -> A]", func(_ *testing.T) {
 		secondHopMetadata := &PacketMetadata{
 			Forward: &ForwardMetadata{
@@ -177,7 +172,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		memo, err := json.Marshal(firstHopMetadata)
 		s.Require().NoError(err)
 
-		// Store height for later use.
 		cHeight, err := chainC.Height(ctx)
 		s.Require().NoError(err)
 
@@ -188,11 +182,9 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 
-		// Poll for MsgRecvPacket on chainC
 		_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainC.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, cHeight, cHeight+40, nil)
 		s.Require().NoError(err)
 
-		// Assart Packet relayed
 		s.Require().Eventually(func() bool {
 			_, err := query.GRPCQuery[chantypes.QueryPacketCommitmentResponse](ctx, chainD, &chantypes.QueryPacketCommitmentRequest{
 				PortId:    chanCD.Counterparty.PortID,
@@ -225,10 +217,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		s.Require().Equal(testvalues.StartingTokenAmount, balance)
 	})
 
-	// Error in forwarding: Refunded
-	// Send from A -> B -> C -< D
-	//
-	t.Run("Error while forwarding: Refund ok [A -> B -> C -< D]", func(_ *testing.T) {
+	t.Run("Error while forwarding: Refund ok [A -> B -> C ->X D]", func(_ *testing.T) {
 		secondHopMetadata := &PacketMetadata{
 			Forward: &ForwardMetadata{
 				Receiver: "GurbageAddress",
@@ -284,7 +273,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		// send normal IBC transfer from B->A to get funds in IBC denom, then do multihop A->B(native)->C->D
 		// this lets us test the burn from escrow account on chain C and the escrow to escrow transfer on chain B.
 
-		// Compose the prefixed denoms and ibc denom for asserting balances
 		denomB := chainB.Config().Denom
 		ibcTokenA := testsuite.GetIBCToken(denomB, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
 		escrowAddrB = transfertypes.GetEscrowAddress(chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)

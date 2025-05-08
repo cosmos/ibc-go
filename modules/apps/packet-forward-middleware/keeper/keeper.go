@@ -99,7 +99,6 @@ func (k *Keeper) moveFundsToUserRecoverableAccount(ctx sdk.Context, packet chann
 		return fmt.Errorf("failed to get user recoverable account: %w", err)
 	}
 
-	// TODO: Understand this better.
 	if !denom.HasPrefix(packet.SourcePort, packet.SourceChannel) {
 		// mint vouchers back to sender
 		if err := k.bankKeeper.MintCoins(ctx, transfertypes.ModuleName, sdk.NewCoins(coin)); err != nil {
