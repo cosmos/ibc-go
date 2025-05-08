@@ -127,6 +127,7 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		icatypes.ModuleName:            nil,
+		gmptypes.ModuleName:            nil,
 		ibcmock.ModuleName:             nil,
 	}
 )
