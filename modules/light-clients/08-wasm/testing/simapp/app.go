@@ -632,7 +632,7 @@ func newSimApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		gmp.NewAppModule(&app.GMPKeeper),
+		gmp.NewAppModule(app.GMPKeeper),
 		mockModule,
 
 		// IBC light clients
