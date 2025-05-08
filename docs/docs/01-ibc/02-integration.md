@@ -184,7 +184,7 @@ func NewApp(...args) *App {
 
 #### IBC v2 Router
 
-With IBC v2, there is a new [router](https://github.com/cosmos/ibc-go/blob/main/modules/core/api/router.go) that needs to register the routes for a portID to a given IBCModule. 
+With IBC v2, there is a new [router](https://github.com/cosmos/ibc-go/blob/main/modules/core/api/router.go) that needs to register the routes for a portID to a given IBCModule. It routes IBCv2 messages based on the prefixes of port IDs. For example, if a route named `someModule` exists, messages addressed to port IDs like `someModuleRandomPort1`, `someModuleRandomPort2`, etc., will be passed to the corresponding module.
 
 ```go
 // IBC v2 router creation
