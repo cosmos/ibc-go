@@ -21,7 +21,8 @@ import (
 	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
-	// TODO: Move to `e2e/tests/upgrades` in #8360 
+
+// TODO: Move to `e2e/tests/upgrades` in #8360
 type PFMUpgradeTestSuite struct {
 	testsuite.E2ETestSuite
 }
