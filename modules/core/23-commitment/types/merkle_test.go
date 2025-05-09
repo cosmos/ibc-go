@@ -9,7 +9,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	v2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
 )
 
 func (suite *MerkleTestSuite) TestVerifyMembership() {
