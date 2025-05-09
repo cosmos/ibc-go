@@ -46,7 +46,7 @@ func (s *TransferTestSuiteSendReceive) TestReceiveEnabledParam() {
 	chainA, chainB := s.GetChains()
 
 	relayer := s.GetRelayerForTest(testName)
-	channelA := s.ChanAToB(testName)
+	channelA := s.GetChainAToChainBChannel(testName)
 
 	chainAVersion := chainA.Config().Images[0].Version
 

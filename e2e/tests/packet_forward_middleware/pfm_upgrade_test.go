@@ -73,9 +73,9 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
 	s.StartRelayer(relayer, testName)
 
-	chanAB := s.ChanAToB(testName)
-	chanBC := s.ChanBToC(testName)
-	chanCD := s.ChanCToD(testName)
+	chanAB := s.GetChainAToChainBChannel(testName)
+	chanBC := s.GetChainBToChainCChannel(testName)
+	chanCD := s.GetChainCToChainDChannel(testName)
 
 	ab, err := query.Channel(ctx, chainA, transfertypes.PortID, chanAB.ChannelID)
 	s.Require().NoError(err)

@@ -46,7 +46,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	testName := t.Name()
 
 	relayer := s.CreateDefaultPaths(testName)
-	channelA := s.ChanAToB(testName)
+	channelA := s.GetChainAToChainBChannel(testName)
 
 	var (
 		chainADenom    = chainA.Config().Denom
