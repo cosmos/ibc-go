@@ -41,7 +41,7 @@ jobs:
               fi
           done
 
-  test-ibc-go:
+  tests:
     runs-on: depot-ubuntu-22.04-4
     strategy:
       matrix:
