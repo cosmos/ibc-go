@@ -340,19 +340,7 @@ format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs misspell -w
 .PHONY: format
 
-#? docs-lint: Lint markdown documentation files
-docs-lint:
-	markdownlint-cli2 "**.md"
-
-#? docs-lint-fix: Lint markdown documentation files and fix
-docs-lint-fix:
-	markdownlint-cli2 "**.md" --fix
-
-#? docs-link-check: Run markdown-link-check
-docs-link-check:
-	find . -name 'node_modules' -prune -o -name '*.md' -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
-
-.PHONY: lint lint-fix docs-lint docs-lint-fix docs-link-check
+.PHONY: lint lint-fix format
 
 ###############################################################################
 ###                                Protobuf                                 ###

@@ -48,20 +48,21 @@ jobs:
               fi
           done
 
-  tests:
+  unit-tests:
     runs-on: depot-ubuntu-22.04-4
     strategy:
       matrix:
-        module: [{name: ibc-go, path: .},{name: 08-wasm, path: ./modules/light-clients/08-wasm}]
+        module: [{name: ibc-go, path: .},{name: 08-wasm, path: ./modules/light-clients/08-wasm}, {name: e2e, path: ./e2e}]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
+          cache-dependency-path: '${{ matrix.module.path }}/go.sum'
 
       - name: test & coverage report creation
         run: |
-          cd ${{ matrix.module.path }} && go test -mod=readonly -coverprofile=profile.out -covermode=atomic -tags='ledger test_ledger_mock' ./...
+          cd ${{ matrix.module.path }} && go test -mod=readonly -coverprofile=profile.out -covermode=atomic ./...
 
       - uses: codecov/codecov-action@v5
         with:
