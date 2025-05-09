@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
       - uses: golangci/golangci-lint-action@v7.0.0
         with:
-          version: v2.0
+          version: v2.1
           only-new-issues: true
           args: --timeout 10m
           working-directory: modules/light-clients/08-wasm
@@ -60,17 +60,3 @@ jobs:
         run: |
           cd modules/light-clients/08-wasm
           go test -v -mod=readonly ./... -coverprofile=coverage.out
-
-  code-analysis:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
-    runs-on: depot-ubuntu-22.04-4
-    needs: [tests]
-    steps:
-      - name: sonarcloud
-        if: ${{ env.GIT_DIFF && !github.event.pull_request.draft && env.SONAR_TOKEN != null }}
-        uses: SonarSource/sonarqube-scan-action@v5.1.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: modules/light-clients/08-wasm/
