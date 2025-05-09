@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"strconv"
 	"strings"
 
@@ -74,6 +75,9 @@ type CallbackData struct {
 	CommitGasLimit uint64
 	// ApplicationVersion is the base application version.
 	ApplicationVersion string
+	// Calldata is the calldata to be passed to the callback actor.
+	// This may be empty but if it is not empty, it should be the calldata sent to the callback actor.
+	Calldata []byte
 }
 
 // GetSourceCallbackData parses the packet data and returns the source callback data.
@@ -146,12 +150,15 @@ func GetCallbackData(
 	// get the gas limit from the callback data
 	executionGasLimit, commitGasLimit := computeExecAndCommitGasLimit(callbackData, remainingGas, maxGas)
 
+	callData := getCalldata(callbackData)
+
 	return CallbackData{
 		CallbackAddress:    callbackAddress,
 		ExecutionGasLimit:  executionGasLimit,
 		SenderAddress:      packetSender,
 		CommitGasLimit:     commitGasLimit,
 		ApplicationVersion: version,
+		Calldata:           callData,
 	}, true, nil
 }
 
@@ -210,6 +217,20 @@ func getCallbackAddress(callbackData map[string]any) string {
 	}
 
 	return callbackAddress
+}
+
+// getCalldata returns the calldata if it is specified in the callback data.
+func getCalldata(callbackData map[string]any) []byte {
+	calldataStr, ok := callbackData[CalldataKey].(string)
+	if !ok || calldataStr == "" {
+		return nil
+	}
+
+	calldata, err := hex.DecodeString(calldataStr)
+	if err != nil {
+		return nil
+	}
+	return calldata
 }
 
 // AllowRetry returns true if the callback execution gas limit is less than the commit gas limit.

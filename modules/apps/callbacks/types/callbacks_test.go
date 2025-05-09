@@ -229,6 +229,55 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			nil,
 		},
 		{
+			"success: source callback with calldata",
+			func() {
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "calldata": "%x"}}`, sender, []byte("calldata")),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
+				Calldata:           []byte("calldata"),
+			},
+			true,
+			nil,
+		},
+		{
+			"success: dest callback with calldata",
+			func() {
+				callbackKey = types.DestinationCallbackKey
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s", "calldata": "%x"}}`, sender, []byte("calldata")),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:    sender,
+				SenderAddress:      "",
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
+				Calldata:           []byte("calldata"),
+			},
+			true,
+			nil,
+		},
+		{
 			"failure: packet data does not implement PacketDataProvider",
 			func() {
 				packetData = ibcmock.MockPacketData
