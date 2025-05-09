@@ -1,8 +1,6 @@
 package types
 
 import (
-	"strings"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -34,9 +32,7 @@ func (msg MsgSendCall) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Sender); err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
-	if strings.TrimSpace(msg.Receiver) == "" {
-		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing recipient address")
-	}
+	// receiver is allowed to be empty
 	if len(msg.Receiver) > MaximumReceiverLength {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "recipient address must not exceed %d bytes", MaximumReceiverLength)
 	}
