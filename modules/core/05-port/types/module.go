@@ -145,3 +145,8 @@ type PacketDataUnmarshaler interface {
 	// the packet data can be unmarshaled based on the channel version.
 	UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (any, string, error)
 }
+
+type PacketUnmarshalarModule interface {
+	PacketDataUnmarshaler
+	IBCModule
+}

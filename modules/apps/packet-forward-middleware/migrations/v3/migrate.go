@@ -2,19 +2,14 @@ package v3
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
 // Migrate migrates the x/packetforward module state from the consensus version
 // 2 to version 3
-func Migrate(
-	ctx sdk.Context,
-	bankKeeper types.BankKeeper,
-	channelKeeper types.ChannelKeeper,
-	transferKeeper types.TransferKeeper,
-) error {
+func Migrate(ctx sdk.Context, bankKeeper types.BankKeeper, channelKeeper types.ChannelKeeper, transferKeeper types.TransferKeeper) error {
 	logger := ctx.Logger()
 
 	expectedTotalEscrowed := sdk.Coins{}

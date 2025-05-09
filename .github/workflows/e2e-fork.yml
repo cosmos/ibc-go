@@ -38,6 +38,8 @@ jobs:
     env:
       CHAIN_A_TAG: latest
       CHAIN_B_TAG: latest
+      CHAIN_C_TAG: latest
+      CHAIN_D_TAG: latest
       CHAIN_IMAGE: ibc-go-simd
       FORK: "true"
     # run this job on forks and copies of ibc-go, for example: a public fork or a private copy of ibc-go.

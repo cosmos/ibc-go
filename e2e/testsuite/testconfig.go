@@ -44,6 +44,10 @@ const (
 	// ChainBTagEnv specifies the tag that Chain B will use. If unspecified
 	// the value will default to the same value as Chain A.
 	ChainBTagEnv = "CHAIN_B_TAG"
+	// ChainCTagEnv specifies the tag that Chain C will use.
+	ChainCTagEnv = "CHAIN_C_TAG"
+	// ChainDTagEnv specifies the tag that Chain D will use.
+	ChainDTagEnv = "CHAIN_D_TAG"
 	// RelayerIDEnv specifies the ID of the relayer to use.
 	RelayerIDEnv = "RELAYER_ID"
 	// ChainBinaryEnv binary is the binary that will be used for both chains.
@@ -76,7 +80,7 @@ const (
 )
 
 // defaultChainNames contains the default name for chainA and chainB.
-var defaultChainNames = []string{"simapp-a", "simapp-b", "simapp-c"}
+var defaultChainNames = []string{"simapp-a", "simapp-b", "simapp-c", "simapp-d"}
 
 func getChainImage(binary string) string {
 	if binary == "" {
@@ -288,6 +292,25 @@ func (tc TestConfig) GetChainBID() string {
 	return "chainB-1"
 }
 
+// TODO: Refactor func (tc TestConfig) ChainID(i int) string {}
+// GetChainCID returns the chain-id for chain C.
+// NOTE: the default return value will ensure that ParseChainID will return 1 as the revision number.
+func (tc TestConfig) GetChainCID() string {
+	if tc.ChainConfigs[2].ChainID != "" {
+		return tc.ChainConfigs[2].ChainID
+	}
+	return "chainC-1"
+}
+
+// GetChainDID returns the chain-id for chain D.
+// NOTE: the default return value will ensure that ParseChainID will return 1 as the revision number.
+func (tc TestConfig) GetChainDID() string {
+	if tc.ChainConfigs[3].ChainID != "" {
+		return tc.ChainConfigs[3].ChainID
+	}
+	return "chainD-1"
+}
+
 // GetChainName returns the name of the chain given an index.
 func (tc TestConfig) GetChainName(idx int) string {
 	// Assumes that only valid indices are provided. We do the same in several other places.
@@ -396,6 +419,7 @@ func populateDefaults(tc TestConfig) TestConfig {
 		"chainA-1",
 		"chainB-1",
 		"chainC-1",
+		"chainD-1",
 	}
 
 	for i := range tc.ChainConfigs {
@@ -442,6 +466,14 @@ func applyEnvironmentVariableOverrides(fromFile TestConfig) TestConfig {
 
 	if os.Getenv(ChainBTagEnv) != "" {
 		fromFile.ChainConfigs[1].Tag = envTc.ChainConfigs[1].Tag
+	}
+
+	if os.Getenv(ChainCTagEnv) != "" {
+		fromFile.ChainConfigs[2].Tag = envTc.ChainConfigs[2].Tag
+	}
+
+	if os.Getenv(ChainDTagEnv) != "" {
+		fromFile.ChainConfigs[3].Tag = envTc.ChainConfigs[3].Tag
 	}
 
 	if os.Getenv(ChainBinaryEnv) != "" {
@@ -498,6 +530,16 @@ func getChainConfigsFromEnv() []ChainConfig {
 		chainBTag = chainATag
 	}
 
+	chainCTag, ok := os.LookupEnv(ChainCTagEnv)
+	if !ok {
+		chainCTag = chainATag
+	}
+
+	chainDTag, ok := os.LookupEnv(ChainDTagEnv)
+	if !ok {
+		chainDTag = chainATag
+	}
+
 	chainAImage := getChainImage(chainBinary)
 	specifiedChainImage, ok := os.LookupEnv(ChainImageEnv)
 	if ok {
@@ -508,6 +550,9 @@ func getChainConfigsFromEnv() []ChainConfig {
 	numFullNodes := 1
 
 	chainBImage := chainAImage
+	chainCImage := chainAImage
+	chainDImage := chainAImage
+
 	return []ChainConfig{
 		{
 			Image:         chainAImage,
@@ -519,6 +564,20 @@ func getChainConfigsFromEnv() []ChainConfig {
 		{
 			Image:         chainBImage,
 			Tag:           chainBTag,
+			Binary:        chainBinary,
+			NumValidators: numValidators,
+			NumFullNodes:  numFullNodes,
+		},
+		{
+			Image:         chainCImage,
+			Tag:           chainCTag,
+			Binary:        chainBinary,
+			NumValidators: numValidators,
+			NumFullNodes:  numFullNodes,
+		},
+		{
+			Image:         chainDImage,
+			Tag:           chainDTag,
 			Binary:        chainBinary,
 			NumValidators: numValidators,
 			NumFullNodes:  numFullNodes,
@@ -620,27 +679,43 @@ type ChainOptions struct {
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
 type ChainOptionConfiguration func(options *ChainOptions)
 
-// DefaultChainOptions returns the default configuration for the chains.
+// DefaultChainOptions returns the default configuration for four chains.
 // These options can be configured by passing configuration functions to E2ETestSuite.GetChains.
 func DefaultChainOptions() ChainOptions {
 	tc := LoadConfig()
 
-	chainACfg := newDefaultSimappConfig(tc.ChainConfigs[0], tc.GetChainName(0), tc.GetChainAID(), "atoma", tc.CometBFTConfig)
-	chainBCfg := newDefaultSimappConfig(tc.ChainConfigs[1], tc.GetChainName(1), tc.GetChainBID(), "atomb", tc.CometBFTConfig)
+	aCfg := newDefaultSimappConfig(tc.ChainConfigs[0], tc.GetChainName(0), tc.GetChainAID(), "atoma", tc.CometBFTConfig)
+	bCfg := newDefaultSimappConfig(tc.ChainConfigs[1], tc.GetChainName(1), tc.GetChainBID(), "atomb", tc.CometBFTConfig)
+	cCfg := newDefaultSimappConfig(tc.ChainConfigs[2], tc.GetChainName(2), tc.GetChainCID(), "atomc", tc.CometBFTConfig)
+	dCfg := newDefaultSimappConfig(tc.ChainConfigs[3], tc.GetChainName(3), tc.GetChainDID(), "atomd", tc.CometBFTConfig)
 
-	chainAVal, chainAFn := getValidatorsAndFullNodes(0)
-	chainBVal, chainBFn := getValidatorsAndFullNodes(1)
+	aValidators, aFullNodes := getValidatorsAndFullNodes(0)
+	bValidators, bFullNodes := getValidatorsAndFullNodes(1)
+	cValidators, cFullNodes := getValidatorsAndFullNodes(2)
+	dValidators, dFullNodes := getValidatorsAndFullNodes(3)
 
-	chainASpec := &interchaintest.ChainSpec{
-		ChainConfig:   chainACfg,
-		NumFullNodes:  &chainAFn,
-		NumValidators: &chainAVal,
+	aSpec := &interchaintest.ChainSpec{
+		ChainConfig:   aCfg,
+		NumFullNodes:  &aFullNodes,
+		NumValidators: &aValidators,
 	}
 
-	chainBSpec := &interchaintest.ChainSpec{
-		ChainConfig:   chainBCfg,
-		NumFullNodes:  &chainBFn,
-		NumValidators: &chainBVal,
+	bSpec := &interchaintest.ChainSpec{
+		ChainConfig:   bCfg,
+		NumFullNodes:  &bFullNodes,
+		NumValidators: &bValidators,
+	}
+
+	cSpec := &interchaintest.ChainSpec{
+		ChainConfig:   cCfg,
+		NumFullNodes:  &cFullNodes,
+		NumValidators: &cValidators,
+	}
+
+	dSpec := &interchaintest.ChainSpec{
+		ChainConfig:   dCfg,
+		NumFullNodes:  &dFullNodes,
+		NumValidators: &dValidators,
 	}
 
 	// if running a single test, only one relayer is needed.
@@ -652,7 +727,7 @@ func DefaultChainOptions() ChainOptions {
 	}
 
 	return ChainOptions{
-		ChainSpecs:   []*interchaintest.ChainSpec{chainASpec, chainBSpec},
+		ChainSpecs:   []*interchaintest.ChainSpec{aSpec, bSpec, cSpec, dSpec},
 		RelayerCount: numRelayers,
 	}
 }

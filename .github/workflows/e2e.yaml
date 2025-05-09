@@ -64,6 +64,8 @@ jobs:
       # with regular tests, both images are the same.
       chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+      chain-c-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+      chain-d-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
       # on regular PRs we won't run upgrade tests.
       # NOTE: we are excluding TestTransferTestSuite as we run this full suite instead of each individual test.
       test-exclusions: 'TestUpgradeTestSuite,TestTransferTestSuite,TestAuthzTransferTestSuite,TestTransferTestSuiteSendReceive,TestTransferTestSuiteSendEnabled,TestTransferLocalhostTestSuite,TestConnectionTestSuite,TestInterchainAccountsGovTestSuite'

@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/exported"
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -15,15 +12,17 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/exported"
+	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 )
 
 var (
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
-	_ module.AppModuleSimulation = AppModule{}
+	_ module.AppModule      = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
 // AppModuleBasic is the packetforward AppModuleBasic
@@ -92,10 +91,10 @@ func NewAppModule(k *keeper.Keeper, ss exported.Subspace) AppModule {
 }
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.
-func (am AppModule) IsOnePerModuleType() {}
+func (AppModule) IsOnePerModuleType() {}
 
 // IsAppModule implements the appmodule.AppModule interface.
-func (am AppModule) IsAppModule() {}
+func (AppModule) IsAppModule() {}
 
 // QuerierRoute implements the AppModule interface
 func (AppModule) QuerierRoute() string {
@@ -134,21 +133,3 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 3 }
-
-// AppModuleSimulation functions
-
-// GenerateGenesisState creates a randomized GenState of the packetforward module.
-func (AppModule) GenerateGenesisState(_ *module.SimulationState) {}
-
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent { //nolint:staticcheck // WeightedProposalContent is necessary to satisfy the module interface
-	return nil
-}
-
-// RegisterStoreDecoder registers a decoder for packetforward module's types
-func (am AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {}
-
-// WeightedOperations returns the all the packetforward module operations with their respective weights.
-func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
-	return nil
-}

@@ -1,25 +1,27 @@
 package keeper
 
 import (
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 )
 
 // InitGenesis
-func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
+func (k *Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	// Initialize store refund path for forwarded packets in genesis state that have not yet been acked.
 	store := k.storeService.OpenKVStore(ctx)
 	for key, value := range state.InFlightPackets {
 		key := key
 		value := value
 		bz := k.cdc.MustMarshal(&value)
-		store.Set([]byte(key), bz)
+		if err := store.Set([]byte(key), bz); err != nil {
+			panic(err)
+		}
 	}
 }
 
 // ExportGenesis
-func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
+func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	store := k.storeService.OpenKVStore(ctx)
 
 	inFlightPackets := make(map[string]types.InFlightPacket)

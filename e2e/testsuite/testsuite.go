@@ -301,11 +301,21 @@ func getLatestChannel(channels []ibc.ChannelOutput) ibc.ChannelOutput {
 	})
 }
 
-// GetChainAChannelForTest returns the ibc.ChannelOutput for the current test.
+// GetChainAToChainBChannel returns the ibc.ChannelOutput for the current test.
 // this defaults to the first entry in the list, and will be what is needed in the case of
 // a single channel test.
-func (s *E2ETestSuite) GetChainAChannelForTest(testName string) ibc.ChannelOutput {
+func (s *E2ETestSuite) GetChainAToChainBChannel(testName string) ibc.ChannelOutput {
 	return s.GetChannelsForTest(s.GetAllChains()[0], testName)[0]
+}
+
+// GetChainBToChainCChannel returns the ibc.ChannelOutput for the current test.
+func (s *E2ETestSuite) GetChainBToChainCChannel(testName string) ibc.ChannelOutput {
+	return s.GetChannelsForTest(s.GetAllChains()[1], testName)[1]
+}
+
+// GetChainCToChainDChannel returns the ibc.ChannelOutput for the current test.
+func (s *E2ETestSuite) GetChainCToChainDChannel(testName string) ibc.ChannelOutput {
+	return s.GetChannelsForTest(s.GetAllChains()[2], testName)[1]
 }
 
 // GetChannelsForTest returns all channels for the specified test.
@@ -554,6 +564,11 @@ func (s *E2ETestSuite) CreateUserOnChainC(ctx context.Context, amount int64) ibc
 	return s.createWalletOnChainIndex(ctx, amount, 2)
 }
 
+// CreateUserOnChainD creates a user with the given amount of funds on chain C.
+func (s *E2ETestSuite) CreateUserOnChainD(ctx context.Context, amount int64) ibc.Wallet {
+	return s.createWalletOnChainIndex(ctx, amount, 3)
+}
+
 // createWalletOnChainIndex creates a wallet with the given amount of funds on the chain of the given index.
 func (s *E2ETestSuite) createWalletOnChainIndex(ctx context.Context, amount, chainIndex int64) ibc.Wallet {
 	chain := s.GetAllChains()[chainIndex]
@@ -577,15 +592,11 @@ func (s *E2ETestSuite) GetChainBNativeBalance(ctx context.Context, user ibc.Wall
 
 // GetChainBalanceForDenom returns the balance for a given denom given a chain.
 func GetChainBalanceForDenom(ctx context.Context, chain ibc.Chain, denom string, user ibc.Wallet) (int64, error) {
-	balanceResp, err := query.GRPCQuery[banktypes.QueryBalanceResponse](ctx, chain, &banktypes.QueryBalanceRequest{
-		Address: user.FormattedAddress(),
-		Denom:   denom,
-	})
+	resp, err := query.Balance(ctx, chain, user.FormattedAddress(), denom)
 	if err != nil {
 		return 0, err
 	}
-
-	return balanceResp.Balance.Amount.Int64(), nil
+	return resp.Int64(), nil
 }
 
 // AssertPacketRelayed asserts that the packet commitment does not exist on the sending chain.

@@ -3,9 +3,9 @@ package types
 import (
 	"context"
 
-	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"

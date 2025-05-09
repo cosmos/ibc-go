@@ -16,9 +16,9 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
+	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
@@ -332,12 +332,12 @@ func (suite *KeeperTestSuite) TestUnsetParams() {
 func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	suite.SetupTest()
 
-	// test if the ics4 wrapper is the channel keeper initially
+	// test if the ics4 wrapper is the pfm keeper initially
 	ics4Wrapper := suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
 
-	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
-	suite.Require().True(isChannelKeeper)
-	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
+	_, isPFMKeeper := ics4Wrapper.(*packetforwardkeeper.Keeper)
+	suite.Require().True(isPFMKeeper)
+	suite.Require().IsType((*packetforwardkeeper.Keeper)(nil), ics4Wrapper)
 
 	// set the ics4 wrapper to the channel keeper
 	suite.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(nil)
