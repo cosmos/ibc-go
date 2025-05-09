@@ -161,7 +161,6 @@ type SimApp struct {
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	ICAControllerKeeper   icacontrollerkeeper.Keeper
 	ICAHostKeeper         icahostkeeper.Keeper
-	PFMKeeper             packetforwardkeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	PFMKeeper             *packetforwardkeeper.Keeper
@@ -438,14 +437,11 @@ func NewSimApp(
 
 	var icaHostStack porttypes.IBCModule = icahost.NewIBCModule(app.ICAHostKeeper)
 
-	pfmStack := packetforward.NewIBCMiddleware(transferStack, &app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
-
 	// Add host, controller & ica auth modules to IBC router
 	ibcRouter.
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack).
-		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack). // ica with mock auth module stack route to ica (top level of middleware stack)
-		AddRoute(packetforwardtypes.ModuleName, pfmStack)
+		AddRoute(ibcmock.ModuleName+icacontrollertypes.SubModuleName, icaControllerStack) // ica with mock auth module stack route to ica (top level of middleware stack)
 
 	// create two separate mock v2 applications so that it is possible to test multi packet data.
 	mockV2A := mockv2.NewIBCModule()
