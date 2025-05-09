@@ -52,7 +52,21 @@ jobs:
     runs-on: depot-ubuntu-22.04-4
     strategy:
       matrix:
-        module: [{name: ibc-go, path: .},{name: 08-wasm, path: ./modules/light-clients/08-wasm}, {name: e2e, path: ./e2e}]
+        module: [
+          {
+            name: ibc-go, 
+            path: .
+          },
+          { 
+            name: 08-wasm, 
+            path: ./modules/light-clients/08-wasm
+          }, 
+          {
+            name: e2e, 
+            path: ./e2e,
+            additional-args: '-tags="test_e2e"'
+          }
+        ]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -62,7 +76,7 @@ jobs:
 
       - name: test & coverage report creation
         run: |
-          cd ${{ matrix.module.path }} && go test -mod=readonly -coverprofile=profile.out -covermode=atomic ./...
+          cd ${{ matrix.module.path }} && go test -mod=readonly -coverprofile=profile.out -covermode=atomic ${{ matrix.module.additional-args }} ./...
 
       - uses: codecov/codecov-action@v5
         with:
