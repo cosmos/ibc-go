@@ -7,11 +7,10 @@ on:
     paths:
       # upgrade tests will run on any changes to the upgrade_test.go file,
       # and changes to the workflow itself.
-      - 'e2e/tests/upgrades/upgrade_test.go'
+      - 'e2e/tests/upgrades/*.go'
       - '.github/workflows/e2e-upgrade.yaml'
   schedule:
     - cron: '0 0 * * *'
-
 
 jobs:
   upgrade-v7:

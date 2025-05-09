@@ -29,8 +29,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu build-essential
           echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+
       - name: Build ibc-go
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
+
+      - name: Build 08-wasm
+        run: |
+          cd modules/light-clients/08-wasm
+          GOARCH=${{ matrix.go-arch }} CGO_ENABLED=1 go build ./...
+
       - name: Build e2e
         run: |
           cd e2e
