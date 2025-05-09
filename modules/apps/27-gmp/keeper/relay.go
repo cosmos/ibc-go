@@ -79,6 +79,7 @@ func (k Keeper) executeTx(ctx sdk.Context, account sdk.AccountI, payload []byte)
 
 		protoAny, err := k.executeMsg(cacheCtx, msg)
 		if err != nil {
+			ctx.Logger().Error("failed to execute 27-gmp message", "msg", msg, "error", err)
 			return nil, err
 		}
 
@@ -86,6 +87,8 @@ func (k Keeper) executeTx(ctx sdk.Context, account sdk.AccountI, payload []byte)
 	}
 
 	writeCache()
+
+	ctx.Logger().Info("executed 27-gmp transaction", "account", account.GetAddress(), "msgs", msgs)
 
 	txResponse, err := proto.Marshal(txMsgData)
 	if err != nil {
