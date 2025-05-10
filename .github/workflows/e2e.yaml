@@ -88,11 +88,6 @@ jobs:
       - determine-image-tag
       - build-test-matrix
       - docker-build
-    env:
-      CHAIN_IMAGE: '${{ env.DOCKER_IMAGE_NAME }}'
-      CHAIN_A_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-      CHAIN_B_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-      E2E_CONFIG_PATH: 'ci-e2e-config.yaml'
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
@@ -106,6 +101,11 @@ jobs:
           cache-dependency-path: 'e2e/go.sum'
       - name: Run e2e Test
         id: e2e_test
+        env:
+          CHAIN_IMAGE: '${{ env.DOCKER_IMAGE_NAME }}'
+          CHAIN_A_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+          CHAIN_B_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+          E2E_CONFIG_PATH: 'ci-e2e-config.yaml'
         run: |
           cd e2e
           make e2e-test test=${{ matrix.test }}
