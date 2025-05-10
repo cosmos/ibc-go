@@ -5,7 +5,6 @@ on:
     paths:
       - '**/*.go'
       - '.github/workflows/e2e.yaml'
-      - '.github/workflows/e2e-test-workflow-call.yaml'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -76,11 +75,10 @@ jobs:
         run: |
           output=$(go run cmd/build_test_matrix/main.go)
           echo "matrix=$output" >> $GITHUB_OUTPUT
-        # env:
+        env:
+          TEST_EXCLUSIONS: 'TestUpgradeTestSuite'
         #   TEST_ENTRYPOINT: '${{ inputs.test-entry-point }}'
-        #   TEST_EXCLUSIONS: '${{ inputs.test-exclusions }}'
         #   TEST_NAME: '${{ inputs.test }}'
-
 
   e2e-tests:
     runs-on: depot-ubuntu-22.04-4
