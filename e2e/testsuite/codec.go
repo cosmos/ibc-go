@@ -89,7 +89,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 }
 
 // UnmarshalMsgResponses attempts to unmarshal the tx msg responses into the provided message types.
-func UnmarshalMsgResponses(txResp sdk.TxResponse, msgs ...codec.ProtoMarshaler) error {
+func UnmarshalMsgResponses(txResp sdk.TxResponse, msgs ...proto.Message) error {
 	cdc := Codec()
 	bz, err := hex.DecodeString(txResp.Data)
 	if err != nil {
