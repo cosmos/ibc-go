@@ -52,8 +52,6 @@ When testing a function under a variety of different inputs, we prefer to use [t
 
 All unit tests should use the testing package. Please see the testing package [README](../../testing/README.md) for more information.
 
-Test coverage is continuously deployed at [SonarCloud](https://sonarcloud.io/project/overview?id=cosmos_ibc-go). PRs that improve test coverage are welcome, but in general the test coverage should be used as a guidance for finding API use cases that are not covered by tests. We don't recommend adding tests that only improve coverage but not actually test a meaning use case.
-
 ## Documentation
 
 - If you open a PR on ibc-go, it is mandatory to update the relevant documentation in `/docs`.
