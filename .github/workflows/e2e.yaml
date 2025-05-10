@@ -77,8 +77,6 @@ jobs:
           echo "matrix=$output" >> $GITHUB_OUTPUT
         env:
           TEST_EXCLUSIONS: 'TestUpgradeTestSuite'
-        #   TEST_ENTRYPOINT: '${{ inputs.test-entry-point }}'
-        #   TEST_NAME: '${{ inputs.test }}'
 
   e2e-tests:
     runs-on: depot-ubuntu-22.04-4
