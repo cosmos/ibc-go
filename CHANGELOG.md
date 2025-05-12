@@ -38,6 +38,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* [\#8285](https://github.com/cosmos/ibc-go/pull/8285) Packet forward middleware.
+
 ### Dependencies
 
 * [\#8369](https://github.com/cosmos/ibc-go/pull/8369) Bump **github.com/CosmWasm/wasmvm** to **2.2.4**
