@@ -59,6 +59,15 @@ running tests locally via `make test`. For an example of this, see any of the ex
 New test suites should be composed of `testsuite.E2ETestSuite`. This type has lots of useful helper functionality that will
 be quite common in most tests.
 
+Override the default `SetupSuite` function with the number of chains required for the suite. Example:
+
+```go
+// SetupSuite sets up chains for the current test suite
+func (s *ConnectionTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil) // This suite requires at most two chains.
+}
+```
+
 > Note: see [here](#how-tests-are-run) for details about these requirements.
 
 ### Example of running a single test
