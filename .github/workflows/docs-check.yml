@@ -24,16 +24,6 @@ jobs:
       - name: Test build website
         run: cd docs && npm run build
 
-  links:
-    runs-on: depot-ubuntu-22.04-4
-    steps:
-      - uses: actions/checkout@v4
-      - uses: tcort/github-action-markdown-link-check@1.1.0
-        with:
-          config-file: '.github/link-check-config.json'
-          folder-path: ./docs
-          use-quiet-mode: true
-
   lint:
     runs-on: depot-ubuntu-22.04-4
     steps:

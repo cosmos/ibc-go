@@ -187,6 +187,20 @@ tag-docs-version:
 	@cd docs && npm run docusaurus docs:version $(DOCS_VERSION)
 endif
 
+check-docs-links:
+	@command -v lychee >/dev/null 2>&1 || { echo "ERROR: lychee is not installed (https://lychee.cli.rs/installation/)" >&2; exit 1; }
+	@echo "Checking links in documentation..."
+	@echo "$(CURDIR)"
+	@lychee --root-dir $(CURDIR)/docs/docs \
+		--cache \
+		--cache-exclude-status 429 \
+		--max-cache-age 1w \
+		--retry-wait-time 30 \
+		--max-retries 25 \
+		--max-concurrency 25 \
+		--remap '($(CURDIR)/docs)(/docs/)(architecture/|events/)([^#]+?)(#[^#]+)?$$ $$1/$$3/$$4.md' \
+		'./docs/docs'
+
 .PHONY: build-docs serve-docs tag-docs-version
 
 ###############################################################################
