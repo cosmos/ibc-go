@@ -431,6 +431,7 @@ func populateDefaults(tc TestConfig) TestConfig {
 		"chainD-1",
 	}
 
+	fmt.Printf("PopulateDefaults -> tc.ChainConfigs: %v\n", tc.ChainConfigs)
 	for i := range tc.ChainConfigs {
 		if tc.ChainConfigs[i].ChainID == "" {
 			tc.ChainConfigs[i].ChainID = chainIDs[i]
@@ -466,6 +467,7 @@ func populateDefaults(tc TestConfig) TestConfig {
 		tc.CometBFTConfig.LogLevel = "info"
 	}
 
+	fmt.Printf("\nAfter\nPopulateDefaults -> tc.ChainConfigs: %v\n", tc.ChainConfigs)
 	return tc
 }
 
