@@ -29,6 +29,10 @@ func TestForwardTransferSuite(t *testing.T) {
 	testifysuite.Run(t, new(PFMTestSuite))
 }
 
+func (s *PFMTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 4, nil)
+}
+
 func (s *PFMTestSuite) TestForwardPacket() {
 	t := s.T()
 	ctx := context.TODO()

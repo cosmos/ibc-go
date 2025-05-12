@@ -12,7 +12,6 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
-	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
@@ -28,13 +27,14 @@ type PFMUpgradeTestSuite struct {
 }
 
 func TestPFMUpgradeTestSuite(t *testing.T) {
+	// TODO: Enable as we clean up these tests #8360
 	t.Skip("Skipping as relayer is not relaying failed packets")
 	testCfg := testsuite.LoadConfig()
 	if testCfg.UpgradePlanName == "" {
 		t.Fatalf("%s must be set when running an upgrade test", testsuite.ChainUpgradePlanEnv)
 	}
 
-	testifysuite.Run(t, new(PFMUpgradeTestSuite))
+	// testifysuite.Run(t, new(PFMUpgradeTestSuite))
 }
 
 func updateGenesisChainB(option *testsuite.ChainOptions) {
