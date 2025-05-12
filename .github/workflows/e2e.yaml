@@ -1,22 +1,18 @@
-# The Tests / E2E workflow is used to run end-to-end tests on pull requests originating
-# from the ibc-go repository. The workflow is triggered on a PR opening, when new commits
-# are pushed to the PR, or when the PR is marked ready for review.
 name: Tests / E2E
 on:
   workflow_dispatch:
   pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - 'LICENSE'
-# cancel workflows if a new one is triggered on the same branch.
+    paths:
+      - '**/*.go'
+      - '.github/workflows/e2e.yaml'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+env:
+  DOCKER_IMAGE_NAME: ghcr.io/cosmos/ibc-go-simd
+
 jobs:
-  # determine-image-tag will either output the PR number e.g. pr-1234 or the string main.
-  # this will be used to tag the images that are built during the workflow.
   determine-image-tag:
     runs-on: depot-ubuntu-22.04-4
     outputs:
@@ -37,23 +33,83 @@ jobs:
             echo "simd-tag=$tag" >> $GITHUB_OUTPUT
           fi
 
-  # e2e generates the e2e tests for the non-forked PRs. It does so by using the
-  # e2e-test-workflow-call.yml each test runs the jobs defined in that file.
-  e2e:
-    needs: determine-image-tag # we are required to have a docker tag before we can build any images.
-    uses: ./.github/workflows/e2e-test-workflow-call.yml
-    # unless we explicitly tell the workflow to inherit secrets, required secrets such as GITHUB_TOKEN will not be
-    # provided to the workflow. This would cause privileged operations to fail.
-    secrets: inherit
-    with:
-      # with each test, we build an image from the current code.
-      build-and-push-docker-image: true
-      # if the test fails, we upload logs so that we can download them from the UI.
-      upload-logs: true
-      # with regular tests, both images are the same.
-      chain-a-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-      chain-b-tag: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-      # on regular PRs we won't run upgrade tests.
-      # NOTE: we are excluding TestTransferTestSuite as we run this full suite instead of each individual test.
-      test-exclusions: 'TestUpgradeTestSuite,TestTransferTestSuite,TestAuthzTransferTestSuite,TestTransferTestSuiteSendReceive,TestTransferTestSuiteSendEnabled,TestTransferLocalhostTestSuite,TestConnectionTestSuite,TestInterchainAccountsGovTestSuite'
-      temp-run-full-suite: true
+  docker-build:
+    runs-on: depot-ubuntu-22.04-4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            IBC_GO_VERSION=${{ github.ref_name }}
+
+  build-test-matrix:
+    runs-on: depot-ubuntu-22.04-4
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: cosmos/ibc-go
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: 'go.sum'
+      - id: set-matrix
+        run: |
+          output=$(go run cmd/build_test_matrix/main.go)
+          echo "matrix=$output" >> $GITHUB_OUTPUT
+        env:
+          TEST_EXCLUSIONS: 'TestUpgradeTestSuite'
+
+  e2e-tests:
+    runs-on: depot-ubuntu-22.04-4
+    needs:
+      - determine-image-tag
+      - build-test-matrix
+      - docker-build
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: cosmos/ibc-go
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: 'e2e/go.sum'
+      - name: Run e2e Test
+        id: e2e_test
+        env:
+          CHAIN_IMAGE: '${{ env.DOCKER_IMAGE_NAME }}'
+          CHAIN_A_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+          CHAIN_B_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+          E2E_CONFIG_PATH: 'ci-e2e-config.yaml'
+        run: |
+          cd e2e
+          make e2e-test test=${{ matrix.test }}
+      - name: Upload Diagnostics
+        uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        continue-on-error: true
+        with:
+          name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
+          path: e2e/diagnostics
+          retention-days: 5

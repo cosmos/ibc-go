@@ -1,6 +1,6 @@
 name: Tests / Code Coverage
 #  Tests / Code Coverage workflow runs unit tests and uploads a code coverage report
-#  This workflow is run on pushes to main & every Pull Requests where a .go, .mod, .sum have been changed
+#  This workflow is run on pushes to main & every pull requests
 on:
   merge_group:
   pull_request:
@@ -8,15 +8,11 @@ on:
     branches:
       - main
 
-jobs:
-  cleanup-runs:
-    runs-on: depot-ubuntu-22.04-4
-    steps:
-      - uses: rokroskar/workflow-run-cleanup-action@master
-        env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main'"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
+jobs:
   build:
     runs-on: depot-ubuntu-22.04-4
     strategy:
@@ -27,23 +23,21 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
-      - uses: technote-space/get-diff-action@v6.1.2
-        id: git_diff
-        with:
-          PATTERNS: |
-            **/**.go
-            go.mod
-            go.sum
-            **/go.mod
-            **/go.sum
       - name: Install compiler for arm64.
         if: matrix.go-arch == 'arm64'
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu build-essential
           echo "CC=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+
       - name: Build ibc-go
         run: GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=false make build
+
+      - name: Build 08-wasm
+        run: |
+          cd modules/light-clients/08-wasm
+          GOARCH=${{ matrix.go-arch }} CGO_ENABLED=1 go build ./...
+
       - name: Build e2e
         run: |
           cd e2e
@@ -54,103 +48,39 @@ jobs:
               fi
           done
 
-  split-test-files:
+  unit-tests:
     runs-on: depot-ubuntu-22.04-4
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-      - name: Create a file with all the pkgs
-        run: go list ./... | grep -v e2e > pkgs.txt
-      - name: Split pkgs into 4 files
-        run: split -d -n l/4 pkgs.txt pkgs.txt.part.
-      # cache multiple
-      - uses: actions/upload-artifact@v4
-        with:
-          name: '${{ github.sha }}-00'
-          path: ./pkgs.txt.part.00
-      - uses: actions/upload-artifact@v4
-        with:
-          name: '${{ github.sha }}-01'
-          path: ./pkgs.txt.part.01
-      - uses: actions/upload-artifact@v4
-        with:
-          name: '${{ github.sha }}-02'
-          path: ./pkgs.txt.part.02
-      - uses: actions/upload-artifact@v4
-        with:
-          name: '${{ github.sha }}-03'
-          path: ./pkgs.txt.part.03
-
-  tests:
-    runs-on: depot-ubuntu-22.04-4
-    needs: split-test-files
     strategy:
-      fail-fast: false
       matrix:
-        part: ['00', '01', '02', '03']
+        module: [
+          {
+            name: ibc-go, 
+            path: .
+          },
+          { 
+            name: 08-wasm, 
+            path: ./modules/light-clients/08-wasm
+          }, 
+          {
+            name: e2e, 
+            path: ./e2e,
+            additional-args: '-tags="test_e2e"'
+          }
+        ]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
-      - uses: technote-space/get-diff-action@v6.1.2
-        with:
-          PATTERNS: |
-            **/**.go
-            go.mod
-            go.sum
-            **/go.mod
-            **/go.sum
-      - uses: actions/download-artifact@v4
-        with:
-          name: '${{ github.sha }}-${{ matrix.part }}'
-        if: env.GIT_DIFF
+          cache-dependency-path: '${{ matrix.module.path }}/go.sum'
+
       - name: test & coverage report creation
         run: |
-          cat pkgs.txt.part.${{ matrix.part }} | xargs go test -mod=readonly -timeout 30m -coverprofile=${{ matrix.part }}profile.out -covermode=atomic -tags='ledger test_ledger_mock'
-        if: env.GIT_DIFF
-      - uses: actions/upload-artifact@v4
-        if: env.GIT_DIFF
-        with:
-          name: '${{ github.sha }}-${{ matrix.part }}-coverage'
-          path: ./${{ matrix.part }}profile.out
+          cd ${{ matrix.module.path }} && go test -mod=readonly -coverprofile=profile.out -covermode=atomic ${{ matrix.module.additional-args }} ./...
 
-  code-analysis:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
-    runs-on: depot-ubuntu-22.04-4
-    needs: [tests]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: technote-space/get-diff-action@v6.1.2
-        id: git_diff
+      - uses: codecov/codecov-action@v5
         with:
-          PATTERNS: |
-            **/*.go
-            go.mod
-            go.sum
-            **/go.mod
-            **/go.sum
-      - uses: actions/download-artifact@v4
-        if: env.GIT_DIFF
-        with:
-          name: '${{ github.sha }}-00-coverage'
-      - uses: actions/download-artifact@v4
-        if: env.GIT_DIFF
-        with:
-          name: '${{ github.sha }}-01-coverage'
-      - uses: actions/download-artifact@v4
-        if: env.GIT_DIFF
-        with:
-          name: '${{ github.sha }}-02-coverage'
-      - uses: actions/download-artifact@v4
-        if: env.GIT_DIFF
-        with:
-          name: '${{ github.sha }}-03-coverage'
-      - name: sonarcloud
-        if: ${{ env.GIT_DIFF && !github.event.pull_request.draft }}
-        uses: SonarSource/sonarqube-scan-action@v5.1.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          fail_ci_if_error: true
+          files: ${{ matrix.module.path }}/profile.out
+          flags: ${{ matrix.module.name }}
+          token: ${{ secrets.CODECOV_TOKEN }}
