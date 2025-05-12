@@ -444,6 +444,11 @@ func populateDefaults(tc TestConfig) TestConfig {
 		if tc.ChainConfigs[i].NumValidators == 0 {
 			tc.ChainConfigs[i].NumValidators = 1
 		}
+
+		// If tag not given for chain C and D, set to chain A' tag
+		if tc.ChainConfigs[i].Tag == "" && i != 0 {
+			tc.ChainConfigs[i].Tag = tc.ChainConfigs[0].Tag
+		}
 	}
 
 	if tc.ActiveRelayer == "" {
@@ -698,8 +703,8 @@ func DefaultChainOptions(chainCount int) (ChainOptions, error) {
 	}
 
 	specs := make([]*interchaintest.ChainSpec, 0, chainCount)
-	for i := 0; i < chainCount; i++ {
-		denom := "atom" + string('a'+i)
+	for i := range chainCount {
+		denom := fmt.Sprintf("atom%c", 'a'+i)
 		chainName := tc.GetChainName(i)
 		chainID := tc.GetChainID(i)
 		cfg := newDefaultSimappConfig(tc.ChainConfigs[0], chainName, chainID, denom, tc.CometBFTConfig)
