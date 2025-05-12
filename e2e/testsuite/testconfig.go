@@ -403,7 +403,16 @@ func getConfig() TestConfig {
 		return fromEnv()
 	}
 
-	return applyEnvironmentVariableOverrides(fileTc)
+	testCfg := applyEnvironmentVariableOverrides(fileTc)
+
+	// If tags for chain C and D are not present in the file, also not set in the CI, fallback to A
+	if testCfg.ChainConfigs[2].Tag == "" {
+		testCfg.ChainConfigs[2].Tag = testCfg.ChainConfigs[0].Tag
+	}
+	if testCfg.ChainConfigs[3].Tag == "" {
+		testCfg.ChainConfigs[3].Tag = testCfg.ChainConfigs[0].Tag
+	}
+	return testCfg
 }
 
 // fromFile returns a TestConfig from a json file and a boolean indicating if the file was found.
@@ -431,7 +440,6 @@ func populateDefaults(tc TestConfig) TestConfig {
 		"chainD-1",
 	}
 
-	fmt.Printf("PopulateDefaults -> tc.ChainConfigs: %v\n", tc.ChainConfigs)
 	for i := range tc.ChainConfigs {
 		if tc.ChainConfigs[i].ChainID == "" {
 			tc.ChainConfigs[i].ChainID = chainIDs[i]
@@ -467,7 +475,6 @@ func populateDefaults(tc TestConfig) TestConfig {
 		tc.CometBFTConfig.LogLevel = "info"
 	}
 
-	fmt.Printf("\nAfter\nPopulateDefaults -> tc.ChainConfigs: %v\n", tc.ChainConfigs)
 	return tc
 }
 
