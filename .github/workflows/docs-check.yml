@@ -1,0 +1,52 @@
+name: Check docs build
+on:
+  merge_group:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '.github/workflows/check-docs.yml'
+
+jobs:
+  build:
+    runs-on: depot-ubuntu-22.04-4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install dependencies
+        run: cd docs && npm ci
+      - name: Test build website
+        run: cd docs && npm run build
+
+  links:
+    runs-on: depot-ubuntu-22.04-4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: tcort/github-action-markdown-link-check@v1
+        with:
+          config-file: '.github/link-check-config.json'
+          folder-path: ./docs
+          use-quiet-mode: true
+
+  lint:
+    runs-on: depot-ubuntu-22.04-4
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: tj-actions/changed-files@v46
+      id: changed-files
+      with:
+        files: 'docs/*.md'
+        separator: ","
+    - uses: DavidAnson/markdownlint-cli2-action@v19
+      if: steps.changed-files.outputs.any_changed == 'true'
+      with:
+        globs: ${{ steps.changed-files.outputs.all_changed_files }}
+        separator: ","
