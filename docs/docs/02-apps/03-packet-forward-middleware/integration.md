@@ -1,7 +1,7 @@
 # Integration
 
 This document provides instructions on integrating and configuring the Packet Forward Middleware (PFM) within your
-existing chain implementation. This document is _NOT_ a guide on developing with the Cosmos SDK or ibc-go and makes
+existing chain implementation. This document is *NOT* a guide on developing with the Cosmos SDK or ibc-go and makes
 the assumption that you have some existing codebase for your chain with IBC already enabled.
 
 The integration steps include the following:

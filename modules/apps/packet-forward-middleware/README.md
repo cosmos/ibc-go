@@ -1,4 +1,5 @@
 # packet-forward-middleware
+
 Middleware for forwarding IBC packets.
 
 Asynchronous acknowledgements are utilized for atomic multi-hop packet flows. The acknowledgement will only be written on the chain where the user initiated the packet flow after the forward/multi-hop sequence has completed (success or failure). This means that a user (i.e. an IBC application) only needs to monitor the chain where the initial transfer was sent for the response of the entire process.
@@ -15,6 +16,7 @@ initial IBC release.
 ## Sequence diagrams
 
 ### Let's stipulate the following connections between chains A, B, C, and D
+
 ```mermaid
 flowchart LR
     A((Chain A))
@@ -27,8 +29,8 @@ flowchart LR
     C <--"ch-4 ch-5 (IBC)"--> D
 ```
 
+### SCENARIO: Via PFM, Chain A wants to pass a message to Chain D (to which it's not directly connected)
 
-### SCENARIO: Via PFM, Chain A wants to pass a message to Chain D (to which it's not directly connected).
 ```mermaid
 sequenceDiagram
     autonumber
@@ -84,6 +86,7 @@ Utilizing the packet `memo` field, instructions can be encoded as JSON for multi
 - The packet `memo` is included in `MsgTransfer` by user on Chain A.
 
 memo:
+
 ```json
 {
   "forward": {
@@ -107,6 +110,7 @@ In the case of a timeout after 10 minutes for either forward, the packet would b
 `next` is the `memo` to pass for the next transfer hop. Per `memo` intended usage of a JSON string, it should be either JSON which will be Marshaled retaining key order, or an escaped JSON string which will be passed directly.
 
 `next` as JSON
+
 ```json
 {
   "forward": {
@@ -129,6 +133,7 @@ In the case of a timeout after 10 minutes for either forward, the packet would b
 ```
 
 `next` as escaped JSON string
+
 ```json
 {
   "forward": {
