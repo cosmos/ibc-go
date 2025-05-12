@@ -40,6 +40,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#8369](https://github.com/cosmos/ibc-go/pull/8369) Bump **github.com/CosmWasm/wasmvm** to **2.2.4**
+* [\#8369](https://github.com/cosmos/ibc-go/pull/8369) Bump **github.com/ethereum/go-ethereum** to **1.15.11**
+
 ### API Breaking
 
 ### State Machine Breaking
