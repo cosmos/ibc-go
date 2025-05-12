@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/v10
 
-go 1.23.8
+go 1.24
 
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
