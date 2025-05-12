@@ -45,6 +45,11 @@ type InterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *InterchainAccountsTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 // RegisterInterchainAccount will attempt to register an interchain account on the counterparty chain.
 func (s *InterchainAccountsTestSuite) RegisterInterchainAccount(ctx context.Context, chain ibc.Chain, user ibc.Wallet, msgRegisterAccount *controllertypes.MsgRegisterInterchainAccount) {
 	txResp := s.BroadcastMessages(ctx, chain, user, msgRegisterAccount)

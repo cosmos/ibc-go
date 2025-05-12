@@ -53,6 +53,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 ### Testing API
+* [\#8371](https://github.com/cosmos/ibc-go/pull/8371) e2e: Create only necessary number of chains for e2e suite.
 
 ## [v10.2.0](https://github.com/cosmos/ibc-go/releases/tag/v10.2.0) - 2022-04-30
 

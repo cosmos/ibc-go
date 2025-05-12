@@ -61,6 +61,11 @@ func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Cha
 	return res.Params.AllowedClients
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *ClientTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 // TestScheduleIBCUpgrade_Succeeds tests that a governance proposal to schedule an IBC software upgrade is successful.
 // compatibility:TestScheduleIBCUpgrade_Succeeds:from_versions: v8.7.0,v10.0.0
 func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
