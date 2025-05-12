@@ -102,12 +102,6 @@ func (s *E2ETestSuite) initDockerClient() {
 	s.network = network
 }
 
-// SetupSuite will by default create chains with no additional options. If additional options are required,
-// the test suite must define the SetupSuite function and provide the required options.
-// func (s *E2ETestSuite) SetupSuite(chainCount int) {
-// 	s.SetupChains(context.TODO(), chainCount, nil)
-// }
-
 // configureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
 func (s *E2ETestSuite) configureGenesisDebugExport() {
 	tc := LoadConfig()
