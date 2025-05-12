@@ -28,7 +28,7 @@ jobs:
     runs-on: depot-ubuntu-22.04-4
     steps:
       - uses: actions/checkout@v4
-      - uses: tcort/github-action-markdown-link-check@v1
+      - uses: tcort/github-action-markdown-link-check@1.1.0
         with:
           config-file: '.github/link-check-config.json'
           folder-path: ./docs
