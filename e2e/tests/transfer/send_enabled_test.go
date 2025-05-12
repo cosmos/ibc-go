@@ -29,7 +29,7 @@ type TransferTestSuiteSendEnabled struct {
 }
 
 func (s *TransferTestSuiteSendEnabled) SetupSuite() {
-	s.SetupChains(context.TODO(), nil, func(options *testsuite.ChainOptions) {
+	s.SetupChains(context.TODO(), 2, nil, func(options *testsuite.ChainOptions) {
 		options.RelayerCount = 1
 	})
 }

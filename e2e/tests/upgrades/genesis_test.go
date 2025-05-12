@@ -37,6 +37,27 @@ type GenesisTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *GenesisTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
+// TODO: this configuration was originally being applied to `GetChains` in the test body, but it is not
+// actually being propagated correctly. If we want to apply the configuration, we can uncomment this code
+// however the test actually fails when this is done.
+// func (s *GenesisTestSuite) SetupSuite() {
+//	configFileOverrides := make(map[string]any)
+//	appTomlOverrides := make(test.Toml)
+//
+//	appTomlOverrides["halt-height"] = haltHeight
+//	configFileOverrides["config/app.toml"] = appTomlOverrides
+//
+//	s.SetupChains(context.TODO(), nil, func(options *testsuite.ChainOptions) {
+//		// create chains with specified chain configuration options
+//		options.ChainSpecs[0].ConfigFileOverrides = configFileOverrides
+//	})
+// }
+
 func (s *GenesisTestSuite) TestIBCGenesis() {
 	t := s.T()
 

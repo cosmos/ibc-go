@@ -30,6 +30,11 @@ type TransferTestSuite struct {
 	transferTester
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *TransferTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 // transferTester defines some helper functions that can be used in various test suites
 // that test transfer functionality.
 type transferTester struct {

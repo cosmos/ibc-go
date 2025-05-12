@@ -33,6 +33,11 @@ type AuthzTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *AuthzTransferTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 func (suite *AuthzTransferTestSuite) CreateAuthzTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
 	return suite.CreatePaths(ibc.DefaultClientOpts(), suite.TransferChannelOptions(), testName), suite.GetChainAToChainBChannel(testName)
 }

@@ -34,6 +34,11 @@ type ConnectionTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *ConnectionTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 func (s *ConnectionTestSuite) CreateConnectionTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
 	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAToChainBChannel(testName)
 }
