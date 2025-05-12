@@ -7,8 +7,8 @@
 # | CHAIN_IMAGE          | The image that will be used for the chain | ghcr.io/cosmos/ibc-go-simd   |
 # | CHAIN_A_TAG          | The tag used for chain A                  | N/A (must be set)            |
 # | CHAIN_B_TAG          | The tag used for chain B                  | N/A (must be set)            |
-# | CHAIN_C_TAG          | The tag used for chain C                  | N/A (must be set)            |
-# | CHAIN_D_TAG          | The tag used for chain D                  | N/A (must be set)            |
+# | CHAIN_C_TAG          | The tag used for chain C                  | N/A (optional; fallback to A)|
+# | CHAIN_D_TAG          | The tag used for chain D                  | N/A (optional; fallback to A)|
 # | CHAIN_BINARY         | The binary used in the container          | simd                         |
 # | RELAYER_TAG          | The tag used for the relayer              | 1.10.4                       |
 # | RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes                       |
