@@ -55,7 +55,7 @@ func updateGenesisChainB(option *testsuite.ChainOptions) {
 }
 
 func (s *PFMUpgradeTestSuite) SetupSuite() {
-	s.SetupChains(context.TODO(), nil, updateGenesisChainB)
+	s.SetupChains(context.TODO(), 4, nil, updateGenesisChainB)
 }
 
 func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
