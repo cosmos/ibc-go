@@ -171,7 +171,9 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, chainCount int, channelO
 	s.initState()
 	s.configureGenesisDebugExport()
 
-	chainOptions := DefaultChainOptions()
+	chainOptions, err := DefaultChainOptions(chainCount)
+	s.Require().NoError(err)
+
 	for _, opt := range chainSpecOpts {
 		opt(&chainOptions)
 	}
