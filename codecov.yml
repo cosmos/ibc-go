@@ -1,0 +1,24 @@
+coverage:
+  precision: 2
+  range:
+  - 70.0
+  - 100.0
+  round: down
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0%
+        base: auto
+ignore:
+- ^docs.*
+- (?s:[^\/]*\.md.*)\Z
+- (?s:.*/[^\/]*\.pb\.go.*)\Z
+- (?s:.*/[^\/]*\.pb\.gw\.go.*)\Z
+- (?s:modules/.*/.*/.*/[^\/]*\.pb\.go.*)\Z
+- (?s:modules/.*/.*/.*/[^\/]*\.pb\.gw\.go.*)\Z
+- ^testing/.*
+- ^scripts/.*
+- ^contrib/.*
+- ^e2e/.*
+- ^cmd/.*
