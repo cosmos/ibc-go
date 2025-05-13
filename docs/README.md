@@ -65,6 +65,15 @@ npm run serve
 
 This command starts a local production server and opens up a browser window.
 
+### Lint
+
+From the root of the repo:
+```bash
+make lint-docs
+```
+
+This command will run `markdownlint-cli2` (if you don't have it installed, see the [install docs](https://github.com/DavidAnson/markdownlint-cli2#install) and lint all markdown files in `./docs/docs` (i.e. it will not lint versioned docs).
+
 ### Check links
 
 From the root of the repo:
