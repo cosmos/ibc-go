@@ -30,13 +30,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - uses: tj-actions/changed-files@v46
-      id: changed-files
-      with:
-        files: 'docs/docs/**/*.md'
-        separator: ","
     - uses: DavidAnson/markdownlint-cli2-action@v19
-      if: steps.changed-files.outputs.any_changed == 'true'
       with:
-        globs: ${{ steps.changed-files.outputs.all_changed_files }}
-        separator: ","
+        globs: ./docs/docs/**/*.md
+
