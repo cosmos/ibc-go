@@ -190,7 +190,6 @@ endif
 check-docs-links:
 	@command -v lychee >/dev/null 2>&1 || { echo "ERROR: lychee is not installed (https://lychee.cli.rs/installation/)" >&2; exit 1; }
 	@echo "Checking links in documentation..."
-	@echo "$(CURDIR)"
 	@lychee --root-dir $(CURDIR)/docs/docs \
 		--cache \
 		--cache-exclude-status 429 \
@@ -200,6 +199,11 @@ check-docs-links:
 		--max-concurrency 25 \
 		--remap '($(CURDIR)/docs)(/docs/)(architecture/|events/)([^#]+?)(#[^#]+)?$$ $$1/$$3/$$4.md' \
 		'./docs/docs'
+
+lint-docs:
+	@command -v markdownlint-cli2 >/dev/null 2>&1 || { echo "ERROR: markdownlint-cli2 is not installed (https://github.com/DavidAnson/markdownlint-cli2#install)" >&2; exit 1; }
+	@echo "Linting documentation..."
+	@markdownlint-cli2 ./docs/docs/**/*.md
 
 .PHONY: build-docs serve-docs tag-docs-version
 
