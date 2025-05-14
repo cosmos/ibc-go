@@ -35,6 +35,11 @@ type InterchainAccountsQueryTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *InterchainAccountsQueryTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 // compatibility:TestInterchainAccountsQuery:from_versions: v7.10.0,v8.7.0,v10.0.0
 func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	t := s.T()

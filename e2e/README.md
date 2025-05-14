@@ -59,6 +59,15 @@ running tests locally via `make test`. For an example of this, see any of the ex
 New test suites should be composed of `testsuite.E2ETestSuite`. This type has lots of useful helper functionality that will
 be quite common in most tests.
 
+Override the default `SetupSuite` function with the number of chains required for the suite. Example:
+
+```go
+// SetupSuite sets up chains for the current test suite
+func (s *ConnectionTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil) // This suite requires at most two chains.
+}
+```
+
 > Note: see [here](#how-tests-are-run) for details about these requirements.
 
 ### Example of running a single test
@@ -224,11 +233,6 @@ See [this example](https://github.com/cosmos/ibc-go/actions/runs/11645461969) to
   may be some discrepancy in the logs collected and the output of interchaintest. The containers may run for a some
   time after the logs are collected, resulting in the displayed logs to differ slightly.
 
-## Importable Workflow
-
-This repository contains an [importable workflow](../.github/workflows/e2e-test-workflow-call.yml) that can be used from any other repository to test two chains. The workflow
-can be used to test both non-IBC chains, and also IBC-enabled chains.
-
 ### Prerequisites
 
 - In order to run this workflow, a docker container is required with tags for the versions you want to test.
@@ -236,40 +240,3 @@ can be used to test both non-IBC chains, and also IBC-enabled chains.
 - If you are running an upgrade, Have an upgrade handler in the chain binary which is being upgraded to.
 
 > It's worth noting that all github repositories come with a built-in docker registry that makes it convenient to build and push images to.
-
-[This workflow](https://github.com/cosmos/ibc-go/blob/1da651e5e117872499e3558c2a92f887369ae262/.github/workflows/release.yml#L35-L61) can be used as a reference for how to build a docker image
-whenever a git tag is pushed.
-
-### How to import the workflow
-
-You can refer to [this example](https://github.com/cosmos/ibc-go/blob/2933906d1ed25ae6dce7b7d93aa429dfa94c5a23/.github/workflows/e2e-upgrade.yaml#L9-L19) when including this workflow in your repo.
-
-The referenced job will do the following:
-
-- Create two chains using the image found at `ghcr.io/cosmos/ibc-go-simd:v4.3.0`.
-- Perform IBC transfers verifying core functionality.
-- Upgrade chain A to `ghcr.io/cosmos/ibc-go-simd:v5.1.0` by executing a governance proposal and using the plan name `normal upgrade`.
-- Perform additional IBC transfers and verifies the upgrade and migrations ran successfully.
-
-> Note: The plan name will always be specific to your chain. In this instance `normal upgrade` is referring to [this upgrade handler](https://github.com/cosmos/ibc-go/blob/e9bc0bac38e84e1380ec08552cae15821143a6b6/testing/simapp/app.go#L923)
-
-### Workflow Options
-
-For a full list of options that can be passed to the workflow, see the [workflow file](../.github/workflows/e2e-test-workflow-call.yml).
-
-## Future Improvements
-
-- We are transitioning to running a single test per host, to running a full test suite per host. This will allow us to
-  run more tests in parallel and reduce the time it takes to run the full suite. (see `make e2e-test` and `make e2e-suite`). Eventually we would like to run all tests with `make e2e-suite`.
-  However, it may not be possible run compatibility tests in this fashion, as there was a concurrency issue in older versions of the SDK that caused chains to panic. See [this issue](https://github.com/cosmos/cosmos-sdk/pull/21073) for more details.
-  Because of this, it may be necessary to run compatibility tests in a single test per host fashion.
-- When running `make e2e-suite` we currently pre-create relayers, as each test uses a different relayer.
-  An improvement would be to ensure that only enough relayers are created to satisfy the tests that are being run. This may require some changes to interchaintest and/or ibc-go test code. See [this issue](https://github.com/cosmos/ibc-go/issues/7578) for more details.
-- There is a lot of duplication in the e2e test code. It would be nice to refactor the tests themselves to be more composable. For example, lots of tests perform an ics20 transfer, it would be nice to have
-  this logic abstracted away into a helper function and be able to call this function from multiple tests.
-- We currently have some e2e workflows that may no longer be necessary, such as the [e2e manual simd](../.github/workflows/e2e-manual-simd.yaml). These manual dispatch workflows were utilized a lot in the past, but are not used as much anymore.  
-  It may be safe to remove these in the future. See [this issue](https://github.com/cosmos/ibc-go/issues/7579) for more details.
-- We currently are maintaining a lot of different simapps, all with different configurations and wiring in their app.gos. Ideally, we only need to maintain a single one. Some refactoring will be necessary to achieve this. See [this](https://github.com/cosmos/ibc-go/issues/4527) related issue.
-- The current parallel tests establish a connection and run each test on a different channel. This will need to be refactored once the IBC v2 is shipped, however consideration will need to be made for backwards compatibility tests. Both flows may need to be supported.
-- CI still relies on passing lots of environment variables, it should be possible to provide a default CI configuration file to be used, and override specifics such as chain image, relayer image, etc. with environment variables. Or template configuration files in some way. This is tracked [here](https://github.com/cosmos/ibc-go/issues/4697).
-- Currently, there is a single denom used for all tests. Ideally, there is a dynamically generated denom used on a per test level. The fact that a single denom is shared means certain features may not be testable in parallel, for example [this](https://github.com/cosmos/ibc-go/blob/main/e2e/tests/transfer/base_test.go#L94-L101).

@@ -40,6 +40,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#8369](https://github.com/cosmos/ibc-go/pull/8369) Bump **github.com/CosmWasm/wasmvm** to **2.2.4**
+* [\#8369](https://github.com/cosmos/ibc-go/pull/8369) Bump **github.com/ethereum/go-ethereum** to **1.15.11**
+
 ### API Breaking
 
 ### State Machine Breaking
@@ -50,6 +53,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 ### Testing API
+* [\#8371](https://github.com/cosmos/ibc-go/pull/8371) e2e: Create only necessary number of chains for e2e suite.
 
 ## [v10.2.0](https://github.com/cosmos/ibc-go/releases/tag/v10.2.0) - 2022-04-30
 
