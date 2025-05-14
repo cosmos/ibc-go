@@ -138,18 +138,9 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 				Amount: originalCoin.Amount.String(),
 			}
 
-			transferData := types.NewFungibleTokenPacketData(
-				token.Denom.Path(),
-				token.Amount,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(),
-				"",
-			)
+			transferData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), "")
 			bz := suite.chainA.Codec.MustMarshal(&transferData)
-			payload = channeltypesv2.NewPayload(
-				types.PortID, types.PortID, types.V1,
-				types.EncodingProtobuf, bz,
-			)
+			payload = channeltypesv2.NewPayload(types.PortID, types.PortID, types.V1, types.EncodingProtobuf, bz)
 
 			// malleate payload
 			tc.malleate()
@@ -161,18 +152,20 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 
 			if tc.expError != nil {
 				suite.Require().Contains(err.Error(), tc.expError.Error())
-			} else {
-				suite.Require().NoError(err)
-
-				escrowAddress := types.GetEscrowAddress(types.PortID, suite.pathAToB.EndpointA.ClientID)
-				// check that the balance for chainA is updated
-				chainABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), originalCoin.Denom)
-				suite.Require().Equal(originalBalance.Amount.Sub(amount).Int64(), chainABalance.Amount.Int64())
-
-				// check that module account escrow address has locked the tokens
-				chainAEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, originalCoin.Denom)
-				suite.Require().Equal(originalCoin, chainAEscrowBalance)
+				return
 			}
+
+			suite.Require().NoError(err)
+
+			escrowAddress := types.GetEscrowAddress(types.PortID, suite.pathAToB.EndpointA.ClientID)
+			// check that the balance for chainA is updated
+			chainABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), originalCoin.Denom)
+			suite.Require().Equal(originalBalance.Amount.Sub(amount).Int64(), chainABalance.Amount.Int64())
+
+			// check that module account escrow address has locked the tokens
+			chainAEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, originalCoin.Denom)
+			suite.Require().Equal(originalCoin, chainAEscrowBalance)
+
 		})
 	}
 }
@@ -237,30 +230,16 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			suite.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
-			msg := types.NewMsgTransferWithEncoding(
-				types.PortID, suite.pathAToB.EndpointA.ClientID,
-				originalCoin, suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{},
-				timeoutTimestamp, "", types.EncodingProtobuf,
-			)
-			_, err := suite.chainA.SendMsgs(msg)
+			msg := types.NewMsgTransferWithEncoding(types.PortID, suite.pathAToB.EndpointA.ClientID, originalCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf)
+			resp, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
-			token, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(suite.chainA.GetContext(), originalCoin)
+			packets, err := ibctesting.ParseIBCV2Packets(channeltypes.EventTypeSendPacket, resp.Events)
 			suite.Require().NoError(err)
 
-			transferData := types.NewFungibleTokenPacketData(
-				token.Denom.Path(),
-				token.Amount,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(),
-				"",
-			)
-			bz := suite.chainA.Codec.MustMarshal(&transferData)
-			payload = channeltypesv2.NewPayload(
-				types.PortID, types.PortID, types.V1,
-				types.EncodingProtobuf, bz,
-			)
+			suite.Require().Len(packets, 1)
+			suite.Require().Len(packets[0].Payloads, 1)
+			payload = packets[0].Payloads[0]
 
 			ctx := suite.chainB.GetContext()
 			cbs := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
@@ -268,35 +247,33 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			// malleate payload after it has been sent but before OnRecvPacket callback is called
 			tc.malleate()
 
-			recvResult := cbs.OnRecvPacket(
-				ctx, suite.pathAToB.EndpointA.ClientID, suite.pathAToB.EndpointB.ClientID,
-				1, payload, suite.chainB.SenderAccount.GetAddress(),
-			)
+			recvResult := cbs.OnRecvPacket(ctx, suite.pathAToB.EndpointA.ClientID, suite.pathAToB.EndpointB.ClientID, packets[0].Sequence, payload, suite.chainB.SenderAccount.GetAddress())
 
-			if !tc.expErr {
-
-				suite.Require().Equal(channeltypesv2.PacketStatus_Success, recvResult.Status)
-				suite.Require().Equal(channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(), recvResult.Acknowledgement)
-
-				escrowAddress := types.GetEscrowAddress(types.PortID, suite.pathAToB.EndpointA.ClientID)
-				// check that the balance for chainA is updated
-				chainABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), originalCoin.Denom)
-				suite.Require().Equal(originalBalance.Amount.Sub(amount).Int64(), chainABalance.Amount.Int64())
-
-				// check that module account escrow address has locked the tokens
-				chainAEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, originalCoin.Denom)
-				suite.Require().Equal(originalCoin, chainAEscrowBalance)
-
-				traceAToB := types.NewHop(types.PortID, suite.pathAToB.EndpointB.ClientID)
-
-				// check that voucher exists on chain B
-				chainBDenom := types.NewDenom(originalCoin.Denom, traceAToB)
-				chainBBalance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), chainBDenom.IBCDenom())
-				coinSentFromAToB := sdk.NewCoin(chainBDenom.IBCDenom(), amount)
-				suite.Require().Equal(coinSentFromAToB, chainBBalance)
-			} else {
+			if tc.expErr {
 				suite.Require().Equal(channeltypesv2.PacketStatus_Failure, recvResult.Status)
+				return
 			}
+
+			suite.Require().Equal(channeltypesv2.PacketStatus_Success, recvResult.Status)
+			suite.Require().Equal(channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement(), recvResult.Acknowledgement)
+
+			escrowAddress := types.GetEscrowAddress(types.PortID, suite.pathAToB.EndpointA.ClientID)
+			// check that the balance for chainA is updated
+			chainABalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), originalCoin.Denom)
+			suite.Require().Equal(originalBalance.Amount.Sub(amount).Int64(), chainABalance.Amount.Int64())
+
+			// check that module account escrow address has locked the tokens
+			chainAEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, originalCoin.Denom)
+			suite.Require().Equal(originalCoin, chainAEscrowBalance)
+
+			traceAToB := types.NewHop(types.PortID, suite.pathAToB.EndpointB.ClientID)
+
+			// check that voucher exists on chain B
+			chainBDenom := types.NewDenom(originalCoin.Denom, traceAToB)
+			chainBBalance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), chainBDenom.IBCDenom())
+			coinSentFromAToB := sdk.NewCoin(chainBDenom.IBCDenom(), amount)
+			suite.Require().Equal(coinSentFromAToB, chainBBalance)
+
 		})
 	}
 }
