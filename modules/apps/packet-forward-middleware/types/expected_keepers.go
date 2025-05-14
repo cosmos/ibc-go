@@ -26,8 +26,6 @@ type TransferKeeper interface {
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
-	GetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) []byte
-	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 
 	// Only used for v3 migration
 	GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []channeltypes.IdentifiedChannel
