@@ -125,7 +125,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenInit() {
 				"invalid counterparty port ID",
 				func() {
 					path.EndpointA.SetChannel(*channel)
-					channel.Counterparty.PortId = "invalid-port-id"
+					channel.Counterparty.PortId = "invalid-port-id" //nolint:goconst
 				},
 				icatypes.ErrInvalidHostPort,
 			},
@@ -311,7 +311,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenAck() {
 		{
 			"invalid port ID - unexpected prefix",
 			func() {
-				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
+				path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 			},
 			icatypes.ErrInvalidControllerPort,
 		},
