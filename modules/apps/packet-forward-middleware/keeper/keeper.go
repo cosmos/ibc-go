@@ -335,20 +335,16 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 func (k *Keeper) TimeoutShouldRetry(ctx sdk.Context, packet channeltypes.Packet) (*types.InFlightPacket, error) {
 	store := k.storeService.OpenKVStore(ctx)
 	key := types.RefundPacketKey(packet.SourceChannel, packet.SourcePort, packet.Sequence)
-
-	hasKey, err := store.Has(key)
-	if err != nil {
-		return nil, err
-	}
-	if !hasKey {
-		// not a forwarded packet, ignore.
-		return nil, nil
-	}
-
 	bz, err := store.Get(key)
 	if err != nil {
 		return nil, err
 	}
+
+	// Not a forwarded packet. Ignore.
+	if len(bz) == 0 {
+		return nil, nil
+	}
+
 	var inFlightPacket types.InFlightPacket
 	k.cdc.MustUnmarshal(bz, &inFlightPacket)
 
