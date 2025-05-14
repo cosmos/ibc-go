@@ -397,6 +397,21 @@ func (k *Keeper) RetryTimeout(ctx sdk.Context, channel, port string, data transf
 	return k.ForwardTransferPacket(ctx, inFlightPacket, channeltypes.Packet{}, "", data.Sender, metadata, token, uint8(inFlightPacket.RetriesRemaining), time.Duration(inFlightPacket.Timeout)*time.Nanosecond, nil, inFlightPacket.Nonrefundable)
 }
 
+func (k *Keeper) GetInflightPacket(ctx sdk.Context, packet channeltypes.Packet) (*types.InFlightPacket, error) {
+	store := k.storeService.OpenKVStore(ctx)
+	key := types.RefundPacketKey(packet.SourceChannel, packet.SourcePort, packet.Sequence)
+	bz, err := store.Get(key)
+	if err != nil {
+		return nil, err
+	}
+	if len(bz) == 0 {
+		return nil, nil
+	}
+	var inFlightPacket types.InFlightPacket
+	k.cdc.MustUnmarshal(bz, &inFlightPacket)
+	return &inFlightPacket, nil
+}
+
 func (k *Keeper) RemoveInFlightPacket(ctx sdk.Context, packet channeltypes.Packet) {
 	store := k.storeService.OpenKVStore(ctx)
 	key := types.RefundPacketKey(packet.SourceChannel, packet.SourcePort, packet.Sequence)
@@ -413,34 +428,6 @@ func (k *Keeper) RemoveInFlightPacket(ctx sdk.Context, packet channeltypes.Packe
 	if err := store.Delete(key); err != nil {
 		panic(err)
 	}
-}
-
-// TakeInFlightPacket will fetch an InFlightPacket from the store, remove it if it exists, and return it.
-func (k *Keeper) TakeInFlightPacket(ctx sdk.Context, channel string, port string, sequence uint64) *types.InFlightPacket {
-	store := k.storeService.OpenKVStore(ctx)
-	key := types.RefundPacketKey(channel, port, sequence)
-	hasKey, err := store.Has(key)
-	if err != nil {
-		panic(err)
-	}
-	if !hasKey {
-		// this is either not a forwarded packet, or it is the final destination for the refund.
-		return nil
-	}
-
-	bz, err := store.Get(key)
-	if err != nil {
-		panic(err)
-	}
-
-	// done with packet key now, delete.
-	if err := store.Delete(key); err != nil {
-		panic(err)
-	}
-
-	var inFlightPacket types.InFlightPacket
-	k.cdc.MustUnmarshal(bz, &inFlightPacket)
-	return &inFlightPacket
 }
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function

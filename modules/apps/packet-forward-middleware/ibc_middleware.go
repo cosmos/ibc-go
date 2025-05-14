@@ -299,8 +299,13 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion 
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	inFlightPacket := im.keeper.TakeInFlightPacket(ctx, packet.SourceChannel, packet.SourcePort, packet.Sequence)
+	inFlightPacket, err := im.keeper.GetInflightPacket(ctx, packet)
+	if err != nil {
+		return err
+	}
+
 	if inFlightPacket != nil {
+		im.keeper.RemoveInFlightPacket(ctx, packet)
 		// this is a forwarded packet, so override handling to avoid refund from being processed.
 		return im.keeper.WriteAcknowledgementForForwardedPacket(ctx, packet, data, inFlightPacket, ack)
 	}
