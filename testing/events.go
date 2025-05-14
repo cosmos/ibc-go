@@ -11,9 +11,11 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	"github.com/cosmos/gogoproto/proto"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
 // ParseClientIDFromEvents parses events emitted from a MsgCreateClient and returns the
@@ -60,7 +62,7 @@ func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 // the first EventTypeSendPacket packet found.
 // Returns an error if no packet is found.
 func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
-	packets, err := ParsePacketsFromEvents(channeltypes.EventTypeSendPacket, events)
+	packets, err := ParseIBCV1Packets(channeltypes.EventTypeSendPacket, events)
 	if err != nil {
 		return channeltypes.Packet{}, err
 	}
@@ -71,79 +73,136 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 // the first EventTypeRecvPacket packet found.
 // Returns an error if no packet is found.
 func ParseRecvPacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
-	packets, err := ParsePacketsFromEvents(channeltypes.EventTypeRecvPacket, events)
+	packets, err := ParseIBCV1Packets(channeltypes.EventTypeRecvPacket, events)
 	if err != nil {
 		return channeltypes.Packet{}, err
 	}
 	return packets[0], nil
 }
 
-// ParsePacketsFromEvents parses events emitted from a MsgRecvPacket and returns
-// all the packets found.
-// Returns an error if no packet is found.
-func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltypes.Packet, error) {
+// ParseIBCV1Packets parses events and returns all the v1 packets found.
+// Returns an error if no v1 packet is found.
+func ParseIBCV1Packets(eventType string, events []abci.Event) ([]channeltypes.Packet, error) {
 	ferr := func(err error) ([]channeltypes.Packet, error) {
-		return nil, fmt.Errorf("ibctesting.ParsePacketsFromEvents: %w", err)
+		return nil, fmt.Errorf("ibctesting.ParseIBCV1Packets: %w", err)
 	}
 	var packets []channeltypes.Packet
 	for _, ev := range events {
-		if ev.Type == eventType {
-			var packet channeltypes.Packet
-			for _, attr := range ev.Attributes {
-				switch attr.Key {
-				case channeltypes.AttributeKeyDataHex:
-					data, err := hex.DecodeString(attr.Value)
-					if err != nil {
-						return ferr(err)
-					}
-					packet.Data = data
-				case channeltypes.AttributeKeySequence:
-					seq, err := strconv.ParseUint(attr.Value, 10, 64)
-					if err != nil {
-						return ferr(err)
-					}
-
-					packet.Sequence = seq
-
-				case channeltypes.AttributeKeySrcPort:
-					packet.SourcePort = attr.Value
-
-				case channeltypes.AttributeKeySrcChannel:
-					packet.SourceChannel = attr.Value
-
-				case channeltypes.AttributeKeyDstPort:
-					packet.DestinationPort = attr.Value
-
-				case channeltypes.AttributeKeyDstChannel:
-					packet.DestinationChannel = attr.Value
-
-				case channeltypes.AttributeKeyTimeoutHeight:
-					height, err := clienttypes.ParseHeight(attr.Value)
-					if err != nil {
-						return ferr(err)
-					}
-
-					packet.TimeoutHeight = height
-
-				case channeltypes.AttributeKeyTimeoutTimestamp:
-					timestamp, err := strconv.ParseUint(attr.Value, 10, 64)
-					if err != nil {
-						return ferr(err)
-					}
-
-					packet.TimeoutTimestamp = timestamp
-
-				default:
-					continue
-				}
-			}
-
-			packets = append(packets, packet)
+		if ev.Type != eventType {
+			continue
 		}
+
+		var packet channeltypes.Packet
+		for _, attr := range ev.Attributes {
+			switch attr.Key {
+			case channeltypes.AttributeKeyDataHex:
+				data, err := hex.DecodeString(attr.Value)
+				if err != nil {
+					return ferr(err)
+				}
+				packet.Data = data
+			case channeltypes.AttributeKeySequence:
+				seq, err := strconv.ParseUint(attr.Value, 10, 64)
+				if err != nil {
+					return ferr(err)
+				}
+
+				packet.Sequence = seq
+
+			case channeltypes.AttributeKeySrcPort:
+				packet.SourcePort = attr.Value
+
+			case channeltypes.AttributeKeySrcChannel:
+				packet.SourceChannel = attr.Value
+
+			case channeltypes.AttributeKeyDstPort:
+				packet.DestinationPort = attr.Value
+
+			case channeltypes.AttributeKeyDstChannel:
+				packet.DestinationChannel = attr.Value
+
+			case channeltypes.AttributeKeyTimeoutHeight:
+				height, err := clienttypes.ParseHeight(attr.Value)
+				if err != nil {
+					return ferr(err)
+				}
+
+				packet.TimeoutHeight = height
+
+			case channeltypes.AttributeKeyTimeoutTimestamp:
+				timestamp, err := strconv.ParseUint(attr.Value, 10, 64)
+				if err != nil {
+					return ferr(err)
+				}
+
+				packet.TimeoutTimestamp = timestamp
+
+			default:
+				continue
+			}
+		}
+
+		packets = append(packets, packet)
 	}
 	if len(packets) == 0 {
 		return ferr(errors.New("acknowledgement event attribute not found"))
 	}
+	return packets, nil
+}
+
+// ParseIBCV2Packets parses events and returns all the v2 packets found.
+// Returns an error if no v2 packet is found.
+func ParseIBCV2Packets(eventType string, events []abci.Event) ([]channeltypesv2.Packet, error) {
+	packets := make([]channeltypesv2.Packet, 0)
+	for _, event := range events {
+		if event.Type != eventType {
+			continue
+		}
+
+		var packet channeltypesv2.Packet
+	Loop:
+		for _, attr := range event.Attributes {
+			switch attr.Key {
+			// If we find a complete packet, we unmarshall it. We don't need to check for any other
+			// attributes from this event.
+			case channeltypesv2.AttributeKeyEncodedPacketHex:
+				data, err := hex.DecodeString(attr.Value)
+				if err != nil {
+					return nil, fmt.Errorf("ibctesting.ParseIBCV2Packets: %w", err)
+				}
+				if err := proto.Unmarshal(data, &packet); err != nil {
+					return nil, fmt.Errorf("ibctesting.ParseIBCV2Packets: %w", err)
+				}
+				break Loop
+
+			case channeltypesv2.AttributeKeySequence:
+				seq, err := strconv.ParseUint(attr.Value, 10, 64)
+				if err != nil {
+					return nil, fmt.Errorf("ibctesting.ParseIBCV2Packets: %w", err)
+				}
+				packet.Sequence = seq
+
+			case channeltypesv2.AttributeKeyTimeoutTimestamp:
+				timestamp, err := strconv.ParseUint(attr.Value, 10, 64)
+				if err != nil {
+					return nil, fmt.Errorf("ibctesting.ParseIBCV2Packets: %w", err)
+				}
+				packet.TimeoutTimestamp = timestamp
+
+			case channeltypesv2.AttributeKeyDstClient:
+				packet.DestinationClient = attr.Value
+
+			case channeltypesv2.AttributeKeySrcClient:
+				packet.SourceClient = attr.Value
+			}
+		}
+		packets = append(packets, packet)
+	}
+
+	if len(packets) == 0 {
+		return nil, errors.New("no IBC v2 packets found in events")
+	}
+
 	return packets, nil
 }
 
