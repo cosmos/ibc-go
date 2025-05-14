@@ -15,7 +15,6 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/exported"
 	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 )
@@ -77,16 +76,12 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	keeper *keeper.Keeper
-
-	// legacySubspace is used solely for migration of x/params managed parameters
-	legacySubspace exported.Subspace
 }
 
 // NewAppModule creates a new packetforward module
-func NewAppModule(k *keeper.Keeper, ss exported.Subspace) AppModule {
+func NewAppModule(k *keeper.Keeper) AppModule {
 	return AppModule{
-		keeper:         k,
-		legacySubspace: ss,
+		keeper: k,
 	}
 }
 

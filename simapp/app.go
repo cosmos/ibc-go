@@ -502,7 +502,7 @@ func NewSimApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
-		packetforward.NewAppModule(app.PFMKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
+		packetforward.NewAppModule(app.PFMKeeper),
 
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),

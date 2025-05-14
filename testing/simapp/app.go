@@ -495,7 +495,7 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		mockModule,
-		packetforward.NewAppModule(app.PFMKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
+		packetforward.NewAppModule(app.PFMKeeper),
 
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
