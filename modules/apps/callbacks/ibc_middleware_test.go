@@ -44,7 +44,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 			func() {
 				_ = ibccallbacks.NewIBCMiddleware(nil, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
 			},
-			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
+			fmt.Errorf("underlying application does not implement %T", (*porttypes.PacketUnmarshalarModule)(nil)),
 		},
 		{
 			"panics with nil contract keeper",
@@ -998,7 +998,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 	s.Require().True(ok)
 
-	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
+	unmarshalerStack, ok := transferStack.(porttypes.PacketUnmarshalarModule)
 	s.Require().True(ok)
 
 	expPacketDataICS20V1 := transfertypes.FungibleTokenPacketData{

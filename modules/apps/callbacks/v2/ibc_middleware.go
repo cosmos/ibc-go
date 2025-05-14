@@ -63,7 +63,7 @@ func NewIBCMiddleware(
 ) IBCMiddleware {
 	packetDataUnmarshalerApp, ok := app.(types.CallbacksCompatibleModuleV2)
 	if !ok {
-		panic(fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)))
+		panic(fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModuleV2)(nil)))
 	}
 
 	if contractKeeper == nil {
