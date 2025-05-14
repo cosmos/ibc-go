@@ -7,11 +7,11 @@ import (
 	"slices"
 	"strconv"
 
+	"github.com/cosmos/gogoproto/proto"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/gogoproto/proto"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
