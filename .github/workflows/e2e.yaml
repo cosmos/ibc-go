@@ -35,6 +35,9 @@ jobs:
 
   docker-build:
     runs-on: depot-ubuntu-22.04-4
+    permissions:
+      packages: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Login to GitHub Container Registry

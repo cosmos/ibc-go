@@ -15,6 +15,9 @@ env:
 
 jobs:
   build-image-at-tag:
+    permissions:
+      packages: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -74,6 +77,9 @@ jobs:
 
   merge:
     runs-on: depot-ubuntu-22.04-4
+    permissions:
+      packages: write
+      contents: read
     needs:
       - build-image-at-tag
     steps:
