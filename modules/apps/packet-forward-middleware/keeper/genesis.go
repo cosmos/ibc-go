@@ -6,6 +6,8 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 )
 
+// TODO: Write unit tests #8321
+
 // InitGenesis
 func (k *Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	// Initialize store refund path for forwarded packets in genesis state that have not yet been acked.
