@@ -301,30 +301,16 @@ func (suite *TransferTestSuite) TestOnAckPacket() {
 			suite.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
-			msg := types.NewMsgTransferWithEncoding(
-				types.PortID, suite.pathAToB.EndpointA.ClientID,
-				originalCoin, suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{},
-				timeoutTimestamp, "", types.EncodingProtobuf,
-			)
-			_, err := suite.chainA.SendMsgs(msg)
-			suite.Require().NoError(err) // message committed
+			msg := types.NewMsgTransferWithEncoding(types.PortID, suite.pathAToB.EndpointA.ClientID, originalCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf)
 
-			token, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(suite.chainA.GetContext(), originalCoin)
+			resp, err := suite.chainA.SendMsgs(msg)
+			suite.Require().NoError(err) // message committed
+			packets, err := ibctesting.ParseIBCV2Packets(channeltypes.EventTypeSendPacket, resp.Events)
 			suite.Require().NoError(err)
 
-			transferData := types.NewFungibleTokenPacketData(
-				token.Denom.Path(),
-				token.Amount,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(),
-				"",
-			)
-			bz := suite.chainA.Codec.MustMarshal(&transferData)
-			payload := channeltypesv2.NewPayload(
-				types.PortID, types.PortID, types.V1,
-				types.EncodingProtobuf, bz,
-			)
+			suite.Require().Len(packets, 1)
+			suite.Require().Len(packets[0].Payloads, 1)
+			payload := packets[0].Payloads[0]
 
 			ctx := suite.chainA.GetContext()
 			cbs := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
@@ -333,7 +319,7 @@ func (suite *TransferTestSuite) TestOnAckPacket() {
 
 			err = cbs.OnAcknowledgementPacket(
 				ctx, suite.pathAToB.EndpointA.ClientID, suite.pathAToB.EndpointB.ClientID,
-				1, ack.Acknowledgement(), payload, suite.chainA.SenderAccount.GetAddress(),
+				packets[0].Sequence, ack.Acknowledgement(), payload, suite.chainA.SenderAccount.GetAddress(),
 			)
 			suite.Require().NoError(err)
 
@@ -398,30 +384,15 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			suite.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
-			msg := types.NewMsgTransferWithEncoding(
-				types.PortID, suite.pathAToB.EndpointA.ClientID,
-				originalCoin, suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{},
-				timeoutTimestamp, "", types.EncodingProtobuf,
-			)
-			_, err := suite.chainA.SendMsgs(msg)
+			msg := types.NewMsgTransferWithEncoding(types.PortID, suite.pathAToB.EndpointA.ClientID, originalCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf)
+			resp, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
-
-			token, err := suite.chainA.GetSimApp().TransferKeeper.TokenFromCoin(suite.chainA.GetContext(), originalCoin)
+			packets, err := ibctesting.ParseIBCV2Packets(channeltypes.EventTypeSendPacket, resp.Events)
 			suite.Require().NoError(err)
 
-			transferData := types.NewFungibleTokenPacketData(
-				token.Denom.Path(),
-				token.Amount,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(),
-				"",
-			)
-			bz := suite.chainA.Codec.MustMarshal(&transferData)
-			payload := channeltypesv2.NewPayload(
-				types.PortID, types.PortID, types.V1,
-				types.EncodingProtobuf, bz,
-			)
+			suite.Require().Len(packets, 1)
+			suite.Require().Len(packets[0].Payloads, 1)
+			payload := packets[0].Payloads[0]
 
 			// on successful send, the tokens sent in packets should be in escrow
 			escrowAddress := types.GetEscrowAddress(types.PortID, suite.pathAToB.EndpointA.ClientID)
@@ -436,10 +407,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			ctx := suite.chainA.GetContext()
 			cbs := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
 
-			err = cbs.OnTimeoutPacket(
-				ctx, suite.pathAToB.EndpointA.ClientID, suite.pathAToB.EndpointB.ClientID,
-				1, payload, suite.chainA.SenderAccount.GetAddress(),
-			)
+			err = cbs.OnTimeoutPacket(ctx, suite.pathAToB.EndpointA.ClientID, suite.pathAToB.EndpointB.ClientID, packets[0].Sequence, payload, suite.chainA.SenderAccount.GetAddress())
 			suite.Require().NoError(err)
 
 			// on timeout, the tokens sent in packets should be returned to sender
