@@ -268,6 +268,7 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 			}
 
 			err = path.EndpointB.MsgRecvPacket(packet)
+			suite.Require().NoError(err)
 
 			ck := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeperV2
 

@@ -213,7 +213,7 @@ func TestParseV1PacketsFromEvents(t *testing.T) {
 				require.ErrorContains(t, err, tc.expectedError)
 			}
 
-			firstPacket, err := ibctesting.ParsePacketFromEvents(tc.events)
+			firstPacket, err := ibctesting.ParseV1PacketFromEvents(tc.events)
 
 			if tc.expectedError == "" {
 				require.NoError(t, err)

@@ -192,7 +192,7 @@ func (suite *KeeperTestSuite) TestSendTransfer() {
 			result, err := suite.chainB.SendMsgs(transferMsg)
 			suite.Require().NoError(err) // message committed
 
-			packet, err := ibctesting.ParsePacketFromEvents(result.Events)
+			packet, err := ibctesting.ParseV1PacketFromEvents(result.Events)
 			suite.Require().NoError(err)
 
 			err = path.RelayPacket(packet)
@@ -285,7 +285,7 @@ func (suite *KeeperTestSuite) TestSendTransferSetsTotalEscrowAmountForSourceIBCT
 	result, err := suite.chainA.SendMsgs(transferMsg)
 	suite.Require().NoError(err) // message committed
 
-	packet, err := ibctesting.ParsePacketFromEvents(result.Events)
+	packet, err := ibctesting.ParseV1PacketFromEvents(result.Events)
 	suite.Require().NoError(err)
 
 	err = path1.RelayPacket(packet)

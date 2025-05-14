@@ -58,10 +58,10 @@ func ParseChannelIDFromEvents(events []abci.Event) (string, error) {
 	return "", errors.New("channel identifier event attribute not found")
 }
 
-// ParsePacketFromEvents parses events emitted from a send packet and returns
+// ParseV1PacketFromEvents parses events emitted from a send packet and returns
 // the first EventTypeSendPacket packet found.
 // Returns an error if no packet is found.
-func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
+func ParseV1PacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 	packets, err := ParseIBCV1Packets(channeltypes.EventTypeSendPacket, events)
 	if err != nil {
 		return channeltypes.Packet{}, err
@@ -69,10 +69,10 @@ func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 	return packets[0], nil
 }
 
-// ParseRecvPacketFromEvents parses events emitted from a MsgRecvPacket and returns
+// ParseRecvV1PacketFromEvents parses events emitted from a MsgRecvPacket and returns
 // the first EventTypeRecvPacket packet found.
 // Returns an error if no packet is found.
-func ParseRecvPacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
+func ParseRecvV1PacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
 	packets, err := ParseIBCV1Packets(channeltypes.EventTypeRecvPacket, events)
 	if err != nil {
 		return channeltypes.Packet{}, err
