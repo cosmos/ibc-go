@@ -17,14 +17,11 @@
   <a href="https://goreportcard.com/report/github.com/cosmos/ibc-go">
     <img alt="Go report card" src="https://goreportcard.com/badge/github.com/cosmos/ibc-go" />
   </a>
-  <a href="https://sonarcloud.io/summary/overall?id=cosmos_ibc-go">
-    <img alt="Code Coverage" src="https://sonarcloud.io/api/project_badges/measure?project=cosmos_ibc-go&metric=coverage" />
+  <a href="https://codecov.io/gh/cosmos/ibc-go" > 
+    <img src="https://codecov.io/gh/cosmos/ibc-go/graph/badge.svg?token=bvveHATeIn"/> 
   </a>
 </div>
 <div align="center">
-  <a href="https://github.com/cosmos/ibc-go">
-    <img alt="Lines Of Code" src="https://sonarcloud.io/api/project_badges/measure?project=cosmos_ibc-go&metric=ncloc" />
-  </a>
   <a href="https://discord.com/invite/interchain">
     <img alt="Discord" src="https://img.shields.io/discord/669268347736686612.svg" />
   </a>
