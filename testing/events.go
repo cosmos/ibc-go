@@ -310,3 +310,32 @@ func attributeByKey(attributes []abci.EventAttribute, key string) (abci.EventAtt
 	}
 	return attributes[idx], true
 }
+
+// ParsePacketFromEvents parses events emitted from a send packet and returns
+// the first EventTypeSendPacket packet found.
+// Returns an error if no packet is found.
+//
+// Deprecated: This function will be removed in the next major release. Use
+// ParseV1PacketFromEvents instead
+func ParsePacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
+	return ParseV1PacketFromEvents(events)
+}
+
+// ParseRecvPacketFromEvents parses events emitted from a MsgRecvPacket and returns
+// the first EventTypeRecvPacket packet found.
+// Returns an error if no packet is found.
+//
+// Deprecated: This function will be removed in the next major release. Use
+// ParseRecvV1PacketFromEvents instead
+func ParseRecvPacketFromEvents(events []abci.Event) (channeltypes.Packet, error) {
+	return ParseRecvV1PacketFromEvents(events)
+}
+
+// ParsePacketsFromEvents parses events emitted from a MsgRecvPacket and returns
+// all the packets found.
+// Returns an error if no packet is found.
+//
+// Deprecated: This function will be removed in the next major release. Use ParseIBCV1Packets instead.
+func ParsePacketsFromEvents(eventType string, events []abci.Event) ([]channeltypes.Packet, error) {
+	return ParseIBCV1Packets(eventType, events)
+}
