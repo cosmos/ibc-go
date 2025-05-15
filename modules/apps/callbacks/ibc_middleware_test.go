@@ -503,7 +503,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().NoError(err)
 			s.Require().NotNil(res)
 
-			packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+			packet, err = ibctesting.ParseV1PacketFromEvents(res.GetEvents())
 			s.Require().NoError(err)
 			s.Require().NotNil(packet)
 
