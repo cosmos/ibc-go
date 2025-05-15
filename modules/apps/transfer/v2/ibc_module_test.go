@@ -165,7 +165,6 @@ func (suite *TransferTestSuite) TestOnSendPacket() {
 			// check that module account escrow address has locked the tokens
 			chainAEscrowBalance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, originalCoin.Denom)
 			suite.Require().Equal(originalCoin, chainAEscrowBalance)
-
 		})
 	}
 }
