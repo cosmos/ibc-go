@@ -69,3 +69,10 @@ type PacketDataUnmarshaler interface {
 	// the payload is provided and the packet data interface is returned
 	UnmarshalPacketData(payload channeltypesv2.Payload) (any, error)
 }
+
+// CallbacksCompatibleModuleV2 is an interface that combines the IBCModuleV2 and PacketDataUnmarshaler
+// interfaces to assert that the underlying application supports both.
+type CallbacksCompatibleModuleV2 interface {
+	IBCModule
+	PacketDataUnmarshaler
+}

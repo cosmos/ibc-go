@@ -8,7 +8,6 @@ import (
 
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/api"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
@@ -42,13 +41,6 @@ We will pass the packet sender info (if available) to the contract keeper for so
 keeper to verify that the packet sender is the same as the callback address if desired.
 
 */
-
-// CallbacksCompatibleModuleV2 is an interface that combines the IBCModuleV2 and PacketDataUnmarshaler
-// interfaces to assert that the underlying application supports both.
-type CallbacksCompatibleModuleV2 interface {
-	api.IBCModule
-	api.PacketDataUnmarshaler
-}
 
 // CallbackData is the callback data parsed from the packet.
 type CallbackData struct {
