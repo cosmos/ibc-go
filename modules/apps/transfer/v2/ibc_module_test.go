@@ -272,7 +272,6 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			chainBBalance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), chainBDenom.IBCDenom())
 			coinSentFromAToB := sdk.NewCoin(chainBDenom.IBCDenom(), amount)
 			suite.Require().Equal(coinSentFromAToB, chainBBalance)
-
 		})
 	}
 }
