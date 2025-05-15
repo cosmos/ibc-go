@@ -42,7 +42,7 @@ func (rack RecvAcknowledgement) Acknowledgement() []byte {
 // IBCMiddleware implements the IBC v2 middleware interface
 // with the underlying application.
 type IBCMiddleware struct {
-	app             api.CallbacksCompatibleModuleV2
+	app             api.PacketUnmarshalarModuleV2
 	writeAckWrapper api.WriteAcknowledgementWrapper
 
 	contractKeeper types.ContractKeeper
@@ -61,9 +61,9 @@ func NewIBCMiddleware(
 	app api.IBCModule, writeAckWrapper api.WriteAcknowledgementWrapper,
 	contractKeeper types.ContractKeeper, chanKeeperV2 types.ChannelKeeperV2, maxCallbackGas uint64,
 ) IBCMiddleware {
-	packetDataUnmarshalerApp, ok := app.(api.CallbacksCompatibleModuleV2)
+	packetDataUnmarshalerApp, ok := app.(api.PacketUnmarshalarModuleV2)
 	if !ok {
-		panic(fmt.Errorf("underlying application does not implement %T", (*api.CallbacksCompatibleModuleV2)(nil)))
+		panic(fmt.Errorf("underlying application does not implement %T", (*api.PacketUnmarshalarModuleV2)(nil)))
 	}
 
 	if contractKeeper == nil {
