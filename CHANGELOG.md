@@ -50,13 +50,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * [\#8303](https://github.com/cosmos/ibc-go/pull/8303) Prefix-based routing in IBCv2 Router
-* [\#8375](https://github.com/cosmos/ibc-go/pull/8375) feat: parse IBC v2 packets from ABCI events
 
 ### Bug Fixes
 
 ### Testing API
 
 * [\#8371](https://github.com/cosmos/ibc-go/pull/8371) e2e: Create only necessary number of chains for e2e suite.
+* [\#8375](https://github.com/cosmos/ibc-go/pull/8375) feat: parse IBC v2 packets from ABCI events
 
 ## [v10.2.0](https://github.com/cosmos/ibc-go/releases/tag/v10.2.0) - 2022-04-30
 
