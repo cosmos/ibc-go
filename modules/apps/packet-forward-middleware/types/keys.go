@@ -4,6 +4,8 @@ import "fmt"
 
 const (
 	// ModuleName defines the module name
+	// NOTE: There is a spelling mistake in the module name that came from the original implementation
+	// and is currently kept for backward compatibility. Consideration for renaming done in #8388
 	ModuleName = "packetfowardmiddleware"
 
 	// StoreKey is the store key string for IBC transfer
