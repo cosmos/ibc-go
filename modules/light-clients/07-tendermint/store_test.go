@@ -22,17 +22,17 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 		expPanic bool
 	}{
 		{
-			"success", func() {}, true, false,
+			"success", func() {}, nil, false,
 		},
 		{
 			"consensus state not found", func() {
 				// use height with no consensus state set
 				height = height.Increment()
-			}, false, false,
+			}, nil, false,
 		},
 		{
 			"not a consensus state interface", func() {
@@ -40,7 +40,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), &tendermint.ClientState{})
 				store.Set(host.ConsensusStateKey(height), clientStateBz)
-			}, false, true,
+			}, nil, true,
 		},
 		{
 			"invalid consensus state (solomachine)", func() {
@@ -48,7 +48,7 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 				consensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), &solomachine.ConsensusState{})
 				store.Set(host.ConsensusStateKey(height), consensusStateBz)
-			}, false, true,
+			}, nil, true,
 		},
 	}
 
@@ -75,15 +75,19 @@ func (suite *TendermintTestSuite) TestGetConsensusState() {
 			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 			consensusState, found := tendermint.GetConsensusState(store, suite.chainA.Codec, height)
 
-			if tc.expPass {
-				suite.Require().True(found)
+			if tc.expError == nil {
+				if tc.name == "success" {
+					suite.Require().True(found)
 
-				expConsensusState, found := suite.chainA.GetConsensusState(path.EndpointA.ClientID, height)
-				suite.Require().True(found)
-				suite.Require().Equal(expConsensusState, consensusState)
+					expConsensusState, found := suite.chainA.GetConsensusState(path.EndpointA.ClientID, height)
+					suite.Require().True(found)
+					suite.Require().Equal(expConsensusState, consensusState)
+				} else if tc.name == "consensus state not found" {
+					suite.Require().False(found)
+					suite.Require().Nil(consensusState)
+				}
 			} else {
-				suite.Require().False(found)
-				suite.Require().Nil(consensusState)
+				suite.Require().ErrorIs(tc.expError, tc.expError)
 			}
 		})
 	}
