@@ -39,7 +39,7 @@ func (s *AuthzTransferTestSuite) SetupSuite() {
 }
 
 func (s *AuthzTransferTestSuite) CreateAuthzTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
+	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAToChainBChannel(testName)
 }
 
 // QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
