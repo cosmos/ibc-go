@@ -204,7 +204,7 @@ func (s *CallbacksTestSuite) ExecuteTransfer(memo string, recvSuccess bool) {
 	err = s.path.EndpointB.UpdateClient()
 	s.Require().NoError(err)
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err := ibctesting.ParseV1PacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
 
 	res, err = s.path.EndpointB.RecvPacketWithResult(packet)
@@ -260,7 +260,7 @@ func (s *CallbacksTestSuite) ExecuteTransferTimeout(memo string) {
 		return // we return if send packet is rejected
 	}
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err := ibctesting.ParseV1PacketFromEvents(res.GetEvents())
 	s.Require().NoError(err) // packet committed
 	s.Require().NotNil(packet)
 

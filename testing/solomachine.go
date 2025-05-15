@@ -374,7 +374,7 @@ func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string
 	res, err := chain.SendMsgs(msgTransfer)
 	require.NoError(solo.t, err)
 
-	packet, err := ParsePacketFromEvents(res.Events)
+	packet, err := ParseV1PacketFromEvents(res.Events)
 	require.NoError(solo.t, err)
 
 	return packet
