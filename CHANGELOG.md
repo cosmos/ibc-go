@@ -383,7 +383,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 * (core/04-channel) [\#3357](https://github.com/cosmos/ibc-go/pull/3357) Handle unordered channels in `NextSequenceReceive` query.
-* (e2e) [\#3402](<https://github.com/cosmos/ibc-go/pull/3402> Allow retries for messages signed by relayer.
+* (e2e) [\#3402](https://github.com/cosmos/ibc-go/pull/3402) Allow retries for messages signed by relayer.
 * (core/04-channel) [\#3417](https://github.com/cosmos/ibc-go/pull/3417) Add missing query for next sequence send.
 * (testing) [\#4630](https://github.com/cosmos/ibc-go/pull/4630) Update `testconfig` to use revision formatted chain IDs.
 * (core/04-channel) [\#4706](https://github.com/cosmos/ibc-go/pull/4706) Retrieve correct next send sequence for packets in unordered channels.
