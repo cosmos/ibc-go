@@ -319,8 +319,10 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		im.keeper.Logger(ctx).Error("packetForwardMiddleware error parsing packet data from timeout packet",
 			"sequence", packet.Sequence,
-			"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-			"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
+			"src-channel", packet.SourceChannel,
+			"src-port", packet.SourcePort,
+			"dst-channel", packet.DestinationChannel,
+			"dst-port", packet.DestinationPort,
 			"error", err,
 		)
 		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
@@ -328,9 +330,12 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 
 	im.keeper.Logger(ctx).Debug("packetForwardMiddleware OnTimeoutPacket",
 		"sequence", packet.Sequence,
-		"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-		"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
-		"amount", data.Amount, "denom", data.Denom,
+		"src-channel", packet.SourceChannel,
+		"src-port", packet.SourcePort,
+		"dst-channel", packet.DestinationChannel,
+		"dst-port", packet.DestinationPort,
+		"amount", data.Amount,
+		"denom", data.Denom,
 	)
 
 	inFlightPacket, err := im.keeper.TimeoutShouldRetry(ctx, packet)

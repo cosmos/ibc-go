@@ -252,7 +252,7 @@ func (k *Keeper) unescrowToken(ctx sdk.Context, token sdk.Coin) {
 	k.transferKeeper.SetTotalEscrowForDenom(ctx, newTotalEscrow)
 }
 
-func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.InFlightPacket, srcPacket channeltypes.Packet, srcPacketSender, receiver string, metadata *types.ForwardMetadata, token sdk.Coin, maxRetries uint8, timeout time.Duration, labels []metrics.Label, nonrefundable bool) error {
+func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.InFlightPacket, srcPacket channeltypes.Packet, srcPacketSender, receiver string, metadata *types.ForwardMetadata, token sdk.Coin, maxRetries uint8, timeoutDelta time.Duration, labels []metrics.Label, nonrefundable bool) error {
 	memo := ""
 
 	// set memo for next transfer with next from this transfer.
@@ -274,7 +274,7 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 		"denom", token.Denom,
 	)
 
-	msgTransfer := transfertypes.NewMsgTransfer(metadata.Port, metadata.Channel, token, receiver, metadata.Receiver, DefaultTransferPacketTimeoutHeight, uint64(ctx.BlockTime().UnixNano())+uint64(timeout.Nanoseconds()), memo)
+	msgTransfer := transfertypes.NewMsgTransfer(metadata.Port, metadata.Channel, token, receiver, metadata.Receiver, DefaultTransferPacketTimeoutHeight, uint64(ctx.BlockTime().UnixNano())+uint64(timeoutDelta.Nanoseconds()), memo)
 	// send tokens to destination
 	res, err := k.transferKeeper.Transfer(ctx, msgTransfer)
 	if err != nil {
@@ -307,7 +307,7 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 			PacketTimeoutHeight:    srcPacket.TimeoutHeight.String(),
 
 			RetriesRemaining: int32(maxRetries),
-			Timeout:          uint64(timeout.Nanoseconds()),
+			Timeout:          uint64(timeoutDelta.Nanoseconds()),
 			Nonrefundable:    nonrefundable,
 		}
 	} else {
@@ -333,22 +333,18 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 
 // TimeoutShouldRetry returns inFlightPacket and no error if retry should be attempted. Error is returned if IBC refund should occur.
 func (k *Keeper) TimeoutShouldRetry(ctx sdk.Context, packet channeltypes.Packet) (*types.InFlightPacket, error) {
-	store := k.storeService.OpenKVStore(ctx)
-	key := types.RefundPacketKey(packet.SourceChannel, packet.SourcePort, packet.Sequence)
-	bz, err := store.Get(key)
+	inFlightPacket, err := k.GetInflightPacket(ctx, packet)
 	if err != nil {
 		return nil, err
 	}
 
 	// Not a forwarded packet. Ignore.
-	if len(bz) == 0 {
+	if inFlightPacket == nil {
 		return nil, nil
 	}
 
-	var inFlightPacket types.InFlightPacket
-	k.cdc.MustUnmarshal(bz, &inFlightPacket)
-
 	if inFlightPacket.RetriesRemaining <= 0 {
+		key := types.RefundPacketKey(packet.SourceChannel, packet.SourcePort, packet.Sequence)
 		k.Logger(ctx).Error("packetForwardMiddleware reached max retries for packet",
 			"key", string(key),
 			"original-sender-address", inFlightPacket.OriginalSenderAddress,
@@ -356,10 +352,10 @@ func (k *Keeper) TimeoutShouldRetry(ctx sdk.Context, packet channeltypes.Packet)
 			"refund-port-id", inFlightPacket.RefundPortId,
 		)
 
-		return &inFlightPacket, fmt.Errorf("giving up on packet on channel (%s) port (%s) after max retries", inFlightPacket.RefundChannelId, inFlightPacket.RefundPortId)
+		return inFlightPacket, fmt.Errorf("giving up on packet on channel (%s) port (%s) after max retries", inFlightPacket.RefundChannelId, inFlightPacket.RefundPortId)
 	}
 
-	return &inFlightPacket, nil
+	return inFlightPacket, nil
 }
 
 func (k *Keeper) RetryTimeout(ctx sdk.Context, channel, port string, data transfertypes.FungibleTokenPacketData, inFlightPacket *types.InFlightPacket) error {
