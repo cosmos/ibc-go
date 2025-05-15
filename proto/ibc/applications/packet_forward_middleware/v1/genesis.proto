@@ -6,8 +6,6 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types";
 
-// import "amino/amino.proto";
-
 // GenesisState defines the packetforward genesis state
 message GenesisState {
   // key - information about forwarded packet: src_channel
