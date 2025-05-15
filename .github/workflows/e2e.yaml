@@ -104,6 +104,8 @@ jobs:
           CHAIN_IMAGE: '${{ env.DOCKER_IMAGE_NAME }}'
           CHAIN_A_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
           CHAIN_B_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+          CHAIN_C_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+          CHAIN_D_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
           E2E_CONFIG_PATH: 'ci-e2e-config.yaml'
         run: |
           cd e2e
