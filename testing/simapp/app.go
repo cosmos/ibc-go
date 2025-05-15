@@ -91,6 +91,11 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting" // Add rate-limiting import
+	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+
+	// ratelimitingmodule "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/module" // Remove incorrect import
+	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
@@ -160,6 +165,7 @@ type SimApp struct {
 	ICAHostKeeper         icahostkeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
+	RateLimitKeeper       ratelimitkeeper.Keeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -254,6 +260,7 @@ func NewSimApp(
 		govtypes.StoreKey, group.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
 		authzkeeper.StoreKey, consensusparamtypes.StoreKey,
+		ratelimittypes.StoreKey,
 	)
 
 	// register streaming services
@@ -376,6 +383,16 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]),
+		app.IBCKeeper.ChannelKeeper, // ics4Wrapper
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ClientKeeper,
+		app.BankKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	// Mock Module Stack
 
 	// Mock Module setup for testing IBC and also acts as the interchain accounts authentication module
@@ -403,10 +420,14 @@ func NewSimApp(
 	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// create IBC module from bottom to top of stack
-	var transferStack porttypes.IBCModule = transfer.NewIBCModule(app.TransferKeeper)
+	var transferIBCModule porttypes.IBCModule = transfer.NewIBCModule(app.TransferKeeper)
 
-	// Add transfer stack to IBC Router
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+	// Create the rate-limiting middleware, wrapping the transfer IBC module
+	// The ICS4Wrapper is the IBC ChannelKeeper
+	rateLimitMiddleware := ratelimiting.NewIBCMiddleware(transferIBCModule, app.RateLimitKeeper, app.IBCKeeper.ChannelKeeper)
+
+	// Add transfer stack with rate-limiting middleware to IBC Router
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, rateLimitMiddleware)
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -449,6 +470,9 @@ func NewSimApp(
 	app.IBCKeeper.SetRouter(ibcRouter)
 	app.IBCKeeper.SetRouterV2(ibcRouterV2)
 
+	// **** Set the middleware wrapper on TransferKeeper ****
+	app.TransferKeeper.WithICS4Wrapper(rateLimitMiddleware) // Use the middleware instance directly
+
 	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
 
@@ -483,6 +507,7 @@ func NewSimApp(
 		// IBC modules
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
+		ratelimiting.NewAppModule(app.RateLimitKeeper), // Use correct package alias
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		mockModule,
 
@@ -528,6 +553,7 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		icatypes.ModuleName,
+		ratelimittypes.ModuleName,
 		ibcmock.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
@@ -548,7 +574,7 @@ func NewSimApp(
 		authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
-		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
+		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName, ratelimittypes.ModuleName, // Add rate-limiting module to genesis order
 		icatypes.ModuleName, ibcmock.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
 	}
@@ -844,6 +870,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName).WithKeyTable(ibctransfertypes.ParamKeyTable())
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName).WithKeyTable(icacontrollertypes.ParamKeyTable())
 	paramsKeeper.Subspace(icahosttypes.SubModuleName).WithKeyTable(icahosttypes.ParamKeyTable())
+	paramsKeeper.Subspace(ratelimittypes.ModuleName).WithKeyTable(ratelimittypes.ParamKeyTable()) // Add this line
 
 	return paramsKeeper
 }
@@ -870,4 +897,37 @@ func (app *SimApp) GetTxConfig() client.TxConfig {
 // NOTE: This is solely used for testing purposes.
 func (app *SimApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return app.memKeys[storeKey]
+}
+
+// QueryRouterAdapter adapts a GRPCQueryRouter to the interface expected by the rate-limiting module
+type QueryRouterAdapter struct {
+	router *baseapp.GRPCQueryRouter
+}
+
+func NewQueryRouterAdapter(router *baseapp.GRPCQueryRouter) *QueryRouterAdapter {
+	return &QueryRouterAdapter{router: router}
+}
+
+func (a *QueryRouterAdapter) Route(path string) func(sdk.Context, interface{}) ([]byte, error) {
+	// This is a simplification for testing purposes
+	// In a real implementation, this would need to properly adapt the handler
+	return func(ctx sdk.Context, req interface{}) ([]byte, error) {
+		return nil, nil
+	}
+}
+
+// Similarly, we might need an adapter for MsgServiceRouter
+type MsgRouterAdapter struct {
+	router *baseapp.MsgServiceRouter
+}
+
+func NewMsgRouterAdapter(router *baseapp.MsgServiceRouter) *MsgRouterAdapter {
+	return &MsgRouterAdapter{router: router}
+}
+
+func (a *MsgRouterAdapter) Handler(msg sdk.Msg) func(sdk.Context, sdk.Msg) (*sdk.Result, error) {
+	// Simplified for testing purposes
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+		return nil, nil
+	}
 }
