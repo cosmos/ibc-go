@@ -15,7 +15,7 @@ on:
         options:
           - release/v7.10.x
           - release/v8.7.x
-          - release/v10.2.x
+          - release/v10.3.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -46,12 +46,15 @@ jobs:
   # branch is specified, only that image will be built, e.g. release-v6.0.x.
   build-release-images:
     runs-on: depot-ubuntu-22.04-4
+    permissions:
+      packages: write
+      contents: read
     strategy:
       matrix:
         release-branch:
           - release/v7.10.x
           - release/v8.7.x
-          - release/v10.2.x
+          - release/v10.3.x
           - main
     steps:
       - uses: actions/checkout@v4

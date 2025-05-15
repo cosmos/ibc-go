@@ -20,6 +20,9 @@ env:
 jobs:
     build-image-at-tag:
       runs-on: depot-ubuntu-22.04-4
+      permissions:
+        packages: write
+        contents: read
       steps:
          - uses: actions/checkout@v4
            with:
@@ -31,7 +34,7 @@ jobs:
               registry: ${{ env.REGISTRY }}
               username: ${{ github.actor }}
               password: ${{ secrets.GITHUB_TOKEN }}
-         - name: Build image
+         - name: Build and push image
            run: |
             # remove any `/` characters from the docker tag and replace them with a -
             docker_tag="$(echo $GIT_TAG | sed 's/[^a-zA-Z0-9\.]/-/g')"
