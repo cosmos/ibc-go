@@ -11,7 +11,7 @@ require (
 	cosmossdk.io/log v1.6.0
 	cosmossdk.io/math v1.5.3
 	cosmossdk.io/store v1.1.2
-	cosmossdk.io/x/tx v0.14.0
+	cosmossdk.io/x/tx v1.1.0
 	cosmossdk.io/x/upgrade v0.2.0
 	github.com/cometbft/cometbft v0.38.17
 	github.com/cosmos/cosmos-db v1.1.1
