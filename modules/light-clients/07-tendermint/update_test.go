@@ -339,7 +339,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 		name      string
 		malleate  func()
 		expResult func()
-		expPass   bool
+		expError  error
 	}{
 		{
 			"success with height later than latest height", func() {
@@ -355,7 +355,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().True(ok)
 				suite.Require().True(clientState.LatestHeight.EQ(tmHeader.GetHeight())) // new update, updated client state should have changed
 				suite.Require().True(clientState.LatestHeight.EQ(consensusHeights[0]))
-			}, true,
+			}, nil,
 		},
 		{
 			"success with height earlier than latest height", func() {
@@ -376,7 +376,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().True(ok)
 				suite.Require().Equal(clientState, prevClientState) // fill in height, no change to client state
 				suite.Require().True(clientState.LatestHeight.GT(consensusHeights[0]))
-			}, true,
+			}, nil,
 		},
 		{
 			"success with duplicate header", func() {
@@ -406,7 +406,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				tmHeader, ok := clientMessage.(*ibctm.Header)
 				suite.Require().True(ok)
 				suite.Require().Equal(path.EndpointA.GetConsensusState(tmHeader.GetHeight()), prevConsensusState)
-			}, true,
+			}, nil,
 		},
 		{
 			"success with pruned consensus state", func() {
@@ -449,7 +449,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				// ensure consensus state was pruned
 				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
 				suite.Require().False(found)
-			}, true,
+			}, nil,
 		},
 		{
 			"success with pruned consensus state using duplicate header", func() {
@@ -496,20 +496,19 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				// ensure consensus state was pruned
 				_, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, pruneHeight)
 				suite.Require().False(found)
-			}, true,
+			}, nil,
 		},
 		{
 			"invalid ClientMessage type", func() {
 				clientMessage = &ibctm.Misbehaviour{}
 			},
 			func() {},
-			false,
+			errors.New("invalid ClientMessage type"),
 		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			pruneHeight = clienttypes.ZeroHeight()
+			suite.SetupTest()
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 
 			err := path.EndpointA.CreateClient()
@@ -529,7 +528,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 
 			clientStore = suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
 
-			if tc.expPass {
+			if tc.expError == nil {
 				consensusHeights = lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientMessage)
 
 				header, ok := clientMessage.(*ibctm.Header)
@@ -546,6 +545,7 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 
 				suite.Require().Equal(expConsensusState, updatedConsensusState)
 
+				tc.expResult()
 			} else {
 				consensusHeights = lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientMessage)
 				suite.Require().Empty(consensusHeights)
@@ -554,9 +554,6 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				suite.Require().False(found)
 				suite.Require().Nil(consensusState)
 			}
-
-			// perform custom checks
-			tc.expResult()
 		})
 	}
 }
@@ -725,9 +722,9 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 	)
 
 	testCases := []struct {
-		name     string
-		malleate func()
-		expPass  bool
+		name            string
+		malleate        func()
+		expMisbehaviour bool
 	}{
 		{
 			"valid update no misbehaviour",
@@ -904,7 +901,7 @@ func (suite *TendermintTestSuite) TestCheckForMisbehaviour() {
 				clientMessage,
 			)
 
-			if tc.expPass {
+			if tc.expMisbehaviour {
 				suite.Require().True(foundMisbehaviour)
 			} else {
 				suite.Require().False(foundMisbehaviour)
@@ -919,12 +916,12 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expPass  bool
+		expError error
 	}{
 		{
 			"success",
 			func() {},
-			true,
+			nil,
 		},
 	}
 
@@ -946,12 +943,18 @@ func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviour() {
 
 			lightClientModule.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, nil)
 
-			if tc.expPass {
-				clientStateBz := clientStore.Get(host.ClientStateKey())
-				suite.Require().NotEmpty(clientStateBz)
+			if tc.expError == nil {
+				clientState := path.EndpointA.GetClientState().(*ibctm.ClientState)
+				suite.Require().False(clientState.FrozenHeight.IsZero(), "client not frozen")
 
-				newClientState := clienttypes.MustUnmarshalClientState(suite.chainA.Codec, clientStateBz)
-				suite.Require().Equal(frozenHeight, newClientState.(*ibctm.ClientState).FrozenHeight)
+				consensusState, found := path.EndpointA.Chain.GetConsensusState(path.EndpointA.ClientID, clientState.LatestHeight)
+				suite.Require().True(found)
+				suite.Require().NotNil(consensusState)
+
+				// check that iteration key is tombstoned
+				iterKey := host.ConsensusStateKey(clientState.LatestHeight)
+				consStateKey := ibctm.GetIterationKey(clientStore, clientState.LatestHeight)
+				suite.Require().Equal(iterKey, consStateKey)
 			}
 		})
 	}
