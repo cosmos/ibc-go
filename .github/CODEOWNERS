@@ -1,6 +1,11 @@
 # CODEOWNERS: https://help.github.com/articles/about-codeowners/
 
+<<<<<<< HEAD
 *       @colin-axner @AdityaSripal @crodriguezvega @charleenfei @damiannolan @chatton @DimitrisJim
+=======
+*       @AdityaSripal @gjermundgaraba @srdtrk @DeshErBojhaa
+/docs/  @womensrights
+>>>>>>> d0dc0f6d (chore: add @DeshErBojhaa as codeowner (#8393))
 
 # Our appreciation and gratitude to past code owners: @fedekunze @seantking @tmsdkeys
 
