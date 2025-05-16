@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10
 
-go 1.23.8
+go 1.24.0
 
 replace (
 	github.com/cosmos/ibc-go/v10 => ../../../
@@ -30,13 +30,13 @@ require (
 	github.com/cosmos/ibc-go/v10 v10.0.0
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/prysmaticlabs/prysm/v5 v5.3.0
+	github.com/prysmaticlabs/prysm/v5 v5.3.3
 	github.com/spf13/cast v1.8.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250414145226-207652e42e2e
-	google.golang.org/grpc v1.72.0
+	google.golang.org/grpc v1.72.1
 )
 
 require (
