@@ -18,7 +18,7 @@ Communication Protocol (IBC) applications for custom use cases.
 
 Due to the modular design of the IBC protocol, IBC
 application developers do not need to concern themselves with the low-level details of clients,
-connections, and proof verification, however a brief explaination is given.  Then the document goes into detail on the abstraction layer most relevant for application
+connections, and proof verification, however a brief explanation is given.  Then the document goes into detail on the abstraction layer most relevant for application
 developers (channels and ports), and describes how to define your own custom packets, and
 `IBCModule` callbacks.
 
