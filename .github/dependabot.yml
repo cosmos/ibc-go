@@ -7,33 +7,18 @@ updates:
     open-pull-requests-limit: 10
 
   - package-ecosystem: gomod
-    directory: "/"
+    directories:
+      - "/"
+      - "/modules/light-clients/08-wasm"
+      - "/e2e"
+      - "/simapp"
     schedule:
       interval: daily
-    open-pull-requests-limit: 10
-    labels:
-      - dependencies
-
-  - package-ecosystem: gomod
-    directory: "/e2e"
-    schedule:
-      interval: daily
-    open-pull-requests-limit: 10
-    labels:
-      - dependencies
-
-  - package-ecosystem: gomod
-    directory: "/modules/light-clients/08-wasm"
-    schedule:
-      interval: daily
-    open-pull-requests-limit: 10
-    labels:
-      - dependencies
-
-  - package-ecosystem: gomod
-    directory: "/simapp"
-    schedule:
-      interval: daily
-    open-pull-requests-limit: 10
+    groups:
+      non-cosmos-dependencies:
+        exclude-patterns:
+          - "github.com/cometbft/*"
+          - "github.com/cosmos/*"
+          - "cosmossdk.io/*"
     labels:
       - dependencies
