@@ -215,7 +215,7 @@ const config = {
               },
               {
                 label: "Privacy Policy",
-                href: "https://v1.cosmos.network/privacy",
+                href: "https://cosmos.network/privacy/",
               },
             ],
           },
