@@ -53,8 +53,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 ### Testing API
+* [\#8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message` in the `UnmarshalMsgResponses` function in both `testing` and `e2e` modules. This change addresses static analysis warnings and aligns with current SDK best practices. No functional changes are expected for users of these APIs.
 * [\#8371](https://github.com/cosmos/ibc-go/pull/8371) e2e: Create only necessary number of chains for e2e suite.
-* [\8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message` in the `UnmarshalMsgResponses` function in both `testing` and `e2e` modules. This change addresses static analysis warnings and aligns with current SDK best practices. No functional changes are expected for users of these APIs.
 
 ## [v10.2.0](https://github.com/cosmos/ibc-go/releases/tag/v10.2.0) - 2022-04-30
 
