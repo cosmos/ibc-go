@@ -1803,6 +1803,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#198](https://github.com/cosmos/ibc-go/pull/198) New CLI command `query ibc-transfer escrow-address <port> <channel id>` to get the escrow address for a channel; can be used to then query balance of escrowed tokens
 
+### Testing API
+
+- Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message` in the `UnmarshalMsgResponses` function in both `testing` and `e2e` modules. [\8366](https://github.com/cosmos/ibc-go/pull/8366) This change addresses static analysis warnings and aligns with current SDK best practices. No functional changes are expected for users of these APIs.
+
 ### Client Breaking Changes
 
 * (02-client/cli) [\#196](https://github.com/cosmos/ibc-go/pull/196) Rename `node-state` cli command to `self-consensus-state`.
