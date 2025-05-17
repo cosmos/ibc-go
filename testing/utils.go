@@ -13,6 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
+	"github.com/cosmos/gogoproto/proto"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 )
@@ -65,7 +67,7 @@ func GenerateString(length uint) string {
 }
 
 // UnmarshalMsgResponses parse out msg responses from a transaction result
-func UnmarshalMsgResponses(cdc codec.Codec, data []byte, msgs ...codec.ProtoMarshaler) error {
+func UnmarshalMsgResponses(cdc codec.Codec, data []byte, msgs ...proto.Message) error {
 	var txMsgData sdk.TxMsgData
 	if err := cdc.Unmarshal(data, &txMsgData); err != nil {
 		return err
