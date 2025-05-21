@@ -446,7 +446,7 @@ func (suite *TransferTestSuite) TestOnAcknowledgePacket() {
 			res, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
-			packet, err = ibctesting.ParsePacketFromEvents(res.Events)
+			packet, err = ibctesting.ParseV1PacketFromEvents(res.Events)
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
@@ -540,7 +540,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			res, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
-			packet, err = ibctesting.ParsePacketFromEvents(res.Events)
+			packet, err = ibctesting.ParseV1PacketFromEvents(res.Events)
 			suite.Require().NoError(err)
 
 			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)

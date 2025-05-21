@@ -267,8 +267,8 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 				return expRecvRes
 			}
 
+			// err is checking under expPass
 			err = path.EndpointB.MsgRecvPacket(packet)
-
 			ck := path.EndpointB.Chain.GetSimApp().IBCKeeper.ChannelKeeperV2
 
 			expPass := tc.expError == nil

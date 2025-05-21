@@ -68,6 +68,8 @@ jobs:
           CHAIN_IMAGE: '${{ env.DOCKER_IMAGE_NAME }}'
           CHAIN_A_TAG: '${{ matrix.test-config.tag }}'
           CHAIN_B_TAG: '${{ matrix.test-config.tag }}'
+          CHAIN_C_TAG: '${{ matrix.test-config.tag }}'
+          CHAIN_D_TAG: '${{ matrix.test-config.tag }}'
           CHAIN_UPGRADE_PLAN: '${{ matrix.test-config.upgrade-plan }}'
           E2E_CONFIG_PATH: 'ci-e2e-config.yaml'
         run: |

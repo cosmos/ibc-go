@@ -128,7 +128,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 500), 0, "")
 		s.AssertTxSuccess(txResp)
 
-		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
+		packet, err = ibctesting.ParseV1PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})
