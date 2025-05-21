@@ -12,13 +12,9 @@ updates:
       - "/modules/light-clients/08-wasm"
       - "/e2e"
       - "/simapp"
+    allow:
+      - dependency-type: "all" # To get all modules updated at the same time
     schedule:
       interval: daily
-    groups:
-      non-cosmos-dependencies:
-        exclude-patterns:
-          - "github.com/cometbft/*"
-          - "github.com/cosmos/*"
-          - "cosmossdk.io/*"
     labels:
       - dependencies
