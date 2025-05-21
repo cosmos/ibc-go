@@ -37,6 +37,11 @@ type InterchainAccountsGovTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *InterchainAccountsGovTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() {
 	t := s.T()
 	ctx := context.TODO()

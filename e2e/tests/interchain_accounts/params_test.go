@@ -40,6 +40,11 @@ type InterchainAccountsParamsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *InterchainAccountsParamsTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 // QueryControllerParams queries the params for the controller
 func (s *InterchainAccountsParamsTestSuite) QueryControllerParams(ctx context.Context, chain ibc.Chain) controllertypes.Params {
 	res, err := query.GRPCQuery[controllertypes.QueryParamsResponse](ctx, chain, &controllertypes.QueryParamsRequest{})

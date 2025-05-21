@@ -1,8 +1,4 @@
-# This check-docs workflow was created based on instructions from:
-# https://docusaurus.io/docs/deployment
 name: Check docs build
-# This workflow runs when a PR is labeled with `docs`
-# This will check if the docs build successfully by running `npm run build`
 on:
   merge_group:
   pull_request:
@@ -13,14 +9,13 @@ on:
       - '.github/workflows/check-docs.yml'
 
 jobs:
-  check-docs-build:
-    name: Check docs build
+  build:
     runs-on: depot-ubuntu-22.04-4
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           cache: npm
           cache-dependency-path: docs/package-lock.json
 
@@ -28,3 +23,14 @@ jobs:
         run: cd docs && npm ci
       - name: Test build website
         run: cd docs && npm run build
+
+  lint:
+    runs-on: depot-ubuntu-22.04-4
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - uses: DavidAnson/markdownlint-cli2-action@v19
+      with:
+        globs: ./docs/docs/**/*.md
+

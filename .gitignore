@@ -67,3 +67,6 @@ go.work.sum
 
 # Python
 venv
+
+# Lychee
+.lycheecache
