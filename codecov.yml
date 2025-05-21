@@ -11,14 +11,12 @@ coverage:
         threshold: 0%
         base: auto
 ignore:
-- ^docs.*
-- (?s:[^\/]*\.md.*)\Z
-- (?s:.*/[^\/]*\.pb\.go.*)\Z
-- (?s:.*/[^\/]*\.pb\.gw\.go.*)\Z
-- (?s:modules/.*/.*/.*/[^\/]*\.pb\.go.*)\Z
-- (?s:modules/.*/.*/.*/[^\/]*\.pb\.gw\.go.*)\Z
-- ^testing/.*
-- ^scripts/.*
-- ^contrib/.*
-- ^e2e/.*
-- ^cmd/.*
+- "**/*.pb.go"
+- "**/*.pb.gw.go"
+- "docs"
+- "simapp"
+- "testing"
+- "modules/light-clients/08-wasm/testing"
+- "scripts"
+- "contrib"
+- "cmd"
