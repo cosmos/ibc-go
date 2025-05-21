@@ -45,7 +45,7 @@ func (s *TransferTestSuiteSendEnabled) TestSendEnabledParam() {
 
 	chainA, chainB := s.GetChains()
 
-	channelA := s.GetChainAChannelForTest(testName)
+	channelA := s.GetChainAToChainBChannel(testName)
 	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
 

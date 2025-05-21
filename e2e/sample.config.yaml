@@ -6,3 +6,7 @@ chains:
     chainId: chainA-1
   - tag: main # override with CHAIN_B_TAG
     chainId: chainB-1
+  - tag: main # override with CHAIN_C_TAG
+    chainId: chainC-1
+  - tag: main # override with CHAIN_D_TAG
+    chainId: chainD-1

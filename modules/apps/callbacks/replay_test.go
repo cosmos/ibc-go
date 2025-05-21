@@ -330,7 +330,7 @@ func (s *CallbacksTestSuite) ExecuteFailedTransfer(memo string) {
 		return // we return if send packet is rejected
 	}
 
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	packet, err := ibctesting.ParseV1PacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
 
 	// relay send
