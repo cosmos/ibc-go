@@ -3,7 +3,7 @@
 
 In order to keep our code looking good with lots of programmers working on it, it helps to have a "style guide", so all the code generally looks quite similar. This doesn't mean there is only one "right way" to write code, or even that this standard is better than your style.  But if we agree to a number of stylistic practices, it makes it much easier to read and modify new code. Please feel free to make suggestions if there's something you would like to add or modify.
 
-We expect all contributors to be familiar with [Effective Go](https://golang.org/doc/effective_go.html) (and it's recommended reading for all Go programmers anyways). Additionally, we generally agree with the suggestions in [Uber's style guide](https://github.com/uber-go/guide/blob/master/style.md) and use that as a starting point.
+We expect all contributors to be familiar with [Effective Go](https://golang.org/doc/effective_go.html) (and it's recommended reading for all Go programmers anyways). Additionally, we generally agree with the suggestions in [Google's style guide](https://google.github.io/styleguide/go/index) and use that as a starting point.
 
 ## Code Structure
 
@@ -65,6 +65,7 @@ type middleware struct {
 
 - Acronyms are all capitalized, like "RPC", "gRPC", "API". "MyID", rather than "MyId".
 - Whenever it is safe to use Go's built-in `error` instantiation functions (as opposed to Cosmos SDK's error instantiation functions), prefer `errors.New()` instead of `fmt.Errorf()` unless you're actually using the format feature with arguments.
+- As a general guideline, prefer to make the methods for a type [either all pointer methods or all value methods.](https://google.github.io/styleguide/go/decisions#receiver-type)
 
 ## Importing libraries
 
@@ -117,3 +118,200 @@ sdkerrors.Wrapf(
   <value 2>
 )
 ```
+
+## Common Mistakes
+
+This is a compilation of some of the common mistakes we see in the repo that should be avoided.
+
+---
+Keep receiver names short [Details here](https://google.github.io/styleguide/go/decisions#receiver-names)
+
+```go
+// bad
+func (chain *TestChain) NextBlock() {
+    res, err := chain.App.FinalizeBlock(&abci.RequestFinalizeBlock{
+        Height:             chain.ProposedHeader.Height,
+        Time:               chain.ProposedHeader.GetTime(),
+        NextValidatorsHash: chain.NextVals.Hash(),
+    })
+    require.NoError(chain.TB, err)
+    chain.commitBlock(res)
+}
+```
+
+```go
+// good
+func (c *TestChain) NextBlock() {
+    // Ommitted
+```
+
+---
+**Naked returns**
+
+Only acceptable in a small function. Once it's a medium-sized function, be explicit with your returned values. Similarly, do not name result parameters just because it enables you to use naked returns. Clarity is always more important than saving a few lines in your function.
+
+---
+**Struct defined outside of the package**
+
+Must have fields specified. [Referance](https://google.github.io/styleguide/go/decisions#field-names)
+
+```go
+// Good:
+r := csv.Reader{
+  Comma: ',',
+  Comment: '#',
+  FieldsPerRecord: 4,
+}
+```
+
+```go
+// Bad:
+r := csv.Reader{',', '#', 4, false, false, false, false}
+```
+
+---
+**Cuddled braces**
+
+[Dropping whitespace between braces](https://google.github.io/styleguide/go/decisions#cuddled-braces) for slice and array literals is only permitted when both of the following are true.
+  
+- The indentation matches
+- The inner values are also literals or proto builders (i.e. not a variable or other expression)
+
+```go
+// Good
+good := []*Type{
+    first, // Can't be cuddled
+    {Field: "second"},
+}
+```
+
+```go
+// Good:
+good := []*Type{{ // Cuddled correctly
+    Field: "value",
+}, {
+    Field: "value",
+}}
+```
+
+---
+**Function and method calls should not be separated based solely on line length**
+
+```go
+// bad
+func (im IBCMiddleware) OnRecvPacket(
+    ctx sdk.Context,
+    channelVersion string,
+    packet channeltypes.Packet,
+    relayer sdk.AccAddress,
+) ibcexported.Acknowledgement {
+
+// good
+func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
+```
+
+---
+**Always write conditional statements like this**
+
+```go
+if i < f() {
+    g()
+}
+```
+
+Never like this
+
+```go
+if i < f()  // wrong! The compiler will place a semicolone (;) here.
+{           // wrong!
+    g()
+}
+```
+
+---
+**Don't Use Get in function/Method names**
+
+```go
+// bad
+
+// GetChainBID returns the chain-id for chain B.
+func (tc TestConfig) GetChainBID() string {
+    if tc.ChainConfigs[1].ChainID != "" {
+        return tc.ChainConfigs[1].ChainID
+    }
+    return "chainB-1"
+}
+
+// good
+func (tc TestConfig) ChainID(i int) string {
+    if tc.ChainConfigs[i].ChainID != "" {
+        return tc.ChainConfigs[i].ChainID
+    }
+    return "chainB-1"
+}
+```
+
+---
+**Do not make confusing indentation for saving vertical spaces**
+
+```go
+// Bad
+cases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{"verification success", func() {}, nil},
+		{"verification success: delay period passed", func() {
+			delayTimePeriod = uint64(1 * time.Second.Nanoseconds())
+		}, nil},
+		{"delay time period has not passed", func() {
+			delayTimePeriod = uint64(1 * time.Hour.Nanoseconds())
+		}, errorsmod.Wrap(ibctm.ErrDelayPeriodNotPassed, "failed packet commitment verification for client (07-tendermint-0): cannot verify packet until time: 1577926940000000000, current time: 1577923345000000000")},
+		{"client status is not active - client is expired", func() {
+			clientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
+			suite.Require().True(ok)
+			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
+			path.EndpointB.SetClientState(clientState)
+		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen")},
+	}
+```
+
+```go
+// Bad
+{
+	"nil underlying app", func() {
+		isNilApp = true
+	}, nil,
+},
+```
+
+```go
+// Good
+{
+    "nil underlying app", 
+    func() {
+		    isNilApp = true
+    }, 
+    nil,
+},
+```
+
+## Good Practices
+
+**Testing context**
+
+Go 1.24 added a (testing.TB).Context() method. In tests, prefer using (testing.TB).Context() over context.Background() to provide the initial context.Context used by the test. Helper functions, environment or test double setup, and other functions called from the test function body that require a context should have one explicitly passed. [Referance](https://google.github.io/styleguide/go/decisions#contexts)
+
+## Known Anti Patterns
+
+It's strongly recommended [not to create a custom context.](https://google.github.io/styleguide/go/decisions#custom-contexts) But the cosmos sdk has it's own context that is passed around functions. And at this point it's too much of a pain to fix that.
+
+---
+Test outputs should include the actual value that the function returned before printing the value that was expected. A standard format for printing test outputs is YourFunc(%v) = %v, want %v. Where you would write “actual” and “expected”, prefer using the words “got” and “want”, respectively. [Referance](https://google.github.io/styleguide/go/decisions#got-before-want)
+
+But testify has it other way around.
+
+`Require.Equal(Expected, Actual)`
+
+This is a known anti pattern that we allow as the testify package is used heavily in tests.
