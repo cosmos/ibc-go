@@ -414,6 +414,12 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 
 				expAllowRetry := tc.expCallbackData.ExecutionGasLimit < tc.expCallbackData.CommitGasLimit
 				s.Require().Equal(expAllowRetry, callbackData.AllowRetry(), tc.name)
+
+				// check if the callback calldata is correctly unmarshalled
+				if len(tc.expCallbackData.Calldata) > 0 {
+					s.Require().Equal([]byte("calldata"), callbackData.Calldata, tc.name)
+				}
+
 			} else {
 				s.Require().ErrorIs(err, tc.expError, tc.name)
 			}
