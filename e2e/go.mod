@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/e2e
 
-go 1.23.8
+go 1.24
 
 replace (
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => ../modules/light-clients/08-wasm
@@ -105,13 +105,8 @@ require (
 	github.com/emicklei/dot v1.6.2 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.32.4 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
-<<<<<<< HEAD
-	github.com/ethereum/go-ethereum v1.15.10 // indirect
-	github.com/fatih/color v1.18.0 // indirect
-=======
 	github.com/ethereum/go-ethereum v1.15.11 // indirect
 	github.com/fatih/color v1.17.0 // indirect
->>>>>>> origin/main
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/getsentry/sentry-go v0.32.0 // indirect
