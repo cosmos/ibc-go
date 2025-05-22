@@ -51,7 +51,7 @@ activeRelayer: hermes # override with RELAYER_ID
 relayers:
   - id: hermes
     image: ghcr.io/informalsystems/hermes
-    tag: "1.13.1"
+    tag: "luca_joss-update-docker-build" # v1.13.1 had to be built manually
   - id: rly
     image: ghcr.io/cosmos/relayer
     tag: "latest"
