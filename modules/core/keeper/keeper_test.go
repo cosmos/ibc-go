@@ -5,7 +5,7 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 

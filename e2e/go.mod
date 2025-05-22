@@ -3,7 +3,6 @@ module github.com/cosmos/ibc-go/e2e
 go 1.24
 
 replace (
-
 	github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.53.0-rc.4.0.20250521144723-2d1fe828a970
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => ../modules/light-clients/08-wasm
 	// uncomment to use the local version of ibc-go, you will need to run `go mod tidy` in e2e directory.
@@ -18,7 +17,6 @@ require (
 	cosmossdk.io/api v0.9.3-0.20250506131703-74993f0a47e5
 	cosmossdk.io/errors v1.0.2
 	cosmossdk.io/math v1.5.3
-	cosmossdk.io/x/upgrade v0.2.0-rc.2.0.20250506131703-74993f0a47e5
 	github.com/cometbft/cometbft v1.0.1
 	github.com/cometbft/cometbft/api v1.0.0
 	github.com/cosmos/cosmos-sdk v0.53.0
@@ -53,6 +51,7 @@ require (
 	cosmossdk.io/store v1.10.0-rc.1.0.20250506131703-74993f0a47e5 // indirect
 	cosmossdk.io/x/feegrant v0.2.0-rc.2.0.20250506131703-74993f0a47e5 // indirect
 	cosmossdk.io/x/tx v1.1.1-0.20250506131703-74993f0a47e5 // indirect
+	cosmossdk.io/x/upgrade v0.2.0-rc.2.0.20250506131703-74993f0a47e5 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect

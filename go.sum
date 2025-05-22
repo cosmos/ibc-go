@@ -634,8 +634,6 @@ cosmossdk.io/store v1.10.0-rc.1.0.20250506131703-74993f0a47e5 h1:1QJYDqJwoX4WXQ2
 cosmossdk.io/store v1.10.0-rc.1.0.20250506131703-74993f0a47e5/go.mod h1:BTD4eu5H+zsKxzDKAFibDn+FEHkb+b4mXTOMly1mE7E=
 cosmossdk.io/x/tx v1.1.1-0.20250506131703-74993f0a47e5 h1:HBuHIfYMiI04Qup+aZMo9FAPSjpBZA6opeCuKRBGafA=
 cosmossdk.io/x/tx v1.1.1-0.20250506131703-74993f0a47e5/go.mod h1:CTXKurMCPgwbKoK9bQN3j9SEcfs5vXAvfB05UvB6Iu0=
-cosmossdk.io/x/upgrade v0.2.0-rc.2 h1:JYxl0qAEaIPG/bYfuNkJVd9blAgr2fPaCxquf1S6AXI=
-cosmossdk.io/x/upgrade v0.2.0-rc.2/go.mod h1:Rq6Rl6Z9m4SNbnMutNZs+p/n9SF6Ku1FwTrnoWMHxM8=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=

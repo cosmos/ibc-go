@@ -26,7 +26,6 @@ require (
 	cosmossdk.io/store v1.10.0-rc.1.0.20250506131703-74993f0a47e5
 	cosmossdk.io/tools/confix v0.1.2
 	cosmossdk.io/x/tx v1.1.1-0.20250506131703-74993f0a47e5
-	cosmossdk.io/x/upgrade v0.2.0-rc.2
 	github.com/cometbft/cometbft v1.0.1
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/cosmos-sdk v0.53.0

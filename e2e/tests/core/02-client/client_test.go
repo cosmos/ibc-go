@@ -15,7 +15,7 @@ import (
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	upgradetypes "cosmossdk.io/x/upgrade/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"

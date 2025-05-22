@@ -10,7 +10,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	errorsmod "cosmossdk.io/errors"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

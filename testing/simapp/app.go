@@ -15,9 +15,9 @@ import (
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
 	"cosmossdk.io/x/tx/signing"
-	"cosmossdk.io/x/upgrade"
-	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
