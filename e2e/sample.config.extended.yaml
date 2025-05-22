@@ -58,7 +58,7 @@ activeRelayer: hermes # override with RELAYER_ID
 relayers:
   - id: hermes
     image: ghcr.io/informalsystems/hermes
-    tag: "v1.10.4" # override with RELAYER_TAG
+    tag: "1.10.4" # override with RELAYER_TAG
   - id: rly
     image: ghcr.io/cosmos/relayer
     tag: "latest" # override with RELAYER_TAG
