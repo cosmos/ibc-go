@@ -260,7 +260,7 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 		memoBz, err := json.Marshal(metadata.Next)
 		if err != nil {
 			k.Logger(ctx).Error("packetForwardMiddleware error marshaling next as JSON", "error", err)
-			return errorsmod.Wrapf(sdkerrors.ErrJSONMarshal, err.Error())
+			return errorsmod.Wrapf(sdkerrors.ErrJSONMarshal, "%s", err.Error())
 		}
 		memo = string(memoBz)
 	}
@@ -287,7 +287,7 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 			"denom", token.Denom,
 			"error", err,
 		)
-		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, err.Error())
+		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "%s", err.Error())
 	}
 
 	// Store the following information in keeper:

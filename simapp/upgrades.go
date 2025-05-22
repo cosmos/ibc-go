@@ -2,8 +2,8 @@ package simapp
 
 import (
 	storetypes "cosmossdk.io/store/types"
-	circuittypes "cosmossdk.io/x/circuit/types"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
+	circuittypes "github.com/cosmos/cosmos-sdk/x/circuit/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
