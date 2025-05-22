@@ -212,6 +212,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 
 ---
 **Don't Use Get in function/Method names**
+[Reference](https://google.github.io/styleguide/go/decisions#getters)
 
 ```go
 // bad
@@ -284,6 +285,11 @@ cases := []struct {
 **Testing context**
 
 Go 1.24 added a (testing.TB).Context() method. In tests, prefer using (testing.TB).Context() over context.Background() to provide the initial context.Context used by the test. Helper functions, environment or test double setup, and other functions called from the test function body that require a context should have one explicitly passed. [Referance](https://google.github.io/styleguide/go/decisions#contexts)
+
+**Error Logging**
+
+If you return an error, it’s usually better not to log it yourself but rather let the caller handle it.
+[Reference](https://google.github.io/styleguide/go/best-practices.html#error-logging)
 
 ## Known Anti Patterns
 
