@@ -3,7 +3,7 @@
 # All fields that support this have the corresponding environment variable name in a comment beside the field.
 
 # | Environment Variable | Description                               | Default Value                 |
-# |----------------------|-------------------------------------------|------------------------------ |
+# |----------------------|-------------------------------------------|-------------------------------|
 # | CHAIN_IMAGE          | The image that will be used for the chain | ghcr.io/cosmos/ibc-go-simd    |
 # | CHAIN_A_TAG          | The tag used for chain A                  | N/A (must be set)             |
 # | CHAIN_B_TAG          | The tag used for chain B                  | N/A (must be set)             |
