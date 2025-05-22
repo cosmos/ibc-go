@@ -151,25 +151,6 @@ func (c *TestChain) NextBlock() {
 Only acceptable in a small function. Once it's a medium-sized function, be explicit with your returned values. Similarly, do not name result parameters just because it enables you to use naked returns. Clarity is always more important than saving a few lines in your function.
 
 ---
-**Struct defined outside of the package**
-
-Must have fields specified. [Referance](https://google.github.io/styleguide/go/decisions#field-names)
-
-```go
-// Good:
-r := csv.Reader{
-  Comma: ',',
-  Comment: '#',
-  FieldsPerRecord: 4,
-}
-```
-
-```go
-// Bad:
-r := csv.Reader{',', '#', 4, false, false, false, false}
-```
-
----
 **Cuddled braces**
 
 [Dropping whitespace between braces](https://google.github.io/styleguide/go/decisions#cuddled-braces) for slice and array literals is only permitted when both of the following are true.
@@ -286,14 +267,105 @@ cases := []struct {
 
 Go 1.24 added a (testing.TB).Context() method. In tests, prefer using (testing.TB).Context() over context.Background() to provide the initial context.Context used by the test. Helper functions, environment or test double setup, and other functions called from the test function body that require a context should have one explicitly passed. [Referance](https://google.github.io/styleguide/go/decisions#contexts)
 
+---
 **Error Logging**
 
 If you return an error, it’s usually better not to log it yourself but rather let the caller handle it.
 [Reference](https://google.github.io/styleguide/go/best-practices.html#error-logging)
 
+---
+**Struct defined outside of the package**
+
+Must have fields specified. [Referance](https://google.github.io/styleguide/go/decisions#field-names)
+
+```go
+// Good:
+r := csv.Reader{
+  Comma: ',',
+  Comment: '#',
+  FieldsPerRecord: 4,
+}
+```
+
+```go
+// Bad:
+r := csv.Reader{',', '#', 4, false, false, false, false}
+```
+
+---
+**Naming struct fileds in tabular tests**
+
+If tabular test struct has more than two fields, consider explicitly naming them. If the test struct has one name and one error field, then we can allow upto three fields. If test struct has more fields, consider naming them when writing test cases.
+
+```go
+// Good
+
+tests := []struct {
+		name                string
+		memo                string
+		expectedPass        bool
+		message             string
+		registerInterfaceFn func(registry codectypes.InterfaceRegistry)
+		assertionFn         func(t *testing.T, msgs []sdk.Msg)
+	}{
+		{
+			name:         "packet data generation succeeds (MsgDelegate & MsgSend)",
+			memo:         "",
+			expectedPass: true,
+			message:      multiMsg,
+			registerInterfaceFn: func(registry codectypes.InterfaceRegistry) {
+				stakingtypes.RegisterInterfaces(registry)
+				banktypes.RegisterInterfaces(registry)
+			},
+			assertionFn: func(t *testing.T, msgs []sdk.Msg) {
+				t.Helper()
+				assertMsgDelegate(t, msgs[0])
+				assertMsgBankSend(t, msgs[1])
+			},
+		},
+  }
+```
+
+```go
+// Bad
+testCases := []struct {
+		name       string
+		malleate   func()
+		callbackFn func(
+			ctx sdk.Context,
+			packetDataUnmarshaler porttypes.PacketDataUnmarshaler,
+			packet channeltypes.Packet,
+			maxGas uint64,
+		) (types.CallbackData, bool, error)
+		getSrc bool
+	}{
+		{
+			"success: src_callback v1",
+			func() {
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, sender),
+				}
+
+				expCallbackData = expSrcCallBack
+
+				s.path.EndpointA.ChannelConfig.Version = transfertypes.V1
+				s.path.EndpointA.ChannelConfig.PortID = transfertypes.ModuleName
+				s.path.EndpointB.ChannelConfig.Version = transfertypes.V1
+				s.path.EndpointB.ChannelConfig.PortID = transfertypes.ModuleName
+			},
+			types.GetSourceCallbackData,
+			true,
+		},
+  }
+```
+
 ## Known Anti Patterns
 
-It's strongly recommended [not to create a custom context.](https://google.github.io/styleguide/go/decisions#custom-contexts). The cosmos sdk has it's own context that is passed around, and we should not try to work against that pattern to avoid confusion.
+It's strongly recommended [not to create a custom context](https://google.github.io/styleguide/go/decisions#custom-contexts). The cosmos sdk has it's own context that is passed around, and we should not try to work against that pattern to avoid confusion.
 
 ---
 Test outputs should include the actual value that the function returned before printing the value that was expected. A standard format for printing test outputs is YourFunc(%v) = %v, want %v. Where you would write “actual” and “expected”, prefer using the words “got” and “want”, respectively. [Referance](https://google.github.io/styleguide/go/decisions#got-before-want)
