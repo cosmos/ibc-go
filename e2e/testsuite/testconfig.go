@@ -702,7 +702,7 @@ type ChainOptions struct {
 // ChainOptionConfiguration enables arbitrary configuration of ChainOptions.
 type ChainOptionConfiguration func(options *ChainOptions)
 
-// DefaultChainOptions returns the default configuration for the chains.
+// DefaultChainOptions returns the default configuration for required number of chains.
 // These options can be configured by passing configuration functions to E2ETestSuite.GetChains.
 func DefaultChainOptions(chainCount int) (ChainOptions, error) {
 	tc := LoadConfig()

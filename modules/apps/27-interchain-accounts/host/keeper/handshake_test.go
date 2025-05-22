@@ -328,7 +328,7 @@ func (suite *KeeperTestSuite) TestOnChanOpenConfirm() {
 			"channel not found",
 			func() {
 				path.EndpointB.ChannelID = "invalid-channel-id"
-				path.EndpointB.ChannelConfig.PortID = "invalid-port-id"
+				path.EndpointB.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 			},
 			channeltypes.ErrChannelNotFound,
 		},

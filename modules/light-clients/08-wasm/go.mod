@@ -2,9 +2,10 @@ module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10
 
 go 1.24
 
-replace github.com/cosmos/ibc-go/v10 => ../../../
-
-replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+replace (
+	github.com/cosmos/ibc-go/v10 => ../../../
+	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+)
 
 // Globally reroute all dependencies to SDK modules to the comet v1 upgrade commit
 replace github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.53.0-rc.4.0.20250521144723-2d1fe828a970
@@ -146,6 +147,7 @@ require (
 	github.com/herumi/bls-eth-go-binary v1.31.0 // indirect
 	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/huandu/skiplist v1.2.1 // indirect
+	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

@@ -616,8 +616,8 @@ cloud.google.com/go/workflows v1.9.0/go.mod h1:ZGkj1aFIOd9c8Gerkjjq7OW7I5+l6cSvT
 cloud.google.com/go/workflows v1.10.0/go.mod h1:fZ8LmRmZQWacon9UCX1r/g/DfAXx5VcPALq2CxzdePw=
 cosmossdk.io/api v0.9.3-0.20250506131703-74993f0a47e5 h1:2clO9Yl2yTYNh50yeo/0KccZUIs8EO49yvQEoyUTnCM=
 cosmossdk.io/api v0.9.3-0.20250506131703-74993f0a47e5/go.mod h1:CWt31nVohvoPMTlPv+mMNCtC0a7BqRdESjCsstHcTkU=
-cosmossdk.io/client/v2 v2.0.0-beta.8 h1:RXMJdA4V9H1H3/3BfMD6dAW3lF8W9DpNPPYnKD+ArxY=
-cosmossdk.io/client/v2 v2.0.0-beta.8/go.mod h1:x+E2eji+ToMtUIqKzoJ5mJIhat+Zak47xZ8jOYjJQBA=
+cosmossdk.io/client/v2 v2.0.0-beta.9 h1:xc06zg4G858/pK5plhf8RCfo+KR2mdDKJNrEkfrVAqc=
+cosmossdk.io/client/v2 v2.0.0-beta.9/go.mod h1:pHf3CCHX5gmbL9rDCVbXhGI2+/DdAVTEZSLpdd5V9Zs=
 cosmossdk.io/collections v1.2.1 h1:mAlNMs5vJwkda4TA+k5q/43p24RVAQ/qyDrjANu3BXE=
 cosmossdk.io/collections v1.2.1/go.mod h1:PSsEJ/fqny0VPsHLFT6gXDj/2C1tBOTS9eByK0+PBFU=
 cosmossdk.io/core v1.0.1-0.20250506131703-74993f0a47e5 h1:cBdTqcqcU5RwMs/LwW8PAACDshKo337ArnCDtzZ4llQ=
@@ -1192,6 +1192,8 @@ github.com/huandu/go-assert v1.1.5/go.mod h1:yOLvuqZwmcHIC5rIzrBhT7D3Q9c3GFnd0Jr
 github.com/huandu/skiplist v1.2.1 h1:dTi93MgjwErA/8idWTzIw4Y1kZsMWx35fmI2c8Rij7w=
 github.com/huandu/skiplist v1.2.1/go.mod h1:7v3iFjLcSAzO4fN5B8dvebvo/qsfumiLiDXMrPiHF9w=
 github.com/hudl/fargo v1.3.0/go.mod h1:y3CKSmjA+wD2gak7sUSXTAoopbhU08POFhmITJgmKTg=
+github.com/iancoleman/orderedmap v0.3.0 h1:5cbR2grmZR/DiVt+VJopEhtVs9YGInGIxAoMJn+Ichc=
+github.com/iancoleman/orderedmap v0.3.0/go.mod h1:XuLcCUkdL5owUCQeF2Ue9uuw1EptkJDkXXS7VoV7XGE=
 github.com/iancoleman/strcase v0.2.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47ZCWhYzw7ho=
 github.com/iancoleman/strcase v0.3.0 h1:nTXanmYxhfFAMjZL34Ov6gkzEsSJZ5DbhxWjvSASxEI=
 github.com/iancoleman/strcase v0.3.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47ZCWhYzw7ho=

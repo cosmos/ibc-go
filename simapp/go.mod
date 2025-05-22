@@ -20,7 +20,7 @@ replace github.com/cometbft/cometbft/proto/tendermint/types => github.com/cometb
 
 require (
 	cosmossdk.io/api v0.9.3-0.20250506131703-74993f0a47e5
-	cosmossdk.io/client/v2 v2.0.0-beta.8
+	cosmossdk.io/client/v2 v2.0.0-beta.9
 	cosmossdk.io/core v1.0.1-0.20250506131703-74993f0a47e5
 	cosmossdk.io/log v1.6.0
 	cosmossdk.io/store v1.10.0-rc.1.0.20250506131703-74993f0a47e5
@@ -29,7 +29,7 @@ require (
 	cosmossdk.io/x/upgrade v0.2.0-rc.2
 	github.com/cometbft/cometbft v1.0.1
 	github.com/cosmos/cosmos-db v1.1.1
-	github.com/cosmos/cosmos-sdk v0.53.0-rc.4.0.20250521144723-2d1fe828a970
+	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/v10 v10.0.0
 	github.com/spf13/cast v1.8.0
@@ -147,6 +147,7 @@ require (
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
 	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/huandu/skiplist v1.2.1 // indirect
+	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

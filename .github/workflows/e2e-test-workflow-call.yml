@@ -36,6 +36,16 @@ on:
         description: 'The tag to use for chain B'
         required: true
         type: string
+      chain-c-tag:
+        description: 'The tag to use for chain C'
+        required: true
+        type: string
+        default: main
+      chain-d-tag:
+        default: main
+        description: 'The tag to use for chain D'
+        required: true
+        type: string
       # upgrade-plan-name is only required during upgrade tests, and is otherwise ignored.
       upgrade-plan-name:
         default: ''
@@ -78,6 +88,8 @@ jobs:
           echo "Chain Image:       ${{ inputs.chain-image }}"
           echo "Chain A Tag:       ${{ inputs.chain-a-tag }}"
           echo "Chain B Tag:       ${{ inputs.chain-b-tag }}"
+          echo "Chain C Tag:       ${{ inputs.chain-c-tag }}"
+          echo "Chain D Tag:       ${{ inputs.chain-d-tag }}"
           echo "Upgrade Plan Name: ${{ inputs.upgrade-plan-name }}"
           echo "Test Entry Point:  ${{ inputs.test-entry-point }}"
           echo "Test:              ${{ inputs.test }}"
@@ -93,7 +105,7 @@ jobs:
         if: ${{ inputs.build-and-push-docker-image }}
       - name: Log in to the Container registry
         if: ${{ inputs.build-and-push-docker-image }}
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -102,13 +114,13 @@ jobs:
       - name: Extract metadata (tags, labels) for Docker
         if: ${{ inputs.build-and-push-docker-image }}
         id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
         if: ${{ inputs.build-and-push-docker-image }}
-        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
@@ -140,7 +152,7 @@ jobs:
 
       - name: Log in to the Container registry
         if: ${{ inputs.build-and-push-docker-image-wasm }}
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -149,13 +161,13 @@ jobs:
       - name: Extract metadata (tags, labels) for Docker
         if: ${{ inputs.build-and-push-docker-image-wasm }}
         id: meta
-        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME_WASM }}
 
       - name: Build and push Docker image
         if: ${{ inputs.build-and-push-docker-image-wasm }}
-        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
@@ -205,6 +217,8 @@ jobs:
       CHAIN_UPGRADE_PLAN: '${{ inputs.upgrade-plan-name }}'
       CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
       CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
+      CHAIN_C_TAG: '${{ inputs.chain-c-tag }}'
+      CHAIN_D_TAG: '${{ inputs.chain-d-tag }}'
       E2E_CONFIG_PATH: '${{ inputs.e2e-config-path }}'
     strategy:
       fail-fast: false
@@ -243,6 +257,8 @@ jobs:
       CHAIN_IMAGE: '${{ inputs.chain-image }}'
       CHAIN_A_TAG: '${{ inputs.chain-a-tag }}'
       CHAIN_B_TAG: '${{ inputs.chain-b-tag }}'
+      CHAIN_C_TAG: '${{ inputs.chain-c-tag }}'
+      CHAIN_D_TAG: '${{ inputs.chain-d-tag }}'
       E2E_CONFIG_PATH: '${{ inputs.e2e-config-path }}'
     strategy:
       fail-fast: false
@@ -256,6 +272,7 @@ jobs:
           - entrypoint: TestTransferLocalhostTestSuite
           - entrypoint: TestConnectionTestSuite
           - entrypoint: TestInterchainAccountsGovTestSuite
+          - entrypoint: TestForwardTransferSuite
     steps:
       - uses: actions/checkout@v4
         with:

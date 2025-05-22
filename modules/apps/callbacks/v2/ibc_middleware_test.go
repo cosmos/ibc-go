@@ -49,7 +49,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 			func() {
 				_ = v2.NewIBCMiddleware(nil, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
-			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
+			fmt.Errorf("underlying application does not implement %T", (*api.PacketUnmarshalarModuleV2)(nil)),
 		},
 		{
 			"panics with nil contract keeper",

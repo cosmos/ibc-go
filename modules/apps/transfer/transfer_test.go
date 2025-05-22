@@ -94,7 +94,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			res, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
-			packet, err := ibctesting.ParsePacketFromEvents(res.Events)
+			packet, err := ibctesting.ParseV1PacketFromEvents(res.Events)
 			suite.Require().NoError(err)
 
 			// Get the packet data to determine the amount of tokens being transferred (needed for sending entire balance)
@@ -135,7 +135,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			res, err = suite.chainB.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
-			packet, err = ibctesting.ParsePacketFromEvents(res.Events)
+			packet, err = ibctesting.ParseV1PacketFromEvents(res.Events)
 			suite.Require().NoError(err)
 
 			err = pathBToC.RelayPacket(packet)
@@ -160,7 +160,7 @@ func (suite *TransferTestSuite) TestHandleMsgTransfer() {
 			res, err = suite.chainC.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
-			packet, err = ibctesting.ParsePacketFromEvents(res.Events)
+			packet, err = ibctesting.ParseV1PacketFromEvents(res.Events)
 			suite.Require().NoError(err)
 
 			err = pathBToC.RelayPacket(packet)
