@@ -287,7 +287,7 @@ Go 1.24 added a (testing.TB).Context() method. In tests, prefer using (testing.T
 
 ## Known Anti Patterns
 
-It's strongly recommended [not to create a custom context.](https://google.github.io/styleguide/go/decisions#custom-contexts) But the cosmos sdk has it's own context that is passed around functions. And at this point it's too much of a pain to fix that.
+It's strongly recommended [not to create a custom context.](https://google.github.io/styleguide/go/decisions#custom-contexts). The cosmos sdk has it's own context that is passed around, and we should not try to work against that pattern to avoid confusion.
 
 ---
 Test outputs should include the actual value that the function returned before printing the value that was expected. A standard format for printing test outputs is YourFunc(%v) = %v, want %v. Where you would write “actual” and “expected”, prefer using the words “got” and “want”, respectively. [Referance](https://google.github.io/styleguide/go/decisions#got-before-want)
