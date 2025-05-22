@@ -153,6 +153,8 @@ Only acceptable in a small function. Once it's a medium-sized function, be expli
 ---
 **Function and method calls should not be separated based solely on line length**
 
+The signature of a function or method declaration [should remain on a single line](https://google.github.io/styleguide/go/decisions#function-formatting) to avoid indentation confusion.
+
 ```go
 // bad
 func (im IBCMiddleware) OnRecvPacket(
