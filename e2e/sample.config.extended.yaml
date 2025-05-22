@@ -2,16 +2,16 @@
 # Many of these fields can be overridden with environment variables.
 # All fields that support this have the corresponding environment variable name in a comment beside the field.
 
-# | Environment Variable | Description                               | Default Value                |
-# |----------------------|-------------------------------------------|------------------------------|
-# | CHAIN_IMAGE          | The image that will be used for the chain | ghcr.io/cosmos/ibc-go-simd   |
-# | CHAIN_A_TAG          | The tag used for chain A                  | N/A (must be set)            |
-# | CHAIN_B_TAG          | The tag used for chain B                  | N/A (must be set)            |
-# | CHAIN_C_TAG          | The tag used for chain C                  | Optional (fallback to A)     |
-# | CHAIN_D_TAG          | The tag used for chain D                  | Optional (fallback to A)     |
-# | CHAIN_BINARY         | The binary used in the container          | simd                         |
-# | RELAYER_TAG          | The tag used for the relayer              | 1.13.1                       |
-# | RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes                       |
+# | Environment Variable | Description                               | Default Value                 |
+# |----------------------|-------------------------------------------|------------------------------ |
+# | CHAIN_IMAGE          | The image that will be used for the chain | ghcr.io/cosmos/ibc-go-simd    |
+# | CHAIN_A_TAG          | The tag used for chain A                  | N/A (must be set)             |
+# | CHAIN_B_TAG          | The tag used for chain B                  | N/A (must be set)             |
+# | CHAIN_C_TAG          | The tag used for chain C                  | Optional (fallback to A)      |
+# | CHAIN_D_TAG          | The tag used for chain D                  | Optional (fallback to A)      |
+# | CHAIN_BINARY         | The binary used in the container          | simd                          |
+# | RELAYER_TAG          | The tag used for the relayer              | luca_joss-update-docker-build |
+# | RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes                        |
 
 # see sample.config.yaml for a bare minimum configuration example.
 # set env E2E_CONFIG_PATH to point to this file to use it.
