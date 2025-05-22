@@ -7,6 +7,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	errorsmod "cosmossdk.io/errors"
+
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/api"
@@ -133,8 +135,8 @@ func GetCallbackData(
 	}
 
 	// get the callback address from the callback data
-	callbackAddress := getCallbackAddress(callbackData)
-	if strings.TrimSpace(callbackAddress) == "" {
+	callbackAddress, err := getCallbackAddress(callbackData)
+	if err != nil || strings.TrimSpace(callbackAddress) == "" {
 		return CallbackData{}, true, ErrCallbackAddressNotFound
 	}
 
@@ -148,9 +150,15 @@ func GetCallbackData(
 	}
 
 	// get the gas limit from the callback data
-	executionGasLimit, commitGasLimit := computeExecAndCommitGasLimit(callbackData, remainingGas, maxGas)
+	executionGasLimit, commitGasLimit, err := computeExecAndCommitGasLimit(callbackData, remainingGas, maxGas)
+	if err != nil {
+		return CallbackData{}, true, err
+	}
 
-	callData := getCalldata(callbackData)
+	callData, err := getCalldata(callbackData)
+	if err != nil {
+		return CallbackData{}, true, err
+	}
 
 	return CallbackData{
 		CallbackAddress:    callbackAddress,
@@ -162,9 +170,12 @@ func GetCallbackData(
 	}, true, nil
 }
 
-func computeExecAndCommitGasLimit(callbackData map[string]any, remainingGas, maxGas uint64) (uint64, uint64) {
+func computeExecAndCommitGasLimit(callbackData map[string]any, remainingGas, maxGas uint64) (uint64, uint64, error) {
 	// get the gas limit from the callback data
-	commitGasLimit := getUserDefinedGasLimit(callbackData)
+	commitGasLimit, err := getUserDefinedGasLimit(callbackData)
+	if err != nil {
+		return 0, 0, err
+	}
 
 	// ensure user defined gas limit does not exceed the max gas limit
 	if commitGasLimit == 0 || commitGasLimit > maxGas {
@@ -175,7 +186,7 @@ func computeExecAndCommitGasLimit(callbackData map[string]any, remainingGas, max
 	// in this case, the callback execution may be retried upon failure
 	executionGasLimit := min(remainingGas, commitGasLimit)
 
-	return executionGasLimit, commitGasLimit
+	return executionGasLimit, commitGasLimit, nil
 }
 
 // getUserDefinedGasLimit returns the custom gas limit provided for callbacks if it is
@@ -186,19 +197,26 @@ func computeExecAndCommitGasLimit(callbackData map[string]any, remainingGas, max
 // { "{callbackKey}": { ... , "gas_limit": {stringForCallback} }
 //
 // Note: the user defined gas limit must be set as a string and not a json number.
-func getUserDefinedGasLimit(callbackData map[string]any) uint64 {
+func getUserDefinedGasLimit(callbackData map[string]any) (uint64, error) {
 	// the gas limit must be specified as a string and not a json number
-	gasLimit, ok := callbackData[UserDefinedGasLimitKey].(string)
+	gasLimit, ok := callbackData[UserDefinedGasLimitKey]
 	if !ok {
-		return 0
+		return 0, nil
+	}
+	gasLimitStr, ok := gasLimit.(string)
+	if !ok {
+		return 0, errorsmod.Wrapf(ErrInvalidCallbackData, "gas limit must be a string")
+	}
+	if gasLimitStr == "" {
+		return 0, nil
 	}
 
-	userGas, err := strconv.ParseUint(gasLimit, 10, 64)
+	userGas, err := strconv.ParseUint(gasLimitStr, 10, 64)
 	if err != nil {
-		return 0
+		return 0, errorsmod.Wrapf(ErrInvalidCallbackData, "gas limit must be a valid uint64: %s", err)
 	}
 
-	return userGas
+	return userGas, nil
 }
 
 // getCallbackAddress returns the callback address if it is specified in the callback data.
@@ -210,27 +228,34 @@ func getUserDefinedGasLimit(callbackData map[string]any) uint64 {
 //
 // ADR-8 middleware should callback on the returned address if it is a PacketActor
 // (i.e. smart contract that accepts IBC callbacks).
-func getCallbackAddress(callbackData map[string]any) string {
+func getCallbackAddress(callbackData map[string]any) (string, error) {
 	callbackAddress, ok := callbackData[CallbackAddressKey].(string)
 	if !ok {
-		return ""
+		return "", errorsmod.Wrapf(ErrInvalidCallbackData, "callback address must be a string")
 	}
 
-	return callbackAddress
+	return callbackAddress, nil
 }
 
 // getCalldata returns the calldata if it is specified in the callback data.
-func getCalldata(callbackData map[string]any) []byte {
-	calldataStr, ok := callbackData[CalldataKey].(string)
-	if !ok || calldataStr == "" {
-		return nil
+func getCalldata(callbackData map[string]any) ([]byte, error) {
+	calldataAny, ok := callbackData[CalldataKey]
+	if !ok {
+		return nil, nil
+	}
+	calldataStr, ok := calldataAny.(string)
+	if !ok {
+		return nil, errorsmod.Wrapf(ErrInvalidCallbackData, "calldata must be a string")
+	}
+	if calldataStr == "" {
+		return nil, nil
 	}
 
 	calldata, err := hex.DecodeString(calldataStr)
 	if err != nil {
-		return nil
+		return nil, errorsmod.Wrapf(ErrInvalidCallbackData, "calldata must be a valid hex string: %s", err)
 	}
-	return calldata
+	return calldata, nil
 }
 
 // AllowRetry returns true if the callback execution gas limit is less than the commit gas limit.
