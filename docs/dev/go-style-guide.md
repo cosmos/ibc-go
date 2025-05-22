@@ -211,24 +211,6 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 ```
 
 ---
-**Always write conditional statements like this**
-
-```go
-if i < f() {
-    g()
-}
-```
-
-Never like this
-
-```go
-if i < f()  // wrong! The compiler will place a semicolone (;) here.
-{           // wrong!
-    g()
-}
-```
-
----
 **Don't Use Get in function/Method names**
 
 ```go
@@ -315,3 +297,16 @@ But testify has it other way around.
 `Require.Equal(Expected, Actual)`
 
 This is a known anti pattern that we allow as the testify package is used heavily in tests.
+
+---
+In tests suites we are embedding `testify/require` package for assertions. Since it's embedded and there are no name collision on `require` types methods, when calling, we should "promote" those methods to the suite. But throughout the repo we make explicit calls.
+
+```go
+s.Require().NoError(err)
+```
+
+A better and more cleaner approach could be,
+
+```go
+s.NoError(err)
+```
