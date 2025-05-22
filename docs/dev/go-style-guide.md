@@ -151,31 +151,6 @@ func (c *TestChain) NextBlock() {
 Only acceptable in a small function. Once it's a medium-sized function, be explicit with your returned values. Similarly, do not name result parameters just because it enables you to use naked returns. Clarity is always more important than saving a few lines in your function.
 
 ---
-**Cuddled braces**
-
-[Dropping whitespace between braces](https://google.github.io/styleguide/go/decisions#cuddled-braces) for slice and array literals is only permitted when both of the following are true.
-  
-- The indentation matches
-- The inner values are also literals or proto builders (i.e. not a variable or other expression)
-
-```go
-// Good
-good := []*Type{
-    first, // Can't be cuddled
-    {Field: "second"},
-}
-```
-
-```go
-// Good:
-good := []*Type{{ // Cuddled correctly
-    Field: "value",
-}, {
-    Field: "value",
-}}
-```
-
----
 **Function and method calls should not be separated based solely on line length**
 
 ```go
