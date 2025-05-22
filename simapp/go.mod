@@ -1,27 +1,35 @@
 module github.com/cosmos/ibc-go/simapp
 
-go 1.23.8
+go 1.24
+
+toolchain go1.24.3
 
 replace (
 	github.com/cosmos/ibc-go/v10 => ../
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
 
+// Globally reroute all dependencies to SDK modules to the comet v1 upgrade commit
+replace github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.53.0-rc.4.0.20250521144723-2d1fe828a970
+
+// Use specific version of CometBFT that's compatible with the SDK
+replace github.com/cometbft/cometbft => github.com/cometbft/cometbft v1.0.1
+
+// Use CometBFT API package for proto types
+replace github.com/cometbft/cometbft/proto/tendermint/types => github.com/cometbft/cometbft/api/cometbft/types v1.0.1
+
 require (
 	cosmossdk.io/api v0.9.3-0.20250506131703-74993f0a47e5
-	cosmossdk.io/client/v2 v2.0.0-beta.9.0.20250506131703-74993f0a47e5
+	cosmossdk.io/client/v2 v2.0.0-beta.8
 	cosmossdk.io/core v1.0.1-0.20250506131703-74993f0a47e5
-	cosmossdk.io/log v1.5.1
+	cosmossdk.io/log v1.6.0
 	cosmossdk.io/store v1.10.0-rc.1.0.20250506131703-74993f0a47e5
-	cosmossdk.io/tools/confix v0.1.3-0.20250506131703-74993f0a47e5
-	cosmossdk.io/x/circuit v0.2.0-rc.2.0.20250506131703-74993f0a47e5
-	cosmossdk.io/x/evidence v0.2.0-rc.2.0.20250506131703-74993f0a47e5
-	cosmossdk.io/x/feegrant v0.2.0-rc.2.0.20250506131703-74993f0a47e5
+	cosmossdk.io/tools/confix v0.1.2
 	cosmossdk.io/x/tx v1.1.1-0.20250506131703-74993f0a47e5
-	cosmossdk.io/x/upgrade v0.2.0-rc.2.0.20250506131703-74993f0a47e5
+	cosmossdk.io/x/upgrade v0.2.0-rc.2
 	github.com/cometbft/cometbft v1.0.1
 	github.com/cosmos/cosmos-db v1.1.1
-	github.com/cosmos/cosmos-sdk v0.53.0
+	github.com/cosmos/cosmos-sdk v0.53.0-rc.4.0.20250521144723-2d1fe828a970
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/v10 v10.0.0
 	github.com/spf13/cast v1.8.0
@@ -39,7 +47,7 @@ require (
 	cloud.google.com/go/iam v1.2.2 // indirect
 	cloud.google.com/go/monitoring v1.21.2 // indirect
 	cloud.google.com/go/storage v1.49.0 // indirect
-	cosmossdk.io/collections v1.2.0 // indirect
+	cosmossdk.io/collections v1.2.1 // indirect
 	cosmossdk.io/depinject v1.2.0 // indirect
 	cosmossdk.io/errors v1.0.2 // indirect
 	cosmossdk.io/math v1.5.3 // indirect
@@ -53,7 +61,7 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.48.1 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.48.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/aws/aws-sdk-go v1.44.224 // indirect
+	github.com/aws/aws-sdk-go v1.49.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
@@ -78,7 +86,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
-	github.com/cosmos/iavl v1.2.2 // indirect
+	github.com/cosmos/iavl v1.2.6 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.14.0 // indirect
 	github.com/creachadair/atomicfile v0.3.7 // indirect
@@ -94,7 +102,7 @@ require (
 	github.com/emicklei/dot v1.6.2 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.32.4 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
-	github.com/ethereum/go-ethereum v1.15.10 // indirect
+	github.com/ethereum/go-ethereum v1.15.11 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -110,7 +118,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
+	github.com/golang/snappy v0.0.5-0.20231225225746-43d5d4cd4e0e // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/flatbuffers v25.1.24+incompatible // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
@@ -167,8 +175,8 @@ require (
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.22.0 // indirect
-	github.com/prometheus/client_model v0.6.1 // indirect
-	github.com/prometheus/common v0.63.0 // indirect
+	github.com/prometheus/client_model v0.6.2 // indirect
+	github.com/prometheus/common v0.64.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
@@ -195,7 +203,7 @@ require (
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.34.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.58.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.59.0 // indirect
 	go.opentelemetry.io/otel v1.34.0 // indirect
 	go.opentelemetry.io/otel/metric v1.34.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
@@ -203,21 +211,21 @@ require (
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
 	go.uber.org/mock v0.5.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/arch v0.15.0 // indirect
-	golang.org/x/crypto v0.37.0 // indirect
+	golang.org/x/arch v0.17.0 // indirect
+	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
-	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/oauth2 v0.27.0 // indirect
+	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.14.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/term v0.31.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/term v0.32.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/time v0.10.0 // indirect
 	google.golang.org/api v0.222.0 // indirect
 	google.golang.org/genproto v0.0.0-20241118233622-e639e219e697 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250414145226-207652e42e2e // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250422160041-2d3770c4ea7f // indirect
-	google.golang.org/grpc v1.72.0 // indirect
+	google.golang.org/grpc v1.72.1 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -227,6 +235,3 @@ require (
 	rsc.io/qr v0.2.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
-
-// Globally reroute all dependencies to SDK modules to the comet v1 upgrade commit
-replace github.com/cosmos/cosmos-sdk => github.com/cosmos/cosmos-sdk v0.53.0-rc.4.0.20250506131703-74993f0a47e5

@@ -68,6 +68,11 @@ type InterchainAccountsGroupsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *InterchainAccountsGroupsTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 func (s *InterchainAccountsGroupsTestSuite) QueryGroupPolicyAddress(ctx context.Context, chain ibc.Chain) string {
 	res, err := query.GRPCQuery[grouptypes.QueryGroupPoliciesByGroupResponse](ctx, chain, &grouptypes.QueryGroupPoliciesByGroupRequest{
 		GroupId: InitialGroupID, // always use the initial group id

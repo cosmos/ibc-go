@@ -187,6 +187,20 @@ tag-docs-version:
 	@cd docs && npm run docusaurus docs:version $(DOCS_VERSION)
 endif
 
+check-docs-links:
+	@command -v lychee >/dev/null 2>&1 || { echo "ERROR: lychee is not installed (https://lychee.cli.rs/installation/)" >&2; exit 1; }
+	@echo "Checking links in documentation..."
+	@echo "$(CURDIR)"
+	@lychee --root-dir $(CURDIR)/docs/docs \
+		--cache \
+		--cache-exclude-status 429 \
+		--max-cache-age 1w \
+		--retry-wait-time 30 \
+		--max-retries 25 \
+		--max-concurrency 25 \
+		--remap '($(CURDIR)/docs)(/docs/)(architecture/|events/)([^#]+?)(#[^#]+)?$$ $$1/$$3/$$4.md' \
+		'./docs/docs'
+
 .PHONY: build-docs serve-docs tag-docs-version
 
 ###############################################################################
@@ -340,19 +354,7 @@ format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs misspell -w
 .PHONY: format
 
-#? docs-lint: Lint markdown documentation files
-docs-lint:
-	markdownlint-cli2 "**.md"
-
-#? docs-lint-fix: Lint markdown documentation files and fix
-docs-lint-fix:
-	markdownlint-cli2 "**.md" --fix
-
-#? docs-link-check: Run markdown-link-check
-docs-link-check:
-	find . -name 'node_modules' -prune -o -name '*.md' -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
-
-.PHONY: lint lint-fix docs-lint docs-lint-fix docs-link-check
+.PHONY: lint lint-fix format
 
 ###############################################################################
 ###                                Protobuf                                 ###

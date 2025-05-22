@@ -102,12 +102,6 @@ func (s *E2ETestSuite) initDockerClient() {
 	s.network = network
 }
 
-// SetupSuite will by default create chains with no additional options. If additional options are required,
-// the test suite must define the SetupSuite function and provide the required options.
-func (s *E2ETestSuite) SetupSuite() {
-	s.SetupChains(context.TODO(), nil)
-}
-
 // configureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
 func (s *E2ETestSuite) configureGenesisDebugExport() {
 	tc := LoadConfig()
@@ -161,8 +155,8 @@ func (s *E2ETestSuite) initializeRelayerPool(n int) []ibc.Relayer {
 
 // SetupChains creates the chains for the test suite, and also a relayer that is wired up to establish
 // connections and channels between the chains.
-func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier ChainOptionModifier, chainSpecOpts ...ChainOptionConfiguration) {
-	s.T().Logf("Setting up chains: %s", s.T().Name())
+func (s *E2ETestSuite) SetupChains(ctx context.Context, chainCount int, channelOptionsModifier ChainOptionModifier, chainSpecOpts ...ChainOptionConfiguration) {
+	s.T().Logf("Setting up %d chains: %s", chainCount, s.T().Name())
 
 	if LoadConfig().DebugConfig.KeepContainers {
 		s.Require().NoError(os.Setenv(KeepContainersEnv, "true"))
@@ -171,12 +165,17 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, channelOptionsModifier C
 	s.initState()
 	s.configureGenesisDebugExport()
 
-	chainOptions := DefaultChainOptions()
+	chainOptions, err := DefaultChainOptions(chainCount)
+	s.Require().NoError(err)
+
 	for _, opt := range chainSpecOpts {
 		opt(&chainOptions)
 	}
 
-	s.chains = s.createChains(chainOptions)
+	specCount := len(chainOptions.ChainSpecs)
+	s.Require().GreaterOrEqualf(specCount, chainCount, "wants to create %d chains, but DefaultChainOptions has %d configurations", chainCount, specCount)
+
+	s.chains = s.createChains(chainCount, chainOptions)
 
 	s.relayerPool = s.initializeRelayerPool(chainOptions.RelayerCount)
 
@@ -630,9 +629,11 @@ func (s *E2ETestSuite) AssertHumanReadableDenom(ctx context.Context, chain ibc.C
 
 // createChains creates two separate chains in docker containers.
 // test and can be retrieved with GetChains.
-func (s *E2ETestSuite) createChains(chainOptions ChainOptions) []ibc.Chain {
+func (s *E2ETestSuite) createChains(chainCount int, chainOptions ChainOptions) []ibc.Chain {
 	t := s.T()
-	cf := interchaintest.NewBuiltinChainFactory(s.logger, chainOptions.ChainSpecs)
+	s.Require().GreaterOrEqualf(len(chainOptions.ChainSpecs), chainCount, "len(chainOptions.ChainSpecs): %d < chainCount: %d", len(chainOptions.ChainSpecs), chainCount)
+
+	cf := interchaintest.NewBuiltinChainFactory(s.logger, chainOptions.ChainSpecs[:chainCount]) // Take the first N specs
 
 	// this is intentionally called after the interchaintest.DockerSetup function. The above function registers a
 	// cleanup task which deletes all containers. By registering a cleanup function afterwards, it is executed first

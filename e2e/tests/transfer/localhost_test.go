@@ -29,6 +29,11 @@ type LocalhostTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *LocalhostTransferTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 1, nil)
+}
+
 // TestMsgTransfer_Localhost creates two wallets on a single chain and performs MsgTransfers back and forth
 // to ensure ibc functions as expected on localhost. This test is largely the same as TestMsgTransfer_Succeeds_Nonincentivized
 // except that chain B is replaced with an additional wallet on chainA.
@@ -36,7 +41,8 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, _ := s.GetChains()
+	chains := s.GetAllChains()
+	chainA := chains[0]
 
 	channelVersion := transfertypes.V1
 
