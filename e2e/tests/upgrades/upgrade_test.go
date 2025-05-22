@@ -61,7 +61,7 @@ func (s *UpgradeTestSuite) SetupSuite() {
 }
 
 func (s *UpgradeTestSuite) CreateUpgradeTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
+	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAToChainBChannel(testName)
 }
 
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
@@ -660,7 +660,7 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	testName := t.Name()
 	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 
-	channelA := s.GetChainAChannelForTest(testName)
+	channelA := s.GetChainAToChainBChannel(testName)
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
@@ -882,7 +882,7 @@ func (s *UpgradeTestSuite) TestV8ToV10ChainUpgrade_Localhost() {
 		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, srcChannelID, testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(txResp)
 
-		packet, err := ibctesting.ParsePacketFromEvents(txResp.Events)
+		packet, err := ibctesting.ParseV1PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 
@@ -959,7 +959,7 @@ func (s *UpgradeTestSuite) TestV8ToV10ChainUpgrade_Localhost() {
 		txResp := s.Transfer(ctx, chainA, userBWallet, transfertypes.PortID, dstChannelID, transferCoins, userBWallet.FormattedAddress(), userAWallet.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(txResp)
 
-		packet, err := ibctesting.ParsePacketFromEvents(txResp.Events)
+		packet, err := ibctesting.ParseV1PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 

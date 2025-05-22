@@ -1355,7 +1355,7 @@ func (suite *KeeperTestSuite) TestQueryUnreceivedPackets() {
 			"channel not found",
 			func() {
 				req = &types.QueryUnreceivedPacketsRequest{
-					PortId:    "invalid-port-id",
+					PortId:    "invalid-port-id", //nolint:goconst
 					ChannelId: "invalid-channel-id",
 				}
 			},

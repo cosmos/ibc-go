@@ -436,7 +436,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"unauthorised: interchain account not found for controller port ID",
 			func(encoding string) {
-				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
+				path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 
 				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{&banktypes.MsgSend{}}, encoding)
 				suite.Require().NoError(err)

@@ -520,7 +520,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestSourceCallbackDataTransfer() {
 			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			packetUnmarshaler, ok := transferStack.(types.CallbacksCompatibleModule)
+			packetUnmarshaler, ok := transferStack.(porttypes.PacketUnmarshalarModule)
 			s.Require().True(ok)
 
 			s.path.Setup()
