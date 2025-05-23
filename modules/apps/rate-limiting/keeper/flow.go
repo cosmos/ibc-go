@@ -17,7 +17,7 @@ func (k Keeper) GetChannelValue(ctx sdk.Context, denom string) sdkmath.Int {
 }
 
 // Adds an amount to the flow in either the SEND or RECV direction
-func (k Keeper) UpdateFlow(rateLimit types.RateLimit, direction types.PacketDirection, amount sdkmath.Int) error {
+func UpdateFlow(rateLimit types.RateLimit, direction types.PacketDirection, amount sdkmath.Int) error {
 	switch direction {
 	case types.PACKET_SEND:
 		return rateLimit.Flow.AddOutflow(amount, *rateLimit.Quota)
@@ -28,13 +28,12 @@ func (k Keeper) UpdateFlow(rateLimit types.RateLimit, direction types.PacketDire
 	}
 }
 
-// Checks whether the given packet will exceed the rate limit
+// TODO: Refactor.
+// Split this function into CheckRateLimit and UpdateFlow.
+//
+// CheckRateLimitAndUpdateFlow checks whether the given packet will exceed the rate limit.
 // Called by OnRecvPacket and OnSendPacket
-func (k Keeper) CheckRateLimitAndUpdateFlow(
-	ctx sdk.Context,
-	direction types.PacketDirection,
-	packetInfo RateLimitedPacketInfo,
-) (updatedFlow bool, err error) {
+func (k Keeper) CheckRateLimitAndUpdateFlow(ctx sdk.Context, direction types.PacketDirection, packetInfo RateLimitedPacketInfo) (updatedFlow bool, err error) {
 	denom := packetInfo.Denom
 	channelOrClientId := packetInfo.ChannelID
 	amount := packetInfo.Amount
@@ -59,7 +58,7 @@ func (k Keeper) CheckRateLimitAndUpdateFlow(
 	}
 
 	// Update the flow object with the change in amount
-	if err := k.UpdateFlow(rateLimit, direction, amount); err != nil {
+	if err := UpdateFlow(rateLimit, direction, amount); err != nil {
 		// If the rate limit was exceeded, emit an event
 		EmitTransferDeniedEvent(ctx, types.EventRateLimitExceeded, denom, channelOrClientId, direction, amount, err)
 		return false, err
