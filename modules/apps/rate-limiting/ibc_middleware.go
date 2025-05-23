@@ -10,34 +10,33 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 var (
-	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
-	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil) // Optional: If underlying app needs it
+	_ porttypes.Middleware              = (*IBCMiddleware)(nil)
+	_ porttypes.PacketUnmarshalarModule = (*IBCMiddleware)(nil)
 )
 
 // IBCMiddleware implements the ICS26 callbacks for the rate-limiting middleware.
 type IBCMiddleware struct {
-	app         porttypes.IBCModule
-	keeper      keeper.Keeper
-	ics4Wrapper porttypes.ICS4Wrapper // Added: The underlying ICS4Wrapper
-	// Note: We wrap the keeper with the ICS4Wrapper, which calls the underlying stack.
-	// The keeper needs access to the underlying stack to send packets.
+	app           porttypes.PacketUnmarshalarModule
+	keeper        keeper.Keeper
+	ics4Wrapper   porttypes.ICS4Wrapper
 }
 
-// NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application, and underlying ics4wrapper.
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper, ics4Wrapper porttypes.ICS4Wrapper) IBCMiddleware {
-	// The keeper needs the ICS4Wrapper to send packets.
-	// We also store the underlying ics4wrapper directly for calls like WriteAcknowledgement and GetAppVersion.
-	k.SetICS4Wrapper(ics4Wrapper) // Set the wrapper on the keeper
+// NewIBCMiddleware creates a new IBCMiddleware given the keeper, underlying application, and channel keeper.
+func NewIBCMiddleware(app porttypes.PacketUnmarshalarModule, k keeper.Keeper, ck *channelkeeper.Keeper) IBCMiddleware {
+	// The keeper needs the ICS4Wrapper to potentially send packets (though not used currently).
+	// We pass the channel keeper as the ICS4Wrapper for consistency and potential future use.
+	k.SetICS4Wrapper(ck)
 	return IBCMiddleware{
 		app:         app,
 		keeper:      k,
-		ics4Wrapper: ics4Wrapper, // Store the wrapper on the middleware itself
+		ics4Wrapper: ck, // Store the wrapper on the middleware itself
 	}
 }
 
