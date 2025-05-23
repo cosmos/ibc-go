@@ -1,13 +1,13 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
 func (s *KeeperTestSuite) TestGetChannelValue() {
@@ -184,8 +184,10 @@ func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_BidirectionalFlow() {
 				{direction: types.PACKET_SEND, amount: 2},
 				{direction: types.PACKET_RECV, amount: 6},
 				{direction: types.PACKET_SEND, amount: 2},
-				{direction: types.PACKET_RECV, amount: 6,
-					expectedError: "Inflow exceeds quota"},
+				{
+					direction: types.PACKET_RECV, amount: 6,
+					expectedError: "Inflow exceeds quota",
+				},
 			},
 		},
 		{

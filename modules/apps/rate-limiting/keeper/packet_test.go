@@ -5,19 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-
 	"time"
 
-	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting"
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	"github.com/stretchr/testify/require"
 
 	sdkmath "cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting"
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"

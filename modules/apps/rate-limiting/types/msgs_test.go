@@ -3,9 +3,9 @@ package types_test
 import (
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-
 	"github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )

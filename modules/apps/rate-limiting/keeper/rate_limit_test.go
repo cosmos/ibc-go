@@ -3,11 +3,11 @@ package keeper_test
 import (
 	"strconv"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
@@ -125,7 +125,7 @@ func (s *KeeperTestSuite) TestAddRateLimit_ClientId() {
 	}
 
 	// Add the rate limit using the client ID
-	err = s.chainA.GetSimApp().RateLimitKeeper.AddRateLimit(s.chainA.GetContext(), msg) 
+	err = s.chainA.GetSimApp().RateLimitKeeper.AddRateLimit(s.chainA.GetContext(), msg)
 	s.Require().NoError(err, "adding rate limit with client ID should succeed")
 
 	// Verify the rate limit was stored correctly

@@ -1,16 +1,15 @@
 package keeper
 
 import (
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported" 
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 // Stores/Updates a rate limit object in the store

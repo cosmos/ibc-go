@@ -1,9 +1,6 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
@@ -12,6 +9,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )

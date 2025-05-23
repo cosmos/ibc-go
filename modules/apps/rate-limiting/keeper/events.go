@@ -1,14 +1,13 @@
-
 package keeper
 
 import (
 	"strings"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
 // If the rate limit is exceeded or the denom is blacklisted, we emit an event

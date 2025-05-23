@@ -3,15 +3,14 @@ package keeper
 import (
 	"context"
 
-	"google.golang.org/grpc/codes"   // Added import
+	"google.golang.org/grpc/codes"  // Added import
 	"google.golang.org/grpc/status" // Added import
-
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 	tmclient "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"

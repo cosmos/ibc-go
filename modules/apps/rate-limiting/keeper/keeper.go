@@ -7,11 +7,12 @@ import (
 
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 )
 
 // Keeper maintains the link to storage and exposes getter/setter methods for the various parts of the state machine
@@ -19,7 +20,7 @@ type Keeper struct {
 	storeService corestore.KVStoreService
 	cdc          codec.BinaryCodec
 
-	ics4Wrapper porttypes.ICS4Wrapper
+	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	clientKeeper  types.ClientKeeper
 
@@ -46,7 +47,7 @@ func NewKeeper(
 		storeService:  storeService,
 		ics4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
-		clientKeeper:   clientKeeper,
+		clientKeeper:  clientKeeper,
 		bankKeeper:    bankKeeper,
 		authority:     authority,
 	}

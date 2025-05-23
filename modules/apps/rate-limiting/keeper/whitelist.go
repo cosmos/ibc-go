@@ -1,12 +1,12 @@
 package keeper
 
 import (
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	"cosmossdk.io/store/prefix"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
 // Adds an pair of sender and receiver addresses to the whitelist to allow all

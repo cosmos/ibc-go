@@ -5,13 +5,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
 // Sets the sequence number of a packet that was just sent

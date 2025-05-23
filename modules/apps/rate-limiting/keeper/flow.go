@@ -1,13 +1,13 @@
 package keeper
 
 import (
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
 // The total value on a given path (aka, the denominator in the percentage calculation)

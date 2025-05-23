@@ -91,14 +91,13 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting" // Add rate-limiting import
-	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-
 	// ratelimitingmodule "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/module" // Remove incorrect import
-	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
 	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
+	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting" // Add rate-limiting import
+	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfer "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"

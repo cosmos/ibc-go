@@ -6,8 +6,8 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types" // Add sdk import
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
