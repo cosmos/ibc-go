@@ -72,8 +72,8 @@ func (k Keeper) GetAllPendingSendPackets(ctx sdk.Context) []string {
 			continue
 		}
 
-		packetId := fmt.Sprintf("%s/%d", channelID, sequence)
-		pendingPackets = append(pendingPackets, packetId)
+		packetID := fmt.Sprintf("%s/%d", channelID, sequence)
+		pendingPackets = append(pendingPackets, packetID)
 	}
 
 	return pendingPackets

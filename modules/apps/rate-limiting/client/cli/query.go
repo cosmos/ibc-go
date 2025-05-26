@@ -139,7 +139,7 @@ func GetCmdQueryRateLimitsByChainID() *cobra.Command {
 		Short: "Query all rate limits associated with the channels/clients connecting to the given ChainID",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			chainId := args[0]
+			chainID := args[0]
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -148,7 +148,7 @@ func GetCmdQueryRateLimitsByChainID() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			req := &types.QueryRateLimitsByChainIdRequest{
-				ChainId: chainId,
+				ChainId: chainID,
 			}
 			res, err := queryClient.RateLimitsByChainId(context.Background(), req)
 			if err != nil {
