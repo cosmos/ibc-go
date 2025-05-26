@@ -80,12 +80,12 @@ func (s *KeeperTestSuite) TestResetRateLimit() {
 
 	rateLimitToReset := rateLimits[0]
 	denomToRemove := rateLimitToReset.Path.Denom
-	channelIdToRemove := rateLimitToReset.Path.ChannelOrClientId
+	channelIDToRemove := rateLimitToReset.Path.ChannelOrClientId
 
-	err := s.chainA.GetSimApp().RateLimitKeeper.ResetRateLimit(s.chainA.GetContext(), denomToRemove, channelIdToRemove)
+	err := s.chainA.GetSimApp().RateLimitKeeper.ResetRateLimit(s.chainA.GetContext(), denomToRemove, channelIDToRemove)
 	s.Require().NoError(err)
 
-	rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denomToRemove, channelIdToRemove)
+	rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denomToRemove, channelIDToRemove)
 	s.Require().True(found, "element should have been found, but was not")
 	s.Require().Zero(rateLimit.Flow.Inflow.Int64(), "Inflow should have been reset to 0")
 	s.Require().Zero(rateLimit.Flow.Outflow.Int64(), "Outflow should have been reset to 0")

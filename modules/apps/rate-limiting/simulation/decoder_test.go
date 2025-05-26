@@ -87,6 +87,7 @@ func createFlow() *types.Flow {
 }
 
 func createFlowBytes(t *testing.T) []byte {
+	t.Helper()
 	flow := createFlow()
 	bz, err := types.ModuleCdc.Marshal(flow)
 	require.NoError(t, err)

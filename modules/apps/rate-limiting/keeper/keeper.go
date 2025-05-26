@@ -80,14 +80,6 @@ func (k Keeper) GetPort(ctx sdk.Context) string {
 	return string(bz)
 }
 
-// SetPort sets the portID for the rate-limiting module.
-func (k Keeper) setPort(ctx sdk.Context, portID string) {
-	store := k.storeService.OpenKVStore(ctx)
-	if err := store.Set(types.KeyPort(portID), []byte{0x01}); err != nil {
-		panic(err)
-	}
-}
-
 // GetParams returns the current rate-limiting module parameters
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	var params types.Params

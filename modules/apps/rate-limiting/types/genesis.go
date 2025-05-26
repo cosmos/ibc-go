@@ -12,10 +12,10 @@ import (
 
 // Splits a pending send packet of the form {channelId}/{sequenceNumber} into the channel Id
 // and sequence number respectively
-func ParsePendingPacketId(pendingPacketId string) (channelId string, sequence uint64, err error) {
-	splits := strings.Split(pendingPacketId, "/")
+func ParsePendingPacketId(pendingPacketID string) (channelId string, sequence uint64, err error) {
+	splits := strings.Split(pendingPacketID, "/")
 	if len(splits) != 2 {
-		return "", 0, fmt.Errorf("invalid pending send packet (%s), must be of form: {channelId}/{sequenceNumber}", pendingPacketId)
+		return "", 0, fmt.Errorf("invalid pending send packet (%s), must be of form: {channelId}/{sequenceNumber}", pendingPacketID)
 	}
 	channelId = splits[0]
 	sequenceString := splits[1]
@@ -47,8 +47,8 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	// Validate the format of the pending send packets
-	for _, pendingPacketId := range gs.PendingSendPacketSequenceNumbers {
-		if _, _, err := ParsePendingPacketId(pendingPacketId); err != nil {
+	for _, pendingPacketID := range gs.PendingSendPacketSequenceNumbers {
+		if _, _, err := ParsePendingPacketId(pendingPacketID); err != nil {
 			return err
 		}
 	}

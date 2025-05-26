@@ -40,21 +40,21 @@ var (
 //               MsgAddRateLimit
 // ----------------------------------------------
 
-func NewMsgAddRateLimit(denom, channelOrClientId string, maxPercentSend sdkmath.Int, maxPercentRecv sdkmath.Int, durationHours uint64) *MsgAddRateLimit {
+func NewMsgAddRateLimit(denom, channelOrClientID string, maxPercentSend sdkmath.Int, maxPercentRecv sdkmath.Int, durationHours uint64) *MsgAddRateLimit {
 	return &MsgAddRateLimit{
 		Denom:             denom,
-		ChannelOrClientId: channelOrClientId,
+		ChannelOrClientId: channelOrClientID,
 		MaxPercentSend:    maxPercentSend,
 		MaxPercentRecv:    maxPercentRecv,
 		DurationHours:     durationHours,
 	}
 }
 
-func (msg MsgAddRateLimit) Type() string {
+func (MsgAddRateLimit) Type() string {
 	return TypeMsgAddRateLimit
 }
 
-func (msg MsgAddRateLimit) Route() string {
+func (MsgAddRateLimit) Route() string {
 	return RouterKey
 }
 
@@ -116,21 +116,21 @@ func (msg *MsgAddRateLimit) ValidateBasic() error {
 //               MsgUpdateRateLimit
 // ----------------------------------------------
 
-func NewMsgUpdateRateLimit(denom, channelOrClientId string, maxPercentSend sdkmath.Int, maxPercentRecv sdkmath.Int, durationHours uint64) *MsgUpdateRateLimit {
+func NewMsgUpdateRateLimit(denom, channelOrClientID string, maxPercentSend sdkmath.Int, maxPercentRecv sdkmath.Int, durationHours uint64) *MsgUpdateRateLimit {
 	return &MsgUpdateRateLimit{
 		Denom:             denom,
-		ChannelOrClientId: channelOrClientId,
+		ChannelOrClientId: channelOrClientID,
 		MaxPercentSend:    maxPercentSend,
 		MaxPercentRecv:    maxPercentRecv,
 		DurationHours:     durationHours,
 	}
 }
 
-func (msg MsgUpdateRateLimit) Type() string {
+func (MsgUpdateRateLimit) Type() string {
 	return TypeMsgUpdateRateLimit
 }
 
-func (msg MsgUpdateRateLimit) Route() string {
+func (MsgUpdateRateLimit) Route() string {
 	return RouterKey
 }
 
@@ -192,18 +192,18 @@ func (msg *MsgUpdateRateLimit) ValidateBasic() error {
 //               MsgRemoveRateLimit
 // ----------------------------------------------
 
-func NewMsgRemoveRateLimit(denom, channelOrClientId string) *MsgRemoveRateLimit {
+func NewMsgRemoveRateLimit(denom, channelOrClientID string) *MsgRemoveRateLimit {
 	return &MsgRemoveRateLimit{
 		Denom:             denom,
-		ChannelOrClientId: channelOrClientId,
+		ChannelOrClientId: channelOrClientID,
 	}
 }
 
-func (msg MsgRemoveRateLimit) Type() string {
+func (MsgRemoveRateLimit) Type() string {
 	return TypeMsgRemoveRateLimit
 }
 
-func (msg MsgRemoveRateLimit) Route() string {
+func (MsgRemoveRateLimit) Route() string {
 	return RouterKey
 }
 
@@ -246,18 +246,18 @@ func (msg *MsgRemoveRateLimit) ValidateBasic() error {
 //               MsgResetRateLimit
 // ----------------------------------------------
 
-func NewMsgResetRateLimit(denom, channelOrClientId string) *MsgResetRateLimit {
+func NewMsgResetRateLimit(denom, channelOrClientID string) *MsgResetRateLimit {
 	return &MsgResetRateLimit{
 		Denom:             denom,
-		ChannelOrClientId: channelOrClientId,
+		ChannelOrClientId: channelOrClientID,
 	}
 }
 
-func (msg MsgResetRateLimit) Type() string {
+func (MsgResetRateLimit) Type() string {
 	return TypeMsgResetRateLimit
 }
 
-func (msg MsgResetRateLimit) Route() string {
+func (MsgResetRateLimit) Route() string {
 	return RouterKey
 }
 
@@ -334,12 +334,12 @@ func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 }
 
 // Route implements sdk.Msg
-func (msg MsgUpdateParams) Route() string {
+func (MsgUpdateParams) Route() string {
 	return RouterKey
 }
 
 // Type implements sdk.Msg
-func (msg MsgUpdateParams) Type() string {
+func (MsgUpdateParams) Type() string {
 	return TypeMsgUpdateParams
 }
 

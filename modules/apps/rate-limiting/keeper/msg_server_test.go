@@ -55,7 +55,7 @@ func (s *KeeperTestSuite) createChannel(channelId string) {
 }
 
 // Helper function to mint tokens and create channel value to prevent a zero channel value error
-func (s *KeeperTestSuite) createChannelValue(denom string, channelValue sdkmath.Int) {
+func (s *KeeperTestSuite) createChannelValue(_ string, channelValue sdkmath.Int) {
 	err := s.chainA.GetSimApp().BankKeeper.MintCoins(s.chainA.GetContext(), minttypes.ModuleName, sdk.NewCoins(sdk.NewCoin(addRateLimitMsg.Denom, channelValue)))
 	s.Require().NoError(err)
 }

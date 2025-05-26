@@ -36,7 +36,7 @@ var (
 	AddressWhitelistKeyPrefix = "address-blacklist"
 	HourEpochKey              = "hour-epoch"
 
-	PendingSendPacketChannelLength int = 16
+	PendingSendPacketChannelLength = 16
 )
 
 func KeyPort(portID string) []byte {
@@ -44,8 +44,8 @@ func KeyPort(portID string) []byte {
 }
 
 // Get the rate limit byte key built from the denom and channelId
-func KeyRateLimitItem(denom string, channelId string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", RateLimitKeyPrefix, denom, channelId))
+func KeyRateLimitItem(denom string, channelID string) []byte {
+	return []byte(fmt.Sprintf("%s/%s/%s", RateLimitKeyPrefix, denom, channelID))
 }
 
 // Get the pending send packet key from the channel ID and sequence number

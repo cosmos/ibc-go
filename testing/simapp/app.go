@@ -91,6 +91,7 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+
 	// ratelimitingmodule "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/module" // Remove incorrect import
 	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
 	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
@@ -920,7 +921,7 @@ func NewQueryRouterAdapter(router *baseapp.GRPCQueryRouter) *QueryRouterAdapter 
 	return &QueryRouterAdapter{router: router}
 }
 
-func (a *QueryRouterAdapter) Route(path string) func(sdk.Context, interface{}) ([]byte, error) {
+func (*QueryRouterAdapter) Route(path string) func(sdk.Context, interface{}) ([]byte, error) {
 	// This is a simplification for testing purposes
 	// In a real implementation, this would need to properly adapt the handler
 	return func(ctx sdk.Context, req interface{}) ([]byte, error) {
@@ -937,7 +938,7 @@ func NewMsgRouterAdapter(router *baseapp.MsgServiceRouter) *MsgRouterAdapter {
 	return &MsgRouterAdapter{router: router}
 }
 
-func (a *MsgRouterAdapter) Handler(msg sdk.Msg) func(sdk.Context, sdk.Msg) (*sdk.Result, error) {
+func (*MsgRouterAdapter) Handler(msg sdk.Msg) func(sdk.Context, sdk.Msg) (*sdk.Result, error) {
 	// Simplified for testing purposes
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		return nil, nil

@@ -27,8 +27,8 @@ func RandomEnabled(r *rand.Rand) bool {
 }
 
 // RandomMaxValue returns a random max value between min and max
-func RandomMaxValue(r *rand.Rand, min, max int64) string {
-	return sdkmath.NewInt(r.Int63n(max-min) + min).String()
+func RandomMaxValue(r *rand.Rand, mn, mx int64) string {
+	return sdkmath.NewInt(r.Int63n(mx-mn) + mn).String()
 }
 
 // RandomPeriod returns a random period in seconds (between 1 hour and 1 week)
