@@ -32,7 +32,7 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(
 		GetCmdQueryRateLimit(),
 		GetCmdQueryAllRateLimits(),
-		GetCmdQueryRateLimitsByChainId(),
+		GetCmdQueryRateLimitsByChainID(),
 		GetCmdQueryAllBlacklistedDenoms(),    // Add Blacklisted Denoms query
 		GetCmdQueryAllWhitelistedAddresses(), // Add Whitelisted Addresses query
 		// TODO: Add GetCmdQueryParams if needed
@@ -58,7 +58,7 @@ Example:
 		),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			channelOrClientId := args[0]
+			channelOrClientID := args[0]
 			denom, err := cmd.Flags().GetString(FlagDenom)
 			if err != nil {
 				return err
@@ -73,7 +73,7 @@ Example:
 			if denom == "" {
 				// Query all rate limits for the channel/client ID if denom is not specified
 				req := &types.QueryRateLimitsByChannelOrClientIdRequest{
-					ChannelOrClientId: channelOrClientId,
+					ChannelOrClientId: channelOrClientID,
 				}
 				res, err := queryClient.RateLimitsByChannelOrClientId(context.Background(), req)
 				if err != nil {
@@ -86,7 +86,7 @@ Example:
 			// Query specific rate limit if denom is provided
 			req := &types.QueryRateLimitRequest{
 				Denom:             denom,
-				ChannelOrClientId: channelOrClientId,
+				ChannelOrClientId: channelOrClientID,
 			}
 			res, err := queryClient.RateLimit(context.Background(), req)
 			if err != nil {
@@ -131,9 +131,9 @@ func GetCmdQueryAllRateLimits() *cobra.Command {
 	return cmd
 }
 
-// GetCmdQueryRateLimitsByChainId return all rate limits that exist between this chain
+// GetCmdQueryRateLimitsByChainID return all rate limits that exist between this chain
 // and the specified ChainId
-func GetCmdQueryRateLimitsByChainId() *cobra.Command {
+func GetCmdQueryRateLimitsByChainID() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rate-limits-by-chain [chain-id]",
 		Short: "Query all rate limits associated with the channels/clients connecting to the given ChainID",

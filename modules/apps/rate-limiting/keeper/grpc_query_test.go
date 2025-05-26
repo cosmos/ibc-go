@@ -20,26 +20,26 @@ import (
 func (s *KeeperTestSuite) setupQueryRateLimitTests() []types.RateLimit {
 	rateLimits := []types.RateLimit{}
 	for i := int64(0); i <= 2; i++ {
-		clientId := fmt.Sprintf("07-tendermint-%d", i)
-		chainId := fmt.Sprintf("chain-%d", i)
-		connectionId := fmt.Sprintf("connection-%d", i)
-		channelId := fmt.Sprintf("channel-%d", i)
+		clientID := fmt.Sprintf("07-tendermint-%d", i)
+		chainID := fmt.Sprintf("chain-%d", i)
+		connectionID := fmt.Sprintf("connection-%d", i)
+		channelID := fmt.Sprintf("channel-%d", i)
 
 		// First register the client, connection, and channel (so we can map back to chainId)
 		// Nothing in the client state matters besides the chainId
 		clientState := ibctmtypes.NewClientState(
-			chainId, ibctmtypes.Fraction{}, time.Duration(0), time.Duration(0), time.Duration(0), clienttypes.Height{}, nil, nil,
+			chainID, ibctmtypes.Fraction{}, time.Duration(0), time.Duration(0), time.Duration(0), clienttypes.Height{}, nil, nil,
 		)
-		connection := connectiontypes.ConnectionEnd{ClientId: clientId}
-		channel := channeltypes.Channel{ConnectionHops: []string{connectionId}}
+		connection := connectiontypes.ConnectionEnd{ClientId: clientID}
+		channel := channeltypes.Channel{ConnectionHops: []string{connectionID}}
 
-		s.chainA.GetSimApp().IBCKeeper.ClientKeeper.SetClientState(s.chainA.GetContext(), clientId, clientState)
-		s.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.SetConnection(s.chainA.GetContext(), connectionId, connection)
-		s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(s.chainA.GetContext(), transfertypes.PortID, channelId, channel)
+		s.chainA.GetSimApp().IBCKeeper.ClientKeeper.SetClientState(s.chainA.GetContext(), clientID, clientState)
+		s.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.SetConnection(s.chainA.GetContext(), connectionID, connection)
+		s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(s.chainA.GetContext(), transfertypes.PortID, channelID, channel)
 
 		// Then add the rate limit
 		rateLimit := types.RateLimit{
-			Path: &types.Path{Denom: "denom", ChannelOrClientId: channelId},
+			Path: &types.Path{Denom: "denom", ChannelOrClientId: channelID},
 		}
 		s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), rateLimit)
 		rateLimits = append(rateLimits, rateLimit)
@@ -69,11 +69,11 @@ func (s *KeeperTestSuite) TestQueryRateLimit() {
 func (s *KeeperTestSuite) TestQueryRateLimitsByChainId() {
 	allRateLimits := s.setupQueryRateLimitTests()
 	for i, expectedRateLimit := range allRateLimits {
-		chainId := fmt.Sprintf("chain-%d", i)
+		chainID := fmt.Sprintf("chain-%d", i)
 		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimitsByChainId(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryRateLimitsByChainIdRequest{ // Wrap context
-			ChainId: chainId,
+			ChainId: chainID,
 		})
-		s.Require().NoError(err, "no error expected when querying rate limit on chain: %s", chainId)
+		s.Require().NoError(err, "no error expected when querying rate limit on chain: %s", chainID)
 		s.Require().Len(queryResponse.RateLimits, 1)
 		s.Require().Equal(expectedRateLimit, queryResponse.RateLimits[0])
 	}
@@ -82,11 +82,11 @@ func (s *KeeperTestSuite) TestQueryRateLimitsByChainId() {
 func (s *KeeperTestSuite) TestQueryRateLimitsByChannelOrClientId() {
 	allRateLimits := s.setupQueryRateLimitTests()
 	for i, expectedRateLimit := range allRateLimits {
-		channelId := fmt.Sprintf("channel-%d", i)
+		channelID := fmt.Sprintf("channel-%d", i)
 		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimitsByChannelOrClientId(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryRateLimitsByChannelOrClientIdRequest{ // Wrap context
-			ChannelOrClientId: channelId,
+			ChannelOrClientId: channelID,
 		})
-		s.Require().NoError(err, "no error expected when querying rate limit on channel: %s", channelId)
+		s.Require().NoError(err, "no error expected when querying rate limit on channel: %s", channelID)
 		s.Require().Len(queryResponse.RateLimits, 1)
 		s.Require().Equal(expectedRateLimit, queryResponse.RateLimits[0])
 	}

@@ -244,7 +244,7 @@ func (s *KeeperTestSuite) TestCheckAcknowledementSucceeded() {
 	s.Require().False(success, "invalid ack should return false")
 }
 
-func (s *KeeperTestSuite) createRateLimitCloseToQuota(denom string, channelId string, direction types.PacketDirection) {
+func (s *KeeperTestSuite) createRateLimitCloseToQuota(denom string, channelID string, direction types.PacketDirection) {
 	channelValue := sdkmath.NewInt(100)
 	threshold := sdkmath.NewInt(10)
 
@@ -261,7 +261,7 @@ func (s *KeeperTestSuite) createRateLimitCloseToQuota(denom string, channelId st
 	s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
 		Path: &types.Path{
 			Denom:             denom,
-			ChannelOrClientId: channelId,
+			ChannelOrClientId: channelID,
 		},
 		Quota: &types.Quota{
 			MaxPercentSend: threshold,
@@ -305,7 +305,7 @@ func (s *KeeperTestSuite) TestSendRateLimitedPacket() {
 	s.Require().ErrorContains(err, "Outflow exceeds quota", "error text")
 
 	// Reset the rate limit and try again
-	err = s.chainA.GetSimApp().RateLimitKeeper.ResetRateLimit(s.chainA.GetContext(), denom, channelId)
+	err = s.chainA.GetSimApp().RateLimitKeeper.ResetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().NoError(err, "no error expected when resetting rate limit")
 
 	err = s.chainA.GetSimApp().RateLimitKeeper.SendRateLimitedPacket(s.chainA.GetContext(), packet)
@@ -357,7 +357,7 @@ func (s *KeeperTestSuite) TestAcknowledgeRateLimitedPacket_AckSuccess() {
 
 	// Create rate limit - the flow and quota does not matter for this test
 	s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
-		Path: &types.Path{Denom: denom, ChannelOrClientId: channelId},
+		Path: &types.Path{Denom: denom, ChannelOrClientId: channelID},
 	})
 
 	// Store the pending packet for this sequence number
@@ -398,7 +398,7 @@ func (s *KeeperTestSuite) TestAcknowledgeRateLimitedPacket_AckFailure() {
 
 	// Create rate limit - only outflow is needed to this tests
 	s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
-		Path: &types.Path{Denom: denom, ChannelOrClientId: channelId},
+		Path: &types.Path{Denom: denom, ChannelOrClientId: channelID},
 		Flow: &types.Flow{Outflow: initialOutflow},
 	})
 
@@ -445,7 +445,7 @@ func (s *KeeperTestSuite) TestTimeoutRateLimitedPacket() {
 
 	// Create rate limit - only outflow is needed to this tests
 	s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
-		Path: &types.Path{Denom: denom, ChannelOrClientId: channelId},
+		Path: &types.Path{Denom: denom, ChannelOrClientId: channelID},
 		Flow: &types.Flow{Outflow: initialOutflow},
 	})
 
@@ -469,22 +469,22 @@ func (s *KeeperTestSuite) TestTimeoutRateLimitedPacket() {
 	s.Require().NoError(err, "no error expected when calling timeout packet")
 
 	expectedOutflow := initialOutflow.Sub(packetAmount)
-	rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelId)
+	rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().True(found)
 	s.Require().Equal(expectedOutflow.Int64(), rateLimit.Flow.Outflow.Int64(), "outflow decremented")
 
 	// Check that the pending packet has been removed
-	found = s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelId, sequence)
+	found = s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelID, sequence)
 	s.Require().False(found, "pending packet should have been removed")
 
 	// Call OnTimeoutPacket again with a different sequence number
 	// (to simulate a timeout that arrived in a different quota window from where the send occurred)
 	// The outflow should not change
-	packet.Sequence -= 1
+	packet.Sequence--
 	err = s.chainA.GetSimApp().RateLimitKeeper.TimeoutRateLimitedPacket(s.chainA.GetContext(), packet)
 	s.Require().NoError(err, "no error expected when calling timeout packet again")
 
-	rateLimit, found = s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelId)
+	rateLimit, found = s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().True(found)
 	s.Require().Equal(expectedOutflow.Int64(), rateLimit.Flow.Outflow.Int64(), "outflow should not have changed")
 }

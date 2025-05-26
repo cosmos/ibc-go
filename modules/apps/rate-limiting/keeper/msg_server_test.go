@@ -50,8 +50,8 @@ var (
 )
 
 // Helper function to create a channel and prevent a channel not exists error
-func (s *KeeperTestSuite) createChannel(channelId string) {
-	s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(s.chainA.GetContext(), transfertypes.PortID, channelId, channeltypes.Channel{})
+func (s *KeeperTestSuite) createChannel(channelID string) {
+	s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(s.chainA.GetContext(), transfertypes.PortID, channelID, channeltypes.Channel{})
 }
 
 // Helper function to mint tokens and create channel value to prevent a zero channel value error
@@ -90,7 +90,7 @@ func (s *KeeperTestSuite) addRateLimitWithError(expectedErr *errorsmod.Error) {
 
 func (s *KeeperTestSuite) TestMsgServer_AddRateLimit() {
 	denom := addRateLimitMsg.Denom
-	channelId := addRateLimitMsg.ChannelOrClientId
+	channelID := addRateLimitMsg.ChannelOrClientId
 	channelValue := sdkmath.NewInt(100)
 
 	// First try to add a rate limit when there's no channel value, it will fail
@@ -103,7 +103,7 @@ func (s *KeeperTestSuite) TestMsgServer_AddRateLimit() {
 	s.addRateLimitWithError(types.ErrChannelNotFound)
 
 	// Create the channel
-	s.createChannel(channelId)
+	s.createChannel(channelID)
 
 	// Now add a rate limit successfully
 	s.addRateLimitSuccessful()
@@ -114,13 +114,13 @@ func (s *KeeperTestSuite) TestMsgServer_AddRateLimit() {
 
 func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
 	denom := updateRateLimitMsg.Denom
-	channelId := updateRateLimitMsg.ChannelOrClientId
+	channelID := updateRateLimitMsg.ChannelOrClientId
 	channelValue := sdkmath.NewInt(100)
 
 	msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().RateLimitKeeper)
 
 	// Create channel and channel value
-	s.createChannel(channelId)
+	s.createChannel(channelID)
 	s.createChannelValue(denom, channelValue)
 
 	// Attempt to update a rate limit that does not exist
@@ -135,7 +135,7 @@ func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
 	s.Require().NoError(err)
 
 	// Check ratelimit quota is updated correctly
-	updatedRateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelId)
+	updatedRateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().True(found)
 	s.Require().Equal(updatedRateLimit.Quota, &types.Quota{
 		MaxPercentSend: updateRateLimitMsg.MaxPercentSend,
@@ -146,12 +146,12 @@ func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
 
 func (s *KeeperTestSuite) TestMsgServer_RemoveRateLimit() {
 	denom := removeRateLimitMsg.Denom
-	channelId := removeRateLimitMsg.ChannelOrClientId
+	channelID := removeRateLimitMsg.ChannelOrClientId
 	channelValue := sdkmath.NewInt(100)
 
 	msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().RateLimitKeeper)
 
-	s.createChannel(channelId)
+	s.createChannel(channelID)
 	s.createChannelValue(denom, channelValue)
 
 	// Attempt to remove a rate limit that does not exist
@@ -166,18 +166,18 @@ func (s *KeeperTestSuite) TestMsgServer_RemoveRateLimit() {
 	s.Require().NoError(err)
 
 	// Confirm it was removed
-	_, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelId)
+	_, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().False(found)
 }
 
 func (s *KeeperTestSuite) TestMsgServer_ResetRateLimit() {
 	denom := resetRateLimitMsg.Denom
-	channelId := resetRateLimitMsg.ChannelOrClientId
+	channelID := resetRateLimitMsg.ChannelOrClientId
 	channelValue := sdkmath.NewInt(100)
 
 	msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().RateLimitKeeper)
 
-	s.createChannel(channelId)
+	s.createChannel(channelID)
 	s.createChannelValue(denom, channelValue)
 
 	// Attempt to reset a rate limit that does not exist
@@ -192,7 +192,7 @@ func (s *KeeperTestSuite) TestMsgServer_ResetRateLimit() {
 	s.Require().NoError(err)
 
 	// Check ratelimit quota is flow correctly
-	resetRateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelId)
+	resetRateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().True(found)
 	s.Require().Equal(resetRateLimit.Flow, &types.Flow{
 		Inflow:       sdkmath.ZeroInt(),

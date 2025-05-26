@@ -81,7 +81,7 @@ func validateString(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if s == "" {
-		return fmt.Errorf("value cannot be empty")
+		return errors.New("value cannot be empty")
 	}
 	return nil
 }

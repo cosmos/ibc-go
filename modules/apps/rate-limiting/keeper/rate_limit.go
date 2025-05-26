@@ -24,19 +24,19 @@ func (k Keeper) SetRateLimit(ctx sdk.Context, rateLimit types.RateLimit) {
 }
 
 // Removes a rate limit object from the store using denom and channel-id
-func (k Keeper) RemoveRateLimit(ctx sdk.Context, denom string, channelId string) {
+func (k Keeper) RemoveRateLimit(ctx sdk.Context, denom string, channelID string) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, []byte(types.RateLimitKeyPrefix))
-	rateLimitKey := types.KeyRateLimitItem(denom, channelId)
+	rateLimitKey := types.KeyRateLimitItem(denom, channelID)
 	store.Delete(rateLimitKey)
 }
 
 // Grabs and returns a rate limit object from the store using denom and channel-id
-func (k Keeper) GetRateLimit(ctx sdk.Context, denom string, channelId string) (rateLimit types.RateLimit, found bool) {
+func (k Keeper) GetRateLimit(ctx sdk.Context, denom string, channelID string) (rateLimit types.RateLimit, found bool) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, []byte(types.RateLimitKeyPrefix))
 
-	rateLimitKey := types.KeyRateLimitItem(denom, channelId)
+	rateLimitKey := types.KeyRateLimitItem(denom, channelID)
 	rateLimitValue := store.Get(rateLimitKey)
 
 	if len(rateLimitValue) == 0 {
