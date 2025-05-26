@@ -18,18 +18,18 @@ service Query {
   // Ex:
   //  - /ratelimit/{channel_or_client_id}/by_denom?denom={denom}
   rpc RateLimit(QueryRateLimitRequest) returns (QueryRateLimitResponse) {
-    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/"
-                                   "ratelimit/{channel_or_client_id}/by_denom";
+    option (google.api.http).get =
+      "/ibc/apps/rate-limiting/v1/ratelimit/"
+      "ratelimit/{channel_or_client_id}/by_denom";
   }
 
   // Queries all the rate limits for a given chain
-  rpc RateLimitsByChainId(QueryRateLimitsByChainIdRequest) returns (QueryRateLimitsByChainIdResponse) {
+  rpc RateLimitsByChainID(QueryRateLimitsByChainIDRequest) returns (QueryRateLimitsByChainIDResponse) {
     option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/ratelimits/{chain_id}";
   }
 
   // Queries all the rate limits for a given channel ID
-  rpc RateLimitsByChannelOrClientId(QueryRateLimitsByChannelOrClientIdRequest)
-      returns (QueryRateLimitsByChannelOrClientIdResponse) {
+  rpc RateLimitsByChannelOrClientID(QueryRateLimitsByChannelOrClientIDRequest) returns (QueryRateLimitsByChannelOrClientIDResponse) {
     option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/ratelimits/{channel_or_client_id}";
   }
 
@@ -46,43 +46,55 @@ service Query {
 
 // Queries all rate limits
 message QueryAllRateLimitsRequest {}
+
+// QueryAllRateLimitsResponse returns all the rate limits stored on the chain.
 message QueryAllRateLimitsResponse {
   repeated RateLimit rate_limits = 1 [(gogoproto.nullable) = false];
 }
 
 // Queries a specific rate limit by channel ID and denom
 message QueryRateLimitRequest {
-  string denom                = 1;
+  string denom = 1;
   string channel_or_client_id = 2;
 }
+
+// QueryRateLimitResponse returns a rate limit by denom and channel_or_client_id combination.
 message QueryRateLimitResponse {
   RateLimit rate_limit = 1;
 }
 
 // Queries all the rate limits for a given chain
-message QueryRateLimitsByChainIdRequest {
+message QueryRateLimitsByChainIDRequest {
   string chain_id = 1;
 }
-message QueryRateLimitsByChainIdResponse {
+
+// QueryRateLimitsByChainIDResponse returns all rate-limits by a chain.
+message QueryRateLimitsByChainIDResponse {
   repeated RateLimit rate_limits = 1 [(gogoproto.nullable) = false];
 }
 
 // Queries all the rate limits for a given channel or client ID
-message QueryRateLimitsByChannelOrClientIdRequest {
+message QueryRateLimitsByChannelOrClientIDRequest {
   string channel_or_client_id = 1;
 }
-message QueryRateLimitsByChannelOrClientIdResponse {
+
+// QueryRateLimitsByChannelOrClientIDResponse returns all rate-limits by a channel or client id.
+message QueryRateLimitsByChannelOrClientIDResponse {
   repeated RateLimit rate_limits = 1 [(gogoproto.nullable) = false];
 }
 
 // Queries all blacklisted denoms
 message QueryAllBlacklistedDenomsRequest {}
+
+// QueryAllBlacklistedDenomsResponse returns all the blacklisted denosm.
 message QueryAllBlacklistedDenomsResponse {
   repeated string denoms = 1;
 }
 
 // Queries all whitelisted address pairs
 message QueryAllWhitelistedAddressesRequest {}
+
+// QueryAllWhitelistedAddressesResponse returns all whitelisted pairs.
 message QueryAllWhitelistedAddressesResponse {
   repeated WhitelistedAddressPair address_pairs = 1 [(gogoproto.nullable) = false];
 }

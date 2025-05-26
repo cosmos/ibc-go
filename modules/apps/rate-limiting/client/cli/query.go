@@ -72,10 +72,10 @@ Example:
 
 			if denom == "" {
 				// Query all rate limits for the channel/client ID if denom is not specified
-				req := &types.QueryRateLimitsByChannelOrClientIdRequest{
+				req := &types.QueryRateLimitsByChannelOrClientIDRequest{
 					ChannelOrClientId: channelOrClientID,
 				}
-				res, err := queryClient.RateLimitsByChannelOrClientId(context.Background(), req)
+				res, err := queryClient.RateLimitsByChannelOrClientID(context.Background(), req)
 				if err != nil {
 					return err
 				}
@@ -147,10 +147,10 @@ func GetCmdQueryRateLimitsByChainID() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			req := &types.QueryRateLimitsByChainIdRequest{
+			req := &types.QueryRateLimitsByChainIDRequest{
 				ChainId: chainID,
 			}
-			res, err := queryClient.RateLimitsByChainId(context.Background(), req)
+			res, err := queryClient.RateLimitsByChainID(context.Background(), req)
 			if err != nil {
 				return err
 			}

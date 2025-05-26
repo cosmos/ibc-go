@@ -49,7 +49,7 @@ func (s *KeeperTestSuite) setupQueryRateLimitTests() []types.RateLimit {
 
 func (s *KeeperTestSuite) TestQueryAllRateLimits() {
 	expectedRateLimits := s.setupQueryRateLimitTests()
-	queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.AllRateLimits(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryAllRateLimitsRequest{}) // Wrap context
+	queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.AllRateLimits(s.chainA.GetContext(), &types.QueryAllRateLimitsRequest{})
 	s.Require().NoError(err)
 	s.Require().ElementsMatch(expectedRateLimits, queryResponse.RateLimits)
 }
@@ -57,7 +57,7 @@ func (s *KeeperTestSuite) TestQueryAllRateLimits() {
 func (s *KeeperTestSuite) TestQueryRateLimit() {
 	allRateLimits := s.setupQueryRateLimitTests()
 	for _, expectedRateLimit := range allRateLimits {
-		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimit(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryRateLimitRequest{ // Wrap context
+		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimit(s.chainA.GetContext(), &types.QueryRateLimitRequest{
 			Denom:             expectedRateLimit.Path.Denom,
 			ChannelOrClientId: expectedRateLimit.Path.ChannelOrClientId,
 		})
@@ -70,7 +70,7 @@ func (s *KeeperTestSuite) TestQueryRateLimitsByChainId() {
 	allRateLimits := s.setupQueryRateLimitTests()
 	for i, expectedRateLimit := range allRateLimits {
 		chainID := fmt.Sprintf("chain-%d", i)
-		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimitsByChainId(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryRateLimitsByChainIdRequest{ // Wrap context
+		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimitsByChainID(s.chainA.GetContext(), &types.QueryRateLimitsByChainIDRequest{
 			ChainId: chainID,
 		})
 		s.Require().NoError(err, "no error expected when querying rate limit on chain: %s", chainID)
@@ -83,7 +83,7 @@ func (s *KeeperTestSuite) TestQueryRateLimitsByChannelOrClientId() {
 	allRateLimits := s.setupQueryRateLimitTests()
 	for i, expectedRateLimit := range allRateLimits {
 		channelID := fmt.Sprintf("channel-%d", i)
-		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimitsByChannelOrClientId(sdk.WrapSDKContext(s.chainA.GetContext()), &types.QueryRateLimitsByChannelOrClientIdRequest{ // Wrap context
+		queryResponse, err := s.chainA.GetSimApp().RateLimitKeeper.RateLimitsByChannelOrClientID(s.chainA.GetContext(), &types.QueryRateLimitsByChannelOrClientIDRequest{
 			ChannelOrClientId: channelID,
 		})
 		s.Require().NoError(err, "no error expected when querying rate limit on channel: %s", channelID)
