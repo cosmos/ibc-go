@@ -42,7 +42,7 @@ func NewIBCMiddleware(app porttypes.PacketUnmarshalarModule, k keeper.Keeper, ck
 		app:           app,
 		keeper:        k,
 		channelKeeper: ck,
-		ics4Wrapper:   ck, // Store the wrapper on the middleware itself
+		ics4Wrapper:   ck,
 	}
 }
 
@@ -81,7 +81,6 @@ func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID st
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	if err := im.keeper.ReceiveRateLimitedPacket(ctx, packet); err != nil {
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("Receive packet rate limited: %s", err.Error()))
-		// Return error acknowledgement
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
@@ -94,31 +93,26 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 // Then, call underlying app's OnAcknowledgementPacket.
 func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
 	if err := im.keeper.AcknowledgeRateLimitedPacket(ctx, packet, acknowledgement); err != nil {
-		// Log the error but do not block the acknowledgement processing
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("Rate limit OnAcknowledgementPacket failed: %s", err.Error()))
 	}
 
-	// Call underlying app's OnAcknowledgementPacket
-	return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer) // Added channelVersion
+	return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface.
 // Revert the outflow amount. Then, call underlying app's OnTimeoutPacket.
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	if err := im.keeper.TimeoutRateLimitedPacket(ctx, packet); err != nil {
-		// Log the error but do not block the timeout processing
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("Rate limit OnTimeoutPacket failed: %s", err.Error()))
 	}
 
-	// Call underlying app's OnTimeoutPacket
-	return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer) // Added channelVersion
+	return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 }
 
 // SendPacket implements the ICS4 Wrapper interface.
 // It calls the keeper's SendRateLimitedPacket function first to check the rate limit.
 // If the packet is allowed, it then calls the underlying ICS4Wrapper SendPacket.
 func (im IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
-	// Ensure channelKeeper is set (panic in SetICS4Wrapper if not)
 	if im.channelKeeper == nil {
 		return 0, errors.New("channel keeper is not set on IBCMiddleware")
 	}
@@ -137,10 +131,9 @@ func (im IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceCha
 		TimeoutTimestamp: timeoutTimestamp,
 		Data:             data,
 	}
-	
+
 	err = im.keeper.SendRateLimitedPacket(ctx, packetToCheck)
 	if err != nil {
-		// Packet send was denied by rate limiter, return error (sequence number is ignored by caller on error)
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("ICS20 packet send was denied by rate limiter: %s", err.Error()))
 		return 0, err
 	}

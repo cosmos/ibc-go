@@ -33,8 +33,8 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryRateLimit(),
 		GetCmdQueryAllRateLimits(),
 		GetCmdQueryRateLimitsByChainID(),
-		GetCmdQueryAllBlacklistedDenoms(),    // Add Blacklisted Denoms query
-		GetCmdQueryAllWhitelistedAddresses(), // Add Whitelisted Addresses query
+		GetCmdQueryAllBlacklistedDenoms(),
+		GetCmdQueryAllWhitelistedAddresses(),
 		// TODO: Add GetCmdQueryParams if needed
 	)
 	return cmd

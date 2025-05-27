@@ -3,8 +3,8 @@ package keeper
 import (
 	"context"
 
-	"google.golang.org/grpc/codes"  // Added import
-	"google.golang.org/grpc/status" // Added import
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
 
