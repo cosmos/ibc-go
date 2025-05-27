@@ -413,7 +413,7 @@ func NewSimApp(
 
 	// create IBC module from bottom to top of stack
 	transferStack := packetforward.NewIBCMiddleware(transfer.NewIBCModule(app.TransferKeeper), app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
-	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
+	app.TransferKeeper.WithICS4Wrapper(app.IBCKeeper.ChannelKeeper)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
