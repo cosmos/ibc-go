@@ -424,8 +424,8 @@ func NewSimApp(
 	// The ICS4Wrapper is the IBC ChannelKeeper
 	rateLimitMiddleware := ratelimiting.NewIBCMiddleware(transferIBCModule, app.RateLimitKeeper, app.IBCKeeper.ChannelKeeper)
 
+	app.PFMKeeper.SetICS4Wrapper(rateLimitMiddleware)
 	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
-	app.PFMKeeper.SetICS4Wrapper(app.RateLimitKeeper.ICS4Wrapper())
 
 	// Add transfer stack with rate-limiting middleware to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, rateLimitMiddleware)
