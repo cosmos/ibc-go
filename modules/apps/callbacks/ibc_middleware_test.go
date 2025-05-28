@@ -94,6 +94,7 @@ func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
 
 func (s *CallbacksTestSuite) TestSendPacket() {
 	var packetData transfertypes.FungibleTokenPacketData
+	var callbackExecuted bool
 
 	testCases := []struct {
 		name         string
@@ -127,7 +128,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			},
 			"none", // improperly formatted callback data should result in no callback execution
 			false,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: ics4Wrapper SendPacket call fails",
@@ -165,6 +166,46 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			false,
 			errorsmod.Wrapf(types.ErrCallbackOutOfGas, "ibc %s callback out of gas", types.CallbackTypeSendPacket),
 		},
+		{
+			"failure: callback address invalid",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":%d}}`, 50)
+				callbackExecuted = false // callback should not be executed
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			types.ErrInvalidCallbackData,
+		},
+		{
+			"failure: callback gas limit invalid",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":%d}}`, simapp.SuccessContract, 50)
+				callbackExecuted = false // callback should not be executed
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			types.ErrInvalidCallbackData,
+		},
+		{
+			"failure: callback calldata invalid",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d", "calldata":%d}}`, simapp.SuccessContract, 50, 50)
+				callbackExecuted = false // callback should not be executed
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			types.ErrInvalidCallbackData,
+		},
+		{
+			"failure: callback calldata hex invalid",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d", "calldata":"%s"}}`, simapp.SuccessContract, 50, "calldata")
+				callbackExecuted = false // callback should not be executed
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			types.ErrInvalidCallbackData,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -180,6 +221,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
 			)
+			callbackExecuted = true
 
 			tc.malleate()
 
@@ -214,11 +256,13 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 
 			default:
 				sendPacket()
-				s.Require().ErrorIs(err, tc.expValue.(error))
+				s.Require().ErrorIs(tc.expValue.(error), err)
 				s.Require().Equal(uint64(0), seq)
 			}
 
-			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
+			if callbackExecuted {
+				s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
+			}
 		})
 	}
 }
@@ -279,7 +323,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -449,7 +493,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -624,7 +668,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			channeltypes.NewErrorAcknowledgement(types.ErrCallbackAddressNotFound),
+			channeltypes.NewErrorAcknowledgement(types.ErrInvalidCallbackData),
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -782,7 +826,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				packet.Data = packetData.GetBytes()
 			},
 			"none", // improperly formatted callback data should result in no callback execution
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: ics4Wrapper WriteAcknowledgement call fails",
