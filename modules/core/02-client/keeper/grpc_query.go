@@ -419,7 +419,7 @@ func (q *queryServer) VerifyMembership(goCtx context.Context, req *types.QueryVe
 	)
 
 	if err := clientModule.VerifyMembership(cachedCtx, req.ClientId, req.ProofHeight, req.TimeDelay, req.BlockDelay, req.Proof, req.MerklePath, req.Value); err != nil {
-		q.Logger(ctx).Debug("proof verification failed", "key", req.MerklePath, "error", err)
+		q.Logger(ctx).Debug("proof verification failed", "client_id", req.ClientId)
 		return &types.QueryVerifyMembershipResponse{
 			Success: false,
 		}, nil
