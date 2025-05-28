@@ -60,6 +60,11 @@ func (k *Keeper) SetICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
 	k.ics4Wrapper = ics4Wrapper
 }
 
+// ICS4Wrapper returns the ICS4Wrapper to send packets downstream.
+func (k *Keeper) ICS4Wrapper() porttypes.ICS4Wrapper {
+	return k.ics4Wrapper
+}
+
 // GetAuthority returns the module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority

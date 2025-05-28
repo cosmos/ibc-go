@@ -402,7 +402,7 @@ func NewSimApp(
 	// Middleware Stacks
 
 	// PacketForwardMiddleware must be created before TransferKeeper
-	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.IBCKeeper.ChannelKeeper, govAuthority)
+	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.RateLimitKeeper.ICS4Wrapper(), govAuthority)
 
 	// Create Transfer Keeper
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.GetSubspace(ibctransfertypes.ModuleName), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.MsgServiceRouter(), app.AccountKeeper, app.BankKeeper, govAuthority)
@@ -426,7 +426,7 @@ func NewSimApp(
 	// create IBC module from bottom to top of stack
 	pfmMiddleware := packetforward.NewIBCMiddleware(transfer.NewIBCModule(app.TransferKeeper), app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
 	transferStack := ratelimiting.NewIBCMiddleware(pfmMiddleware, app.RateLimitKeeper, app.IBCKeeper.ChannelKeeper)
-	app.TransferKeeper.WithICS4Wrapper(app.IBCKeeper.ChannelKeeper)
+	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)

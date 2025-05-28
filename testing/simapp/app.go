@@ -377,7 +377,7 @@ func NewSimApp(
 	// Middleware Stacks
 
 	// PacketForwardMiddleware must be created before TransferKeeper
-	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.ICAControllerKeeper.GetICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.RateLimitKeeper.ICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// Create Transfer Keeper
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -428,12 +428,18 @@ func NewSimApp(
 	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// create IBC module from bottom to top of stack
-	transferIBCModule := packetforward.NewIBCMiddleware(transfer.NewIBCModule(app.TransferKeeper), app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
-	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
+	// - Core
+	// - Rate Limit
+	// - Packet Forward Middleware
+	// - Transfer
+	transferStack := transfer.NewIBCModule(app.TransferKeeper)
+	transferIBCModule := packetforward.NewIBCMiddleware(transferStack, app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
 
 	// Create the rate-limiting middleware, wrapping the transfer IBC module
 	// The ICS4Wrapper is the IBC ChannelKeeper
 	rateLimitMiddleware := ratelimiting.NewIBCMiddleware(transferIBCModule, app.RateLimitKeeper, app.IBCKeeper.ChannelKeeper)
+
+	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
 
 	// Add transfer stack with rate-limiting middleware to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, rateLimitMiddleware)
@@ -478,9 +484,6 @@ func NewSimApp(
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
 	app.IBCKeeper.SetRouterV2(ibcRouterV2)
-
-	// **** Set the middleware wrapper on TransferKeeper ****
-	app.TransferKeeper.WithICS4Wrapper(rateLimitMiddleware) // Use the middleware instance directly
 
 	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
