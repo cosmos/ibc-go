@@ -75,6 +75,11 @@ func (k *Keeper) SetTransferKeeper(transferKeeper types.TransferKeeper) {
 	k.transferKeeper = transferKeeper
 }
 
+// SetICS4Wrapper sets the ICS4 Wrapper to pass packets downstream.
+func (k *Keeper) SetICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = wrapper
+}
+
 // Logger returns a module-specific logger.
 func (*Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+types.ModuleName)

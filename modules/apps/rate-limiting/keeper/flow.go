@@ -5,7 +5,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
@@ -14,18 +13,6 @@ import (
 // is the total supply of the given denom
 func (k Keeper) GetChannelValue(ctx sdk.Context, denom string) sdkmath.Int {
 	return k.bankKeeper.GetSupply(ctx, denom).Amount
-}
-
-// Adds an amount to the flow in either the SEND or RECV direction
-func UpdateFlow(rateLimit types.RateLimit, direction types.PacketDirection, amount sdkmath.Int) error {
-	switch direction {
-	case types.PACKET_SEND:
-		return rateLimit.Flow.AddOutflow(amount, *rateLimit.Quota)
-	case types.PACKET_RECV:
-		return rateLimit.Flow.AddInflow(amount, *rateLimit.Quota)
-	default:
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid packet direction (%s)", direction.String())
-	}
 }
 
 // TODO: Refactor.
@@ -58,7 +45,7 @@ func (k Keeper) CheckRateLimitAndUpdateFlow(ctx sdk.Context, direction types.Pac
 	}
 
 	// Update the flow object with the change in amount
-	if err := UpdateFlow(rateLimit, direction, amount); err != nil {
+	if err := rateLimit.UpdateFlow(direction, amount); err != nil {
 		// If the rate limit was exceeded, emit an event
 		EmitTransferDeniedEvent(ctx, types.EventRateLimitExceeded, denom, channelOrClientID, direction, amount, err)
 		return false, err
