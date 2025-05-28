@@ -253,6 +253,30 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			nil,
 		},
 		{
+			"success: source callback with empty calldata",
+			func() {
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "calldata": ""}}`, sender),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
+				Calldata:           nil,
+			},
+			true,
+			nil,
+		},
+		{
 			"success: dest callback with calldata",
 			func() {
 				callbackKey = types.DestinationCallbackKey
@@ -391,6 +415,57 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			types.CallbackData{},
 			false,
 			types.ErrNotPacketDataProvider,
+		},
+		{
+			"failure: invalid gasLimit",
+			func() {
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "invalid"}}`, sender),
+				}
+			},
+			types.CallbackData{},
+			true,
+			types.ErrInvalidCallbackData,
+		},
+		{
+			"failure: invalid calldata",
+			func() {
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "calldata": "invalid"}}`, sender),
+				}
+			},
+			types.CallbackData{},
+			true,
+			types.ErrInvalidCallbackData,
+		},
+		{
+			"failure: invalid calldata is number",
+			func() {
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "calldata": 10}}`, sender),
+				}
+			},
+			types.CallbackData{},
+			true,
+			types.ErrInvalidCallbackData,
 		},
 	}
 
