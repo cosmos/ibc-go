@@ -25,6 +25,10 @@ func NewRouter() *Router {
 }
 
 // AddRoute registers a route for a given portID to a given IBCModule.
+//
+// Panics:
+//   - if a route with the same portID has already been registered
+//   - if the portID is not alphanumeric
 func (rtr *Router) AddRoute(portID string, cbs IBCModule) *Router {
 	if !sdk.IsAlphaNumeric(portID) {
 		panic(errors.New("route expressions can only contain alphanumeric characters"))
@@ -42,6 +46,12 @@ func (rtr *Router) AddRoute(portID string, cbs IBCModule) *Router {
 
 // AddPrefixRoute registers a route for a given portID prefix to a given IBCModule.
 // A prefix route matches any portID that starts with the given prefix.
+//
+// Panics:
+//   - if `portIDPrefix` is not alphanumeric.
+//   - if a direct route `portIDPrefix` has already been registered.
+//   - if a prefix of `portIDPrefix` is already registered as a prefix.
+//   - if `portIDPrefix` is a prefix of am already registered prefix.
 func (rtr *Router) AddPrefixRoute(portIDPrefix string, cbs IBCModule) *Router {
 	if !sdk.IsAlphaNumeric(portIDPrefix) {
 		panic(errors.New("route prefix can only contain alphanumeric characters"))
