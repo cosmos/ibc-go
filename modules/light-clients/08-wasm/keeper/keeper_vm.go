@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"os"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 
@@ -88,6 +89,9 @@ func NewKeeperWithConfig(
 	queryRouter types.QueryRouter,
 	opts ...Option,
 ) Keeper {
+	if wasmConfig.ContractDebugMode && os.Getenv("IBC_WASM_ALLOW_DEBUG") != "true" {
+		panic("ContractDebugMode must not be enabled in production! Set IBC_WASM_ALLOW_DEBUG=true to override for testing.")
+	}
 	vm, err := wasmvm.NewVM(wasmConfig.DataDir, wasmConfig.SupportedCapabilities, types.ContractMemoryLimit, wasmConfig.ContractDebugMode, types.MemoryCacheSize)
 	if err != nil {
 		panic(fmt.Errorf("failed to instantiate new Wasm VM instance: %v", err))
