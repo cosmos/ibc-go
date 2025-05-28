@@ -316,7 +316,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			},
 			types.CallbackData{},
 			true,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: space address",
@@ -332,7 +332,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			},
 			types.CallbackData{},
 			true,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 
 		{

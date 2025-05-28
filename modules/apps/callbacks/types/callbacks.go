@@ -122,7 +122,7 @@ func GetCallbackData(
 	// get the callback address from the callback data
 	callbackAddress, err := getCallbackAddress(callbackData)
 	if err != nil || strings.TrimSpace(callbackAddress) == "" {
-		return CallbackData{}, true, ErrCallbackAddressNotFound
+		return CallbackData{}, true, ErrInvalidCallbackData
 	}
 
 	// retrieve packet sender from packet data if possible and if needed
@@ -190,7 +190,7 @@ func getUserDefinedGasLimit(callbackData map[string]any) (uint64, error) {
 	}
 	gasLimitStr, ok := gasLimit.(string)
 	if !ok {
-		return 0, errorsmod.Wrapf(ErrInvalidCallbackData, "gas limit must be a string")
+		return 0, errorsmod.Wrapf(ErrInvalidCallbackData, "gas limit [%v] must be a string", gasLimit)
 	}
 	if gasLimitStr == "" {
 		return 0, nil
