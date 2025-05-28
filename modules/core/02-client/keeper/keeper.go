@@ -160,26 +160,23 @@ func (k *Keeper) SetClientConsensusState(ctx sdk.Context, clientID string, heigh
 }
 
 // GetNextClientSequence gets the next client sequence from the store.
-func (k *Keeper) GetNextClientSequence(ctx sdk.Context) uint64 {
+func (k *Keeper) GetNextClientSequence(ctx sdk.Context) (uint64, error) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get([]byte(types.KeyNextClientSequence))
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
 	if len(bz) == 0 {
-		panic(errors.New("next client sequence is nil"))
+		return 0, errors.New("next client sequence is nil")
 	}
-
-	return sdk.BigEndianToUint64(bz)
+	return sdk.BigEndianToUint64(bz), nil
 }
 
 // SetNextClientSequence sets the next client sequence to the store.
-func (k *Keeper) SetNextClientSequence(ctx sdk.Context, sequence uint64) {
+func (k *Keeper) SetNextClientSequence(ctx sdk.Context, sequence uint64) error {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set([]byte(types.KeyNextClientSequence), bz); err != nil {
-		panic(err)
-	}
+	return store.Set([]byte(types.KeyNextClientSequence), bz)
 }
 
 // IterateConsensusStates provides an iterator over all stored consensus states.
