@@ -5,7 +5,7 @@ package types
 
 import (
 	context "context"
-	types1 "cosmossdk.io/x/upgrade/types"
+	types1 "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	fmt "fmt"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
