@@ -148,7 +148,7 @@ func (c *TestChain) NextBlock() {
 ---
 **Naked returns**
 
-Only acceptable in a small function. Once it's a medium-sized function, be explicit with your returned values. Similarly, do not name result parameters just because it enables you to use naked returns. Clarity is always more important than saving a few lines in your function.
+We should always try to avoid naked returns. [Reference](https://google.github.io/styleguide/go/decisions#named-result-parameters)
 
 ---
 **Function and method calls should not be separated based solely on line length**
