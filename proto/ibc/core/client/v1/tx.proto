@@ -4,6 +4,7 @@ package ibc.core.client.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v10/modules/core/02-client/types";
 
+import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos/upgrade/v1beta1/upgrade.proto";
 import "gogoproto/gogo.proto";
@@ -127,6 +128,7 @@ message MsgSubmitMisbehaviourResponse {}
 
 // MsgRecoverClient defines the message used to recover a frozen or expired client.
 message MsgRecoverClient {
+  option (amino.name)                = "cosmos-sdk/MsgRecoverClient";
   option (gogoproto.goproto_getters) = false;
   option (cosmos.msg.v1.signer)      = "signer";
 
