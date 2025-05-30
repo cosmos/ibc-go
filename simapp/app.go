@@ -413,10 +413,10 @@ func NewSimApp(
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// transferKeeper.SendPacket -> channel.SendPacket
+	// transferKeeper.SendPacket -> Pf.SendPacket -> RateLim.SendPacket -> channel.SendPacket
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-	// channel.RecvPacket -> transfer.OnRecvPacket
+	// channel.RecvPacket -> RateLim.OnRecvPacket -> Pf.OnRecvPacket -> transfer.OnRecvPacket
 
 	// transfer stack contains (from top to bottom):
 	// - RateLimit
