@@ -516,7 +516,12 @@ func (s *KeeperTestSuite) TestOnRecvPacket_Allowed() {
 	// Create the test packet data
 	testAmountStr := "10"
 	testAmountInt, _ := sdkmath.NewIntFromString(testAmountStr)
-	packetDataBz, err := json.Marshal(transfertypes.FungibleTokenPacketData{Denom: uosmo, Amount: testAmountStr, Receiver: recipientAddr.String()})
+	packetDataBz, err := json.Marshal(transfertypes.FungibleTokenPacketData{
+		Denom:    uosmo,
+		Amount:   testAmountStr,
+		Sender:   s.chainA.SenderAccount.GetAddress().String(),
+		Receiver: recipientAddr.String(),
+	})
 	s.Require().NoError(err)
 
 	// Set the rate limit using the voucher denom string
@@ -527,13 +532,11 @@ func (s *KeeperTestSuite) TestOnRecvPacket_Allowed() {
 		Flow:  &types.Flow{Inflow: sdkmath.ZeroInt(), Outflow: sdkmath.ZeroInt(), ChannelValue: simulatedSupply},
 	})
 
+	timeoutTS := uint64(s.coordinator.CurrentTime.Add(time.Hour).UnixNano())
 	// Commit the packet on chain A so that RelayPacket can find the commitment
-	seq, err := path.EndpointA.SendPacket(
-		clienttypes.ZeroHeight(),
-		uint64(s.coordinator.CurrentTime.Add(time.Hour).UnixNano()),
-		packetDataBz,
-	)
+	seq, err := path.EndpointA.SendPacket(clienttypes.ZeroHeight(), timeoutTS, packetDataBz)
 	s.Require().NoError(err, "sending packet on chain A failed")
+
 	packet := channeltypes.Packet{
 		Sequence:           seq,
 		SourcePort:         path.EndpointA.ChannelConfig.PortID,
@@ -542,7 +545,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_Allowed() {
 		DestinationChannel: path.EndpointB.ChannelID,
 		Data:               packetDataBz,
 		TimeoutHeight:      clienttypes.ZeroHeight(),
-		TimeoutTimestamp:   uint64(s.coordinator.CurrentTime.Add(time.Hour).UnixNano()),
+		TimeoutTimestamp:   timeoutTS,
 	}
 
 	// Relay the packet. This will call OnRecvPacket on chain B through the integrated middleware stack.
@@ -550,16 +553,13 @@ func (s *KeeperTestSuite) TestOnRecvPacket_Allowed() {
 	s.Require().NoError(err, "relaying packet failed")
 
 	// Check acknowledgement on chain B
-	ack, found := s.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	ackBz, found := s.chainB.GetSimApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.chainB.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found, "acknowledgement not found")
-	s.Require().NotNil(ack, "ack should not be nil")
+	s.Require().NotNil(ackBz, "ack should not be nil")
 
-	// Check acknowledgement success
-	var ackData channeltypes.Acknowledgement
-	// Use transfertypes codec to unmarshal
-	err = transfertypes.ModuleCdc.UnmarshalJSON(ack, &ackData)
-	s.Require().NoError(err, "unmarshalling acknowledgement failed")
-	s.Require().True(ackData.Success(), "ack should be successful")
+	expectedAck := channeltypes.NewResultAcknowledgement([]byte{1})
+	expBz := channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement())
+	s.Require().Equal(expBz, ackBz)
 
 	// Check flow was updated
 	rateLimit, found := s.chainB.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainB.GetContext(), voucherDenomStr, path.EndpointB.ChannelID)
@@ -573,33 +573,53 @@ func (s *KeeperTestSuite) TestOnRecvPacket_Denied() {
 	path.Setup()
 
 	// Create rate limit with zero quota for recv
-	rateLimitDenom := hashDenomTrace(fmt.Sprintf("%s/%s/%s", transferPort, path.EndpointB.ChannelID, uosmo))
+	rateLimitDenom := hashDenomTrace(fmt.Sprintf("%s/%s/%s", transferPort, path.EndpointB.ChannelID, sdk.DefaultBondDenom))
 	s.chainB.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainB.GetContext(), types.RateLimit{
 		Path:  &types.Path{Denom: rateLimitDenom, ChannelOrClientId: path.EndpointB.ChannelID},
 		Quota: &types.Quota{MaxPercentRecv: sdkmath.ZeroInt(), DurationHours: 1}, // Zero quota
 		Flow:  &types.Flow{Inflow: sdkmath.ZeroInt(), Outflow: sdkmath.ZeroInt(), ChannelValue: sdkmath.NewInt(1000)},
 	})
 
+	sender := s.chainA.SenderAccount.GetAddress()
+	receiver := s.chainB.SenderAccount.GetAddress()
+	sendCoin := ibctesting.TestCoin
+
 	// Create packet data
-	packetDataBz, err := json.Marshal(transfertypes.FungibleTokenPacketData{Denom: uosmo, Amount: "10"})
+	packetDataBz, err := json.Marshal(transfertypes.FungibleTokenPacketData{
+		Denom:    sendCoin.Denom,
+		Amount:   sendCoin.Amount.String(),
+		Sender:   sender.String(),
+		Receiver: receiver.String(),
+	})
 	s.Require().NoError(err)
 
+	timeoutTS := uint64(s.coordinator.CurrentTime.Add(time.Hour).UnixNano())
+	timeoutHeight := clienttypes.ZeroHeight()
+	sourcePort := path.EndpointA.ChannelConfig.PortID
+	sourceChannel := path.EndpointA.ChannelID
+	senderInitialBal := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), sender, sdk.DefaultBondDenom)
+
 	// Commit the packet on chain A so that RelayPacket can find the commitment
-	seq2, err := path.EndpointA.SendPacket(
-		clienttypes.ZeroHeight(),
-		uint64(s.coordinator.CurrentTime.Add(time.Hour).UnixNano()),
-		packetDataBz,
-	)
-	s.Require().NoError(err, "sending packet on chain A failed")
+	transferMsg := transfertypes.NewMsgTransfer(sourcePort, sourceChannel, sendCoin, sender.String(), receiver.String(), timeoutHeight, timeoutTS, "")
+	resp, err := s.chainA.GetSimApp().TransferKeeper.Transfer(s.chainA.GetContext(), transferMsg)
+	s.Require().NoError(err)
+
+	// After sending the transfer, "sendCoin" should be taken from the sender to escrow.
+	senderIntermedBal := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), sender, sdk.DefaultBondDenom)
+	s.Require().Equal(senderInitialBal.Sub(sendCoin), senderIntermedBal)
+
+	// Manully commit block on Chain A
+	s.coordinator.CommitBlock(s.chainA)
+
 	packet := channeltypes.Packet{
-		Sequence:           seq2,
-		SourcePort:         path.EndpointA.ChannelConfig.PortID,
-		SourceChannel:      path.EndpointA.ChannelID,
+		Sequence:           resp.Sequence,
+		SourcePort:         sourcePort,
+		SourceChannel:      sourceChannel,
 		DestinationPort:    path.EndpointB.ChannelConfig.PortID,
 		DestinationChannel: path.EndpointB.ChannelID,
 		Data:               packetDataBz,
-		TimeoutHeight:      clienttypes.ZeroHeight(),
-		TimeoutTimestamp:   uint64(s.coordinator.CurrentTime.Add(time.Hour).UnixNano()),
+		TimeoutHeight:      timeoutHeight,
+		TimeoutTimestamp:   timeoutTS,
 	}
 
 	// Relay the packet. This will call OnRecvPacket on chain B through the integrated middleware stack.
@@ -611,21 +631,18 @@ func (s *KeeperTestSuite) TestOnRecvPacket_Denied() {
 	s.Require().True(found, "acknowledgement not found")
 	s.Require().NotNil(ackBytes, "ack bytes should not be nil")
 
-	// Check acknowledgement is error
-	var ack channeltypes.Acknowledgement
-	// Use transfertypes codec to unmarshal
-	err = transfertypes.ModuleCdc.UnmarshalJSON(ackBytes, &ack)
-	s.Require().NoError(err, "unmarshalling acknowledgement failed")
-	s.Require().False(ack.Success(), "ack should be error")
-
-	// Check for the specific error within the acknowledgement data
 	expectedAck := channeltypes.NewErrorAcknowledgement(types.ErrQuotaExceeded)
-	s.Require().Equal(expectedAck.Acknowledgement(), ack.Acknowledgement(), "ack error message should match quota exceeded")
+	expBz := channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement())
+	s.Require().Equal(expBz, ackBytes)
 
 	// Check flow was NOT updated
 	rateLimit, found := s.chainB.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainB.GetContext(), rateLimitDenom, path.EndpointB.ChannelID)
 	s.Require().True(found)
 	s.Require().True(rateLimit.Flow.Inflow.IsZero(), "inflow should NOT be updated")
+
+	// Sender should be refunded
+	senderEndBal := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), sender, sdk.DefaultBondDenom)
+	s.Require().Equal(senderInitialBal, senderEndBal)
 }
 
 // TestSendPacket_Allowed tests the middleware's SendPacket when the packet is allowed by directly calling the middleware
@@ -720,8 +737,8 @@ func (s *KeeperTestSuite) TestSendPacket_Denied() {
 	s.Require().NoError(err)
 
 	// Get the middleware instance
-	middleware, ok := s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper().(ratelimiting.IBCMiddleware)
-	s.Require().True(ok, "Transfer keeper's ICS4Wrapper should be the RateLimit middleware")
+	middleware, ok := s.chainA.GetSimApp().PFMKeeper.ICS4Wrapper().(ratelimiting.IBCMiddleware)
+	s.Require().Truef(ok, "Packet forward middleware keeper's ICS4Wrapper should be the RateLimit middleware. Found: %T", middleware)
 
 	// Directly call the middleware's SendPacket
 	_, err = middleware.SendPacket(

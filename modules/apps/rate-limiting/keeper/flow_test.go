@@ -196,7 +196,7 @@ func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_BidirectionalFlow() {
 				{direction: types.PACKET_SEND, amount: 6},
 				{direction: types.PACKET_RECV, amount: 2},
 				{direction: types.PACKET_SEND, amount: 6},
-				{direction: types.PACKET_RECV, amount: 1, expectedError: "Outflow exceeds quota"},
+				{direction: types.PACKET_SEND, amount: 1, expectedError: "Outflow exceeds quota"},
 			},
 		},
 		{
