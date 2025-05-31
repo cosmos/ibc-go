@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	sdkmath "cosmossdk.io/math"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
 func createRateLimits() []types.RateLimit {
@@ -75,7 +75,6 @@ func (s *KeeperTestSuite) TestGenesis() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-
 			// Call initGenesis with a panic wrapper for the error cases
 			defer func() {
 				if recoveryError := recover(); recoveryError != nil {

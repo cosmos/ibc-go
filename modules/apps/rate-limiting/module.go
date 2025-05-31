@@ -15,11 +15,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/client/cli"
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	ratesim "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/simulation"
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
@@ -30,7 +28,6 @@ var (
 	_ module.HasName             = (*AppModule)(nil)
 	_ module.HasConsensusVersion = (*AppModule)(nil)
 	_ module.HasServices         = (*AppModule)(nil)
-	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 	_ appmodule.HasBeginBlocker  = (*AppModule)(nil) // Add HasBeginBlocker
 
@@ -86,7 +83,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 
 // GetTxCmd implements AppModuleBasic interface
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return cli.NewTxCmd()
+	return nil
 }
 
 // GetQueryCmd implements AppModuleBasic interface
@@ -111,11 +108,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper)) // Use the msgServer implementation
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-
-	m := keeper.NewMigrator(am.keeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, m.MigrateParams); err != nil {
-		panic(fmt.Errorf("failed to migrate rate-limiting app from version 1 to 2 (self-managed params migration): %v", err))
-	}
 }
 
 // InitGenesis performs genesis initialization for the rate-limiting module. It returns
@@ -134,27 +126,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion defining the current version of rate-limiting.
-func (AppModule) ConsensusVersion() uint64 { return 2 }
-
-// ProposalMsgs returns msgs used for governance proposals for simulations.
-func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
-	return ratesim.ProposalMsgs()
-}
-
-// RegisterStoreDecoder registers a decoder for rate-limiting module's types
-func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = ratesim.NewDecodeStore()
-}
-
-// WeightedOperations returns the all the rate-limiting module operations with their respective weights.
-func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return []simtypes.WeightedOperation{}
-}
-
-// GenerateGenesisState creates a randomized GenState of the rate-limiting module.
-func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	ratesim.RandomizedGenState(simState)
-}
+func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(ctx context.Context) error {

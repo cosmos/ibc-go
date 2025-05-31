@@ -3,12 +3,12 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
 type msgServer struct {
@@ -57,7 +57,7 @@ func (k msgServer) RemoveRateLimit(goCtx context.Context, msg *types.MsgRemoveRa
 		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Signer)
 	}
 
-	_, found := k.Keeper.GetRateLimit(ctx, msg.Denom, msg.ChannelOrClientId)
+	_, found := k.GetRateLimit(ctx, msg.Denom, msg.ChannelOrClientId)
 	if !found {
 		return nil, types.ErrRateLimitNotFound
 	}

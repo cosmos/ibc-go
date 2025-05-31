@@ -113,6 +113,7 @@ func (m *MsgAddRateLimit) GetDurationHours() uint64 {
 	return 0
 }
 
+// MsgAddRateLimitResponse is the return type for AddRateLimit function.
 type MsgAddRateLimitResponse struct {
 }
 
@@ -230,6 +231,7 @@ func (m *MsgUpdateRateLimit) GetDurationHours() uint64 {
 	return 0
 }
 
+// MsgUpdateRateLimitResponse is the return type for UpdateRateLimit.
 type MsgUpdateRateLimitResponse struct {
 }
 
@@ -331,6 +333,7 @@ func (m *MsgRemoveRateLimit) GetChannelOrClientId() string {
 	return ""
 }
 
+// MsgRemoveRateLimitResponse is the response type for RemoveRateLimit
 type MsgRemoveRateLimitResponse struct {
 }
 
@@ -432,6 +435,7 @@ func (m *MsgResetRateLimit) GetChannelOrClientId() string {
 	return ""
 }
 
+// MsgResetRateLimitResponse is the response type for ResetRateLimit.
 type MsgResetRateLimitResponse struct {
 }
 
@@ -698,6 +702,7 @@ func _Msg_ResetRateLimit_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+var Msg_serviceDesc = _Msg_serviceDesc
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.applications.rate_limiting.v1.Msg",
 	HandlerType: (*MsgServer)(nil),

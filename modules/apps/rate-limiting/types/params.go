@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -80,7 +81,7 @@ func validateString(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if s == "" {
-		return fmt.Errorf("value cannot be empty")
+		return errors.New("value cannot be empty")
 	}
 	return nil
 }
@@ -91,7 +92,7 @@ func validateUint64(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v == 0 {
-		return fmt.Errorf("value cannot be zero")
+		return errors.New("value cannot be zero")
 	}
 	return nil
 }

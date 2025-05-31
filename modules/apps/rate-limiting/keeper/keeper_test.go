@@ -9,8 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	// authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-
 	// channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
 	// channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	// ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
@@ -19,13 +17,11 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-var (
-	// TestOwnerAddress defines a reusable bech32 address for testing purposes
-	TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
+// TestOwnerAddress defines a reusable bech32 address for testing purposes
+var TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
-	// // TestPortID defines a reusable port identifier for testing purposes
-	// TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
-)
+// // TestPortID defines a reusable port identifier for testing purposes
+// TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
 
 // MockQueryRouter is a mock implementation of the QueryRouter interface
 type MockQueryRouter struct{}

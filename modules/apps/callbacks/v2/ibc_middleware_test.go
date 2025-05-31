@@ -132,7 +132,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			},
 			"none", // improperly formatted callback data should result in no callback execution
 			false,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: callback execution fails",
@@ -274,7 +274,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			noExecution,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -433,7 +433,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			noExecution,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -758,7 +758,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 			},
 			"none", // improperly formatted callback data should result in no callback execution
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: ics4Wrapper WriteAcknowledgement call fails",
