@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"regexp"
 
 	errorsmod "cosmossdk.io/errors"
@@ -9,16 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-)
-
-const (
-	TypeMsgAddRateLimit    = "AddRateLimit"
-	TypeMsgUpdateRateLimit = "UpdateRateLimit"
-	TypeMsgRemoveRateLimit = "RemoveRateLimit"
-	TypeMsgResetRateLimit  = "ResetRateLimit"
 )
 
 var (
@@ -26,49 +17,20 @@ var (
 	_ sdk.Msg = &MsgUpdateRateLimit{}
 	_ sdk.Msg = &MsgRemoveRateLimit{}
 	_ sdk.Msg = &MsgResetRateLimit{}
-	_ sdk.Msg = &MsgUpdateParams{}
-
-	// Implement legacy interface for ledger support
-	_ legacytx.LegacyMsg = &MsgAddRateLimit{}
-	_ legacytx.LegacyMsg = &MsgUpdateRateLimit{}
-	_ legacytx.LegacyMsg = &MsgRemoveRateLimit{}
-	_ legacytx.LegacyMsg = &MsgResetRateLimit{}
-	_ legacytx.LegacyMsg = &MsgUpdateParams{}
 )
 
 // ----------------------------------------------
 //               MsgAddRateLimit
 // ----------------------------------------------
 
-func NewMsgAddRateLimit(denom, channelOrClientId string, maxPercentSend sdkmath.Int, maxPercentRecv sdkmath.Int, durationHours uint64) *MsgAddRateLimit {
+func NewMsgAddRateLimit(denom, channelOrClientID string, maxPercentSend sdkmath.Int, maxPercentRecv sdkmath.Int, durationHours uint64) *MsgAddRateLimit {
 	return &MsgAddRateLimit{
 		Denom:             denom,
-		ChannelOrClientId: channelOrClientId,
+		ChannelOrClientId: channelOrClientID,
 		MaxPercentSend:    maxPercentSend,
 		MaxPercentRecv:    maxPercentRecv,
 		DurationHours:     durationHours,
 	}
-}
-
-func (msg MsgAddRateLimit) Type() string {
-	return TypeMsgAddRateLimit
-}
-
-func (msg MsgAddRateLimit) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgAddRateLimit) GetSigners() []sdk.AccAddress {
-	signerAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signerAddr}
-}
-
-func (msg *MsgAddRateLimit) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgAddRateLimit) ValidateBasic() error {
@@ -116,35 +78,14 @@ func (msg *MsgAddRateLimit) ValidateBasic() error {
 //               MsgUpdateRateLimit
 // ----------------------------------------------
 
-func NewMsgUpdateRateLimit(denom, channelOrClientId string, maxPercentSend sdkmath.Int, maxPercentRecv sdkmath.Int, durationHours uint64) *MsgUpdateRateLimit {
+func NewMsgUpdateRateLimit(denom, channelOrClientID string, maxPercentSend sdkmath.Int, maxPercentRecv sdkmath.Int, durationHours uint64) *MsgUpdateRateLimit {
 	return &MsgUpdateRateLimit{
 		Denom:             denom,
-		ChannelOrClientId: channelOrClientId,
+		ChannelOrClientId: channelOrClientID,
 		MaxPercentSend:    maxPercentSend,
 		MaxPercentRecv:    maxPercentRecv,
 		DurationHours:     durationHours,
 	}
-}
-
-func (msg MsgUpdateRateLimit) Type() string {
-	return TypeMsgUpdateRateLimit
-}
-
-func (msg MsgUpdateRateLimit) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgUpdateRateLimit) GetSigners() []sdk.AccAddress {
-	signerAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signerAddr}
-}
-
-func (msg *MsgUpdateRateLimit) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgUpdateRateLimit) ValidateBasic() error {
@@ -192,32 +133,11 @@ func (msg *MsgUpdateRateLimit) ValidateBasic() error {
 //               MsgRemoveRateLimit
 // ----------------------------------------------
 
-func NewMsgRemoveRateLimit(denom, channelOrClientId string) *MsgRemoveRateLimit {
+func NewMsgRemoveRateLimit(denom, channelOrClientID string) *MsgRemoveRateLimit {
 	return &MsgRemoveRateLimit{
 		Denom:             denom,
-		ChannelOrClientId: channelOrClientId,
+		ChannelOrClientId: channelOrClientID,
 	}
-}
-
-func (msg MsgRemoveRateLimit) Type() string {
-	return TypeMsgRemoveRateLimit
-}
-
-func (msg MsgRemoveRateLimit) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgRemoveRateLimit) GetSigners() []sdk.AccAddress {
-	signerAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signerAddr}
-}
-
-func (msg *MsgRemoveRateLimit) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgRemoveRateLimit) ValidateBasic() error {
@@ -246,32 +166,11 @@ func (msg *MsgRemoveRateLimit) ValidateBasic() error {
 //               MsgResetRateLimit
 // ----------------------------------------------
 
-func NewMsgResetRateLimit(denom, channelOrClientId string) *MsgResetRateLimit {
+func NewMsgResetRateLimit(denom, channelOrClientID string) *MsgResetRateLimit {
 	return &MsgResetRateLimit{
 		Denom:             denom,
-		ChannelOrClientId: channelOrClientId,
+		ChannelOrClientId: channelOrClientID,
 	}
-}
-
-func (msg MsgResetRateLimit) Type() string {
-	return TypeMsgResetRateLimit
-}
-
-func (msg MsgResetRateLimit) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgResetRateLimit) GetSigners() []sdk.AccAddress {
-	signerAddr, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signerAddr}
-}
-
-func (msg *MsgResetRateLimit) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
 }
 
 func (msg *MsgResetRateLimit) ValidateBasic() error {
@@ -294,76 +193,4 @@ func (msg *MsgResetRateLimit) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-// ----------------------------------------------
-//               MsgUpdateParams
-// ----------------------------------------------
-
-// TypeMsgUpdateParams defines the type for MsgUpdateParams
-const TypeMsgUpdateParams = "UpdateParams"
-
-// MsgUpdateParams defines the Msg/UpdateParams request type
-type MsgUpdateParams struct {
-	// Signer is the governance account that signs the message
-	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
-	// Params defines the rate-limiting parameters to update
-	Params Params `protobuf:"bytes,2,opt,name=params,proto3" json:"params"`
-}
-
-// Reset implements proto.Message
-func (msg *MsgUpdateParams) Reset() {
-	*msg = MsgUpdateParams{}
-}
-
-// String implements proto.Message
-func (msg *MsgUpdateParams) String() string {
-	return fmt.Sprintf("MsgUpdateParams{Signer: %s, Params: %s}",
-		msg.Signer, msg.Params.String())
-}
-
-// ProtoMessage implements proto.Message
-func (*MsgUpdateParams) ProtoMessage() {}
-
-// NewMsgUpdateParams creates a new MsgUpdateParams instance
-func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
-	return &MsgUpdateParams{
-		Signer: signer,
-		Params: params,
-	}
-}
-
-// Route implements sdk.Msg
-func (msg MsgUpdateParams) Route() string {
-	return RouterKey
-}
-
-// Type implements sdk.Msg
-func (msg MsgUpdateParams) Type() string {
-	return TypeMsgUpdateParams
-}
-
-// GetSigners implements sdk.Msg
-func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
-	signer, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{signer}
-}
-
-// GetSignBytes implements sdk.Msg
-func (msg *MsgUpdateParams) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// ValidateBasic implements sdk.Msg
-func (msg *MsgUpdateParams) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address (%s)", err)
-	}
-
-	return msg.Params.Validate()
 }

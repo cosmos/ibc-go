@@ -1,6 +1,7 @@
 package ratelimiting
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -17,20 +18,23 @@ import (
 )
 
 var (
-	_ porttypes.Middleware            = (*IBCMiddleware)(nil)
-	_ porttypes.PacketDataUnmarshaler = (*IBCMiddleware)(nil) // Optional: If underlying app needs it
+	_ porttypes.Middleware              = (*IBCMiddleware)(nil)
+	_ porttypes.PacketUnmarshalarModule = (*IBCMiddleware)(nil)
 )
 
+// TODO: Refactor.
+// IBCMiddleware does not need explicit channelkeeper and ics4Wrapper. These 2 fields are in keeper.
+//
 // IBCMiddleware implements the ICS26 callbacks for the rate-limiting middleware.
 type IBCMiddleware struct {
-	app           porttypes.IBCModule
+	app           porttypes.PacketUnmarshalarModule
 	keeper        keeper.Keeper
 	channelKeeper *channelkeeper.Keeper
 	ics4Wrapper   porttypes.ICS4Wrapper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper, underlying application, and channel keeper.
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper, ck *channelkeeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.PacketUnmarshalarModule, k keeper.Keeper, ck *channelkeeper.Keeper) IBCMiddleware {
 	// The keeper needs the ICS4Wrapper to potentially send packets (though not used currently).
 	// We pass the channel keeper as the ICS4Wrapper for consistency and potential future use.
 	k.SetICS4Wrapper(ck)
@@ -42,115 +46,54 @@ func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper, ck *channelkeepe
 	}
 }
 
-// SetICS4Wrapper sets the ICS4Wrapper. It is sometimes used after the middleware is created.
-// We also need to potentially update the channelKeeper reference if the wrapper changes.
-// NOTE: This might be complex if the new ics4Wrapper isn't the channel keeper.
-// For now, assume it IS the channel keeper for simplicity in this refactor.
-func (im *IBCMiddleware) SetICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
-	im.ics4Wrapper = ics4Wrapper
-	im.keeper.SetICS4Wrapper(ics4Wrapper)
-
-	ck, ok := ics4Wrapper.(*channelkeeper.Keeper)
-	if ok {
-		im.channelKeeper = ck
-	} else {
-		panic(fmt.Sprintf("IBCMiddleware requires the ICS4Wrapper to be a *channelkeeper.Keeper, got %T", ics4Wrapper))
-	}
-}
-
 // OnChanOpenInit implements the IBCMiddleware interface. Call underlying app's OnChanOpenInit.
-func (im IBCMiddleware) OnChanOpenInit(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID string,
-	channelID string,
-	counterparty channeltypes.Counterparty,
-	version string,
-) (string, error) {
+func (im IBCMiddleware) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, counterparty channeltypes.Counterparty, version string) (string, error) {
 	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface. Call underlying app's OnChanOpenTry.
-func (im IBCMiddleware) OnChanOpenTry(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID,
-	channelID string,
-	counterparty channeltypes.Counterparty,
-	counterpartyVersion string,
-) (string, error) {
+func (im IBCMiddleware) OnChanOpenTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID, channelID string, counterparty channeltypes.Counterparty, counterpartyVersion string) (string, error) {
 	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, counterparty, counterpartyVersion)
 }
 
 // OnChanOpenAck implements the IBCMiddleware interface. Call underlying app's OnChanOpenAck.
-func (im IBCMiddleware) OnChanOpenAck(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-	counterpartyChannelID string,
-	counterpartyVersion string,
-) error {
+func (im IBCMiddleware) OnChanOpenAck(ctx sdk.Context, portID, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
 	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 }
 
 // OnChanOpenConfirm implements the IBCMiddleware interface. Call underlying app's OnChanOpenConfirm.
-func (im IBCMiddleware) OnChanOpenConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
+func (im IBCMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface. Call underlying app's OnChanCloseInit.
-func (im IBCMiddleware) OnChanCloseInit(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
+func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanCloseInit(ctx, portID, channelID)
 }
 
 // OnChanCloseConfirm implements the IBCMiddleware interface. Call underlying app's OnChanCloseConfirm.
-func (im IBCMiddleware) OnChanCloseConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
+func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
 // OnRecvPacket implements the IBCMiddleware interface.
 // Rate limits the incoming packet. If the packet is allowed, call underlying app's OnRecvPacket.
-func (im IBCMiddleware) OnRecvPacket(
-	ctx sdk.Context,
-	channelVersion string,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
-) ibcexported.Acknowledgement {
+func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	if err := im.keeper.ReceiveRateLimitedPacket(ctx, packet); err != nil {
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("Receive packet rate limited: %s", err.Error()))
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
+	// If the packet was not rate-limited, pass it down to the underlying app's OnRecvPacket callback
+	return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer) // Added channelVersion
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface.
 // If the acknowledgement was an error, revert the outflow amount.
 // Then, call underlying app's OnAcknowledgementPacket.
-func (im IBCMiddleware) OnAcknowledgementPacket(
-	ctx sdk.Context,
-	channelVersion string,
-	packet channeltypes.Packet,
-	acknowledgement []byte,
-	relayer sdk.AccAddress,
-) error {
+func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
 	if err := im.keeper.AcknowledgeRateLimitedPacket(ctx, packet, acknowledgement); err != nil {
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("Rate limit OnAcknowledgementPacket failed: %s", err.Error()))
-		return err
 	}
 
 	return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
@@ -158,15 +101,9 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 // OnTimeoutPacket implements the IBCMiddleware interface.
 // Revert the outflow amount. Then, call underlying app's OnTimeoutPacket.
-func (im IBCMiddleware) OnTimeoutPacket(
-	ctx sdk.Context,
-	channelVersion string,
-	packet channeltypes.Packet,
-	relayer sdk.AccAddress,
-) error {
+func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	if err := im.keeper.TimeoutRateLimitedPacket(ctx, packet); err != nil {
 		im.keeper.Logger(ctx).Error(fmt.Sprintf("Rate limit OnTimeoutPacket failed: %s", err.Error()))
-		return err
 	}
 
 	return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
@@ -175,17 +112,9 @@ func (im IBCMiddleware) OnTimeoutPacket(
 // SendPacket implements the ICS4 Wrapper interface.
 // It calls the keeper's SendRateLimitedPacket function first to check the rate limit.
 // If the packet is allowed, it then calls the underlying ICS4Wrapper SendPacket.
-func (im IBCMiddleware) SendPacket(
-	ctx sdk.Context,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (sequence uint64, err error) {
-	// Ensure channelKeeper is set (panic in SetICS4Wrapper if not)
+func (im IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
 	if im.channelKeeper == nil {
-		return 0, fmt.Errorf("channel keeper is not set on IBCMiddleware")
+		return 0, errors.New("channel keeper is not set on IBCMiddleware")
 	}
 
 	// Get the next sequence number from the channel keeper.
@@ -223,11 +152,7 @@ func (im IBCMiddleware) SendPacket(
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface.
 // It calls the underlying ICS4Wrapper.
-func (im IBCMiddleware) WriteAcknowledgement(
-	ctx sdk.Context,
-	packet ibcexported.PacketI,
-	ack ibcexported.Acknowledgement,
-) error {
+func (im IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, ack ibcexported.Acknowledgement) error {
 	return im.ics4Wrapper.WriteAcknowledgement(ctx, packet, ack)
 }
 

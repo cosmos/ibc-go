@@ -91,14 +91,13 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting" // Add rate-limiting import
-	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-
 	// ratelimitingmodule "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/module" // Remove incorrect import
-	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
 	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
+	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting" // Add rate-limiting import
+	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfer "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
@@ -378,7 +377,7 @@ func NewSimApp(
 	// Middleware Stacks
 
 	// PacketForwardMiddleware must be created before TransferKeeper
-	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.ICAControllerKeeper.GetICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.RateLimitKeeper.ICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// Create Transfer Keeper
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -392,15 +391,7 @@ func NewSimApp(
 
 	app.PFMKeeper.SetTransferKeeper(app.TransferKeeper)
 
-	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]),
-		app.IBCKeeper.ChannelKeeper, // ics4Wrapper
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ClientKeeper,
-		app.BankKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
+	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// Mock Module Stack
 
@@ -429,12 +420,19 @@ func NewSimApp(
 	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// create IBC module from bottom to top of stack
-	transferIBCModule := packetforward.NewIBCMiddleware(transfer.NewIBCModule(app.TransferKeeper), app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
-	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
+	// - Core
+	// - Rate Limit
+	// - Packet Forward Middleware
+	// - Transfer
+	transferStack := transfer.NewIBCModule(app.TransferKeeper)
+	transferIBCModule := packetforward.NewIBCMiddleware(transferStack, app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
 
 	// Create the rate-limiting middleware, wrapping the transfer IBC module
 	// The ICS4Wrapper is the IBC ChannelKeeper
 	rateLimitMiddleware := ratelimiting.NewIBCMiddleware(transferIBCModule, app.RateLimitKeeper, app.IBCKeeper.ChannelKeeper)
+
+	app.PFMKeeper.SetICS4Wrapper(rateLimitMiddleware)
+	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
 
 	// Add transfer stack with rate-limiting middleware to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, rateLimitMiddleware)
@@ -479,9 +477,6 @@ func NewSimApp(
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
 	app.IBCKeeper.SetRouterV2(ibcRouterV2)
-
-	// **** Set the middleware wrapper on TransferKeeper ****
-	app.TransferKeeper.WithICS4Wrapper(rateLimitMiddleware) // Use the middleware instance directly
 
 	clientKeeper := app.IBCKeeper.ClientKeeper
 	storeProvider := app.IBCKeeper.ClientKeeper.GetStoreProvider()
@@ -587,7 +582,7 @@ func NewSimApp(
 		authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
-		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName, ratelimittypes.ModuleName, // Add rate-limiting module to genesis order
+		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName, ratelimittypes.ModuleName,
 		packetforwardtypes.ModuleName, icatypes.ModuleName, ibcmock.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
 	}
@@ -921,7 +916,7 @@ func NewQueryRouterAdapter(router *baseapp.GRPCQueryRouter) *QueryRouterAdapter 
 	return &QueryRouterAdapter{router: router}
 }
 
-func (a *QueryRouterAdapter) Route(path string) func(sdk.Context, interface{}) ([]byte, error) {
+func (*QueryRouterAdapter) Route(path string) func(sdk.Context, interface{}) ([]byte, error) {
 	// This is a simplification for testing purposes
 	// In a real implementation, this would need to properly adapt the handler
 	return func(ctx sdk.Context, req interface{}) ([]byte, error) {
@@ -938,7 +933,7 @@ func NewMsgRouterAdapter(router *baseapp.MsgServiceRouter) *MsgRouterAdapter {
 	return &MsgRouterAdapter{router: router}
 }
 
-func (a *MsgRouterAdapter) Handler(msg sdk.Msg) func(sdk.Context, sdk.Msg) (*sdk.Result, error) {
+func (*MsgRouterAdapter) Handler(msg sdk.Msg) func(sdk.Context, sdk.Msg) (*sdk.Result, error) {
 	// Simplified for testing purposes
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		return nil, nil
