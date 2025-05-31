@@ -6,17 +6,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types" 
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
 
 type RateLimitedPacketInfo struct {
@@ -59,7 +58,7 @@ func (k Keeper) CheckAcknowledementSucceeded(ctx sdk.Context, ack []byte) (succe
 	}
 }
 
-// Parse the denom from the Send Packet that will be used by the rate limit module
+// ParseDenomFromSendPacket parses the denom from the Send Packet.
 // The denom that the rate limiter will use for a SEND packet depends on whether
 // it was a NATIVE token (e.g. ustrd, stuatom, etc.) or NON-NATIVE token (e.g. ibc/...)...
 //
@@ -80,17 +79,14 @@ func ParseDenomFromSendPacket(packet transfertypes.FungibleTokenPacketData) (den
 
 	// Native assets will have an empty trace path and can be returned as is
 	if len(denomTrace.Trace) == 0 {
-		denom = packet.Denom
-	} else {
-		// Non-native assets should be hashed
-		denom = denomTrace.IBCDenom()
+		return packet.Denom
 	}
-
-	return denom
+	// Non-native assets should be hashed
+	return denomTrace.IBCDenom()
 }
 
-// Parse the denom from the Recv Packet that will be used by the rate limit module
-// The denom that the rate limiter will use for a RECEIVE packet depends on whether it was a source or sink
+// ParseDenomFromRecvPacket parses the denom from the Recv Packet that will be used by the rate limit module.
+// The denom that the rate limiter will use for a RECEIVE packet depends on whether it was a source or sink.
 //
 //	Sink:   The token moves forward, to a chain different than its previous hop
 //	        The new port and channel are APPENDED to the denom trace.
@@ -100,7 +96,7 @@ func ParseDenomFromSendPacket(packet transfertypes.FungibleTokenPacketData) (den
 //	        The port and channel are REMOVED from the denom trace - undoing the last hop.
 //	        (e.g. A -> B -> A, A is a source) (e.g. A -> B -> C -> B, B is a source)
 //
-//	If the chain is acting as a SINK: We add on the Stride port and channel and hash it
+//	If the chain is acting as a SINK: We add on the port and channel and hash it
 //	  Ex1: uosmo sent from Osmosis to Stride
 //	       Packet Denom:   uosmo
 //	        -> Add Prefix: transfer/channel-X/uosmo
@@ -122,17 +118,20 @@ func ParseDenomFromSendPacket(packet transfertypes.FungibleTokenPacketData) (den
 //	        -> Remove Prefix: transfer/channel-Z/ujuno
 //	        -> Hash:          ibc/...
 func ParseDenomFromRecvPacket(packet channeltypes.Packet, packetData transfertypes.FungibleTokenPacketData) (denom string) {
-	sourcePort := packet.GetSourcePort()
-	sourceChannel := packet.GetSourceChannel()
+	sourcePort := packet.SourcePort
+	sourceChannel := packet.SourceChannel
 
 	// To determine the denom, first check whether Stride is acting as source
 	// Build the source prefix and check if the denom starts with it
-	sourcePrefix := transfertypes.NewHop(sourcePort, sourceChannel)
-	sourcePrefixStr := sourcePrefix.String() + "/"
+	hop := transfertypes.NewHop(sourcePort, sourceChannel)
+	sourcePrefix := hop.String() + "/"
 
-	if strings.HasPrefix(packetData.Denom, sourcePrefixStr) {
+	// TODO: Refactor.
+	// denomTrace.Path() will not be "". So we can calculate the updated prefix in the if block
+	// and the denomTrace and denom finding can be moved out of the conditional block.
+	if strings.HasPrefix(packetData.Denom, sourcePrefix) {
 		// Remove the source prefix (e.g. transfer/channel-X/transfer/channel-Z/ujuno -> transfer/channel-Z/ujuno)
-		unprefixedDenom := packetData.Denom[len(sourcePrefixStr):]
+		unprefixedDenom := packetData.Denom[len(sourcePrefix):]
 
 		// Native assets will have an empty trace path and can be returned as is
 		denomTrace := transfertypes.ExtractDenomFromPath(unprefixedDenom)
@@ -142,31 +141,27 @@ func ParseDenomFromRecvPacket(packet channeltypes.Packet, packetData transfertyp
 			// Non-native assets should be hashed
 			denom = denomTrace.IBCDenom()
 		}
-	} else {
-		// Prefix the destination channel - this will contain the trailing slash (e.g. transfer/channel-X/)
-		destinationPrefix := transfertypes.NewHop(packet.GetDestPort(), packet.GetDestChannel())
-		prefixedDenom := destinationPrefix.String() + "/" + packetData.Denom
-
-		// Hash the denom trace
-		denomTrace := transfertypes.ExtractDenomFromPath(prefixedDenom)
-		denom = denomTrace.IBCDenom()
+		return denom
 	}
+	// Prefix the destination channel - this will contain the trailing slash (e.g. transfer/channel-X/)
+	destinationPrefix := transfertypes.NewHop(packet.GetDestPort(), packet.GetDestChannel())
+	prefixedDenom := destinationPrefix.String() + "/" + packetData.Denom
+
+	// Hash the denom trace
+	denomTrace := transfertypes.ExtractDenomFromPath(prefixedDenom)
+	denom = denomTrace.IBCDenom()
 
 	return denom
 }
 
-// Parses the sender and channelId and denom for the corresponding RateLimit object, and
+// ParsePacketInfo parses the sender and channelId and denom for the corresponding RateLimit object, and
 // the sender/receiver/transfer amount
 //
-// The Stride channelID should always be used as the key for the RateLimit object (not the counterparty channelID)
-// For a SEND packet, the Stride channelID is the SOURCE channel
-// For a RECEIVE packet, the Stride channelID is the DESTINATION channel
+// The channelID should always be used as the key for the RateLimit object (not the counterparty channelID)
+// For a SEND packet, the channelID is the SOURCE channel
+// For a RECEIVE packet, the channelID is the DESTINATION channel
 //
-// The Source and Destination are defined from the perspective of a packet recipient
-// Meaning, when a send packet lands on the host chain, the "Source" will be the Stride Channel,
-// and the "Destination" will be the Host Channel
-// And, when a receive packet lands on a Stride, the "Source" will be the host zone's channel,
-// and the "Destination" will be the Stride Channel
+// The Source and Destination are defined from the perspective of a packet recipient.
 func ParsePacketInfo(packet channeltypes.Packet, direction types.PacketDirection) (RateLimitedPacketInfo, error) {
 	var packetData transfertypes.FungibleTokenPacketData
 	if err := json.Unmarshal(packet.GetData(), &packetData); err != nil {
@@ -240,10 +235,9 @@ func (k Keeper) ReceiveRateLimitedPacket(ctx sdk.Context, packet channeltypes.Pa
 	return err
 }
 
-// Middleware implementation for OnAckPacket with rate limiting
-// If the packet failed, we should decrement the Outflow
+// AcknowledgeRateLimitedPacket implements for OnAckPacket for porttypes.Middleware.
+// If the packet failed, we should decrement the Outflow.
 func (k Keeper) AcknowledgeRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte) error {
-	// Check whether the ack was a success or error
 	ackSuccess, err := k.CheckAcknowledementSucceeded(ctx, acknowledgement)
 	if err != nil {
 		return err

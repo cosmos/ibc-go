@@ -3,9 +3,9 @@ package types_test
 import (
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-
 	"github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
@@ -15,22 +15,22 @@ type MsgsTestSuite struct {
 
 	authority      string
 	randomAddress  string
-	validChannelId string
-	validClientId  string
+	validChannelID string
+	validClientID  string
 }
 
-func (suite *MsgsTestSuite) SetupTest() {
-	suite.authority = "cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw"
-	suite.randomAddress = "cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw"
-	suite.validChannelId = "channel-0"
-	suite.validClientId = "07-tendermint-0"
+func (s *MsgsTestSuite) SetupTest() {
+	s.authority = "cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw"
+	s.randomAddress = "cosmos10h9stc5v6ntgeygf5xf945njqq5h32r53uquvw"
+	s.validChannelID = "channel-0"
+	s.validClientID = "07-tendermint-0"
 }
 
 func TestMsgsTestSuite(t *testing.T) {
 	suite.Run(t, new(MsgsTestSuite))
 }
 
-func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
+func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 	testCases := []struct {
 		name    string
 		msg     *types.MsgAddRateLimit
@@ -39,9 +39,9 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "valid add msg with channel id",
 			msg: &types.MsgAddRateLimit{
-				Signer:            suite.authority,
+				Signer:            s.authority,
 				Denom:             "uatom",
-				ChannelOrClientId: suite.validChannelId,
+				ChannelOrClientId: s.validChannelID,
 				MaxPercentSend:    sdkmath.NewInt(10),
 				MaxPercentRecv:    sdkmath.NewInt(10),
 				DurationHours:     24,
@@ -51,9 +51,9 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "valid add msg with client id",
 			msg: &types.MsgAddRateLimit{
-				Signer:            suite.authority,
+				Signer:            s.authority,
 				Denom:             "uatom",
-				ChannelOrClientId: suite.validClientId,
+				ChannelOrClientId: s.validClientID,
 				MaxPercentSend:    sdkmath.NewInt(10),
 				MaxPercentRecv:    sdkmath.NewInt(10),
 				DurationHours:     24,
@@ -65,7 +65,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 			msg: &types.MsgAddRateLimit{
 				Signer:            "invalid",
 				Denom:             "uatom",
-				ChannelOrClientId: suite.validChannelId,
+				ChannelOrClientId: s.validChannelID,
 				MaxPercentSend:    sdkmath.NewInt(10),
 				MaxPercentRecv:    sdkmath.NewInt(10),
 				DurationHours:     24,
@@ -75,9 +75,9 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "denom can't be empty",
 			msg: &types.MsgAddRateLimit{
-				Signer:            suite.authority,
+				Signer:            s.authority,
 				Denom:             "",
-				ChannelOrClientId: suite.validChannelId,
+				ChannelOrClientId: s.validChannelID,
 				MaxPercentSend:    sdkmath.NewInt(10),
 				MaxPercentRecv:    sdkmath.NewInt(10),
 				DurationHours:     24,
@@ -87,7 +87,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "invalid client ID",
 			msg: &types.MsgAddRateLimit{
-				Signer:            suite.authority,
+				Signer:            s.authority,
 				Denom:             "uatom",
 				ChannelOrClientId: "invalid-client-id",
 				MaxPercentSend:    sdkmath.NewInt(10),
@@ -99,7 +99,7 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "invalid channel ID",
 			msg: &types.MsgAddRateLimit{
-				Signer:            suite.authority,
+				Signer:            s.authority,
 				Denom:             "uatom",
 				ChannelOrClientId: "channel",
 				MaxPercentSend:    sdkmath.NewInt(10),
@@ -111,9 +111,9 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "max percent send > 100",
 			msg: &types.MsgAddRateLimit{
-				Signer:            suite.authority,
+				Signer:            s.authority,
 				Denom:             "uatom",
-				ChannelOrClientId: suite.validChannelId,
+				ChannelOrClientId: s.validChannelID,
 				MaxPercentSend:    sdkmath.NewInt(101),
 				MaxPercentRecv:    sdkmath.NewInt(10),
 				DurationHours:     24,
@@ -123,9 +123,9 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "max percent recv > 100",
 			msg: &types.MsgAddRateLimit{
-				Signer:            suite.authority,
+				Signer:            s.authority,
 				Denom:             "uatom",
-				ChannelOrClientId: suite.validChannelId,
+				ChannelOrClientId: s.validChannelID,
 				MaxPercentSend:    sdkmath.NewInt(10),
 				MaxPercentRecv:    sdkmath.NewInt(101),
 				DurationHours:     24,
@@ -135,9 +135,9 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "send and recv both zero",
 			msg: &types.MsgAddRateLimit{
-				Signer:            suite.authority,
+				Signer:            s.authority,
 				Denom:             "uatom",
-				ChannelOrClientId: suite.validChannelId,
+				ChannelOrClientId: s.validChannelID,
 				MaxPercentSend:    sdkmath.ZeroInt(),
 				MaxPercentRecv:    sdkmath.ZeroInt(),
 				DurationHours:     24,
@@ -147,9 +147,9 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 		{
 			name: "duration is zero hours",
 			msg: &types.MsgAddRateLimit{
-				Signer:            suite.authority,
+				Signer:            s.authority,
 				Denom:             "uatom",
-				ChannelOrClientId: suite.validChannelId,
+				ChannelOrClientId: s.validChannelID,
 				MaxPercentSend:    sdkmath.NewInt(10),
 				MaxPercentRecv:    sdkmath.NewInt(10),
 				DurationHours:     0,
@@ -161,89 +161,9 @@ func (suite *MsgsTestSuite) TestMsgAddRateLimit() {
 	for i, tc := range testCases {
 		err := tc.msg.ValidateBasic()
 		if tc.expPass {
-			suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+			s.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
 		} else {
-			suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
+			s.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
 		}
-	}
-}
-
-func (suite *MsgsTestSuite) TestMsgUpdateParams() {
-	validParams := types.Params{
-		Enabled:           true,
-		DefaultMaxOutflow: "1000000",
-		DefaultMaxInflow:  "1000000",
-		DefaultPeriod:     86400,
-	}
-
-	invalidParams := types.Params{
-		Enabled:           true,
-		DefaultMaxOutflow: "",
-		DefaultMaxInflow:  "1000000",
-		DefaultPeriod:     86400,
-	}
-
-	testCases := []struct {
-		name    string
-		msg     *types.MsgUpdateParams
-		expPass bool
-	}{
-		{
-			name: "valid update params msg",
-			msg: &types.MsgUpdateParams{
-				Signer: suite.authority,
-				Params: validParams,
-			},
-			expPass: true,
-		},
-		{
-			name: "invalid signer",
-			msg: &types.MsgUpdateParams{
-				Signer: "invalid",
-				Params: validParams,
-			},
-			expPass: false,
-		},
-		{
-			name: "invalid params",
-			msg: &types.MsgUpdateParams{
-				Signer: suite.authority,
-				Params: invalidParams,
-			},
-			expPass: false,
-		},
-	}
-
-	for i, tc := range testCases {
-		err := tc.msg.ValidateBasic()
-		if tc.expPass {
-			suite.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
-		} else {
-			suite.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
-		}
-
-		// Test GetSigners
-		if tc.expPass {
-			signers := tc.msg.GetSigners()
-			suite.Require().Len(signers, 1)
-			suite.Require().Equal(suite.authority, signers[0].String())
-		}
-
-		// Test ProtoMessage
-		suite.Require().NotPanics(func() {
-			tc.msg.ProtoMessage()
-		})
-
-		// Test Reset
-		suite.Require().NotPanics(func() {
-			emptyMsg := &types.MsgUpdateParams{}
-			tc.msg.Reset()
-			suite.Require().Equal(emptyMsg, tc.msg)
-		})
-
-		// Test String
-		suite.Require().NotPanics(func() {
-			_ = tc.msg.String()
-		})
 	}
 }

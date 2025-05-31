@@ -162,6 +162,7 @@ func (m *Quota) GetDurationHours() uint64 {
 	return 0
 }
 
+// Flow tracks all the inflows and outflows of a channel.
 type Flow struct {
 	// Inflow defines the total amount of inbound transfers for the given
 	// rate limit in the current window
@@ -326,6 +327,7 @@ func (m *WhitelistedAddressPair) GetReceiver() string {
 	return ""
 }
 
+// HourEpoch is the epoch type.
 type HourEpoch struct {
 	EpochNumber      uint64        `protobuf:"varint,1,opt,name=epoch_number,json=epochNumber,proto3" json:"epoch_number,omitempty"`
 	Duration         time.Duration `protobuf:"bytes,2,opt,name=duration,proto3,stdduration" json:"duration,omitempty"`

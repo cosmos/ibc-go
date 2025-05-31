@@ -1,10 +1,10 @@
 package keeper
 
 import (
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
 // Stores the hour epoch
