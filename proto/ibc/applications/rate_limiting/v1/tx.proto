@@ -44,6 +44,8 @@ message MsgAddRateLimit {
   // is reset (e.g. 24 indicates that the rate limit is reset each day)
   uint64 duration_hours = 6;
 }
+
+// MsgAddRateLimitResponse is the return type for AddRateLimit function.
 message MsgAddRateLimitResponse {}
 
 // Gov tx to update an existing rate limit
@@ -68,6 +70,8 @@ message MsgUpdateRateLimit {
   // is reset (e.g. 24 indicates that the rate limit is reset each day)
   uint64 duration_hours = 6;
 }
+
+// MsgUpdateRateLimitResponse is the return type for UpdateRateLimit.
 message MsgUpdateRateLimitResponse {}
 
 // Gov tx to remove a rate limit
@@ -83,6 +87,8 @@ message MsgRemoveRateLimit {
   // ChannelId for the rate limit, on the side of the rate limited chain
   string channel_or_client_id = 3;
 }
+
+// MsgRemoveRateLimitResponse is the response type for RemoveRateLimit
 message MsgRemoveRateLimitResponse {}
 
 // Gov tx to reset the flow on a rate limit
@@ -98,4 +104,6 @@ message MsgResetRateLimit {
   // ChannelId for the rate limit, on the side of the rate limited chain
   string channel_or_client_id = 3;
 }
+
+// MsgResetRateLimitResponse is the response type for ResetRateLimit.
 message MsgResetRateLimitResponse {}

@@ -2,25 +2,15 @@ syntax = "proto3";
 package ibc.applications.rate_limiting.v1;
 
 import "gogoproto/gogo.proto";
-// import "ratelimit/v1/params.proto";
 import "ibc/applications/rate_limiting/v1/rate_limiting.proto";
 
 option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types";
 
 // GenesisState defines the ratelimit module's genesis state.
 message GenesisState {
-  // Params params = 1 [
-  //   (gogoproto.moretags) = "yaml:\"params\"",
-  //   (gogoproto.nullable) = false
-  // ];
-
-  repeated RateLimit rate_limits = 2 [(gogoproto.moretags) = "yaml:\"rate_limits\"", (gogoproto.nullable) = false];
-
-  repeated WhitelistedAddressPair whitelisted_address_pairs = 3
-      [(gogoproto.moretags) = "yaml:\"whitelisted_address_pairs\"", (gogoproto.nullable) = false];
-
-  repeated string blacklisted_denoms                   = 4;
-  repeated string pending_send_packet_sequence_numbers = 5;
-
-  HourEpoch hour_epoch = 6 [(gogoproto.moretags) = "yaml:\"hour_epoch\"", (gogoproto.nullable) = false];
+  repeated RateLimit              rate_limits                          = 1 [(gogoproto.nullable) = false];
+  repeated WhitelistedAddressPair whitelisted_address_pairs            = 2 [(gogoproto.nullable) = false];
+  repeated string                 blacklisted_denoms                   = 3;
+  repeated string                 pending_send_packet_sequence_numbers = 4;
+  HourEpoch                       hour_epoch                           = 5 [(gogoproto.nullable) = false];
 }

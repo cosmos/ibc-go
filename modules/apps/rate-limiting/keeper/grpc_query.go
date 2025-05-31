@@ -3,15 +3,14 @@ package keeper
 import (
 	"context"
 
-	"google.golang.org/grpc/codes"   // Added import
-	"google.golang.org/grpc/status" // Added import
-
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 	tmclient "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
@@ -47,7 +46,7 @@ func (k Keeper) RateLimit(c context.Context, req *types.QueryRateLimitRequest) (
 }
 
 // Query all rate limits for a given chain
-func (k Keeper) RateLimitsByChainId(c context.Context, req *types.QueryRateLimitsByChainIdRequest) (*types.QueryRateLimitsByChainIdResponse, error) {
+func (k Keeper) RateLimitsByChainID(c context.Context, req *types.QueryRateLimitsByChainIDRequest) (*types.QueryRateLimitsByChainIDResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	rateLimits := []types.RateLimit{}
@@ -59,7 +58,7 @@ func (k Keeper) RateLimitsByChainId(c context.Context, req *types.QueryRateLimit
 			var ok bool
 			clientState, ok = k.clientKeeper.GetClientState(ctx, rateLimit.Path.ChannelOrClientId)
 			if !ok {
-				return &types.QueryRateLimitsByChainIdResponse{}, errorsmod.Wrapf(types.ErrInvalidClientState, "Unable to fetch client state from channel or client Id")
+				return &types.QueryRateLimitsByChainIDResponse{}, errorsmod.Wrapf(types.ErrInvalidClientState, "Unable to fetch client state from channel or client Id")
 			}
 		}
 
@@ -79,11 +78,11 @@ func (k Keeper) RateLimitsByChainId(c context.Context, req *types.QueryRateLimit
 		}
 	}
 
-	return &types.QueryRateLimitsByChainIdResponse{RateLimits: rateLimits}, nil
+	return &types.QueryRateLimitsByChainIDResponse{RateLimits: rateLimits}, nil
 }
 
 // Query all rate limits for a given channel
-func (k Keeper) RateLimitsByChannelOrClientId(c context.Context, req *types.QueryRateLimitsByChannelOrClientIdRequest) (*types.QueryRateLimitsByChannelOrClientIdResponse, error) {
+func (k Keeper) RateLimitsByChannelOrClientID(c context.Context, req *types.QueryRateLimitsByChannelOrClientIDRequest) (*types.QueryRateLimitsByChannelOrClientIDResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
 	rateLimits := []types.RateLimit{}
@@ -94,7 +93,7 @@ func (k Keeper) RateLimitsByChannelOrClientId(c context.Context, req *types.Quer
 		}
 	}
 
-	return &types.QueryRateLimitsByChannelOrClientIdResponse{RateLimits: rateLimits}, nil
+	return &types.QueryRateLimitsByChannelOrClientIDResponse{RateLimits: rateLimits}, nil
 }
 
 // Query all blacklisted denoms

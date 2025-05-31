@@ -14,7 +14,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateRateLimit{}, "ratelimit/MsgUpdateRateLimit", nil)
 	cdc.RegisterConcrete(&MsgRemoveRateLimit{}, "ratelimit/MsgRemoveRateLimit", nil)
 	cdc.RegisterConcrete(&MsgResetRateLimit{}, "ratelimit/MsgResetRateLimit", nil)
-	cdc.RegisterConcrete(&MsgUpdateParams{}, "ratelimit/MsgUpdateParams", nil)
 }
 
 // RegisterInterfaces registers the rate-limiting interfaces types with the interface registry
@@ -25,7 +24,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgUpdateRateLimit{},
 		&MsgRemoveRateLimit{},
 		&MsgResetRateLimit{},
-		&MsgUpdateParams{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

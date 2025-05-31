@@ -1,13 +1,13 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
 func (s *KeeperTestSuite) TestGetChannelValue() {
@@ -31,7 +31,7 @@ func (s *KeeperTestSuite) SetupCheckRateLimitAndUpdateFlowTest() {
 	s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
 		Path: &types.Path{
 			Denom:             denom,
-			ChannelOrClientId: channelId,
+			ChannelOrClientId: channelID,
 		},
 		Quota: &types.Quota{
 			MaxPercentSend: maxPercentSend,
@@ -77,7 +77,7 @@ func (s *KeeperTestSuite) processCheckRateLimitAndUpdateFlowTestCase(tc checkRat
 
 		amount := sdkmath.NewInt(action.amount)
 		packetInfo := keeper.RateLimitedPacketInfo{
-			ChannelID: channelId,
+			ChannelID: channelID,
 			Denom:     denom,
 			Amount:    amount,
 			Sender:    sender,
@@ -104,7 +104,7 @@ func (s *KeeperTestSuite) processCheckRateLimitAndUpdateFlowTestCase(tc checkRat
 		}
 
 		// Confirm flow is updated properly (or left as is if the theshold was exceeded)
-		rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelId)
+		rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 		s.Require().True(found)
 		s.Require().Equal(expectedInflow.Int64(), rateLimit.Flow.Inflow.Int64(), tc.name+" - action: #%d - inflow", i)
 		s.Require().Equal(expectedOutflow.Int64(), rateLimit.Flow.Outflow.Int64(), tc.name+" - action: #%d - outflow", i)
@@ -184,8 +184,10 @@ func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_BidirectionalFlow() {
 				{direction: types.PACKET_SEND, amount: 2},
 				{direction: types.PACKET_RECV, amount: 6},
 				{direction: types.PACKET_SEND, amount: 2},
-				{direction: types.PACKET_RECV, amount: 6,
-					expectedError: "Inflow exceeds quota"},
+				{
+					direction: types.PACKET_RECV, amount: 6,
+					expectedError: "Inflow exceeds quota",
+				},
 			},
 		},
 		{
@@ -194,7 +196,7 @@ func (s *KeeperTestSuite) TestCheckRateLimitAndUpdatedFlow_BidirectionalFlow() {
 				{direction: types.PACKET_SEND, amount: 6},
 				{direction: types.PACKET_RECV, amount: 2},
 				{direction: types.PACKET_SEND, amount: 6},
-				{direction: types.PACKET_RECV, amount: 1, expectedError: "Outflow exceeds quota"},
+				{direction: types.PACKET_SEND, amount: 1, expectedError: "Outflow exceeds quota"},
 			},
 		},
 		{
@@ -392,7 +394,7 @@ func (s *KeeperTestSuite) TestUndoSendPacket() {
 	initialOutflow := sdkmath.NewInt(100)
 	packetSendAmount := sdkmath.NewInt(10)
 	rateLimit1 := types.RateLimit{
-		Path: &types.Path{Denom: denom, ChannelOrClientId: channelId},
+		Path: &types.Path{Denom: denom, ChannelOrClientId: channelID},
 		Flow: &types.Flow{Outflow: initialOutflow},
 	}
 	rateLimit2 := types.RateLimit{
@@ -403,26 +405,26 @@ func (s *KeeperTestSuite) TestUndoSendPacket() {
 	s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), rateLimit2)
 
 	// Store a pending packet sequence number of 2 for the first rate limit
-	s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), channelId, 2)
+	s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), channelID, 2)
 
 	// Undo a send of 10 from the first rate limit, with sequence 1
 	// If should NOT modify the outflow since sequence 1 was not sent in the current quota
-	err := s.chainA.GetSimApp().RateLimitKeeper.UndoSendPacket(s.chainA.GetContext(), channelId, 1, denom, packetSendAmount)
+	err := s.chainA.GetSimApp().RateLimitKeeper.UndoSendPacket(s.chainA.GetContext(), channelID, 1, denom, packetSendAmount)
 	s.Require().NoError(err, "no error expected when undoing send packet sequence 1")
 
-	checkOutflow(channelId, denom, initialOutflow)
+	checkOutflow(channelID, denom, initialOutflow)
 
 	// Now undo a send from the same rate limit with sequence 2
 	// If should decrement the outflow since 2 is in the current quota
-	err = s.chainA.GetSimApp().RateLimitKeeper.UndoSendPacket(s.chainA.GetContext(), channelId, 2, denom, packetSendAmount)
+	err = s.chainA.GetSimApp().RateLimitKeeper.UndoSendPacket(s.chainA.GetContext(), channelID, 2, denom, packetSendAmount)
 	s.Require().NoError(err, "no error expected when undoing send packet sequence 2")
 
-	checkOutflow(channelId, denom, initialOutflow.Sub(packetSendAmount))
+	checkOutflow(channelID, denom, initialOutflow.Sub(packetSendAmount))
 
 	// Confirm the outflow of the second rate limit has not been touched
 	checkOutflow("different-channel", "different-denom", initialOutflow)
 
 	// Confirm sequence number was removed
-	found := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelId, 2)
+	found := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelID, 2)
 	s.Require().False(found, "packet sequence number should have been removed")
 }
