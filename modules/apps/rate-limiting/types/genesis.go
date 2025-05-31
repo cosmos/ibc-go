@@ -31,7 +31,6 @@ func ParsePendingPacketID(pendingPacketID string) (channelID string, sequence ui
 // DefaultGenesis returns the default Capability genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		// Params:                           DefaultParams(),
 		RateLimits:                       []RateLimit{},
 		WhitelistedAddressPairs:          []WhitelistedAddressPair{},
 		BlacklistedDenoms:                []string{},

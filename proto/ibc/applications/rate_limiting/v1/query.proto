@@ -18,9 +18,8 @@ service Query {
   // Ex:
   //  - /ratelimit/{channel_or_client_id}/by_denom?denom={denom}
   rpc RateLimit(QueryRateLimitRequest) returns (QueryRateLimitResponse) {
-    option (google.api.http).get =
-      "/ibc/apps/rate-limiting/v1/ratelimit/"
-      "ratelimit/{channel_or_client_id}/by_denom";
+    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/"
+                                   "ratelimit/{channel_or_client_id}/by_denom";
   }
 
   // Queries all the rate limits for a given chain
@@ -29,7 +28,8 @@ service Query {
   }
 
   // Queries all the rate limits for a given channel ID
-  rpc RateLimitsByChannelOrClientID(QueryRateLimitsByChannelOrClientIDRequest) returns (QueryRateLimitsByChannelOrClientIDResponse) {
+  rpc RateLimitsByChannelOrClientID(QueryRateLimitsByChannelOrClientIDRequest)
+      returns (QueryRateLimitsByChannelOrClientIDResponse) {
     option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/ratelimits/{channel_or_client_id}";
   }
 
@@ -54,7 +54,7 @@ message QueryAllRateLimitsResponse {
 
 // Queries a specific rate limit by channel ID and denom
 message QueryRateLimitRequest {
-  string denom = 1;
+  string denom                = 1;
   string channel_or_client_id = 2;
 }
 

@@ -874,6 +874,7 @@ func _Query_AllWhitelistedAddresses_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.applications.rate_limiting.v1.Query",
 	HandlerType: (*QueryServer)(nil),
