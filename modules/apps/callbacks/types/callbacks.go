@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
