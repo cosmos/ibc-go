@@ -15,11 +15,9 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/client/cli"
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	ratesim "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/simulation"
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
@@ -30,7 +28,6 @@ var (
 	_ module.HasName             = (*AppModule)(nil)
 	_ module.HasConsensusVersion = (*AppModule)(nil)
 	_ module.HasServices         = (*AppModule)(nil)
-	_ module.HasProposalMsgs     = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
 	_ appmodule.HasBeginBlocker  = (*AppModule)(nil) // Add HasBeginBlocker
 
@@ -135,26 +132,6 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 
 // ConsensusVersion implements AppModule/ConsensusVersion defining the current version of rate-limiting.
 func (AppModule) ConsensusVersion() uint64 { return 2 }
-
-// ProposalMsgs returns msgs used for governance proposals for simulations.
-func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
-	return ratesim.ProposalMsgs()
-}
-
-// RegisterStoreDecoder registers a decoder for rate-limiting module's types
-func (AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = ratesim.NewDecodeStore()
-}
-
-// WeightedOperations returns the all the rate-limiting module operations with their respective weights.
-func (AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	return []simtypes.WeightedOperation{}
-}
-
-// GenerateGenesisState creates a randomized GenState of the rate-limiting module.
-func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	ratesim.RandomizedGenState(simState)
-}
 
 // BeginBlock implements the AppModule interface
 func (am AppModule) BeginBlock(ctx context.Context) error {

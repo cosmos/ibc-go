@@ -3,6 +3,7 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
