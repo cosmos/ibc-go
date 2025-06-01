@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/simapp
 
-go 1.23.8
+go 1.24.3
 
 replace (
 	github.com/cosmos/ibc-go/v10 => ../
