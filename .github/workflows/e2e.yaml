@@ -13,15 +13,20 @@ env:
   DOCKER_IMAGE_NAME: ghcr.io/cosmos/ibc-go-simd
 
 jobs:
-  determine-image-tag:
+  docker-build:
     runs-on: depot-ubuntu-22.04-4
     outputs:
       simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
           go-version: '1.24'
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - id: get-tag
         run: |
           if [ -z "${{ github.event.pull_request.number }}" ]
@@ -33,34 +38,21 @@ jobs:
             echo "simd-tag=$tag" >> $GITHUB_OUTPUT
           fi
 
-  docker-build:
-    runs-on: depot-ubuntu-22.04-4
-    permissions:
-      packages: write
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.DOCKER_IMAGE_NAME }}
-
-      - name: Build and push Docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.get-tag.outputs.simd-tag }}
           build-args: |
             IBC_GO_VERSION=${{ github.ref_name }}
+
+      # To avoid having to push to the registry, making it possible for external contributors to run this
+      - name: Save Docker image as artifact
+        run: docker save $(echo ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.get-tag.outputs.simd-tag }} | cut -d',' -f1) | gzip > simd-image.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: simd-image
+          path: simd-image.tar.gz
 
   build-test-matrix:
     runs-on: depot-ubuntu-22.04-4
@@ -84,7 +76,6 @@ jobs:
   e2e-tests:
     runs-on: depot-ubuntu-22.04-4
     needs:
-      - determine-image-tag
       - build-test-matrix
       - docker-build
     strategy:
@@ -98,18 +89,26 @@ jobs:
         with:
           go-version: '1.24'
           cache-dependency-path: 'e2e/go.sum'
+
+      - name: Download image from docker build
+        uses: actions/download-artifact@v4
+        with:
+          name: simd-image
+      - run: docker load -i simd-image.tar.gz
+
       - name: Run e2e Test
         id: e2e_test
         env:
           CHAIN_IMAGE: '${{ env.DOCKER_IMAGE_NAME }}'
-          CHAIN_A_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-          CHAIN_B_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-          CHAIN_C_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
-          CHAIN_D_TAG: '${{ needs.determine-image-tag.outputs.simd-tag }}'
+          CHAIN_A_TAG: '${{ needs.docker-build.outputs.simd-tag }}'
+          CHAIN_B_TAG: '${{ needs.docker-build.outputs.simd-tag }}'
+          CHAIN_C_TAG: '${{ needs.docker-build.outputs.simd-tag }}'
+          CHAIN_D_TAG: '${{ needs.docker-build.outputs.simd-tag }}'
           E2E_CONFIG_PATH: 'ci-e2e-config.yaml'
         run: |
           cd e2e
           make e2e-test test=${{ matrix.test }}
+
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v4
         if: ${{ failure() }}
