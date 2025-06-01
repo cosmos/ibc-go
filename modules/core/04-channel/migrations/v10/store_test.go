@@ -190,7 +190,6 @@ func (suite *MigrationsV10TestSuite) getPreMigrationTypeChannels(ctx sdk.Context
 		}
 		suite.Require().NoError(err)
 		channels = append(channels, identifiedChannel)
-
 	}
 	iterator.Close()
 

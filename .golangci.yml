@@ -31,60 +31,52 @@ linters:
       confidence: medium
     revive:
       enable-all-rules: true
+      # See the rule descriptions here: https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md
       rules:
-        - name: redundant-import-alias
-          disabled: true
-        - name: use-any
-          disabled: true
-        - name: if-return
-          disabled: true
-        - name: max-public-structs
-          disabled: true
-        - name: cognitive-complexity
+        - name: add-constant # TODO: Should probably be removed, but needs to not care about tests
           disabled: true
         - name: argument-limit
           disabled: true
-        - name: cyclomatic
-          disabled: true
-        - name: file-header
-          disabled: true
-        - name: function-length
-          disabled: true
-        - name: function-result-limit
-          disabled: true
-        - name: line-length-limit
-          disabled: true
-        - name: flag-parameter
-          disabled: true
-        - name: add-constant
-          disabled: true
-        - name: empty-lines
-          disabled: true
         - name: banned-characters
           disabled: true
-        - name: deep-exit
-          disabled: true
-        - name: confusing-results
-          disabled: true
-        - name: unused-parameter
-          disabled: true
-        - name: modifies-value-receiver
-          disabled: true
-        - name: early-return
+        - name: cognitive-complexity # TODO: Maybe code smell?
           disabled: true
         - name: confusing-naming
           disabled: true
-        - name: defer
+        - name: confusing-results
           disabled: true
-        - name: unused-parameter
+        - name: cyclomatic # TODO: Maybe code smell?
+          disabled: true
+        - name: deep-exit # TODO: Not a big problem, but is only here because of log fatal in genesis stuff, should remove
+          disabled: true
+        - name: function-length # TODO: Maybe code smell?
+          disabled: true
+        - name: flag-parameter # TODO: This seems like a code smell, we should consider cleaning this up eventually
+          disabled: true
+        - name: function-result-limit # TODO: Maybe code smell
+          disabled: true
+        - name: line-length-limit # TODO: Probably OK, but could this be a code smell if set high enough?
+          disabled: true
+        - name: max-public-structs # TODO: Might be a code smell, investigate
+          disabled: true
+        - name: modifies-value-receiver # TODO: Seems bad, should remove
+          disabled: true
+        - name: redundant-import-alias # TODO: Code smell, no?
           disabled: true
         - name: unhandled-error
-          arguments:
+          disabled: false
+          arguments: # Disable for these ones only
             - fmt.Printf
             - fmt.Print
             - fmt.Println
             - myFunction
-          disabled: false
+        - name: unused-parameter # TODO: Should be checked, why do we need this exactly?
+          disabled: true
+
+          # TODO: REMOVE LIST
+        - name: early-return
+          disabled: true
+          # TODO: END REMOVE LIST
   exclusions:
     generated: lax
     presets:

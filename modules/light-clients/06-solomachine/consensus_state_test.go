@@ -18,7 +18,6 @@ func (suite *SoloMachineTestSuite) TestConsensusState() {
 func (suite *SoloMachineTestSuite) TestConsensusStateValidateBasic() {
 	// test singlesig and multisig public keys
 	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-
 		testCases := []struct {
 			name           string
 			consensusState *solomachine.ConsensusState

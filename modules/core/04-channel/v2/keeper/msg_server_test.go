@@ -131,7 +131,6 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 				suite.Require().Equal(uint64(2), nextSequenceSend, "next sequence send was not incremented correctly")
 
 				suite.Require().Equal(expectedPacket, packet)
-
 			} else {
 				suite.Require().Error(err)
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
@@ -292,7 +291,6 @@ func (suite *KeeperTestSuite) TestMsgRecvPacket() {
 					actualAckBz := ck.GetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), packet.DestinationClient, packet.Sequence)
 					suite.Require().Equal(expectedBz, actualAckBz)
 				}
-
 			} else {
 				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expError)
 				_, ok := ck.GetPacketReceipt(path.EndpointB.Chain.GetContext(), packet.SourceClient, packet.Sequence)

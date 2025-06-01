@@ -545,7 +545,6 @@ func (suite *TendermintTestSuite) TestUpdateState() {
 				updatedConsensusState := clienttypes.MustUnmarshalConsensusState(suite.chainA.App.AppCodec(), bz)
 
 				suite.Require().Equal(expConsensusState, updatedConsensusState)
-
 			} else {
 				consensusHeights = lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, clientMessage)
 				suite.Require().Empty(consensusHeights)

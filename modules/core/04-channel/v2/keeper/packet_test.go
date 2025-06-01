@@ -131,7 +131,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 				suite.Require().ErrorIs(err, tc.expError)
 				suite.Require().Equal(uint64(0), seq)
 				suite.Require().Nil(suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetPacketCommitment(suite.chainA.GetContext(), packet.SourceClient, seq))
-
 			}
 		})
 	}

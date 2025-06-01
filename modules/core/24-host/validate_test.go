@@ -35,7 +35,6 @@ func TestDefaultIdentifierValidator(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := ClientIdentifierValidator(tc.id)
 		err1 := ConnectionIdentifierValidator(tc.id)
 		err2 := ChannelIdentifierValidator(tc.id)
@@ -71,7 +70,6 @@ func TestPortIdentifierValidator(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := PortIdentifierValidator(tc.id)
 		if tc.expErr == nil {
 			require.NoError(t, err, tc.msg)
@@ -104,7 +102,6 @@ func TestPathValidator(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		f := NewPathValidator(func(path string) error {
 			return nil
 		})
@@ -141,7 +138,6 @@ func TestCustomPathValidator(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := validateFn(tc.id)
 		if tc.expErr == nil {
 			require.NoError(t, err, tc.msg)

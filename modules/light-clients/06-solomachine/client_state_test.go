@@ -18,7 +18,6 @@ const (
 func (suite *SoloMachineTestSuite) TestClientStateValidate() {
 	// test singlesig and multisig public keys
 	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-
 		testCases := []struct {
 			name        string
 			clientState *solomachine.ClientState

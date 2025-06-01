@@ -933,7 +933,6 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
 			}
 			appStateMap[ibcexported.ModuleName] = ibcModuleGenesisMap
-
 		}
 
 		if !testvalues.ChannelsV2FeatureReleases.IsSupported(version) {

@@ -87,7 +87,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	}
 
 	for _, tc := range testCases {
-
 		suite.SetupTest()
 
 		suite.Run(tc.name, func() {
@@ -116,7 +115,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 						suite.Require().Contains(r.(error).Error(), tc.expPanic, "unexpected panic message")
 					}
 				}()
-
 			} else {
 				suite.Require().NotPanics(newIBCKeeperFn, "unexpected panic occurred")
 			}
