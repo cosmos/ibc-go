@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
