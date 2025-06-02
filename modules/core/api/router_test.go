@@ -49,17 +49,25 @@ func (suite *APITestSuite) TestRouter() {
 			},
 		},
 		{
-			name: "success: overlapping direct route and prefix route can coexist",
+			name: "failure: panics on adding direct route after overlapping prefix route",
 			malleate: func() {
 				router.AddPrefixRoute("someModule", &mockv2.IBCModule{})
+			},
+			assertionFn: func() {
+				suite.Require().PanicsWithError("route someModuleWithSpecificPath is already matched by registered prefix route: someModule", func() {
+					router.AddRoute("someModuleWithSpecificPath", &mockv2.IBCModule{})
+				})
+			},
+		},
+		{
+			name: "failure: panics on adding prefix route after overlapping direct route",
+			malleate: func() {
 				router.AddRoute("someModuleWithSpecificPath", &mockv2.IBCModule{})
 			},
 			assertionFn: func() {
-				suite.Require().True(router.HasRoute("someModuleWithSpecificPath"))
-				suite.Require().True(router.HasRoute("someModuleWithOtherPath"))
-
-				suite.Require().NotNil(router.Route("someModuleWithSpecificPath"))
-				suite.Require().NotNil(router.Route("someModuleWithOtherPath"))
+				suite.Require().PanicsWithError("route prefix someModule is a prefix for already registered route: someModuleWithSpecificPath", func() {
+					router.AddPrefixRoute("someModule", &mockv2.IBCModule{})
+				})
 			},
 		},
 		{
@@ -79,7 +87,7 @@ func (suite *APITestSuite) TestRouter() {
 				router.AddRoute("port01", &mockv2.IBCModule{})
 			},
 			assertionFn: func() {
-				suite.Require().PanicsWithError("route prefix port01 has already been registered as a route", func() {
+				suite.Require().PanicsWithError("route prefix port01 is a prefix for already registered route: port01", func() {
 					router.AddPrefixRoute("port01", &mockv2.IBCModule{})
 				})
 			},

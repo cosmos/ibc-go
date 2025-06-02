@@ -34,9 +34,15 @@ func (rtr *Router) AddRoute(portID string, cbs IBCModule) *Router {
 		panic(errors.New("route expressions can only contain alphanumeric characters"))
 	}
 
-	// Only checking for direct routes here, because overlapping prefix routes are fine.
 	if _, ok := rtr.routes[portID]; ok {
 		panic(fmt.Errorf("route %s has already been registered", portID))
+	}
+
+	for prefix := range rtr.prefixRoutes {
+		// Prevent existing prefix routes from colliding with the new direct route to avoid confusing behavior.
+		if strings.HasPrefix(portID, prefix) {
+			panic(fmt.Errorf("route %s is already matched by registered prefix route: %s", portID, prefix))
+		}
 	}
 
 	rtr.routes[portID] = cbs
@@ -57,9 +63,11 @@ func (rtr *Router) AddPrefixRoute(portIDPrefix string, cbs IBCModule) *Router {
 		panic(errors.New("route prefix can only contain alphanumeric characters"))
 	}
 
-	// If the prefix has already been registered as a route, we panic because it would never be matched
-	if _, ok := rtr.routes[portIDPrefix]; ok {
-		panic(fmt.Errorf("route prefix %s has already been registered as a route", portIDPrefix))
+	// If the prefix is a prefix of an already registered route, we panic to avoid confusing behavior.
+	for portID := range rtr.routes {
+		if strings.HasPrefix(portID, portIDPrefix) {
+			panic(fmt.Errorf("route prefix %s is a prefix for already registered route: %s", portIDPrefix, portID))
+		}
 	}
 
 	for prefix := range rtr.prefixRoutes {
