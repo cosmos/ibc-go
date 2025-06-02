@@ -187,6 +187,7 @@ func NewApp(...args) *App {
 With IBC v2, there is a new [router](https://github.com/cosmos/ibc-go/blob/main/modules/core/api/router.go) that needs to register the routes for a portID to a given IBCModule. It supports two kinds of routes: direct routes and prefix-based routes. The direct routes match one specific port ID to a module, while the prefix-based routes match any port ID with a specific prefix to a module.
 For example, if a direct route named `someModule` exists, only messages addressed to exactly that port ID will be passed to the corresponding module.
 However, if instead, `someModule` is a prefix-based route, port IDs like `someModuleRandomPort1`, `someModuleRandomPort2`, etc., will be passed to the module.
+Note that the router will panic when you add a route that conflicts with an already existing route. This is also the case if you add a prefix-based route that conflicts with an existing direct route or vice versa.
 
 ```go
 // IBC v2 router creation
