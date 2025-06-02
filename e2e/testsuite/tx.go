@@ -301,6 +301,11 @@ func (s *E2ETestSuite) Transfer(ctx context.Context, chain ibc.Chain, user ibc.W
 	return s.BroadcastMessages(ctx, chain, user, msg)
 }
 
+func (s *E2ETestSuite) AddRateLimit(ctx context.Context, chain ibc.Chain, user ibc.Wallet, sender, denom, chanID string, sendPercent, recvPercent, duration int64) sdk.TxResponse {
+	msg := MsgAddRateLimit(sender, denom, chanID, sendPercent, recvPercent, duration)
+	return s.BroadcastMessages(ctx, chain, user, msg)
+}
+
 // QueryTxsByEvents runs the QueryTxsByEvents command on the given chain.
 // https://github.com/cosmos/cosmos-sdk/blob/65ab2530cc654fd9e252b124ed24cbaa18023b2b/x/auth/client/cli/query.go#L33
 func (*E2ETestSuite) QueryTxsByEvents(

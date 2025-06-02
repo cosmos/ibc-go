@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	ratelimitingtypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -90,5 +91,20 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	s.NoError(err)
 	s.Equal(testvalues.IBCTransferAmount, userBBalAfter.Int64())
 	fmt.Printf("UserB :%s BalanceAfrer: %s\n", userB.FormattedAddress(), userBBalAfter)
-	
+
+	// Set Sending limit on chainA
+
+	// No existing rate limit
+	resp, err := query.GRPCQuery[ratelimitingtypes.QueryAllRateLimitsResponse](ctx, chainA, &ratelimitingtypes.QueryAllRateLimitsRequest{})
+	s.NoError(err)
+	s.Nil(resp)
+
+	txResp = s.AddRateLimit(ctx, chainA, userA, userA.FormattedAddress(), denomA, chanAB.ChannelID, 10, 0, 1)
+	s.AssertTxSuccess(txResp)
+	// packet, err = ibctesting.ParseV1PacketFromEvents(txResp.Events)
+	// s.Require().NoError(err)
+	// s.Require().NotNil(packet)
+	resp, err = query.GRPCQuery[ratelimitingtypes.QueryAllRateLimitsResponse](ctx, chainA, &ratelimitingtypes.QueryAllRateLimitsRequest{})
+	s.NoError(err)
+	fmt.Printf("Rate Limit: %+v\n", resp.RateLimits)
 }
