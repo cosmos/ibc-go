@@ -36,6 +36,8 @@ This file provides guidance for automated agents contributing to this repository
 2. **Testing**
    - Execute all unit and integration tests with `make test-unit`.
    - Do not run the e2e tests under `e2e/`.
+3. **After making changes to dependencies**
+  - Run `make tidy-all` to tidy dependencies across all modules
 
 ## Commit Messages
 
