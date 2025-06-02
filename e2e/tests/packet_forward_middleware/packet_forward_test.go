@@ -109,7 +109,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
 		s.AssertTxSuccess(txResp)
 
-		packet, err := ibctesting.ParsePacketFromEvents(txResp.Events)
+		packet, err := ibctesting.ParseV1PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 
