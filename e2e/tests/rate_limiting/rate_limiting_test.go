@@ -99,6 +99,10 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	s.NoError(err)
 	s.Nil(resp)
 
+	// nodeA, ok := chainA.(*cosmos.CosmosChain)
+	// s.True(ok)
+	// nodeA.GetNode().ExecTx()
+
 	txResp = s.AddRateLimit(ctx, chainA, userA, userA.FormattedAddress(), denomA, chanAB.ChannelID, 10, 0, 1)
 	s.AssertTxSuccess(txResp)
 	// packet, err = ibctesting.ParseV1PacketFromEvents(txResp.Events)
