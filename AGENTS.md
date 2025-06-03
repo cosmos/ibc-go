@@ -30,7 +30,7 @@ This file provides guidance for automated agents contributing to this repository
 ## Development Workflow
 
 1. **Formatting and linting**
-  - Run `make lint-all` to lint all modules
+  - Run `make lint` to lint all modules
   - Run `make lint-fix` to automatically fix lint issues via `golangci-lint`.
   - Run `make format` to format Go code with `gofumpt`.
 2. **Testing**
