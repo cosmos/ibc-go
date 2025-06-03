@@ -504,6 +504,7 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		packetforward.NewAppModule(app.PFMKeeper),
+		ratelimiting.NewAppModule(app.RateLimitKeeper),
 
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
@@ -549,6 +550,7 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		icatypes.ModuleName,
+		ratelimittypes.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
 		crisistypes.ModuleName,
@@ -561,6 +563,7 @@ func NewSimApp(
 		feegrant.ModuleName,
 		icatypes.ModuleName,
 		group.ModuleName,
+		ratelimittypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -572,7 +575,7 @@ func NewSimApp(
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
 		packetforwardtypes.ModuleName, icatypes.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
-		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, circuittypes.ModuleName,
+		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, circuittypes.ModuleName, ratelimittypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)

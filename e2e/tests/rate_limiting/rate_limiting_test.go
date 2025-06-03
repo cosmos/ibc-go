@@ -55,19 +55,19 @@ func (s *RateLimTestSuite) TestRateLimit() {
 
 	// No rate limit set
 	userABalBefore, err := s.GetChainANativeBalance(ctx, userA)
-	s.NoError(err)
+	s.Require().NoError(err)
 	userBBalBefore, err := query.Balance(ctx, chainB, userB.FormattedAddress(), ibcTokenB.IBCDenom())
-	s.NoError(err)
-	s.Zero(userBBalBefore.Int64())
+	s.Require().NoError(err)
+	s.Require().Zero(userBBalBefore.Int64())
 
 	txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 	s.AssertTxSuccess(txResp)
 
 	packet, err := ibctesting.ParseV1PacketFromEvents(txResp.Events)
-	s.NoError(err)
-	s.NotNil(packet)
+	s.Require().NoError(err)
+	s.Require().NotNil(packet)
 
-	s.Eventually(func() bool {
+	s.Require().Eventually(func() bool {
 		_, err := query.GRPCQuery[chantypes.QueryPacketCommitmentResponse](ctx, chainA, &chantypes.QueryPacketCommitmentRequest{
 			PortId:    chanAB.PortID,
 			ChannelId: chanAB.ChannelID,
@@ -77,25 +77,25 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	}, time.Second*70, time.Second)
 
 	userABalAfter, err := s.GetChainANativeBalance(ctx, userA)
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	// Balanced moved form useA to userB
-	s.Equal(userABalBefore-testvalues.IBCTransferAmount, userABalAfter)
+	s.Require().Equal(userABalBefore-testvalues.IBCTransferAmount, userABalAfter)
 	escrowBalA, err := query.Balance(ctx, chainA, escrowAddrA.String(), denomA)
-	s.NoError(err)
-	s.Equal(testvalues.IBCTransferAmount, escrowBalA.Int64())
+	s.Require().NoError(err)
+	s.Require().Equal(testvalues.IBCTransferAmount, escrowBalA.Int64())
 
 	userBBalAfter, err := query.Balance(ctx, chainB, userB.FormattedAddress(), ibcTokenB.IBCDenom())
-	s.NoError(err)
-	s.Equal(testvalues.IBCTransferAmount, userBBalAfter.Int64())
+	s.Require().NoError(err)
+	s.Require().Equal(testvalues.IBCTransferAmount, userBBalAfter.Int64())
 	fmt.Printf("UserB :%s BalanceAfrer: %s\n", userB.FormattedAddress(), userBBalAfter)
 
 	// Set Sending limit on chainA
 
 	// No existing rate limit
 	resp, err := query.GRPCQuery[ratelimitingtypes.QueryAllRateLimitsResponse](ctx, chainA, &ratelimitingtypes.QueryAllRateLimitsRequest{})
-	s.NoError(err)
-	s.Nil(resp)
+	s.Require().NoError(err)
+	s.Require().Nil(resp)
 
 	txResp = s.AddRateLimit(ctx, chainA, userA, userA.FormattedAddress(), denomA, chanAB.ChannelID, 10, 0, 1)
 	s.AssertTxSuccess(txResp)
