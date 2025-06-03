@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	testifysuite "github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -16,7 +18,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	testifysuite "github.com/stretchr/testify/suite"
 )
 
 type RateLimTestSuite struct {
