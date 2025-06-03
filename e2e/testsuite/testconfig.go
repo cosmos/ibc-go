@@ -71,7 +71,7 @@ const (
 	defaultRlyTag = "latest"
 
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "luca_joss-update-docker-build" // v1.13.1 had to be built manually
+	defaultHermesTag = "v1.13.1"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure

@@ -10,7 +10,7 @@
 # | CHAIN_C_TAG          | The tag used for chain C                  | Optional (fallback to A)      |
 # | CHAIN_D_TAG          | The tag used for chain D                  | Optional (fallback to A)      |
 # | CHAIN_BINARY         | The binary used in the container          | simd                          |
-# | RELAYER_TAG          | The tag used for the relayer              | luca_joss-update-docker-build |
+# | RELAYER_TAG          | The tag used for the relayer              | v1.13.1                       |
 # | RELAYER_ID           | The type of relayer to use (rly/hermes)   | hermes                        |
 
 # see sample.config.yaml for a bare minimum configuration example.
