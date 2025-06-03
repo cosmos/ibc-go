@@ -71,7 +71,7 @@ const (
 	defaultRlyTag = "latest"
 
 	// defaultHermesTag is the tag that will be used if no relayer tag is specified for hermes.
-	defaultHermesTag = "v1.13.1"
+	defaultHermesTag = "1.13.1"
 	// defaultChainTag is the tag that will be used for the chains if none is specified.
 	defaultChainTag = "main"
 	// defaultConfigFileName is the default filename for the config file that can be used to configure
