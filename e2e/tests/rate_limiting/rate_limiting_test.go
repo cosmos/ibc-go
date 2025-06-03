@@ -39,7 +39,6 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	testName := t.Name()
 
 	chainA, chainB := s.GetChains()
-	fmt.Printf("ChainB: %v\n", chainB)
 
 	relayer := s.CreateDefaultPaths(testName)
 	s.StartRelayer(relayer, testName)
@@ -50,7 +49,6 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	userB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 
 	escrowAddrA := transfertypes.GetEscrowAddress(chanAB.PortID, chanAB.ChannelID)
-	fmt.Printf("EscrowAddrA: %s\n", escrowAddrA.String())
 	denomA := chainA.Config().Denom
 
 	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.PortID, chanAB.ChannelID)
@@ -98,10 +96,6 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	resp, err := query.GRPCQuery[ratelimitingtypes.QueryAllRateLimitsResponse](ctx, chainA, &ratelimitingtypes.QueryAllRateLimitsRequest{})
 	s.NoError(err)
 	s.Nil(resp)
-
-	// nodeA, ok := chainA.(*cosmos.CosmosChain)
-	// s.True(ok)
-	// nodeA.GetNode().ExecTx()
 
 	txResp = s.AddRateLimit(ctx, chainA, userA, userA.FormattedAddress(), denomA, chanAB.ChannelID, 10, 0, 1)
 	s.AssertTxSuccess(txResp)
