@@ -37,25 +37,17 @@ func channelPath(portID, channelID string) string {
 // - Migrating the NextSequenceSend path to use the v2 format
 // - Store an alias key mapping the v1 channel ID to the underlying client ID
 func MigrateStore(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.BinaryCodec,
-	channelKeeper chankeeper.Keeper, chanv2Keeper chanv2keeper.Keeper, clientv2Keeper clientv2keeper.Keeper) error {
+	channelKeeper *chankeeper.Keeper, chanv2Keeper *chanv2keeper.Keeper, clientv2Keeper *clientv2keeper.Keeper) error {
 	store := storeService.OpenKVStore(ctx)
 
 	channelKeeper.IterateChannels(ctx, func(ic types.IdentifiedChannel) (stop bool) {
-		if ic.State != types.OPEN || ic.Ordering != types.UNORDERED {
-			// only migrate OPEN UNORDERED channels
-			return false
-		}
-
+		// only add counterparty for channels that are OPEN and UNORDERED
 		counterparty, ok := channelKeeper.GetV2Counterparty(ctx, ic.PortId, ic.ChannelId)
-		if !ok {
-			// if the counterparty cannot be created, we skip this channel
-			return false
-
+		if ok {
+			clientv2Keeper.SetClientCounterparty(ctx, ic.ChannelId, counterparty)
 		}
 
-		clientv2Keeper.SetClientCounterparty(ctx, ic.ChannelId, counterparty)
-
-		// migrate the NextSequenceSend key to the v2 format
+		// migrate the NextSequenceSend key to the v2 format for every channel
 		seqbz, err := store.Get(NextSequenceSendKey(ic.PortId, ic.ChannelId))
 		if err != nil {
 			panic("NextSequenceSend not found for channel " + ic.ChannelId)
