@@ -18,8 +18,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
-	cmttypes "github.com/cometbft/cometbft/types"
+	cmtbytes "github.com/cometbft/cometbft/v2/libs/bytes"
+	cmttypes "github.com/cometbft/cometbft/v2/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"

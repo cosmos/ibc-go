@@ -7,8 +7,8 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	abcitypes "github.com/cometbft/cometbft/abci/types"
-	cmtstate "github.com/cometbft/cometbft/state"
+	abcitypes "github.com/cometbft/cometbft/v2/abci/types"
+	cmtstate "github.com/cometbft/cometbft/v2/state"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"

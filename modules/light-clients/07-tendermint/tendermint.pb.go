@@ -5,8 +5,8 @@ package tendermint
 
 import (
 	fmt "fmt"
+	github_com_cometbft_cometbft_libs_bytes "github.com/cometbft/cometbft/v2/libs/bytes"
 	types2 "github.com/cometbft/cometbft/api/cometbft/types/v2"
-	github_com_cometbft_cometbft_libs_bytes "github.com/cometbft/cometbft/libs/bytes"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
@@ -105,7 +105,7 @@ type ConsensusState struct {
 	Timestamp time.Time `protobuf:"bytes,1,opt,name=timestamp,proto3,stdtime" json:"timestamp"`
 	// commitment root (i.e app hash)
 	Root               types1.MerkleRoot                                `protobuf:"bytes,2,opt,name=root,proto3" json:"root"`
-	NextValidatorsHash github_com_cometbft_cometbft_libs_bytes.HexBytes `protobuf:"bytes,3,opt,name=next_validators_hash,json=nextValidatorsHash,proto3,casttype=github.com/cometbft/cometbft/libs/bytes.HexBytes" json:"next_validators_hash,omitempty"`
+	NextValidatorsHash github_com_cometbft_cometbft_libs_bytes.HexBytes `protobuf:"bytes,3,opt,name=next_validators_hash,json=nextValidatorsHash,proto3,casttype=github.com/cometbft/cometbft/v2/libs/bytes.HexBytes" json:"next_validators_hash,omitempty"`
 }
 
 func (m *ConsensusState) Reset()         { *m = ConsensusState{} }

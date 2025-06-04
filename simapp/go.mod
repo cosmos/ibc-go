@@ -8,16 +8,16 @@ replace (
 )
 
 require (
-	cosmossdk.io/api v1.0.0-alpha.0.0.20250604161429-8c61b74a1806
-	cosmossdk.io/client/v2 v2.0.0-beta.10.0.20250604161429-8c61b74a1806
-	cosmossdk.io/core v1.1.0-alpha.1.0.20250604161429-8c61b74a1806
-	cosmossdk.io/log v1.6.1-0.20250604161429-8c61b74a1806
-	cosmossdk.io/store v1.10.0-rc.1.0.20250604161429-8c61b74a1806
+	cosmossdk.io/api v1.0.0-alpha.0.0.20250604174653-810d15dd6d16
+	cosmossdk.io/client/v2 v2.0.0-beta.10.0.20250604174653-810d15dd6d16
+	cosmossdk.io/core v1.1.0-alpha.1.0.20250604174653-810d15dd6d16
+	cosmossdk.io/log v1.6.1-0.20250604174653-810d15dd6d16
+	cosmossdk.io/store v1.10.0-rc.1.0.20250604174653-810d15dd6d16
 	cosmossdk.io/tools/confix v0.1.2
-	cosmossdk.io/x/tx v1.2.0-alpha.0.0.20250604161429-8c61b74a1806
-	github.com/cometbft/cometbft v1.0.1
+	cosmossdk.io/x/tx v1.2.0-alpha.0.0.20250604174653-810d15dd6d16
+	github.com/cometbft/cometbft/v2 v2.0.0-main
 	github.com/cosmos/cosmos-db v1.1.3
-	github.com/cosmos/cosmos-sdk v0.54.0-alpha.0.0.20250604161429-8c61b74a1806
+	github.com/cosmos/cosmos-sdk v0.54.0-alpha.0.0.20250604174653-810d15dd6d16
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/v10 v10.0.0
 	github.com/spf13/cast v1.9.2
@@ -37,8 +37,8 @@ require (
 	cloud.google.com/go/storage v1.49.0 // indirect
 	cosmossdk.io/collections v1.3.0 // indirect
 	cosmossdk.io/depinject v1.2.1 // indirect
-	cosmossdk.io/errors v1.0.3-0.20250604161429-8c61b74a1806 // indirect
-	cosmossdk.io/math v1.5.4-0.20250604161429-8c61b74a1806 // indirect
+	cosmossdk.io/errors v1.0.3-0.20250604174653-810d15dd6d16 // indirect
+	cosmossdk.io/math v1.5.4-0.20250604174653-810d15dd6d16 // indirect
 	cosmossdk.io/schema v1.1.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.5 // indirect
 	github.com/cockroachdb/redact v1.1.6 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb // indirect
-	github.com/cometbft/cometbft-db v1.0.2 // indirect
+	github.com/cometbft/cometbft-db v1.0.4 // indirect
 	github.com/cometbft/cometbft/api v1.0.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
@@ -186,7 +186,7 @@ require (
 	github.com/zeebo/errs v1.4.0 // indirect
 	github.com/zondax/hid v0.9.2 // indirect
 	github.com/zondax/ledger-go v0.14.3 // indirect
-	go.etcd.io/bbolt v1.4.0-alpha.1 // indirect
+	go.etcd.io/bbolt v1.4.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.34.0 // indirect
@@ -224,6 +224,6 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-replace github.com/cometbft/cometbft => github.com/zrbecker/cometbft v0.0.0-20250531072547-03a237b0b780
+replace github.com/cometbft/cometbft/v2 => github.com/cometbft/cometbft/v2 v2.0.0-20250604002332-f4d33abd2469
 
-replace github.com/cometbft/cometbft/api => github.com/zrbecker/cometbft/api v0.0.0-20250531072547-03a237b0b780
+replace github.com/cometbft/cometbft/api => github.com/cometbft/cometbft/api v0.0.0-20250604002332-f4d33abd2469
