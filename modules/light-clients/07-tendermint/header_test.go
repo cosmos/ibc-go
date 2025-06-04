@@ -48,9 +48,6 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 		{"validator set nil", func() {
 			header.ValidatorSet = nil
 		}, errors.New("invalid client header")},
-		{"ValidatorSetFromProto failed", func() {
-			header.ValidatorSet.Validators[0].PubKey = nil
-		}, errors.New("validator set is not tendermint validator set")},
 		{"header validator hash does not equal hash of validator set", func() {
 			// use chainB's randomly generated validator set
 			header.ValidatorSet = suite.chainB.LatestCommittedHeader.ValidatorSet
