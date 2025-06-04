@@ -8,10 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clientv2keeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/keeper"
-	chankeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	chanv2keeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/core/keeper"
 )
 
 const (
@@ -37,14 +35,20 @@ func channelPath(portID, channelID string) string {
 // - Migrating the NextSequenceSend path to use the v2 format
 // - Store an alias key mapping the v1 channel ID to the underlying client ID
 func MigrateStore(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.BinaryCodec,
-	channelKeeper *chankeeper.Keeper, chanv2Keeper *chanv2keeper.Keeper, clientv2Keeper *clientv2keeper.Keeper) error {
+	ibcKeeper *keeper.Keeper) error {
 	store := storeService.OpenKVStore(ctx)
 
-	channelKeeper.IterateChannels(ctx, func(ic types.IdentifiedChannel) (stop bool) {
+	ibcKeeper.ChannelKeeper.IterateChannels(ctx, func(ic types.IdentifiedChannel) (stop bool) {
 		// only add counterparty for channels that are OPEN and UNORDERED
-		counterparty, ok := channelKeeper.GetV2Counterparty(ctx, ic.PortId, ic.ChannelId)
+		// set a base client mapping from the channelId to the underlying base client
+		counterparty, ok := ibcKeeper.ChannelKeeper.GetV2Counterparty(ctx, ic.PortId, ic.ChannelId)
 		if ok {
-			clientv2Keeper.SetClientCounterparty(ctx, ic.ChannelId, counterparty)
+			ibcKeeper.ClientV2Keeper.SetClientCounterparty(ctx, ic.ChannelId, counterparty)
+			connection, ok := ibcKeeper.ConnectionKeeper.GetConnection(ctx, ic.ConnectionHops[0])
+			if !ok {
+				panic("connection not set")
+			}
+			ibcKeeper.ChannelKeeperV2.SetBaseClient(ctx, ic.ChannelId, connection.ClientId)
 		}
 
 		// migrate the NextSequenceSend key to the v2 format for every channel
@@ -54,7 +58,7 @@ func MigrateStore(ctx sdk.Context, storeService corestore.KVStoreService, cdc co
 		}
 		seq := sdk.BigEndianToUint64(seqbz)
 		// set the NextSequenceSend in the v2 keeper
-		chanv2Keeper.SetNextSequenceSend(ctx, ic.ChannelId, seq)
+		ibcKeeper.ChannelKeeperV2.SetNextSequenceSend(ctx, ic.ChannelId, seq)
 		// remove the old NextSequenceSend key
 		if err := store.Delete(NextSequenceSendKey(ic.PortId, ic.ChannelId)); err != nil {
 			panic("failed to delete NextSequenceSend key for channel " + ic.ChannelId)

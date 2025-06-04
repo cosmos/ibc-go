@@ -69,8 +69,7 @@ func (suite *MigrationsV11TestSuite) TestMigrateStore() {
 		}
 	}
 
-	err := v11.MigrateStore(ctx, storeService, cdc,
-		ibcKeeper.ChannelKeeper, ibcKeeper.ChannelKeeperV2, ibcKeeper.ClientV2Keeper)
+	err := v11.MigrateStore(ctx, storeService, cdc, ibcKeeper)
 	suite.Require().NoError(err)
 
 	for i := range numberOfChannels {
@@ -79,11 +78,29 @@ func (suite *MigrationsV11TestSuite) TestMigrateStore() {
 		suite.Require().True(ok, i)
 
 		if channel.Ordering == types.UNORDERED && channel.State == types.OPEN {
+			// ensure counterparty set
 			expCounterparty, ok := ibcKeeper.ChannelKeeper.GetV2Counterparty(ctx, mock.PortID, channelId)
 			suite.Require().True(ok)
 			counterparty, ok := ibcKeeper.ClientV2Keeper.GetClientCounterparty(ctx, channelId)
 			suite.Require().True(ok)
 			suite.Require().Equal(expCounterparty, counterparty, "counterparty not set correctly")
+
+			// ensure base client mapping set
+			baseClientId, ok := ibcKeeper.ChannelKeeperV2.GetBaseClient(ctx, channelId)
+			suite.Require().True(ok)
+			suite.Require().NotEqual(channelId, baseClientId)
+			connection, ok := ibcKeeper.ConnectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+			suite.Require().True(ok)
+			suite.Require().Equal(connection.ClientId, baseClientId, "base client mapping not set correctly")
+		} else {
+			// ensure counterparty not set for closed channels
+			_, ok := ibcKeeper.ClientV2Keeper.GetClientCounterparty(ctx, channelId)
+			suite.Require().False(ok, "counterparty should not be set for closed channels")
+
+			// ensure base client mapping not set for closed channels
+			baseClientId, ok := ibcKeeper.ChannelKeeperV2.GetBaseClient(ctx, channelId)
+			suite.Require().False(ok)
+			suite.Require().Equal("", baseClientId, "base client mapping should not be set for closed channels")
 		}
 
 		// ensure that sequence migrated correctly
