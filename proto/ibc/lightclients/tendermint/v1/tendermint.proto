@@ -4,8 +4,8 @@ package ibc.lightclients.tendermint.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint;tendermint";
 
-import "tendermint/types/validator.proto";
-import "tendermint/types/types.proto";
+import "cometbft/types/v2/validator.proto";
+import "cometbft/types/v2/types.proto";
 import "cosmos/ics23/v1/proofs.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
@@ -59,7 +59,7 @@ message ConsensusState {
   google.protobuf.Timestamp timestamp = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
   // commitment root (i.e app hash)
   ibc.core.commitment.v1.MerkleRoot root = 2 [(gogoproto.nullable) = false];
-  bytes next_validators_hash = 3 [(gogoproto.casttype) = "github.com/cometbft/cometbft/libs/bytes.HexBytes"];
+  bytes next_validators_hash = 3 [(gogoproto.casttype) = "github.com/cometbft/cometbft/v2/libs/bytes.HexBytes"];
 }
 
 // Misbehaviour is a wrapper over two conflicting Headers
