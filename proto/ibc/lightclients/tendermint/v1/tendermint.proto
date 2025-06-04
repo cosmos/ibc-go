@@ -4,8 +4,8 @@ package ibc.lightclients.tendermint.v1;
 
 option go_package = "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint;tendermint";
 
-import "cometbft/types/v2/validator.proto";
-import "cometbft/types/v2/types.proto";
+import "tendermint/types/validator.proto";
+import "tendermint/types/types.proto";
 import "cosmos/ics23/v1/proofs.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
