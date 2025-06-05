@@ -32,7 +32,8 @@ def run_tests_for_module(module, *runargs):
     print(f"Running unit tests for {module}")
 
     # add runargs to test_command
-    test_command = f'go test -mod=readonly {" ".join(runargs)} ./...'
+    test_command = f'go test -mod=readonly {" ".join(runargs)}'
+    print(f"Running command: {test_command}")
     result = subprocess.run(test_command, shell=True)
     return result.returncode
 
