@@ -55,6 +55,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 
 	// if a channel exists with source channel, then use IBC V1 protocol
 	// otherwise use IBC V2 protocol
+	// TODO: Change this
 	channel, isIBCV1 := k.channelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel)
 
 	var sequence uint64
