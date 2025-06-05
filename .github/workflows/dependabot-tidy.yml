@@ -1,0 +1,34 @@
+name: Dependabot Tidy
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  tidy:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR head
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run make tidy-all
+        run: make tidy-all
+
+      - name: Commit & push tidy changes
+        run: |
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .
+            git commit -m "chore: run make tidy-all"
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          else
+            echo "No changes after make tidy-all"
+          fi
