@@ -28,7 +28,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/relayer"
 	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	ratelimitingtypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -726,17 +725,6 @@ func GetMsgTransfer(portID, channelID, version string, token sdk.Coin, sender, r
 	}
 
 	return msg
-}
-
-func MsgAddRateLimit(sender, denom, chanOrClientID string, sendPercent, receivePercent, durationHour int64) *ratelimitingtypes.MsgAddRateLimit {
-	return &ratelimitingtypes.MsgAddRateLimit{
-		Signer:            sender,
-		Denom:             denom,
-		ChannelOrClientId: chanOrClientID,
-		MaxPercentSend:    sdkmath.NewInt(sendPercent),
-		MaxPercentRecv:    sdkmath.NewInt(receivePercent),
-		DurationHours:     uint64(durationHour),
-	}
 }
 
 // SuiteName returns the name of the test suite.
