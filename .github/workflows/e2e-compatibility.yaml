@@ -15,6 +15,7 @@ on:
         options:
           - release/v7.10.x
           - release/v8.7.x
+          - release/v8.8.x
           - release/v10.3.x
           - main
       ibc-go-version:
@@ -54,6 +55,7 @@ jobs:
         release-branch:
           - release/v7.10.x
           - release/v8.7.x
+          - release/v8.8.x
           - release/v10.3.x
           - main
     steps:
