@@ -44,7 +44,6 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService corestore.KVStoreService,
-	legacySubspace types.ParamSubspace,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	msgRouter types.MessageRouter,
@@ -64,7 +63,7 @@ func NewKeeper(
 	return Keeper{
 		cdc:            cdc,
 		storeService:   storeService,
-		legacySubspace: legacySubspace,
+		legacySubspace: nil,
 		ics4Wrapper:    ics4Wrapper,
 		channelKeeper:  channelKeeper,
 		msgRouter:      msgRouter,

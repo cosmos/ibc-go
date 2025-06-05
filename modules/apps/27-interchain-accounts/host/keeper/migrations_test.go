@@ -32,7 +32,6 @@ func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
 				suite.chainA.GetSimApp().ICAHostKeeper = icahostkeeper.NewKeeper(
 					suite.chainA.Codec,
 					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(icahosttypes.StoreKey)),
-					nil, // assign a nil legacy param subspace
 					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 					suite.chainA.GetSimApp().AccountKeeper,

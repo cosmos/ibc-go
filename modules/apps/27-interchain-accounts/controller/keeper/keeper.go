@@ -41,7 +41,7 @@ type Keeper struct {
 
 // NewKeeper creates a new interchain accounts controller Keeper instance
 func NewKeeper(
-	cdc codec.Codec, storeService corestore.KVStoreService, legacySubspace icatypes.ParamSubspace,
+	cdc codec.Codec, storeService corestore.KVStoreService,
 	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper,
 	msgRouter icatypes.MessageRouter, authority string,
 ) Keeper {
@@ -52,7 +52,7 @@ func NewKeeper(
 	return Keeper{
 		storeService:   storeService,
 		cdc:            cdc,
-		legacySubspace: legacySubspace,
+		legacySubspace: nil,
 		ics4Wrapper:    ics4Wrapper,
 		channelKeeper:  channelKeeper,
 		msgRouter:      msgRouter,
