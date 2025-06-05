@@ -8,9 +8,14 @@ import (
 	"testing"
 	"time"
 
+	ibc "github.com/strangelove-ventures/interchaintest/v8/ibc"
+	testifysuite "github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -18,8 +23,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	ibc "github.com/strangelove-ventures/interchaintest/v8/ibc"
-	testifysuite "github.com/stretchr/testify/suite"
 )
 
 type RateLimTestSuite struct {
