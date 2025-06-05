@@ -98,6 +98,10 @@ const config = {
     ],
   ],
 
+  markdown: {
+  mermaid: true,
+},
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -252,7 +256,10 @@ const config = {
         ],
       },
     }),
-  themes: ["docusaurus-theme-github-codeblock"],
+  themes: [
+    "docusaurus-theme-github-codeblock",
+    "@docusaurus/theme-mermaid"
+  ],
   plugins: [
     [
       'docusaurus-pushfeedback', {
