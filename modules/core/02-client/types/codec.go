@@ -1,7 +1,13 @@
 package types
 
 import (
+<<<<<<< HEAD
 	proto "github.com/cosmos/gogoproto/proto"
+=======
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
+	"github.com/cosmos/gogoproto/proto"
+>>>>>>> de2f70a4 (fix: support amino encoding on MsgRecoverClient (#8448))
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -13,6 +19,12 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v8/modules/core/errors"
 	"github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
+
+// RegisterLegacyAminoCodec registers the necessary interfaces and concrete types
+// on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	legacy.RegisterAminoMsg(cdc, &MsgRecoverClient{}, "cosmos-sdk/MsgRecoverClient")
+}
 
 // RegisterInterfaces registers the client interfaces to protobuf Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
