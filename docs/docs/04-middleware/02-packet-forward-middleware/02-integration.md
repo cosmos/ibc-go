@@ -1,14 +1,19 @@
+---
+title: Integration
+sidebar_label: Integration
+sidebar_position: 1
+slug: /apps/packet-forward-middleware/integration
+---
+
 # Integration
 
 This document provides instructions on integrating and configuring the Packet Forward Middleware (PFM) within your
-existing chain implementation. This document is *NOT* a guide on developing with the Cosmos SDK or ibc-go and makes
-the assumption that you have some existing codebase for your chain with IBC already enabled.
-
+existing chain implementation.
 The integration steps include the following:
 
-1. Import the PFM, initialize the PFM Module & Keeper, initialize the store keys and module params, and initialize the Begin/End Block logic and InitGenesis order.
-2. Configure the IBC application stack including the transfer module.
-3. Configuration of additional options such as timeout period, number of retries on timeout, refund timeout period, and fee percentage.
+1. [Import the PFM, initialize the PFM Module & Keeper, initialize the store keys and module params, and initialize the Begin/End Block logic and InitGenesis order](#example-integration-of-the-packet-forward-middleware)
+2. [Configure the IBC application stack including the transfer module](#configuring-the-transfer-application-stack-with-packet-forward-middleware)
+3. [Configuration of additional options such as timeout period, number of retries on timeout, refund timeout period, and fee percentage](#configurable-options-in-the-packet-forward-middleware)
 
 Integration of the PFM should take approximately 20 minutes.
 
