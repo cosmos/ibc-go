@@ -31,9 +31,8 @@ import (
 
 // Keeper defines the IBC interchain accounts host keeper
 type Keeper struct {
-	storeService   corestore.KVStoreService
-	cdc            codec.Codec
-	legacySubspace icatypes.ParamSubspace
+	storeService corestore.KVStoreService
+	cdc          codec.Codec
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper icatypes.ChannelKeeper
@@ -66,16 +65,15 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		storeService:   storeService,
-		cdc:            cdc,
-		legacySubspace: nil,
-		ics4Wrapper:    ics4Wrapper,
-		channelKeeper:  channelKeeper,
-		accountKeeper:  accountKeeper,
-		msgRouter:      msgRouter,
-		queryRouter:    queryRouter,
-		mqsAllowList:   newModuleQuerySafeAllowList(),
-		authority:      authority,
+		storeService:  storeService,
+		cdc:           cdc,
+		ics4Wrapper:   ics4Wrapper,
+		channelKeeper: channelKeeper,
+		accountKeeper: accountKeeper,
+		msgRouter:     msgRouter,
+		queryRouter:   queryRouter,
+		mqsAllowList:  newModuleQuerySafeAllowList(),
+		authority:     authority,
 	}
 }
 
