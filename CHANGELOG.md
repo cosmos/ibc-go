@@ -47,6 +47,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#8369](https://github.com/cosmos/ibc-go/pull/8369) Bump **github.com/ethereum/go-ethereum** to **1.15.11**
 
 ### API Breaking
+* (apps) [\#8476](https://github.com/cosmos/ibc-go/pull/8476) Remove `ParamSubspace` from all `Keeper` constructors
 
 ### State Machine Breaking
 
