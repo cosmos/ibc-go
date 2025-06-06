@@ -33,8 +33,6 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			t := suite.T()
 			wasmClientApp := suite.SetupSnapshotterWithMockVM()

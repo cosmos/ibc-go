@@ -21,7 +21,6 @@ func (suite *KeeperTestSuite) TestMigrateWasmStore() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 

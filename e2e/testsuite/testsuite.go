@@ -514,10 +514,10 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc
 	rlyBName := fmt.Sprintf("%s-%s", ChainBRelayerName, testName)
 
 	if err := chainA.RecoverKey(ctx, rlyAName, chainARelayerWallet.Mnemonic()); err != nil {
-		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain A: %s", err)
+		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain A: %w", err)
 	}
 	if err := chainB.RecoverKey(ctx, rlyBName, chainBRelayerWallet.Mnemonic()); err != nil {
-		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain B: %s", err)
+		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain B: %w", err)
 	}
 	return chainARelayerWallet, chainBRelayerWallet, nil
 }

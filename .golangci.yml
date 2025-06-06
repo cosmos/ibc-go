@@ -5,6 +5,7 @@ linters:
   default: none
   enable:
     - errcheck
+    - errorlint
     - goconst
     - gocritic
     - gosec
@@ -18,13 +19,14 @@ linters:
     - unconvert
     - unparam
     - unused
+    - mirror
+    - copyloopvar
+    - iface
+    - importas
+    - intrange
   settings:
-    gocritic:
-      disabled-checks:
-        - appendAssign
     gosec:
       excludes:
-        - G101
         - G107
         - G115
         - G404
@@ -66,9 +68,7 @@ linters:
             - fmt.Print
             - fmt.Println
             - myFunction
-        - name: unused-parameter # TODO: Should be checked, why do we need this exactly?
-          disabled: true
-        - name: early-return # TODO: REMOVE
+        - name: unused-parameter
           disabled: true
   exclusions:
     generated: lax
@@ -79,17 +79,8 @@ linters:
       - std-error-handling
     rules:
       - linters:
-          - gosec
-        text: Use of weak random number generator
-      - linters:
-          - gosec
-        text: 'G115: integer overflow conversion'
-      - linters:
           - staticcheck
-        text: 'SA1019:'
-      - linters:
-          - gosec
-        text: 'G115: integer overflow conversion'
+        text: 'SA1019:' # TODO: This should really be removed!
     paths:
       - third_party$
       - builtin$

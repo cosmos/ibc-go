@@ -557,7 +557,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					clientState = solomachine.NewClientState(sm.Sequence, consensusState)
 					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 				},
-				fmt.Errorf("the consensus state timestamp is greater than the signature timestamp (11 >= 10): %s", solomachine.ErrInvalidProof),
+				fmt.Errorf("the consensus state timestamp is greater than the signature timestamp (11 >= 10): %w", solomachine.ErrInvalidProof),
 			},
 			{
 				"failure: signature data is nil",
@@ -570,7 +570,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 					suite.Require().NoError(err)
 				},
-				fmt.Errorf("signature data cannot be empty: %s", solomachine.ErrInvalidProof),
+				fmt.Errorf("signature data cannot be empty: %w", solomachine.ErrInvalidProof),
 			},
 			{
 				"failure: consensus state public key is nil",
@@ -578,7 +578,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 					clientState.ConsensusState.PublicKey = nil
 					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 				},
-				fmt.Errorf("consensus state PublicKey cannot be nil: %s", clienttypes.ErrInvalidConsensus),
+				fmt.Errorf("consensus state PublicKey cannot be nil: %w", clienttypes.ErrInvalidConsensus),
 			},
 			{
 				"failure: malformed signature data fails to unmarshal",
@@ -598,7 +598,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				func() {
 					proof = nil
 				},
-				fmt.Errorf("proof cannot be empty: %s", solomachine.ErrInvalidProof),
+				fmt.Errorf("proof cannot be empty: %w", solomachine.ErrInvalidProof),
 			},
 			{
 				"failure: proof verification failed",
@@ -612,7 +612,7 @@ func (suite *SoloMachineTestSuite) TestVerifyMembership() {
 				func() {
 					path = commitmenttypesv2.MerklePath{}
 				},
-				fmt.Errorf("path must be of length 2: []: %s", host.ErrInvalidPath),
+				fmt.Errorf("path must be of length 2: []: %w", host.ErrInvalidPath),
 			},
 		}
 
@@ -774,7 +774,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					clientState = solomachine.NewClientState(sm.Sequence, consensusState)
 					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 				},
-				fmt.Errorf("the consensus state timestamp is greater than the signature timestamp (11 >= 10): %s", solomachine.ErrInvalidProof),
+				fmt.Errorf("the consensus state timestamp is greater than the signature timestamp (11 >= 10): %w", solomachine.ErrInvalidProof),
 			},
 			{
 				"failure: signature data is nil",
@@ -787,7 +787,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					proof, err = suite.chainA.Codec.Marshal(signatureDoc)
 					suite.Require().NoError(err)
 				},
-				fmt.Errorf("signature data cannot be empty: %s", solomachine.ErrInvalidProof),
+				fmt.Errorf("signature data cannot be empty: %w", solomachine.ErrInvalidProof),
 			},
 			{
 				"failure: consensus state public key is nil",
@@ -795,7 +795,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 					clientState.ConsensusState.PublicKey = nil
 					suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), clientID, clientState)
 				},
-				fmt.Errorf("consensus state PublicKey cannot be nil: %s", clienttypes.ErrInvalidConsensus),
+				fmt.Errorf("consensus state PublicKey cannot be nil: %w", clienttypes.ErrInvalidConsensus),
 			},
 			{
 				"failure: malformed signature data fails to unmarshal",
@@ -815,7 +815,7 @@ func (suite *SoloMachineTestSuite) TestVerifyNonMembership() {
 				func() {
 					proof = nil
 				},
-				fmt.Errorf("proof cannot be empty: %s", solomachine.ErrInvalidProof),
+				fmt.Errorf("proof cannot be empty: %w", solomachine.ErrInvalidProof),
 			},
 			{
 				"failure: proof verification failed",
@@ -1039,7 +1039,7 @@ func (suite *SoloMachineTestSuite) TestUpdateState() {
 				func() {
 					clientID = unusedSmClientID
 				},
-				fmt.Errorf("%s: %s", unusedSmClientID, clienttypes.ErrClientNotFound),
+				fmt.Errorf("%s: %w", unusedSmClientID, clienttypes.ErrClientNotFound),
 			},
 		}
 
@@ -1130,7 +1130,7 @@ func (suite *SoloMachineTestSuite) TestCheckForMisbehaviour() {
 					clientID = unusedSmClientID
 				},
 				false,
-				fmt.Errorf("%s: %s", unusedSmClientID, clienttypes.ErrClientNotFound),
+				fmt.Errorf("%s: %w", unusedSmClientID, clienttypes.ErrClientNotFound),
 			},
 		}
 
@@ -1185,7 +1185,7 @@ func (suite *SoloMachineTestSuite) TestUpdateStateOnMisbehaviour() {
 				func() {
 					clientID = unusedSmClientID
 				},
-				fmt.Errorf("%s: %s", unusedSmClientID, clienttypes.ErrClientNotFound),
+				fmt.Errorf("%s: %w", unusedSmClientID, clienttypes.ErrClientNotFound),
 			},
 		}
 
@@ -1359,7 +1359,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageHeader() {
 				func() {
 					clientID = unusedSmClientID
 				},
-				fmt.Errorf("%s: %s", unusedSmClientID, clienttypes.ErrClientNotFound),
+				fmt.Errorf("%s: %w", unusedSmClientID, clienttypes.ErrClientNotFound),
 			},
 		}
 
@@ -1601,7 +1601,7 @@ func (suite *SoloMachineTestSuite) TestVerifyClientMessageMisbehaviour() {
 				func() {
 					clientID = unusedSmClientID
 				},
-				fmt.Errorf("%s: %s", unusedSmClientID, clienttypes.ErrClientNotFound),
+				fmt.Errorf("%s: %w", unusedSmClientID, clienttypes.ErrClientNotFound),
 			},
 		}
 

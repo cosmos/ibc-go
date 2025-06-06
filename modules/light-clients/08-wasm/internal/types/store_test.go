@@ -90,7 +90,6 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreGetStore() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
@@ -140,7 +139,6 @@ func (suite *TypesTestSuite) TestSplitPrefix() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			keyPrefix, key := internaltypes.SplitPrefix(tc.prefix)
 
@@ -181,7 +179,6 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreGet() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
@@ -224,7 +221,6 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreSet() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
@@ -279,7 +275,6 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreDelete() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
 
@@ -356,7 +351,6 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreIterators() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
@@ -407,7 +401,6 @@ func (suite *TypesTestSuite) TestNewClientRecoveryStore() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			tc.malleate()
 

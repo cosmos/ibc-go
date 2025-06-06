@@ -91,7 +91,7 @@ func (k Keeper) SendTransfer(
 			// NOTE: should not happen as the module account was
 			// retrieved on the step above and it has enough balance
 			// to burn.
-			panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %v", err))
+			panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %w", err))
 		}
 	} else {
 		// obtain the escrow address for the source channel end
@@ -281,7 +281,7 @@ func (k Keeper) refundPacketTokens(
 		}
 
 		if err := k.BankKeeper.SendCoins(ctx, moduleAccountAddr, sender, sdk.NewCoins(coin)); err != nil {
-			panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
+			panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %w", err))
 		}
 	} else {
 		if err := k.UnescrowCoin(ctx, escrowAddress, sender, coin); err != nil {

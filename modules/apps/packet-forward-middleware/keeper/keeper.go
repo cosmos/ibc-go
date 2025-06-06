@@ -229,11 +229,11 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 		// Funds in the escrow account were burned,
 		// so on a timeout or acknowledgement error we need to mint the funds back to the escrow account.
 		if err := k.bankKeeper.MintCoins(ctx, transfertypes.ModuleName, newToken); err != nil {
-			return fmt.Errorf("cannot mint coins to the %s module account: %v", transfertypes.ModuleName, err)
+			return fmt.Errorf("cannot mint coins to the %s module account: %w", transfertypes.ModuleName, err)
 		}
 
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, transfertypes.ModuleName, refundEscrowAddress, newToken); err != nil {
-			return fmt.Errorf("cannot send coins from the %s module to the escrow account %s: %v", transfertypes.ModuleName, refundEscrowAddress, err)
+			return fmt.Errorf("cannot send coins from the %s module to the escrow account %s: %w", transfertypes.ModuleName, refundEscrowAddress, err)
 		}
 
 		currentTotalEscrow := k.transferKeeper.GetTotalEscrowForDenom(ctx, coin.GetDenom())

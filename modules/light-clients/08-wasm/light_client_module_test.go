@@ -104,8 +104,6 @@ func (suite *WasmTestSuite) TestStatus() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
@@ -202,7 +200,6 @@ func (suite *WasmTestSuite) TestTimestampAtHeight() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
@@ -1024,7 +1021,7 @@ func (suite *WasmTestSuite) TestCheckForMisbehaviour() {
 				clientID = unusedWasmClientID
 			},
 			false, // not applicable
-			fmt.Errorf("%s: %s", unusedWasmClientID, clienttypes.ErrClientNotFound),
+			fmt.Errorf("%s: %w", unusedWasmClientID, clienttypes.ErrClientNotFound),
 		},
 		{
 			"failure: response fails to unmarshal",
@@ -1156,7 +1153,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 			func() {
 				clientID = unusedWasmClientID
 			},
-			fmt.Errorf("08-wasm-100: %s", clienttypes.ErrClientNotFound),
+			fmt.Errorf("08-wasm-100: %w", clienttypes.ErrClientNotFound),
 			nil,
 		},
 		{
@@ -1185,7 +1182,7 @@ func (suite *WasmTestSuite) TestUpdateState() {
 					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: []byte("invalid json")}}, wasmtesting.DefaultGasUsed, nil
 				})
 			},
-			fmt.Errorf("invalid character 'i' looking for beginning of value: %s", types.ErrWasmInvalidResponseData),
+			fmt.Errorf("invalid character 'i' looking for beginning of value: %w", types.ErrWasmInvalidResponseData),
 			nil,
 		},
 		{
@@ -1318,7 +1315,7 @@ func (suite *WasmTestSuite) TestUpdateStateOnMisbehaviour() {
 			func() {
 				clientID = unusedWasmClientID
 			},
-			fmt.Errorf("%s: %s", unusedWasmClientID, clienttypes.ErrClientNotFound),
+			fmt.Errorf("%s: %w", unusedWasmClientID, clienttypes.ErrClientNotFound),
 			nil,
 		},
 		{
@@ -1501,7 +1498,6 @@ func (suite *WasmTestSuite) TestRecoverClient() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
@@ -1560,7 +1556,6 @@ func (suite *WasmTestSuite) TestLatestHeight() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		suite.Run(tc.name, func() {
 			suite.SetupWasmWithMockVM()
 
