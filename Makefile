@@ -201,9 +201,11 @@ check-docs-links:
 		'./docs/docs'
 
 lint-docs:
-	@command -v markdownlint-cli2 >/dev/null 2>&1 || { echo "ERROR: markdownlint-cli2 is not installed (https://github.com/DavidAnson/markdownlint-cli2#install)" >&2; exit 1; }
+	@command -v markdownlint-cli2 >/dev/null 2>&1 || { \
+	  echo "ERROR: markdownlint-cli2 is not installed" >&2; exit 1; \
+	}
 	@echo "Linting documentation..."
-	@markdownlint-cli2 ./docs/docs/**/*.md
+	@find docs/docs -type f -name '*.md' | xargs markdownlint-cli2
 
 .PHONY: build-docs serve-docs tag-docs-version
 
