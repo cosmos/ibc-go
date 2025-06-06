@@ -13,7 +13,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -105,8 +104,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().NoError(err)
 		s.Require().Nil(resp.RateLimits)
 
-		txResp := s.addRateLimit(ctx, chainA, userA, userA.FormattedAddress(), denomA, chanAB.ChannelID, 10, 0, 1)
-		s.AssertTxSuccess(txResp)
+		s.addRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String(), 10, 0, 1)
 
 		resp, err = query.GRPCQuery[ratelimitingtypes.QueryAllRateLimitsResponse](ctx, chainA, &ratelimitingtypes.QueryAllRateLimitsRequest{})
 		s.Require().NoError(err)
@@ -116,7 +114,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		userABalBefore, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
 
-		txResp = s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(txResp)
 
 		packet, err := ibctesting.ParseV1PacketFromEvents(txResp.Events)
@@ -149,16 +147,14 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	})
 
 	t.Run("Reset RateLimit: Set outgoing to 0 -> Transfet Failed", func(_ *testing.T) {
-		txResp := s.resetRateLimit(ctx, chainA, userA, userA.FormattedAddress(), denomA, chanAB.ChannelID)
-		s.AssertTxSuccess(txResp)
+		s.resetRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String())
 
 		rateLimit := s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
 		s.Require().Zero(rateLimit.Flow.Outflow.Int64())
 
-		txResp = s.updateRateLimit(ctx, chainA, userA, userA.FormattedAddress(), denomA, chanAB.ChannelID)
-		s.AssertTxSuccess(txResp)
+		s.updateRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String())
 
-		txResp = s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxFailure(txResp, ratelimitingtypes.ErrQuotaExceeded)
 	})
 }
@@ -172,35 +168,35 @@ func (s *RateLimTestSuite) rateLimit(ctx context.Context, chain ibc.Chain, denom
 	return *respRateLim.RateLimit
 }
 
-func (s *RateLimTestSuite) addRateLimit(ctx context.Context, chain ibc.Chain, user ibc.Wallet, sender, denom, chanID string, sendPercent, recvPercent, duration int64) sdk.TxResponse {
+func (s *RateLimTestSuite) addRateLimit(ctx context.Context, chain ibc.Chain, user ibc.Wallet, denom, chanID, authority string, sendPercent, recvPercent, duration int64) {
 	msg := &ratelimitingtypes.MsgAddRateLimit{
-		Signer:            sender,
+		Signer:            authority,
 		Denom:             denom,
 		ChannelOrClientId: chanID,
 		MaxPercentSend:    sdkmath.NewInt(sendPercent),
 		MaxPercentRecv:    sdkmath.NewInt(recvPercent),
 		DurationHours:     uint64(duration),
 	}
-	return s.BroadcastMessages(ctx, chain, user, msg)
+	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, user)
 }
 
-func (s *RateLimTestSuite) resetRateLimit(ctx context.Context, chain ibc.Chain, user ibc.Wallet, sender, denom, chanID string) sdk.TxResponse {
+func (s *RateLimTestSuite) resetRateLimit(ctx context.Context, chain ibc.Chain, user ibc.Wallet, denom, chanID, authority string) {
 	msg := &ratelimitingtypes.MsgResetRateLimit{
-		Signer:            sender,
+		Signer:            authority,
 		Denom:             denom,
 		ChannelOrClientId: chanID,
 	}
-	return s.BroadcastMessages(ctx, chain, user, msg)
+	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, user)
 }
 
-func (s *RateLimTestSuite) updateRateLimit(ctx context.Context, chain ibc.Chain, user ibc.Wallet, sender, denom, chanID string) sdk.TxResponse {
+func (s *RateLimTestSuite) updateRateLimit(ctx context.Context, chain ibc.Chain, user ibc.Wallet, denom, chanID, authority string) {
 	msg := &ratelimitingtypes.MsgUpdateRateLimit{
-		Signer:            sender,
+		Signer:            authority,
 		Denom:             denom,
 		ChannelOrClientId: chanID,
 		MaxPercentSend:    sdkmath.ZeroInt(), // From 10% to 0%
 		MaxPercentRecv:    sdkmath.OneInt(),  // One of Send or Receive needs to be > 0
 		DurationHours:     1,
 	}
-	return s.BroadcastMessages(ctx, chain, user, msg)
+	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, user)
 }
