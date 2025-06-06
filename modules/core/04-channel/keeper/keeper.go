@@ -17,10 +17,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
@@ -136,9 +138,15 @@ func (k *Keeper) SetNextChannelSequence(ctx sdk.Context, sequence uint64) {
 }
 
 // GetNextSequenceSend gets a channel's next send sequence from the store
+// NOTE: Even though we are using IBCv1 protocol, we are using the v2 NextSequenceSendKey
+// this allows us to use the same identifiers for both v1 and v2 packets without having the sequences
+// collide.
+// The v2 NextSequenceSendKey does not include the port ID, and only uses the client ID.
+// It is safe for us to only use the channel ID as the client ID since channel ids are unique chain identifiers
+// in ibc-go.
 func (k *Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool) {
 	store := k.storeService.OpenKVStore(ctx)
-	bz, err := store.Get(host.NextSequenceSendKey(portID, channelID))
+	bz, err := store.Get(hostv2.NextSequenceSendKey(channelID))
 	if err != nil {
 		panic(err)
 	}
@@ -150,10 +158,16 @@ func (k *Keeper) GetNextSequenceSend(ctx sdk.Context, portID, channelID string) 
 }
 
 // SetNextSequenceSend sets a channel's next send sequence to the store
+// NOTE: Even though we are using IBCv1 protocol, we are using the v2 NextSequenceSendKey
+// this allows us to use the same identifiers for both v1 and v2 packets without having the sequences
+// collide.
+// The v2 NextSequenceSendKey does not include the port ID, and only uses the client ID.
+// It is safe for us to only use the channel ID as the client ID since channel ids are unique chain identifiers
+// in ibc-go.
 func (k *Keeper) SetNextSequenceSend(ctx sdk.Context, portID, channelID string, sequence uint64) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := sdk.Uint64ToBigEndian(sequence)
-	if err := store.Set(host.NextSequenceSendKey(portID, channelID), bz); err != nil {
+	if err := store.Set(hostv2.NextSequenceSendKey(channelID), bz); err != nil {
 		panic(err)
 	}
 }
@@ -300,6 +314,7 @@ func (k *Keeper) HasPacketAcknowledgement(ctx sdk.Context, portID, channelID str
 // IteratePacketSequence provides an iterator over all send, receive or ack sequences.
 // For each sequence, cb will be called. If the cb returns true, the iterator
 // will close and stop.
+// NOTE: This function will no longer work for NextSequenceSend
 func (k *Keeper) IteratePacketSequence(ctx sdk.Context, iterator db.Iterator, cb func(portID, channelID string, sequence uint64) bool) {
 	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
 	for ; iterator.Valid(); iterator.Next() {
@@ -318,11 +333,15 @@ func (k *Keeper) IteratePacketSequence(ctx sdk.Context, iterator db.Iterator, cb
 }
 
 // GetAllPacketSendSeqs returns all stored next send sequences.
+// NOTE: Implemented differently from NextSequenceRecv/Ack since the key format is different
 func (k *Keeper) GetAllPacketSendSeqs(ctx sdk.Context) (seqs []types.PacketSequence) {
-	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyNextSeqSendPrefix))
-	k.IteratePacketSequence(ctx, iterator, func(portID, channelID string, nextSendSeq uint64) bool {
-		ps := types.NewPacketSequence(portID, channelID, nextSendSeq)
+	k.IterateChannels(ctx, func(ic types.IdentifiedChannel) bool {
+		nextSeqSend, ok := k.GetNextSequenceSend(ctx, ic.PortId, ic.ChannelId)
+		if !ok {
+			panic("next sequence send not found for channel " + ic.ChannelId)
+		}
+
+		ps := types.NewPacketSequence(ic.PortId, ic.ChannelId, nextSeqSend)
 		seqs = append(seqs, ps)
 		return false
 	})
@@ -583,4 +602,24 @@ func (k *Keeper) GetRecvStartSequence(ctx sdk.Context, portID, channelID string)
 	}
 
 	return sdk.BigEndianToUint64(bz), true
+}
+
+func (k *Keeper) GetV2Counterparty(ctx sdk.Context, portID string, channelID string) (clientv2types.CounterpartyInfo, bool) {
+	channel, found := k.GetChannel(ctx, portID, channelID)
+	if !found {
+		return clientv2types.CounterpartyInfo{}, false
+	}
+
+	// Do not allow channel to be converted into a version 2 counterparty
+	// if the channel is not OPEN or if it is ORDERED
+	if channel.State != types.OPEN || channel.Ordering == types.ORDERED {
+		return clientv2types.CounterpartyInfo{}, false
+	}
+	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	if !ok {
+		return clientv2types.CounterpartyInfo{}, false
+	}
+	merklePathPrefix := [][]byte{connection.Counterparty.Prefix.KeyPrefix, []byte("")}
+
+	return clientv2types.NewCounterpartyInfo(merklePathPrefix, channel.Counterparty.ChannelId), true
 }

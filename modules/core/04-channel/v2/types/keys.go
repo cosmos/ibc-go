@@ -10,6 +10,9 @@ const (
 
 	// KeyAsyncPacket defines the key to store the async packet.
 	KeyAsyncPacket = "async_packet"
+
+	// KeyBaseClient defines the key to store the base clientID mapping
+	KeyBaseClient = "base_client"
 )
 
 // AsyncPacketKey returns the key under which the packet is stored
@@ -22,4 +25,10 @@ func AsyncPacketKey(clientID string, sequence uint64) []byte {
 // for a given clientID.
 func AsyncPacketPrefixKey(clientID string) []byte {
 	return append([]byte(clientID), []byte(KeyAsyncPacket)...)
+}
+
+// BaseClientKey returns the key under which the base clientID will be stored
+// for an alias (original v1 channelID)
+func BaseClientKey(alias string) []byte {
+	return append([]byte(alias), []byte(KeyBaseClient)...)
 }

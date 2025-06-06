@@ -261,3 +261,24 @@ func (k *Keeper) getAllPacketStateForClient(ctx sdk.Context, clientID string, pr
 	}
 	return packets
 }
+
+// SetBaseClient sets the base client ID under the base client key for an alias
+func (k *Keeper) SetBaseClient(ctx sdk.Context, alias string, baseClientID string) {
+	store := k.storeService.OpenKVStore(ctx)
+	if err := store.Set(types.BaseClientKey(alias), []byte(baseClientID)); err != nil {
+		panic(err)
+	}
+}
+
+// GetBaseClient get the base client ID under the base client key for an alias
+func (k *Keeper) GetBaseClient(ctx sdk.Context, alias string) (string, bool) {
+	store := k.storeService.OpenKVStore(ctx)
+	bz, err := store.Get(types.BaseClientKey(alias))
+	if err != nil {
+		panic(err)
+	}
+	if len(bz) == 0 {
+		return "", false
+	}
+	return string(bz), true
+}
