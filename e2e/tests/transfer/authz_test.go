@@ -182,7 +182,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		msgRevoke := authz.MsgRevoke{
 			Granter:    granterAddress,
 			Grantee:    granteeAddress,
-			MsgTypeUrl: transfertypes.TransferAuthorization{}.MsgTypeURL(),
+			MsgTypeUrl: (*transfertypes.TransferAuthorization)(nil).MsgTypeURL(),
 		}
 
 		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, &msgRevoke)

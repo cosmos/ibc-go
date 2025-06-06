@@ -1,7 +1,7 @@
 package channelv2_test
 
 import (
-	proto "github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	channelv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2"
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"

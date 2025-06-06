@@ -13,7 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
-	v10 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v10"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v10"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"

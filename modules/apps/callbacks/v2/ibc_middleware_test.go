@@ -12,7 +12,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
-	v2 "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channelkeeperv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"

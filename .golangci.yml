@@ -33,35 +33,31 @@ linters:
       enable-all-rules: true
       # See the rule descriptions here: https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md
       rules:
-        - name: add-constant # TODO: Should probably be removed, but needs to not care about tests
+        - name: add-constant
           disabled: true
         - name: argument-limit
           disabled: true
         - name: banned-characters
           disabled: true
-        - name: cognitive-complexity # TODO: Maybe code smell?
+        - name: cognitive-complexity
           disabled: true
         - name: confusing-naming
           disabled: true
         - name: confusing-results
           disabled: true
-        - name: cyclomatic # TODO: Maybe code smell?
+        - name: cyclomatic
           disabled: true
-        - name: deep-exit # TODO: Not a big problem, but is only here because of log fatal in genesis stuff, should remove
+        - name: deep-exit
           disabled: true
-        - name: function-length # TODO: Maybe code smell?
+        - name: function-length
           disabled: true
-        - name: flag-parameter # TODO: This seems like a code smell, we should consider cleaning this up eventually
+        - name: flag-parameter
           disabled: true
-        - name: function-result-limit # TODO: Maybe code smell
+        - name: function-result-limit
           disabled: true
-        - name: line-length-limit # TODO: Probably OK, but could this be a code smell if set high enough?
+        - name: line-length-limit
           disabled: true
-        - name: max-public-structs # TODO: Might be a code smell, investigate
-          disabled: true
-        - name: modifies-value-receiver # TODO: Seems bad, should remove
-          disabled: true
-        - name: redundant-import-alias # TODO: Code smell, no?
+        - name: max-public-structs
           disabled: true
         - name: unhandled-error
           disabled: false
@@ -72,11 +68,8 @@ linters:
             - myFunction
         - name: unused-parameter # TODO: Should be checked, why do we need this exactly?
           disabled: true
-
-          # TODO: REMOVE LIST
-        - name: early-return
+        - name: early-return # TODO: REMOVE
           disabled: true
-          # TODO: END REMOVE LIST
   exclusions:
     generated: lax
     presets:
@@ -85,9 +78,6 @@ linters:
       - legacy
       - std-error-handling
     rules:
-      - linters:
-          - revive
-        text: differs only by capitalization to method
       - linters:
           - gosec
         text: Use of weak random number generator
