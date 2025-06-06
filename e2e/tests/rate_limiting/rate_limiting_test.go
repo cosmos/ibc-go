@@ -4,6 +4,7 @@ package ratelimiting
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -99,6 +100,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().Equal(testvalues.IBCTransferAmount, userBBalAfter.Int64())
 	})
 
+	var chanATotalSupply sdkmath.Int
 	t.Run("Add Outgoing Ratelimit on ChainA", func(_ *testing.T) {
 		resp, err := query.GRPCQuery[ratelimitingtypes.QueryAllRateLimitsResponse](ctx, chainA, &ratelimitingtypes.QueryAllRateLimitsRequest{})
 		s.Require().NoError(err)
@@ -109,6 +111,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		resp, err = query.GRPCQuery[ratelimitingtypes.QueryAllRateLimitsResponse](ctx, chainA, &ratelimitingtypes.QueryAllRateLimitsRequest{})
 		s.Require().NoError(err)
 		s.Require().Len(resp.RateLimits, 1)
+		chanATotalSupply = resp.RateLimits[0].Flow.ChannelValue
 
 		// Make transfer again and see the flow has been updated.
 		userABalBefore, err := s.GetChainANativeBalance(ctx, userA)
@@ -146,17 +149,27 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().Equal(rateLimit.Flow.Outflow.Int64(), testvalues.IBCTransferAmount)
 	})
 
+	t.Run("Almost fill the Quota", func(_ *testing.T) {
+		userAAvailBal, err := s.GetChainANativeBalance(ctx, userA)
+		s.Require().NoError(err)
+
+		fmt.Printf("***************************\n************************\n")
+		fmt.Printf("Chan Total Supply: %s UserABal: %v\n", chanATotalSupply.String(), userAAvailBal)
+		fmt.Printf("***************************\n************************")
+	})
+
 	t.Run("Reset RateLimit: Set outgoing to 0 -> Transfet Failed", func(_ *testing.T) {
 		s.resetRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String())
 
 		rateLimit := s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
 		s.Require().Zero(rateLimit.Flow.Outflow.Int64())
 
-		s.updateRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String())
+		s.updateRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String(), 0, 1)
 
 		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxFailure(txResp, ratelimitingtypes.ErrQuotaExceeded)
 	})
+
 }
 
 func (s *RateLimTestSuite) rateLimit(ctx context.Context, chain ibc.Chain, denom, chanID string) ratelimitingtypes.RateLimit {
@@ -189,13 +202,13 @@ func (s *RateLimTestSuite) resetRateLimit(ctx context.Context, chain ibc.Chain, 
 	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, user)
 }
 
-func (s *RateLimTestSuite) updateRateLimit(ctx context.Context, chain ibc.Chain, user ibc.Wallet, denom, chanID, authority string) {
+func (s *RateLimTestSuite) updateRateLimit(ctx context.Context, chain ibc.Chain, user ibc.Wallet, denom, chanID, authority string, sendPercent, recvPercent int64) {
 	msg := &ratelimitingtypes.MsgUpdateRateLimit{
 		Signer:            authority,
 		Denom:             denom,
 		ChannelOrClientId: chanID,
-		MaxPercentSend:    sdkmath.ZeroInt(), // From 10% to 0%
-		MaxPercentRecv:    sdkmath.OneInt(),  // One of Send or Receive needs to be > 0
+		MaxPercentSend:    sdkmath.NewInt(sendPercent),
+		MaxPercentRecv:    sdkmath.NewInt(recvPercent),
 		DurationHours:     1,
 	}
 	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, user)
