@@ -108,7 +108,6 @@ func (suite *TypesTestSuite) TestGetPacketSender() {
 	}
 
 	for _, tc := range testCases {
-
 		packetData := types.InterchainAccountPacketData{}
 		suite.Require().Equal(tc.expSender, packetData.GetPacketSender(tc.srcPortID))
 	}
@@ -175,7 +174,6 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 	}
 
 	for _, tc := range testCases {
-
 		customData := tc.packetData.GetCustomPacketData("src_callback")
 		suite.Require().Equal(tc.expCustomData, customData)
 	}

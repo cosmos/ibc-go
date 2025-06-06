@@ -104,7 +104,6 @@ func TestGeneratePacketData(t *testing.T) {
 	encodings := []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}
 	for _, encoding := range encodings {
 		for _, tc := range tests {
-
 			ir := codectypes.NewInterfaceRegistry()
 			if tc.registerInterfaceFn != nil {
 				tc.registerInterfaceFn(ir)

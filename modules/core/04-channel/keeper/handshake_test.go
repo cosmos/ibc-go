@@ -452,7 +452,6 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 				// ensure client is up to date
 				err := path.EndpointB.UpdateClient()
 				suite.Require().NoError(err)
-
 			}
 
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)

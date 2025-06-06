@@ -197,7 +197,6 @@ func (k Keeper) OnRecvPacket(
 		); err != nil {
 			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
 		}
-
 	}
 
 	// The ibc_module.go module will return the proper ack.

@@ -287,7 +287,6 @@ func TestValidateIBCDenom(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := types.ValidateIBCDenom(tc.denom)
 		if tc.expError {
 			require.Error(t, err, tc.name)
@@ -326,7 +325,6 @@ func TestExtractDenomFromPath(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		denom := types.ExtractDenomFromPath(tc.fullPath)
 		require.Equal(t, tc.expDenom, denom, tc.name)
 	}

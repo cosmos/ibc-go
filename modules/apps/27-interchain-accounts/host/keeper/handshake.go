@@ -73,7 +73,6 @@ func (k Keeper) OnChanOpenTry(
 		if _, ok := k.accountKeeper.GetAccount(ctx, accAddress).(*icatypes.InterchainAccount); !ok {
 			return "", errorsmod.Wrapf(icatypes.ErrInvalidAccountReopening, "existing account address %s, does not have interchain account type", accAddress)
 		}
-
 	} else {
 		accAddress, err = k.createInterchainAccount(ctx, metadata.HostConnectionId, counterparty.PortId)
 		if err != nil {

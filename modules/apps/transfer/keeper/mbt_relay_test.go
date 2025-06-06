@@ -358,7 +358,6 @@ func (suite *KeeperTestSuite) TestModelBasedRelay() {
 						)
 
 						_, err = suite.chainB.GetSimApp().TransferKeeper.Transfer(suite.chainB.GetContext(), msg)
-
 					}
 				case "OnRecvPacket":
 					err = suite.chainB.GetSimApp().TransferKeeper.OnRecvPacket(

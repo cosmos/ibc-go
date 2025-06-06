@@ -121,7 +121,6 @@ func (suite *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibc
 			height := types.NewHeight(1, i)
 			clientStore.Set(host.ConsensusStateKey(height), bz)
 		}
-
 	}
 }
 

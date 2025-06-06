@@ -683,7 +683,6 @@ func (suite *KeeperTestSuite) TestRecoverClient() {
 				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 				suite.Require().NoError(err)
 				suite.Require().Equal(lightClientModule.Status(suite.chainA.GetContext(), subjectPath.EndpointA.ClientID), exported.Active)
-
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expErr)

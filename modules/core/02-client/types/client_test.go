@@ -74,7 +74,6 @@ func TestValidateClientType(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := types.ValidateClientType(tc.clientType)
 
 		if tc.expError == nil {

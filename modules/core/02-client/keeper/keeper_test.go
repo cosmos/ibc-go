@@ -757,7 +757,6 @@ func (suite *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 
 				expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
 				ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
-
 			} else {
 				// check that the new plan wasn't stored
 				storedPlan, err := suite.chainA.GetSimApp().UpgradeKeeper.GetUpgradePlan(suite.chainA.GetContext())

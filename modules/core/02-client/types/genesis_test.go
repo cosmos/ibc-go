@@ -477,7 +477,6 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 	}
 
 	for _, tc := range testCases {
-
 		err := tc.genState.Validate()
 		if tc.expError == nil {
 			suite.Require().NoError(err, tc.name)

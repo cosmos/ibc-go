@@ -88,7 +88,6 @@ func getDenomForThisChain(port, channel, counterpartyPort, counterpartyChannel, 
 	denom := transfertypes.ExtractDenomFromPath(denomPath)
 
 	if denom.HasPrefix(counterpartyPort, counterpartyChannel) {
-
 		// unwind denom
 		denom.Trace = denom.Trace[1:]
 		if len(denom.Trace) == 0 {

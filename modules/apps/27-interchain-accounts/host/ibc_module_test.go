@@ -496,7 +496,6 @@ func (suite *InterchainAccountsTestSuite) TestOnRecvPacket() {
 
 					expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
 					ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
-
 				} else {
 					suite.Require().False(ack.Success())
 

@@ -135,7 +135,6 @@ func (suite *TypesTestSuite) TestGenesisAccountValidate() {
 	}
 
 	for _, tc := range testCases {
-
 		err := tc.acc.Validate()
 
 		if tc.expErr == nil {

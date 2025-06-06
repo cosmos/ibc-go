@@ -453,7 +453,6 @@ func (suite *TypesTestSuite) TestMsgUpgradeClient_ValidateBasic() {
 	}
 
 	for _, tc := range cases {
-
 		clientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 		consState := &ibctm.ConsensusState{NextValidatorsHash: []byte("nextValsHash")}
 		msg, err := types.NewMsgUpgradeClient("testclientid", clientState, consState, []byte("proofUpgradeClient"), []byte("proofUpgradeConsState"), suite.chainA.SenderAccount.GetAddress().String())
@@ -950,7 +949,6 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		msg := types.MsgUpdateParams{
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),

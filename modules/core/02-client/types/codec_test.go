@@ -48,7 +48,6 @@ func (suite *TypesTestSuite) TestPackClientState() {
 	testCasesAny := []caseAny{}
 
 	for _, tc := range testCases {
-
 		protoAny, err := types.PackClientState(tc.clientState)
 		if tc.expErr == nil {
 			suite.Require().NoError(err, tc.name)
@@ -97,7 +96,6 @@ func (suite *TypesTestSuite) TestPackConsensusState() {
 	testCasesAny := []caseAny{}
 
 	for _, tc := range testCases {
-
 		protoAny, err := types.PackConsensusState(tc.consensusState)
 		if tc.expErr == nil {
 			suite.Require().NoError(err, tc.name)
@@ -108,7 +106,6 @@ func (suite *TypesTestSuite) TestPackConsensusState() {
 	}
 
 	for i, tc := range testCasesAny {
-
 		cs, err := types.UnpackConsensusState(tc.any)
 		if tc.expErr == nil {
 			suite.Require().NoError(err, tc.name)
@@ -146,7 +143,6 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 	testCasesAny := []caseAny{}
 
 	for _, tc := range testCases {
-
 		protoAny, err := types.PackClientMessage(tc.clientMessage)
 		if tc.expErr == nil {
 			suite.Require().NoError(err, tc.name)
@@ -158,7 +154,6 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 	}
 
 	for i, tc := range testCasesAny {
-
 		cs, err := types.UnpackClientMessage(tc.any)
 		if tc.expErr == nil {
 			suite.Require().NoError(err, tc.name)

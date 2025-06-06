@@ -885,7 +885,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				if exists {
 					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
 				}
-
 			} else {
 				s.Require().ErrorIs(err, tc.expError)
 			}

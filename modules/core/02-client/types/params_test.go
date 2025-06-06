@@ -44,7 +44,6 @@ func TestValidateParams(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := tc.params.Validate()
 		if tc.expError == nil {
 			require.NoError(t, err, tc.name)
