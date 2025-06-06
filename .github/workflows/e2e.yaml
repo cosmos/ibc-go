@@ -22,7 +22,6 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          go-version: '1.24'
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -31,9 +30,9 @@ jobs:
         run: |
           if [ -z "${{ github.event.pull_request.number }}" ]
           then
-            echo "simd-tag=main" >> $GITHUB_OUTPUT
+            echo "simd-tag=e2e-${{ github.sha }}" >> $GITHUB_OUTPUT
           else
-            tag="pr-${{ github.event.pull_request.number }}"
+            tag="e2e-pr-${{ github.event.pull_request.number }}"
             echo "Using tag $tag"
             echo "simd-tag=$tag" >> $GITHUB_OUTPUT
           fi
@@ -43,6 +42,7 @@ jobs:
         with:
           context: .
           tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.get-tag.outputs.simd-tag }}
+          push: false
           build-args: |
             IBC_GO_VERSION=${{ github.ref_name }}
 
