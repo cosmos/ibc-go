@@ -13,6 +13,13 @@ const (
 	MaxAllowListLength = 500
 )
 
+var (
+	// KeyHostEnabled is the store key for HostEnabled Params
+	KeyHostEnabled = []byte("HostEnabled")
+	// KeyAllowMessages is the store key for the AllowMessages Params
+	KeyAllowMessages = []byte("AllowMessages")
+)
+
 // NewParams creates a new parameter configuration for the host submodule
 func NewParams(enableHost bool, allowMsgs []string) Params {
 	return Params{
