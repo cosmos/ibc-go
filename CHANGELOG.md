@@ -53,7 +53,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* [\#8303](https://github.com/cosmos/ibc-go/pull/8303) Prefix-based routing in IBCv2 Router
+* (core/api) [\#8303](https://github.com/cosmos/ibc-go/pull/8303) Prefix-based routing in IBCv2 Router
+- (apps/callbacks) [\#8353](https://github.com/cosmos/ibc-go/pull/8353) Add field in callbacks data for custom calldata
 
 ### Bug Fixes
 
