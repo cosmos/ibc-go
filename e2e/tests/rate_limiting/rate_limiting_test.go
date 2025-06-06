@@ -8,14 +8,16 @@ import (
 	"testing"
 	"time"
 
+	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	ibc "github.com/strangelove-ventures/interchaintest/v8/ibc"
+	testutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -23,8 +25,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
-	testutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
 )
 
 type RateLimTestSuite struct {
@@ -195,7 +195,6 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(txResp)
 	})
-
 }
 
 func (s *RateLimTestSuite) rateLimit(ctx context.Context, chain ibc.Chain, denom, chanID string) *ratelimitingtypes.RateLimit {
