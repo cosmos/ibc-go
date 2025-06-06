@@ -1,11 +1,8 @@
-go 1.22.0
-
-toolchain go1.22.3
+go 1.24.3
 
 use (
 	./
-	./modules/apps/callbacks
+	./simapp
 	./modules/light-clients/08-wasm
 	./e2e
-	./simapp
 )
