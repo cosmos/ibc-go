@@ -327,7 +327,7 @@ func NewSimApp(
 	app.UpgradeKeeper = upgradekeeper.NewKeeper(skipUpgradeHeights, runtime.NewKVStoreService(keys[upgradetypes.StoreKey]), appCodec, homePath, app.BaseApp, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[ibcexported.StoreKey]), app.GetSubspace(ibcexported.ModuleName), app.UpgradeKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		appCodec, runtime.NewKVStoreService(keys[ibcexported.StoreKey]), app.UpgradeKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	govConfig := govtypes.DefaultConfig()
@@ -348,7 +348,7 @@ func NewSimApp(
 
 	// ICA Controller keeper
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[icacontrollertypes.StoreKey]), app.GetSubspace(icacontrollertypes.SubModuleName),
+		appCodec, runtime.NewKVStoreService(keys[icacontrollertypes.StoreKey]),
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.MsgServiceRouter(),
@@ -357,7 +357,7 @@ func NewSimApp(
 
 	// ICA Host keeper
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[icahosttypes.StoreKey]), app.GetSubspace(icahosttypes.SubModuleName),
+		appCodec, runtime.NewKVStoreService(keys[icahosttypes.StoreKey]),
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper, app.AccountKeeper,
 		app.MsgServiceRouter(), app.GRPCQueryRouter(),
@@ -375,7 +375,7 @@ func NewSimApp(
 
 	// Create Transfer Keeper
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.GetSubspace(ibctransfertypes.ModuleName),
+		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]),
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.MsgServiceRouter(),

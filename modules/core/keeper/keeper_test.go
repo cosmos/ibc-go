@@ -76,7 +76,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 					ibckeeper.NewKeeper(
 						s.chainA.GetSimApp().AppCodec(),
 						runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
-						s.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 						upgradeKeeper,
 						"", // authority
 					)
@@ -95,7 +94,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 				ibckeeper.NewKeeper(
 					s.chainA.GetSimApp().AppCodec(),
 					runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
-					s.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					upgradeKeeper,
 					s.chainA.App.GetIBCKeeper().GetAuthority(),
 				)

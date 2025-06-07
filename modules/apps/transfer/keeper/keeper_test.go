@@ -58,7 +58,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				s.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
-				s.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),
@@ -71,7 +70,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				s.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
-				s.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),
@@ -84,7 +82,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				s.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
-				s.chainA.GetSimApp().GetSubspace(types.ModuleName),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),

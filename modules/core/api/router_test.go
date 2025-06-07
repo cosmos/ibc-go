@@ -38,27 +38,68 @@ func (s *APITestSuite) TestRouter() {
 		{
 			name: "success: prefix based routing works",
 			malleate: func() {
-				router.AddRoute("somemodule", &mockv2.IBCModule{})
+				router.AddPrefixRoute("somemodule", &mockv2.IBCModule{})
 				router.AddRoute("port01", &mockv2.IBCModule{})
 			},
 			assertionFn: func() {
 				s.Require().True(router.HasRoute("somemodule"))
 				s.Require().True(router.HasRoute("somemoduleport01"))
-				ok, prefix := router.HasRoute("somemoduleport01")
-				s.Require().Equal(true, ok)
-				s.Require().Equal("somemodule", prefix)
 				s.Require().NotNil(router.Route("somemoduleport01"))
 				s.Require().True(router.HasRoute("port01"))
 			},
 		},
 		{
-			name: "failure: panics on duplicate module",
+			name: "failure: panics on adding direct route after overlapping prefix route",
+			malleate: func() {
+				router.AddPrefixRoute("someModule", &mockv2.IBCModule{})
+			},
+			assertionFn: func() {
+				s.Require().PanicsWithError("route someModuleWithSpecificPath is already matched by registered prefix route: someModule", func() {
+					router.AddRoute("someModuleWithSpecificPath", &mockv2.IBCModule{})
+				})
+			},
+		},
+		{
+			name: "failure: panics on adding prefix route after overlapping direct route",
+			malleate: func() {
+				router.AddRoute("someModuleWithSpecificPath", &mockv2.IBCModule{})
+			},
+			assertionFn: func() {
+				s.Require().PanicsWithError("route prefix someModule is a prefix for already registered route: someModuleWithSpecificPath", func() {
+					router.AddPrefixRoute("someModule", &mockv2.IBCModule{})
+				})
+			},
+		},
+		{
+			name: "failure: panics on duplicate route",
 			malleate: func() {
 				router.AddRoute("port01", &mockv2.IBCModule{})
 			},
 			assertionFn: func() {
-				s.Require().PanicsWithError("route port01 has already been covered by registered prefix: port01", func() {
+				s.Require().PanicsWithError("route port01 has already been registered", func() {
 					router.AddRoute("port01", &mockv2.IBCModule{})
+				})
+			},
+		},
+		{
+			name: "failure: panics on duplicate route / prefix route",
+			malleate: func() {
+				router.AddRoute("port01", &mockv2.IBCModule{})
+			},
+			assertionFn: func() {
+				s.Require().PanicsWithError("route prefix port01 is a prefix for already registered route: port01", func() {
+					router.AddPrefixRoute("port01", &mockv2.IBCModule{})
+				})
+			},
+		},
+		{
+			name: "failure: panics on duplicate prefix route",
+			malleate: func() {
+				router.AddPrefixRoute("port01", &mockv2.IBCModule{})
+			},
+			assertionFn: func() {
+				s.Require().PanicsWithError("route prefix port01 has already been covered by registered prefix: port01", func() {
+					router.AddPrefixRoute("port01", &mockv2.IBCModule{})
 				})
 			},
 		},
@@ -72,22 +113,12 @@ func (s *APITestSuite) TestRouter() {
 			},
 		},
 		{
-			name:     "failure: panics conflicting routes registered",
+			name:     "failure: panics conflicting prefix routes registered, when shorter prefix is added",
 			malleate: func() {},
 			assertionFn: func() {
-				s.Require().PanicsWithError("route someModuleWithSpecificPath has already been covered by registered prefix: someModule", func() {
-					router.AddRoute("someModule", &mockv2.IBCModule{})
-					router.AddRoute("someModuleWithSpecificPath", &mockv2.IBCModule{})
-				})
-			},
-		},
-		{
-			name:     "failure: panics conflicting routes registered, when shorter prefix is added",
-			malleate: func() {},
-			assertionFn: func() {
-				s.Require().PanicsWithError("route someLonger is a prefix for already registered route: someLongerPrefixModule", func() {
-					router.AddRoute("someLongerPrefixModule", &mockv2.IBCModule{})
-					router.AddRoute("someLonger", &mockv2.IBCModule{})
+				s.Require().PanicsWithError("route prefix someLonger is a prefix for already registered prefix: someLongerPrefixModule", func() {
+					router.AddPrefixRoute("someLongerPrefixModule", &mockv2.IBCModule{})
+					router.AddPrefixRoute("someLonger", &mockv2.IBCModule{})
 				})
 			},
 		},

@@ -15,39 +15,6 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (s *KeeperTestSuite) TestMigratorMigrateParams() {
-	testCases := []struct {
-		msg            string
-		malleate       func()
-		expectedParams transfertypes.Params
-	}{
-		{
-			"success: default params",
-			func() {
-				params := transfertypes.DefaultParams()
-				subspace := s.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName)
-				subspace.SetParamSet(s.chainA.GetContext(), &params) // set params
-			},
-			transfertypes.DefaultParams(),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(fmt.Sprintf("case %s", tc.msg), func() {
-			s.SetupTest() // reset
-
-			tc.malleate() // explicitly set params
-
-			migrator := transferkeeper.NewMigrator(s.chainA.GetSimApp().TransferKeeper)
-			err := migrator.MigrateParams(s.chainA.GetContext())
-			s.Require().NoError(err)
-
-			params := s.chainA.GetSimApp().TransferKeeper.GetParams(s.chainA.GetContext())
-			s.Require().Equal(tc.expectedParams, params)
-		})
-	}
-}
-
 func (s *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 	testCases := []struct {
 		msg            string

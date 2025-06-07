@@ -142,7 +142,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				s.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
-				s.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().AccountKeeper,
@@ -155,7 +154,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				s.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
-				s.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				authkeeper.AccountKeeper{}, // empty account keeper
@@ -168,7 +166,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				s.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
-				s.chainA.GetSimApp().GetSubspace(types.SubModuleName),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().AccountKeeper,
