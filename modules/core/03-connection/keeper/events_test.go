@@ -8,9 +8,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *KeeperTestSuite) TestMsgConnectionOpenInitEvents() {
-	suite.SetupTest()
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+func (s *KeeperTestSuite) TestMsgConnectionOpenInitEvents() {
+	s.SetupTest()
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.SetupClients()
 
 	msg := types.NewMsgConnectionOpenInit(
@@ -20,9 +20,9 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenInitEvents() {
 		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	res, err := suite.chainA.SendMsgs(msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res)
+	res, err := s.chainA.SendMsgs(msg)
+	s.Require().NoError(err)
+	s.Require().NotNil(res)
 
 	events := res.Events
 	expectedEvents := sdk.Events{
@@ -36,17 +36,17 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenInitEvents() {
 
 	var indexSet map[string]struct{}
 	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
-	ibctesting.AssertEvents(&suite.Suite, expectedEvents, events)
+	ibctesting.AssertEvents(&s.Suite, expectedEvents, events)
 }
 
-func (suite *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
-	suite.SetupTest()
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+func (s *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
+	s.SetupTest()
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.SetupClients()
 
-	suite.Require().NoError(path.EndpointA.ConnOpenInit())
+	s.Require().NoError(path.EndpointA.ConnOpenInit())
 
-	suite.Require().NoError(path.EndpointB.UpdateClient())
+	s.Require().NoError(path.EndpointB.UpdateClient())
 
 	initProof, proofHeight := path.EndpointB.QueryConnectionHandshakeProof()
 
@@ -58,8 +58,8 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
 	)
 
 	res, err := path.EndpointB.Chain.SendMsgs(msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res)
+	s.Require().NoError(err)
+	s.Require().NotNil(res)
 
 	events := res.Events
 	expectedEvents := sdk.Events{
@@ -74,18 +74,18 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenTryEvents() {
 
 	var indexSet map[string]struct{}
 	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
-	ibctesting.AssertEvents(&suite.Suite, expectedEvents, events)
+	ibctesting.AssertEvents(&s.Suite, expectedEvents, events)
 }
 
-func (suite *KeeperTestSuite) TestMsgConnectionOpenAckEvents() {
-	suite.SetupTest()
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+func (s *KeeperTestSuite) TestMsgConnectionOpenAckEvents() {
+	s.SetupTest()
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.SetupClients()
 
-	suite.Require().NoError(path.EndpointA.ConnOpenInit())
-	suite.Require().NoError(path.EndpointB.ConnOpenTry())
+	s.Require().NoError(path.EndpointA.ConnOpenInit())
+	s.Require().NoError(path.EndpointB.ConnOpenTry())
 
-	suite.Require().NoError(path.EndpointA.UpdateClient())
+	s.Require().NoError(path.EndpointA.UpdateClient())
 
 	tryProof, proofHeight := path.EndpointA.QueryConnectionHandshakeProof()
 
@@ -96,8 +96,8 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenAckEvents() {
 	)
 
 	res, err := path.EndpointA.Chain.SendMsgs(msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res)
+	s.Require().NoError(err)
+	s.Require().NotNil(res)
 
 	events := res.Events
 	expectedEvents := sdk.Events{
@@ -112,19 +112,19 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenAckEvents() {
 
 	var indexSet map[string]struct{}
 	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
-	ibctesting.AssertEvents(&suite.Suite, expectedEvents, events)
+	ibctesting.AssertEvents(&s.Suite, expectedEvents, events)
 }
 
-func (suite *KeeperTestSuite) TestMsgConnectionOpenConfirmEvents() {
-	suite.SetupTest()
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+func (s *KeeperTestSuite) TestMsgConnectionOpenConfirmEvents() {
+	s.SetupTest()
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.SetupClients()
 
-	suite.Require().NoError(path.EndpointA.ConnOpenInit())
-	suite.Require().NoError(path.EndpointB.ConnOpenTry())
-	suite.Require().NoError(path.EndpointA.ConnOpenAck())
+	s.Require().NoError(path.EndpointA.ConnOpenInit())
+	s.Require().NoError(path.EndpointB.ConnOpenTry())
+	s.Require().NoError(path.EndpointA.ConnOpenAck())
 
-	suite.Require().NoError(path.EndpointB.UpdateClient())
+	s.Require().NoError(path.EndpointB.UpdateClient())
 
 	connectionKey := host.ConnectionKey(path.EndpointB.Counterparty.ConnectionID)
 	proof, height := path.EndpointB.Counterparty.Chain.QueryProof(connectionKey)
@@ -136,8 +136,8 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenConfirmEvents() {
 	)
 
 	res, err := path.EndpointB.Chain.SendMsgs(msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res)
+	s.Require().NoError(err)
+	s.Require().NotNil(res)
 
 	events := res.Events
 	expectedEvents := sdk.Events{
@@ -152,5 +152,5 @@ func (suite *KeeperTestSuite) TestMsgConnectionOpenConfirmEvents() {
 
 	var indexSet map[string]struct{}
 	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
-	ibctesting.AssertEvents(&suite.Suite, expectedEvents, events)
+	ibctesting.AssertEvents(&s.Suite, expectedEvents, events)
 }

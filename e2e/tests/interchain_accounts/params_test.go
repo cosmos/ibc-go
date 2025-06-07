@@ -165,7 +165,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 
 			channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 			s.Require().NoError(err)
-			s.Require().Equal(len(channels), 2)
+			s.Require().Len(channels, 2)
 		})
 
 		t.Run("stop relayer", func(t *testing.T) {

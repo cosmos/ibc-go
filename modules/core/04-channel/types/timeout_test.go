@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
 
-func (suite *TypesTestSuite) TestIsValid() {
+func (s *TypesTestSuite) TestIsValid() {
 	var timeout types.Timeout
 
 	testCases := []struct {
@@ -46,16 +46,16 @@ func (suite *TypesTestSuite) TestIsValid() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			tc.malleate()
 
 			isValid := timeout.IsValid()
-			suite.Require().Equal(tc.isValid, isValid)
+			s.Require().Equal(tc.isValid, isValid)
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestElapsed() {
+func (s *TypesTestSuite) TestElapsed() {
 	// elapsed is expected to be true when either timeout height or timestamp
 	// is greater than or equal to 2
 	var (
@@ -126,14 +126,14 @@ func (suite *TypesTestSuite) TestElapsed() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			elapsed := tc.timeout.Elapsed(height, timestamp)
-			suite.Require().Equal(tc.expElapsed, elapsed)
+			s.Require().Equal(tc.expElapsed, elapsed)
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestErrTimeoutElapsed() {
+func (s *TypesTestSuite) TestErrTimeoutElapsed() {
 	// elapsed is expected to be true when either timeout height or timestamp
 	// is greater than or equal to 2
 	var (
@@ -184,14 +184,14 @@ func (suite *TypesTestSuite) TestErrTimeoutElapsed() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.timeout.ErrTimeoutElapsed(height, timestamp)
-			suite.Require().Equal(tc.expError.Error(), err.Error())
+			s.Require().Equal(tc.expError.Error(), err.Error())
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestErrTimeoutNotReached() {
+func (s *TypesTestSuite) TestErrTimeoutNotReached() {
 	// elapsed is expected to be true when either timeout height or timestamp
 	// is greater than or equal to 2
 	var (
@@ -222,9 +222,9 @@ func (suite *TypesTestSuite) TestErrTimeoutNotReached() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.timeout.ErrTimeoutNotReached(height, timestamp)
-			suite.Require().Equal(tc.expError.Error(), err.Error())
+			s.Require().Equal(tc.expError.Error(), err.Error())
 		})
 	}
 }

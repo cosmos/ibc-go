@@ -60,7 +60,7 @@ type IBCMiddleware struct {
 func NewIBCMiddleware(
 	app api.IBCModule, writeAckWrapper api.WriteAcknowledgementWrapper,
 	contractKeeper types.ContractKeeper, chanKeeperV2 types.ChannelKeeperV2, maxCallbackGas uint64,
-) IBCMiddleware {
+) *IBCMiddleware {
 	packetDataUnmarshalerApp, ok := app.(api.PacketUnmarshalarModuleV2)
 	if !ok {
 		panic(fmt.Errorf("underlying application does not implement %T", (*api.PacketUnmarshalarModuleV2)(nil)))
@@ -82,7 +82,7 @@ func NewIBCMiddleware(
 		panic(errors.New("maxCallbackGas cannot be zero"))
 	}
 
-	return IBCMiddleware{
+	return &IBCMiddleware{
 		app:             packetDataUnmarshalerApp,
 		writeAckWrapper: writeAckWrapper,
 		contractKeeper:  contractKeeper,
@@ -105,7 +105,7 @@ func (im *IBCMiddleware) GetWriteAckWrapper() api.WriteAcknowledgementWrapper {
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback returns an error, panics, or runs out of gas, then
 // the packet send is rejected.
-func (im IBCMiddleware) OnSendPacket(
+func (im *IBCMiddleware) OnSendPacket(
 	ctx sdk.Context,
 	sourceClient string,
 	destinationClient string,
@@ -158,7 +158,7 @@ func (im IBCMiddleware) OnSendPacket(
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) OnRecvPacket(
+func (im *IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	sourceClient string,
 	destinationClient string,
@@ -233,7 +233,7 @@ func (im IBCMiddleware) OnRecvPacket(
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) OnAcknowledgementPacket(
+func (im *IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	sourceClient string,
 	destinationClient string,
@@ -306,7 +306,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
 // OnTimeoutPacket is executed when a packet has timed out on the receiving chain.
-func (im IBCMiddleware) OnTimeoutPacket(
+func (im *IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
 	sourceClient string,
 	destinationClient string,
@@ -371,7 +371,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) WriteAcknowledgement(
+func (im *IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	clientID string,
 	sequence uint64,

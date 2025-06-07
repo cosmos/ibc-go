@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -20,7 +20,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 	t.Run("empty dir with no test cases fails", func(t *testing.T) {
 		testingDir := t.TempDir()
 		_, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("only test functions are picked up", func(t *testing.T) {
@@ -28,7 +28,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 
 		gh, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		expected := GithubActionTestMatrix{
 			Include: []TestSuitePair{
@@ -51,7 +51,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		createFileWithTestSuiteAndTests(t, "TransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
 
 		gh, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		expected := GithubActionTestMatrix{
 			Include: []TestSuitePair{
@@ -83,7 +83,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		createFileWithTestSuiteAndTests(t, "TransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
 
 		gh, err := getGithubActionMatrixForTests(testingDir, "TestA", "TestFeeMiddlewareTestSuite", nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		expected := GithubActionTestMatrix{
 			Include: []TestSuitePair{
@@ -102,7 +102,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 
 		_, err := getGithubActionMatrixForTests(testingDir, "TestThatDoesntExist", "TestFeeMiddlewareTestSuite", nil)
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("non test files are skipped", func(t *testing.T) {
@@ -110,8 +110,8 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
 
 		gh, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
-		assert.Error(t, err)
-		assert.Empty(t, gh.Include)
+		require.Error(t, err)
+		require.Empty(t, gh.Include)
 	})
 
 	t.Run("fails when there are multiple suite runs", func(t *testing.T) {
@@ -131,10 +131,10 @@ type FeeMiddlewareTestSuite struct {}
 `
 
 		err := os.WriteFile(path.Join(testingDir, goTestFileNameOne), []byte(fileWithTwoSuites), os.FileMode(0o777))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		_, err = getGithubActionMatrixForTests(testingDir, "", "", nil)
-		assert.Error(t, err)
+		require.Error(t, err)
 	})
 }
 
@@ -159,7 +159,7 @@ func assertGithubActionTestMatricesEqual(t *testing.T, expected, actual GithubAc
 		}
 		return memberI.EntryPoint < memberJ.EntryPoint
 	})
-	assert.Equal(t, expected.Include, actual.Include)
+	require.Equal(t, expected.Include, actual.Include)
 }
 
 func goTestFileContents(suiteName, fnName1, fnName2 string) string {
@@ -187,5 +187,5 @@ func createFileWithTestSuiteAndTests(t *testing.T, suiteName, fn1Name, fn2Name, 
 	t.Helper()
 	goFileContents := goTestFileContents(suiteName, fn1Name, fn2Name)
 	err := os.WriteFile(path.Join(dir, filename), []byte(goFileContents), os.FileMode(0o777))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }

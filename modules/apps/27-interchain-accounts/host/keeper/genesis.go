@@ -22,7 +22,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, state genesistypes.HostGenesisS
 	}
 
 	if err := state.Params.Validate(); err != nil {
-		panic(fmt.Errorf("could not set ica host params at genesis: %v", err))
+		panic(fmt.Errorf("could not set ica host params at genesis: %w", err))
 	}
 	keeper.SetParams(ctx, state.Params)
 }
