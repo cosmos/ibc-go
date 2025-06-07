@@ -62,7 +62,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 
 	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.PortID, chanAB.ChannelID)
 
-	t.Run("No rate limit set: transfer suceeds", func(_ *testing.T) {
+	t.Run("No rate limit set: transfer succeeds", func(_ *testing.T) {
 		userABalBefore, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
 		userBBalBefore, err := query.Balance(ctx, chainB, userB.FormattedAddress(), ibcTokenB.IBCDenom())
