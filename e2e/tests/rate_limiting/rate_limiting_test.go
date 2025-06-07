@@ -98,12 +98,20 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().NoError(err)
 		s.Require().Nil(resp.RateLimits)
 
-		s.addRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String(), 10, 0, 1)
+		sendPercentage := int64(10)
+		recvPercentage := int64(0)
+		s.addRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String(), sendPercentage, recvPercentage, 1)
 
 		resp, err = query.GRPCQuery[ratelimitingtypes.QueryAllRateLimitsResponse](ctx, chainA, &ratelimitingtypes.QueryAllRateLimitsRequest{})
 		s.Require().NoError(err)
 		s.Require().Len(resp.RateLimits, 1)
 
+		rateLimit := resp.RateLimits[0]
+		s.Require().Equal(rateLimit.Flow.Outflow.Int64(), int64(0))
+		s.Require().Equal(rateLimit.Flow.Inflow.Int64(), int64(0))
+		s.Require().Equal(rateLimit.Quota.MaxPercentSend.Int64(), sendPercentage)
+		s.Require().Equal(rateLimit.Quota.MaxPercentRecv.Int64(), recvPercentage)
+		s.Require().Equal(rateLimit.Quota.DurationHours, uint64(1))
 	})
 
 	t.Run("Transfer updateds the ratelimit flow", func(_ *testing.T) {
@@ -157,17 +165,31 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	})
 
 	t.Run("Reset RateLimit -> Transfer works", func(_ *testing.T) {
+		rateLimit := s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
+		sendPercentage := rateLimit.Quota.MaxPercentSend.Int64()
+		recvPercentage := rateLimit.Quota.MaxPercentRecv.Int64()
+
 		s.resetRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String())
 
-		rateLimit := s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
+		rateLimit = s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
+		// Resetting only clars the flow. It does not change the Quota
 		s.Require().Zero(rateLimit.Flow.Outflow.Int64())
+		s.Require().Equal(rateLimit.Quota.MaxPercentSend.Int64(), sendPercentage)
+		s.Require().Equal(rateLimit.Quota.MaxPercentRecv.Int64(), recvPercentage)
 
 		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(txResp)
 	})
 
 	t.Run("Set Outflow Quota to 0 -> Transfer Fails", func(_ *testing.T) {
-		s.updateRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String(), 0, 1)
+		sendPercentage := int64(0)
+		recvPercentage := int64(1)
+		s.updateRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String(), sendPercentage, recvPercentage)
+
+		rateLimit := s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
+		s.Require().Equal(rateLimit.Quota.MaxPercentSend.Int64(), sendPercentage)
+		s.Require().Equal(rateLimit.Quota.MaxPercentRecv.Int64(), recvPercentage)
+
 		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxFailure(txResp, ratelimitingtypes.ErrQuotaExceeded)
 	})
