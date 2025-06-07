@@ -87,11 +87,10 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	// ratelimitingmodule "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/module" // Remove incorrect import
 	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
 	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
-	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting" // Add rate-limiting import
+	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting"
 	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfer "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
@@ -367,15 +366,7 @@ func NewSimApp(
 	// PacketForwardMiddleware must be created before TransferKeeper
 	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.RateLimitKeeper.ICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
-	// Create Transfer Keeper
-	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]),
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.MsgServiceRouter(),
-		app.AccountKeeper, app.BankKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
+	app.TransferKeeper = ibctransferkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.MsgServiceRouter(), app.AccountKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	app.PFMKeeper.SetTransferKeeper(app.TransferKeeper)
 
