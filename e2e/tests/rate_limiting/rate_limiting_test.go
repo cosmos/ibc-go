@@ -62,7 +62,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 
 	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.PortID, chanAB.ChannelID)
 
-	t.Run("No rate limit set: Tranfer succeed", func(_ *testing.T) {
+	t.Run("No rate limit set: transfer suceeds", func(_ *testing.T) {
 		userABalBefore, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
 		userBBalBefore, err := query.Balance(ctx, chainB, userB.FormattedAddress(), ibcTokenB.IBCDenom())
@@ -82,7 +82,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		userABalAfter, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
 
-		// Balanced moved form useA to userB
+		// Balanced moved form userA to userB
 		s.Require().Equal(userABalBefore-testvalues.IBCTransferAmount, userABalAfter)
 		escrowBalA, err := query.Balance(ctx, chainA, escrowAddrA.String(), denomA)
 		s.Require().NoError(err)
@@ -93,7 +93,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().Equal(testvalues.IBCTransferAmount, userBBalAfter.Int64())
 	})
 
-	t.Run("Add Outgoing Ratelimit on ChainA", func(_ *testing.T) {
+	t.Run("Add outgoing rate limit on ChainA", func(_ *testing.T) {
 		resp, err := query.GRPCQuery[ratelimitingtypes.QueryAllRateLimitsResponse](ctx, chainA, &ratelimitingtypes.QueryAllRateLimitsRequest{})
 		s.Require().NoError(err)
 		s.Require().Nil(resp.RateLimits)
@@ -114,7 +114,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().Equal(rateLimit.Quota.DurationHours, uint64(1))
 	})
 
-	t.Run("Transfer updateds the ratelimit flow", func(_ *testing.T) {
+	t.Run("Transfer updates the rate limit flow", func(_ *testing.T) {
 		userABalBefore, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
 
@@ -131,7 +131,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		userABalAfter, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
 
-		// Balanced moved form useA to userB
+		// Balanced moved form userA to userB
 		s.Require().Equal(userABalBefore-testvalues.IBCTransferAmount, userABalAfter)
 		userBBalAfter, err := query.Balance(ctx, chainB, userB.FormattedAddress(), ibcTokenB.IBCDenom())
 		s.Require().NoError(err)
@@ -143,7 +143,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().Equal(rateLimit.Flow.Outflow.Int64(), testvalues.IBCTransferAmount)
 	})
 
-	t.Run("Fill the quota", func(_ *testing.T) {
+	t.Run("Fill and exceed quota", func(_ *testing.T) {
 		rateLim := s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
 		sendPercentage := rateLim.Quota.MaxPercentSend.Int64()
 
@@ -158,13 +158,13 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		txResp := s.Transfer(ctx, chainA, richKid, chanAB.PortID, chanAB.ChannelID, sendCoin, richKid.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(txResp)
 
-		// Sending even 10denomA fails due to exceed quota.
+		// Sending even 10denomA fails due to exceeding the quota
 		sendCoin = sdk.NewInt64Coin(denomA, 10)
 		txResp = s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, sendCoin, userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxFailure(txResp, ratelimitingtypes.ErrQuotaExceeded)
 	})
 
-	t.Run("Reset RateLimit -> Transfer works", func(_ *testing.T) {
+	t.Run("Reset rate limit: transfer succeeds", func(_ *testing.T) {
 		rateLimit := s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
 		sendPercentage := rateLimit.Quota.MaxPercentSend.Int64()
 		recvPercentage := rateLimit.Quota.MaxPercentRecv.Int64()
@@ -172,7 +172,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.resetRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String())
 
 		rateLimit = s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
-		// Resetting only clars the flow. It does not change the Quota
+		// Resetting only clears the flow. It does not change the quota
 		s.Require().Zero(rateLimit.Flow.Outflow.Int64())
 		s.Require().Equal(rateLimit.Quota.MaxPercentSend.Int64(), sendPercentage)
 		s.Require().Equal(rateLimit.Quota.MaxPercentRecv.Int64(), recvPercentage)
@@ -181,7 +181,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("Set Outflow Quota to 0 -> Transfer Fails", func(_ *testing.T) {
+	t.Run("Set outflow quota to 0: transfer fails", func(_ *testing.T) {
 		sendPercentage := int64(0)
 		recvPercentage := int64(1)
 		s.updateRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String(), sendPercentage, recvPercentage)
@@ -194,7 +194,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.AssertTxFailure(txResp, ratelimitingtypes.ErrQuotaExceeded)
 	})
 
-	t.Run("Remove rate limit -> Transfer works again", func(_ *testing.T) {
+	t.Run("Remove rate limit -> transfer succeeds again", func(_ *testing.T) {
 		s.removeRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String())
 
 		rateLimit := s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
