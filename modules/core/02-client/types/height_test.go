@@ -35,13 +35,13 @@ func TestCompareHeights(t *testing.T) {
 
 			switch tc.compareSign {
 			case -1:
-				require.Equal(t, -1, compare, "case %d: %s should return negative value on comparison, got: %d",
+				require.Equal(t, tc.compareSign, compare, "case %d: %s should return negative value on comparison, got: %d",
 					i, tc.name, compare)
 			case 0:
-				require.Equal(t, 0, compare, "case %d: %s should return zero on comparison, got: %d",
+				require.Equal(t, tc.compareSign, compare, "case %d: %s should return zero on comparison, got: %d",
 					i, tc.name, compare)
 			case 1:
-				require.Equal(t, 1, compare, "case %d: %s should return positive value on comparison, got: %d",
+				require.Equal(t, tc.compareSign, compare, "case %d: %s should return positive value on comparison, got: %d",
 					i, tc.name, compare)
 			}
 		})

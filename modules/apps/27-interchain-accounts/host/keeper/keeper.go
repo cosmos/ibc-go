@@ -92,7 +92,7 @@ func (k *Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
 }
 
 // Logger returns the application logger, scoped to the associated module
-func (Keeper) Logger(ctx sdk.Context) log.Logger {
+func (*Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s-%s", exported.ModuleName, icatypes.ModuleName))
 }
 

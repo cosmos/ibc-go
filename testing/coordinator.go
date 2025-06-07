@@ -130,9 +130,9 @@ func (*Coordinator) CreateTransferChannels(path *Path) {
 
 // GetChain returns the TestChain using the given chainID and returns an error if it does
 // not exist.
-func (coord *Coordinator) GetChain(chainID string) *TestChain {
-	chain, found := coord.Chains[chainID]
-	require.True(coord.T, found, "%s chain does not exist", chainID)
+func (c *Coordinator) GetChain(chainID string) *TestChain {
+	chain, found := c.Chains[chainID]
+	require.True(c.T, found, "%s chain does not exist", chainID)
 	return chain
 }
 
@@ -144,17 +144,17 @@ func GetChainID(index int) string {
 // CommitBlock commits a block on the provided indexes and then increments the global time.
 //
 // CONTRACT: the passed in list of indexes must not contain duplicates
-func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
+func (c *Coordinator) CommitBlock(chains ...*TestChain) {
 	for _, chain := range chains {
 		chain.NextBlock()
 	}
-	coord.IncrementTime()
+	c.IncrementTime()
 }
 
 // CommitNBlocks commits n blocks to state and updates the block height by 1 for each commit.
-func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
+func (c *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
 	for range n {
 		chain.NextBlock()
-		coord.IncrementTime()
+		c.IncrementTime()
 	}
 }
