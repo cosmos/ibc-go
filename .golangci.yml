@@ -24,6 +24,19 @@ linters:
     - iface
     - importas
     - intrange
+    - nakedret
+    - nilnesserr
+    - nilnil
+    - nonamedreturns
+    - prealloc
+    - predeclared
+    - reassign
+    - recvcheck
+    - testifylint
+    - testpackage
+    - usestdlibvars
+    - usetesting
+    - wastedassign
   settings:
     gosec:
       excludes:
@@ -31,6 +44,8 @@ linters:
         - G115
         - G404
       confidence: medium
+    nakedret:
+      max-func-lines: 0
     revive:
       enable-all-rules: true
       # See the rule descriptions here: https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md
@@ -81,10 +96,21 @@ linters:
       - linters:
           - staticcheck
         text: 'SA1019:' # TODO: This should really be removed!
+      - path: _test\.go
+        linters:
+          - prealloc
+      - path: e2e/*
+        linters:
+          - prealloc
+          - testpackage
+      - path: testing/*
+        linters:
+          - prealloc
     paths:
       - third_party$
       - builtin$
       - examples$
+      - testing/mock/*
 issues:
   max-issues-per-linter: 10000
   max-same-issues: 10000

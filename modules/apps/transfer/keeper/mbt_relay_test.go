@@ -102,7 +102,7 @@ func AddressFromTla(addr []string) string {
 	if len(addr) != 3 {
 		panic(errors.New("failed to convert from TLA+ address: wrong number of address components"))
 	}
-	s := ""
+	var s string
 	if len(addr[0]) == 0 && len(addr[1]) == 0 { //nolint:gocritic
 		// simple address: id
 		s = addr[2]
@@ -262,7 +262,7 @@ func (bank *Bank) NonZeroString() string {
 // Construct a bank out of the chain bank
 func BankOfChain(chain *ibctesting.TestChain) Bank {
 	bank := MakeBank()
-	chain.GetSimApp().BankKeeper.IterateAllBalances(chain.GetContext(), func(address sdk.AccAddress, coin sdk.Coin) (stop bool) {
+	chain.GetSimApp().BankKeeper.IterateAllBalances(chain.GetContext(), func(address sdk.AccAddress, coin sdk.Coin) bool {
 		token, err := chain.GetSimApp().TransferKeeper.TokenFromCoin(chain.GetContext(), coin)
 		if err != nil {
 			panic(fmt.Errorf("Failed to construct token from coin: %w", err))

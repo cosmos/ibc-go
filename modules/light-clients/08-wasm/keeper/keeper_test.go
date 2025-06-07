@@ -432,7 +432,7 @@ func (suite *KeeperTestSuite) TestGetChecksums() {
 			"success: no contract stored.",
 			func() {},
 			func(checksums []types.Checksum) {
-				suite.Require().Len(checksums, 0)
+				suite.Require().Empty(checksums)
 			},
 		},
 		{

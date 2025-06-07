@@ -181,7 +181,8 @@ func PickVersion(supportedVersions, counterpartyVersions []*Version) (*Version, 
 // and the counterparty feature set. This is done by iterating over all the
 // features in the source version and seeing if they exist in the feature
 // set for the counterparty version.
-func GetFeatureSetIntersection(sourceFeatureSet, counterpartyFeatureSet []string) (featureSet []string) {
+func GetFeatureSetIntersection(sourceFeatureSet, counterpartyFeatureSet []string) []string {
+	var featureSet []string
 	for _, feature := range sourceFeatureSet {
 		if slices.Contains(counterpartyFeatureSet, feature) {
 			featureSet = append(featureSet, feature)

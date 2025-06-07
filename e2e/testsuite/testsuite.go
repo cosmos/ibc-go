@@ -233,7 +233,7 @@ func (s *E2ETestSuite) CreatePath(
 	clientOpts ibc.CreateClientOptions,
 	channelOpts ibc.CreateChannelOptions,
 	testName string,
-) (chainAChannel ibc.ChannelOutput, chainBChannel ibc.ChannelOutput) {
+) (ibc.ChannelOutput, ibc.ChannelOutput) {
 	pathName := s.generatePathName()
 	s.testPaths[testName] = append(s.testPaths[testName], pathName)
 

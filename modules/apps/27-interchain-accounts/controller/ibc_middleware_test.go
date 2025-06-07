@@ -273,8 +273,7 @@ func (suite *InterchainAccountsTestSuite) TestChanOpenTry() {
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 	var (
-		path     *ibctesting.Path
-		isNilApp bool
+		path *ibctesting.Path
 	)
 
 	testCases := []struct {
@@ -305,11 +304,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 			}, errors.New("mock ica auth fails"),
 		},
 		{
-			"nil underlying app", func() {
-				isNilApp = true
-			}, nil,
-		},
-		{
 			"middleware disabled", func() {
 				suite.chainA.GetSimApp().ICAControllerKeeper.DeleteMiddlewareEnabled(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ConnectionID)
 
@@ -326,7 +320,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 		for _, tc := range testCases {
 			suite.Run(tc.name, func() {
 				suite.SetupTest() // reset
-				isNilApp = false
 
 				path = NewICAPath(suite.chainA, suite.chainB, ordering)
 				path.SetupConnections()
@@ -343,10 +336,6 @@ func (suite *InterchainAccountsTestSuite) TestOnChanOpenAck() {
 				suite.Require().True(ok)
 
 				err = cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelID, path.EndpointB.ChannelConfig.Version)
-
-				if isNilApp {
-					cbs = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
-				}
 
 				if tc.expErr == nil {
 					suite.Require().NoError(err)

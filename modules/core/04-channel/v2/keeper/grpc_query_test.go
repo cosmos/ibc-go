@@ -318,7 +318,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 
 				var commitments []uint64
 
-				for i := uint64(0); i < 100; i++ {
+				for i := range uint64(100) {
 					ack := types.NewPacketState(path.EndpointA.ClientID, i, fmt.Appendf(nil, "hash_%d", i))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.ClientId, ack.Sequence, ack.Data)
 

@@ -80,17 +80,17 @@ type TypesTestSuite struct {
 	proof []byte
 }
 
-func (suite *TypesTestSuite) SetupTest() {
-	app := simapp.Setup(suite.T(), false)
+func (s *TypesTestSuite) SetupTest() {
+	app := simapp.Setup(s.T(), false)
 	db := dbm.NewMemDB()
 	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	err := store.LoadVersion(0)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	iavlStore, ok := store.GetCommitStore(storeKey).(*iavl.Store)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 
 	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()
@@ -100,21 +100,21 @@ func (suite *TypesTestSuite) SetupTest() {
 		Path:  fmt.Sprintf("/%s/key", storeKey.Name()), // required path to get key/value+proof
 		Prove: true,
 	})
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	proof, err := app.AppCodec().Marshal(&merkleProof)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	suite.proof = proof
+	s.proof = proof
 }
 
 func TestTypesTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TypesTestSuite))
 }
 
-func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
+func (s *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
 	counterparty := types.NewCounterparty(cpportid, cpchanid)
 	tryOpenChannel := types.NewChannel(types.TRYOPEN, types.ORDERED, counterparty, connHops, version)
 
@@ -238,29 +238,29 @@ func (suite *TypesTestSuite) TestMsgChannelOpenInitValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelOpenInitGetSigners() {
+func (s *TypesTestSuite) TestMsgChannelOpenInitGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	msg := types.NewMsgChannelOpenInit(portid, version, types.ORDERED, connHops, cpportid, addr)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	s.Require().NoError(err)
+	s.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
 func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
@@ -420,19 +420,19 @@ func (suite *TypesTestSuite) TestMsgChannelOpenTryValidateBasic() {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelOpenTryGetSigners() {
+func (s *TypesTestSuite) TestMsgChannelOpenTryGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	suite.Require().NoError(err)
-	msg := types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, version, suite.proof, height, addr)
+	s.Require().NoError(err)
+	msg := types.NewMsgChannelOpenTry(portid, version, types.ORDERED, connHops, cpportid, cpchanid, version, s.proof, height, addr)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	s.Require().NoError(err)
+	s.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
-func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
+func (s *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 	testCases := []struct {
 		name   string
 		msg    *types.MsgChannelOpenAck
@@ -440,17 +440,17 @@ func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 	}{
 		{
 			"success",
-			types.NewMsgChannelOpenAck(portid, chanid, chanid, version, suite.proof, height, addr),
+			types.NewMsgChannelOpenAck(portid, chanid, chanid, version, s.proof, height, addr),
 			nil,
 		},
 		{
 			"success empty cpv",
-			types.NewMsgChannelOpenAck(portid, chanid, chanid, "", suite.proof, height, addr),
+			types.NewMsgChannelOpenAck(portid, chanid, chanid, "", s.proof, height, addr),
 			nil,
 		},
 		{
 			"too short port id",
-			types.NewMsgChannelOpenAck(invalidShortPort, chanid, chanid, version, suite.proof, height, addr),
+			types.NewMsgChannelOpenAck(invalidShortPort, chanid, chanid, version, s.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -461,7 +461,7 @@ func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 		},
 		{
 			"too long port id",
-			types.NewMsgChannelOpenAck(invalidLongPort, chanid, chanid, version, suite.proof, height, addr),
+			types.NewMsgChannelOpenAck(invalidLongPort, chanid, chanid, version, s.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -472,7 +472,7 @@ func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 		},
 		{
 			"port id contains non-alpha",
-			types.NewMsgChannelOpenAck(invalidPort, chanid, chanid, version, suite.proof, height, addr),
+			types.NewMsgChannelOpenAck(invalidPort, chanid, chanid, version, s.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -483,17 +483,17 @@ func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 		},
 		{
 			"too short channel id",
-			types.NewMsgChannelOpenAck(portid, invalidShortChannel, chanid, version, suite.proof, height, addr),
+			types.NewMsgChannelOpenAck(portid, invalidShortChannel, chanid, version, s.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"too long channel id",
-			types.NewMsgChannelOpenAck(portid, invalidLongChannel, chanid, version, suite.proof, height, addr),
+			types.NewMsgChannelOpenAck(portid, invalidLongChannel, chanid, version, s.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"channel id contains non-alpha",
-			types.NewMsgChannelOpenAck(portid, invalidChannel, chanid, version, suite.proof, height, addr),
+			types.NewMsgChannelOpenAck(portid, invalidChannel, chanid, version, s.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
@@ -503,7 +503,7 @@ func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 		},
 		{
 			"invalid counterparty channel id",
-			types.NewMsgChannelOpenAck(portid, chanid, invalidShortChannel, version, suite.proof, height, addr),
+			types.NewMsgChannelOpenAck(portid, chanid, invalidShortChannel, version, s.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -515,32 +515,32 @@ func (suite *TypesTestSuite) TestMsgChannelOpenAckValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelOpenAckGetSigners() {
+func (s *TypesTestSuite) TestMsgChannelOpenAckGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	suite.Require().NoError(err)
-	msg := types.NewMsgChannelOpenAck(portid, chanid, chanid, version, suite.proof, height, addr)
+	s.Require().NoError(err)
+	msg := types.NewMsgChannelOpenAck(portid, chanid, chanid, version, s.proof, height, addr)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	s.Require().NoError(err)
+	s.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
-func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
+func (s *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 	testCases := []struct {
 		name   string
 		msg    *types.MsgChannelOpenConfirm
@@ -548,12 +548,12 @@ func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 	}{
 		{
 			"success",
-			types.NewMsgChannelOpenConfirm(portid, chanid, suite.proof, height, addr),
+			types.NewMsgChannelOpenConfirm(portid, chanid, s.proof, height, addr),
 			nil,
 		},
 		{
 			"too short port id",
-			types.NewMsgChannelOpenConfirm(invalidShortPort, chanid, suite.proof, height, addr),
+			types.NewMsgChannelOpenConfirm(invalidShortPort, chanid, s.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -564,7 +564,7 @@ func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 		},
 		{
 			"too long port id",
-			types.NewMsgChannelOpenConfirm(invalidLongPort, chanid, suite.proof, height, addr),
+			types.NewMsgChannelOpenConfirm(invalidLongPort, chanid, s.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -575,7 +575,7 @@ func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 		},
 		{
 			"port id contains non-alpha",
-			types.NewMsgChannelOpenConfirm(invalidPort, chanid, suite.proof, height, addr),
+			types.NewMsgChannelOpenConfirm(invalidPort, chanid, s.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -586,17 +586,17 @@ func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 		},
 		{
 			"too short channel id",
-			types.NewMsgChannelOpenConfirm(portid, invalidShortChannel, suite.proof, height, addr),
+			types.NewMsgChannelOpenConfirm(portid, invalidShortChannel, s.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"too long channel id",
-			types.NewMsgChannelOpenConfirm(portid, invalidLongChannel, suite.proof, height, addr),
+			types.NewMsgChannelOpenConfirm(portid, invalidLongChannel, s.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"channel id contains non-alpha",
-			types.NewMsgChannelOpenConfirm(portid, invalidChannel, suite.proof, height, addr),
+			types.NewMsgChannelOpenConfirm(portid, invalidChannel, s.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
@@ -607,32 +607,32 @@ func (suite *TypesTestSuite) TestMsgChannelOpenConfirmValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelOpenConfirmGetSigners() {
+func (s *TypesTestSuite) TestMsgChannelOpenConfirmGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	suite.Require().NoError(err)
-	msg := types.NewMsgChannelOpenConfirm(portid, chanid, suite.proof, height, addr)
+	s.Require().NoError(err)
+	msg := types.NewMsgChannelOpenConfirm(portid, chanid, s.proof, height, addr)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	s.Require().NoError(err)
+	s.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
-func (suite *TypesTestSuite) TestMsgChannelCloseInitValidateBasic() {
+func (s *TypesTestSuite) TestMsgChannelCloseInitValidateBasic() {
 	testCases := []struct {
 		name   string
 		msg    *types.MsgChannelCloseInit
@@ -694,32 +694,32 @@ func (suite *TypesTestSuite) TestMsgChannelCloseInitValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelCloseInitGetSigners() {
+func (s *TypesTestSuite) TestMsgChannelCloseInitGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	msg := types.NewMsgChannelCloseInit(portid, chanid, addr)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	s.Require().NoError(err)
+	s.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
-func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
+func (s *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 	testCases := []struct {
 		name   string
 		msg    *types.MsgChannelCloseConfirm
@@ -727,17 +727,17 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 	}{
 		{
 			"success",
-			types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr),
+			types.NewMsgChannelCloseConfirm(portid, chanid, s.proof, height, addr),
 			nil,
 		},
 		{
 			"success, positive counterparty upgrade sequence",
-			types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr),
+			types.NewMsgChannelCloseConfirm(portid, chanid, s.proof, height, addr),
 			nil,
 		},
 		{
 			"too short port id",
-			types.NewMsgChannelCloseConfirm(invalidShortPort, chanid, suite.proof, height, addr),
+			types.NewMsgChannelCloseConfirm(invalidShortPort, chanid, s.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -748,7 +748,7 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 		},
 		{
 			"too long port id",
-			types.NewMsgChannelCloseConfirm(invalidLongPort, chanid, suite.proof, height, addr),
+			types.NewMsgChannelCloseConfirm(invalidLongPort, chanid, s.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -759,7 +759,7 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 		},
 		{
 			"port id contains non-alpha",
-			types.NewMsgChannelCloseConfirm(invalidPort, chanid, suite.proof, height, addr),
+			types.NewMsgChannelCloseConfirm(invalidPort, chanid, s.proof, height, addr),
 			errorsmod.Wrap(
 				errorsmod.Wrapf(
 					host.ErrInvalidID,
@@ -770,17 +770,17 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 		},
 		{
 			"too short channel id",
-			types.NewMsgChannelCloseConfirm(portid, invalidShortChannel, suite.proof, height, addr),
+			types.NewMsgChannelCloseConfirm(portid, invalidShortChannel, s.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"too long channel id",
-			types.NewMsgChannelCloseConfirm(portid, invalidLongChannel, suite.proof, height, addr),
+			types.NewMsgChannelCloseConfirm(portid, invalidLongChannel, s.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
 			"channel id contains non-alpha",
-			types.NewMsgChannelCloseConfirm(portid, invalidChannel, suite.proof, height, addr),
+			types.NewMsgChannelCloseConfirm(portid, invalidChannel, s.proof, height, addr),
 			types.ErrInvalidChannelIdentifier,
 		},
 		{
@@ -791,32 +791,32 @@ func (suite *TypesTestSuite) TestMsgChannelCloseConfirmValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgChannelCloseConfirmGetSigners() {
+func (s *TypesTestSuite) TestMsgChannelCloseConfirmGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	suite.Require().NoError(err)
-	msg := types.NewMsgChannelCloseConfirm(portid, chanid, suite.proof, height, addr)
+	s.Require().NoError(err)
+	msg := types.NewMsgChannelCloseConfirm(portid, chanid, s.proof, height, addr)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	s.Require().NoError(err)
+	s.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
-func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
+func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 	testCases := []struct {
 		name   string
 		msg    *types.MsgRecvPacket
@@ -824,12 +824,12 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 	}{
 		{
 			"success",
-			types.NewMsgRecvPacket(packet, suite.proof, height, addr),
+			types.NewMsgRecvPacket(packet, s.proof, height, addr),
 			nil,
 		},
 		{
 			"missing signer address",
-			types.NewMsgRecvPacket(packet, suite.proof, height, emptyAddr),
+			types.NewMsgRecvPacket(packet, s.proof, height, emptyAddr),
 			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
 		},
 		{
@@ -839,38 +839,38 @@ func (suite *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 		},
 		{
 			"invalid packet",
-			types.NewMsgRecvPacket(invalidPacket, suite.proof, height, addr),
+			types.NewMsgRecvPacket(invalidPacket, s.proof, height, addr),
 			errorsmod.Wrap(types.ErrInvalidPacket, "packet sequence cannot be 0"),
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.NoError(err)
+				s.NoError(err)
 			} else {
-				suite.Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgRecvPacketGetSigners() {
+func (s *TypesTestSuite) TestMsgRecvPacketGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	suite.Require().NoError(err)
-	msg := types.NewMsgRecvPacket(packet, suite.proof, height, addr)
+	s.Require().NoError(err)
+	msg := types.NewMsgRecvPacket(packet, s.proof, height, addr)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	s.Require().NoError(err)
+	s.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
-func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
+func (s *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 	testCases := []struct {
 		name   string
 		msg    *types.MsgTimeout
@@ -878,17 +878,17 @@ func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 	}{
 		{
 			"success",
-			types.NewMsgTimeout(packet, 1, suite.proof, height, addr),
+			types.NewMsgTimeout(packet, 1, s.proof, height, addr),
 			nil,
 		},
 		{
 			"seq 0",
-			types.NewMsgTimeout(packet, 0, suite.proof, height, addr),
+			types.NewMsgTimeout(packet, 0, s.proof, height, addr),
 			errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "next sequence receive cannot be 0"),
 		},
 		{
 			"missing signer address",
-			types.NewMsgTimeout(packet, 1, suite.proof, height, emptyAddr),
+			types.NewMsgTimeout(packet, 1, s.proof, height, emptyAddr),
 			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
 		},
 		{
@@ -898,38 +898,38 @@ func (suite *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 		},
 		{
 			"invalid packet",
-			types.NewMsgTimeout(invalidPacket, 1, suite.proof, height, addr),
+			types.NewMsgTimeout(invalidPacket, 1, s.proof, height, addr),
 			errorsmod.Wrap(types.ErrInvalidPacket, "packet sequence cannot be 0"),
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgTimeoutGetSigners() {
+func (s *TypesTestSuite) TestMsgTimeoutGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	suite.Require().NoError(err)
-	msg := types.NewMsgTimeout(packet, 1, suite.proof, height, addr)
+	s.Require().NoError(err)
+	msg := types.NewMsgTimeout(packet, 1, s.proof, height, addr)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	s.Require().NoError(err)
+	s.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
-func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
+func (s *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 	testCases := []struct {
 		name   string
 		msg    *types.MsgTimeoutOnClose
@@ -937,68 +937,68 @@ func (suite *TypesTestSuite) TestMsgTimeoutOnCloseValidateBasic() {
 	}{
 		{
 			"success",
-			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr),
+			types.NewMsgTimeoutOnClose(packet, 1, s.proof, s.proof, height, addr),
 			nil,
 		},
 		{
 			"success, positive counterparty upgrade sequence",
-			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr),
+			types.NewMsgTimeoutOnClose(packet, 1, s.proof, s.proof, height, addr),
 			nil,
 		},
 		{
 			"seq 0",
-			types.NewMsgTimeoutOnClose(packet, 0, suite.proof, suite.proof, height, addr),
+			types.NewMsgTimeoutOnClose(packet, 0, s.proof, s.proof, height, addr),
 			errorsmod.Wrap(ibcerrors.ErrInvalidSequence, "next sequence receive cannot be 0"),
 		},
 		{
 			"signer address is empty",
-			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, emptyAddr),
+			types.NewMsgTimeoutOnClose(packet, 1, s.proof, s.proof, height, emptyAddr),
 			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
 		},
 		{
 			"empty proof",
-			types.NewMsgTimeoutOnClose(packet, 1, emptyProof, suite.proof, height, addr),
+			types.NewMsgTimeoutOnClose(packet, 1, emptyProof, s.proof, height, addr),
 			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty unreceived proof"),
 		},
 		{
 			"empty proof close",
-			types.NewMsgTimeoutOnClose(packet, 1, suite.proof, emptyProof, height, addr),
+			types.NewMsgTimeoutOnClose(packet, 1, s.proof, emptyProof, height, addr),
 			errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "cannot submit an empty proof of closed counterparty channel end"),
 		},
 		{
 			"invalid packet",
-			types.NewMsgTimeoutOnClose(invalidPacket, 1, suite.proof, suite.proof, height, addr),
+			types.NewMsgTimeoutOnClose(invalidPacket, 1, s.proof, s.proof, height, addr),
 			errorsmod.Wrap(types.ErrInvalidPacket, "packet sequence cannot be 0"),
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgTimeoutOnCloseGetSigners() {
+func (s *TypesTestSuite) TestMsgTimeoutOnCloseGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	suite.Require().NoError(err)
-	msg := types.NewMsgTimeoutOnClose(packet, 1, suite.proof, suite.proof, height, addr)
+	s.Require().NoError(err)
+	msg := types.NewMsgTimeoutOnClose(packet, 1, s.proof, s.proof, height, addr)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	s.Require().NoError(err)
+	s.Require().Equal(expSigner.Bytes(), signers[0])
 }
 
-func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
+func (s *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 	testCases := []struct {
 		name   string
 		msg    *types.MsgAcknowledgement
@@ -1006,17 +1006,17 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 	}{
 		{
 			"success",
-			types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, addr),
+			types.NewMsgAcknowledgement(packet, packet.GetData(), s.proof, height, addr),
 			nil,
 		},
 		{
 			"empty ack",
-			types.NewMsgAcknowledgement(packet, nil, suite.proof, height, addr),
+			types.NewMsgAcknowledgement(packet, nil, s.proof, height, addr),
 			errorsmod.Wrap(types.ErrInvalidAcknowledgement, "ack bytes cannot be empty"),
 		},
 		{
 			"missing signer address",
-			types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, emptyAddr),
+			types.NewMsgAcknowledgement(packet, packet.GetData(), s.proof, height, emptyAddr),
 			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", errors.New("empty address string is not allowed")),
 		},
 		{
@@ -1026,33 +1026,33 @@ func (suite *TypesTestSuite) TestMsgAcknowledgementValidateBasic() {
 		},
 		{
 			"invalid packet",
-			types.NewMsgAcknowledgement(invalidPacket, packet.GetData(), suite.proof, height, addr),
+			types.NewMsgAcknowledgement(invalidPacket, packet.GetData(), s.proof, height, addr),
 			errorsmod.Wrap(types.ErrInvalidPacket, "packet sequence cannot be 0"),
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgAcknowledgementGetSigners() {
+func (s *TypesTestSuite) TestMsgAcknowledgementGetSigners() {
 	expSigner, err := sdk.AccAddressFromBech32(addr)
-	suite.Require().NoError(err)
-	msg := types.NewMsgAcknowledgement(packet, packet.GetData(), suite.proof, height, addr)
+	s.Require().NoError(err)
+	msg := types.NewMsgAcknowledgement(packet, packet.GetData(), s.proof, height, addr)
 
 	encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 	signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)
 
-	suite.Require().NoError(err)
-	suite.Require().Equal(expSigner.Bytes(), signers[0])
+	s.Require().NoError(err)
+	s.Require().Equal(expSigner.Bytes(), signers[0])
 }

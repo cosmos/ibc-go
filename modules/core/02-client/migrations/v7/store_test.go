@@ -1,7 +1,7 @@
 package v7_test
 
 import (
-	"strconv"
+	"fmt"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -117,8 +117,8 @@ func (suite *MigrationsV7TestSuite) createSolomachineClients(solomachines []*ibc
 		suite.Require().NoError(err)
 
 		// set some consensus states
-		for i := uint64(0); i < numCreations; i++ {
-			height := types.NewHeight(1, i)
+		for i := range numCreations {
+			height := types.NewHeight(1, uint64(i))
 			clientStore.Set(host.ConsensusStateKey(height), bz)
 		}
 	}
@@ -131,8 +131,8 @@ func (suite *MigrationsV7TestSuite) assertSolomachineClients(solomachines []*ibc
 		suite.Require().True(ok)
 		suite.Require().Equal(sm.ClientState(), clientState)
 
-		for i := uint64(0); i < numCreations; i++ {
-			height := types.NewHeight(1, i)
+		for i := range numCreations {
+			height := types.NewHeight(1, uint64(i))
 
 			consState, ok := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetClientConsensusState(suite.chainA.GetContext(), sm.ClientID, height)
 			suite.Require().False(ok)
@@ -143,8 +143,8 @@ func (suite *MigrationsV7TestSuite) assertSolomachineClients(solomachines []*ibc
 
 // createLocalhostClients clients creates multiple localhost clients and multiple consensus states for each
 func (suite *MigrationsV7TestSuite) createLocalhostClients() {
-	for numClients := uint64(0); numClients < numCreations; numClients++ {
-		clientID := v7.Localhost + "-" + strconv.FormatUint(numClients, 10)
+	for numClients := range numCreations {
+		clientID := fmt.Sprintf("%s-%d", v7.Localhost, numClients)
 		clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
 		clientStore.Set(host.ClientStateKey(), []byte("clientState"))
@@ -157,14 +157,14 @@ func (suite *MigrationsV7TestSuite) createLocalhostClients() {
 
 // assertNoLocalhostClients asserts that all localhost information has been deleted
 func (suite *MigrationsV7TestSuite) assertNoLocalhostClients() {
-	for numClients := uint64(0); numClients < numCreations; numClients++ {
-		clientID := v7.Localhost + "-" + strconv.FormatUint(numClients, 10)
+	for numClients := range numCreations {
+		clientID := fmt.Sprintf("%s-%d", v7.Localhost, numClients)
 		clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), clientID)
 
 		suite.Require().False(clientStore.Has(host.ClientStateKey()))
 
-		for i := uint64(0); i < numCreations; i++ {
-			suite.Require().False(clientStore.Has(host.ConsensusStateKey(types.NewHeight(1, i))))
+		for i := range numCreations {
+			suite.Require().False(clientStore.Has(host.ConsensusStateKey(types.NewHeight(1, uint64(i)))))
 		}
 	}
 }

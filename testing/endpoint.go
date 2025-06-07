@@ -89,7 +89,7 @@ func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte,
 // CreateClient creates an IBC client on the endpoint. It will update the
 // clientID for the endpoint if the message is successfully executed.
 // NOTE: a solo machine client will be created with an empty diversifier.
-func (endpoint *Endpoint) CreateClient() (err error) {
+func (endpoint *Endpoint) CreateClient() error {
 	// ensure counterparty has committed state
 	endpoint.Counterparty.Chain.NextBlock()
 
@@ -115,11 +115,7 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 		//		clientState = solo.ClientState()
 		//		consensusState = solo.ConsensusState()
 	default:
-		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
-	}
-
-	if err != nil {
-		return err
+		return fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
 
 	msg, err := clienttypes.NewMsgCreateClient(
@@ -139,23 +135,22 @@ func (endpoint *Endpoint) CreateClient() (err error) {
 }
 
 // UpdateClient updates the IBC client associated with the endpoint.
-func (endpoint *Endpoint) UpdateClient() (err error) {
+func (endpoint *Endpoint) UpdateClient() error {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
 	var header exported.ClientMessage
-
 	switch endpoint.ClientConfig.GetClientType() {
 	case exported.Tendermint:
 		trustedHeight, ok := endpoint.GetClientLatestHeight().(clienttypes.Height)
 		require.True(endpoint.Chain.TB, ok)
+		var err error
 		header, err = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
+		if err != nil {
+			return err
+		}
 	default:
-		err = fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
-	}
-
-	if err != nil {
-		return err
+		return fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
 	}
 
 	msg, err := clienttypes.NewMsgUpdateClient(
@@ -311,13 +306,11 @@ func (endpoint *Endpoint) ConnOpenConfirm() error {
 // QueryConnectionHandshakeProof returns all the proofs necessary to execute OpenTry or Open Ack of
 // the connection handshakes. It returns the proof of the counterparty connection and the proof height.
 func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
-	connectionProof []byte, proofHeight clienttypes.Height,
+	[]byte, clienttypes.Height,
 ) {
 	// query proof for the connection on the counterparty
 	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
-	connectionProof, proofHeight = endpoint.Counterparty.QueryProof(connectionKey)
-
-	return connectionProof, proofHeight
+	return endpoint.Counterparty.QueryProof(connectionKey)
 }
 
 var sequenceNumber int

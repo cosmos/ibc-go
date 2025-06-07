@@ -87,8 +87,8 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 		var consensusStates []types.ConsensusStateWithHeight
 
 		// set consensus states in store and genesis
-		for i := uint64(0); i < numCreations; i++ {
-			height := types.NewHeight(1, i)
+		for i := range numCreations {
+			height := types.NewHeight(1, uint64(i))
 			clientStore.Set(host.ConsensusStateKey(height), bz)
 			consensusStates = append(consensusStates, types.ConsensusStateWithHeight{
 				Height:         height,

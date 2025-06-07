@@ -1,7 +1,6 @@
 package ibctesting
 
 import (
-	"fmt"
 	"strconv"
 	"testing"
 	"time"
@@ -133,7 +132,7 @@ func (*Coordinator) CreateTransferChannels(path *Path) {
 // not exist.
 func (coord *Coordinator) GetChain(chainID string) *TestChain {
 	chain, found := coord.Chains[chainID]
-	require.True(coord.T, found, fmt.Sprintf("%s chain does not exist", chainID))
+	require.True(coord.T, found, "%s chain does not exist", chainID)
 	return chain
 }
 
@@ -154,7 +153,7 @@ func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
 
 // CommitNBlocks commits n blocks to state and updates the block height by 1 for each commit.
 func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
-	for i := uint64(0); i < n; i++ {
+	for range n {
 		chain.NextBlock()
 		coord.IncrementTime()
 	}

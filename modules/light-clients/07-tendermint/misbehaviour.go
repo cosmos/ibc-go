@@ -107,7 +107,7 @@ func (misbehaviour Misbehaviour) ValidateBasic() error {
 }
 
 // validCommit checks if the given commit is a valid commit from the passed-in validatorset
-func validCommit(chainID string, blockID cmttypes.BlockID, commit *cmtproto.Commit, valSet *cmtproto.ValidatorSet) (err error) {
+func validCommit(chainID string, blockID cmttypes.BlockID, commit *cmtproto.Commit, valSet *cmtproto.ValidatorSet) error {
 	tmCommit, err := cmttypes.CommitFromProto(commit)
 	if err != nil {
 		return errorsmod.Wrap(err, "commit is not tendermint commit type")

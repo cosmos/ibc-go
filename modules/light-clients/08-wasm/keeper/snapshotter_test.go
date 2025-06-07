@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 
 			suite.Require().NoError(destWasmClientApp.SnapshotManager().Restore(*snapshot))
 
-			for i := uint32(0); i < snapshot.Chunks; i++ {
+			for i := range snapshot.Chunks {
 				chunkBz, err := wasmClientApp.SnapshotManager().LoadChunk(snapshot.Height, snapshot.Format, i)
 				suite.Require().NoError(err)
 

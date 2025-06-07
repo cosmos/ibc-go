@@ -340,6 +340,7 @@ func (k *Keeper) TimeoutShouldRetry(ctx sdk.Context, packet channeltypes.Packet)
 
 	// Not a forwarded packet. Ignore.
 	if inFlightPacket == nil {
+		// nolint:nilnil
 		return nil, nil
 	}
 
@@ -401,6 +402,7 @@ func (k *Keeper) GetInflightPacket(ctx sdk.Context, packet channeltypes.Packet) 
 		return nil, err
 	}
 	if len(bz) == 0 {
+		// nolint:nilnil
 		return nil, nil
 	}
 	var inFlightPacket types.InFlightPacket
@@ -427,7 +429,7 @@ func (k *Keeper) RemoveInFlightPacket(ctx sdk.Context, packet channeltypes.Packe
 }
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
-func (k *Keeper) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
+func (k *Keeper) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (uint64, error) {
 	return k.ics4Wrapper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 

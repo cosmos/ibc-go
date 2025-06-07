@@ -181,7 +181,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 
 			// assert no leftover denom traces
 			suite.chainA.GetSimApp().TransferKeeper.IterateDenomTraces(suite.chainA.GetContext(),
-				func(dt internaltransfertypes.DenomTrace) (stop bool) {
+				func(dt internaltransfertypes.DenomTrace) bool {
 					suite.FailNow("DenomTrace key still exists", dt)
 					return false
 				},

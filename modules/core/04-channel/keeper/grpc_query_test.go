@@ -846,7 +846,7 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 
 				expCommitments = make([]*types.PacketState, 9)
 
-				for i := uint64(0); i < 9; i++ {
+				for i := range uint64(9) {
 					commitment := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, fmt.Appendf(nil, "hash_%d", i))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(suite.chainA.GetContext(), commitment.PortId, commitment.ChannelId, commitment.Sequence, commitment.Data)
 					expCommitments[i] = &commitment
@@ -1203,7 +1203,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 
 				var commitments []uint64
 
-				for i := uint64(0); i < 100; i++ {
+				for i := range uint64(100) {
 					ack := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, fmt.Appendf(nil, "hash_%d", i))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.PortId, ack.ChannelId, ack.Sequence, ack.Data)
 
@@ -1230,7 +1230,7 @@ func (suite *KeeperTestSuite) TestQueryPacketAcknowledgements() {
 
 				expAcknowledgements = make([]*types.PacketState, 9)
 
-				for i := uint64(0); i < 9; i++ {
+				for i := range uint64(9) {
 					ack := types.NewPacketState(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, i, fmt.Appendf(nil, "hash_%d", i))
 					suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.PortId, ack.ChannelId, ack.Sequence, ack.Data)
 					expAcknowledgements[i] = &ack

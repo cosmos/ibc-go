@@ -192,7 +192,8 @@ func (k *Keeper) IterateConnections(ctx sdk.Context, cb func(types.IdentifiedCon
 }
 
 // GetAllConnections returns all stored ConnectionEnd objects.
-func (k *Keeper) GetAllConnections(ctx sdk.Context) (connections []types.IdentifiedConnection) {
+func (k *Keeper) GetAllConnections(ctx sdk.Context) []types.IdentifiedConnection {
+	var connections []types.IdentifiedConnection
 	k.IterateConnections(ctx, func(connection types.IdentifiedConnection) bool {
 		connections = append(connections, connection)
 		return false

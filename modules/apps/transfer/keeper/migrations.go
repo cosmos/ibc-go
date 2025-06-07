@@ -40,7 +40,7 @@ func (m Migrator) MigrateParams(ctx sdk.Context) error {
 // MigrateDenomMetadata sets token metadata for all the IBC denom traces
 func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
 	m.keeper.iterateDenomTraces(ctx,
-		func(dt internaltypes.DenomTrace) (stop bool) {
+		func(dt internaltypes.DenomTrace) bool {
 			// check if the metadata for the given denom trace does not already exist
 			if !m.keeper.BankKeeper.HasDenomMetaData(ctx, dt.IBCDenom()) {
 				m.keeper.setDenomMetadataWithDenomTrace(ctx, dt)
@@ -80,7 +80,7 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 		denomTraces []internaltypes.DenomTrace
 	)
 	m.keeper.iterateDenomTraces(ctx,
-		func(dt internaltypes.DenomTrace) (stop bool) {
+		func(dt internaltypes.DenomTrace) bool {
 			// convert denomTrace to denom
 			denom := types.ExtractDenomFromPath(dt.GetFullDenomPath())
 			err := denom.Validate()

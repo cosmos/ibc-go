@@ -11,11 +11,11 @@ import (
 )
 
 // RegisterCounterparty will construct and execute a MsgRegisterCounterparty on the associated endpoint.
-func (endpoint *Endpoint) RegisterCounterparty() (err error) {
+func (endpoint *Endpoint) RegisterCounterparty() error {
 	msg := clientv2types.NewMsgRegisterCounterparty(endpoint.ClientID, endpoint.Counterparty.MerklePathPrefix.KeyPath, endpoint.Counterparty.ClientID, endpoint.Chain.SenderAccount.GetAddress().String())
 
 	// setup counterparty
-	_, err = endpoint.Chain.SendMsgs(msg)
+	_, err := endpoint.Chain.SendMsgs(msg)
 
 	return err
 }
