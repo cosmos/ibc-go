@@ -104,7 +104,9 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().NoError(err)
 		s.Require().Len(resp.RateLimits, 1)
 
-		// Make transfer again and see the flow has been updated.
+	})
+
+	t.Run("Transfer updateds the ratelimit flow", func(_ *testing.T) {
 		userABalBefore, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
 
