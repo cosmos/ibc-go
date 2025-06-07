@@ -50,7 +50,7 @@ b := f
 
 ## Linting
 
-- Run `make lint-fix` to fix any linting errors.
+- Run `make lint` to see linting errors and `make lint-fix` to fix many issues (some linters do not support auto-fix).
 
 ## Various
 
@@ -119,7 +119,7 @@ sdkerrors.Wrapf(
 )
 ```
 
-## Common Mistakes
+## Common mistakes
 
 This is a compilation of some of the common mistakes we see in the repo that should be avoided.
 
@@ -242,7 +242,7 @@ cases := []struct {
 
 **Testing context**
 
-Go 1.24 added a (testing.TB).Context() method. In tests, prefer using (testing.TB).Context() over context.Background() to provide the initial context.Context used by the test. Helper functions, environment or test double setup, and other functions called from the test function body that require a context should have one explicitly passed. [Referance](https://google.github.io/styleguide/go/decisions#contexts)
+Go 1.24 added a (testing.TB).Context() method. In tests, prefer using (testing.TB).Context() over context.Background() to provide the initial context.Context used by the test. Helper functions, environment or test double setup, and other functions called from the test function body that require a context should have one explicitly passed. [Reference](https://google.github.io/styleguide/go/decisions#contexts)
 
 ---
 **Error Logging**
@@ -253,7 +253,7 @@ If you return an error, it’s usually better not to log it yourself but rather 
 ---
 **Struct defined outside of the package**
 
-Must have fields specified. [Referance](https://google.github.io/styleguide/go/decisions#field-names)
+Must have fields specified. [Reference](https://google.github.io/styleguide/go/decisions#field-names)
 
 ```go
 // Good:
@@ -270,7 +270,7 @@ r := csv.Reader{',', '#', 4, false, false, false, false}
 ```
 
 ---
-**Naming struct fileds in tabular tests**
+**Naming struct fields in tabular tests**
 
 If tabular test struct has more than two fields, consider explicitly naming them. If the test struct has one name and one error field, then we can allow upto three fields. If test struct has more fields, consider naming them when writing test cases.
 
@@ -342,26 +342,13 @@ testCases := []struct {
 
 ## Known Anti Patterns
 
-It's strongly recommended [not to create a custom context](https://google.github.io/styleguide/go/decisions#custom-contexts). The cosmos sdk has it's own context that is passed around, and we should not try to work against that pattern to avoid confusion.
+It's strongly recommended [not to create a custom context](https://google.github.io/styleguide/go/decisions#custom-contexts). The Cosmos SDK has it's own context that is passed around, and we should not try to work against that pattern to avoid confusion.
 
 ---
-Test outputs should include the actual value that the function returned before printing the value that was expected. A standard format for printing test outputs is YourFunc(%v) = %v, want %v. Where you would write “actual” and “expected”, prefer using the words “got” and “want”, respectively. [Referance](https://google.github.io/styleguide/go/decisions#got-before-want)
+Test outputs should include the actual value that the function returned before printing the value that was expected. A standard format for printing test outputs is YourFunc(%v) = %v, want %v. Where you would write “actual” and “expected”, prefer using the words “got” and “want”, respectively. [Reference](https://google.github.io/styleguide/go/decisions#got-before-want)
 
 But testify has it other way around.
 
 `Require.Equal(Expected, Actual)`
 
 This is a known anti pattern that we allow as the testify package is used heavily in tests.
-
----
-In tests suites we are embedding `testify/require` package for assertions. Since it's embedded and there are no name collision on `require` types methods, when calling, we should "promote" those methods to the suite. But throughout the repo we make explicit calls.
-
-```go
-s.Require().NoError(err)
-```
-
-A better and more cleaner approach could be,
-
-```go
-s.Require().NoError(err)
-```
