@@ -4,9 +4,7 @@ package ratelimiting
 
 import (
 	"context"
-	"strings"
 	"testing"
-	"time"
 
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	ibc "github.com/strangelove-ventures/interchaintest/v8/ibc"
@@ -23,7 +21,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	ratelimitingtypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
@@ -79,14 +76,8 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 
-		s.Require().Eventually(func() bool {
-			_, err := query.GRPCQuery[chantypes.QueryPacketCommitmentResponse](ctx, chainA, &chantypes.QueryPacketCommitmentRequest{
-				PortId:    chanAB.PortID,
-				ChannelId: chanAB.ChannelID,
-				Sequence:  packet.Sequence,
-			})
-			return err != nil && strings.Contains(err.Error(), "packet commitment hash not found")
-		}, time.Second*70, time.Second)
+		s.Require().NoError(testutil.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+		s.AssertPacketRelayed(ctx, chainA, chanAB.PortID, chanAB.ChannelID, packet.Sequence)
 
 		userABalAfter, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
@@ -124,14 +115,8 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 
-		s.Require().Eventually(func() bool {
-			_, err := query.GRPCQuery[chantypes.QueryPacketCommitmentResponse](ctx, chainA, &chantypes.QueryPacketCommitmentRequest{
-				PortId:    chanAB.PortID,
-				ChannelId: chanAB.ChannelID,
-				Sequence:  packet.Sequence,
-			})
-			return err != nil && strings.Contains(err.Error(), "packet commitment hash not found")
-		}, time.Second*70, time.Second)
+		s.Require().NoError(testutil.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
+		s.AssertPacketRelayed(ctx, chainA, chanAB.PortID, chanAB.ChannelID, packet.Sequence)
 
 		userABalAfter, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
