@@ -91,9 +91,13 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	// ratelimitingmodule "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/module" // Remove incorrect import
 	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
 	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
+	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting" // Add rate-limiting import
+	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfer "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
@@ -164,6 +168,7 @@ type SimApp struct {
 	TransferKeeper        ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	PFMKeeper             *packetforwardkeeper.Keeper
+	RateLimitKeeper       ratelimitkeeper.Keeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -258,6 +263,7 @@ func NewSimApp(
 		govtypes.StoreKey, group.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		packetforwardtypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
 		authzkeeper.StoreKey, consensusparamtypes.StoreKey,
+		ratelimittypes.StoreKey,
 	)
 
 	// register streaming services
@@ -371,7 +377,7 @@ func NewSimApp(
 	// Middleware Stacks
 
 	// PacketForwardMiddleware must be created before TransferKeeper
-	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.ICAControllerKeeper.GetICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.RateLimitKeeper.ICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// Create Transfer Keeper
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -384,6 +390,8 @@ func NewSimApp(
 	)
 
 	app.PFMKeeper.SetTransferKeeper(app.TransferKeeper)
+
+	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// Mock Module Stack
 
@@ -412,11 +420,22 @@ func NewSimApp(
 	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// create IBC module from bottom to top of stack
-	transferStack := packetforward.NewIBCMiddleware(transfer.NewIBCModule(app.TransferKeeper), app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
+	// - Core
+	// - Rate Limit
+	// - Packet Forward Middleware
+	// - Transfer
+	transferStack := transfer.NewIBCModule(app.TransferKeeper)
+	transferIBCModule := packetforward.NewIBCMiddleware(transferStack, app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
+
+	// Create the rate-limiting middleware, wrapping the transfer IBC module
+	// The ICS4Wrapper is the IBC ChannelKeeper
+	rateLimitMiddleware := ratelimiting.NewIBCMiddleware(transferIBCModule, app.RateLimitKeeper, app.IBCKeeper.ChannelKeeper)
+
+	app.PFMKeeper.SetICS4Wrapper(rateLimitMiddleware)
 	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
 
-	// Add transfer stack to IBC Router
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+	// Add transfer stack with rate-limiting middleware to IBC Router
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, rateLimitMiddleware)
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -493,6 +512,7 @@ func NewSimApp(
 		// IBC modules
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
+		ratelimiting.NewAppModule(app.RateLimitKeeper), // Use correct package alias
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		mockModule,
 		packetforward.NewAppModule(app.PFMKeeper),
@@ -540,6 +560,7 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		icatypes.ModuleName,
+		ratelimittypes.ModuleName,
 		ibcmock.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
@@ -561,7 +582,7 @@ func NewSimApp(
 		authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
-		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
+		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName, ratelimittypes.ModuleName,
 		packetforwardtypes.ModuleName, icatypes.ModuleName, ibcmock.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
 	}
@@ -857,6 +878,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName).WithKeyTable(ibctransfertypes.ParamKeyTable())
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName).WithKeyTable(icacontrollertypes.ParamKeyTable())
 	paramsKeeper.Subspace(icahosttypes.SubModuleName).WithKeyTable(icahosttypes.ParamKeyTable())
+	paramsKeeper.Subspace(ratelimittypes.ModuleName).WithKeyTable(ratelimittypes.ParamKeyTable()) // Add this line
 
 	return paramsKeeper
 }
@@ -883,4 +905,37 @@ func (app *SimApp) GetTxConfig() client.TxConfig {
 // NOTE: This is solely used for testing purposes.
 func (app *SimApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return app.memKeys[storeKey]
+}
+
+// QueryRouterAdapter adapts a GRPCQueryRouter to the interface expected by the rate-limiting module
+type QueryRouterAdapter struct {
+	router *baseapp.GRPCQueryRouter
+}
+
+func NewQueryRouterAdapter(router *baseapp.GRPCQueryRouter) *QueryRouterAdapter {
+	return &QueryRouterAdapter{router: router}
+}
+
+func (*QueryRouterAdapter) Route(path string) func(sdk.Context, interface{}) ([]byte, error) {
+	// This is a simplification for testing purposes
+	// In a real implementation, this would need to properly adapt the handler
+	return func(ctx sdk.Context, req interface{}) ([]byte, error) {
+		return nil, nil
+	}
+}
+
+// Similarly, we might need an adapter for MsgServiceRouter
+type MsgRouterAdapter struct {
+	router *baseapp.MsgServiceRouter
+}
+
+func NewMsgRouterAdapter(router *baseapp.MsgServiceRouter) *MsgRouterAdapter {
+	return &MsgRouterAdapter{router: router}
+}
+
+func (*MsgRouterAdapter) Handler(msg sdk.Msg) func(sdk.Context, sdk.Msg) (*sdk.Result, error) {
+	// Simplified for testing purposes
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+		return nil, nil
+	}
 }
