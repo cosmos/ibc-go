@@ -52,7 +52,7 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestGetPacketSender() {
+func (s *TypesTestSuite) TestGetPacketSender() {
 	packetData := types.FungibleTokenPacketData{
 		Denom:    packetDenom,
 		Amount:   packetAmount,
@@ -61,10 +61,10 @@ func (suite *TypesTestSuite) TestGetPacketSender() {
 		Memo:     "",
 	}
 
-	suite.Require().Equal(sender, packetData.GetPacketSender(types.PortID))
+	s.Require().Equal(sender, packetData.GetPacketSender(types.PortID))
 }
 
-func (suite *TypesTestSuite) TestPacketDataProvider() {
+func (s *TypesTestSuite) TestPacketDataProvider() {
 	testCases := []struct {
 		name          string
 		packetData    types.FungibleTokenPacketData
@@ -134,11 +134,11 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 
 	for _, tc := range testCases {
 		customData := tc.packetData.GetCustomPacketData("src_callback")
-		suite.Require().Equal(tc.expCustomData, customData)
+		s.Require().Equal(tc.expCustomData, customData)
 	}
 }
 
-func (suite *TypesTestSuite) TestFungibleTokenPacketDataOmitEmpty() {
+func (s *TypesTestSuite) TestFungibleTokenPacketDataOmitEmpty() {
 	// check that omitempty is present for the memo field
 	packetData := types.FungibleTokenPacketData{
 		Denom:    packetDenom,
@@ -149,17 +149,17 @@ func (suite *TypesTestSuite) TestFungibleTokenPacketDataOmitEmpty() {
 	}
 
 	bz, err := json.Marshal(packetData)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// check that the memo field is not present in the marshalled bytes
-	suite.Require().NotContains(string(bz), "memo")
+	s.Require().NotContains(string(bz), "memo")
 
 	packetData.Memo = "abc"
 	bz, err = json.Marshal(packetData)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// check that the memo field is present in the marshalled bytes
-	suite.Require().Contains(string(bz), "memo")
+	s.Require().Contains(string(bz), "memo")
 }
 
 // TestInternalTransferRepresentationValidateBasic tests ValidateBasic for FungibleTokenPacketData

@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 )
 
-func (suite *KeeperTestSuite) TestInitGenesis() {
+func (s *KeeperTestSuite) TestInitGenesis() {
 	var (
 		genesisState types.GenesisState
 		expChecksums []string
@@ -46,44 +46,44 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
+		s.Run(tc.name, func() {
+			s.SetupWasmWithMockVM()
 
-			ctx := suite.chainA.GetContext()
+			ctx := s.chainA.GetContext()
 			tc.malleate()
 
-			err := GetSimApp(suite.chainA).WasmClientKeeper.InitGenesis(ctx, genesisState)
-			suite.Require().NoError(err)
+			err := GetSimApp(s.chainA).WasmClientKeeper.InitGenesis(ctx, genesisState)
+			s.Require().NoError(err)
 
 			var storedHashes []string
-			checksums, err := GetSimApp(suite.chainA).WasmClientKeeper.GetAllChecksums(suite.chainA.GetContext())
-			suite.Require().NoError(err)
+			checksums, err := GetSimApp(s.chainA).WasmClientKeeper.GetAllChecksums(s.chainA.GetContext())
+			s.Require().NoError(err)
 
 			for _, hash := range checksums {
 				storedHashes = append(storedHashes, hex.EncodeToString(hash))
 			}
 
-			suite.Require().Equal(len(expChecksums), len(storedHashes))
-			suite.Require().ElementsMatch(expChecksums, storedHashes)
+			s.Require().Equal(len(expChecksums), len(storedHashes))
+			s.Require().ElementsMatch(expChecksums, storedHashes)
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestExportGenesis() {
-	suite.SetupWasmWithMockVM()
+func (s *KeeperTestSuite) TestExportGenesis() {
+	s.SetupWasmWithMockVM()
 
-	ctx := suite.chainA.GetContext()
+	ctx := s.chainA.GetContext()
 
 	expChecksum := "b3a49b2914f5e6a673215e74325c1d153bb6776e079774e52c5b7e674d9ad3ab" //nolint:gosec // these are not hard-coded credentials
 
 	signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
 	msg := types.NewMsgStoreCode(signer, wasmtesting.Code)
-	res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
-	suite.Require().NoError(err)
-	suite.Require().Equal(expChecksum, hex.EncodeToString(res.Checksum))
+	res, err := GetSimApp(s.chainA).WasmClientKeeper.StoreCode(ctx, msg)
+	s.Require().NoError(err)
+	s.Require().Equal(expChecksum, hex.EncodeToString(res.Checksum))
 
-	genesisState := GetSimApp(suite.chainA).WasmClientKeeper.ExportGenesis(ctx)
-	suite.Require().Len(genesisState.Contracts, 1)
-	suite.Require().NotEmpty(genesisState.Contracts[0].CodeBytes)
+	genesisState := GetSimApp(s.chainA).WasmClientKeeper.ExportGenesis(ctx)
+	s.Require().Len(genesisState.Contracts, 1)
+	s.Require().NotEmpty(genesisState.Contracts[0].CodeBytes)
 }

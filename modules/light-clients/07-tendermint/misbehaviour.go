@@ -35,8 +35,8 @@ func (Misbehaviour) ClientType() string {
 // GetTime returns the timestamp at which misbehaviour occurred. It uses the
 // maximum value from both headers to prevent producing an invalid header outside
 // of the misbehaviour age range.
-func (misbehaviour Misbehaviour) GetTime() time.Time {
-	t1, t2 := misbehaviour.Header1.GetTime(), misbehaviour.Header2.GetTime()
+func (m Misbehaviour) GetTime() time.Time {
+	t1, t2 := m.Header1.GetTime(), m.Header2.GetTime()
 	if t1.After(t2) {
 		return t1
 	}
@@ -44,66 +44,66 @@ func (misbehaviour Misbehaviour) GetTime() time.Time {
 }
 
 // ValidateBasic implements Misbehaviour interface
-func (misbehaviour Misbehaviour) ValidateBasic() error {
-	if misbehaviour.Header1 == nil {
+func (m Misbehaviour) ValidateBasic() error {
+	if m.Header1 == nil {
 		return errorsmod.Wrap(ErrInvalidHeader, "misbehaviour Header1 cannot be nil")
 	}
-	if misbehaviour.Header2 == nil {
+	if m.Header2 == nil {
 		return errorsmod.Wrap(ErrInvalidHeader, "misbehaviour Header2 cannot be nil")
 	}
-	if misbehaviour.Header1.TrustedHeight.RevisionHeight == 0 {
+	if m.Header1.TrustedHeight.RevisionHeight == 0 {
 		return errorsmod.Wrapf(ErrInvalidHeaderHeight, "misbehaviour Header1 cannot have zero revision height")
 	}
-	if misbehaviour.Header2.TrustedHeight.RevisionHeight == 0 {
+	if m.Header2.TrustedHeight.RevisionHeight == 0 {
 		return errorsmod.Wrapf(ErrInvalidHeaderHeight, "misbehaviour Header2 cannot have zero revision height")
 	}
-	if misbehaviour.Header1.TrustedValidators == nil {
+	if m.Header1.TrustedValidators == nil {
 		return errorsmod.Wrap(ErrInvalidValidatorSet, "trusted validator set in Header1 cannot be empty")
 	}
-	if misbehaviour.Header2.TrustedValidators == nil {
+	if m.Header2.TrustedValidators == nil {
 		return errorsmod.Wrap(ErrInvalidValidatorSet, "trusted validator set in Header2 cannot be empty")
 	}
-	if misbehaviour.Header1.Header.ChainID != misbehaviour.Header2.Header.ChainID {
+	if m.Header1.Header.ChainID != m.Header2.Header.ChainID {
 		return errorsmod.Wrap(clienttypes.ErrInvalidMisbehaviour, "headers must have identical chainIDs")
 	}
 
-	if err := host.ClientIdentifierValidator(misbehaviour.ClientId); err != nil {
+	if err := host.ClientIdentifierValidator(m.ClientId); err != nil {
 		return errorsmod.Wrap(err, "misbehaviour client ID is invalid")
 	}
 
 	// ValidateBasic on both validators
-	if err := misbehaviour.Header1.ValidateBasic(); err != nil {
+	if err := m.Header1.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(
 			clienttypes.ErrInvalidMisbehaviour,
 			errorsmod.Wrap(err, "header 1 failed validation").Error(),
 		)
 	}
-	if err := misbehaviour.Header2.ValidateBasic(); err != nil {
+	if err := m.Header2.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(
 			clienttypes.ErrInvalidMisbehaviour,
 			errorsmod.Wrap(err, "header 2 failed validation").Error(),
 		)
 	}
 	// Ensure that Height1 is greater than or equal to Height2
-	if misbehaviour.Header1.GetHeight().LT(misbehaviour.Header2.GetHeight()) {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidMisbehaviour, "Header1 height is less than Header2 height (%s < %s)", misbehaviour.Header1.GetHeight(), misbehaviour.Header2.GetHeight())
+	if m.Header1.GetHeight().LT(m.Header2.GetHeight()) {
+		return errorsmod.Wrapf(clienttypes.ErrInvalidMisbehaviour, "Header1 height is less than Header2 height (%s < %s)", m.Header1.GetHeight(), m.Header2.GetHeight())
 	}
 
-	blockID1, err := cmttypes.BlockIDFromProto(&misbehaviour.Header1.Commit.BlockID)
+	blockID1, err := cmttypes.BlockIDFromProto(&m.Header1.Commit.BlockID)
 	if err != nil {
 		return errorsmod.Wrap(err, "invalid block ID from header 1 in misbehaviour")
 	}
-	blockID2, err := cmttypes.BlockIDFromProto(&misbehaviour.Header2.Commit.BlockID)
+	blockID2, err := cmttypes.BlockIDFromProto(&m.Header2.Commit.BlockID)
 	if err != nil {
 		return errorsmod.Wrap(err, "invalid block ID from header 2 in misbehaviour")
 	}
 
-	if err := validCommit(misbehaviour.Header1.Header.ChainID, *blockID1,
-		misbehaviour.Header1.Commit, misbehaviour.Header1.ValidatorSet); err != nil {
+	if err := validCommit(m.Header1.Header.ChainID, *blockID1,
+		m.Header1.Commit, m.Header1.ValidatorSet); err != nil {
 		return err
 	}
-	return validCommit(misbehaviour.Header2.Header.ChainID, *blockID2,
-		misbehaviour.Header2.Commit, misbehaviour.Header2.ValidatorSet)
+	return validCommit(m.Header2.Header.ChainID, *blockID2,
+		m.Header2.Commit, m.Header2.ValidatorSet)
 }
 
 // validCommit checks if the given commit is a valid commit from the passed-in validatorset

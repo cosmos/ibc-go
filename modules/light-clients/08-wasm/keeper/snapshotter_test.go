@@ -14,9 +14,9 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 )
 
-func (suite *KeeperTestSuite) TestSnapshotter() {
+func (s *KeeperTestSuite) TestSnapshotter() {
 	gzippedContract, err := types.GzipIt(wasmtesting.CreateMockContract([]byte("gzipped-contract")))
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	testCases := []struct {
 		name      string
@@ -33,9 +33,9 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			t := suite.T()
-			wasmClientApp := suite.SetupSnapshotterWithMockVM()
+		s.Run(tc.name, func() {
+			t := s.T()
+			wasmClientApp := s.SetupSnapshotterWithMockVM()
 
 			ctx := wasmClientApp.NewUncachedContext(false, cmtproto.Header{
 				ChainID: "foo",
@@ -51,26 +51,26 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 				msg := types.NewMsgStoreCode(signer, contract)
 
 				res, err := wasmClientApp.WasmClientKeeper.StoreCode(ctx, msg)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				checksums = append(checksums, res.Checksum)
 				srcChecksumCodes = append(srcChecksumCodes, res.Checksum...)
 
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			}
 
 			// create snapshot
 			res, err := wasmClientApp.Commit()
-			suite.Require().NoError(err)
-			suite.Require().NotNil(res)
+			s.Require().NoError(err)
+			s.Require().NotNil(res)
 
 			snapshotHeight := uint64(wasmClientApp.LastBlockHeight())
 			snapshot, err := wasmClientApp.SnapshotManager().Create(snapshotHeight)
-			suite.Require().NoError(err)
-			suite.Require().NotNil(snapshot)
+			s.Require().NoError(err)
+			s.Require().NotNil(snapshot)
 
 			// setup dest app with snapshot imported
-			destWasmClientApp := simapp.SetupWithEmptyStore(t, suite.mockVM)
+			destWasmClientApp := simapp.SetupWithEmptyStore(t, s.mockVM)
 			destCtx := destWasmClientApp.NewUncachedContext(false, cmtproto.Header{
 				ChainID: "bar",
 				Height:  destWasmClientApp.LastBlockHeight() + 1,
@@ -78,17 +78,17 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 			})
 
 			resp, err := destWasmClientApp.WasmClientKeeper.Checksums(destCtx, &types.QueryChecksumsRequest{})
-			suite.Require().NoError(err)
-			suite.Require().Empty(resp.Checksums)
+			s.Require().NoError(err)
+			s.Require().Empty(resp.Checksums)
 
-			suite.Require().NoError(destWasmClientApp.SnapshotManager().Restore(*snapshot))
+			s.Require().NoError(destWasmClientApp.SnapshotManager().Restore(*snapshot))
 
 			for i := range snapshot.Chunks {
 				chunkBz, err := wasmClientApp.SnapshotManager().LoadChunk(snapshot.Height, snapshot.Format, i)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				end, err := destWasmClientApp.SnapshotManager().RestoreChunk(chunkBz)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				if end {
 					break
@@ -105,15 +105,15 @@ func (suite *KeeperTestSuite) TestSnapshotter() {
 
 			for _, checksum := range checksums {
 				resp, err := destWasmClientApp.WasmClientKeeper.Code(ctx, &types.QueryCodeRequest{Checksum: hex.EncodeToString(checksum)})
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				checksum, err := types.CreateChecksum(resp.Data)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				allDestAppChecksumsInWasmVMStore = append(allDestAppChecksumsInWasmVMStore, checksum...)
 			}
 
-			suite.Require().Equal(srcChecksumCodes, allDestAppChecksumsInWasmVMStore)
+			s.Require().Equal(srcChecksumCodes, allDestAppChecksumsInWasmVMStore)
 		})
 	}
 }

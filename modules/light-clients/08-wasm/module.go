@@ -97,13 +97,13 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for this module
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // NewAppModule creates a new 08-wasm module
 func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
-		keeper: k,
+		keeper: &k,
 	}
 }
 
@@ -112,7 +112,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	wasmMigrator := keeper.NewMigrator(am.keeper)
+	wasmMigrator := keeper.NewMigrator(*am.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, wasmMigrator.MigrateChecksums); err != nil {
 		panic(fmt.Errorf("failed to migrate 08-wasm module from version 1 to 2 (checksums migration to collections): %w", err))
 	}

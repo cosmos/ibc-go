@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
-	"github.com/stretchr/testify/require"
 )
 
 func (s *MerkleTestSuite) TestVerifyMembership() {

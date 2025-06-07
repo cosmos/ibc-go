@@ -10,19 +10,19 @@ import (
 )
 
 // TestInitExportGenesis tests the import and export flow for the channel v2 keeper.
-func (suite *ModuleTestSuite) TestInitExportGenesis() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+func (s *ModuleTestSuite) TestInitExportGenesis() {
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.SetupV2()
 
-	path2 := ibctesting.NewPath(suite.chainA, suite.chainC)
+	path2 := ibctesting.NewPath(s.chainA, s.chainC)
 	path2.SetupV2()
 
-	app := suite.chainA.App
+	app := s.chainA.App
 
 	emptyGenesis := types.DefaultGenesisState()
 
 	// create a valid genesis state that uses the client keepers existing client IDs
-	clientStates := app.GetIBCKeeper().ClientKeeper.GetAllGenesisClients(suite.chainA.GetContext())
+	clientStates := app.GetIBCKeeper().ClientKeeper.GetAllGenesisClients(s.chainA.GetContext())
 	validGs := types.DefaultGenesisState()
 	for i, clientState := range clientStates {
 		ack := types.NewPacketState(clientState.ClientId, uint64(i+1), []byte("ack"))
@@ -34,11 +34,11 @@ func (suite *ModuleTestSuite) TestInitExportGenesis() {
 			uint64(i+1),
 			clientState.ClientId,
 			clientState.ClientId,
-			uint64(suite.chainA.GetContext().BlockTime().Unix()),
+			uint64(s.chainA.GetContext().BlockTime().Unix()),
 			mockv2.NewMockPayload("src", "dst"),
 		)
 		bz, err := proto.Marshal(&packet)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 		asyncPacket := types.NewPacketState(clientState.ClientId, uint64(i+1), bz)
 
 		validGs.Acknowledgements = append(validGs.Acknowledgements, ack)
@@ -64,13 +64,13 @@ func (suite *ModuleTestSuite) TestInitExportGenesis() {
 	}
 
 	for _, tt := range tests {
-		suite.Run(tt.name, func() {
+		s.Run(tt.name, func() {
 			channelV2Keeper := app.GetIBCKeeper().ChannelKeeperV2
 
-			channelv2.InitGenesis(suite.chainA.GetContext(), channelV2Keeper, tt.genState)
+			channelv2.InitGenesis(s.chainA.GetContext(), channelV2Keeper, tt.genState)
 
-			exported := channelv2.ExportGenesis(suite.chainA.GetContext(), channelV2Keeper)
-			suite.Require().Equal(tt.genState, exported)
+			exported := channelv2.ExportGenesis(s.chainA.GetContext(), channelV2Keeper)
+			s.Require().Equal(tt.genState, exported)
 		})
 	}
 }

@@ -363,5 +363,5 @@ s.Require().NoError(err)
 A better and more cleaner approach could be,
 
 ```go
-s.NoError(err)
+s.Require().NoError(err)
 ```

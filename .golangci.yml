@@ -50,6 +50,20 @@ linters:
       enable-all-rules: true
       # See the rule descriptions here: https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md
       rules:
+        # Rules with configuration
+        - name: receiver-naming
+          disabled: false
+          arguments:
+            - max-length: 4
+        - name: unhandled-error
+          disabled: false
+          arguments: # Disable for these ones only
+            - fmt.Printf
+            - fmt.Print
+            - fmt.Println
+            - myFunction
+        # Disabled rules
+        # TODO: Some of these are kinda code smelly, should reconsider some of them
         - name: add-constant
           disabled: true
         - name: argument-limit
@@ -76,13 +90,6 @@ linters:
           disabled: true
         - name: max-public-structs
           disabled: true
-        - name: unhandled-error
-          disabled: false
-          arguments: # Disable for these ones only
-            - fmt.Printf
-            - fmt.Print
-            - fmt.Println
-            - myFunction
         - name: unused-parameter
           disabled: true
   exclusions:

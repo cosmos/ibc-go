@@ -24,16 +24,16 @@ type KeeperTestSuite struct {
 	chainB *ibctesting.TestChain
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+func (s *KeeperTestSuite) SetupTest() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
 
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 
 	// TODO: remove
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-	suite.coordinator.CommitNBlocks(suite.chainB, 2)
+	s.coordinator.CommitNBlocks(s.chainA, 2)
+	s.coordinator.CommitNBlocks(s.chainB, 2)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -42,7 +42,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 // Test ibckeeper.NewKeeper used to initialize IBCKeeper when creating an app instance.
 // It verifies if ibckeeper.NewKeeper panic when any of the keepers passed in is empty.
-func (suite *KeeperTestSuite) TestNewKeeper() {
+func (s *KeeperTestSuite) TestNewKeeper() {
 	var (
 		upgradeKeeper  clienttypes.UpgradeKeeper
 		newIBCKeeperFn func()
@@ -74,9 +74,9 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			malleate: func() {
 				newIBCKeeperFn = func() {
 					ibckeeper.NewKeeper(
-						suite.chainA.GetSimApp().AppCodec(),
-						runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
-						suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
+						s.chainA.GetSimApp().AppCodec(),
+						runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
+						s.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 						upgradeKeeper,
 						"", // authority
 					)
@@ -87,36 +87,36 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
+		s.SetupTest()
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			// set default behaviour
 			newIBCKeeperFn = func() {
 				ibckeeper.NewKeeper(
-					suite.chainA.GetSimApp().AppCodec(),
-					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
-					suite.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
+					s.chainA.GetSimApp().AppCodec(),
+					runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ibcexported.StoreKey)),
+					s.chainA.GetSimApp().GetSubspace(ibcexported.ModuleName),
 					upgradeKeeper,
-					suite.chainA.App.GetIBCKeeper().GetAuthority(),
+					s.chainA.App.GetIBCKeeper().GetAuthority(),
 				)
 			}
 
-			upgradeKeeper = suite.chainA.GetSimApp().UpgradeKeeper
+			upgradeKeeper = s.chainA.GetSimApp().UpgradeKeeper
 
 			tc.malleate()
 
 			if tc.expPanic != "" {
-				suite.Require().Panics(func() {
+				s.Require().Panics(func() {
 					newIBCKeeperFn()
 				}, "expected panic but no panic occurred")
 
 				defer func() {
 					if r := recover(); r != nil {
-						suite.Require().Contains(r.(error).Error(), tc.expPanic, "unexpected panic message")
+						s.Require().Contains(r.(error).Error(), tc.expPanic, "unexpected panic message")
 					}
 				}()
 			} else {
-				suite.Require().NotPanics(newIBCKeeperFn, "unexpected panic occurred")
+				s.Require().NotPanics(newIBCKeeperFn, "unexpected panic occurred")
 			}
 		})
 	}

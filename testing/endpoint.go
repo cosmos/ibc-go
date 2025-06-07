@@ -72,104 +72,104 @@ func NewDefaultEndpoint(chain *TestChain) *Endpoint {
 
 // QueryProof queries proof associated with this endpoint using the latest client state
 // height on the counterparty chain.
-func (endpoint *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
+func (ep *Endpoint) QueryProof(key []byte) ([]byte, clienttypes.Height) {
 	// obtain the counterparty client height.
-	latestCounterpartyHeight := endpoint.Counterparty.GetClientLatestHeight()
+	latestCounterpartyHeight := ep.Counterparty.GetClientLatestHeight()
 	// query proof on the counterparty using the latest height of the IBC client
-	return endpoint.QueryProofAtHeight(key, latestCounterpartyHeight.GetRevisionHeight())
+	return ep.QueryProofAtHeight(key, latestCounterpartyHeight.GetRevisionHeight())
 }
 
 // QueryProofAtHeight queries proof associated with this endpoint using the proof height
 // provided
-func (endpoint *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte, clienttypes.Height) {
+func (ep *Endpoint) QueryProofAtHeight(key []byte, height uint64) ([]byte, clienttypes.Height) {
 	// query proof on the counterparty using the latest height of the IBC client
-	return endpoint.Chain.QueryProofAtHeight(key, int64(height))
+	return ep.Chain.QueryProofAtHeight(key, int64(height))
 }
 
-// CreateClient creates an IBC client on the endpoint. It will update the
+// CreateClient creates an IBC client on the ep. It will update the
 // clientID for the endpoint if the message is successfully executed.
 // NOTE: a solo machine client will be created with an empty diversifier.
-func (endpoint *Endpoint) CreateClient() error {
+func (ep *Endpoint) CreateClient() error {
 	// ensure counterparty has committed state
-	endpoint.Counterparty.Chain.NextBlock()
+	ep.Counterparty.Chain.NextBlock()
 
 	var (
 		clientState    exported.ClientState
 		consensusState exported.ConsensusState
 	)
 
-	switch endpoint.ClientConfig.GetClientType() {
+	switch ep.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		tmConfig, ok := endpoint.ClientConfig.(*TendermintConfig)
-		require.True(endpoint.Chain.TB, ok)
+		tmConfig, ok := ep.ClientConfig.(*TendermintConfig)
+		require.True(ep.Chain.TB, ok)
 
-		height, ok := endpoint.Counterparty.Chain.LatestCommittedHeader.GetHeight().(clienttypes.Height)
-		require.True(endpoint.Chain.TB, ok)
+		height, ok := ep.Counterparty.Chain.LatestCommittedHeader.GetHeight().(clienttypes.Height)
+		require.True(ep.Chain.TB, ok)
 		clientState = ibctm.NewClientState(
-			endpoint.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
+			ep.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
 			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
-		consensusState = endpoint.Counterparty.Chain.LatestCommittedHeader.ConsensusState()
+		consensusState = ep.Counterparty.Chain.LatestCommittedHeader.ConsensusState()
 	case exported.Solomachine:
 		// TODO
-		//		solo := NewSolomachine(endpoint.Chain.TB, endpoint.Chain.Codec, clientID, "", 1)
+		//		solo := NewSolomachine(ep.Chain.TB, ep.Chain.Codec, clientID, "", 1)
 		//		clientState = solo.ClientState()
 		//		consensusState = solo.ConsensusState()
 	default:
-		return fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
+		return fmt.Errorf("client type %s is not supported", ep.ClientConfig.GetClientType())
 	}
 
 	msg, err := clienttypes.NewMsgCreateClient(
-		clientState, consensusState, endpoint.Chain.SenderAccount.GetAddress().String(),
+		clientState, consensusState, ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	require.NoError(endpoint.Chain.TB, err)
+	require.NoError(ep.Chain.TB, err)
 
-	res, err := endpoint.Chain.SendMsgs(msg)
+	res, err := ep.Chain.SendMsgs(msg)
 	if err != nil {
 		return err
 	}
 
-	endpoint.ClientID, err = ParseClientIDFromEvents(res.Events)
-	require.NoError(endpoint.Chain.TB, err)
+	ep.ClientID, err = ParseClientIDFromEvents(res.Events)
+	require.NoError(ep.Chain.TB, err)
 
 	return nil
 }
 
-// UpdateClient updates the IBC client associated with the endpoint.
-func (endpoint *Endpoint) UpdateClient() error {
+// UpdateClient updates the IBC client associated with the ep.
+func (ep *Endpoint) UpdateClient() error {
 	// ensure counterparty has committed state
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
+	ep.Chain.Coordinator.CommitBlock(ep.Counterparty.Chain)
 
 	var header exported.ClientMessage
-	switch endpoint.ClientConfig.GetClientType() {
+	switch ep.ClientConfig.GetClientType() {
 	case exported.Tendermint:
-		trustedHeight, ok := endpoint.GetClientLatestHeight().(clienttypes.Height)
-		require.True(endpoint.Chain.TB, ok)
+		trustedHeight, ok := ep.GetClientLatestHeight().(clienttypes.Height)
+		require.True(ep.Chain.TB, ok)
 		var err error
-		header, err = endpoint.Counterparty.Chain.IBCClientHeader(endpoint.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
+		header, err = ep.Counterparty.Chain.IBCClientHeader(ep.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
 		if err != nil {
 			return err
 		}
 	default:
-		return fmt.Errorf("client type %s is not supported", endpoint.ClientConfig.GetClientType())
+		return fmt.Errorf("client type %s is not supported", ep.ClientConfig.GetClientType())
 	}
 
 	msg, err := clienttypes.NewMsgUpdateClient(
-		endpoint.ClientID, header,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		ep.ClientID, header,
+		ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	require.NoError(endpoint.Chain.TB, err)
+	require.NoError(ep.Chain.TB, err)
 
-	return endpoint.Chain.sendMsgs(msg)
+	return ep.Chain.sendMsgs(msg)
 }
 
-// FreezeClient freezes the IBC client associated with the endpoint.
-func (endpoint *Endpoint) FreezeClient() {
-	clientState := endpoint.Chain.GetClientState(endpoint.ClientID)
+// FreezeClient freezes the IBC client associated with the ep.
+func (ep *Endpoint) FreezeClient() {
+	clientState := ep.Chain.GetClientState(ep.ClientID)
 	tmClientState, ok := clientState.(*ibctm.ClientState)
-	require.True(endpoint.Chain.TB, ok)
+	require.True(ep.Chain.TB, ok)
 
 	tmClientState.FrozenHeight = clienttypes.NewHeight(0, 1)
-	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(endpoint.Chain.GetContext(), endpoint.ClientID, tmClientState)
+	ep.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(ep.Chain.GetContext(), ep.ClientID, tmClientState)
 }
 
 // UpgradeChain will upgrade a chain's chainID to the next revision number.
@@ -177,14 +177,14 @@ func (endpoint *Endpoint) FreezeClient() {
 // TODO: implement actual upgrade chain functionality via scheduling an upgrade
 // and upgrading the client via MsgUpgradeClient
 // see reference https://github.com/cosmos/ibc-go/pull/1169
-func (endpoint *Endpoint) UpgradeChain() error {
-	if strings.TrimSpace(endpoint.Counterparty.ClientID) == "" {
+func (ep *Endpoint) UpgradeChain() error {
+	if strings.TrimSpace(ep.Counterparty.ClientID) == "" {
 		return errors.New("cannot upgrade chain if there is no counterparty client")
 	}
 
-	clientState := endpoint.Counterparty.GetClientState()
+	clientState := ep.Counterparty.GetClientState()
 	tmClientState, ok := clientState.(*ibctm.ClientState)
-	require.True(endpoint.Chain.TB, ok)
+	require.True(ep.Chain.TB, ok)
 
 	// increment revision number in chainID
 	oldChainID := tmClientState.ChainId
@@ -199,118 +199,118 @@ func (endpoint *Endpoint) UpgradeChain() error {
 	}
 
 	// update chain
-	baseapp.SetChainID(newChainID)(endpoint.Chain.App.GetBaseApp())
-	endpoint.Chain.ChainID = newChainID
-	endpoint.Chain.ProposedHeader.ChainID = newChainID
-	endpoint.Chain.NextBlock() // commit changes
+	baseapp.SetChainID(newChainID)(ep.Chain.App.GetBaseApp())
+	ep.Chain.ChainID = newChainID
+	ep.Chain.ProposedHeader.ChainID = newChainID
+	ep.Chain.NextBlock() // commit changes
 
 	// update counterparty client manually
 	tmClientState.ChainId = newChainID
 	tmClientState.LatestHeight = clienttypes.NewHeight(revisionNumber+1, tmClientState.LatestHeight.GetRevisionHeight()+1)
 
-	endpoint.Counterparty.SetClientState(clientState)
+	ep.Counterparty.SetClientState(clientState)
 
 	tmConsensusState := &ibctm.ConsensusState{
-		Timestamp:          endpoint.Chain.LatestCommittedHeader.GetTime(),
-		Root:               commitmenttypes.NewMerkleRoot(endpoint.Chain.LatestCommittedHeader.Header.GetAppHash()),
-		NextValidatorsHash: endpoint.Chain.LatestCommittedHeader.Header.NextValidatorsHash,
+		Timestamp:          ep.Chain.LatestCommittedHeader.GetTime(),
+		Root:               commitmenttypes.NewMerkleRoot(ep.Chain.LatestCommittedHeader.Header.GetAppHash()),
+		NextValidatorsHash: ep.Chain.LatestCommittedHeader.Header.NextValidatorsHash,
 	}
 
-	latestHeight := endpoint.Counterparty.GetClientLatestHeight()
+	latestHeight := ep.Counterparty.GetClientLatestHeight()
 
-	endpoint.Counterparty.SetConsensusState(tmConsensusState, latestHeight)
+	ep.Counterparty.SetConsensusState(tmConsensusState, latestHeight)
 
 	// ensure the next update isn't identical to the one set in state
-	endpoint.Chain.Coordinator.IncrementTime()
-	endpoint.Chain.NextBlock()
+	ep.Chain.Coordinator.IncrementTime()
+	ep.Chain.NextBlock()
 
-	return endpoint.Counterparty.UpdateClient()
+	return ep.Counterparty.UpdateClient()
 }
 
-// ConnOpenInit will construct and execute a MsgConnectionOpenInit on the associated endpoint.
-func (endpoint *Endpoint) ConnOpenInit() error {
+// ConnOpenInit will construct and execute a MsgConnectionOpenInit on the associated ep.
+func (ep *Endpoint) ConnOpenInit() error {
 	msg := connectiontypes.NewMsgConnectionOpenInit(
-		endpoint.ClientID,
-		endpoint.Counterparty.ClientID,
-		endpoint.Counterparty.Chain.GetPrefix(), DefaultOpenInitVersion, endpoint.ConnectionConfig.DelayPeriod,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		ep.ClientID,
+		ep.Counterparty.ClientID,
+		ep.Counterparty.Chain.GetPrefix(), DefaultOpenInitVersion, ep.ConnectionConfig.DelayPeriod,
+		ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	res, err := endpoint.Chain.SendMsgs(msg)
+	res, err := ep.Chain.SendMsgs(msg)
 	if err != nil {
 		return err
 	}
 
-	endpoint.ConnectionID, err = ParseConnectionIDFromEvents(res.Events)
-	require.NoError(endpoint.Chain.TB, err)
+	ep.ConnectionID, err = ParseConnectionIDFromEvents(res.Events)
+	require.NoError(ep.Chain.TB, err)
 
 	return nil
 }
 
-// ConnOpenTry will construct and execute a MsgConnectionOpenTry on the associated endpoint.
-func (endpoint *Endpoint) ConnOpenTry() error {
-	err := endpoint.UpdateClient()
-	require.NoError(endpoint.Chain.TB, err)
+// ConnOpenTry will construct and execute a MsgConnectionOpenTry on the associated ep.
+func (ep *Endpoint) ConnOpenTry() error {
+	err := ep.UpdateClient()
+	require.NoError(ep.Chain.TB, err)
 
-	initProof, proofHeight := endpoint.QueryConnectionHandshakeProof()
+	initProof, proofHeight := ep.QueryConnectionHandshakeProof()
 
 	msg := connectiontypes.NewMsgConnectionOpenTry(
-		endpoint.ClientID, endpoint.Counterparty.ConnectionID, endpoint.Counterparty.ClientID,
-		endpoint.Counterparty.Chain.GetPrefix(), []*connectiontypes.Version{ConnectionVersion},
-		endpoint.ConnectionConfig.DelayPeriod, initProof, proofHeight,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		ep.ClientID, ep.Counterparty.ConnectionID, ep.Counterparty.ClientID,
+		ep.Counterparty.Chain.GetPrefix(), []*connectiontypes.Version{ConnectionVersion},
+		ep.ConnectionConfig.DelayPeriod, initProof, proofHeight,
+		ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	res, err := endpoint.Chain.SendMsgs(msg)
+	res, err := ep.Chain.SendMsgs(msg)
 	if err != nil {
 		return err
 	}
 
-	if endpoint.ConnectionID == "" {
-		endpoint.ConnectionID, err = ParseConnectionIDFromEvents(res.Events)
-		require.NoError(endpoint.Chain.TB, err)
+	if ep.ConnectionID == "" {
+		ep.ConnectionID, err = ParseConnectionIDFromEvents(res.Events)
+		require.NoError(ep.Chain.TB, err)
 	}
 
 	return nil
 }
 
-// ConnOpenAck will construct and execute a MsgConnectionOpenAck on the associated endpoint.
-func (endpoint *Endpoint) ConnOpenAck() error {
-	err := endpoint.UpdateClient()
-	require.NoError(endpoint.Chain.TB, err)
+// ConnOpenAck will construct and execute a MsgConnectionOpenAck on the associated ep.
+func (ep *Endpoint) ConnOpenAck() error {
+	err := ep.UpdateClient()
+	require.NoError(ep.Chain.TB, err)
 
-	tryProof, proofHeight := endpoint.QueryConnectionHandshakeProof()
+	tryProof, proofHeight := ep.QueryConnectionHandshakeProof()
 
 	msg := connectiontypes.NewMsgConnectionOpenAck(
-		endpoint.ConnectionID, endpoint.Counterparty.ConnectionID, // testing doesn't use flexible selection
+		ep.ConnectionID, ep.Counterparty.ConnectionID, // testing doesn't use flexible selection
 		tryProof, proofHeight, ConnectionVersion,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	return endpoint.Chain.sendMsgs(msg)
+	return ep.Chain.sendMsgs(msg)
 }
 
-// ConnOpenConfirm will construct and execute a MsgConnectionOpenConfirm on the associated endpoint.
-func (endpoint *Endpoint) ConnOpenConfirm() error {
-	err := endpoint.UpdateClient()
-	require.NoError(endpoint.Chain.TB, err)
+// ConnOpenConfirm will construct and execute a MsgConnectionOpenConfirm on the associated ep.
+func (ep *Endpoint) ConnOpenConfirm() error {
+	err := ep.UpdateClient()
+	require.NoError(ep.Chain.TB, err)
 
-	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
-	proof, height := endpoint.Counterparty.Chain.QueryProof(connectionKey)
+	connectionKey := host.ConnectionKey(ep.Counterparty.ConnectionID)
+	proof, height := ep.Counterparty.Chain.QueryProof(connectionKey)
 
 	msg := connectiontypes.NewMsgConnectionOpenConfirm(
-		endpoint.ConnectionID,
+		ep.ConnectionID,
 		proof, height,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	return endpoint.Chain.sendMsgs(msg)
+	return ep.Chain.sendMsgs(msg)
 }
 
 // QueryConnectionHandshakeProof returns all the proofs necessary to execute OpenTry or Open Ack of
 // the connection handshakes. It returns the proof of the counterparty connection and the proof height.
-func (endpoint *Endpoint) QueryConnectionHandshakeProof() (
+func (ep *Endpoint) QueryConnectionHandshakeProof() (
 	[]byte, clienttypes.Height,
 ) {
 	// query proof for the connection on the counterparty
-	connectionKey := host.ConnectionKey(endpoint.Counterparty.ConnectionID)
-	return endpoint.Counterparty.QueryProof(connectionKey)
+	connectionKey := host.ConnectionKey(ep.Counterparty.ConnectionID)
+	return ep.Counterparty.QueryProof(connectionKey)
 }
 
 var sequenceNumber int
@@ -318,143 +318,143 @@ var sequenceNumber int
 // IncrementNextChannelSequence incrementes the value "nextChannelSequence" in the store,
 // which is used to determine the next channel ID.
 // This guarantees that we'll have always different IDs while running tests.
-func (endpoint *Endpoint) IncrementNextChannelSequence() {
-	if endpoint.disableUniqueChannelIDs {
+func (ep *Endpoint) IncrementNextChannelSequence() {
+	if ep.disableUniqueChannelIDs {
 		return
 	}
 	sequenceNumber++
-	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetNextChannelSequence(endpoint.Chain.GetContext(), uint64(sequenceNumber))
+	ep.Chain.App.GetIBCKeeper().ChannelKeeper.SetNextChannelSequence(ep.Chain.GetContext(), uint64(sequenceNumber))
 }
 
-// ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated endpoint.
-func (endpoint *Endpoint) ChanOpenInit() error {
-	endpoint.IncrementNextChannelSequence()
+// ChanOpenInit will construct and execute a MsgChannelOpenInit on the associated ep.
+func (ep *Endpoint) ChanOpenInit() error {
+	ep.IncrementNextChannelSequence()
 	msg := channeltypes.NewMsgChannelOpenInit(
-		endpoint.ChannelConfig.PortID,
-		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
-		endpoint.Counterparty.ChannelConfig.PortID,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		ep.ChannelConfig.PortID,
+		ep.ChannelConfig.Version, ep.ChannelConfig.Order, []string{ep.ConnectionID},
+		ep.Counterparty.ChannelConfig.PortID,
+		ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	res, err := endpoint.Chain.SendMsgs(msg)
+	res, err := ep.Chain.SendMsgs(msg)
 	if err != nil {
 		return err
 	}
 
-	endpoint.ChannelID, err = ParseChannelIDFromEvents(res.Events)
-	require.NoError(endpoint.Chain.TB, err)
+	ep.ChannelID, err = ParseChannelIDFromEvents(res.Events)
+	require.NoError(ep.Chain.TB, err)
 
 	// update version to selected app version
 	// NOTE: this update must be performed after SendMsgs()
-	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
-	endpoint.Counterparty.ChannelConfig.Version = endpoint.GetChannel().Version
+	ep.ChannelConfig.Version = ep.GetChannel().Version
+	ep.Counterparty.ChannelConfig.Version = ep.GetChannel().Version
 
 	return nil
 }
 
-// ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated endpoint.
-func (endpoint *Endpoint) ChanOpenTry() error {
-	endpoint.IncrementNextChannelSequence()
-	err := endpoint.UpdateClient()
-	require.NoError(endpoint.Chain.TB, err)
+// ChanOpenTry will construct and execute a MsgChannelOpenTry on the associated ep.
+func (ep *Endpoint) ChanOpenTry() error {
+	ep.IncrementNextChannelSequence()
+	err := ep.UpdateClient()
+	require.NoError(ep.Chain.TB, err)
 
-	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
+	channelKey := host.ChannelKey(ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID)
+	proof, height := ep.Counterparty.Chain.QueryProof(channelKey)
 
 	msg := channeltypes.NewMsgChannelOpenTry(
-		endpoint.ChannelConfig.PortID,
-		endpoint.ChannelConfig.Version, endpoint.ChannelConfig.Order, []string{endpoint.ConnectionID},
-		endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version,
+		ep.ChannelConfig.PortID,
+		ep.ChannelConfig.Version, ep.ChannelConfig.Order, []string{ep.ConnectionID},
+		ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID, ep.Counterparty.ChannelConfig.Version,
 		proof, height,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	res, err := endpoint.Chain.SendMsgs(msg)
+	res, err := ep.Chain.SendMsgs(msg)
 	if err != nil {
 		return err
 	}
 
-	if endpoint.ChannelID == "" {
-		endpoint.ChannelID, err = ParseChannelIDFromEvents(res.Events)
-		require.NoError(endpoint.Chain.TB, err)
+	if ep.ChannelID == "" {
+		ep.ChannelID, err = ParseChannelIDFromEvents(res.Events)
+		require.NoError(ep.Chain.TB, err)
 	}
 
 	// update version to selected app version
 	// NOTE: this update must be performed after the endpoint channelID is set
-	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
-	endpoint.Counterparty.ChannelConfig.Version = endpoint.GetChannel().Version
+	ep.ChannelConfig.Version = ep.GetChannel().Version
+	ep.Counterparty.ChannelConfig.Version = ep.GetChannel().Version
 
 	return nil
 }
 
-// ChanOpenAck will construct and execute a MsgChannelOpenAck on the associated endpoint.
-func (endpoint *Endpoint) ChanOpenAck() error {
-	err := endpoint.UpdateClient()
-	require.NoError(endpoint.Chain.TB, err)
+// ChanOpenAck will construct and execute a MsgChannelOpenAck on the associated ep.
+func (ep *Endpoint) ChanOpenAck() error {
+	err := ep.UpdateClient()
+	require.NoError(ep.Chain.TB, err)
 
-	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
+	channelKey := host.ChannelKey(ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID)
+	proof, height := ep.Counterparty.Chain.QueryProof(channelKey)
 
 	msg := channeltypes.NewMsgChannelOpenAck(
-		endpoint.ChannelConfig.PortID, endpoint.ChannelID,
-		endpoint.Counterparty.ChannelID, endpoint.Counterparty.ChannelConfig.Version, // testing doesn't use flexible selection
+		ep.ChannelConfig.PortID, ep.ChannelID,
+		ep.Counterparty.ChannelID, ep.Counterparty.ChannelConfig.Version, // testing doesn't use flexible selection
 		proof, height,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		ep.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	if err = endpoint.Chain.sendMsgs(msg); err != nil {
+	if err = ep.Chain.sendMsgs(msg); err != nil {
 		return err
 	}
 
-	endpoint.ChannelConfig.Version = endpoint.GetChannel().Version
+	ep.ChannelConfig.Version = ep.GetChannel().Version
 
 	return nil
 }
 
-// ChanOpenConfirm will construct and execute a MsgChannelOpenConfirm on the associated endpoint.
-func (endpoint *Endpoint) ChanOpenConfirm() error {
-	err := endpoint.UpdateClient()
-	require.NoError(endpoint.Chain.TB, err)
+// ChanOpenConfirm will construct and execute a MsgChannelOpenConfirm on the associated ep.
+func (ep *Endpoint) ChanOpenConfirm() error {
+	err := ep.UpdateClient()
+	require.NoError(ep.Chain.TB, err)
 
-	channelKey := host.ChannelKey(endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-	proof, height := endpoint.Counterparty.Chain.QueryProof(channelKey)
+	channelKey := host.ChannelKey(ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID)
+	proof, height := ep.Counterparty.Chain.QueryProof(channelKey)
 
 	msg := channeltypes.NewMsgChannelOpenConfirm(
-		endpoint.ChannelConfig.PortID, endpoint.ChannelID,
+		ep.ChannelConfig.PortID, ep.ChannelID,
 		proof, height,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	return endpoint.Chain.sendMsgs(msg)
+	return ep.Chain.sendMsgs(msg)
 }
 
-// ChanCloseInit will construct and execute a MsgChannelCloseInit on the associated endpoint.
+// ChanCloseInit will construct and execute a MsgChannelCloseInit on the associated ep.
 //
 // NOTE: does not work with ibc-transfer module
-func (endpoint *Endpoint) ChanCloseInit() error {
+func (ep *Endpoint) ChanCloseInit() error {
 	msg := channeltypes.NewMsgChannelCloseInit(
-		endpoint.ChannelConfig.PortID, endpoint.ChannelID,
-		endpoint.Chain.SenderAccount.GetAddress().String(),
+		ep.ChannelConfig.PortID, ep.ChannelID,
+		ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	return endpoint.Chain.sendMsgs(msg)
+	return ep.Chain.sendMsgs(msg)
 }
 
 // SendPacket sends a packet through the channel keeper using the associated endpoint
 // The counterparty client is updated so proofs can be sent to the counterparty chain.
 // The packet sequence generated for the packet to be sent is returned. An error
 // is returned if one occurs.
-func (endpoint *Endpoint) SendPacket(
+func (ep *Endpoint) SendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
 ) (uint64, error) {
 	// no need to send message, acting as a module
-	sequence, err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, timeoutHeight, timeoutTimestamp, data)
+	sequence, err := ep.Chain.App.GetIBCKeeper().ChannelKeeper.SendPacket(ep.Chain.GetContext(), ep.ChannelConfig.PortID, ep.ChannelID, timeoutHeight, timeoutTimestamp, data)
 	if err != nil {
 		return 0, err
 	}
 
 	// commit changes since no message was sent
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+	ep.Chain.Coordinator.CommitBlock(ep.Chain)
 
-	err = endpoint.Counterparty.UpdateClient()
+	err = ep.Counterparty.UpdateClient()
 	if err != nil {
 		return 0, err
 	}
@@ -462,10 +462,10 @@ func (endpoint *Endpoint) SendPacket(
 	return sequence, nil
 }
 
-// RecvPacket receives a packet on the associated endpoint.
+// RecvPacket receives a packet on the associated ep.
 // The counterparty client is updated.
-func (endpoint *Endpoint) RecvPacket(packet channeltypes.Packet) error {
-	_, err := endpoint.RecvPacketWithResult(packet)
+func (ep *Endpoint) RecvPacket(packet channeltypes.Packet) error {
+	_, err := ep.RecvPacketWithResult(packet)
 	if err != nil {
 		return err
 	}
@@ -475,228 +475,228 @@ func (endpoint *Endpoint) RecvPacket(packet channeltypes.Packet) error {
 
 // RecvPacketWithResult receives a packet on the associated endpoint and the result
 // of the transaction is returned. The counterparty client is updated.
-func (endpoint *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*abci.ExecTxResult, error) {
+func (ep *Endpoint) RecvPacketWithResult(packet channeltypes.Packet) (*abci.ExecTxResult, error) {
 	// get proof of packet commitment on source
 	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	proof, proofHeight := endpoint.Counterparty.Chain.QueryProof(packetKey)
+	proof, proofHeight := ep.Counterparty.Chain.QueryProof(packetKey)
 
-	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, ep.Chain.SenderAccount.GetAddress().String())
 
 	// receive on counterparty and update source client
-	res, err := endpoint.Chain.SendMsgs(recvMsg)
+	res, err := ep.Chain.SendMsgs(recvMsg)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := endpoint.Counterparty.UpdateClient(); err != nil {
+	if err := ep.Counterparty.UpdateClient(); err != nil {
 		return nil, err
 	}
 
 	return res, nil
 }
 
-// WriteAcknowledgement writes an acknowledgement on the channel associated with the endpoint.
+// WriteAcknowledgement writes an acknowledgement on the channel associated with the ep.
 // The counterparty client is updated.
-func (endpoint *Endpoint) WriteAcknowledgement(ack exported.Acknowledgement, packet exported.PacketI) error {
+func (ep *Endpoint) WriteAcknowledgement(ack exported.Acknowledgement, packet exported.PacketI) error {
 	// no need to send message, acting as a handler
-	err := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(endpoint.Chain.GetContext(), packet, ack)
+	err := ep.Chain.App.GetIBCKeeper().ChannelKeeper.WriteAcknowledgement(ep.Chain.GetContext(), packet, ack)
 	if err != nil {
 		return err
 	}
 
 	// commit changes since no message was sent
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+	ep.Chain.Coordinator.CommitBlock(ep.Chain)
 
-	return endpoint.Counterparty.UpdateClient()
+	return ep.Counterparty.UpdateClient()
 }
 
-// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint.
-func (endpoint *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []byte) error {
+// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the ep.
+func (ep *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []byte) error {
 	// get proof of acknowledgement on counterparty
 	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+	proof, proofHeight := ep.Counterparty.QueryProof(packetKey)
 
-	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, ep.Chain.SenderAccount.GetAddress().String())
 
-	return endpoint.Chain.sendMsgs(ackMsg)
+	return ep.Chain.sendMsgs(ackMsg)
 }
 
 // AcknowledgePacketWithResult sends a MsgAcknowledgement to the channel associated with the endpoint and returns the result.
-func (endpoint *Endpoint) AcknowledgePacketWithResult(packet channeltypes.Packet, ack []byte) (*abci.ExecTxResult, error) {
+func (ep *Endpoint) AcknowledgePacketWithResult(packet channeltypes.Packet, ack []byte) (*abci.ExecTxResult, error) {
 	// get proof of acknowledgement on counterparty
 	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+	proof, proofHeight := ep.Counterparty.QueryProof(packetKey)
 
-	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, ep.Chain.SenderAccount.GetAddress().String())
 
-	return endpoint.Chain.SendMsgs(ackMsg)
+	return ep.Chain.SendMsgs(ackMsg)
 }
 
-// TimeoutPacketWithResult sends a MsgTimeout to the channel associated with the endpoint.
-func (endpoint *Endpoint) TimeoutPacketWithResult(packet channeltypes.Packet) (*abci.ExecTxResult, error) {
+// TimeoutPacketWithResult sends a MsgTimeout to the channel associated with the ep.
+func (ep *Endpoint) TimeoutPacketWithResult(packet channeltypes.Packet) (*abci.ExecTxResult, error) {
 	// get proof for timeout based on channel order
 	var packetKey []byte
 
-	switch endpoint.ChannelConfig.Order {
+	switch ep.ChannelConfig.Order {
 	case channeltypes.ORDERED:
 		packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 	case channeltypes.UNORDERED:
 		packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	default:
-		return nil, fmt.Errorf("unsupported order type %s", endpoint.ChannelConfig.Order)
+		return nil, fmt.Errorf("unsupported order type %s", ep.ChannelConfig.Order)
 	}
 
-	counterparty := endpoint.Counterparty
+	counterparty := ep.Counterparty
 	proof, proofHeight := counterparty.QueryProof(packetKey)
 	nextSeqRecv, found := counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(counterparty.Chain.GetContext(), counterparty.ChannelConfig.PortID, counterparty.ChannelID)
-	require.True(endpoint.Chain.TB, found)
+	require.True(ep.Chain.TB, found)
 
 	timeoutMsg := channeltypes.NewMsgTimeout(
 		packet, nextSeqRecv,
-		proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String(),
+		proof, proofHeight, ep.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	return endpoint.Chain.SendMsgs(timeoutMsg)
+	return ep.Chain.SendMsgs(timeoutMsg)
 }
 
-// TimeoutPacket sends a MsgTimeout to the channel associated with the endpoint.
-func (endpoint *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
-	_, err := endpoint.TimeoutPacketWithResult(packet)
+// TimeoutPacket sends a MsgTimeout to the channel associated with the ep.
+func (ep *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
+	_, err := ep.TimeoutPacketWithResult(packet)
 	return err
 }
 
-// TimeoutOnClose sends a MsgTimeoutOnClose to the channel associated with the endpoint.
-func (endpoint *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
+// TimeoutOnClose sends a MsgTimeoutOnClose to the channel associated with the ep.
+func (ep *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	// get proof for timeout based on channel order
 	var packetKey []byte
 
-	switch endpoint.ChannelConfig.Order {
+	switch ep.ChannelConfig.Order {
 	case channeltypes.ORDERED:
 		packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 	case channeltypes.UNORDERED:
 		packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	default:
-		return fmt.Errorf("unsupported order type %s", endpoint.ChannelConfig.Order)
+		return fmt.Errorf("unsupported order type %s", ep.ChannelConfig.Order)
 	}
 
-	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+	proof, proofHeight := ep.Counterparty.QueryProof(packetKey)
 
 	channelKey := host.ChannelKey(packet.GetDestPort(), packet.GetDestChannel())
-	closedProof, _ := endpoint.Counterparty.QueryProof(channelKey)
+	closedProof, _ := ep.Counterparty.QueryProof(channelKey)
 
-	nextSeqRecv, found := endpoint.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(endpoint.Counterparty.Chain.GetContext(), endpoint.Counterparty.ChannelConfig.PortID, endpoint.Counterparty.ChannelID)
-	require.True(endpoint.Chain.TB, found)
+	nextSeqRecv, found := ep.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(ep.Counterparty.Chain.GetContext(), ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID)
+	require.True(ep.Chain.TB, found)
 
 	timeoutOnCloseMsg := channeltypes.NewMsgTimeoutOnClose(
 		packet, nextSeqRecv,
-		proof, closedProof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String(),
+		proof, closedProof, proofHeight, ep.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	return endpoint.Chain.sendMsgs(timeoutOnCloseMsg)
+	return ep.Chain.sendMsgs(timeoutOnCloseMsg)
 }
 
 // Deprecated: usage of this function should be replaced by `UpdateChannel`
 // SetChannelState sets a channel state
-func (endpoint *Endpoint) SetChannelState(state channeltypes.State) error {
-	channel := endpoint.GetChannel()
+func (ep *Endpoint) SetChannelState(state channeltypes.State) error {
+	channel := ep.GetChannel()
 
 	channel.State = state
-	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
+	ep.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(ep.Chain.GetContext(), ep.ChannelConfig.PortID, ep.ChannelID, channel)
 
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+	ep.Chain.Coordinator.CommitBlock(ep.Chain)
 
-	return endpoint.Counterparty.UpdateClient()
+	return ep.Counterparty.UpdateClient()
 }
 
-// UpdateChannel updates the channel associated with the given endpoint. It accepts a
+// UpdateChannel updates the channel associated with the given ep. It accepts a
 // closure which takes a channel allowing the caller to modify its fields.
-func (endpoint *Endpoint) UpdateChannel(updater func(channel *channeltypes.Channel)) {
-	channel := endpoint.GetChannel()
+func (ep *Endpoint) UpdateChannel(updater func(channel *channeltypes.Channel)) {
+	channel := ep.GetChannel()
 	updater(&channel)
-	endpoint.SetChannel(channel)
+	ep.SetChannel(channel)
 
-	endpoint.Chain.Coordinator.CommitBlock(endpoint.Chain)
+	ep.Chain.Coordinator.CommitBlock(ep.Chain)
 
-	err := endpoint.Counterparty.UpdateClient()
-	require.NoError(endpoint.Chain.TB, err)
+	err := ep.Counterparty.UpdateClient()
+	require.NoError(ep.Chain.TB, err)
 }
 
-// GetClientLatestHeight returns the latest height for the client state for this endpoint.
+// GetClientLatestHeight returns the latest height for the client state for this ep.
 // The client state is expected to exist otherwise testing will fail.
-func (endpoint *Endpoint) GetClientLatestHeight() exported.Height {
-	return endpoint.Chain.GetClientLatestHeight(endpoint.ClientID)
+func (ep *Endpoint) GetClientLatestHeight() exported.Height {
+	return ep.Chain.GetClientLatestHeight(ep.ClientID)
 }
 
-// GetClientState retrieves the client state for this endpoint. The
+// GetClientState retrieves the client state for this ep. The
 // client state is expected to exist otherwise testing will fail.
-func (endpoint *Endpoint) GetClientState() exported.ClientState {
-	return endpoint.Chain.GetClientState(endpoint.ClientID)
+func (ep *Endpoint) GetClientState() exported.ClientState {
+	return ep.Chain.GetClientState(ep.ClientID)
 }
 
-// SetClientState sets the client state for this endpoint.
-func (endpoint *Endpoint) SetClientState(clientState exported.ClientState) {
-	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(endpoint.Chain.GetContext(), endpoint.ClientID, clientState)
+// SetClientState sets the client state for this ep.
+func (ep *Endpoint) SetClientState(clientState exported.ClientState) {
+	ep.Chain.App.GetIBCKeeper().ClientKeeper.SetClientState(ep.Chain.GetContext(), ep.ClientID, clientState)
 }
 
 // GetConsensusState retrieves the Consensus State for this endpoint at the provided height.
 // The consensus state is expected to exist otherwise testing will fail.
-func (endpoint *Endpoint) GetConsensusState(height exported.Height) exported.ConsensusState {
-	consensusState, found := endpoint.Chain.GetConsensusState(endpoint.ClientID, height)
-	require.True(endpoint.Chain.TB, found)
+func (ep *Endpoint) GetConsensusState(height exported.Height) exported.ConsensusState {
+	consensusState, found := ep.Chain.GetConsensusState(ep.ClientID, height)
+	require.True(ep.Chain.TB, found)
 
 	return consensusState
 }
 
-// SetConsensusState sets the consensus state for this endpoint.
-func (endpoint *Endpoint) SetConsensusState(consensusState exported.ConsensusState, height exported.Height) {
-	endpoint.Chain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(endpoint.Chain.GetContext(), endpoint.ClientID, height, consensusState)
+// SetConsensusState sets the consensus state for this ep.
+func (ep *Endpoint) SetConsensusState(consensusState exported.ConsensusState, height exported.Height) {
+	ep.Chain.App.GetIBCKeeper().ClientKeeper.SetClientConsensusState(ep.Chain.GetContext(), ep.ClientID, height, consensusState)
 }
 
-// GetConnection retrieves an IBC Connection for the endpoint. The
+// GetConnection retrieves an IBC Connection for the ep. The
 // connection is expected to exist otherwise testing will fail.
-func (endpoint *Endpoint) GetConnection() connectiontypes.ConnectionEnd {
-	connection, found := endpoint.Chain.App.GetIBCKeeper().ConnectionKeeper.GetConnection(endpoint.Chain.GetContext(), endpoint.ConnectionID)
-	require.True(endpoint.Chain.TB, found)
+func (ep *Endpoint) GetConnection() connectiontypes.ConnectionEnd {
+	connection, found := ep.Chain.App.GetIBCKeeper().ConnectionKeeper.GetConnection(ep.Chain.GetContext(), ep.ConnectionID)
+	require.True(ep.Chain.TB, found)
 
 	return connection
 }
 
-// SetConnection sets the connection for this endpoint.
-func (endpoint *Endpoint) SetConnection(connection connectiontypes.ConnectionEnd) {
-	endpoint.Chain.App.GetIBCKeeper().ConnectionKeeper.SetConnection(endpoint.Chain.GetContext(), endpoint.ConnectionID, connection)
+// SetConnection sets the connection for this ep.
+func (ep *Endpoint) SetConnection(connection connectiontypes.ConnectionEnd) {
+	ep.Chain.App.GetIBCKeeper().ConnectionKeeper.SetConnection(ep.Chain.GetContext(), ep.ConnectionID, connection)
 }
 
-// GetChannel retrieves an IBC Channel for the endpoint. The channel
+// GetChannel retrieves an IBC Channel for the ep. The channel
 // is expected to exist otherwise testing will fail.
-func (endpoint *Endpoint) GetChannel() channeltypes.Channel {
-	channel, found := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
-	require.True(endpoint.Chain.TB, found)
+func (ep *Endpoint) GetChannel() channeltypes.Channel {
+	channel, found := ep.Chain.App.GetIBCKeeper().ChannelKeeper.GetChannel(ep.Chain.GetContext(), ep.ChannelConfig.PortID, ep.ChannelID)
+	require.True(ep.Chain.TB, found)
 
 	return channel
 }
 
-// SetChannel sets the channel for this endpoint.
-func (endpoint *Endpoint) SetChannel(channel channeltypes.Channel) {
-	endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID, channel)
+// SetChannel sets the channel for this ep.
+func (ep *Endpoint) SetChannel(channel channeltypes.Channel) {
+	ep.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(ep.Chain.GetContext(), ep.ChannelConfig.PortID, ep.ChannelID, channel)
 }
 
 // QueryClientStateProof performs and abci query for a client stat associated
 // with this endpoint and returns the ClientState along with the proof.
-func (endpoint *Endpoint) QueryClientStateProof() (exported.ClientState, []byte) {
+func (ep *Endpoint) QueryClientStateProof() (exported.ClientState, []byte) {
 	// retrieve client state to provide proof for
-	clientState := endpoint.GetClientState()
+	clientState := ep.GetClientState()
 
-	clientKey := host.FullClientStateKey(endpoint.ClientID)
-	clientProof, _ := endpoint.QueryProof(clientKey)
+	clientKey := host.FullClientStateKey(ep.ClientID)
+	clientProof, _ := ep.QueryProof(clientKey)
 
 	return clientState, clientProof
 }
 
-// UpdateConnection updates the connection associated with the given endpoint. It accepts a
+// UpdateConnection updates the connection associated with the given ep. It accepts a
 // closure which takes a connection allowing the caller to modify the connection fields.
-func (endpoint *Endpoint) UpdateConnection(updater func(connection *connectiontypes.ConnectionEnd)) {
-	connection := endpoint.GetConnection()
+func (ep *Endpoint) UpdateConnection(updater func(connection *connectiontypes.ConnectionEnd)) {
+	connection := ep.GetConnection()
 	updater(&connection)
 
-	endpoint.SetConnection(connection)
+	ep.SetConnection(connection)
 }

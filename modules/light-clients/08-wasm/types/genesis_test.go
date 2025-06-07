@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 )
 
-func (suite *TypesTestSuite) TestValidateGenesis() {
+func (s *TypesTestSuite) TestValidateGenesis() {
 	testCases := []struct {
 		name     string
 		genState *types.GenesisState
@@ -31,10 +31,10 @@ func (suite *TypesTestSuite) TestValidateGenesis() {
 	for _, tc := range testCases {
 		err := tc.genState.Validate()
 		if tc.expErr == nil {
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		} else {
-			suite.Require().Error(err)
-			suite.Require().ErrorIs(err, tc.expErr)
+			s.Require().Error(err)
+			s.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }

@@ -47,7 +47,7 @@ import (
 // 4. A -> C : sender chain is sink zone. Denom upon receiving: 'C/B/denom'
 // 5. C -> B : sender chain is sink zone. Denom upon receiving: 'B/denom'
 // 6. B -> A : sender chain is sink zone. Denom upon receiving: 'denom'
-func (k Keeper) SendTransfer(
+func (k *Keeper) SendTransfer(
 	ctx sdk.Context,
 	sourcePort,
 	sourceChannel string,
@@ -110,7 +110,7 @@ func (k Keeper) SendTransfer(
 // and sent to the receiving address. Otherwise if the sender chain is sending
 // back tokens this chain originally transferred to it, the tokens are
 // unescrowed and sent to the receiving address.
-func (k Keeper) OnRecvPacket(
+func (k *Keeper) OnRecvPacket(
 	ctx sdk.Context,
 	data types.InternalTransferRepresentation,
 	sourcePort string,
@@ -208,7 +208,7 @@ func (k Keeper) OnRecvPacket(
 //
 // If the acknowledgement was a success then nothing occurs. Otherwise,
 // if the acknowledgement failed, then the sender is refunded their tokens.
-func (k Keeper) OnAcknowledgementPacket(
+func (k *Keeper) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
@@ -231,7 +231,7 @@ func (k Keeper) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket processes a transfer packet timeout by refunding the tokens to the sender
-func (k Keeper) OnTimeoutPacket(
+func (k *Keeper) OnTimeoutPacket(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
@@ -244,7 +244,7 @@ func (k Keeper) OnTimeoutPacket(
 // if the sending chain was the source chain. Otherwise, the sent token
 // were burnt in the original send so new tokens are minted and sent to
 // the sending address.
-func (k Keeper) refundPacketTokens(
+func (k *Keeper) refundPacketTokens(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
@@ -294,7 +294,7 @@ func (k Keeper) refundPacketTokens(
 
 // EscrowCoin will send the given coin from the provided sender to the escrow address. It will also
 // update the total escrowed amount by adding the escrowed coin's amount to the current total escrow.
-func (k Keeper) EscrowCoin(ctx sdk.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
+func (k *Keeper) EscrowCoin(ctx sdk.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
 	if err := k.BankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(coin)); err != nil {
 		// failure is expected for insufficient balances
 		return err
@@ -310,7 +310,7 @@ func (k Keeper) EscrowCoin(ctx sdk.Context, sender, escrowAddress sdk.AccAddress
 
 // UnescrowCoin will send the given coin from the escrow address to the provided receiver. It will also
 // update the total escrow by deducting the unescrowed coin's amount from the current total escrow.
-func (k Keeper) UnescrowCoin(ctx sdk.Context, escrowAddress, receiver sdk.AccAddress, coin sdk.Coin) error {
+func (k *Keeper) UnescrowCoin(ctx sdk.Context, escrowAddress, receiver sdk.AccAddress, coin sdk.Coin) error {
 	if err := k.BankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(coin)); err != nil {
 		// NOTE: this error is only expected to occur given an unexpected bug or a malicious
 		// counterparty module. The bug may occur in bank or any part of the code that allows
@@ -328,7 +328,7 @@ func (k Keeper) UnescrowCoin(ctx sdk.Context, escrowAddress, receiver sdk.AccAdd
 }
 
 // tokenFromCoin constructs an IBC token given an SDK coin.
-func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
+func (k *Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
 	// if the coin does not have an IBC denom, return as is
 	if !strings.HasPrefix(coin.Denom, "ibc/") {
 		return types.Token{
@@ -351,7 +351,7 @@ func (k Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, erro
 
 // GetDenomFromIBCDenom returns the `Denom` given the IBC Denom (ibc/{hex hash}) of the denomination.
 // The ibcDenom is the hex hash of the denomination prefixed by "ibc/", often referred to as the IBC denom.
-func (k Keeper) GetDenomFromIBCDenom(ctx sdk.Context, ibcDenom string) (types.Denom, error) {
+func (k *Keeper) GetDenomFromIBCDenom(ctx sdk.Context, ibcDenom string) (types.Denom, error) {
 	hexHash := ibcDenom[len(types.DenomPrefix+"/"):]
 
 	hash, err := types.ParseHexHash(hexHash)
@@ -370,7 +370,7 @@ func (k Keeper) GetDenomFromIBCDenom(ctx sdk.Context, ibcDenom string) (types.De
 // Deprecated: usage of this function should be replaced by `Keeper.GetDenomFromIBCDenom`
 // DenomPathFromHash returns the full denomination path prefix from an ibc denom with a hash
 // component.
-func (k Keeper) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error) {
+func (k *Keeper) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error) {
 	denom, err := k.GetDenomFromIBCDenom(ctx, ibcDenom)
 	if err != nil {
 		return "", err

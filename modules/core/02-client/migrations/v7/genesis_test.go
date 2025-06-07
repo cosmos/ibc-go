@@ -15,26 +15,26 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
+func (s *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// create tendermint clients
 	for range 3 {
-		path := ibctesting.NewPath(suite.chainA, suite.chainB)
+		path := ibctesting.NewPath(s.chainA, s.chainB)
 
 		path.SetupClients()
 
 		err := path.EndpointA.UpdateClient()
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
 		// update a second time to add more state
 		err = path.EndpointA.UpdateClient()
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 	}
 
 	// create multiple legacy solo machine clients
-	solomachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1)
-	solomachineMulti := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "06-solomachine-1", "testing", 4)
+	solomachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, ibctesting.DefaultSolomachineClientID, "testing", 1)
+	solomachineMulti := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "06-solomachine-1", "testing", 4)
 
-	clientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	clientGenState := ibcclient.ExportGenesis(s.chainA.GetContext(), s.chainA.App.GetIBCKeeper().ClientKeeper)
 
 	// manually generate old proto buf definitions and set in genesis
 	// NOTE: we cannot use 'ExportGenesis' for the solo machines since we are
@@ -57,8 +57,8 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 
 		// set client state
 		protoAny, err := codectypes.NewAnyWithValue(legacyClientState)
-		suite.Require().NoError(err)
-		suite.Require().NotNil(protoAny)
+		s.Require().NoError(err)
+		s.Require().NotNil(protoAny)
 
 		clients = append(clients, types.IdentifiedClientState{
 			ClientId:    sm.ClientID,
@@ -66,23 +66,23 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 		})
 
 		// set in store for ease of determining expected genesis
-		clientStore := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), sm.ClientID)
+		clientStore := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), sm.ClientID)
 
-		cdc, ok := suite.chainA.App.AppCodec().(*codec.ProtoCodec)
-		suite.Require().True(ok)
+		cdc, ok := s.chainA.App.AppCodec().(*codec.ProtoCodec)
+		s.Require().True(ok)
 		v7.RegisterInterfaces(cdc.InterfaceRegistry())
 
 		bz, err := cdc.MarshalInterface(legacyClientState)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 		clientStore.Set(host.ClientStateKey(), bz)
 
 		protoAny, err = codectypes.NewAnyWithValue(legacyClientState.ConsensusState)
-		suite.Require().NoError(err)
-		suite.Require().NotNil(protoAny)
+		s.Require().NoError(err)
+		s.Require().NotNil(protoAny)
 
 		// obtain marshalled bytes to set in client store
 		bz, err = cdc.MarshalInterface(legacyClientState.ConsensusState)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
 		var consensusStates []types.ConsensusStateWithHeight
 
@@ -108,34 +108,34 @@ func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// migrate store get expected genesis
 	// store migration and genesis migration should produce identical results
 	// NOTE: tendermint clients are not pruned in genesis so the test should not have expired tendermint clients
-	err := v7.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
-	suite.Require().NoError(err)
-	expectedClientGenState := ibcclient.ExportGenesis(suite.chainA.GetContext(), suite.chainA.App.GetIBCKeeper().ClientKeeper)
+	err := v7.MigrateStore(s.chainA.GetContext(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), s.chainA.App.AppCodec(), s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	s.Require().NoError(err)
+	expectedClientGenState := ibcclient.ExportGenesis(s.chainA.GetContext(), s.chainA.App.GetIBCKeeper().ClientKeeper)
 
-	cdc, ok := suite.chainA.App.AppCodec().(codec.ProtoCodecMarshaler)
-	suite.Require().True(ok)
+	cdc, ok := s.chainA.App.AppCodec().(codec.ProtoCodecMarshaler)
+	s.Require().True(ok)
 
 	migrated, err := v7.MigrateGenesis(&clientGenState, cdc)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	bz, err := cdc.MarshalJSON(&expectedClientGenState)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
 	var jsonObj map[string]any
 	err = json.Unmarshal(bz, &jsonObj)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	expectedIndentedBz, err := json.MarshalIndent(jsonObj, "", "\t")
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	bz, err = cdc.MarshalJSON(migrated)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// Indent the JSON bz correctly.
 	err = json.Unmarshal(bz, &jsonObj)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 	indentedBz, err := json.MarshalIndent(jsonObj, "", "\t")
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	suite.Require().Equal(string(expectedIndentedBz), string(indentedBz))
+	s.Require().Equal(string(expectedIndentedBz), string(indentedBz))
 }

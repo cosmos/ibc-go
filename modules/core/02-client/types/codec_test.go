@@ -22,7 +22,7 @@ type caseAny struct {
 	expErr error
 }
 
-func (suite *TypesTestSuite) TestPackClientState() {
+func (s *TypesTestSuite) TestPackClientState() {
 	testCases := []struct {
 		name        string
 		clientState exported.ClientState
@@ -30,12 +30,12 @@ func (suite *TypesTestSuite) TestPackClientState() {
 	}{
 		{
 			"solo machine client",
-			ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ClientState(),
+			ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2).ClientState(),
 			nil,
 		},
 		{
 			"tendermint client",
-			ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+			ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 			nil,
 		},
 		{
@@ -50,9 +50,9 @@ func (suite *TypesTestSuite) TestPackClientState() {
 	for _, tc := range testCases {
 		protoAny, err := types.PackClientState(tc.clientState)
 		if tc.expErr == nil {
-			suite.Require().NoError(err, tc.name)
+			s.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			s.Require().Error(err, tc.name)
 		}
 
 		testCasesAny = append(testCasesAny, caseAny{tc.name, protoAny, tc.expErr})
@@ -61,16 +61,16 @@ func (suite *TypesTestSuite) TestPackClientState() {
 	for i, tc := range testCasesAny {
 		cs, err := types.UnpackClientState(tc.any)
 		if tc.expErr == nil {
-			suite.Require().NoError(err, tc.name)
-			suite.Require().Equal(testCases[i].clientState, cs, tc.name)
+			s.Require().NoError(err, tc.name)
+			s.Require().Equal(testCases[i].clientState, cs, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
-			suite.Require().ErrorIs(err, tc.expErr)
+			s.Require().Error(err, tc.name)
+			s.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
 
-func (suite *TypesTestSuite) TestPackConsensusState() {
+func (s *TypesTestSuite) TestPackConsensusState() {
 	testCases := []struct {
 		name           string
 		consensusState exported.ConsensusState
@@ -78,12 +78,12 @@ func (suite *TypesTestSuite) TestPackConsensusState() {
 	}{
 		{
 			"solo machine consensus",
-			ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState(),
+			ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2).ConsensusState(),
 			nil,
 		},
 		{
 			"tendermint consensus",
-			suite.chainA.LatestCommittedHeader.ConsensusState(),
+			s.chainA.LatestCommittedHeader.ConsensusState(),
 			nil,
 		},
 		{
@@ -98,9 +98,9 @@ func (suite *TypesTestSuite) TestPackConsensusState() {
 	for _, tc := range testCases {
 		protoAny, err := types.PackConsensusState(tc.consensusState)
 		if tc.expErr == nil {
-			suite.Require().NoError(err, tc.name)
+			s.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			s.Require().Error(err, tc.name)
 		}
 		testCasesAny = append(testCasesAny, caseAny{tc.name, protoAny, tc.expErr})
 	}
@@ -108,16 +108,16 @@ func (suite *TypesTestSuite) TestPackConsensusState() {
 	for i, tc := range testCasesAny {
 		cs, err := types.UnpackConsensusState(tc.any)
 		if tc.expErr == nil {
-			suite.Require().NoError(err, tc.name)
-			suite.Require().Equal(testCases[i].consensusState, cs, tc.name)
+			s.Require().NoError(err, tc.name)
+			s.Require().Equal(testCases[i].consensusState, cs, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
-			suite.Require().ErrorIs(err, tc.expErr)
+			s.Require().Error(err, tc.name)
+			s.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
 
-func (suite *TypesTestSuite) TestPackClientMessage() {
+func (s *TypesTestSuite) TestPackClientMessage() {
 	testCases := []struct {
 		name          string
 		clientMessage exported.ClientMessage
@@ -125,12 +125,12 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 	}{
 		{
 			"solo machine header",
-			ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).CreateHeader("solomachine"),
+			ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2).CreateHeader("solomachine"),
 			nil,
 		},
 		{
 			"tendermint header",
-			suite.chainA.LatestCommittedHeader,
+			s.chainA.LatestCommittedHeader,
 			nil,
 		},
 		{
@@ -145,9 +145,9 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 	for _, tc := range testCases {
 		protoAny, err := types.PackClientMessage(tc.clientMessage)
 		if tc.expErr == nil {
-			suite.Require().NoError(err, tc.name)
+			s.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
+			s.Require().Error(err, tc.name)
 		}
 
 		testCasesAny = append(testCasesAny, caseAny{tc.name, protoAny, tc.expErr})
@@ -156,16 +156,16 @@ func (suite *TypesTestSuite) TestPackClientMessage() {
 	for i, tc := range testCasesAny {
 		cs, err := types.UnpackClientMessage(tc.any)
 		if tc.expErr == nil {
-			suite.Require().NoError(err, tc.name)
-			suite.Require().Equal(testCases[i].clientMessage, cs, tc.name)
+			s.Require().NoError(err, tc.name)
+			s.Require().Equal(testCases[i].clientMessage, cs, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
-			suite.Require().ErrorIs(err, tc.expErr)
+			s.Require().Error(err, tc.name)
+			s.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
 
-func (suite *TypesTestSuite) TestCodecTypeRegistration() {
+func (s *TypesTestSuite) TestCodecTypeRegistration() {
 	testCases := []struct {
 		name    string
 		typeURL string
@@ -224,16 +224,16 @@ func (suite *TypesTestSuite) TestCodecTypeRegistration() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			msg, err := suite.chainA.GetSimApp().AppCodec().InterfaceRegistry().Resolve(tc.typeURL)
+		s.Run(tc.name, func() {
+			msg, err := s.chainA.GetSimApp().AppCodec().InterfaceRegistry().Resolve(tc.typeURL)
 
 			if tc.expErr == nil {
-				suite.Require().NotNil(msg)
-				suite.Require().NoError(err)
+				s.Require().NotNil(msg)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Nil(msg)
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Require().Nil(msg)
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}

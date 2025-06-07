@@ -56,11 +56,11 @@ type KeeperTestSuite struct {
 	chainC *ibctesting.TestChain
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
+func (s *KeeperTestSuite) SetupTest() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.chainC = s.coordinator.GetChain(ibctesting.GetChainID(3))
 }
 
 func NewICAPath(chainA, chainB *ibctesting.TestChain, encoding string, ordering channeltypes.Order) *ibctesting.Path {
@@ -132,7 +132,7 @@ func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestNewKeeper() {
+func (s *KeeperTestSuite) TestNewKeeper() {
 	testCases := []struct {
 		name          string
 		instantiateFn func()
@@ -140,55 +140,55 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	}{
 		{"success", func() {
 			keeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
-				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().AccountKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().GRPCQueryRouter(),
-				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
+				s.chainA.GetSimApp().AppCodec(),
+				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
+				s.chainA.GetSimApp().GetSubspace(types.SubModuleName),
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().AccountKeeper,
+				s.chainA.GetSimApp().MsgServiceRouter(),
+				s.chainA.GetSimApp().GRPCQueryRouter(),
+				s.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
 		}, ""},
 		{"failure: interchain accounts module account does not exist", func() {
 			keeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
-				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().AppCodec(),
+				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
+				s.chainA.GetSimApp().GetSubspace(types.SubModuleName),
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				authkeeper.AccountKeeper{}, // empty account keeper
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().GRPCQueryRouter(),
-				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
+				s.chainA.GetSimApp().MsgServiceRouter(),
+				s.chainA.GetSimApp().GRPCQueryRouter(),
+				s.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 			)
 		}, "the Interchain Accounts module account has not been set"},
 		{"failure: empty mock staking keeper", func() {
 			keeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
-				suite.chainA.GetSimApp().GetSubspace(types.SubModuleName),
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().AccountKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().GRPCQueryRouter(),
+				s.chainA.GetSimApp().AppCodec(),
+				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
+				s.chainA.GetSimApp().GetSubspace(types.SubModuleName),
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().AccountKeeper,
+				s.chainA.GetSimApp().MsgServiceRouter(),
+				s.chainA.GetSimApp().GRPCQueryRouter(),
 				"", // authority
 			)
 		}, "authority must be non-empty"},
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
+		s.SetupTest()
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			if tc.panicMsg == "" {
-				suite.Require().NotPanics(
+				s.Require().NotPanics(
 					tc.instantiateFn,
 				)
 			} else {
-				suite.Require().PanicsWithError(
+				s.Require().PanicsWithError(
 					tc.panicMsg,
 					tc.instantiateFn,
 				)
@@ -197,67 +197,67 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestNewModuleQuerySafeAllowList() {
+func (s *KeeperTestSuite) TestNewModuleQuerySafeAllowList() {
 	// Currently, all queries in bank, staking, auth, and circuit are marked safe
 	// Notably, the gov and distribution modules are not marked safe
 
 	var allowList []string
-	suite.Require().NotPanics(func() {
+	s.Require().NotPanics(func() {
 		allowList = keeper.NewModuleQuerySafeAllowList()
 	})
 
-	suite.Require().NotEmpty(allowList)
-	suite.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/Balance")
-	suite.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/AllBalances")
-	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validator")
-	suite.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validators")
-	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/Accounts")
-	suite.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/ModuleAccountByName")
-	suite.Require().Contains(allowList, "/ibc.core.client.v1.Query/VerifyMembership")
-	suite.Require().NotContains(allowList, "/cosmos.gov.v1beta1.Query/Proposals")
-	suite.Require().NotContains(allowList, "/cosmos.gov.v1.Query/Proposals")
-	suite.Require().NotContains(allowList, "/cosmos.distribution.v1beta1.Query/Params")
-	suite.Require().NotContains(allowList, "/cosmos.distribution.v1beta1.Query/DelegationRewards")
+	s.Require().NotEmpty(allowList)
+	s.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/Balance")
+	s.Require().Contains(allowList, "/cosmos.bank.v1beta1.Query/AllBalances")
+	s.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validator")
+	s.Require().Contains(allowList, "/cosmos.staking.v1beta1.Query/Validators")
+	s.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/Accounts")
+	s.Require().Contains(allowList, "/cosmos.auth.v1beta1.Query/ModuleAccountByName")
+	s.Require().Contains(allowList, "/ibc.core.client.v1.Query/VerifyMembership")
+	s.Require().NotContains(allowList, "/cosmos.gov.v1beta1.Query/Proposals")
+	s.Require().NotContains(allowList, "/cosmos.gov.v1.Query/Proposals")
+	s.Require().NotContains(allowList, "/cosmos.distribution.v1beta1.Query/Params")
+	s.Require().NotContains(allowList, "/cosmos.distribution.v1beta1.Query/DelegationRewards")
 }
 
-func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
+func (s *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
-		suite.SetupTest()
+		s.SetupTest()
 
-		path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf, ordering)
+		path := NewICAPath(s.chainA, s.chainB, icatypes.EncodingProtobuf, ordering)
 		path.SetupConnections()
 
 		err := SetupICAPath(path, TestOwnerAddress)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
 		counterpartyPortID := path.EndpointA.ChannelConfig.PortID
 
-		retrievedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, counterpartyPortID)
-		suite.Require().True(found)
-		suite.Require().NotEmpty(retrievedAddr)
+		retrievedAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, counterpartyPortID)
+		s.Require().True(found)
+		s.Require().NotEmpty(retrievedAddr)
 
-		retrievedAddr, found = suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, "invalid port")
-		suite.Require().False(found)
-		suite.Require().Empty(retrievedAddr)
+		retrievedAddr, found = s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, "invalid port")
+		s.Require().False(found)
+		s.Require().Empty(retrievedAddr)
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
+func (s *KeeperTestSuite) TestGetAllActiveChannels() {
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		var (
 			expectedChannelID = "test-channel"
 			expectedPortID    = "test-port"
 		)
 
-		suite.SetupTest()
+		s.SetupTest()
 
-		path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf, ordering)
+		path := NewICAPath(s.chainA, s.chainB, icatypes.EncodingProtobuf, ordering)
 		path.SetupConnections()
 
 		err := SetupICAPath(path, TestOwnerAddress)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
-		suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedChannelID)
+		s.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(s.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedChannelID)
 
 		expectedChannels := []genesistypes.ActiveChannel{
 			{
@@ -272,31 +272,31 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 			},
 		}
 
-		activeChannels := suite.chainB.GetSimApp().ICAHostKeeper.GetAllActiveChannels(suite.chainB.GetContext())
-		suite.Require().Len(activeChannels, len(expectedChannels))
-		suite.Require().Equal(expectedChannels, activeChannels)
+		activeChannels := s.chainB.GetSimApp().ICAHostKeeper.GetAllActiveChannels(s.chainB.GetContext())
+		s.Require().Len(activeChannels, len(expectedChannels))
+		s.Require().Equal(expectedChannels, activeChannels)
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
+func (s *KeeperTestSuite) TestGetAllInterchainAccounts() {
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		var (
 			expectedAccAddr = "test-acc-addr"
 			expectedPortID  = "test-port"
 		)
 
-		suite.SetupTest()
+		s.SetupTest()
 
-		path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf, ordering)
+		path := NewICAPath(s.chainA, s.chainB, icatypes.EncodingProtobuf, ordering)
 		path.SetupConnections()
 
 		err := SetupICAPath(path, TestOwnerAddress)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
-		interchainAccAddr, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-		suite.Require().True(exists)
+		interchainAccAddr, exists := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+		s.Require().True(exists)
 
-		suite.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)
+		s.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)
 
 		expectedAccounts := []genesistypes.RegisteredInterchainAccount{
 			{
@@ -311,56 +311,56 @@ func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 			},
 		}
 
-		interchainAccounts := suite.chainB.GetSimApp().ICAHostKeeper.GetAllInterchainAccounts(suite.chainB.GetContext())
-		suite.Require().Len(interchainAccounts, len(expectedAccounts))
-		suite.Require().Equal(expectedAccounts, interchainAccounts)
+		interchainAccounts := s.chainB.GetSimApp().ICAHostKeeper.GetAllInterchainAccounts(s.chainB.GetContext())
+		s.Require().Len(interchainAccounts, len(expectedAccounts))
+		s.Require().Equal(expectedAccounts, interchainAccounts)
 	}
 }
 
-func (suite *KeeperTestSuite) TestIsActiveChannel() {
+func (s *KeeperTestSuite) TestIsActiveChannel() {
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
-		suite.SetupTest()
+		s.SetupTest()
 
-		path := NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProtobuf, ordering)
+		path := NewICAPath(s.chainA, s.chainB, icatypes.EncodingProtobuf, ordering)
 		path.SetupConnections()
 
 		err := SetupICAPath(path, TestOwnerAddress)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
-		isActive := suite.chainB.GetSimApp().ICAHostKeeper.IsActiveChannel(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-		suite.Require().True(isActive)
+		isActive := s.chainB.GetSimApp().ICAHostKeeper.IsActiveChannel(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+		s.Require().True(isActive)
 	}
 }
 
-func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
+func (s *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	var (
 		expectedAccAddr = "test-acc-addr"
 		expectedPortID  = "test-port"
 	)
 
-	suite.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)
+	s.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)
 
-	retrievedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID)
-	suite.Require().True(found)
-	suite.Require().Equal(expectedAccAddr, retrievedAddr)
+	retrievedAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID)
+	s.Require().True(found)
+	s.Require().Equal(expectedAccAddr, retrievedAddr)
 }
 
-func (suite *KeeperTestSuite) TestMetadataNotFound() {
+func (s *KeeperTestSuite) TestMetadataNotFound() {
 	var (
 		invalidPortID    = "invalid-port"
 		invalidChannelID = "invalid-channel"
 	)
 
-	_, err := suite.chainB.GetSimApp().ICAHostKeeper.GetAppMetadata(suite.chainB.GetContext(), invalidPortID, invalidChannelID)
-	suite.Require().ErrorIs(err, ibcerrors.ErrNotFound)
-	suite.Require().Contains(err.Error(), fmt.Sprintf("app version not found for port %s and channel %s", invalidPortID, invalidChannelID))
+	_, err := s.chainB.GetSimApp().ICAHostKeeper.GetAppMetadata(s.chainB.GetContext(), invalidPortID, invalidChannelID)
+	s.Require().ErrorIs(err, ibcerrors.ErrNotFound)
+	s.Require().Contains(err.Error(), fmt.Sprintf("app version not found for port %s and channel %s", invalidPortID, invalidChannelID))
 }
 
-func (suite *KeeperTestSuite) TestParams() {
+func (s *KeeperTestSuite) TestParams() {
 	expParams := types.DefaultParams()
 
-	params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
-	suite.Require().Equal(expParams, params)
+	params := s.chainA.GetSimApp().ICAHostKeeper.GetParams(s.chainA.GetContext())
+	s.Require().Equal(expParams, params)
 
 	testCases := []struct {
 		name   string
@@ -375,46 +375,46 @@ func (suite *KeeperTestSuite) TestParams() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			ctx := suite.chainA.GetContext()
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
+			ctx := s.chainA.GetContext()
 			err := tc.input.Validate()
-			suite.chainA.GetSimApp().ICAHostKeeper.SetParams(ctx, tc.input)
+			s.chainA.GetSimApp().ICAHostKeeper.SetParams(ctx, tc.input)
 			if tc.errMsg == "" {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				expected := tc.input
-				p := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(ctx)
-				suite.Require().Equal(expected, p)
+				p := s.chainA.GetSimApp().ICAHostKeeper.GetParams(ctx)
+				s.Require().Equal(expected, p)
 			} else {
-				suite.Require().ErrorContains(err, tc.errMsg)
+				s.Require().ErrorContains(err, tc.errMsg)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestUnsetParams() {
-	suite.SetupTest()
-	ctx := suite.chainA.GetContext()
-	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.SubModuleName))
+func (s *KeeperTestSuite) TestUnsetParams() {
+	s.SetupTest()
+	ctx := s.chainA.GetContext()
+	store := s.chainA.GetContext().KVStore(s.chainA.GetSimApp().GetKey(types.SubModuleName))
 	store.Delete([]byte(types.ParamsKey))
 
-	suite.Require().Panics(func() {
-		suite.chainA.GetSimApp().ICAHostKeeper.GetParams(ctx)
+	s.Require().Panics(func() {
+		s.chainA.GetSimApp().ICAHostKeeper.GetParams(ctx)
 	})
 }
 
-func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
-	suite.SetupTest()
+func (s *KeeperTestSuite) TestWithICS4Wrapper() {
+	s.SetupTest()
 
 	// test if the ics4 wrapper is the channel keeper initially
-	ics4Wrapper := suite.chainA.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
+	ics4Wrapper := s.chainA.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
 
 	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
-	suite.Require().True(isChannelKeeper)
-	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
+	s.Require().True(isChannelKeeper)
+	s.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
 
 	// set the ics4 wrapper to the channel keeper
-	suite.chainA.GetSimApp().ICAHostKeeper.WithICS4Wrapper(nil)
-	ics4Wrapper = suite.chainA.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
-	suite.Require().Nil(ics4Wrapper)
+	s.chainA.GetSimApp().ICAHostKeeper.WithICS4Wrapper(nil)
+	ics4Wrapper = s.chainA.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
+	s.Require().Nil(ics4Wrapper)
 }

@@ -10,36 +10,36 @@ import (
 	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
 )
 
-// RegisterCounterparty will construct and execute a MsgRegisterCounterparty on the associated endpoint.
-func (endpoint *Endpoint) RegisterCounterparty() error {
-	msg := clientv2types.NewMsgRegisterCounterparty(endpoint.ClientID, endpoint.Counterparty.MerklePathPrefix.KeyPath, endpoint.Counterparty.ClientID, endpoint.Chain.SenderAccount.GetAddress().String())
+// RegisterCounterparty will construct and execute a MsgRegisterCounterparty on the associated ep.
+func (ep *Endpoint) RegisterCounterparty() error {
+	msg := clientv2types.NewMsgRegisterCounterparty(ep.ClientID, ep.Counterparty.MerklePathPrefix.KeyPath, ep.Counterparty.ClientID, ep.Chain.SenderAccount.GetAddress().String())
 
 	// setup counterparty
-	_, err := endpoint.Chain.SendMsgs(msg)
+	_, err := ep.Chain.SendMsgs(msg)
 
 	return err
 }
 
 // MsgSendPacket sends a packet on the associated endpoint using a predefined sender. The constructed packet is returned.
-func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, payload channeltypesv2.Payload) (channeltypesv2.Packet, error) {
+func (ep *Endpoint) MsgSendPacket(timeoutTimestamp uint64, payload channeltypesv2.Payload) (channeltypesv2.Packet, error) {
 	senderAccount := SenderAccount{
-		SenderPrivKey: endpoint.Chain.SenderPrivKey,
-		SenderAccount: endpoint.Chain.SenderAccount,
+		SenderPrivKey: ep.Chain.SenderPrivKey,
+		SenderAccount: ep.Chain.SenderAccount,
 	}
 
-	return endpoint.MsgSendPacketWithSender(timeoutTimestamp, payload, senderAccount)
+	return ep.MsgSendPacketWithSender(timeoutTimestamp, payload, senderAccount)
 }
 
 // MsgSendPacketWithSender sends a packet on the associated endpoint using the provided sender. The constructed packet is returned.
-func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, payload channeltypesv2.Payload, sender SenderAccount) (channeltypesv2.Packet, error) {
-	msgSendPacket := channeltypesv2.NewMsgSendPacket(endpoint.ClientID, timeoutTimestamp, sender.SenderAccount.GetAddress().String(), payload)
+func (ep *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, payload channeltypesv2.Payload, sender SenderAccount) (channeltypesv2.Packet, error) {
+	msgSendPacket := channeltypesv2.NewMsgSendPacket(ep.ClientID, timeoutTimestamp, sender.SenderAccount.GetAddress().String(), payload)
 
-	res, err := endpoint.Chain.SendMsgsWithSender(sender, msgSendPacket)
+	res, err := ep.Chain.SendMsgsWithSender(sender, msgSendPacket)
 	if err != nil {
 		return channeltypesv2.Packet{}, err
 	}
 
-	if err := endpoint.Counterparty.UpdateClient(); err != nil {
+	if err := ep.Counterparty.UpdateClient(); err != nil {
 		return channeltypesv2.Packet{}, err
 	}
 
@@ -56,50 +56,50 @@ func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, paylo
 	if err != nil {
 		return channeltypesv2.Packet{}, err
 	}
-	packet := channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ClientID, endpoint.Counterparty.ClientID, timeoutTimestamp, payload)
+	packet := channeltypesv2.NewPacket(sendResponse.Sequence, ep.ClientID, ep.Counterparty.ClientID, timeoutTimestamp, payload)
 
 	return packet, nil
 }
 
 // MsgRecvPacket sends a MsgRecvPacket on the associated endpoint with the provided packet.
-func (endpoint *Endpoint) MsgRecvPacket(packet channeltypesv2.Packet) error {
+func (ep *Endpoint) MsgRecvPacket(packet channeltypesv2.Packet) error {
 	// get proof of packet commitment from chainA
 	packetKey := hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence)
-	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+	proof, proofHeight := ep.Counterparty.QueryProof(packetKey)
 
-	msg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+	msg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, ep.Chain.SenderAccount.GetAddress().String())
 
-	if err := endpoint.Chain.sendMsgs(msg); err != nil {
+	if err := ep.Chain.sendMsgs(msg); err != nil {
 		return err
 	}
 
-	return endpoint.Counterparty.UpdateClient()
+	return ep.Counterparty.UpdateClient()
 }
 
 // MsgAcknowledgePacket sends a MsgAcknowledgement on the associated endpoint with the provided packet and ack.
-func (endpoint *Endpoint) MsgAcknowledgePacket(packet channeltypesv2.Packet, ack channeltypesv2.Acknowledgement) error {
+func (ep *Endpoint) MsgAcknowledgePacket(packet channeltypesv2.Packet, ack channeltypesv2.Acknowledgement) error {
 	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationClient, packet.Sequence)
-	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+	proof, proofHeight := ep.Counterparty.QueryProof(packetKey)
 
-	msg := channeltypesv2.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+	msg := channeltypesv2.NewMsgAcknowledgement(packet, ack, proof, proofHeight, ep.Chain.SenderAccount.GetAddress().String())
 
-	if err := endpoint.Chain.sendMsgs(msg); err != nil {
+	if err := ep.Chain.sendMsgs(msg); err != nil {
 		return err
 	}
 
-	return endpoint.Counterparty.UpdateClient()
+	return ep.Counterparty.UpdateClient()
 }
 
 // MsgTimeoutPacket sends a MsgTimeout on the associated endpoint with the provided packet.
-func (endpoint *Endpoint) MsgTimeoutPacket(packet channeltypesv2.Packet) error {
+func (ep *Endpoint) MsgTimeoutPacket(packet channeltypesv2.Packet) error {
 	packetKey := hostv2.PacketReceiptKey(packet.DestinationClient, packet.Sequence)
-	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+	proof, proofHeight := ep.Counterparty.QueryProof(packetKey)
 
-	msg := channeltypesv2.NewMsgTimeout(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+	msg := channeltypesv2.NewMsgTimeout(packet, proof, proofHeight, ep.Chain.SenderAccount.GetAddress().String())
 
-	if err := endpoint.Chain.sendMsgs(msg); err != nil {
+	if err := ep.Chain.sendMsgs(msg); err != nil {
 		return err
 	}
 
-	return endpoint.Counterparty.UpdateClient()
+	return ep.Counterparty.UpdateClient()
 }

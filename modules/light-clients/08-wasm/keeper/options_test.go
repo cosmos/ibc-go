@@ -25,7 +25,7 @@ func mockErrorStargateQuerier() func(sdk.Context, *wasmvmtypes.StargateQuery) ([
 	}
 }
 
-func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
+func (s *KeeperTestSuite) TestNewKeeperWithOptions() {
 	var k keeper.Keeper
 	testCases := []struct {
 		name     string
@@ -36,22 +36,22 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 			"success: no options",
 			func() {
 				k = keeper.NewKeeperWithVM(
-					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
-					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
-					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
-					GetSimApp(suite.chainA).GRPCQueryRouter(),
+					GetSimApp(s.chainA).AppCodec(),
+					runtime.NewKVStoreService(GetSimApp(s.chainA).GetKey(types.StoreKey)),
+					GetSimApp(s.chainA).IBCKeeper.ClientKeeper,
+					GetSimApp(s.chainA).WasmClientKeeper.GetAuthority(),
+					GetSimApp(s.chainA).WasmClientKeeper.GetVM(),
+					GetSimApp(s.chainA).GRPCQueryRouter(),
 				)
 			},
 			func(k keeper.Keeper) {
 				plugins := k.GetQueryPlugins()
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
-				suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
+				s.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
 
 				_, err = plugins.Stargate(sdk.Context{}, &wasmvmtypes.StargateQuery{})
-				suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "'' path is not allowed from the contract"})
+				s.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "'' path is not allowed from the contract"})
 			},
 		},
 		{
@@ -61,12 +61,12 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 					Custom: mockErrorCustomQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
-					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
-					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
-					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
-					GetSimApp(suite.chainA).GRPCQueryRouter(),
+					GetSimApp(s.chainA).AppCodec(),
+					runtime.NewKVStoreService(GetSimApp(s.chainA).GetKey(types.StoreKey)),
+					GetSimApp(s.chainA).IBCKeeper.ClientKeeper,
+					GetSimApp(s.chainA).WasmClientKeeper.GetAuthority(),
+					GetSimApp(s.chainA).WasmClientKeeper.GetVM(),
+					GetSimApp(s.chainA).GRPCQueryRouter(),
 					querierOption,
 				)
 			},
@@ -74,10 +74,10 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				plugins := k.GetQueryPlugins()
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
-				suite.Require().ErrorContains(err, "custom querier error for TestNewKeeperWithOptions")
+				s.Require().ErrorContains(err, "custom querier error for TestNewKeeperWithOptions")
 
 				_, err = plugins.Stargate(sdk.Context{}, &wasmvmtypes.StargateQuery{})
-				suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "'' path is not allowed from the contract"})
+				s.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "'' path is not allowed from the contract"})
 			},
 		},
 		{
@@ -87,12 +87,12 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 					Stargate: mockErrorStargateQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
-					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
-					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
-					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
-					GetSimApp(suite.chainA).GRPCQueryRouter(),
+					GetSimApp(s.chainA).AppCodec(),
+					runtime.NewKVStoreService(GetSimApp(s.chainA).GetKey(types.StoreKey)),
+					GetSimApp(s.chainA).IBCKeeper.ClientKeeper,
+					GetSimApp(s.chainA).WasmClientKeeper.GetAuthority(),
+					GetSimApp(s.chainA).WasmClientKeeper.GetVM(),
+					GetSimApp(s.chainA).GRPCQueryRouter(),
 					querierOption,
 				)
 			},
@@ -100,10 +100,10 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				plugins := k.GetQueryPlugins()
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
-				suite.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
+				s.Require().ErrorIs(err, wasmvmtypes.UnsupportedRequest{Kind: "Custom queries are not allowed"})
 
 				_, err = plugins.Stargate(sdk.Context{}, &wasmvmtypes.StargateQuery{})
-				suite.Require().ErrorContains(err, "stargate querier error for TestNewKeeperWithOptions")
+				s.Require().ErrorContains(err, "stargate querier error for TestNewKeeperWithOptions")
 			},
 		},
 		{
@@ -114,12 +114,12 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 					Stargate: mockErrorStargateQuerier(),
 				})
 				k = keeper.NewKeeperWithVM(
-					GetSimApp(suite.chainA).AppCodec(),
-					runtime.NewKVStoreService(GetSimApp(suite.chainA).GetKey(types.StoreKey)),
-					GetSimApp(suite.chainA).IBCKeeper.ClientKeeper,
-					GetSimApp(suite.chainA).WasmClientKeeper.GetAuthority(),
-					GetSimApp(suite.chainA).WasmClientKeeper.GetVM(),
-					GetSimApp(suite.chainA).GRPCQueryRouter(),
+					GetSimApp(s.chainA).AppCodec(),
+					runtime.NewKVStoreService(GetSimApp(s.chainA).GetKey(types.StoreKey)),
+					GetSimApp(s.chainA).IBCKeeper.ClientKeeper,
+					GetSimApp(s.chainA).WasmClientKeeper.GetAuthority(),
+					GetSimApp(s.chainA).WasmClientKeeper.GetVM(),
+					GetSimApp(s.chainA).GRPCQueryRouter(),
 					querierOption,
 				)
 			},
@@ -127,26 +127,26 @@ func (suite *KeeperTestSuite) TestNewKeeperWithOptions() {
 				plugins := k.GetQueryPlugins()
 
 				_, err := plugins.Custom(sdk.Context{}, nil)
-				suite.Require().ErrorContains(err, "custom querier error for TestNewKeeperWithOptions")
+				s.Require().ErrorContains(err, "custom querier error for TestNewKeeperWithOptions")
 
 				_, err = plugins.Stargate(sdk.Context{}, &wasmvmtypes.StargateQuery{})
-				suite.Require().ErrorContains(err, "stargate querier error for TestNewKeeperWithOptions")
+				s.Require().ErrorContains(err, "stargate querier error for TestNewKeeperWithOptions")
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.SetupTest()
+		s.SetupTest()
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			// make sure the default query plugins are set
-			k.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
+			k.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(s.chainA).GRPCQueryRouter()))
 
 			tc.malleate()
 			tc.verifyFn(k)
 
 			// reset query plugins after each test
-			k.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(suite.chainA).GRPCQueryRouter()))
+			k.SetQueryPlugins(keeper.NewDefaultQueryPlugins(GetSimApp(s.chainA).GRPCQueryRouter()))
 		})
 	}
 }

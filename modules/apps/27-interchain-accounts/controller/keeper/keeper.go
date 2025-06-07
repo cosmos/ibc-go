@@ -68,7 +68,7 @@ func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 }
 
 // GetICS4Wrapper returns the ICS4Wrapper.
-func (k Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
+func (k *Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
 	return k.ics4Wrapper
 }
 
@@ -78,7 +78,7 @@ func (Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // GetConnectionID returns the connection id for the given port and channelIDs.
-func (k Keeper) GetConnectionID(ctx sdk.Context, portID, channelID string) (string, error) {
+func (k *Keeper) GetConnectionID(ctx sdk.Context, portID, channelID string) (string, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
 		return "", errorsmod.Wrapf(channeltypes.ErrChannelNotFound, "port ID (%s) channel ID (%s)", portID, channelID)
@@ -87,7 +87,7 @@ func (k Keeper) GetConnectionID(ctx sdk.Context, portID, channelID string) (stri
 }
 
 // GetAllPorts returns all ports to which the interchain accounts controller module is bound. Used in ExportGenesis
-func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
+func (k *Keeper) GetAllPorts(ctx sdk.Context) []string {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(icatypes.PortKeyPrefix))
 	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
@@ -103,7 +103,7 @@ func (k Keeper) GetAllPorts(ctx sdk.Context) []string {
 }
 
 // setPort sets the provided portID in state
-func (k Keeper) setPort(ctx sdk.Context, portID string) {
+func (k *Keeper) setPort(ctx sdk.Context, portID string) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Set(icatypes.KeyPort(portID), []byte{0x01}); err != nil {
 		panic(err)
@@ -111,12 +111,12 @@ func (k Keeper) setPort(ctx sdk.Context, portID string) {
 }
 
 // GetAppVersion calls the ICS4Wrapper GetAppVersion function.
-func (k Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (k *Keeper) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return k.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }
 
 // GetActiveChannelID retrieves the active channelID from the store, keyed by the provided connectionID and portID
-func (k Keeper) GetActiveChannelID(ctx sdk.Context, connectionID, portID string) (string, bool) {
+func (k *Keeper) GetActiveChannelID(ctx sdk.Context, connectionID, portID string) (string, bool) {
 	store := k.storeService.OpenKVStore(ctx)
 	key := icatypes.KeyActiveChannel(portID, connectionID)
 
@@ -132,7 +132,7 @@ func (k Keeper) GetActiveChannelID(ctx sdk.Context, connectionID, portID string)
 }
 
 // GetOpenActiveChannel retrieves the active channelID from the store, keyed by the provided connectionID and portID & checks if the channel in question is in state OPEN
-func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID string) (string, bool) {
+func (k *Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID string) (string, bool) {
 	channelID, found := k.GetActiveChannelID(ctx, connectionID, portID)
 	if !found {
 		return "", false
@@ -148,7 +148,7 @@ func (k Keeper) GetOpenActiveChannel(ctx sdk.Context, connectionID, portID strin
 }
 
 // IsActiveChannelClosed retrieves the active channel from the store and returns true if the channel state is CLOSED, otherwise false
-func (k Keeper) IsActiveChannelClosed(ctx sdk.Context, connectionID, portID string) bool {
+func (k *Keeper) IsActiveChannelClosed(ctx sdk.Context, connectionID, portID string) bool {
 	channelID, found := k.GetActiveChannelID(ctx, connectionID, portID)
 	if !found {
 		return false
@@ -159,7 +159,7 @@ func (k Keeper) IsActiveChannelClosed(ctx sdk.Context, connectionID, portID stri
 }
 
 // GetAllActiveChannels returns a list of all active interchain accounts controller channels and their associated connection and port identifiers
-func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []genesistypes.ActiveChannel {
+func (k *Keeper) GetAllActiveChannels(ctx sdk.Context) []genesistypes.ActiveChannel {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(icatypes.ActiveChannelKeyPrefix))
 	defer sdk.LogDeferred(k.Logger(ctx), func() error { return iterator.Close() })
@@ -186,7 +186,7 @@ func (k Keeper) GetAllActiveChannels(ctx sdk.Context) []genesistypes.ActiveChann
 }
 
 // SetActiveChannelID stores the active channelID, keyed by the provided connectionID and portID
-func (k Keeper) SetActiveChannelID(ctx sdk.Context, connectionID, portID, channelID string) {
+func (k *Keeper) SetActiveChannelID(ctx sdk.Context, connectionID, portID, channelID string) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Set(icatypes.KeyActiveChannel(portID, connectionID), []byte(channelID)); err != nil {
 		panic(err)
@@ -194,13 +194,13 @@ func (k Keeper) SetActiveChannelID(ctx sdk.Context, connectionID, portID, channe
 }
 
 // IsActiveChannel returns true if there exists an active channel for the provided connectionID and portID, otherwise false
-func (k Keeper) IsActiveChannel(ctx sdk.Context, connectionID, portID string) bool {
+func (k *Keeper) IsActiveChannel(ctx sdk.Context, connectionID, portID string) bool {
 	_, ok := k.GetActiveChannelID(ctx, connectionID, portID)
 	return ok
 }
 
 // GetInterchainAccountAddress retrieves the InterchainAccount address from the store associated with the provided connectionID and portID
-func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, connectionID, portID string) (string, bool) {
+func (k *Keeper) GetInterchainAccountAddress(ctx sdk.Context, connectionID, portID string) (string, bool) {
 	store := k.storeService.OpenKVStore(ctx)
 	key := icatypes.KeyOwnerAccount(portID, connectionID)
 
@@ -216,7 +216,7 @@ func (k Keeper) GetInterchainAccountAddress(ctx sdk.Context, connectionID, portI
 }
 
 // GetAllInterchainAccounts returns a list of all registered interchain account addresses and their associated connection and controller port identifiers
-func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []genesistypes.RegisteredInterchainAccount {
+func (k *Keeper) GetAllInterchainAccounts(ctx sdk.Context) []genesistypes.RegisteredInterchainAccount {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(icatypes.OwnerKeyPrefix))
 
@@ -237,7 +237,7 @@ func (k Keeper) GetAllInterchainAccounts(ctx sdk.Context) []genesistypes.Registe
 }
 
 // SetInterchainAccountAddress stores the InterchainAccount address, keyed by the associated connectionID and portID
-func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portID, address string) {
+func (k *Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portID, address string) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Set(icatypes.KeyOwnerAccount(portID, connectionID), []byte(address)); err != nil {
 		panic(err)
@@ -245,7 +245,7 @@ func (k Keeper) SetInterchainAccountAddress(ctx sdk.Context, connectionID, portI
 }
 
 // IsMiddlewareEnabled returns true if the underlying application callbacks are enabled for given port and connection identifier pair, otherwise false
-func (k Keeper) IsMiddlewareEnabled(ctx sdk.Context, portID, connectionID string) bool {
+func (k *Keeper) IsMiddlewareEnabled(ctx sdk.Context, portID, connectionID string) bool {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(icatypes.KeyIsMiddlewareEnabled(portID, connectionID))
 	if err != nil {
@@ -255,7 +255,7 @@ func (k Keeper) IsMiddlewareEnabled(ctx sdk.Context, portID, connectionID string
 }
 
 // IsMiddlewareDisabled returns true if the underlying application callbacks are disabled for the given port and connection identifier pair, otherwise false
-func (k Keeper) IsMiddlewareDisabled(ctx sdk.Context, portID, connectionID string) bool {
+func (k *Keeper) IsMiddlewareDisabled(ctx sdk.Context, portID, connectionID string) bool {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(icatypes.KeyIsMiddlewareEnabled(portID, connectionID))
 	if err != nil {
@@ -265,7 +265,7 @@ func (k Keeper) IsMiddlewareDisabled(ctx sdk.Context, portID, connectionID strin
 }
 
 // SetMiddlewareEnabled stores a flag to indicate that the underlying application callbacks should be enabled for the given port and connection identifier pair
-func (k Keeper) SetMiddlewareEnabled(ctx sdk.Context, portID, connectionID string) {
+func (k *Keeper) SetMiddlewareEnabled(ctx sdk.Context, portID, connectionID string) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareEnabled); err != nil {
 		panic(err)
@@ -273,7 +273,7 @@ func (k Keeper) SetMiddlewareEnabled(ctx sdk.Context, portID, connectionID strin
 }
 
 // SetMiddlewareDisabled stores a flag to indicate that the underlying application callbacks should be disabled for the given port and connection identifier pair
-func (k Keeper) SetMiddlewareDisabled(ctx sdk.Context, portID, connectionID string) {
+func (k *Keeper) SetMiddlewareDisabled(ctx sdk.Context, portID, connectionID string) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Set(icatypes.KeyIsMiddlewareEnabled(portID, connectionID), icatypes.MiddlewareDisabled); err != nil {
 		panic(err)
@@ -281,7 +281,7 @@ func (k Keeper) SetMiddlewareDisabled(ctx sdk.Context, portID, connectionID stri
 }
 
 // DeleteMiddlewareEnabled deletes the middleware enabled flag stored in state
-func (k Keeper) DeleteMiddlewareEnabled(ctx sdk.Context, portID, connectionID string) {
+func (k *Keeper) DeleteMiddlewareEnabled(ctx sdk.Context, portID, connectionID string) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Delete(icatypes.KeyIsMiddlewareEnabled(portID, connectionID)); err != nil {
 		panic(err)
@@ -289,12 +289,12 @@ func (k Keeper) DeleteMiddlewareEnabled(ctx sdk.Context, portID, connectionID st
 }
 
 // GetAuthority returns the ica/controller submodule's authority.
-func (k Keeper) GetAuthority() string {
+func (k *Keeper) GetAuthority() string {
 	return k.authority
 }
 
 // getAppMetadata retrieves the interchain accounts channel metadata from the store associated with the provided portID and channelID
-func (k Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icatypes.Metadata, error) {
+func (k *Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icatypes.Metadata, error) {
 	appVersion, found := k.GetAppVersion(ctx, portID, channelID)
 	if !found {
 		return icatypes.Metadata{}, errorsmod.Wrapf(ibcerrors.ErrNotFound, "app version not found for port %s and channel %s", portID, channelID)
@@ -304,7 +304,7 @@ func (k Keeper) getAppMetadata(ctx sdk.Context, portID, channelID string) (icaty
 }
 
 // GetParams returns the current ica/controller submodule parameters.
-func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+func (k *Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get([]byte(types.ParamsKey))
 	if err != nil {
@@ -320,7 +320,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 }
 
 // SetParams sets the ica/controller submodule parameters.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+func (k *Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
 	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {

@@ -111,8 +111,8 @@ func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackT
 
 	switch callbackType {
 	case "none":
-		s.Require().Len(sourceCounters, 0)
-		s.Require().Len(destCounters, 0)
+		s.Require().Empty(sourceCounters)
+		s.Require().Empty(destCounters)
 
 	case types.CallbackTypeSendPacket:
 		s.Require().Len(sourceCounters, 1)
@@ -123,10 +123,10 @@ func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackT
 		s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
 		s.Require().Equal(1, sourceCounters[types.CallbackTypeAcknowledgementPacket])
 
-		s.Require().Len(destCounters, 0)
+		s.Require().Empty(destCounters)
 
 	case types.CallbackTypeReceivePacket:
-		s.Require().Len(sourceCounters, 0)
+		s.Require().Empty(sourceCounters)
 		s.Require().Len(destCounters, 1)
 		s.Require().Equal(1, destCounters[types.CallbackTypeReceivePacket])
 
@@ -135,7 +135,7 @@ func (s *CallbacksTestSuite) AssertCallbackCounters(callbackType types.CallbackT
 		s.Require().Equal(1, sourceCounters[types.CallbackTypeSendPacket])
 		s.Require().Equal(1, sourceCounters[types.CallbackTypeTimeoutPacket])
 
-		s.Require().Len(destCounters, 0)
+		s.Require().Empty(destCounters)
 
 	default:
 		s.FailNow(fmt.Sprintf("invalid callback type %s", callbackType))

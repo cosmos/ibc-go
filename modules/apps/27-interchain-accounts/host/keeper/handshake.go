@@ -15,7 +15,7 @@ import (
 // and registers a new interchain account (if it doesn't exist).
 // The version returned will include the registered interchain
 // account address.
-func (k Keeper) OnChanOpenTry(
+func (k *Keeper) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -91,7 +91,7 @@ func (k Keeper) OnChanOpenTry(
 }
 
 // OnChanOpenConfirm completes the handshake process by setting the active channel in state on the host chain
-func (k Keeper) OnChanOpenConfirm(
+func (k *Keeper) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,

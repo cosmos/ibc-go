@@ -53,27 +53,27 @@ func NewCustomAppCoordinator(t *testing.T, n int, appCreator AppCreator) *Coordi
 // by 5 seconds.
 //
 // CONTRACT: this function must be called after every Commit on any TestChain.
-func (coord *Coordinator) IncrementTime() {
-	coord.IncrementTimeBy(TimeIncrement)
+func (c *Coordinator) IncrementTime() {
+	c.IncrementTimeBy(TimeIncrement)
 }
 
 // IncrementTimeBy iterates through all the TestChain's and increments their current header time
 // by specified time.
-func (coord *Coordinator) IncrementTimeBy(increment time.Duration) {
-	coord.CurrentTime = coord.CurrentTime.Add(increment).UTC()
-	coord.UpdateTime()
+func (c *Coordinator) IncrementTimeBy(increment time.Duration) {
+	c.CurrentTime = c.CurrentTime.Add(increment).UTC()
+	c.UpdateTime()
 }
 
 // UpdateTime updates all clocks for the TestChains to the current global time.
-func (coord *Coordinator) UpdateTime() {
-	for _, chain := range coord.Chains {
-		coord.UpdateTimeForChain(chain)
+func (c *Coordinator) UpdateTime() {
+	for _, chain := range c.Chains {
+		c.UpdateTimeForChain(chain)
 	}
 }
 
 // UpdateTimeForChain updates the clock for a specific chain.
-func (coord *Coordinator) UpdateTimeForChain(chain *TestChain) {
-	chain.ProposedHeader.Time = coord.CurrentTime.UTC()
+func (c *Coordinator) UpdateTimeForChain(chain *TestChain) {
+	chain.ProposedHeader.Time = c.CurrentTime.UTC()
 }
 
 // Setup constructs a TM client, connection, and channel on both chains provided. It will

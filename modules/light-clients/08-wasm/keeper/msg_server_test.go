@@ -20,7 +20,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *KeeperTestSuite) TestMsgStoreCode() {
+func (s *KeeperTestSuite) TestMsgStoreCode() {
 	var (
 		msg    *types.MsgStoreCode
 		signer string
@@ -44,8 +44,8 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			func() {
 				msg = types.NewMsgStoreCode(signer, data)
 
-				_, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
-				suite.Require().NoError(err)
+				_, err := GetSimApp(s.chainA).WasmClientKeeper.StoreCode(s.chainA.GetContext(), msg)
+				s.Require().NoError(err)
 			},
 			types.ErrWasmCodeExists,
 		},
@@ -73,7 +73,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 		{
 			"fails with unauthorized signer",
 			func() {
-				signer = suite.chainA.SenderAccount.GetAddress().String()
+				signer = s.chainA.SenderAccount.GetAddress().String()
 				msg = types.NewMsgStoreCode(signer, data)
 			},
 			ibcerrors.ErrUnauthorized,
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 			func() {
 				msg = types.NewMsgStoreCode(signer, data)
 
-				suite.mockVM.PinFn = func(_ wasmvm.Checksum) error {
+				s.mockVM.PinFn = func(_ wasmvm.Checksum) error {
 					return wasmtesting.ErrMockVM
 				}
 			},
@@ -92,22 +92,22 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
+		s.Run(tc.name, func() {
+			s.SetupWasmWithMockVM()
 
 			signer = authtypes.NewModuleAddress(govtypes.ModuleName).String()
 			data = wasmtesting.Code
 
 			tc.malleate()
 
-			ctx := suite.chainA.GetContext()
-			res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
+			ctx := s.chainA.GetContext()
+			res, err := GetSimApp(s.chainA).WasmClientKeeper.StoreCode(ctx, msg)
 			events := ctx.EventManager().Events()
 
 			if tc.expError == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().NotEmpty(res.Checksum)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().NotEmpty(res.Checksum)
 
 				// Verify events
 				expectedEvents := sdk.Events{
@@ -122,20 +122,20 @@ func (suite *KeeperTestSuite) TestMsgStoreCode() {
 				}
 
 				for _, evt := range expectedEvents {
-					suite.Require().Contains(events, evt)
+					s.Require().Contains(events, evt)
 				}
 			} else {
-				suite.Require().Contains(err.Error(), tc.expError.Error())
-				suite.Require().Nil(res)
-				suite.Require().Empty(events)
+				s.Require().Contains(err.Error(), tc.expError.Error())
+				s.Require().Nil(res)
+				s.Require().Empty(events)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestMsgMigrateContract() {
+func (s *KeeperTestSuite) TestMsgMigrateContract() {
 	oldChecksum, err := types.CreateChecksum(wasmtesting.Code)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	newByteCode := wasmtesting.CreateMockContract([]byte("MockByteCode-TestMsgMigrateContract"))
 
@@ -157,9 +157,9 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newChecksum, []byte("{}"))
 
-				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				s.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					data, err := json.Marshal(types.EmptyResult{})
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 
 					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: data}}, wasmtesting.DefaultGasUsed, nil
 				}
@@ -171,16 +171,16 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newChecksum, []byte("{}"))
 
-				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				s.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					// the checksum written in the client state will later be overwritten by the message server.
-					expClientStateBz := wasmtesting.CreateMockClientStateBz(suite.chainA.App.AppCodec(), []byte("invalid checksum"))
+					expClientStateBz := wasmtesting.CreateMockClientStateBz(s.chainA.App.AppCodec(), []byte("invalid checksum"))
 					var ok bool
-					expClientState, ok = clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), expClientStateBz).(*types.ClientState)
-					suite.Require().True(ok)
+					expClientState, ok = clienttypes.MustUnmarshalClientState(s.chainA.App.AppCodec(), expClientStateBz).(*types.ClientState)
+					s.Require().True(ok)
 					store.Set(host.ClientStateKey(), expClientStateBz)
 
 					data, err := json.Marshal(types.EmptyResult{})
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 
 					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: data}}, wasmtesting.DefaultGasUsed, nil
 				}
@@ -192,7 +192,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, oldChecksum, []byte("{}"))
 
-				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				s.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					panic("unreachable")
 				}
 			},
@@ -201,7 +201,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 		{
 			"failure: unauthorized signer",
 			func() {
-				msg = types.NewMsgMigrateContract(suite.chainA.SenderAccount.GetAddress().String(), defaultWasmClientID, newChecksum, []byte("{}"))
+				msg = types.NewMsgMigrateContract(s.chainA.SenderAccount.GetAddress().String(), defaultWasmClientID, newChecksum, []byte("{}"))
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -224,7 +224,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newChecksum, []byte("{}"))
 
-				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				s.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					return nil, wasmtesting.DefaultGasUsed, wasmtesting.ErrMockVM
 				}
 			},
@@ -235,7 +235,7 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newChecksum, []byte("{}"))
 
-				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				s.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					return &wasmvmtypes.ContractResult{Err: wasmtesting.ErrMockContract.Error()}, wasmtesting.DefaultGasUsed, nil
 				}
 			},
@@ -246,12 +246,12 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 			func() {
 				msg = types.NewMsgMigrateContract(govAcc, defaultWasmClientID, newChecksum, []byte("{}"))
 
-				suite.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				s.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 					// the checksum written in here will be overwritten
 					store.Set(host.ClientStateKey(), []byte("changed client state"))
 
 					data, err := json.Marshal(types.EmptyResult{})
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 
 					return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: data}}, wasmtesting.DefaultGasUsed, nil
 				}
@@ -261,38 +261,38 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			var ok bool
-			suite.SetupWasmWithMockVM()
+			s.SetupWasmWithMockVM()
 
-			_ = suite.storeWasmCode(wasmtesting.Code)
-			newChecksum = suite.storeWasmCode(newByteCode)
+			_ = s.storeWasmCode(wasmtesting.Code)
+			newChecksum = s.storeWasmCode(newByteCode)
 
-			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			endpoint := wasmtesting.NewWasmEndpoint(s.chainA)
 			err := endpoint.CreateClient()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// this is the old client state
 			expClientState, ok = endpoint.GetClientState().(*types.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 
 			tc.malleate()
 
-			ctx := suite.chainA.GetContext()
-			res, err := GetSimApp(suite.chainA).WasmClientKeeper.MigrateContract(ctx, msg)
+			ctx := s.chainA.GetContext()
+			res, err := GetSimApp(s.chainA).WasmClientKeeper.MigrateContract(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
 
 			if tc.expError == nil {
 				expClientState.Checksum = newChecksum
 
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
 
 				// updated client state
 				clientState, ok := endpoint.GetClientState().(*types.ClientState)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 
-				suite.Require().Equal(expClientState, clientState)
+				s.Require().Equal(expClientState, clientState)
 
 				// Verify events
 				expectedEvents := sdk.Events{
@@ -309,19 +309,19 @@ func (suite *KeeperTestSuite) TestMsgMigrateContract() {
 				}.ToABCIEvents()
 
 				for _, evt := range expectedEvents {
-					suite.Require().Contains(events, evt)
+					s.Require().Contains(events, evt)
 				}
 			} else {
-				suite.Require().ErrorIs(err, tc.expError)
-				suite.Require().Nil(res)
+				s.Require().ErrorIs(err, tc.expError)
+				s.Require().Nil(res)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
+func (s *KeeperTestSuite) TestMsgRemoveChecksum() {
 	checksum, err := types.CreateChecksum(wasmtesting.Code)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	govAcc := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 
@@ -354,11 +354,11 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 				for i := range 20 {
 					mockCode := wasmtesting.CreateMockContract([]byte{byte(i)})
 					checksum, err := types.CreateChecksum(mockCode)
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 
-					keeper := GetSimApp(suite.chainA).WasmClientKeeper
-					err = keeper.GetChecksums().Set(suite.chainA.GetContext(), checksum)
-					suite.Require().NoError(err)
+					keeper := GetSimApp(s.chainA).WasmClientKeeper
+					err = keeper.GetChecksums().Set(s.chainA.GetContext(), checksum)
+					s.Require().NoError(err)
 
 					expChecksums = append(expChecksums, checksum)
 				}
@@ -375,7 +375,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 		{
 			"failure: unauthorized signer",
 			func() {
-				msg = types.NewMsgRemoveChecksum(suite.chainA.SenderAccount.GetAddress().String(), checksum)
+				msg = types.NewMsgRemoveChecksum(s.chainA.SenderAccount.GetAddress().String(), checksum)
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -384,7 +384,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 			func() {
 				msg = types.NewMsgRemoveChecksum(govAcc, checksum)
 
-				suite.mockVM.UnpinFn = func(_ wasmvm.Checksum) error {
+				s.mockVM.UnpinFn = func(_ wasmvm.Checksum) error {
 					return wasmtesting.ErrMockVM
 				}
 			},
@@ -393,36 +393,36 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
+		s.Run(tc.name, func() {
+			s.SetupWasmWithMockVM()
 
-			_ = suite.storeWasmCode(wasmtesting.Code)
+			_ = s.storeWasmCode(wasmtesting.Code)
 
-			endpoint := wasmtesting.NewWasmEndpoint(suite.chainA)
+			endpoint := wasmtesting.NewWasmEndpoint(s.chainA)
 			err := endpoint.CreateClient()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			tc.malleate()
 
-			ctx := suite.chainA.GetContext()
-			res, err := GetSimApp(suite.chainA).WasmClientKeeper.RemoveChecksum(ctx, msg)
+			ctx := s.chainA.GetContext()
+			res, err := GetSimApp(s.chainA).WasmClientKeeper.RemoveChecksum(ctx, msg)
 			events := ctx.EventManager().Events().ToABCIEvents()
 
 			if tc.expError == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
 
-				checksums, err := GetSimApp(suite.chainA).WasmClientKeeper.GetAllChecksums(suite.chainA.GetContext())
-				suite.Require().NoError(err)
+				checksums, err := GetSimApp(s.chainA).WasmClientKeeper.GetAllChecksums(s.chainA.GetContext())
+				s.Require().NoError(err)
 
 				// Check equality of checksums up to order
-				suite.Require().ElementsMatch(expChecksums, checksums)
+				s.Require().ElementsMatch(expChecksums, checksums)
 
 				// Verify events
-				suite.Require().Len(events, 0)
+				s.Require().Len(events, 0)
 			} else {
-				suite.Require().ErrorIs(err, tc.expError)
-				suite.Require().Nil(res)
+				s.Require().ErrorIs(err, tc.expError)
+				s.Require().Nil(res)
 			}
 		})
 	}
