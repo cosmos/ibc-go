@@ -40,10 +40,10 @@ linters:
   settings:
     gosec:
       excludes:
-        - G107
-        - G115
-        - G404
-      confidence: medium
+        - G107 # Url provided to HTTP request as taint input
+        - G115 # Potential integer overflow when converting between integer types
+        - G404 # Insecure random number source (rand)
+      confidence: low
     nakedret:
       max-func-lines: 0
     revive:
