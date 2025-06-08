@@ -26,7 +26,8 @@ jobs:
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add .
             git commit -m "chore: run make tidy-all"
-            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+            git push
           else
             echo "No changes after make tidy-all"
           fi
+
