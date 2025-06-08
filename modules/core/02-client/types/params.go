@@ -13,8 +13,6 @@ const MaxAllowedClientsLength = 200
 // By default it allows all client types.
 var DefaultAllowedClients = []string{AllowAllClients}
 
-var KeyAllowedClients = []byte("AllowedClients")
-
 // NewParams creates a new parameter configuration for the ibc client module
 func NewParams(allowedClients ...string) Params {
 	return Params{

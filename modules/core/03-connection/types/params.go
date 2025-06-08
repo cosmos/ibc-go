@@ -8,9 +8,6 @@ import (
 // DefaultTimePerBlock is the default value for maximum expected time per block (in nanoseconds).
 const DefaultTimePerBlock = 30 * time.Second
 
-// KeyMaxExpectedTimePerBlock is store's key for MaxExpectedTimePerBlock parameter
-var KeyMaxExpectedTimePerBlock = []byte("MaxExpectedTimePerBlock")
-
 // NewParams creates a new parameter configuration for the ibc connection module
 func NewParams(timePerBlock uint64) Params {
 	return Params{

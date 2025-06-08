@@ -5,8 +5,6 @@ const (
 	DefaultControllerEnabled = true
 )
 
-var KeyControllerEnabled = []byte("ControllerEnabled")
-
 // NewParams creates a new parameter configuration for the controller submodule
 func NewParams(enableController bool) Params {
 	return Params{
