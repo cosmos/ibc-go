@@ -3,6 +3,7 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - '**/go.mod'
       - '**/*.go'
       - '.github/workflows/e2e.yaml'
 concurrency:
