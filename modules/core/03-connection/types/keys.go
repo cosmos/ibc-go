@@ -33,6 +33,9 @@ const (
 	ParamsKey = "connectionParams"
 )
 
+// KeyMaxExpectedTimePerBlock is store's key for MaxExpectedTimePerBlock parameter
+var KeyMaxExpectedTimePerBlock = []byte("MaxExpectedTimePerBlock")
+
 // FormatConnectionIdentifier returns the connection identifier with the sequence appended.
 // This is an SDK specific format not enforced by IBC protocol.
 func FormatConnectionIdentifier(sequence uint64) string {
