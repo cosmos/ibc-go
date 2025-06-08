@@ -18,8 +18,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN
+          token: ${{ secrets.DEPENDABOT_PUSH_PAT }}
           fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
 
       - name: Run make tidy-all
@@ -45,3 +44,4 @@ jobs:
         with:
           github_token: ${{ secrets.DEPENDABOT_PUSH_PAT }}
           branch: ${{ github.event.pull_request.head.ref }}
+          force_with_lease: true
