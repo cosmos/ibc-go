@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	clienttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
@@ -62,9 +61,4 @@ type ClientKeeperV2 interface {
 // ConnectionKeeper defines the expected IBC connection keeper
 type ConnectionKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connection connectiontypes.ConnectionEnd, found bool)
-}
-
-// ParamSubspace defines the expected Subspace interface for module parameters.
-type ParamSubspace interface {
-	GetParamSet(ctx sdk.Context, ps paramtypes.ParamSet)
 }
