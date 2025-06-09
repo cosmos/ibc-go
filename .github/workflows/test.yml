@@ -80,7 +80,7 @@ jobs:
 
       - uses: codecov/codecov-action@v5
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           files: ${{ matrix.module.path }}/profile.out
           flags: ${{ matrix.module.name }}
           token: ${{ secrets.CODECOV_TOKEN }}
