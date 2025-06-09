@@ -858,8 +858,8 @@ github.com/cosmos/ics23/go v0.11.0 h1:jk5skjT0TqX5e5QJbEnwXIS2yI2vnmLOgpQPeM5Rtn
 github.com/cosmos/ics23/go v0.11.0/go.mod h1:A8OjxPE67hHST4Icw94hOxxFEJMBG031xIGF/JHNIY0=
 github.com/cosmos/interchain-security/v7 v7.0.0-20250220171855-c39340d2cf4c h1:f37PfU1QMoJJ8VwlmJmqI9ISIXtUVj02v3HV/os628A=
 github.com/cosmos/interchain-security/v7 v7.0.0-20250220171855-c39340d2cf4c/go.mod h1:9vf8jnoc2OXkKCflRVN65/q8sdURaY+oS/A24kfiXwI=
-github.com/cosmos/interchaintest/v8 v8.8.2-0.20250305184330-0bb5f20ad3bd h1:LnbjxQRXySzbOTJvT9KsS9CpTLfXxVnrle0hPxkfsvc=
-github.com/cosmos/interchaintest/v8 v8.8.2-0.20250305184330-0bb5f20ad3bd/go.mod h1:KNWCIEW8CxiqoDEXJTXcAfd83+NOx7B4H4RuFsj+yDc=
+github.com/cosmos/interchaintest/v10 v10.0.0-alpha.1 h1:1z7fy1ASRueYKbA+bqOy/l5nm3PyP2Wk8wNU1qAE0Dc=
+github.com/cosmos/interchaintest/v10 v10.0.0-alpha.1/go.mod h1:fy+EJ2o+OjMmpI6KNZP+OyZ9lRVWBd5XtjTjqwFljqo=
 github.com/cosmos/ledger-cosmos-go v0.14.0 h1:WfCHricT3rPbkPSVKRH+L4fQGKYHuGOK9Edpel8TYpE=
 github.com/cosmos/ledger-cosmos-go v0.14.0/go.mod h1:E07xCWSBl3mTGofZ2QnL4cIUzMbbGVyik84QYKbX3RA=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d/go.mod h1:maD7wRr/U5Z6m/iR4s+kqSMx2CaBsrgA7czyZG/E6dU=

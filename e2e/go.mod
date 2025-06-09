@@ -7,7 +7,6 @@ replace (
 	// uncomment to use the local version of ibc-go, you will need to run `go mod tidy` in e2e directory.
 	github.com/cosmos/ibc-go/v10 => ../
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/strangelove-ventures/interchaintest/v8 => github.com/cosmos/interchaintest/v8 v8.8.2-0.20250305184330-0bb5f20ad3bd
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
 
@@ -21,9 +20,9 @@ require (
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.2.0
 	github.com/cosmos/ibc-go/v10 v10.2.0
+	github.com/cosmos/interchaintest/v10 v10.0.0-alpha.1
 	github.com/docker/docker v28.0.0+incompatible
 	github.com/pelletier/go-toml v1.9.5
-	github.com/strangelove-ventures/interchaintest/v8 v8.2.1-0.20240419152858-c8b741617cd8
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/mod v0.24.0
