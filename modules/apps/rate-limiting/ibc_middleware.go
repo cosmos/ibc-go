@@ -138,13 +138,9 @@ func (im IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceCha
 		return 0, err
 	}
 
-	actualSeq, err := im.ics4Wrapper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+	seq, err = im.ics4Wrapper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	if err != nil {
 		return 0, err
-	}
-
-	if actualSeq != seq {
-		return 0, errorsmod.Wrapf(channeltypes.ErrInvalidPacket, "sequence mismatch: expected %d, got %d", seq, actualSeq)
 	}
 
 	return seq, nil
