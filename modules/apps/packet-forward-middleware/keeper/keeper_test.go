@@ -9,9 +9,11 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+
+	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
+
 	pfmtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
@@ -225,27 +227,27 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 
 type stabTransfer struct{}
 
-func (t *stabTransfer) Transfer(_ context.Context, _ *transfertypes.MsgTransfer) (*transfertypes.MsgTransferResponse, error) {
+func (*stabTransfer) Transfer(_ context.Context, _ *transfertypes.MsgTransfer) (*transfertypes.MsgTransferResponse, error) {
 	return &transfertypes.MsgTransferResponse{
 		Sequence: 1,
 	}, nil
 }
 
-func (t *stabTransfer) GetDenom(_ sdk.Context, _ cmtbytes.HexBytes) (transfertypes.Denom, bool) {
+func (*stabTransfer) GetDenom(_ sdk.Context, _ cmtbytes.HexBytes) (transfertypes.Denom, bool) {
 	return transfertypes.Denom{}, false
 }
 
-func (t *stabTransfer) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
+func (*stabTransfer) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 	return sdk.Coin{}
 }
 
-func (t *stabTransfer) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
+func (*stabTransfer) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 }
 
-func (t *stabTransfer) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error) {
+func (*stabTransfer) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error) {
 	return "", nil
 }
 
-func (t *stabTransfer) GetPort(ctx sdk.Context) string {
+func (*stabTransfer) GetPort(ctx sdk.Context) string {
 	return ""
 }
