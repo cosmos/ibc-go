@@ -58,6 +58,7 @@ func TestMsgTransferValidation(t *testing.T) {
 		expError error
 	}{
 		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
+		{"valid aliased channel", types.NewMsgTransferAliased(validPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
 		{"valid eureka msg with base denom", types.NewMsgTransfer(validPort, eurekaClient, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
 		{"valid eureka msg with base denom and encoding", types.NewMsgTransferWithEncoding(validPort, eurekaClient, coin, sender, receiver, clienttypes.ZeroHeight(), 100, "", "application/json"), nil},
 		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},

@@ -61,6 +61,28 @@ func NewMsgTransfer(
 	}
 }
 
+// NewMsgTransferAliased creates a new MsgTransfer instance
+// with isV2 set to true, indicating that it is using the V2 protocol
+// with v1 channel identifiers.
+func NewMsgTransferAliased(
+	sourcePort, sourceChannel string,
+	token sdk.Coin, sender, receiver string,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+	memo string,
+) *MsgTransfer {
+	return &MsgTransfer{
+		SourcePort:       sourcePort,
+		SourceChannel:    sourceChannel,
+		Token:            token,
+		Sender:           sender,
+		Receiver:         receiver,
+		TimeoutHeight:    timeoutHeight,
+		TimeoutTimestamp: timeoutTimestamp,
+		Memo:             memo,
+		IsV2:             true, // This indicates that the message is using the V2 protocol
+	}
+}
+
 // NewMsgTransferWithEncoding creates a new MsgTransfer instance
 // with the provided encoding
 func NewMsgTransferWithEncoding(
@@ -79,6 +101,7 @@ func NewMsgTransferWithEncoding(
 		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             memo,
 		Encoding:         encoding,
+		IsV2:             true,
 	}
 }
 

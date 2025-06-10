@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	v11 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v11"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
@@ -72,26 +73,16 @@ func (suite *TransferTestSuite) TestAliasedTransferChannel() {
 	)
 	suite.assertReceiverEqual(suite.chainB, ibcDenom.IBCDenom(), receiver, ibctesting.DefaultCoinAmount)
 
-	// create v2 packet with default values on same channel id
-	token := types.Token{
-		Denom:  types.Denom{Base: ibctesting.TestCoin.Denom},
-		Amount: ibctesting.TestCoin.Amount.String(),
-	}
+	// v2 packets only support timeout timestamps in UNIX time.
+	timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
-	transferData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender.String(), receiver.String(), "")
-	bz := suite.chainA.Codec.MustMarshal(&transferData)
-	payload := channeltypesv2.NewPayload(types.PortID, types.PortID, types.V1, types.EncodingProtobuf, bz)
-
-	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
-
-	// send v2 packet
-	msgSendPacket := channeltypesv2.NewMsgSendPacket(
-		path.EndpointA.ChannelID,
-		timeoutTimestamp,
-		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
-		payload,
+	// send v2 packet on aliased channel
+	msgTransferAlias := types.NewMsgTransferAliased(
+		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+		ibctesting.TestCoin, sender.String(), receiver.String(),
+		clienttypes.Height{}, timeoutTimestamp, "",
 	)
-	res, err := path.EndpointA.Chain.SendMsgs(msgSendPacket)
+	res, err := path.EndpointA.Chain.SendMsgs(msgTransferAlias)
 	suite.Require().NoError(err, "send v2 packet failed")
 
 	packetv2, err := ibctesting.ParseV2PacketFromEvents(res.Events)
@@ -129,23 +120,20 @@ func (suite *TransferTestSuite) TestAliasedTransferChannel() {
 				},
 			},
 			Base: ibctesting.TestCoin.Denom},
-		Amount: ibctesting.TestCoin.Amount.String(),
+		Amount: ibctesting.TestCoin.Amount.MulRaw(2).String(),
 	}
+	revCoin, err := revToken.ToCoin()
+	suite.Require().NoError(err, "convert token to coin failed")
 
-	revTransferData := types.NewFungibleTokenPacketData(revToken.Denom.Path(), newAmount.String(), receiver.String(), sender.String(), "")
-	revBz := suite.chainA.Codec.MustMarshal(&revTransferData)
-	revPayload := channeltypesv2.NewPayload(types.PortID, types.PortID, types.V1, types.EncodingProtobuf, revBz)
-
-	revTimeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
+	revTimeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
 
 	// send v2 packet
-	msgSendPacket = channeltypesv2.NewMsgSendPacket(
-		path.EndpointB.ChannelID, // use original path here to get channel ID
-		revTimeoutTimestamp,
-		revPath.EndpointA.Chain.SenderAccount.GetAddress().String(),
-		revPayload,
+	msgTransferRev := types.NewMsgTransferAliased(
+		path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
+		revCoin, receiver.String(), sender.String(),
+		clienttypes.Height{}, revTimeoutTimestamp, "",
 	)
-	res, err = revPath.EndpointA.Chain.SendMsgs(msgSendPacket)
+	res, err = revPath.EndpointA.Chain.SendMsgs(msgTransferRev)
 	suite.Require().NoError(err, "send v2 packet failed")
 
 	packetv2, err = ibctesting.ParseV2PacketFromEvents(res.Events)
@@ -219,24 +207,12 @@ func (suite *TransferTestSuite) TestDifferentAppPostAlias() {
 	receiver := suite.chainB.SenderAccount.GetAddress()
 
 	// now send a transfer v2 packet
-	// create v2 packet with default values on same channel id
-	token := types.Token{
-		Denom:  types.Denom{Base: ibctesting.TestCoin.Denom},
-		Amount: ibctesting.TestCoin.Amount.String(),
-	}
-
-	transferData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender.String(), receiver.String(), "")
-	bz := suite.chainA.Codec.MustMarshal(&transferData)
-	payload := channeltypesv2.NewPayload(types.PortID, types.PortID, types.V1, types.EncodingProtobuf, bz)
-
-	// send v2 packet
-	msgSendPacket = channeltypesv2.NewMsgSendPacket(
-		path.EndpointA.ChannelID,
-		timeoutTimestamp,
-		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
-		payload,
+	msgTransferAlias := types.NewMsgTransferAliased(
+		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+		ibctesting.TestCoin, sender.String(), receiver.String(),
+		clienttypes.Height{}, timeoutTimestamp, "",
 	)
-	res, err = path.EndpointA.Chain.SendMsgs(msgSendPacket)
+	res, err = path.EndpointA.Chain.SendMsgs(msgTransferAlias)
 	suite.Require().NoError(err, "send v2 packet failed")
 
 	transferv2Packet, err := ibctesting.ParseV2PacketFromEvents(res.Events)
