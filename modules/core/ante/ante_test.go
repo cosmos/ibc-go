@@ -313,7 +313,11 @@ func (suite *AnteTestSuite) createMaliciousUpdateClientMessage() sdk.Msg {
 	// ensure counterparty has committed state
 	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
 
-	trustedHeight := endpoint.GetClientLatestHeight().(clienttypes.Height)
+	trustedHeight, ok := endpoint.GetClientLatestHeight().(clienttypes.Height)
+	if !ok {
+		require.True(endpoint.Chain.TB, ok, "bad height conversion")
+	}
+
 	currentHeader := endpoint.Counterparty.Chain.LatestCommittedHeader.Header
 
 	validators := endpoint.Counterparty.Chain.Vals.Validators
