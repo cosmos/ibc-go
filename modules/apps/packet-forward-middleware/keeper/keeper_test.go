@@ -55,7 +55,6 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 	tests := []struct {
 		name          string
 		ackFn         func() (channeltypes.Acknowledgement, []byte)
-		fundAcc       func(sdk.Context, bankkeeper.Keeper, sdk.AccAddress)
 		nonRefundable bool
 	}{
 		{
@@ -84,13 +83,6 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 				ack := channeltypes.NewErrorAcknowledgement(nil)
 				ackBz := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
 				return ack, ackBz
-			},
-			fundAcc: func(ctx sdk.Context, bk bankkeeper.Keeper, acc sdk.AccAddress) {
-				coins := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000000))
-				err := bk.MintCoins(ctx, "transfer", coins)
-				s.Require().NoError(err)
-				err = bk.SendCoinsFromModuleToAccount(ctx, "transfer", acc, coins)
-				s.Require().NoError(err)
 			},
 			nonRefundable: false,
 		},
@@ -170,7 +162,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 	path.Setup()
 
-	s.chainA.GetSimApp().PFMKeeper.SetTransferKeeper(&stabTransfer{})
+	s.chainA.GetSimApp().PFMKeeper.SetTransferKeeper(&transferMock{})
 	ctx := s.chainA.GetContext()
 	srcPacket := channeltypes.Packet{
 		Data:               []byte{1},
@@ -223,29 +215,29 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	s.Require().Equal(int32(retries-1), inflightPacket.RetriesRemaining)
 }
 
-type stabTransfer struct{}
+type transferMock struct{}
 
-func (*stabTransfer) Transfer(_ context.Context, _ *transfertypes.MsgTransfer) (*transfertypes.MsgTransferResponse, error) {
+func (*transferMock) Transfer(_ context.Context, _ *transfertypes.MsgTransfer) (*transfertypes.MsgTransferResponse, error) {
 	return &transfertypes.MsgTransferResponse{
 		Sequence: 1,
 	}, nil
 }
 
-func (*stabTransfer) GetDenom(_ sdk.Context, _ cmtbytes.HexBytes) (transfertypes.Denom, bool) {
+func (*transferMock) GetDenom(_ sdk.Context, _ cmtbytes.HexBytes) (transfertypes.Denom, bool) {
 	return transfertypes.Denom{}, false
 }
 
-func (*stabTransfer) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
+func (*transferMock) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 	return sdk.Coin{}
 }
 
-func (*stabTransfer) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
+func (*transferMock) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 }
 
-func (*stabTransfer) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error) {
+func (*transferMock) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error) {
 	return "", nil
 }
 
-func (*stabTransfer) GetPort(ctx sdk.Context) string {
+func (*transferMock) GetPort(ctx sdk.Context) string {
 	return ""
 }
