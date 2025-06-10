@@ -61,7 +61,6 @@ linters:
             - fmt.Printf
             - fmt.Print
             - fmt.Println
-            - myFunction
         # Disabled rules
         # TODO: Some of these are kinda code smelly, should reconsider some of them
         - name: add-constant
