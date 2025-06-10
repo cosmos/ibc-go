@@ -48,7 +48,7 @@ func MigrateStore(ctx sdk.Context, storeService corestore.KVStoreService, cdc co
 			if !ok {
 				panic("connection not set")
 			}
-			ibcKeeper.ChannelKeeperV2.SetBaseClient(ctx, ic.ChannelId, connection.ClientId)
+			ibcKeeper.ChannelKeeperV2.SetClientForAlias(ctx, ic.ChannelId, connection.ClientId)
 		}
 
 		// migrate the NextSequenceSend key to the v2 format for every channel

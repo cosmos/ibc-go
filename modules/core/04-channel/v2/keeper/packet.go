@@ -24,7 +24,9 @@ func (k *Keeper) sendPacket(
 	timeoutTimestamp uint64,
 	payloads []types.Payload,
 ) (uint64, string, error) {
-	// lookup counterparty from client identifiers
+	// lookup counterparty from packet identifiers
+	// note this will be either the client identifier for IBC V2 paths
+	// or an aliased channel identifier for IBC V1 paths
 	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, sourceClient)
 	if !ok {
 		return 0, "", errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", sourceClient)
@@ -55,10 +57,9 @@ func (k *Keeper) sendPacket(
 	}
 
 	// Before we do client keeper level checks, we first get underlying base clientID
-	clientId := sourceClient
-	baseClientId, ok := k.GetBaseClient(ctx, sourceClient)
-	if ok {
-		clientId = baseClientId
+	clientId := packet.SourceClient
+	if underlyingClientId, isAlias := k.GetClientForAlias(ctx, packet.SourceClient); isAlias {
+		clientId = underlyingClientId
 	}
 
 	// check that the client of counterparty chain is still active
@@ -112,7 +113,9 @@ func (k *Keeper) recvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// lookup counterparty from client identifiers
+	// lookup counterparty from packet identifiers
+	// note this will be either the client identifier for IBC V2 paths
+	// or an aliased channel identifier for IBC V1 paths
 	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
@@ -144,9 +147,8 @@ func (k *Keeper) recvPacket(
 
 	// Before we do client keeper level checks, we first get underlying base clientID
 	clientId := packet.DestinationClient
-	baseClientId, ok := k.GetBaseClient(ctx, packet.DestinationClient)
-	if ok {
-		clientId = baseClientId
+	if underlyingClientId, isAlias := k.GetClientForAlias(ctx, packet.DestinationClient); isAlias {
+		clientId = underlyingClientId
 	}
 
 	if err := k.ClientKeeper.VerifyMembership(
@@ -178,7 +180,9 @@ func (k Keeper) writeAcknowledgement(
 	packet types.Packet,
 	ack types.Acknowledgement,
 ) error {
-	// lookup counterparty from client identifiers
+	// lookup counterparty from packet identifiers
+	// note this will be either the client identifier for IBC V2 paths
+	// or an aliased channel identifier for IBC V1 paths
 	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.DestinationClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.DestinationClient)
@@ -239,7 +243,9 @@ func (k *Keeper) WriteAcknowledgement(ctx sdk.Context, clientID string, sequence
 }
 
 func (k *Keeper) acknowledgePacket(ctx sdk.Context, packet types.Packet, acknowledgement types.Acknowledgement, proof []byte, proofHeight exported.Height) error {
-	// lookup counterparty from client identifiers
+	// lookup counterparty from packet identifiers
+	// note this will be either the client identifier for IBC V2 paths
+	// or an aliased channel identifier for IBC V1 paths
 	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.SourceClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
@@ -270,9 +276,8 @@ func (k *Keeper) acknowledgePacket(ctx sdk.Context, packet types.Packet, acknowl
 
 	// Before we do client keeper level checks, we first get underlying base clientID
 	clientId := packet.SourceClient
-	baseClientId, ok := k.GetBaseClient(ctx, packet.SourceClient)
-	if ok {
-		clientId = baseClientId
+	if underlyingClientId, isAlias := k.GetClientForAlias(ctx, packet.SourceClient); isAlias {
+		clientId = underlyingClientId
 	}
 
 	if err := k.ClientKeeper.VerifyMembership(
@@ -309,7 +314,9 @@ func (k *Keeper) timeoutPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	// lookup counterparty from client identifiers
+	// lookup counterparty from packet identifiers
+	// note this will be either the client identifier for IBC V2 paths
+	// or an aliased channel identifier for IBC V1 paths
 	counterparty, ok := k.clientV2Keeper.GetClientCounterparty(ctx, packet.SourceClient)
 	if !ok {
 		return errorsmod.Wrapf(clientv2types.ErrCounterpartyNotFound, "counterparty not found for client: %s", packet.SourceClient)
@@ -321,9 +328,8 @@ func (k *Keeper) timeoutPacket(
 
 	// Before we do client keeper level checks, we first get underlying base clientID
 	clientId := packet.SourceClient
-	baseClientId, ok := k.GetBaseClient(ctx, packet.SourceClient)
-	if ok {
-		clientId = baseClientId
+	if underlyingClientId, isAlias := k.GetClientForAlias(ctx, packet.SourceClient); isAlias {
+		clientId = underlyingClientId
 	}
 
 	// check that timeout timestamp has passed on the other end

@@ -86,7 +86,7 @@ func (suite *MigrationsV11TestSuite) TestMigrateStore() {
 			suite.Require().Equal(expCounterparty, counterparty, "counterparty not set correctly")
 
 			// ensure base client mapping set
-			baseClientId, ok := ibcKeeper.ChannelKeeperV2.GetBaseClient(ctx, channelId)
+			baseClientId, ok := ibcKeeper.ChannelKeeperV2.GetClientForAlias(ctx, channelId)
 			suite.Require().True(ok)
 			suite.Require().NotEqual(channelId, baseClientId)
 			connection, ok := ibcKeeper.ConnectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
@@ -98,7 +98,7 @@ func (suite *MigrationsV11TestSuite) TestMigrateStore() {
 			suite.Require().False(ok, "counterparty should not be set for closed channels")
 
 			// ensure base client mapping not set for closed channels
-			baseClientId, ok := ibcKeeper.ChannelKeeperV2.GetBaseClient(ctx, channelId)
+			baseClientId, ok := ibcKeeper.ChannelKeeperV2.GetClientForAlias(ctx, channelId)
 			suite.Require().False(ok)
 			suite.Require().Equal("", baseClientId, "base client mapping should not be set for closed channels")
 		}
