@@ -47,7 +47,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 * (apps) [\#8476](https://github.com/cosmos/ibc-go/pull/8476) Remove `ParamSubspace` from all `Keeper` constructors
-* (light-clients/08-wasm) [\#8511](https://github.com/cosmos/ibc-go/pull/8511) Remove rpc `Checksums` handler
+* (light-clients/08-wasm) [\#8511](https://github.com/cosmos/ibc-go/pull/8511) Remove deprecated `Checksums` type
 
 ### State Machine Breaking
 
