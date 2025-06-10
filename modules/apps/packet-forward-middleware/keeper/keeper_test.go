@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	pfmtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
@@ -40,9 +42,18 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
+	fundAcc := func(ctx sdk.Context, bk bankkeeper.Keeper, acc sdk.AccAddress) {
+		coins := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000000))
+		err := bk.MintCoins(ctx, "transfer", coins)
+		s.Require().NoError(err)
+		err = bk.SendCoinsFromModuleToAccount(ctx, "transfer", acc, coins)
+		s.Require().NoError(err)
+	}
+
 	tests := []struct {
 		name          string
 		ackFn         func() (channeltypes.Acknowledgement, []byte)
+		fundAcc       func(sdk.Context, bankkeeper.Keeper, sdk.AccAddress)
 		nonRefundable bool
 	}{
 		{
@@ -54,28 +65,57 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 			},
 			nonRefundable: false,
 		},
+		{
+			name: "Ack error + Non refundable -> Asset moved to recoverable account then propagate ack to ics4 wrapper",
+			ackFn: func() (channeltypes.Acknowledgement, []byte) {
+				ack := channeltypes.NewErrorAcknowledgement(nil)
+				ackResult := fmt.Sprintf("packet forward failed after point of no return: %s", ack.GetError())
+				newAck := channeltypes.NewResultAcknowledgement([]byte(ackResult))
+				ackBz := channeltypes.CommitAcknowledgement(newAck.Acknowledgement())
+				return ack, ackBz
+			},
+			nonRefundable: true,
+		},
+		{
+			name: "Ack error + Refundable -> Escrow coin then propagate ack to ics4 wrapper",
+			ackFn: func() (channeltypes.Acknowledgement, []byte) {
+				ack := channeltypes.NewErrorAcknowledgement(nil)
+				ackBz := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
+				return ack, ackBz
+			},
+			fundAcc: func(ctx sdk.Context, bk bankkeeper.Keeper, acc sdk.AccAddress) {
+				coins := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000000))
+				err := bk.MintCoins(ctx, "transfer", coins)
+				s.Require().NoError(err)
+				err = bk.SendCoinsFromModuleToAccount(ctx, "transfer", acc, coins)
+				s.Require().NoError(err)
+			},
+			nonRefundable: false,
+		},
 	}
 
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			s.SetupTest()
-			pathAB := ibctesting.NewTransferPath(s.chainA, s.chainB)
-			pathAB.Setup()
+			// pathAB := ibctesting.NewTransferPath(s.chainA, s.chainB)
+			// pathAB.Setup()
 
-			ctxA := s.chainA.GetContext()
-			pfmKeeperA := s.chainA.GetSimApp().PFMKeeper
-			pfmKeeperA.SetTransferKeeper(&stabTransfer{})
+			pathBC := ibctesting.NewTransferPath(s.chainB, s.chainC)
+			pathBC.Setup()
 
 			ctxB := s.chainB.GetContext()
 			pfmKeeperB := s.chainB.GetSimApp().PFMKeeper
 
+			ctxC := s.chainC.GetContext()
+			pfmKeeperC := s.chainC.GetSimApp().PFMKeeper
+
 			srcPacket := channeltypes.Packet{
 				Data:               []byte{1},
 				Sequence:           1,
-				SourcePort:         pathAB.EndpointA.ChannelConfig.PortID,
-				SourceChannel:      pathAB.EndpointA.ChannelID,
-				DestinationPort:    pathAB.EndpointB.ChannelConfig.PortID,
-				DestinationChannel: pathAB.EndpointB.ChannelID,
+				SourcePort:         pathBC.EndpointA.ChannelConfig.PortID,
+				SourceChannel:      pathBC.EndpointA.ChannelID,
+				DestinationPort:    pathBC.EndpointB.ChannelConfig.PortID,
+				DestinationChannel: pathBC.EndpointB.ChannelID,
 				TimeoutHeight: clienttypes.Height{
 					RevisionNumber: 10,
 					RevisionHeight: 100,
@@ -86,36 +126,40 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 			retries := uint8(2)
 			timeout := pfmtypes.Duration(1010101010)
 
+			initialSender := s.chainA.SenderAccount.GetAddress()
+			// Simulate an "Override Receiver" on destination chain.
+			intermediateAcc := s.chainB.SenderAccounts[1].SenderAccount.GetAddress()
+			finalReceiver := s.chainB.SenderAccount.GetAddress()
+
 			metadata := pfmtypes.ForwardMetadata{
-				Receiver: "first-receiver",
-				Port:     pathAB.EndpointA.ChannelConfig.PortID,
-				Channel:  pathAB.EndpointA.ChannelID,
+				Receiver: finalReceiver.String(),
+				Port:     pathBC.EndpointA.ChannelConfig.PortID,
+				Channel:  pathBC.EndpointA.ChannelID,
 				Timeout:  timeout,
 				Retries:  &retries,
 				Next:     nil,
 			}
 
-			initialSender := s.chainA.SenderAccount.GetAddress()
-			finalReceiver := s.chainB.SenderAccount.GetAddress()
+			fundAcc(ctxB, s.chainB.GetSimApp().BankKeeper, intermediateAcc)
 
-			err := s.chainA.GetSimApp().BankKeeper.MintCoins(ctxA, "transfer", sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000000)))
-			s.Require().NoError(err)
-			err = s.chainA.GetSimApp().BankKeeper.SendCoinsFromModuleToAccount(ctxA, "transfer", initialSender, sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000000)))
+			err := pfmKeeperB.ForwardTransferPacket(ctxB, nil, srcPacket, initialSender.String(), intermediateAcc.String(), &metadata, ibctesting.TestCoin, 2, time.Duration(timeout), nil, tc.nonRefundable)
 			s.Require().NoError(err)
 
-			err = pfmKeeperA.ForwardTransferPacket(ctxA, nil, srcPacket, initialSender.String(), finalReceiver.String(), &metadata, ibctesting.TestCoin, 2, time.Duration(timeout), nil, tc.nonRefundable)
+			inflightPacket, err := pfmKeeperB.GetInflightPacket(ctxB, srcPacket)
 			s.Require().NoError(err)
 
-			// Get the inflight packer
-			inflightPacket, err := pfmKeeperA.GetInflightPacket(ctxA, srcPacket)
-			s.Require().NoError(err)
+			token := transfertypes.NewFungibleTokenPacketData(ibctesting.TestCoin.GetDenom(), ibctesting.DefaultCoinAmount.String(), initialSender.String(), finalReceiver.String(), "")
 
 			ack, ackBZ := tc.ackFn()
-			token := transfertypes.NewFungibleTokenPacketData(ibctesting.TestCoin.GetDenom(), ibctesting.DefaultCoinAmount.String(), initialSender.String(), finalReceiver.String(), "")
-			err = pfmKeeperB.WriteAcknowledgementForForwardedPacket(ctxB, srcPacket, token, inflightPacket, ack)
+
+			// Escrow on chainC
+			escrow := transfertypes.GetEscrowAddress(srcPacket.SourcePort, srcPacket.SourceChannel)
+			fundAcc(ctxC, s.chainC.GetSimApp().BankKeeper, escrow)
+
+			err = pfmKeeperC.WriteAcknowledgementForForwardedPacket(ctxC, srcPacket, token, inflightPacket, ack)
 			s.Require().NoError(err)
 
-			ackBZFromStore := s.chainB.GetAcknowledgement(srcPacket)
+			ackBZFromStore := s.chainC.GetAcknowledgement(srcPacket)
 			s.Require().True(bytes.Equal(ackBZ, ackBZFromStore))
 		})
 	}
