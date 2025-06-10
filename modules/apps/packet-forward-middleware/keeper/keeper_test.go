@@ -99,8 +99,6 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 	for _, tc := range tests {
 		s.Run(tc.name, func() {
 			s.SetupTest()
-			// pathAB := ibctesting.NewTransferPath(s.chainA, s.chainB)
-			// pathAB.Setup()
 
 			pathBC := ibctesting.NewTransferPath(s.chainB, s.chainC)
 			pathBC.Setup()
