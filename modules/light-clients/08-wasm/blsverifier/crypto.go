@@ -3,7 +3,7 @@ package blsverifier
 import (
 	"fmt"
 
-	"github.com/prysmaticlabs/prysm/v5/crypto/bls"
+	"github.com/OffchainLabs/prysm/v6/crypto/bls"
 )
 
 func AggregatePublicKeys(publicKeys [][]byte) (bls.PublicKey, error) {
