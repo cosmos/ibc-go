@@ -2,6 +2,7 @@ package ante_test
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -10,6 +11,12 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
+	cmttypes "github.com/cometbft/cometbft/types"
+	cmtversion "github.com/cometbft/cometbft/version"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -23,6 +30,64 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 	"github.com/cosmos/ibc-go/v10/testing/mock/v2"
 )
+
+const (
+	invalidHashValue = "invalid_hash"
+)
+
+// createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.
+func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *cmttypes.ValidatorSet, signers []cmttypes.PrivValidator, oldHeader *cmtproto.Header) (*ibctm.Header, error) {
+	tmHeader := cmttypes.Header{
+		Version:            cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 2},
+		ChainID:            chainID,
+		Height:             blockHeight,
+		Time:               timestamp,
+		LastBlockID:        ibctesting.MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
+		LastCommitHash:     oldHeader.GetLastCommitHash(),
+		ValidatorsHash:     tmValSet.Hash(),
+		NextValidatorsHash: tmValSet.Hash(),
+		DataHash:           tmhash.Sum([]byte(invalidHashValue)),
+		ConsensusHash:      tmhash.Sum([]byte(invalidHashValue)),
+		AppHash:            tmhash.Sum([]byte(invalidHashValue)),
+		LastResultsHash:    tmhash.Sum([]byte(invalidHashValue)),
+		EvidenceHash:       tmhash.Sum([]byte(invalidHashValue)),
+		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
+	}
+
+	hhash := tmHeader.Hash()
+	blockID := ibctesting.MakeBlockID(hhash, 3, tmhash.Sum([]byte(invalidHashValue)))
+	voteSet := cmttypes.NewVoteSet(chainID, blockHeight, 1, cmtproto.PrecommitType, tmValSet)
+
+	extCommit, err := cmttypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signers, timestamp, false)
+	if err != nil {
+		fmt.Printf("commit")
+		return nil, err
+	}
+
+	signedHeader := &cmtproto.SignedHeader{
+		Header: tmHeader.ToProto(),
+		Commit: extCommit.ToCommit().ToProto(),
+	}
+
+	valSet, err := tmValSet.ToProto()
+	if err != nil {
+		fmt.Printf("val to proto")
+		return nil, err
+	}
+
+	trustedVals, err := tmTrustedVals.ToProto()
+	if err != nil {
+		fmt.Printf("trusted val to proto")
+		return nil, err
+	}
+
+	return &ibctm.Header{
+		SignedHeader:      signedHeader,
+		ValidatorSet:      valSet,
+		TrustedHeight:     trustedHeight,
+		TrustedValidators: trustedVals,
+	}, nil
+}
 
 type AnteTestSuite struct {
 	testifysuite.Suite
@@ -242,6 +307,39 @@ func (suite *AnteTestSuite) createUpdateClientMessage() sdk.Msg {
 	return msg
 }
 
+func (suite *AnteTestSuite) createMaliciousUpdateClientMessage() sdk.Msg {
+	endpoint := suite.path.EndpointB
+
+	// ensure counterparty has committed state
+	endpoint.Chain.Coordinator.CommitBlock(endpoint.Counterparty.Chain)
+
+	trustedHeight := endpoint.GetClientLatestHeight().(clienttypes.Height)
+	currentHeader := endpoint.Counterparty.Chain.LatestCommittedHeader.Header
+
+	validators := endpoint.Counterparty.Chain.Vals.Validators
+	signers := endpoint.Counterparty.Chain.Signers
+
+	signerArr := make([]cmttypes.PrivValidator, len(validators))
+	for i, v := range validators {
+		signerArr[i] = signers[v.Address.String()]
+	}
+	cmtTrustedVals, ok := endpoint.Counterparty.Chain.TrustedValidators[trustedHeight.RevisionHeight]
+	if !ok {
+		require.True(endpoint.Chain.TB, ok, "no validators")
+	}
+
+	maliciousHeader, err := createMaliciousTMHeader(endpoint.Counterparty.Chain.ChainID, int64(trustedHeight.RevisionHeight+1), trustedHeight, currentHeader.Time, endpoint.Counterparty.Chain.Vals, cmtTrustedVals, signerArr, currentHeader)
+	require.NoError(endpoint.Chain.TB, err, "header update")
+
+	msg, err := clienttypes.NewMsgUpdateClient(
+		endpoint.ClientID, maliciousHeader,
+		endpoint.Chain.SenderAccount.GetAddress().String(),
+	)
+	require.NoError(endpoint.Chain.TB, err, "msg update")
+
+	return msg
+}
+
 func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 	testCases := []struct {
 		name     string
@@ -423,21 +521,6 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 			nil,
 		},
 		{
-			"success on three redundant RecvPacket messages and one SubmitMisbehaviour message",
-			func(suite *AnteTestSuite) []sdk.Msg {
-				msgs := []sdk.Msg{suite.createUpdateClientMessage()}
-
-				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(true))
-				}
-
-				// append non packet and update message to msgs to ensure multimsg tx should pass
-				msgs = append(msgs, &clienttypes.MsgSubmitMisbehaviour{}) //nolint:staticcheck // we're using the deprecated message for testing
-				return msgs
-			},
-			nil,
-		},
-		{
 			"success on app callback error, app callbacks are skipped for performance",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				suite.chainB.GetSimApp().IBCMockModule.IBCApp.OnRecvPacket = func(
@@ -495,6 +578,19 @@ func (suite *AnteTestSuite) TestAnteDecoratorCheckTx() {
 			"no success on one new UpdateClient message and three redundant RecvPacket messages",
 			func(suite *AnteTestSuite) []sdk.Msg {
 				msgs := []sdk.Msg{suite.createUpdateClientMessage()}
+
+				for i := 1; i <= 3; i++ {
+					msgs = append(msgs, suite.createRecvPacketMessage(true))
+				}
+
+				return msgs
+			},
+			channeltypes.ErrRedundantTx,
+		},
+		{
+			"no success on one new malicious UpdateClient message and three redundant RecvPacket messages",
+			func(suite *AnteTestSuite) []sdk.Msg {
+				msgs := []sdk.Msg{suite.createMaliciousUpdateClientMessage()}
 
 				for i := 1; i <= 3; i++ {
 					msgs = append(msgs, suite.createRecvPacketMessage(true))

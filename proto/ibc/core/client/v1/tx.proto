@@ -24,9 +24,6 @@ service Msg {
   // UpgradeClient defines a rpc handler method for MsgUpgradeClient.
   rpc UpgradeClient(MsgUpgradeClient) returns (MsgUpgradeClientResponse);
 
-  // SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
-  rpc SubmitMisbehaviour(MsgSubmitMisbehaviour) returns (MsgSubmitMisbehaviourResponse);
-
   // RecoverClient defines a rpc handler method for MsgRecoverClient.
   rpc RecoverClient(MsgRecoverClient) returns (MsgRecoverClientResponse);
 
@@ -104,27 +101,6 @@ message MsgUpgradeClient {
 
 // MsgUpgradeClientResponse defines the Msg/UpgradeClient response type.
 message MsgUpgradeClientResponse {}
-
-// MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
-// light client misbehaviour.
-// This message has been deprecated. Use MsgUpdateClient instead.
-message MsgSubmitMisbehaviour {
-  option deprecated             = true;
-  option (cosmos.msg.v1.signer) = "signer";
-
-  option (gogoproto.goproto_getters) = false;
-
-  // client unique identifier
-  string client_id = 1;
-  // misbehaviour used for freezing the light client
-  google.protobuf.Any misbehaviour = 2;
-  // signer address
-  string signer = 3;
-}
-
-// MsgSubmitMisbehaviourResponse defines the Msg/SubmitMisbehaviour response
-// type.
-message MsgSubmitMisbehaviourResponse {}
 
 // MsgRecoverClient defines the message used to recover a frozen or expired client.
 message MsgRecoverClient {
