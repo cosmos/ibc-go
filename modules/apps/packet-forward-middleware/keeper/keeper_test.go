@@ -52,38 +52,33 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 		s.Require().NoError(err)
 	}
 
+	var expectedAckBz []byte
+
 	tests := []struct {
 		name          string
-		ackFn         func() (channeltypes.Acknowledgement, []byte)
+		ack           channeltypes.Acknowledgement
+		malleates     func()
 		nonRefundable bool
 	}{
 		{
-			name: "Ack success -> propagated to ics4 wrapper",
-			ackFn: func() (channeltypes.Acknowledgement, []byte) {
-				ack := channeltypes.NewResultAcknowledgement([]byte{1})
-				ackBz := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
-				return ack, ackBz
-			},
+			name:          "Ack success -> propagated to ics4 wrapper",
+			ack:           channeltypes.NewResultAcknowledgement([]byte{1}),
 			nonRefundable: false,
 		},
 		{
 			name: "Ack error + Non refundable -> Asset moved to recoverable account then propagate ack to ics4 wrapper",
-			ackFn: func() (channeltypes.Acknowledgement, []byte) {
+			ack:  channeltypes.NewErrorAcknowledgement(nil),
+			malleates: func() {
 				ack := channeltypes.NewErrorAcknowledgement(nil)
 				ackResult := fmt.Sprintf("packet forward failed after point of no return: %s", ack.GetError())
 				newAck := channeltypes.NewResultAcknowledgement([]byte(ackResult))
-				ackBz := channeltypes.CommitAcknowledgement(newAck.Acknowledgement())
-				return ack, ackBz
+				expectedAckBz = channeltypes.CommitAcknowledgement(newAck.Acknowledgement())
 			},
 			nonRefundable: true,
 		},
 		{
-			name: "Ack error + Refundable -> Escrow coin then propagate ack to ics4 wrapper",
-			ackFn: func() (channeltypes.Acknowledgement, []byte) {
-				ack := channeltypes.NewErrorAcknowledgement(nil)
-				ackBz := channeltypes.CommitAcknowledgement(ack.Acknowledgement())
-				return ack, ackBz
-			},
+			name:          "Ack error + Refundable -> Escrow coin then propagate ack to ics4 wrapper",
+			ack:           channeltypes.NewErrorAcknowledgement(nil),
 			nonRefundable: false,
 		},
 	}
@@ -142,17 +137,20 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 
 			token := transfertypes.NewFungibleTokenPacketData(ibctesting.TestCoin.GetDenom(), ibctesting.DefaultCoinAmount.String(), initialSender.String(), finalReceiver.String(), "")
 
-			ack, ackBZ := tc.ackFn()
+			expectedAckBz = channeltypes.CommitAcknowledgement(tc.ack.Acknowledgement())
+			if tc.malleates != nil {
+				tc.malleates()
+			}
 
 			// Escrow on chainC
 			escrow := transfertypes.GetEscrowAddress(srcPacket.SourcePort, srcPacket.SourceChannel)
 			fundAcc(ctxC, s.chainC.GetSimApp().BankKeeper, escrow)
 
-			err = pfmKeeperC.WriteAcknowledgementForForwardedPacket(ctxC, srcPacket, token, inflightPacket, ack)
+			err = pfmKeeperC.WriteAcknowledgementForForwardedPacket(ctxC, srcPacket, token, inflightPacket, tc.ack)
 			s.Require().NoError(err)
 
 			ackBZFromStore := s.chainC.GetAcknowledgement(srcPacket)
-			s.Require().True(bytes.Equal(ackBZ, ackBZFromStore))
+			s.Require().True(bytes.Equal(expectedAckBz, ackBZFromStore))
 		})
 	}
 }
