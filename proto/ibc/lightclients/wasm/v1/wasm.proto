@@ -31,4 +31,3 @@ message ClientMessage {
 
   bytes data = 1;
 }
-
