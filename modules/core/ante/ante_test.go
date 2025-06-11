@@ -2,7 +2,6 @@ package ante_test
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 

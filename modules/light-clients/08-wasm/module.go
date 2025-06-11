@@ -111,7 +111,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
