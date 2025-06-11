@@ -13,22 +13,21 @@ replace (
 )
 
 require (
-	cosmossdk.io/api v0.9.2
+	cosmossdk.io/api v1.0.0-alpha.0.0.20250604161429-8c61b74a1806
 	cosmossdk.io/errors v1.0.2
 	cosmossdk.io/math v1.5.3
-	cosmossdk.io/x/upgrade v0.2.0
-	github.com/cometbft/cometbft v0.38.17
-	github.com/cosmos/cosmos-sdk v0.53.2
+
+	github.com/cosmos/cosmos-sdk v0.54.0-alpha.0.0.20250609200650-1521447c77da
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0
-	github.com/cosmos/ibc-go/v10 v10.3.0
+	github.com/cosmos/ibc-go/v10 v10.0.0-beta.0.0.20250604231944-493e1d9fc888
 	github.com/docker/docker v27.3.1+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/strangelove-ventures/interchaintest/v8 v8.2.1-0.20240419152858-c8b741617cd8
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/mod v0.25.0
-	google.golang.org/grpc v1.73.0
+	google.golang.org/grpc v1.72.1
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -257,4 +256,10 @@ require (
 	nhooyr.io/websocket v1.8.11 // indirect
 	pgregory.net/rapid v1.2.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
+	github.com/cometbft/cometbft/v2 v2.0.0-alpha.1
+	github.com/cometbft/cometbft/api v0.0.0-20250604002332-f4d33abd2469
 )
+
+replace github.com/cometbft/cometbft/v2 => github.com/cometbft/cometbft/v2 v2.0.0-alpha.1
+
+replace github.com/cometbft/cometbft/api => github.com/cometbft/cometbft/api v1.1.0-alpha.1

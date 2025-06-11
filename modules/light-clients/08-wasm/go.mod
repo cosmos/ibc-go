@@ -8,27 +8,25 @@ replace (
 )
 
 require (
-	cosmossdk.io/api v0.9.2
-	cosmossdk.io/client/v2 v2.0.0-beta.9
+	cosmossdk.io/api v1.0.0-alpha.0.0.20250604161429-8c61b74a1806
+	cosmossdk.io/client/v2 v2.0.0-beta.10.0.20250604161429-8c61b74a1806
 	cosmossdk.io/collections v1.3.0
-	cosmossdk.io/core v0.11.3
+	cosmossdk.io/core v1.1.0-alpha.1.0.20250604161429-8c61b74a1806
 	cosmossdk.io/errors v1.0.2
 	cosmossdk.io/log v1.6.0
 	cosmossdk.io/math v1.5.3
-	cosmossdk.io/store v1.1.2
+	cosmossdk.io/store v1.10.0-rc.1.0.20250609200650-1521447c77da
 	cosmossdk.io/tools/confix v0.1.2
-	cosmossdk.io/x/circuit v0.2.0
-	cosmossdk.io/x/evidence v0.2.0
-	cosmossdk.io/x/feegrant v0.2.0
-	cosmossdk.io/x/tx v0.14.0
-	cosmossdk.io/x/upgrade v0.2.0
+
+	cosmossdk.io/x/tx v1.2.0-alpha.0.0.20250604161429-8c61b74a1806
+
 	github.com/CosmWasm/wasmvm/v2 v2.2.4
 	github.com/OffchainLabs/prysm/v6 v6.0.4
-	github.com/cometbft/cometbft v0.38.17
+
 	github.com/cosmos/cosmos-db v1.1.3
-	github.com/cosmos/cosmos-sdk v0.53.2
+	github.com/cosmos/cosmos-sdk v0.54.0-alpha.0.0.20250609200650-1521447c77da
 	github.com/cosmos/gogoproto v1.7.0
-	github.com/cosmos/ibc-go/v10 v10.3.0
+	github.com/cosmos/ibc-go/v10 v10.0.0-beta.0.0.20250604231944-493e1d9fc888
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cast v1.9.2
@@ -36,7 +34,7 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250528174236-200df99c418a
-	google.golang.org/grpc v1.73.0
+	google.golang.org/grpc v1.72.1
 )
 
 require (
@@ -240,4 +238,10 @@ require (
 	pgregory.net/rapid v1.2.0 // indirect
 	rsc.io/qr v0.2.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
+	github.com/cometbft/cometbft/v2 v2.0.0-alpha.1
+	github.com/cometbft/cometbft/api v0.0.0-20250604002332-f4d33abd2469
 )
+
+replace github.com/cometbft/cometbft/v2 => github.com/cometbft/cometbft/v2 v2.0.0-alpha.1
+
+replace github.com/cometbft/cometbft/api => github.com/cometbft/cometbft/api v1.1.0-alpha.1

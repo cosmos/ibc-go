@@ -5,18 +5,17 @@ go 1.24.3
 replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 require (
-	cosmossdk.io/api v0.9.2
-	cosmossdk.io/core v0.11.3
+	cosmossdk.io/api v1.0.0-alpha.0.0.20250604161429-8c61b74a1806
+	cosmossdk.io/core v1.1.0-alpha.1.0.20250604161429-8c61b74a1806
 	cosmossdk.io/errors v1.0.2
 	cosmossdk.io/log v1.6.0
 	cosmossdk.io/math v1.5.3
-	cosmossdk.io/store v1.1.2
-	cosmossdk.io/x/tx v0.14.0
-	cosmossdk.io/x/upgrade v0.2.0
-	github.com/cometbft/cometbft v0.38.17
+	cosmossdk.io/store v1.10.0-rc.1.0.20250609200650-1521447c77da
+	cosmossdk.io/x/tx v1.2.0-alpha.0.0.20250604161429-8c61b74a1806
+
 	github.com/cosmos/cosmos-db v1.1.3
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
-	github.com/cosmos/cosmos-sdk v0.53.2
+	github.com/cosmos/cosmos-sdk v0.54.0-alpha.0.0.20250609200650-1521447c77da
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ics23/go v0.11.0
 	github.com/ethereum/go-ethereum v1.15.11
@@ -28,7 +27,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250528174236-200df99c418a
-	google.golang.org/grpc v1.73.0
+	google.golang.org/grpc v1.72.1
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -220,4 +219,10 @@ require (
 	nhooyr.io/websocket v1.8.11 // indirect
 	pgregory.net/rapid v1.2.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
+	github.com/cometbft/cometbft/v2 v2.0.0-alpha.1
+	github.com/cometbft/cometbft/api v0.0.0-20250604002332-f4d33abd2469
 )
+
+replace github.com/cometbft/cometbft/v2 => github.com/cometbft/cometbft/v2 v2.0.0-alpha.1
+
+replace github.com/cometbft/cometbft/api => github.com/cometbft/cometbft/api v1.1.0-alpha.1

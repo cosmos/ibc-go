@@ -23,7 +23,7 @@ import (
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	cmtjson "github.com/cometbft/cometbft/libs/json"
+	cmtjson "github.com/cometbft/cometbft/v2/libs/json"
 
 	"github.com/cosmos/ibc-go/e2e/internal/directories"
 	"github.com/cosmos/ibc-go/e2e/relayer"
