@@ -218,9 +218,11 @@ func (s *PFMTestSuite) pktForwardMiddleware(chain *ibctesting.TestChain) packetf
 
 func (s *PFMTestSuite) transferPacket(sender string, receiver string, path *ibctesting.Path, seq uint64, metadata any) channeltypes.Packet {
 	s.T().Helper()
-	tokenPacket := transfertypes.FungibleTokenPacketData{
-		Denom:    "uatom",
-		Amount:   "100",
+	tokenPacket := transfertypes.InternalTransferRepresentation{
+		Token: transfertypes.Token{
+			Denom:  transfertypes.NewDenom("uatom"),
+			Amount: "100",
+		},
 		Sender:   sender,
 		Receiver: receiver,
 	}
@@ -235,7 +237,7 @@ func (s *PFMTestSuite) transferPacket(sender string, receiver string, path *ibct
 		}
 	}
 
-	tokenData, err := transfertypes.ModuleCdc.MarshalJSON(&tokenPacket)
+	tokenData, err := json.Marshal(tokenPacket)
 	s.Require().NoError(err)
 
 	return channeltypes.Packet{
