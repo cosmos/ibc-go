@@ -31,64 +31,6 @@ import (
 	"github.com/cosmos/ibc-go/v10/testing/mock/v2"
 )
 
-const (
-	invalidHashValue = "invalid_hash"
-)
-
-// createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.
-func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *cmttypes.ValidatorSet, signers []cmttypes.PrivValidator, oldHeader *cmtproto.Header) (*ibctm.Header, error) {
-	tmHeader := cmttypes.Header{
-		Version:            cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 2},
-		ChainID:            chainID,
-		Height:             blockHeight,
-		Time:               timestamp,
-		LastBlockID:        ibctesting.MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
-		LastCommitHash:     oldHeader.GetLastCommitHash(),
-		ValidatorsHash:     tmValSet.Hash(),
-		NextValidatorsHash: tmValSet.Hash(),
-		DataHash:           tmhash.Sum([]byte(invalidHashValue)),
-		ConsensusHash:      tmhash.Sum([]byte(invalidHashValue)),
-		AppHash:            tmhash.Sum([]byte(invalidHashValue)),
-		LastResultsHash:    tmhash.Sum([]byte(invalidHashValue)),
-		EvidenceHash:       tmhash.Sum([]byte(invalidHashValue)),
-		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
-	}
-
-	hhash := tmHeader.Hash()
-	blockID := ibctesting.MakeBlockID(hhash, 3, tmhash.Sum([]byte(invalidHashValue)))
-	voteSet := cmttypes.NewVoteSet(chainID, blockHeight, 1, cmtproto.PrecommitType, tmValSet)
-
-	extCommit, err := cmttypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signers, timestamp, false)
-	if err != nil {
-		fmt.Printf("commit")
-		return nil, err
-	}
-
-	signedHeader := &cmtproto.SignedHeader{
-		Header: tmHeader.ToProto(),
-		Commit: extCommit.ToCommit().ToProto(),
-	}
-
-	valSet, err := tmValSet.ToProto()
-	if err != nil {
-		fmt.Printf("val to proto")
-		return nil, err
-	}
-
-	trustedVals, err := tmTrustedVals.ToProto()
-	if err != nil {
-		fmt.Printf("trusted val to proto")
-		return nil, err
-	}
-
-	return &ibctm.Header{
-		SignedHeader:      signedHeader,
-		ValidatorSet:      valSet,
-		TrustedHeight:     trustedHeight,
-		TrustedValidators: trustedVals,
-	}, nil
-}
-
 type AnteTestSuite struct {
 	testifysuite.Suite
 
@@ -323,6 +265,8 @@ func (suite *AnteTestSuite) createMaliciousUpdateClientMessage() sdk.Msg {
 	validators := endpoint.Counterparty.Chain.Vals.Validators
 	signers := endpoint.Counterparty.Chain.Signers
 
+	// Signers must be in the same order as
+	// the validators when signing.
 	signerArr := make([]cmttypes.PrivValidator, len(validators))
 	for i, v := range validators {
 		signerArr[i] = signers[v.Address.String()]
@@ -333,7 +277,7 @@ func (suite *AnteTestSuite) createMaliciousUpdateClientMessage() sdk.Msg {
 	}
 
 	maliciousHeader, err := createMaliciousTMHeader(endpoint.Counterparty.Chain.ChainID, int64(trustedHeight.RevisionHeight+1), trustedHeight, currentHeader.Time, endpoint.Counterparty.Chain.Vals, cmtTrustedVals, signerArr, currentHeader)
-	require.NoError(endpoint.Chain.TB, err, "header update")
+	require.NoError(endpoint.Chain.TB, err, "invalid header update")
 
 	msg, err := clienttypes.NewMsgUpdateClient(
 		endpoint.ClientID, maliciousHeader,
@@ -842,4 +786,59 @@ func (suite *AnteTestSuite) TestAnteDecoratorReCheckTx() {
 			}
 		})
 	}
+}
+
+// createMaliciousTMHeader creates a header with the provided trusted height with an invalid app hash.
+func createMaliciousTMHeader(chainID string, blockHeight int64, trustedHeight clienttypes.Height, timestamp time.Time, tmValSet, tmTrustedVals *cmttypes.ValidatorSet, signers []cmttypes.PrivValidator, oldHeader *cmtproto.Header) (*ibctm.Header, error) {
+	const (
+		invalidHashValue = "invalid_hash"
+	)
+
+	tmHeader := cmttypes.Header{
+		Version:            cmtprotoversion.Consensus{Block: cmtversion.BlockProtocol, App: 2},
+		ChainID:            chainID,
+		Height:             blockHeight,
+		Time:               timestamp,
+		LastBlockID:        ibctesting.MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
+		LastCommitHash:     oldHeader.GetLastCommitHash(),
+		ValidatorsHash:     tmValSet.Hash(),
+		NextValidatorsHash: tmValSet.Hash(),
+		DataHash:           tmhash.Sum([]byte(invalidHashValue)),
+		ConsensusHash:      tmhash.Sum([]byte(invalidHashValue)),
+		AppHash:            tmhash.Sum([]byte(invalidHashValue)),
+		LastResultsHash:    tmhash.Sum([]byte(invalidHashValue)),
+		EvidenceHash:       tmhash.Sum([]byte(invalidHashValue)),
+		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
+	}
+
+	hhash := tmHeader.Hash()
+	blockID := ibctesting.MakeBlockID(hhash, 3, tmhash.Sum([]byte(invalidHashValue)))
+	voteSet := cmttypes.NewVoteSet(chainID, blockHeight, 1, cmtproto.PrecommitType, tmValSet)
+
+	extCommit, err := cmttypes.MakeExtCommit(blockID, blockHeight, 1, voteSet, signers, timestamp, false)
+	if err != nil {
+		return nil, err
+	}
+
+	signedHeader := &cmtproto.SignedHeader{
+		Header: tmHeader.ToProto(),
+		Commit: extCommit.ToCommit().ToProto(),
+	}
+
+	valSet, err := tmValSet.ToProto()
+	if err != nil {
+		return nil, err
+	}
+
+	trustedVals, err := tmTrustedVals.ToProto()
+	if err != nil {
+		return nil, err
+	}
+
+	return &ibctm.Header{
+		SignedHeader:      signedHeader,
+		ValidatorSet:      valSet,
+		TrustedHeight:     trustedHeight,
+		TrustedValidators: trustedVals,
+	}, nil
 }
