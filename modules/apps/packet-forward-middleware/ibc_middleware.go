@@ -237,23 +237,15 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 // address and returns an error if the funds cannot be received.
 func (im IBCMiddleware) receiveFunds(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, data transfertypes.InternalTransferRepresentation, overrideReceiver string, relayer sdk.AccAddress) error {
 	data.Receiver = overrideReceiver
+	data.Memo = "" // Memo explicitly emptied.
+
 	overrideDataBz, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 
-	overridePacket := channeltypes.Packet{
-		Sequence:           packet.Sequence,
-		SourcePort:         packet.SourcePort,
-		SourceChannel:      packet.SourceChannel,
-		DestinationPort:    packet.DestinationPort,
-		DestinationChannel: packet.DestinationChannel,
-		Data:               overrideDataBz, // override data
-		TimeoutHeight:      packet.TimeoutHeight,
-		TimeoutTimestamp:   packet.TimeoutTimestamp,
-	}
-
-	ack := im.app.OnRecvPacket(ctx, channelVersion, overridePacket, relayer)
+	packet.Data = overrideDataBz // Override data.
+	ack := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	if ack == nil {
 		return errors.New("ack is nil")
 	}

@@ -232,6 +232,11 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Inter
 	switch encoding {
 	case EncodingJSON:
 		if err := json.Unmarshal(bz, &data); err != nil {
+			// If encoding is JSON, try if the bz is an InternalTransferRepresentation
+			internalRep := InternalTransferRepresentation{}
+			if err2 := json.Unmarshal(bz, &internalRep); err2 == nil { // If NO error
+				return internalRep, nil
+			}
 			return InternalTransferRepresentation{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
 		}
 	case EncodingProtobuf:
