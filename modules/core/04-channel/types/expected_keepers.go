@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
@@ -67,4 +68,8 @@ type ConnectionKeeper interface {
 		channelID string,
 		nextSequenceRecv uint64,
 	) error
+}
+
+type ClientKeeperV2 interface {
+	SetClientCounterparty(ctx sdk.Context, channelID string, counterparty clientv2types.CounterpartyInfo)
 }

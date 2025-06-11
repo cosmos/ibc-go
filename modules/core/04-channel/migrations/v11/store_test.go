@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	v11 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v11"
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
@@ -60,6 +61,10 @@ func (suite *MigrationsV11TestSuite) TestMigrateStore() {
 		suite.Require().True(ok)
 		store.Delete(hostv2.NextSequenceSendKey(path.EndpointA.ChannelID))
 		store.Set(v11.NextSequenceSendKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), sdk.Uint64ToBigEndian(seq))
+
+		// Remove counterparty to mock pre migration channels
+		clientStore := ibcKeeper.ClientKeeper.ClientStore(ctx, path.EndpointA.ChannelID)
+		clientStore.Delete(clientv2types.CounterpartyKey())
 
 		if i%5 == 0 {
 			channel, ok := ibcKeeper.ChannelKeeper.GetChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
