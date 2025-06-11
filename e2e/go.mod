@@ -17,7 +17,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.54.0-alpha.0.0.20250610171936-b482ce4a740c
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0
-	github.com/cosmos/ibc-go/v10 v10.3.0
+	github.com/cosmos/ibc-go/v10 v10.0.0-beta.0.0.20250611193252-a9170dcac535
 	github.com/cosmos/interchaintest/v10 v10.0.0-alpha.2.0.20250611231223-e9b89758db37
 	github.com/docker/docker v28.0.0+incompatible
 	github.com/pelletier/go-toml v1.9.5
