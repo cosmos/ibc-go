@@ -85,7 +85,6 @@ func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, chan
 }
 
 func getDenomForThisChain(port, channel, counterpartyPort, counterpartyChannel string, denom transfertypes.Denom) string {
-
 	if denom.HasPrefix(counterpartyPort, counterpartyChannel) {
 
 		// unwind denom
