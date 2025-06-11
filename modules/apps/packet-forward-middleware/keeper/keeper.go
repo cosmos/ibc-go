@@ -83,7 +83,7 @@ func (*Keeper) Logger(ctx sdk.Context) log.Logger {
 // this is only used when the maximum timeouts have been reached or there is an acknowledgement error and the packet is nonrefundable,
 // i.e. an operation has occurred to make the original packet funds inaccessible to the user, e.g. a swap.
 // We cannot refund the funds back to the original chain, so we move them to an account on this chain that the user can access.
-func (k *Keeper) moveFundsToUserRecoverableAccount(ctx sdk.Context, chanVersion string, packet channeltypes.Packet, token transfertypes.Token, inFlightPacket *types.InFlightPacket) error {
+func (k *Keeper) moveFundsToUserRecoverableAccount(ctx sdk.Context, packet channeltypes.Packet, token transfertypes.Token, inFlightPacket *types.InFlightPacket) error {
 	amount, ok := sdkmath.NewIntFromString(token.GetAmount())
 	if !ok {
 		return fmt.Errorf("failed to parse amount from packet data for forward recovery: %s", token.GetAmount())
@@ -91,7 +91,7 @@ func (k *Keeper) moveFundsToUserRecoverableAccount(ctx sdk.Context, chanVersion 
 	denom := token.GetDenom()
 	coin := sdk.NewCoin(denom.IBCDenom(), amount)
 
-	userAccount, err := userRecoverableAccount(inFlightPacket, chanVersion)
+	userAccount, err := userRecoverableAccount(inFlightPacket)
 	if err != nil {
 		return fmt.Errorf("failed to get user recoverable account: %w", err)
 	}
@@ -124,8 +124,9 @@ func (k *Keeper) moveFundsToUserRecoverableAccount(ctx sdk.Context, chanVersion 
 // If the destination receiver of the original packet is a valid bech32 address for this chain, we use that address.
 // Otherwise, if the sender of the original packet is a valid bech32 address for another chain, we translate that address to this chain.
 // Note that for the fallback, the coin type of the source chain sender account must be compatible with this chain.
-func userRecoverableAccount(inFlightPacket *types.InFlightPacket, chanVersion string) (sdk.AccAddress, error) {
-	originalData, err := transfertypes.UnmarshalPacketData(inFlightPacket.PacketData, chanVersion, "")
+func userRecoverableAccount(inFlightPacket *types.InFlightPacket) (sdk.AccAddress, error) {
+	var originalData transfertypes.FungibleTokenPacketData
+	err := transfertypes.ModuleCdc.UnmarshalJSON(inFlightPacket.PacketData, &originalData)
 	if err == nil { // if NO error
 		sender, err := sdk.AccAddressFromBech32(originalData.Receiver)
 		if err == nil { // if NO error
@@ -141,7 +142,7 @@ func userRecoverableAccount(inFlightPacket *types.InFlightPacket, chanVersion st
 	return nil, fmt.Errorf("failed to decode bech32 addresses: %w", errors.Join(err, fallbackErr))
 }
 
-func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, chanVersion string, packet channeltypes.Packet, transferDetail transfertypes.InternalTransferRepresentation, inFlightPacket *types.InFlightPacket, ack channeltypes.Acknowledgement) error {
+func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet channeltypes.Packet, transferDetail transfertypes.InternalTransferRepresentation, inFlightPacket *types.InFlightPacket, ack channeltypes.Acknowledgement) error {
 	// Lookup module by channel capability
 	_, found := k.channelKeeper.GetChannel(ctx, inFlightPacket.RefundPortId, inFlightPacket.RefundChannelId)
 	if !found {
@@ -161,7 +162,7 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, chanVer
 	if inFlightPacket.Nonrefundable {
 		// We are not allowed to refund back to the source chain.
 		// attempt to move funds to user recoverable account on this chain.
-		if err := k.moveFundsToUserRecoverableAccount(ctx, chanVersion, packet, transferDetail.Token, inFlightPacket); err != nil {
+		if err := k.moveFundsToUserRecoverableAccount(ctx, packet, transferDetail.Token, inFlightPacket); err != nil {
 			return err
 		}
 

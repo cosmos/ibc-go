@@ -161,8 +161,8 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 		"src-port", packet.SourcePort,
 		"dst-channel", packet.DestinationChannel,
 		"dst-port", packet.DestinationPort,
-		"amount", transferDetail.Token.Amount,
-		"denom", transferDetail.Token.Denom,
+		"amount", data.Amount,
+		"denom", data.Denom,
 		"memo", data.Memo,
 	)
 
@@ -289,8 +289,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion 
 		"src-port", packet.SourcePort,
 		"dst-channel", packet.DestinationChannel,
 		"dst-port", packet.DestinationPort,
-		"amount", transferDetail.Token.Amount,
-		"denom", transferDetail.Token.Denom,
+		"amount", data.Amount,
+		"denom", data.Denom,
 	)
 
 	var ack channeltypes.Acknowledgement
@@ -306,7 +306,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion 
 	if inFlightPacket != nil {
 		im.keeper.RemoveInFlightPacket(ctx, packet)
 		// this is a forwarded packet, so override handling to avoid refund from being processed.
-		return im.keeper.WriteAcknowledgementForForwardedPacket(ctx, channelVersion, packet, transferDetail, inFlightPacket, ack)
+		return im.keeper.WriteAcknowledgementForForwardedPacket(ctx, packet, transferDetail, inFlightPacket, ack)
 	}
 
 	return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
@@ -339,8 +339,8 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 		"src-port", packet.SourcePort,
 		"dst-channel", packet.DestinationChannel,
 		"dst-port", packet.DestinationPort,
-		"amount", transferDetail.Token.GetAmount(),
-		"denom", transferDetail.Token.GetDenom(),
+		"amount", data.Amount,
+		"denom", data.Denom,
 	)
 
 	inFlightPacket, err := im.keeper.TimeoutShouldRetry(ctx, packet)
@@ -349,7 +349,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 		if err != nil {
 			// this is a forwarded packet, so override handling to avoid refund from being processed on this chain.
 			// WriteAcknowledgement with proxied ack to return success/fail to previous chain.
-			return im.keeper.WriteAcknowledgementForForwardedPacket(ctx, channelVersion, packet, transferDetail, inFlightPacket, newErrorAcknowledgement(err))
+			return im.keeper.WriteAcknowledgementForForwardedPacket(ctx, packet, transferDetail, inFlightPacket, newErrorAcknowledgement(err))
 		}
 		// timeout should be retried. In order to do that, we need to handle this timeout to refund on this chain first.
 		if err := im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer); err != nil {
