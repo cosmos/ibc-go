@@ -11,14 +11,14 @@ replace (
 )
 
 require (
-	cosmossdk.io/api v1.0.0-alpha.0.0.20250604161429-8c61b74a1806
-	cosmossdk.io/errors v1.0.2
-	cosmossdk.io/math v1.5.3
-	github.com/cosmos/cosmos-sdk v0.54.0-alpha.0.0.20250609200650-1521447c77da
+	cosmossdk.io/api v1.0.0-alpha.0.0.20250604174653-810d15dd6d16
+	cosmossdk.io/errors v1.0.3-0.20250604174653-810d15dd6d16
+	cosmossdk.io/math v1.5.4-0.20250604174653-810d15dd6d16
+	github.com/cosmos/cosmos-sdk v0.54.0-alpha.0.0.20250610171936-b482ce4a740c
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0
 	github.com/cosmos/ibc-go/v10 v10.3.0
-	github.com/cosmos/interchaintest/v10 v10.0.0-alpha.2
+	github.com/cosmos/interchaintest/v10 v10.0.0-alpha.2.0.20250611231223-e9b89758db37
 	github.com/docker/docker v28.0.0+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.10.0
@@ -39,14 +39,12 @@ require (
 	cloud.google.com/go/monitoring v1.21.2 // indirect
 	cloud.google.com/go/storage v1.49.0 // indirect
 	cosmossdk.io/collections v1.3.0 // indirect
-	cosmossdk.io/core v1.1.0-alpha.1.0.20250604161429-8c61b74a1806 // indirect
+	cosmossdk.io/core v1.1.0-alpha.1.0.20250604174653-810d15dd6d16 // indirect
 	cosmossdk.io/depinject v1.2.1 // indirect
-	cosmossdk.io/log v1.6.0 // indirect
+	cosmossdk.io/log v1.6.1-0.20250604174653-810d15dd6d16 // indirect
 	cosmossdk.io/schema v1.1.0 // indirect
 	cosmossdk.io/store v1.10.0-rc.1.0.20250609200650-1521447c77da // indirect
-	cosmossdk.io/x/evidence v0.2.0 // indirect
-	cosmossdk.io/x/feegrant v0.2.0 // indirect
-	cosmossdk.io/x/tx v1.2.0-alpha.0.0.20250604161429-8c61b74a1806 // indirect
+	cosmossdk.io/x/tx v1.2.0-alpha.0.0.20250604174653-810d15dd6d16 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
@@ -82,7 +80,7 @@ require (
 	github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb // indirect
 	github.com/cometbft/cometbft-db v1.0.4 // indirect
 	github.com/cometbft/cometbft/api v1.1.0-alpha.1
-	github.com/cometbft/cometbft/v2 v2.0.0-alpha.1
+	github.com/cometbft/cometbft/v2 v2.0.0-main
 	github.com/consensys/bavard v0.1.27 // indirect
 	github.com/consensys/gnark-crypto v0.16.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
@@ -92,7 +90,7 @@ require (
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.2.6 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
-	github.com/cosmos/interchain-security/v7 v7.0.0-20250408210344-06e0dc6bf6d6 // indirect
+	github.com/cosmos/interchain-security/v7 v7.0.0-20250611213438-69983c82a4ff // indirect
 	github.com/cosmos/ledger-cosmos-go v0.14.0 // indirect
 	github.com/crate-crypto/go-eth-kzg v1.3.0 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
@@ -279,8 +277,7 @@ require (
 )
 
 require (
-	cosmossdk.io/x/upgrade v0.2.0 // indirect
-	github.com/cometbft/cometbft v0.38.17 // indirect
+	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dgraph-io/ristretto/v2 v2.2.0 // indirect
 	github.com/lmittmann/tint v1.0.7 // indirect
 )
