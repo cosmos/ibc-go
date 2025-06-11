@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"strings"
@@ -18,14 +19,10 @@ import (
 
 // InternalTransferRepresentation defines a struct used internally by the transfer application to represent a fungible token transfer
 type InternalTransferRepresentation struct {
-	// the tokens to be transferred
-	Token Token
-	// the sender address
-	Sender string
-	// the recipient address on the destination chain
-	Receiver string
-	// optional memo
-	Memo string
+	Token    Token  `json:"token"`
+	Sender   string `json:"sender"`         // the sender address
+	Receiver string `json:"receiver"`       // Address on the destination chain
+	Memo     string `json:"memo,omitempty"` // Memo is optional
 }
 
 var (
@@ -234,7 +231,9 @@ func UnmarshalPacketData(bz []byte, ics20Version string, encoding string) (Inter
 		if err := json.Unmarshal(bz, &data); err != nil {
 			// If encoding is JSON, try if the bz is an InternalTransferRepresentation
 			internalRep := InternalTransferRepresentation{}
-			if err2 := json.Unmarshal(bz, &internalRep); err2 == nil { // If NO error
+			dec := json.NewDecoder(bytes.NewReader(bz))
+			dec.DisallowUnknownFields()
+			if err2 := dec.Decode(&internalRep); err2 == nil { // If NO error
 				return internalRep, nil
 			}
 			return InternalTransferRepresentation{}, errorsmod.Wrapf(ibcerrors.ErrInvalidType, failedUnmarshalingErrorMsg, errorMsgVersion, err.Error())
