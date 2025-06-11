@@ -1,0 +1,12 @@
+# This file contains a bare minimum configuration for running e2e tests.
+# for a more detailed configuration, see sample.config.extended.yaml.
+---
+chains:
+  - tag: main # override with CHAIN_A_TAG
+    chainId: chainA-1
+  - tag: main # override with CHAIN_B_TAG
+    chainId: chainB-1
+  - tag: main # override with CHAIN_C_TAG
+    chainId: chainC-1
+  - tag: main # override with CHAIN_D_TAG
+    chainId: chainD-1
