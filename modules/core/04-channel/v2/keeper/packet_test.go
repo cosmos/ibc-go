@@ -617,8 +617,10 @@ func (suite *KeeperTestSuite) TestAliasedChannel() {
 	mockV1Format(path.EndpointB)
 
 	// migrate the store for both chains
-	v11.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.App.GetIBCKeeper())
-	v11.MigrateStore(suite.chainB.GetContext(), runtime.NewKVStoreService(suite.chainB.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainB.App.AppCodec(), suite.chainB.App.GetIBCKeeper())
+	err := v11.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.App.GetIBCKeeper())
+	suite.Require().NoError(err, "migrate store failed for chain A")
+	err = v11.MigrateStore(suite.chainB.GetContext(), runtime.NewKVStoreService(suite.chainB.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainB.App.AppCodec(), suite.chainB.App.GetIBCKeeper())
+	suite.Require().NoError(err, "migrate store failed for chain B")
 
 	// create v2 path from the original client ids
 	// the path config is only used for updating
@@ -676,6 +678,60 @@ func (suite *KeeperTestSuite) TestAliasedChannel() {
 	// relay v1 packet again
 	err = path.RelayPacket(packetv1)
 	suite.Require().NoError(err, "relay v1 packet failed")
+}
+
+func (suite *KeeperTestSuite) TestPostMigrationAliasing() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.Setup()
+
+	// ensure we can send a v2 packet on the channel automatically
+	// after v1 channel handshake completes
+	// create v2 path from the original client ids
+	// the path config is only used for updating
+	// the packet client ids will be the original channel identifiers
+	// but they are not validated against the client ids in the path in the tests
+	pathv2 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	pathv2.EndpointA.ClientID = path.EndpointA.ClientID
+	pathv2.EndpointB.ClientID = path.EndpointB.ClientID
+
+	// send a v1 packet on the channel id
+	// create default packet with a timed out timestamp
+	payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
+
+	// create a timeout timestamp that is 1 hour in the future
+	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
+	timeoutTimestampNano := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).UnixNano())
+
+	// send v1 packet
+	sequence, err := path.EndpointA.SendPacket(clienttypes.Height{}, timeoutTimestampNano, ibctesting.MockPacketData)
+	suite.Require().NoError(err)
+	suite.Require().Equal(uint64(1), sequence, "sequence should be 1 for first packet on channel")
+	packetv1 := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.Height{}, timeoutTimestampNano)
+
+	// relay v1 packet
+	err = path.RelayPacket(packetv1)
+	suite.Require().NoError(err, "relay v1 packet failed")
+
+	// send v2 packet
+	msgSendPacket := types.NewMsgSendPacket(
+		path.EndpointA.ChannelID,
+		timeoutTimestamp,
+		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
+		payload,
+	)
+	res, err := path.EndpointA.Chain.SendMsgs(msgSendPacket)
+	suite.Require().NoError(err, "send v2 packet failed")
+
+	packetv2, err := ibctesting.ParseV2PacketFromEvents(res.Events)
+	suite.Require().NoError(err, "parse v2 packet from events failed")
+	suite.Require().Equal(uint64(2), packetv2.Sequence, "sequence should be incremented across protocol versions")
+
+	err = path.EndpointB.UpdateClient()
+	suite.Require().NoError(err)
+
+	// relay v2 packet
+	err = pathv2.EndpointA.RelayPacket(packetv2)
+	suite.Require().NoError(err)
 
 }
 
@@ -692,4 +748,8 @@ func mockV1Format(endpoint *ibctesting.Endpoint) {
 	store := storeService.OpenKVStore(endpoint.Chain.GetContext())
 	store.Set(v11.NextSequenceSendKey(endpoint.ChannelConfig.PortID, endpoint.ChannelID), sdk.Uint64ToBigEndian(seq))
 	store.Delete(hostv2.NextSequenceSendKey(endpoint.ChannelID))
+
+	// Remove counterparty to mock pre migration channels
+	clientStore := endpoint.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(endpoint.Chain.GetContext(), endpoint.ChannelID)
+	clientStore.Delete(clientv2types.CounterpartyKey())
 }

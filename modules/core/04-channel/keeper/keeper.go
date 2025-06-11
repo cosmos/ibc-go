@@ -38,7 +38,9 @@ type Keeper struct {
 	clientKeeper     types.ClientKeeper
 	connectionKeeper types.ConnectionKeeper
 
-	clientKeeperV2 types.ClientKeeperV2
+	// V2 Keepers are only used for channel aliasing
+	clientKeeperV2  types.ClientKeeperV2
+	channelKeeperV2 types.ChannelKeeperV2
 }
 
 // NewKeeper creates a new IBC channel Keeper instance
@@ -48,6 +50,7 @@ func NewKeeper(
 	clientKeeper types.ClientKeeper,
 	connectionKeeper types.ConnectionKeeper,
 	clientKeeperV2 types.ClientKeeperV2,
+	channelKeeperV2 types.ChannelKeeperV2,
 ) *Keeper {
 	return &Keeper{
 		storeService:     storeService,
@@ -55,6 +58,7 @@ func NewKeeper(
 		clientKeeper:     clientKeeper,
 		connectionKeeper: connectionKeeper,
 		clientKeeperV2:   clientKeeperV2,
+		channelKeeperV2:  channelKeeperV2,
 	}
 }
 

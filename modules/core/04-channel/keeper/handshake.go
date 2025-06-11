@@ -248,6 +248,11 @@ func (k *Keeper) WriteOpenAckChannel(
 			panic("could not convert channel to v2 counterparty")
 		}
 		k.clientKeeperV2.SetClientCounterparty(ctx, channelID, counterparty)
+		connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+		if !ok {
+			panic("connection not set")
+		}
+		k.channelKeeperV2.SetClientForAlias(ctx, channelID, connection.ClientId)
 	}
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.INIT, "new-state", types.OPEN)
@@ -328,6 +333,11 @@ func (k *Keeper) WriteOpenConfirmChannel(
 			panic("could not convert channel to v2 counterparty")
 		}
 		k.clientKeeperV2.SetClientCounterparty(ctx, channelID, counterparty)
+		connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+		if !ok {
+			panic("connection not set")
+		}
+		k.channelKeeperV2.SetClientForAlias(ctx, channelID, connection.ClientId)
 	}
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")

@@ -73,3 +73,7 @@ type ConnectionKeeper interface {
 type ClientKeeperV2 interface {
 	SetClientCounterparty(ctx sdk.Context, channelID string, counterparty clientv2types.CounterpartyInfo)
 }
+
+type ChannelKeeperV2 interface {
+	SetClientForAlias(ctx sdk.Context, channelID, clientID string)
+}

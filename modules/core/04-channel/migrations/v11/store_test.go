@@ -11,6 +11,7 @@ import (
 	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	v11 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v11"
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	channelv2types "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -66,10 +67,17 @@ func (suite *MigrationsV11TestSuite) TestMigrateStore() {
 		clientStore := ibcKeeper.ClientKeeper.ClientStore(ctx, path.EndpointA.ChannelID)
 		clientStore.Delete(clientv2types.CounterpartyKey())
 
+		// Remove alias to mock pre migration channels
+		store.Delete(channelv2types.AliasKey(path.EndpointA.ChannelID))
+
 		if i%5 == 0 {
 			channel, ok := ibcKeeper.ChannelKeeper.GetChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 			suite.Require().True(ok)
-			channel.State = types.CLOSED
+			if i%2 == 0 {
+				channel.State = types.INIT
+			} else {
+				channel.State = types.CLOSED
+			}
 			ibcKeeper.ChannelKeeper.SetChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 		}
 	}
