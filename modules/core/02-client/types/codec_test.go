@@ -187,11 +187,6 @@ func (s *TypesTestSuite) TestCodecTypeRegistration() {
 			nil,
 		},
 		{
-			"success: MsgSubmitMisbehaviour",
-			sdk.MsgTypeURL(&types.MsgSubmitMisbehaviour{}),
-			nil,
-		},
-		{
 			"success: MsgRecoverClient",
 			sdk.MsgTypeURL(&types.MsgRecoverClient{}),
 			nil,
