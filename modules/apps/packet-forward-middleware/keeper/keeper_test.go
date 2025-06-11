@@ -135,8 +135,8 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 			inflightPacket, err := pfmKeeperB.GetInflightPacket(ctxB, srcPacket)
 			s.Require().NoError(err)
 
-			token := transfertypes.NewFungibleTokenPacketData(ibctesting.TestCoin.GetDenom(), ibctesting.DefaultCoinAmount.String(), initialSender.String(), finalReceiver.String(), "")
-
+			token := transfertypes.NewToken(ibctesting.TestCoin.GetDenom(), ibctesting.DefaultCoinAmount.String())
+			data := transfertypes.NewInternalTransferRepresentation(token, initialSender.String(), finalReceiver.String(), "")
 			expectedAckBz = channeltypes.CommitAcknowledgement(tc.ack.Acknowledgement())
 			if tc.malleate != nil {
 				tc.malleate()
@@ -146,7 +146,8 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 			escrow := transfertypes.GetEscrowAddress(srcPacket.SourcePort, srcPacket.SourceChannel)
 			fundAcc(ctxC, s.chainC.GetSimApp().BankKeeper, escrow)
 
-			err = pfmKeeperC.WriteAcknowledgementForForwardedPacket(ctxC, srcPacket, token, inflightPacket, tc.ack)
+			chanVersion := pathBC.EndpointB.GetChannel().Version
+			err = pfmKeeperC.WriteAcknowledgementForForwardedPacket(ctxC, chanVersion, srcPacket, data, inflightPacket, tc.ack)
 			s.Require().NoError(err)
 
 			ackBZFromStore := s.chainC.GetAcknowledgement(srcPacket)
