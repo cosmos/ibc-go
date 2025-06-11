@@ -18,10 +18,14 @@ import (
 
 // InternalTransferRepresentation defines a struct used internally by the transfer application to represent a fungible token transfer
 type InternalTransferRepresentation struct {
-	Token    Token  `json:"token"`
-	Sender   string `json:"sender"`         // the sender address
-	Receiver string `json:"receiver"`       // Address on the destination chain
-	Memo     string `json:"memo,omitempty"` // Memo is optional
+	// the tokens to be transferred
+	Token Token
+	// the sender address
+	Sender string
+	// the recipient address on the destination chain
+	Receiver string
+	// optional memo
+	Memo string
 }
 
 var (
