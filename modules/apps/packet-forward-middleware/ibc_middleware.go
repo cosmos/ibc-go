@@ -149,7 +149,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
-	internalRep, err := transfertypes.PacketDataV1ToV2(data)
+	transferDetail, err := transfertypes.PacketDataV1ToV2(data)
 	if err != nil {
 		logger.Debug(fmt.Sprintf("packetForwardMiddleware OnRecvPacket could not convert FungibleTokenPacketData to InternalRepresentation: %s", err.Error()))
 		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
@@ -161,8 +161,8 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 		"src-port", packet.SourcePort,
 		"dst-channel", packet.DestinationChannel,
 		"dst-port", packet.DestinationPort,
-		"amount", internalRep.Token.Amount,
-		"denom", internalRep.Token.Denom,
+		"amount", transferDetail.Token.Amount,
+		"denom", transferDetail.Token.Denom,
 		"memo", data.Memo,
 	)
 
@@ -205,12 +205,12 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 
 	// if this packet's token denom is already the base denom for some native token on this chain,
 	// we do not need to do any further composition of the denom before forwarding the packet
-	denomOnThisChain := getDenomForThisChain(packet.DestinationPort, packet.DestinationChannel, packet.SourcePort, packet.SourceChannel, internalRep.Token.Denom)
+	denomOnThisChain := getDenomForThisChain(packet.DestinationPort, packet.DestinationChannel, packet.SourcePort, packet.SourceChannel, transferDetail.Token.Denom)
 
-	amountInt, ok := sdkmath.NewIntFromString(internalRep.Token.Amount)
+	amountInt, ok := sdkmath.NewIntFromString(transferDetail.Token.Amount)
 	if !ok {
-		logger.Error("packetForwardMiddleware OnRecvPacket error parsing amount for forward", "amount", internalRep.Token.Amount)
-		return newErrorAcknowledgement(fmt.Errorf("error parsing amount for forward: %s", internalRep.Token.Amount))
+		logger.Error("packetForwardMiddleware OnRecvPacket error parsing amount for forward", "amount", transferDetail.Token.Amount)
+		return newErrorAcknowledgement(fmt.Errorf("error parsing amount for forward: %s", transferDetail.Token.Amount))
 	}
 
 	token := sdk.NewCoin(denomOnThisChain, amountInt)
