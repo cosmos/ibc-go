@@ -83,12 +83,12 @@ func (*Keeper) Logger(ctx sdk.Context) log.Logger {
 // this is only used when the maximum timeouts have been reached or there is an acknowledgement error and the packet is nonrefundable,
 // i.e. an operation has occurred to make the original packet funds inaccessible to the user, e.g. a swap.
 // We cannot refund the funds back to the original chain, so we move them to an account on this chain that the user can access.
-func (k *Keeper) moveFundsToUserRecoverableAccount(ctx sdk.Context, chanVersion string, packet channeltypes.Packet, data transfertypes.InternalTransferRepresentation, inFlightPacket *types.InFlightPacket) error {
-	amount, ok := sdkmath.NewIntFromString(data.Token.GetAmount())
+func (k *Keeper) moveFundsToUserRecoverableAccount(ctx sdk.Context, chanVersion string, packet channeltypes.Packet, token transfertypes.Token, inFlightPacket *types.InFlightPacket) error {
+	amount, ok := sdkmath.NewIntFromString(token.GetAmount())
 	if !ok {
-		return fmt.Errorf("failed to parse amount from packet data for forward recovery: %s", data.Token.GetAmount())
+		return fmt.Errorf("failed to parse amount from packet data for forward recovery: %s", token.GetAmount())
 	}
-	denom := data.Token.GetDenom()
+	denom := token.GetDenom()
 	coin := sdk.NewCoin(denom.IBCDenom(), amount)
 
 	userAccount, err := userRecoverableAccount(inFlightPacket, chanVersion)
@@ -141,7 +141,7 @@ func userRecoverableAccount(inFlightPacket *types.InFlightPacket, chanVersion st
 	return nil, fmt.Errorf("failed to decode bech32 addresses: %w", errors.Join(err, fallbackErr))
 }
 
-func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, chanVersion string, packet channeltypes.Packet, data transfertypes.InternalTransferRepresentation, inFlightPacket *types.InFlightPacket, ack channeltypes.Acknowledgement) error {
+func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, chanVersion string, packet channeltypes.Packet, transferDetail transfertypes.InternalTransferRepresentation, inFlightPacket *types.InFlightPacket, ack channeltypes.Acknowledgement) error {
 	// Lookup module by channel capability
 	_, found := k.channelKeeper.GetChannel(ctx, inFlightPacket.RefundPortId, inFlightPacket.RefundChannelId)
 	if !found {
@@ -161,7 +161,7 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, chanVer
 	if inFlightPacket.Nonrefundable {
 		// We are not allowed to refund back to the source chain.
 		// attempt to move funds to user recoverable account on this chain.
-		if err := k.moveFundsToUserRecoverableAccount(ctx, chanVersion, packet, data, inFlightPacket); err != nil {
+		if err := k.moveFundsToUserRecoverableAccount(ctx, chanVersion, packet, transferDetail.Token, inFlightPacket); err != nil {
 			return err
 		}
 
@@ -171,12 +171,12 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, chanVer
 		return k.ics4Wrapper.WriteAcknowledgement(ctx, inFlightPacket.ChannelPacket(), newAck)
 	}
 
-	amount, ok := sdkmath.NewIntFromString(data.Token.GetAmount())
+	amount, ok := sdkmath.NewIntFromString(transferDetail.Token.GetAmount())
 	if !ok {
-		return fmt.Errorf("failed to parse amount from packet data for forward refund: %s", data.Token.GetAmount())
+		return fmt.Errorf("failed to parse amount from packet data for forward refund: %s", transferDetail.Token.GetAmount())
 	}
 
-	denom := data.Token.GetDenom()
+	denom := transferDetail.Token.GetDenom()
 	coin := sdk.NewCoin(denom.IBCDenom(), amount)
 
 	escrowAddress := transfertypes.GetEscrowAddress(packet.SourcePort, packet.SourceChannel)
@@ -339,39 +339,39 @@ func (k *Keeper) TimeoutShouldRetry(ctx sdk.Context, packet channeltypes.Packet)
 	return inFlightPacket, nil
 }
 
-func (k *Keeper) RetryTimeout(ctx sdk.Context, channel, port string, data transfertypes.InternalTransferRepresentation, inFlightPacket *types.InFlightPacket) error {
+func (k *Keeper) RetryTimeout(ctx sdk.Context, channel, port string, transferDetail transfertypes.InternalTransferRepresentation, inFlightPacket *types.InFlightPacket) error {
 	// send transfer again
 	metadata := &types.ForwardMetadata{
-		Receiver: data.Receiver,
+		Receiver: transferDetail.Receiver,
 		Channel:  channel,
 		Port:     port,
 	}
 
-	if data.Memo != "" {
+	if transferDetail.Memo != "" {
 		metadata.Next = &types.JSONObject{}
-		if err := json.Unmarshal([]byte(data.Memo), metadata.Next); err != nil {
+		if err := json.Unmarshal([]byte(transferDetail.Memo), metadata.Next); err != nil {
 			return fmt.Errorf("error unmarshaling memo json: %w", err)
 		}
 	}
 
-	amount, ok := sdkmath.NewIntFromString(data.Token.GetAmount())
+	amount, ok := sdkmath.NewIntFromString(transferDetail.Token.GetAmount())
 	if !ok {
 		k.Logger(ctx).Error("packetForwardMiddleware error parsing amount from string for packetforward retry on timeout",
 			"original-sender-address", inFlightPacket.OriginalSenderAddress,
 			"refund-channel-id", inFlightPacket.RefundChannelId,
 			"refund-port-id", inFlightPacket.RefundPortId,
 			"retries-remaining", inFlightPacket.RetriesRemaining,
-			"amount", data.Token.GetAmount(),
+			"amount", transferDetail.Token.GetAmount(),
 		)
-		return fmt.Errorf("error parsing amount from string for packetforward retry: %s", data.Token.GetAmount())
+		return fmt.Errorf("error parsing amount from string for packetforward retry: %s", transferDetail.Token.GetAmount())
 	}
 
-	ibcDenom := data.Token.Denom.IBCDenom()
+	ibcDenom := transferDetail.Token.Denom.IBCDenom()
 
 	token := sdk.NewCoin(ibcDenom, amount)
 
 	// srcPacket and srcPacketSender are empty because inFlightPacket is non-nil.
-	return k.ForwardTransferPacket(ctx, inFlightPacket, channeltypes.Packet{}, "", data.Sender, metadata, token, uint8(inFlightPacket.RetriesRemaining), time.Duration(inFlightPacket.Timeout)*time.Nanosecond, nil, inFlightPacket.Nonrefundable)
+	return k.ForwardTransferPacket(ctx, inFlightPacket, channeltypes.Packet{}, "", transferDetail.Sender, metadata, token, uint8(inFlightPacket.RetriesRemaining), time.Duration(inFlightPacket.Timeout)*time.Nanosecond, nil, inFlightPacket.Nonrefundable)
 }
 
 func (k *Keeper) SetInflightPacket(ctx sdk.Context, channel, port string, sequence uint64, packet *types.InFlightPacket) error {
