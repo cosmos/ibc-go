@@ -314,10 +314,7 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 		inFlightPacket.RetriesRemaining--
 	}
 
-	key := types.RefundPacketKey(metadata.Channel, metadata.Port, res.Sequence)
-	store := k.storeService.OpenKVStore(ctx)
-	bz := k.cdc.MustMarshal(inFlightPacket)
-	if err := store.Set(key, bz); err != nil {
+	if err := k.SetInflightPacket(ctx, metadata.Channel, metadata.Port, res.Sequence, inFlightPacket); err != nil {
 		return err
 	}
 
@@ -392,6 +389,13 @@ func (k *Keeper) RetryTimeout(ctx sdk.Context, channel, port string, data transf
 
 	// srcPacket and srcPacketSender are empty because inFlightPacket is non-nil.
 	return k.ForwardTransferPacket(ctx, inFlightPacket, channeltypes.Packet{}, "", data.Sender, metadata, token, uint8(inFlightPacket.RetriesRemaining), time.Duration(inFlightPacket.Timeout)*time.Nanosecond, nil, inFlightPacket.Nonrefundable)
+}
+
+func (k *Keeper) SetInflightPacket(ctx sdk.Context, channel, port string, sequence uint64, packet *types.InFlightPacket) error {
+	key := types.RefundPacketKey(channel, port, sequence)
+	store := k.storeService.OpenKVStore(ctx)
+	bz := k.cdc.MustMarshal(packet)
+	return store.Set(key, bz)
 }
 
 func (k *Keeper) GetInflightPacket(ctx sdk.Context, packet channeltypes.Packet) (*types.InFlightPacket, error) {
