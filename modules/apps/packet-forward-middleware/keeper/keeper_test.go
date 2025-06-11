@@ -57,7 +57,7 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 	tests := []struct {
 		name          string
 		ack           channeltypes.Acknowledgement
-		malleates     func()
+		malleate      func()
 		nonRefundable bool
 	}{
 		{
@@ -68,7 +68,7 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 		{
 			name: "Ack error + Non refundable -> Asset moved to recoverable account then propagate ack to ics4 wrapper",
 			ack:  channeltypes.NewErrorAcknowledgement(nil),
-			malleates: func() {
+			malleate: func() {
 				ack := channeltypes.NewErrorAcknowledgement(nil)
 				ackResult := fmt.Sprintf("packet forward failed after point of no return: %s", ack.GetError())
 				newAck := channeltypes.NewResultAcknowledgement([]byte(ackResult))
@@ -138,8 +138,8 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 			token := transfertypes.NewFungibleTokenPacketData(ibctesting.TestCoin.GetDenom(), ibctesting.DefaultCoinAmount.String(), initialSender.String(), finalReceiver.String(), "")
 
 			expectedAckBz = channeltypes.CommitAcknowledgement(tc.ack.Acknowledgement())
-			if tc.malleates != nil {
-				tc.malleates()
+			if tc.malleate != nil {
+				tc.malleate()
 			}
 
 			// Escrow on chainC
