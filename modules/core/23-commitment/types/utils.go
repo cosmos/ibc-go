@@ -4,6 +4,7 @@ import (
 	ics23 "github.com/cosmos/ics23/go"
 
 	errorsmod "cosmossdk.io/errors"
+
 	crypto "github.com/cometbft/cometbft/api/cometbft/crypto/v1"
 )
 

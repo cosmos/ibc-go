@@ -9,12 +9,12 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	errorsmod "cosmossdk.io/errors"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	ibc "github.com/cosmos/ibc-go/v10/modules/core"
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"

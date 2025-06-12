@@ -4,10 +4,10 @@ import (
 	"context"
 
 	storetypes "cosmossdk.io/store/types"
-	circuittypes "github.com/cosmos/cosmos-sdk/x/circuit/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/types/module"
+	circuittypes "github.com/cosmos/cosmos-sdk/x/circuit/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 const (

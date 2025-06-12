@@ -3,10 +3,9 @@ package simapp
 import (
 	"errors"
 
-	circuitante "github.com/cosmos/cosmos-sdk/x/circuit/ante"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	circuitante "github.com/cosmos/cosmos-sdk/x/circuit/ante"
 
 	ibcante "github.com/cosmos/ibc-go/v10/modules/core/ante"
 	"github.com/cosmos/ibc-go/v10/modules/core/keeper"

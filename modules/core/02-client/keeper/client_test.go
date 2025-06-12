@@ -5,10 +5,10 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	abci "github.com/cometbft/cometbft/v2/abci/types"
 

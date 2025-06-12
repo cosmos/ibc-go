@@ -6,9 +6,8 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v2"
 
