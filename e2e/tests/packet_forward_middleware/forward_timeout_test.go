@@ -10,12 +10,13 @@ import (
 
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/math"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -26,58 +27,55 @@ type PFMTimeoutTestSuite struct {
 }
 
 func TestForwardTransferTimeoutSuite(t *testing.T) {
-	// TODO: Enable as we clean up these tests #8360
-	t.Skip("Skipping as relayer is not relaying failed packets")
-	// testifysuite.Run(t, new(PFMTimeoutTestSuite))
+	testifysuite.Run(t, new(PFMTimeoutTestSuite))
+}
+
+func (s *PFMTimeoutTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 4, nil)
 }
 
 func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	t := s.T()
-	t.Parallel()
-
 	ctx := context.TODO()
+	testName := t.Name()
 
 	chains := s.GetAllChains()
-	a, b, c, d := chains[0], chains[1], chains[2], chains[3]
+	chainA, chainB, chainC := chains[0], chains[1], chains[2]
+
+	userA := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	userB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	userC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
 
 	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
-	s.StartRelayer(relayer, t.Name())
 
-	// Fund user accounts with initial balances and get the transfer channel information between each set of chains
-	usrA := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
-	usrB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
-	usrC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
-	usrD := s.CreateUserOnChainD(ctx, testvalues.StartingTokenAmount)
+	chanAB := s.GetChainAToChainBChannel(testName)
+	chanBC := s.GetChainBToChainCChannel(testName)
 
-	abChan := s.GetChainAToChainBChannel(t.Name())
-	baChan := abChan.Counterparty
-	bcChan := s.GetChainBToChainCChannel(t.Name())
-	cbChan := bcChan.Counterparty
-	cdChan := s.GetChainCToChainDChannel(t.Name())
-	dcChan := cdChan.Counterparty
-
-	retries := uint8(0)
-	secondHopMetadata := &PacketMetadata{
-		Forward: &ForwardMetadata{
-			Receiver: usrD.FormattedAddress(),
-			Channel:  cdChan.ChannelID,
-			Port:     cdChan.PortID,
-			Retries:  &retries,
-		},
-	}
-
-	nextBz, err := json.Marshal(secondHopMetadata)
+	ab, err := query.Channel(ctx, chainA, transfertypes.PortID, chanAB.ChannelID)
 	s.Require().NoError(err)
-	next := string(nextBz)
+	s.Require().NotNil(ab)
+
+	bc, err := query.Channel(ctx, chainB, transfertypes.PortID, chanBC.ChannelID)
+	s.Require().NoError(err)
+	s.Require().NotNil(bc)
+
+	escrowAddrAB := transfertypes.GetEscrowAddress(chanAB.PortID, chanAB.ChannelID)
+	escrowAddrBC := transfertypes.GetEscrowAddress(chanBC.PortID, chanBC.ChannelID)
+
+	denomA := chainA.Config().Denom
+	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.PortID, chanAB.ChannelID)
+	ibcTokenC := testsuite.GetIBCToken(ibcTokenB.Path(), chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
+
+	// Send packet from a -> b -> c -> d that should timeout between b -> c
+	retries := uint8(0)
 
 	firstHopMetadata := &PacketMetadata{
 		Forward: &ForwardMetadata{
-			Receiver: usrC.FormattedAddress(),
-			Channel:  bcChan.ChannelID,
-			Port:     bcChan.PortID,
-			Next:     &next,
+			Receiver: userC.FormattedAddress(),
+			Channel:  chanBC.ChannelID,
+			Port:     chanBC.PortID,
 			Retries:  &retries,
-			Timeout:  time.Second * 10, // Set low timeout for forward from chainB<>chainC
+			Timeout:  time.Second * 10, // Set a timeout too short to get picked up by the relayer in time to ensure the packet times out between b -> c
 		},
 	}
 
@@ -88,118 +86,85 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 		Memo: string(memo),
 	}
 
-	bHeight, err := b.Height(ctx)
-	s.Require().NoError(err)
-
 	transferAmount := math.NewInt(100_000)
-	// Attempt to send packet from a -> b -> c -> d
-	amount := ibc.WalletAmount{
-		Address: usrB.FormattedAddress(),
-		Denom:   a.Config().Denom,
+	walletAmount := ibc.WalletAmount{
+		Address: userB.FormattedAddress(),
+		Denom:   chainA.Config().Denom,
 		Amount:  transferAmount,
 	}
 
-	transferTx, err := a.SendIBCTransfer(ctx, abChan.ChannelID, usrA.KeyName(), amount, opts)
+	bHeightBeforeTransfer, err := chainB.Height(ctx)
 	s.Require().NoError(err)
 
-	// Poll for MsgRecvPacket on chainB
-	_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, b.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, bHeight, bHeight+20, nil)
+	transferTx, err := chainA.SendIBCTransfer(ctx, chanAB.ChannelID, userA.KeyName(), walletAmount, opts)
 	s.Require().NoError(err)
 
-	// Stop the relayer and wait for the timeout to happen on chainC
-	rep := testreporter.NewNopReporter()
-	eRep := rep.RelayerExecReporter(t)
-	err = relayer.StopRelayer(ctx, eRep)
+	s.Require().NoError(testutil.WaitForBlocks(ctx, 5, chainA, chainB))
+	err = relayer.Flush(ctx, s.GetRelayerExecReporter(), s.GetPathByChains(chainA, chainB), chanAB.ChannelID)
 	s.Require().NoError(err)
 
-	time.Sleep(time.Second * 11)
-	s.StartRelayer(relayer, t.Name())
-
-	aHeight, err := a.Height(ctx)
+	// Check that the packet was received on chainB
+	_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainB.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, bHeightBeforeTransfer, bHeightBeforeTransfer+20, nil)
 	s.Require().NoError(err)
 
-	bHeight, err = b.Height(ctx)
+	time.Sleep(time.Second * 12) // Wait for timeout
+	s.Require().NoError(testutil.WaitForBlocks(ctx, 1, chainA, chainB))
+
+	// Relay the packet from chainB to chainC, which should timeout
+	err = relayer.Flush(ctx, s.GetRelayerExecReporter(), s.GetPathByChains(chainB, chainC), chanBC.ChannelID)
 	s.Require().NoError(err)
 
-	// Poll for the MsgTimeout on chainB and the MsgAck on chainA
-	_, err = cosmos.PollForMessage[*chantypes.MsgTimeout](ctx, b.(*cosmos.CosmosChain), b.Config().EncodingConfig.InterfaceRegistry, bHeight, bHeight+30, nil)
+	bHeightAfterTimeout, err := chainB.Height(ctx)
+	s.Require().NoError(err)
+	aHeightAfterTimeout, err := chainA.Height(ctx)
 	s.Require().NoError(err)
 
-	_, err = testutil.PollForAck(ctx, a, aHeight, aHeight+30, transferTx.Packet)
+	// Make sure there is a MsgTimeout on chainB
+	_, err = cosmos.PollForMessage[*chantypes.MsgTimeout](ctx, chainB.(*cosmos.CosmosChain), chainB.Config().EncodingConfig.InterfaceRegistry, bHeightBeforeTransfer, bHeightAfterTimeout+30, nil)
 	s.Require().NoError(err)
 
-	err = testutil.WaitForBlocks(ctx, 1, a)
+	// Relay the ack from chainB to chainA
+	err = relayer.Flush(ctx, s.GetRelayerExecReporter(), s.GetPathByChains(chainB, chainA), chanAB.Counterparty.ChannelID)
+	s.Require().NoError(err)
+
+	// Make sure there is an acknowledgment on chainA
+	_, err = testutil.PollForAck(ctx, chainA, aHeightAfterTimeout, aHeightAfterTimeout+30, transferTx.Packet)
 	s.Require().NoError(err)
 
 	// Assert balances to ensure that the funds are still on the original sending chain
-	chainABalance, err := a.GetBalance(ctx, usrA.FormattedAddress(), a.Config().Denom)
+	chainABalance, err := chainA.GetBalance(ctx, userA.FormattedAddress(), chainA.Config().Denom)
 	s.Require().NoError(err)
 
-	// Compose the prefixed denoms and ibc denom for asserting balances
-	firstHopDenom := transfertypes.GetPrefixedDenom(baChan.PortID, baChan.ChannelID, a.Config().Denom)
-	secondHopDenom := transfertypes.GetPrefixedDenom(cbChan.PortID, cbChan.ChannelID, firstHopDenom)
-	thirdHopDenom := transfertypes.GetPrefixedDenom(dcChan.PortID, dcChan.ChannelID, secondHopDenom)
-
-	firstHopDenomTrace := transfertypes.ParseDenomTrace(firstHopDenom)
-	secondHopDenomTrace := transfertypes.ParseDenomTrace(secondHopDenom)
-	thirdHopDenomTrace := transfertypes.ParseDenomTrace(thirdHopDenom)
-
-	firstHopIBCDenom := firstHopDenomTrace.IBCDenom()
-	secondHopIBCDenom := secondHopDenomTrace.IBCDenom()
-	thirdHopIBCDenom := thirdHopDenomTrace.IBCDenom()
-
-	chainBBalance, err := b.GetBalance(ctx, usrB.FormattedAddress(), firstHopIBCDenom)
+	chainBBalance, err := chainB.GetBalance(ctx, userB.FormattedAddress(), ibcTokenB.IBCDenom())
 	s.Require().NoError(err)
 
-	chainCBalance, err := c.GetBalance(ctx, usrC.FormattedAddress(), secondHopIBCDenom)
+	chainCBalance, err := chainC.GetBalance(ctx, userC.FormattedAddress(), ibcTokenC.IBCDenom())
 	s.Require().NoError(err)
 
-	chainDBalance, err := d.GetBalance(ctx, usrD.FormattedAddress(), thirdHopIBCDenom)
-	s.Require().NoError(err)
-
-	initBal := math.NewInt(10_000_000_000)
 	zeroBal := math.NewInt(0)
 
-	s.Require().True(chainCBalance.Equal(zeroBal))
-	s.Require().True(chainBBalance.Equal(zeroBal))
-	s.Require().True(chainABalance.Equal(initBal))
-	s.Require().True(chainDBalance.Equal(zeroBal))
+	s.Require().Equal(testvalues.StartingTokenAmount, chainABalance.Int64())
+	s.Require().Equal(zeroBal, chainCBalance)
+	s.Require().Equal(zeroBal, chainBBalance)
 
-	firstHopEscrowAccount := transfertypes.GetEscrowAddress(abChan.PortID, abChan.ChannelID).String()
-	secondHopEscrowAccount := transfertypes.GetEscrowAddress(bcChan.PortID, bcChan.ChannelID).String()
-	thirdHopEscrowAccount := transfertypes.GetEscrowAddress(cdChan.PortID, abChan.ChannelID).String()
-
-	firstHopEscrowBalance, err := a.GetBalance(ctx, firstHopEscrowAccount, a.Config().Denom)
+	escrowBalanceAB, err := chainA.GetBalance(ctx, escrowAddrAB.String(), chainA.Config().Denom)
 	s.Require().NoError(err)
 
-	secondHopEscrowBalance, err := b.GetBalance(ctx, secondHopEscrowAccount, firstHopIBCDenom)
+	escrowBalanceBC, err := chainB.GetBalance(ctx, escrowAddrBC.String(), ibcTokenB.IBCDenom())
 	s.Require().NoError(err)
 
-	thirdHopEscrowBalance, err := c.GetBalance(ctx, thirdHopEscrowAccount, secondHopIBCDenom)
-	s.Require().NoError(err)
+	s.Require().Equal(zeroBal, escrowBalanceAB)
+	s.Require().Equal(zeroBal, escrowBalanceBC)
 
-	s.Require().True(firstHopEscrowBalance.Equal(zeroBal))
-	s.Require().True(secondHopEscrowBalance.Equal(zeroBal))
-	s.Require().True(thirdHopEscrowBalance.Equal(zeroBal))
-
-	// Send IBC transfer from ChainA -> ChainB -> ChainC -> ChainD that will succeed
-	secondHopMetadata = &PacketMetadata{
-		Forward: &ForwardMetadata{
-			Receiver: usrD.FormattedAddress(),
-			Channel:  cdChan.ChannelID,
-			Port:     cdChan.PortID,
-		},
-	}
-	nextBz, err = json.Marshal(secondHopMetadata)
+	// Send IBC transfer from ChainA -> ChainB -> ChainC that should succeed
+	err = relayer.StartRelayer(ctx, s.GetRelayerExecReporter())
 	s.Require().NoError(err)
-	next = string(nextBz)
 
 	firstHopMetadata = &PacketMetadata{
 		Forward: &ForwardMetadata{
-			Receiver: usrC.FormattedAddress(),
-			Channel:  bcChan.ChannelID,
-			Port:     bcChan.PortID,
-			Next:     &next,
+			Receiver: userC.FormattedAddress(),
+			Channel:  chanBC.ChannelID,
+			Port:     chanBC.PortID,
 		},
 	}
 
@@ -210,262 +175,40 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 		Memo: string(memo),
 	}
 
-	aHeight, err = a.Height(ctx)
+	aHeightAfterTimeout, err = chainA.Height(ctx)
 	s.Require().NoError(err)
 
-	transferTx, err = a.SendIBCTransfer(ctx, abChan.ChannelID, usrA.KeyName(), amount, opts)
+	transferTx, err = chainA.SendIBCTransfer(ctx, chanAB.ChannelID, userA.KeyName(), walletAmount, opts)
 	s.Require().NoError(err)
 
-	_, err = testutil.PollForAck(ctx, a, aHeight, aHeight+30, transferTx.Packet)
+	_, err = testutil.PollForAck(ctx, chainA, aHeightAfterTimeout, aHeightAfterTimeout+30, transferTx.Packet)
 	s.Require().NoError(err)
 
-	err = testutil.WaitForBlocks(ctx, 10, a)
+	err = testutil.WaitForBlocks(ctx, 10, chainA)
 	s.Require().NoError(err)
 
 	// Assert balances are updated to reflect tokens now being on ChainD
-	chainABalance, err = a.GetBalance(ctx, usrA.FormattedAddress(), a.Config().Denom)
+	chainABalance, err = chainA.GetBalance(ctx, userA.FormattedAddress(), chainA.Config().Denom)
 	s.Require().NoError(err)
 
-	chainBBalance, err = b.GetBalance(ctx, usrB.FormattedAddress(), firstHopIBCDenom)
+	chainBBalance, err = chainB.GetBalance(ctx, userB.FormattedAddress(), ibcTokenB.IBCDenom())
 	s.Require().NoError(err)
 
-	chainCBalance, err = c.GetBalance(ctx, usrC.FormattedAddress(), secondHopIBCDenom)
+	chainCBalance, err = chainC.GetBalance(ctx, userC.FormattedAddress(), ibcTokenC.IBCDenom())
 	s.Require().NoError(err)
 
-	chainDBalance, err = d.GetBalance(ctx, usrD.FormattedAddress(), thirdHopIBCDenom)
+	s.Require().Equal(testvalues.StartingTokenAmount-transferAmount.Int64(), chainABalance.Int64())
+	s.Require().Equal(zeroBal, chainBBalance)
+	s.Require().Equal(transferAmount, chainCBalance)
+
+	escrowBalanceAB, err = chainA.GetBalance(ctx, escrowAddrAB.String(), chainA.Config().Denom)
 	s.Require().NoError(err)
 
-	s.Require().True(chainABalance.Equal(initBal.Sub(transferAmount)))
-	s.Require().True(chainBBalance.Equal(zeroBal))
-	s.Require().True(chainCBalance.Equal(zeroBal))
-	s.Require().True(chainDBalance.Equal(transferAmount))
-
-	firstHopEscrowBalance, err = a.GetBalance(ctx, firstHopEscrowAccount, a.Config().Denom)
+	escrowBalanceBC, err = chainB.GetBalance(ctx, escrowAddrBC.String(), ibcTokenB.IBCDenom())
 	s.Require().NoError(err)
 
-	secondHopEscrowBalance, err = b.GetBalance(ctx, secondHopEscrowAccount, firstHopIBCDenom)
-	s.Require().NoError(err)
-
-	thirdHopEscrowBalance, err = c.GetBalance(ctx, thirdHopEscrowAccount, secondHopIBCDenom)
-	s.Require().NoError(err)
-
-	s.Require().True(firstHopEscrowBalance.Equal(transferAmount))
-	s.Require().True(secondHopEscrowBalance.Equal(transferAmount))
-	s.Require().True(thirdHopEscrowBalance.Equal(transferAmount))
-
-	// Compose IBC tx that will attempt to go from ChainD -> ChainC -> ChainB -> ChainA but timeout between ChainB->ChainA
-	amount = ibc.WalletAmount{
-		Address: usrC.FormattedAddress(),
-		Denom:   thirdHopDenom,
-		Amount:  transferAmount,
-	}
-
-	secondHopMetadata = &PacketMetadata{
-		Forward: &ForwardMetadata{
-			Receiver: usrA.FormattedAddress(),
-			Channel:  baChan.ChannelID,
-			Port:     baChan.PortID,
-			Timeout:  1 * time.Second,
-		},
-	}
-
-	nextBz, err = json.Marshal(secondHopMetadata)
-	s.Require().NoError(err)
-	next = string(nextBz)
-
-	firstHopMetadata = &PacketMetadata{
-		Forward: &ForwardMetadata{
-			Receiver: usrB.FormattedAddress(),
-			Channel:  cbChan.ChannelID,
-			Port:     cbChan.PortID,
-			Next:     &next,
-		},
-	}
-
-	memo, err = json.Marshal(firstHopMetadata)
-	s.Require().NoError(err)
-
-	chainDHeight, err := d.Height(ctx)
-	s.Require().NoError(err)
-
-	transferTx, err = d.SendIBCTransfer(ctx, dcChan.ChannelID, usrD.KeyName(), amount, ibc.TransferOptions{Memo: string(memo)})
-	s.Require().NoError(err)
-
-	_, err = testutil.PollForAck(ctx, d, chainDHeight, chainDHeight+25, transferTx.Packet)
-	s.Require().NoError(err)
-
-	err = testutil.WaitForBlocks(ctx, 5, d)
-	s.Require().NoError(err)
-
-	// Assert balances to ensure timeout happened and user funds are still present on ChainD
-	chainABalance, err = a.GetBalance(ctx, usrA.FormattedAddress(), a.Config().Denom)
-	s.Require().NoError(err)
-
-	chainBBalance, err = b.GetBalance(ctx, usrB.FormattedAddress(), firstHopIBCDenom)
-	s.Require().NoError(err)
-
-	chainCBalance, err = c.GetBalance(ctx, usrC.FormattedAddress(), secondHopIBCDenom)
-	s.Require().NoError(err)
-
-	chainDBalance, err = d.GetBalance(ctx, usrD.FormattedAddress(), thirdHopIBCDenom)
-	s.Require().NoError(err)
-
-	s.Require().True(chainABalance.Equal(initBal.Sub(transferAmount)))
-	s.Require().True(chainBBalance.Equal(zeroBal))
-	s.Require().True(chainCBalance.Equal(zeroBal))
-	s.Require().True(chainDBalance.Equal(transferAmount))
-
-	firstHopEscrowBalance, err = a.GetBalance(ctx, firstHopEscrowAccount, a.Config().Denom)
-	s.Require().NoError(err)
-
-	secondHopEscrowBalance, err = b.GetBalance(ctx, secondHopEscrowAccount, firstHopIBCDenom)
-	s.Require().NoError(err)
-
-	thirdHopEscrowBalance, err = c.GetBalance(ctx, thirdHopEscrowAccount, secondHopIBCDenom)
-	s.Require().NoError(err)
-
-	s.Require().True(firstHopEscrowBalance.Equal(transferAmount))
-	s.Require().True(secondHopEscrowBalance.Equal(transferAmount))
-	s.Require().True(thirdHopEscrowBalance.Equal(transferAmount))
-
-	// ---
-
-	// Compose IBC tx that will go from ChainD -> ChainC -> ChainB -> ChainA and succeed.
-	amount = ibc.WalletAmount{
-		Address: usrC.FormattedAddress(),
-		Denom:   thirdHopDenom,
-		Amount:  transferAmount,
-	}
-
-	secondHopMetadata = &PacketMetadata{
-		Forward: &ForwardMetadata{
-			Receiver: usrA.FormattedAddress(),
-			Channel:  baChan.ChannelID,
-			Port:     baChan.PortID,
-		},
-	}
-	nextBz, err = json.Marshal(secondHopMetadata)
-	s.Require().NoError(err)
-	next = string(nextBz)
-
-	firstHopMetadata = &PacketMetadata{
-		Forward: &ForwardMetadata{
-			Receiver: usrB.FormattedAddress(),
-			Channel:  cbChan.ChannelID,
-			Port:     cbChan.PortID,
-			Next:     &next,
-		},
-	}
-
-	memo, err = json.Marshal(firstHopMetadata)
-	s.Require().NoError(err)
-
-	chainDHeight, err = d.Height(ctx)
-	s.Require().NoError(err)
-
-	transferTx, err = d.SendIBCTransfer(ctx, dcChan.ChannelID, usrD.KeyName(), amount, ibc.TransferOptions{Memo: string(memo)})
-	s.Require().NoError(err)
-
-	_, err = testutil.PollForAck(ctx, d, chainDHeight, chainDHeight+25, transferTx.Packet)
-	s.Require().NoError(err)
-
-	err = testutil.WaitForBlocks(ctx, 5, d)
-	s.Require().NoError(err)
-
-	// Assert balances to ensure timeout happened and user funds are still present on ChainD
-	chainABalance, err = a.GetBalance(ctx, usrA.FormattedAddress(), a.Config().Denom)
-	s.Require().NoError(err)
-
-	chainBBalance, err = b.GetBalance(ctx, usrB.FormattedAddress(), firstHopIBCDenom)
-	s.Require().NoError(err)
-
-	chainCBalance, err = c.GetBalance(ctx, usrC.FormattedAddress(), secondHopIBCDenom)
-	s.Require().NoError(err)
-
-	chainDBalance, err = d.GetBalance(ctx, usrD.FormattedAddress(), thirdHopIBCDenom)
-	s.Require().NoError(err)
-
-	s.Require().True(chainABalance.Equal(initBal))
-	s.Require().True(chainBBalance.Equal(zeroBal))
-	s.Require().True(chainCBalance.Equal(zeroBal))
-	s.Require().True(chainDBalance.Equal(zeroBal))
-
-	firstHopEscrowBalance, err = a.GetBalance(ctx, firstHopEscrowAccount, a.Config().Denom)
-	s.Require().NoError(err)
-
-	secondHopEscrowBalance, err = b.GetBalance(ctx, secondHopEscrowAccount, firstHopIBCDenom)
-	s.Require().NoError(err)
-
-	thirdHopEscrowBalance, err = c.GetBalance(ctx, thirdHopEscrowAccount, secondHopIBCDenom)
-	s.Require().NoError(err)
-
-	s.Require().True(firstHopEscrowBalance.Equal(zeroBal))
-	s.Require().True(secondHopEscrowBalance.Equal(zeroBal))
-	s.Require().True(thirdHopEscrowBalance.Equal(zeroBal))
-
-	// ----- 2
-
-	// Compose IBC tx that will go from ChainD -> ChainC -> ChainB -> ChainA and succeed.
-	amount = ibc.WalletAmount{
-		Address: usrB.FormattedAddress(),
-		Denom:   a.Config().Denom,
-		Amount:  transferAmount,
-	}
-
-	firstHopMetadata = &PacketMetadata{
-		Forward: &ForwardMetadata{
-			Receiver: usrA.FormattedAddress(),
-			Channel:  baChan.ChannelID,
-			Port:     baChan.PortID,
-			Timeout:  1 * time.Second,
-		},
-	}
-
-	memo, err = json.Marshal(firstHopMetadata)
-	s.Require().NoError(err)
-
-	aHeight, err = a.Height(ctx)
-	s.Require().NoError(err)
-
-	transferTx, err = a.SendIBCTransfer(ctx, abChan.ChannelID, usrA.KeyName(), amount, ibc.TransferOptions{Memo: string(memo)})
-	s.Require().NoError(err)
-
-	_, err = testutil.PollForAck(ctx, a, aHeight, aHeight+25, transferTx.Packet)
-	s.Require().NoError(err)
-
-	err = testutil.WaitForBlocks(ctx, 5, a)
-	s.Require().NoError(err)
-
-	// Assert balances to ensure timeout happened and user funds are still present on ChainD
-	chainABalance, err = a.GetBalance(ctx, usrA.FormattedAddress(), a.Config().Denom)
-	s.Require().NoError(err)
-
-	chainBBalance, err = b.GetBalance(ctx, usrB.FormattedAddress(), firstHopIBCDenom)
-	s.Require().NoError(err)
-
-	chainCBalance, err = c.GetBalance(ctx, usrC.FormattedAddress(), secondHopIBCDenom)
-	s.Require().NoError(err)
-
-	chainDBalance, err = d.GetBalance(ctx, usrD.FormattedAddress(), thirdHopIBCDenom)
-	s.Require().NoError(err)
-
-	s.Require().True(chainABalance.Equal(initBal))
-	s.Require().True(chainBBalance.Equal(zeroBal))
-	s.Require().True(chainCBalance.Equal(zeroBal))
-	s.Require().True(chainDBalance.Equal(zeroBal))
-
-	firstHopEscrowBalance, err = a.GetBalance(ctx, firstHopEscrowAccount, a.Config().Denom)
-	s.Require().NoError(err)
-
-	secondHopEscrowBalance, err = b.GetBalance(ctx, secondHopEscrowAccount, firstHopIBCDenom)
-	s.Require().NoError(err)
-
-	thirdHopEscrowBalance, err = c.GetBalance(ctx, thirdHopEscrowAccount, secondHopIBCDenom)
-	s.Require().NoError(err)
-
-	s.Require().True(firstHopEscrowBalance.Equal(zeroBal))
-	s.Require().True(secondHopEscrowBalance.Equal(zeroBal))
-	s.Require().True(thirdHopEscrowBalance.Equal(zeroBal))
+	s.Require().Equal(transferAmount, escrowBalanceAB)
+	s.Require().Equal(transferAmount, escrowBalanceBC)
 }
 
 // TODO: Try to replace this with PFM's own version of this struct #8360

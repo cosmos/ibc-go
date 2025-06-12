@@ -62,9 +62,10 @@ type E2ETestSuite struct {
 	pathNameIndex int64
 
 	// testSuiteName is the name of the test suite, used to store chains under the test suite name.
-	testSuiteName string
-	testPaths     map[string][]string
-	channels      map[string]map[ibc.Chain][]ibc.ChannelOutput
+	testSuiteName       string
+	testPathsByTestName map[string][]string
+	testPathsByChains   map[ibc.Chain]map[ibc.Chain]string
+	channelsByChain     map[string]map[ibc.Chain][]ibc.ChannelOutput
 
 	// channelLock ensures concurrent tests are not creating and accessing channels as the same time.
 	channelLock sync.Mutex
@@ -82,8 +83,9 @@ type E2ETestSuite struct {
 func (s *E2ETestSuite) initState() {
 	s.initDockerClient()
 	s.proposalIDs = map[string]uint64{}
-	s.testPaths = make(map[string][]string)
-	s.channels = make(map[string]map[ibc.Chain][]ibc.ChannelOutput)
+	s.testPathsByTestName = make(map[string][]string)
+	s.testPathsByChains = make(map[ibc.Chain]map[ibc.Chain]string)
+	s.channelsByChain = make(map[string]map[ibc.Chain][]ibc.ChannelOutput)
 	s.relayerPool = []ibc.Relayer{}
 	s.testRelayerMap = make(map[string]ibc.Relayer)
 	s.relayerWallets = make(relayer.Map)
@@ -208,8 +210,8 @@ func (s *E2ETestSuite) CreateDefaultPaths(testName string) ibc.Relayer {
 func (s *E2ETestSuite) CreatePaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) ibc.Relayer {
 	s.T().Logf("Setting up path for: %s", testName)
 
-	if s.channels[testName] == nil {
-		s.channels[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
+	if s.channelsByChain[testName] == nil {
+		s.channelsByChain[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
 	}
 
 	r := s.GetRelayerForTest(testName)
@@ -235,7 +237,7 @@ func (s *E2ETestSuite) CreatePath(
 	testName string,
 ) (chainAChannel ibc.ChannelOutput, chainBChannel ibc.ChannelOutput) {
 	pathName := s.generatePathName()
-	s.testPaths[testName] = append(s.testPaths[testName], pathName)
+	s.testPathsByTestName[testName] = append(s.testPathsByTestName[testName], pathName)
 
 	s.T().Logf("establishing path between %s and %s on path %s", chainA.Config().ChainID, chainB.Config().ChainID, pathName)
 
@@ -255,10 +257,22 @@ func (s *E2ETestSuite) CreatePath(
 
 	s.createChannelWithLock(ctx, r, pathName, testName, channelOpts, chainA, chainB)
 
-	aChannels := s.channels[testName][chainA]
-	bChannels := s.channels[testName][chainB]
+	aChannels := s.channelsByChain[testName][chainA]
+	bChannels := s.channelsByChain[testName][chainB]
 
-	return aChannels[len(aChannels)-1], bChannels[len(bChannels)-1]
+	aChannel := aChannels[len(aChannels)-1]
+	bChannel := bChannels[len(bChannels)-1]
+
+	if s.testPathsByChains[chainA] == nil {
+		s.testPathsByChains[chainA] = make(map[ibc.Chain]string)
+	}
+	s.testPathsByChains[chainA][chainB] = pathName
+	if s.testPathsByChains[chainB] == nil {
+		s.testPathsByChains[chainB] = make(map[ibc.Chain]string)
+	}
+	s.testPathsByChains[chainB][chainA] = pathName
+
+	return aChannel, bChannel
 }
 
 // createChannelWithLock creates a channel between the two provided chains for the given test name. This applies a lock
@@ -278,15 +292,15 @@ func (s *E2ETestSuite) createChannelWithLock(ctx context.Context, r ibc.Relayer,
 		channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
 		s.Require().NoError(err)
 
-		if _, ok := s.channels[testName][c]; !ok {
-			s.channels[testName][c] = []ibc.ChannelOutput{}
+		if _, ok := s.channelsByChain[testName][c]; !ok {
+			s.channelsByChain[testName][c] = []ibc.ChannelOutput{}
 		}
 
 		// keep track of channels associated with a given chain for access within the tests.
 		// only the most recent channel is relevant.
-		s.channels[testName][c] = append(s.channels[testName][c], getLatestChannel(channels))
+		s.channelsByChain[testName][c] = append(s.channelsByChain[testName][c], getLatestChannel(channels))
 
-		err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, s.channels[testName][c])
+		err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, s.channelsByChain[testName][c])
 		s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
 	}
 }
@@ -319,7 +333,7 @@ func (s *E2ETestSuite) GetChainCToChainDChannel(testName string) ibc.ChannelOutp
 
 // GetChannelsForTest returns all channels for the specified test.
 func (s *E2ETestSuite) GetChannelsForTest(chain ibc.Chain, testName string) []ibc.ChannelOutput {
-	channels, ok := s.channels[testName][chain]
+	channels, ok := s.channelsByChain[testName][chain]
 	s.Require().True(ok, "channel not found for test %s", testName)
 	return channels
 }
@@ -425,9 +439,15 @@ func (s *E2ETestSuite) generatePathName() string {
 }
 
 func (s *E2ETestSuite) GetPaths(testName string) []string {
-	paths, ok := s.testPaths[testName]
+	paths, ok := s.testPathsByTestName[testName]
 	s.Require().True(ok, "paths not found for test %s", testName)
 	return paths
+}
+
+func (s *E2ETestSuite) GetPathByChains(chainA ibc.Chain, chainB ibc.Chain) string {
+	pathName, ok := s.testPathsByChains[chainA][chainB]
+	s.Require().True(ok, "path not found for chains %s and %s", chainA.Config().ChainID, chainB.Config().ChainID)
+	return pathName
 }
 
 // GetPathName returns the name of a path at a specific index. This can be used in tests
