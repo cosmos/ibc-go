@@ -20,7 +20,6 @@ const (
 
 // GetQueryCmd returns the cli query commands for this module.
 func GetQueryCmd() *cobra.Command {
-	// Group ratelimit queries under a subcommand
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
@@ -35,7 +34,6 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryRateLimitsByChainID(),
 		GetCmdQueryAllBlacklistedDenoms(),
 		GetCmdQueryAllWhitelistedAddresses(),
-		// TODO: Add GetCmdQueryParams if needed
 	)
 	return cmd
 }
