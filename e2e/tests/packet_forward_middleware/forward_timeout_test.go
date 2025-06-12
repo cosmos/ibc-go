@@ -31,7 +31,7 @@ func TestForwardTransferTimeoutSuite(t *testing.T) {
 }
 
 func (s *PFMTimeoutTestSuite) SetupSuite() {
-	s.SetupChains(context.TODO(), 4, nil)
+	s.SetupChains(context.TODO(), 3, nil)
 }
 
 func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
