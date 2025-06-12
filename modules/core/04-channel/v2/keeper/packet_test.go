@@ -733,6 +733,30 @@ func (suite *KeeperTestSuite) TestPostMigrationAliasing() {
 	err = pathv2.EndpointA.RelayPacket(packetv2)
 	suite.Require().NoError(err)
 
+	// send a v2 packet on the channel id that will timeout
+	timedOutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Second).Unix())
+	// send v2 packet
+	msgSendPacketTimeout := types.NewMsgSendPacket(
+		path.EndpointA.ChannelID,
+		timedOutTimestamp,
+		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
+		payload,
+	)
+	res, err = path.EndpointA.Chain.SendMsgs(msgSendPacketTimeout)
+	suite.Require().NoError(err, "send v2 packet failed")
+
+	packetv2Timeout, err := ibctesting.ParseV2PacketFromEvents(res.Events)
+	suite.Require().NoError(err, "parse v2 packet from events failed")
+	suite.Require().Equal(uint64(2), packetv2.Sequence, "sequence should be incremented across protocol versions")
+
+	suite.coordinator.IncrementTime()
+
+	err = path.EndpointA.UpdateClient()
+	suite.Require().NoError(err)
+
+	err = path.EndpointA.MsgTimeoutPacket(packetv2Timeout)
+	suite.Require().NoError(err, "timeout v2 packet failed")
+
 }
 
 func mockV1Format(endpoint *ibctesting.Endpoint) {
