@@ -15,9 +15,6 @@ func (k Keeper) GetChannelValue(ctx sdk.Context, denom string) sdkmath.Int {
 	return k.bankKeeper.GetSupply(ctx, denom).Amount
 }
 
-// TODO: Refactor.
-// Split this function into CheckRateLimit and UpdateFlow.
-//
 // CheckRateLimitAndUpdateFlow checks whether the given packet will exceed the rate limit.
 // Called by OnRecvPacket and OnSendPacket
 func (k Keeper) CheckRateLimitAndUpdateFlow(ctx sdk.Context, direction types.PacketDirection, packetInfo RateLimitedPacketInfo) (updatedFlow bool, err error) {

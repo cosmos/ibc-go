@@ -21,9 +21,6 @@ var (
 	_ porttypes.PacketUnmarshalarModule = (*IBCMiddleware)(nil)
 )
 
-// TODO: Refactor.
-// IBCMiddleware does not need explicit channelkeeper and ics4Wrapper. These 2 fields are in keeper.
-//
 // IBCMiddleware implements the ICS26 callbacks for the rate-limiting middleware.
 type IBCMiddleware struct {
 	app           porttypes.PacketUnmarshalarModule
