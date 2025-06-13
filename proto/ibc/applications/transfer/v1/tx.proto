@@ -53,6 +53,11 @@ message MsgTransfer {
   string memo = 8;
   // optional encoding
   string encoding = 9;
+  // boolean flag to indicate if the transfe message
+  // is sent with the IBC v2 protocol.
+  // This only needs to be set if the channel IDs
+  // are V1 channel identifiers.
+  bool is_v2 = 10 [(amino.dont_omitempty) = true];
 }
 
 // MsgTransferResponse defines the Msg/Transfer response type.
