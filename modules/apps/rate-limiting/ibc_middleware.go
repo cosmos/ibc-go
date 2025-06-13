@@ -1,14 +1,11 @@
 package ratelimiting
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -74,12 +71,12 @@ func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID st
 // Rate limits the incoming packet. If the packet is allowed, call underlying app's OnRecvPacket.
 func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	if err := im.keeper.ReceiveRateLimitedPacket(ctx, packet); err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("Receive packet rate limited: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("Receive packet rate limited", "error", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	// If the packet was not rate-limited, pass it down to the underlying app's OnRecvPacket callback
-	return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer) // Added channelVersion
+	return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface.
@@ -87,7 +84,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 // Then, call underlying app's OnAcknowledgementPacket.
 func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
 	if err := im.keeper.AcknowledgeRateLimitedPacket(ctx, packet, acknowledgement); err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("Rate limit OnAcknowledgementPacket failed: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("Rate limit OnAcknowledgementPacket failed", "error", err)
 	}
 
 	return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
@@ -97,7 +94,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion 
 // Revert the outflow amount. Then, call underlying app's OnTimeoutPacket.
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	if err := im.keeper.TimeoutRateLimitedPacket(ctx, packet); err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("Rate limit OnTimeoutPacket failed: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("Rate limit OnTimeoutPacket failed", "error", err)
 	}
 
 	return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
@@ -128,7 +125,7 @@ func (im IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceCha
 
 	err = im.keeper.SendRateLimitedPacket(ctx, packetToCheck)
 	if err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("ICS20 packet send was denied by rate limiter: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("ICS20 packet send was denied by rate limiter", "error", err)
 		return 0, err
 	}
 
@@ -154,10 +151,6 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 
 // UnmarshalPacketData implements the PacketDataUnmarshaler interface.
 // It defers to the underlying app to unmarshal the packet data.
-func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (interface{}, string, error) {
-	unmarshaler, ok := im.app.(porttypes.PacketDataUnmarshaler)
-	if !ok {
-		return nil, "", errorsmod.Wrapf(types.ErrUnsupportedAttribute, "underlying application does not implement %T", (*porttypes.PacketDataUnmarshaler)(nil))
-	}
-	return unmarshaler.UnmarshalPacketData(ctx, portID, channelID, bz)
+func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (any, string, error) {
+	return im.app.UnmarshalPacketData(ctx, portID, channelID, bz)
 }

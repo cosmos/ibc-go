@@ -59,7 +59,9 @@ func (s *KeeperTestSuite) processCheckRateLimitAndUpdateFlowTestCase(tc checkRat
 		if action.addToBlacklist {
 			s.chainA.GetSimApp().RateLimitKeeper.AddDenomToBlacklist(s.chainA.GetContext(), denom)
 			continue
-		} else if action.removeFromBlacklist {
+		}
+
+		if action.removeFromBlacklist {
 			s.chainA.GetSimApp().RateLimitKeeper.RemoveDenomFromBlacklist(s.chainA.GetContext(), denom)
 			continue
 		}
@@ -70,7 +72,9 @@ func (s *KeeperTestSuite) processCheckRateLimitAndUpdateFlowTestCase(tc checkRat
 				Receiver: receiver,
 			})
 			continue
-		} else if action.removeFromWhitelist {
+		}
+
+		if action.removeFromWhitelist {
 			s.chainA.GetSimApp().RateLimitKeeper.RemoveWhitelistedAddressPair(s.chainA.GetContext(), sender, receiver)
 			continue
 		}

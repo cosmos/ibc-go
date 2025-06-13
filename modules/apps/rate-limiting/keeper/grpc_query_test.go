@@ -1,11 +1,10 @@
 package keeper_test
 
 import (
-	// "context" // Removed unused import
 	"fmt"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types" // Add sdk import
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
@@ -18,6 +17,8 @@ import (
 // Add three rate limits on different channels
 // Each should have a different chainId
 func (s *KeeperTestSuite) setupQueryRateLimitTests() []types.RateLimit {
+	s.T().Helper()
+
 	rateLimits := []types.RateLimit{}
 	for i := int64(0); i <= 2; i++ {
 		clientID := fmt.Sprintf("07-tendermint-%d", i)
@@ -27,9 +28,7 @@ func (s *KeeperTestSuite) setupQueryRateLimitTests() []types.RateLimit {
 
 		// First register the client, connection, and channel (so we can map back to chainId)
 		// Nothing in the client state matters besides the chainId
-		clientState := ibctmtypes.NewClientState(
-			chainID, ibctmtypes.Fraction{}, time.Duration(0), time.Duration(0), time.Duration(0), clienttypes.Height{}, nil, nil,
-		)
+		clientState := ibctmtypes.NewClientState(chainID, ibctmtypes.Fraction{}, time.Duration(0), time.Duration(0), time.Duration(0), clienttypes.Height{}, nil, nil)
 		connection := connectiontypes.ConnectionEnd{ClientId: clientID}
 		channel := channeltypes.Channel{ConnectionHops: []string{connectionID}}
 

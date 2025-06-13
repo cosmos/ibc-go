@@ -29,7 +29,7 @@ var (
 	_ module.HasConsensusVersion = (*AppModule)(nil)
 	_ module.HasServices         = (*AppModule)(nil)
 	_ appmodule.AppModule        = (*AppModule)(nil)
-	_ appmodule.HasBeginBlocker  = (*AppModule)(nil) // Add HasBeginBlocker
+	_ appmodule.HasBeginBlocker  = (*AppModule)(nil)
 
 	// Note: IBCMiddleware implements porttypes.Middleware and porttypes.ICS4Wrapper
 )
