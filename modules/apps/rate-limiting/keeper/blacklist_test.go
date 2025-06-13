@@ -1,13 +1,10 @@
 package keeper_test
 
+import "slices"
+
 // Helper function to check if an element is in an array
 func isInArray(element string, arr []string) bool {
-	for _, e := range arr {
-		if e == element {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(arr, element)
 }
 
 func (s *KeeperTestSuite) TestDenomBlacklist() {

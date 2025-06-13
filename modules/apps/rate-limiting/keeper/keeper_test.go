@@ -9,9 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	// channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
-	// channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	// ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	keeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -20,14 +17,11 @@ import (
 // TestOwnerAddress defines a reusable bech32 address for testing purposes
 var TestOwnerAddress = "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs"
 
-// // TestPortID defines a reusable port identifier for testing purposes
-// TestPortID, _ = icatypes.NewControllerPortID(TestOwnerAddress)
-
 // MockQueryRouter is a mock implementation of the QueryRouter interface
 type MockQueryRouter struct{}
 
 func (MockQueryRouter) Route(path string) func(ctx sdk.Context, req interface{}) ([]byte, error) {
-	return func(ctx sdk.Context, req interface{}) ([]byte, error) {
+	return func(ctx sdk.Context, req any) ([]byte, error) {
 		return nil, nil
 	}
 }
@@ -46,7 +40,6 @@ type KeeperTestSuite struct {
 
 	coordinator *ibctesting.Coordinator
 
-	// testing chains used for convenience and readability
 	chainA *ibctesting.TestChain
 	chainB *ibctesting.TestChain
 	chainC *ibctesting.TestChain
@@ -69,28 +62,36 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 		instantiateFn func()
 		panicMsg      string
 	}{
-		{"success", func() {
-			keeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // This is now used as ics4Wrapper
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, // Add clientKeeper
-				suite.chainA.GetSimApp().BankKeeper,
-				suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
-			)
-		}, ""},
-		{"failure: empty authority", func() {
-			keeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // ics4Wrapper
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, // clientKeeper
-				suite.chainA.GetSimApp().BankKeeper,
-				"", // empty authority
-			)
-		}, "authority must be non-empty"},
+		{
+			name: "success",
+			instantiateFn: func() {
+				keeper.NewKeeper(
+					suite.chainA.GetSimApp().AppCodec(),
+					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // This is now used as ics4Wrapper
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+					suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, // Add clientKeeper
+					suite.chainA.GetSimApp().BankKeeper,
+					suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
+				)
+			},
+			panicMsg: "",
+		},
+		{
+			name: "failure: empty authority",
+			instantiateFn: func() {
+				keeper.NewKeeper(
+					suite.chainA.GetSimApp().AppCodec(),
+					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // ics4Wrapper
+					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+					suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, // clientKeeper
+					suite.chainA.GetSimApp().BankKeeper,
+					"", // empty authority
+				)
+			},
+			panicMsg: "authority must be non-empty",
+		},
 	}
 
 	for _, tc := range testCases {

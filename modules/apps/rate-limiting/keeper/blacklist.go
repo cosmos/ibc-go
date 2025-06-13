@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
-// Adds a denom to a blacklist to prevent all IBC transfers with this denom
+// Adds a denom to a blacklist to prevent all IBC transfers with that denom
 func (k Keeper) AddDenomToBlacklist(ctx sdk.Context, denom string) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, []byte(types.DenomBlacklistKeyPrefix))

@@ -45,11 +45,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 
 // ExportGenesis returns the rate-limiting module's exported genesis.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
-	// params := k.GetParams(ctx)
 	rateLimits := k.GetAllRateLimits(ctx)
 
 	return &types.GenesisState{
-		// Params:     params,
 		RateLimits:                       rateLimits,
 		BlacklistedDenoms:                k.GetAllBlacklistedDenoms(ctx),
 		WhitelistedAddressPairs:          k.GetAllWhitelistedAddressPairs(ctx),
