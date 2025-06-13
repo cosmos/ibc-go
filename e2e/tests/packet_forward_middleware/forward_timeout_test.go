@@ -17,6 +17,7 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	pfmtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 )
@@ -62,13 +63,13 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	// Send packet from a -> b -> c that should timeout between b -> c
 	retries := uint8(0)
 
-	bToCMetadata := &PacketMetadata{
-		Forward: &ForwardMetadata{
+	bToCMetadata := &pfmtypes.PacketMetadata{
+		Forward: &pfmtypes.ForwardMetadata{
 			Receiver: userC.FormattedAddress(),
 			Channel:  chanBC.ChannelID,
 			Port:     chanBC.PortID,
 			Retries:  &retries,
-			Timeout:  time.Second * 10, // Short timeout
+			Timeout:  pfmtypes.Duration(time.Second * 10), // Short timeout
 		},
 	}
 
@@ -168,8 +169,8 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	err = relayer.StartRelayer(ctx, s.GetRelayerExecReporter())
 	s.Require().NoError(err)
 
-	bToCMetadata = &PacketMetadata{
-		Forward: &ForwardMetadata{
+	bToCMetadata = &pfmtypes.PacketMetadata{
+		Forward: &pfmtypes.ForwardMetadata{
 			Receiver: userC.FormattedAddress(),
 			Channel:  chanBC.ChannelID,
 			Port:     chanBC.PortID,
@@ -218,19 +219,4 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 
 	s.Require().Equal(transferAmount, escrowBalanceAB)
 	s.Require().Equal(transferAmount, escrowBalanceBC)
-}
-
-// TODO: Try to replace this with PFM's own version of this struct #8360
-type PacketMetadata struct {
-	Forward *ForwardMetadata `json:"forward"`
-}
-
-type ForwardMetadata struct {
-	Receiver       string        `json:"receiver"`
-	Port           string        `json:"port"`
-	Channel        string        `json:"channel"`
-	Timeout        time.Duration `json:"timeout"`
-	Retries        *uint8        `json:"retries,omitempty"`
-	Next           *string       `json:"next,omitempty"`
-	RefundSequence *uint64       `json:"refund_sequence,omitempty"`
 }

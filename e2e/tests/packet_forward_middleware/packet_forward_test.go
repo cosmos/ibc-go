@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	pfmtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -79,8 +80,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		// From A -> B will be handled by transfer msg.
 		// From B -> C will be handled by firstHopMetadata.
 		// From C -> D will be handled by secondHopMetadata.
-		secondHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		secondHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userD.FormattedAddress(),
 				Channel:  chanCD.ChannelID,
 				Port:     chanCD.PortID,
@@ -88,14 +89,15 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		}
 		nextBz, err := json.Marshal(secondHopMetadata)
 		s.Require().NoError(err)
-		next := string(nextBz)
 
-		firstHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		var next *pfmtypes.JSONObject
+		json.Unmarshal(nextBz, next)
+		firstHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userC.FormattedAddress(),
 				Channel:  chanBC.ChannelID,
 				Port:     chanBC.PortID,
-				Next:     &next,
+				Next:     next,
 			},
 		}
 
@@ -152,8 +154,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	})
 
 	t.Run("Packet forwarded [D -> C -> B -> A]", func(_ *testing.T) {
-		secondHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		secondHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userA.FormattedAddress(),
 				Channel:  chanAB.Counterparty.ChannelID,
 				Port:     chanAB.Counterparty.PortID,
@@ -161,14 +163,16 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		}
 		nextBz, err := json.Marshal(secondHopMetadata)
 		s.Require().NoError(err)
-		next := string(nextBz)
 
-		firstHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		var next *pfmtypes.JSONObject
+		json.Unmarshal(nextBz, next)
+
+		firstHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userB.FormattedAddress(),
 				Channel:  chanBC.Counterparty.ChannelID,
 				Port:     chanBC.Counterparty.PortID,
-				Next:     &next,
+				Next:     next,
 			},
 		}
 
@@ -221,8 +225,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	})
 
 	t.Run("Error while forwarding: Refund ok [A -> B -> C ->X D]", func(_ *testing.T) {
-		secondHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		secondHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: "GurbageAddress",
 				Channel:  chanCD.ChannelID,
 				Port:     chanCD.PortID,
@@ -230,14 +234,16 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		}
 		nextBz, err := json.Marshal(secondHopMetadata)
 		s.Require().NoError(err)
-		next := string(nextBz)
 
-		firstHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		var next *pfmtypes.JSONObject
+		json.Unmarshal(nextBz, next)
+
+		firstHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userC.FormattedAddress(),
 				Channel:  chanBC.ChannelID,
 				Port:     chanBC.PortID,
-				Next:     &next,
+				Next:     next,
 			},
 		}
 
@@ -313,8 +319,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		balanceBInt, err := s.GetChainBNativeBalance(ctx, userB)
 		s.Require().NoError(err)
 
-		firstHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		firstHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userA.FormattedAddress(),
 				Channel:  chanAB.Counterparty.ChannelID,
 				Port:     chanAB.Counterparty.PortID,
