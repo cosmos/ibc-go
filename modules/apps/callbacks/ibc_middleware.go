@@ -57,6 +57,9 @@ func NewIBCMiddleware(
 // middleware's creation to set the middleware which is above this module in
 // the IBC application stack.
 func (im *IBCMiddleware) SetICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	if wrapper == nil {
+		panic("ICS4Wrapper cannot be nil")
+	}
 	im.ics4Wrapper = wrapper
 }
 

@@ -13,6 +13,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
 type PFMTestSuite struct {
@@ -44,6 +45,41 @@ func (s *PFMTestSuite) setupChains() {
 
 	s.pathBC = ibctesting.NewTransferPath(s.chainB, s.chainC)
 	s.pathBC.Setup()
+}
+
+func (s *PFMTestSuite) TestSetICS4Wrapper() {
+	s.setupChains()
+
+	pfm := s.pktForwardMiddleware(s.chainA)
+
+	s.Require().Panics(func() {
+		pfm.SetICS4Wrapper(nil)
+	}, "ICS4Wrapper cannot be nil")
+
+	s.Require().NotPanics(func() {
+		pfm.SetICS4Wrapper(s.chainA.App.GetIBCKeeper().ChannelKeeper)
+	}, "ICS4Wrapper should be set without panic")
+}
+
+func (s *PFMTestSuite) TestSetUnderlyingApplication() {
+	s.setupChains()
+
+	pfmKeeper := s.chainA.GetSimApp().PFMKeeper
+
+	pfm := packetforward.NewIBCMiddleware(pfmKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
+
+	s.Require().Panics(func() {
+		pfm.SetUnderlyingApplication(nil)
+	}, "underlying application cannot be nil")
+
+	s.Require().NotPanics(func() {
+		pfm.SetUnderlyingApplication(&ibcmock.IBCModule{})
+	}, "underlying application should be set without panic")
+
+	s.Require().Panics(func() {
+		pfm.SetUnderlyingApplication(&ibcmock.IBCModule{})
+	}, "underlying application should not be set again")
+
 }
 
 func (s *PFMTestSuite) TestOnRecvPacket_NonfungibleToken() {

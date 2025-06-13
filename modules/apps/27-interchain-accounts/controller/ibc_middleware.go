@@ -49,11 +49,20 @@ func NewIBCMiddlewareWithAuth(app porttypes.IBCModule, k *keeper.Keeper) *IBCMid
 
 // SetUnderlyingApplication sets the underlying application for the middleware.
 func (im *IBCMiddleware) SetUnderlyingApplication(app porttypes.IBCModule) {
+	if app == nil {
+		panic(errors.New("underlying application cannot be nil"))
+	}
+	if im.app != nil {
+		panic(errors.New("underlying application already set"))
+	}
 	im.app = app
 }
 
 // SetICS4Wrapper sets the ICS4Wrapper for the middleware.
 func (im *IBCMiddleware) SetICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
+	if ics4Wrapper == nil {
+		panic(errors.New("ICS4Wrapper cannot be nil"))
+	}
 	im.keeper.WithICS4Wrapper(ics4Wrapper)
 }
 

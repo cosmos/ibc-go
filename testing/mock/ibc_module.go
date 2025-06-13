@@ -151,7 +151,7 @@ func (IBCModule) UnmarshalPacketData(ctx sdk.Context, portID string, channelID s
 	return nil, "", MockApplicationCallbackError
 }
 
-func (im *IBCModule) SetICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+func (*IBCModule) SetICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 	if wrapper == nil {
 		panic("ICS4Wrapper cannot be nil")
 	}
