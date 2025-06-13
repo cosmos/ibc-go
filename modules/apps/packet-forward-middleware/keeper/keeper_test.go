@@ -135,7 +135,10 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 			inflightPacket, err := pfmKeeperB.GetInflightPacket(ctxB, srcPacket)
 			s.Require().NoError(err)
 
-			token := transfertypes.NewToken(ibctesting.TestCoin.GetDenom(), ibctesting.DefaultCoinAmount.String())
+			token := transfertypes.Token{
+				Denom:  transfertypes.ExtractDenomFromPath(ibctesting.TestCoin.GetDenom()),
+				Amount: ibctesting.DefaultCoinAmount.String(),
+			}
 			data := transfertypes.NewInternalTransferRepresentation(token, initialSender.String(), finalReceiver.String(), "")
 			expectedAckBz = channeltypes.CommitAcknowledgement(tc.ack.Acknowledgement())
 			if tc.malleate != nil {

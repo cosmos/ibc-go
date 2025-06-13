@@ -12,13 +12,6 @@ import (
 // maxUint256 is the maximum value for a 256 bit unsigned integer.
 var maxUint256 = new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(1))
 
-func NewToken(fullPath, amount string) Token {
-	return Token{
-		Denom:  ExtractDenomFromPath(fullPath),
-		Amount: amount,
-	}
-}
-
 // Validate validates a token denomination and amount.
 func (t Token) Validate() error {
 	if err := t.Denom.Validate(); err != nil {
