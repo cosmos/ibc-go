@@ -16,6 +16,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	pfmtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -65,10 +66,9 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	s.Require().NoError(err)
 	s.Require().NotNil(cd)
 
-	escrowAddrA := transfertypes.GetEscrowAddress(chanAB.PortID, chanAB.ChannelID)
-	escrowAddrB := transfertypes.GetEscrowAddress(chanCD.PortID, chanCD.ChannelID)
-	escrowAddrC := escrowAddrB
-	escrowAddrD := userD.FormattedAddress()
+	escrowAddrAB := transfertypes.GetEscrowAddress(chanAB.PortID, chanAB.ChannelID)
+	escrowAddrBC := transfertypes.GetEscrowAddress(chanBC.PortID, chanBC.ChannelID)
+	escrowAddrCD := transfertypes.GetEscrowAddress(chanCD.PortID, chanCD.ChannelID)
 
 	denomA := chainA.Config().Denom
 	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.PortID, chanAB.ChannelID)
@@ -80,8 +80,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		// From A -> B will be handled by transfer msg.
 		// From B -> C will be handled by firstHopMetadata.
 		// From C -> D will be handled by secondHopMetadata.
-		secondHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		secondHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userD.FormattedAddress(),
 				Channel:  chanCD.ChannelID,
 				Port:     chanCD.PortID,
@@ -89,14 +89,15 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		}
 		nextBz, err := json.Marshal(secondHopMetadata)
 		s.Require().NoError(err)
-		next := string(nextBz)
 
-		firstHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		var next *pfmtypes.JSONObject
+		json.Unmarshal(nextBz, next)
+		firstHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userC.FormattedAddress(),
 				Channel:  chanBC.ChannelID,
 				Port:     chanBC.PortID,
-				Next:     &next,
+				Next:     next,
 			},
 		}
 
@@ -121,9 +122,9 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
 		s.Require().Equal(expected, actualBalance)
 
-		escrowBalA, err := query.Balance(ctx, chainA, escrowAddrA.String(), denomA)
+		escrowBalAB, err := query.Balance(ctx, chainA, escrowAddrAB.String(), denomA)
 		s.Require().NoError(err)
-		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalA.Int64())
+		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalAB.Int64())
 
 		s.Require().Eventually(func() bool {
 			_, err := query.GRPCQuery[chantypes.QueryPacketCommitmentResponse](ctx, chainA, &chantypes.QueryPacketCommitmentRequest{
@@ -139,22 +140,22 @@ func (s *PFMTestSuite) TestForwardPacket() {
 			s.AssertHumanReadableDenom(ctx, chainB, denomA, chanAB)
 		}
 
-		escrowBalB, err := query.Balance(ctx, chainB, escrowAddrB.String(), ibcTokenB.IBCDenom())
+		escrowBalBC, err := query.Balance(ctx, chainB, escrowAddrBC.String(), ibcTokenB.IBCDenom())
 		s.Require().NoError(err)
-		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalB.Int64())
+		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalBC.Int64())
 
-		escrowBalC, err := query.Balance(ctx, chainC, escrowAddrC.String(), ibcTokenC.IBCDenom())
+		escrowBalCD, err := query.Balance(ctx, chainC, escrowAddrCD.String(), ibcTokenC.IBCDenom())
 		s.Require().NoError(err)
-		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalC.Int64())
+		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalCD.Int64())
 
-		balanceD, err := query.Balance(ctx, chainD, escrowAddrD, ibcTokenD.IBCDenom())
+		balanceD, err := query.Balance(ctx, chainD, userD.FormattedAddress(), ibcTokenD.IBCDenom())
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.IBCTransferAmount, balanceD.Int64())
 	})
 
 	t.Run("Packet forwarded [D -> C -> B -> A]", func(_ *testing.T) {
-		secondHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		secondHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userA.FormattedAddress(),
 				Channel:  chanAB.Counterparty.ChannelID,
 				Port:     chanAB.Counterparty.PortID,
@@ -162,14 +163,16 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		}
 		nextBz, err := json.Marshal(secondHopMetadata)
 		s.Require().NoError(err)
-		next := string(nextBz)
 
-		firstHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		var next *pfmtypes.JSONObject
+		json.Unmarshal(nextBz, next)
+
+		firstHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userB.FormattedAddress(),
 				Channel:  chanBC.Counterparty.ChannelID,
 				Port:     chanBC.Counterparty.PortID,
-				Next:     &next,
+				Next:     next,
 			},
 		}
 
@@ -182,7 +185,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		txResp := s.Transfer(ctx, chainD, userD, chanCD.Counterparty.PortID, chanCD.Counterparty.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userD.FormattedAddress(), userC.FormattedAddress(), s.GetTimeoutHeight(ctx, chainD), 0, string(memo))
 		s.AssertTxSuccess(txResp)
 
-		packet, err := ibctesting.ParsePacketFromEvents(txResp.Events)
+		packet, err := ibctesting.ParseV1PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 
@@ -199,21 +202,21 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		}, time.Second*70, time.Second)
 
 		// All escrow accounts have been cleared
-		escrowBalA, err := query.Balance(ctx, chainA, escrowAddrA.String(), denomA)
+		escrowBalAB, err := query.Balance(ctx, chainA, escrowAddrAB.String(), denomA)
 		s.Require().NoError(err)
-		s.Require().Zero(escrowBalA.Int64())
+		s.Require().Zero(escrowBalAB.Int64())
 
-		escrowBalB, err := query.Balance(ctx, chainB, escrowAddrB.String(), ibcTokenB.IBCDenom())
+		escrowBalBC, err := query.Balance(ctx, chainB, escrowAddrBC.String(), ibcTokenB.IBCDenom())
 		s.Require().NoError(err)
-		s.Require().Zero(escrowBalB.Int64())
+		s.Require().Zero(escrowBalBC.Int64())
 
-		escrowBalC, err := query.Balance(ctx, chainC, escrowAddrC.String(), ibcTokenC.IBCDenom())
+		escrowBalCD, err := query.Balance(ctx, chainC, escrowAddrCD.String(), ibcTokenC.IBCDenom())
 		s.Require().NoError(err)
-		s.Require().Zero(escrowBalC.Int64())
+		s.Require().Zero(escrowBalCD.Int64())
 
-		escrowBalD, err := query.Balance(ctx, chainD, userD.FormattedAddress(), ibcTokenD.IBCDenom())
+		userDBalance, err := query.Balance(ctx, chainD, userD.FormattedAddress(), ibcTokenD.IBCDenom())
 		s.Require().NoError(err)
-		s.Require().Zero(escrowBalD.Int64())
+		s.Require().Zero(userDBalance.Int64())
 
 		// User A has his asset back
 		balance, err := s.GetChainANativeBalance(ctx, userA)
@@ -222,8 +225,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	})
 
 	t.Run("Error while forwarding: Refund ok [A -> B -> C ->X D]", func(_ *testing.T) {
-		secondHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		secondHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: "GurbageAddress",
 				Channel:  chanCD.ChannelID,
 				Port:     chanCD.PortID,
@@ -231,14 +234,16 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		}
 		nextBz, err := json.Marshal(secondHopMetadata)
 		s.Require().NoError(err)
-		next := string(nextBz)
 
-		firstHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		var next *pfmtypes.JSONObject
+		json.Unmarshal(nextBz, next)
+
+		firstHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userC.FormattedAddress(),
 				Channel:  chanBC.ChannelID,
 				Port:     chanBC.PortID,
-				Next:     &next,
+				Next:     next,
 			},
 		}
 
@@ -253,21 +258,21 @@ func (s *PFMTestSuite) TestForwardPacket() {
 
 		// C -> D should not happen.
 		// Refunded UserA on chain A.
-		escrowBalA, err := query.Balance(ctx, chainA, escrowAddrA.String(), denomA)
+		escrowBalAB, err := query.Balance(ctx, chainA, escrowAddrAB.String(), denomA)
 		s.Require().NoError(err)
-		s.Require().Zero(escrowBalA.Int64())
+		s.Require().Zero(escrowBalAB.Int64())
 
-		escrowBalB, err := query.Balance(ctx, chainB, escrowAddrB.String(), ibcTokenB.IBCDenom())
+		escrowBalBC, err := query.Balance(ctx, chainB, escrowAddrBC.String(), ibcTokenB.IBCDenom())
 		s.Require().NoError(err)
-		s.Require().Zero(escrowBalB.Int64())
+		s.Require().Zero(escrowBalBC.Int64())
 
-		escrowBalC, err := query.Balance(ctx, chainC, escrowAddrC.String(), ibcTokenC.IBCDenom())
+		escrowBalCD, err := query.Balance(ctx, chainC, escrowAddrCD.String(), ibcTokenC.IBCDenom())
 		s.Require().NoError(err)
-		s.Require().Zero(escrowBalC.Int64())
+		s.Require().Zero(escrowBalCD.Int64())
 
-		escrowBalD, err := query.Balance(ctx, chainD, userD.FormattedAddress(), ibcTokenD.IBCDenom())
+		userDBalance, err := query.Balance(ctx, chainD, userD.FormattedAddress(), ibcTokenD.IBCDenom())
 		s.Require().NoError(err)
-		s.Require().Zero(escrowBalD.Int64())
+		s.Require().Zero(userDBalance.Int64())
 
 		// User A has his asset back
 		balance, err := s.GetChainANativeBalance(ctx, userA)
@@ -279,14 +284,14 @@ func (s *PFMTestSuite) TestForwardPacket() {
 
 		denomB := chainB.Config().Denom
 		ibcTokenA := testsuite.GetIBCToken(denomB, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
-		escrowAddrB = transfertypes.GetEscrowAddress(chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
+		escrowAddrCD = transfertypes.GetEscrowAddress(chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
 
 		txResp = s.Transfer(ctx, chainB, userB, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID, testvalues.DefaultTransferAmount(denomB), userB.FormattedAddress(), userA.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(txResp)
 
-		escrowBalB, err = query.Balance(ctx, chainB, escrowAddrB.String(), denomB)
+		escrowBalBC, err = query.Balance(ctx, chainB, escrowAddrCD.String(), denomB)
 		s.Require().NoError(err)
-		s.Require().Equal(escrowBalB.Int64(), testvalues.IBCTransferAmount)
+		s.Require().Equal(escrowBalBC.Int64(), testvalues.IBCTransferAmount)
 
 		balanceA, err := query.Balance(ctx, chainA, userA.FormattedAddress(), ibcTokenA.IBCDenom())
 		s.Require().NoError(err)
@@ -297,9 +302,9 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		s.AssertTxSuccess(txResp)
 
 		// Escrow account is cleared on chain B
-		escrowBalB, err = query.Balance(ctx, chainB, escrowAddrB.String(), denomB)
+		escrowBalBC, err = query.Balance(ctx, chainB, escrowAddrCD.String(), denomB)
 		s.Require().NoError(err)
-		s.Require().Zero(escrowBalB.Int64())
+		s.Require().Zero(escrowBalBC.Int64())
 
 		// ChainB user now has the same amount he started with
 		balanceB, err := s.GetChainBNativeBalance(ctx, userB)
@@ -314,8 +319,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		balanceBInt, err := s.GetChainBNativeBalance(ctx, userB)
 		s.Require().NoError(err)
 
-		firstHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		firstHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userA.FormattedAddress(),
 				Channel:  chanAB.Counterparty.ChannelID,
 				Port:     chanAB.Counterparty.PortID,
