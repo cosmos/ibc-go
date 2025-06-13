@@ -10,6 +10,22 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 )
 
+type action struct {
+	direction           types.PacketDirection
+	amount              int64
+	addToBlacklist      bool
+	removeFromBlacklist bool
+	addToWhitelist      bool
+	removeFromWhitelist bool
+	skipFlowUpdate      bool
+	expectedError       string
+}
+
+type checkRateLimitTestCase struct {
+	name    string
+	actions []action
+}
+
 func (s *KeeperTestSuite) TestGetChannelValue() {
 	supply := sdkmath.NewInt(100)
 
