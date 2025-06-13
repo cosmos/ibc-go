@@ -19,22 +19,6 @@ const (
 	receiver  = "receiver"
 )
 
-type action struct {
-	direction           types.PacketDirection
-	amount              int64
-	addToBlacklist      bool
-	removeFromBlacklist bool
-	addToWhitelist      bool
-	removeFromWhitelist bool
-	skipFlowUpdate      bool
-	expectedError       string
-}
-
-type checkRateLimitTestCase struct {
-	name    string
-	actions []action
-}
-
 // Helper function to create 5 rate limit objects with various attributes
 func (s *KeeperTestSuite) createRateLimits() []types.RateLimit {
 	rateLimits := []types.RateLimit{}
@@ -116,9 +100,9 @@ func (s *KeeperTestSuite) TestAddRateLimit_ClientId() {
 	s.Require().NoError(err, "minting coins failed")
 
 	msg := &types.MsgAddRateLimit{
-		Signer:            s.chainA.GetSimApp().RateLimitKeeper.GetAuthority(), // Use the correct authority
+		Signer:            s.chainA.GetSimApp().RateLimitKeeper.GetAuthority(),
 		Denom:             "clientdenom",
-		ChannelOrClientId: clientID, // Use Client ID here
+		ChannelOrClientId: clientID,
 		MaxPercentSend:    sdkmath.NewInt(10),
 		MaxPercentRecv:    sdkmath.NewInt(10),
 		DurationHours:     24,
