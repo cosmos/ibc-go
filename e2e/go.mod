@@ -280,5 +280,3 @@ require (
 )
 
 replace github.com/cometbft/cometbft/v2 => github.com/cometbft/cometbft/v2 v2.0.0-alpha.1
-
-replace github.com/cometbft/cometbft/api => github.com/cometbft/cometbft/api v1.1.0-alpha.1
