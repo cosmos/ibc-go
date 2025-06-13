@@ -151,7 +151,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 
 	transferDetail, err := transfertypes.PacketDataV1ToV2(data)
 	if err != nil {
-		logger.Debug(fmt.Sprintf("packetForwardMiddleware OnRecvPacket could not convert FungibleTokenPacketData to InternalRepresentation: %s", err.Error()))
+		logger.Error(fmt.Sprintf("packetForwardMiddleware OnRecvPacket could not convert FungibleTokenPacketData to InternalRepresentation: %s", err.Error()))
 		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
