@@ -22,7 +22,7 @@ var (
 // IBCMiddleware implements the ICS26 callbacks for the ibc-callbacks middleware given
 // the underlying application.
 type IBCMiddleware struct {
-	app         porttypes.PacketUnmarshalarModule
+	app         porttypes.PacketUnmarshalerModule
 	ics4Wrapper porttypes.ICS4Wrapper
 
 	contractKeeper types.ContractKeeper
@@ -37,18 +37,8 @@ type IBCMiddleware struct {
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application.
 // The underlying application must implement the required callback interfaces.
 func NewIBCMiddleware(
-	app porttypes.IBCModule, ics4Wrapper porttypes.ICS4Wrapper,
 	contractKeeper types.ContractKeeper, maxCallbackGas uint64,
-) IBCMiddleware {
-	packetDataUnmarshalerApp, ok := app.(porttypes.PacketUnmarshalarModule)
-	if !ok {
-		panic(fmt.Errorf("underlying application does not implement %T", (*porttypes.PacketUnmarshalarModule)(nil)))
-	}
-
-	if ics4Wrapper == nil {
-		panic(errors.New("ICS4Wrapper cannot be nil"))
-	}
-
+) *IBCMiddleware {
 	if contractKeeper == nil {
 		panic(errors.New("contract keeper cannot be nil"))
 	}
@@ -57,19 +47,34 @@ func NewIBCMiddleware(
 		panic(errors.New("maxCallbackGas cannot be zero"))
 	}
 
-	return IBCMiddleware{
-		app:            packetDataUnmarshalerApp,
-		ics4Wrapper:    ics4Wrapper,
+	return &IBCMiddleware{
 		contractKeeper: contractKeeper,
 		maxCallbackGas: maxCallbackGas,
 	}
 }
 
-// WithICS4Wrapper sets the ICS4Wrapper. This function may be used after the
+// SetICS4Wrapper sets the ICS4Wrapper. This function may be used after the
 // middleware's creation to set the middleware which is above this module in
 // the IBC application stack.
-func (im *IBCMiddleware) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+func (im *IBCMiddleware) SetICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 	im.ics4Wrapper = wrapper
+}
+
+// SetUnderlyingApplication sets the underlying IBC module. This function may be used after
+// the middleware's creation to set the ibc module which is below this middleware.
+func (im *IBCMiddleware) SetUnderlyingApplication(app porttypes.IBCModule) {
+	if app == nil {
+		panic(errors.New("underlying application cannot be nil"))
+	}
+	if im.app != nil {
+		panic(errors.New("underlying application already set"))
+	}
+	// the underlying application must implement the PacketUnmarshalerModule interface
+	pdApp, ok := app.(porttypes.PacketUnmarshalerModule)
+	if !ok {
+		panic(fmt.Errorf("underlying application must implement PacketUnmarshalerModule, got %T", app))
+	}
+	im.app = pdApp
 }
 
 // GetICS4Wrapper returns the ICS4Wrapper.

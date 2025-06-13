@@ -98,11 +98,11 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for this module
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // NewAppModule creates a new 20-transfer module
-func NewAppModule(k keeper.Keeper) AppModule {
+func NewAppModule(k *keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,
 	}
@@ -113,7 +113,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	m := keeper.NewMigrator(am.keeper)
+	m := keeper.NewMigrator(*am.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
 		panic(fmt.Errorf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %v", err))
 	}

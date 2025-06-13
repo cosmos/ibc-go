@@ -26,13 +26,13 @@ import (
 
 var (
 	_ porttypes.Middleware              = &IBCMiddleware{}
-	_ porttypes.PacketUnmarshalarModule = &IBCMiddleware{}
+	_ porttypes.PacketUnmarshalerModule = &IBCMiddleware{}
 )
 
 // IBCMiddleware implements the ICS26 callbacks for the forward middleware given the
 // forward keeper and the underlying application.
 type IBCMiddleware struct {
-	app    porttypes.PacketUnmarshalarModule
+	app    porttypes.PacketUnmarshalerModule
 	keeper *keeper.Keeper
 
 	retriesOnTimeout uint8
@@ -40,9 +40,8 @@ type IBCMiddleware struct {
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application.
-func NewIBCMiddleware(app porttypes.PacketUnmarshalarModule, k *keeper.Keeper, retriesOnTimeout uint8, forwardTimeout time.Duration) IBCMiddleware {
-	return IBCMiddleware{
-		app:              app,
+func NewIBCMiddleware(k *keeper.Keeper, retriesOnTimeout uint8, forwardTimeout time.Duration) *IBCMiddleware {
+	return &IBCMiddleware{
 		keeper:           k,
 		retriesOnTimeout: retriesOnTimeout,
 		forwardTimeout:   forwardTimeout,
@@ -368,4 +367,23 @@ func (im IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, packet ibcexported
 
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
+}
+
+func (im *IBCMiddleware) SetICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	if wrapper == nil {
+		panic("ICS4Wrapper cannot be nil")
+	}
+	im.keeper.WithICS4Wrapper(wrapper)
+}
+
+func (im *IBCMiddleware) SetUnderlyingApplication(app porttypes.IBCModule) {
+	if im.app != nil {
+		panic("underlying application already set")
+	}
+	// the underlying application must implement the PacketUnmarshalerModule interface
+	pdApp, ok := app.(porttypes.PacketUnmarshalerModule)
+	if !ok {
+		panic(fmt.Errorf("underlying application must implement PacketUnmarshalerModule, got %T", app))
+	}
+	im.app = pdApp
 }

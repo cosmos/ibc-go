@@ -203,16 +203,17 @@ func (s *PFMTestSuite) TestOnRecvPacket_ForwardNoFee() {
 	s.Require().NoError(err)
 }
 
-func (s *PFMTestSuite) pktForwardMiddleware(chain *ibctesting.TestChain) packetforward.IBCMiddleware {
+func (s *PFMTestSuite) pktForwardMiddleware(chain *ibctesting.TestChain) *packetforward.IBCMiddleware {
 	pfmKeeper := chain.GetSimApp().PFMKeeper
 
 	ibcModule, ok := chain.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 	s.Require().True(ok)
 
-	transferStack, ok := ibcModule.(porttypes.PacketUnmarshalarModule)
+	transferStack, ok := ibcModule.(porttypes.PacketUnmarshalerModule)
 	s.Require().True(ok)
 
-	ibcMiddleware := packetforward.NewIBCMiddleware(transferStack, pfmKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
+	ibcMiddleware := packetforward.NewIBCMiddleware(pfmKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
+	ibcMiddleware.SetUnderlyingApplication(transferStack)
 	return ibcMiddleware
 }
 

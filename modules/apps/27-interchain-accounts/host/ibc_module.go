@@ -23,12 +23,12 @@ var (
 
 // IBCModule implements the ICS26 interface for interchain accounts host chains
 type IBCModule struct {
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // NewIBCModule creates a new IBCModule given the associated keeper
-func NewIBCModule(k keeper.Keeper) IBCModule {
-	return IBCModule{
+func NewIBCModule(k *keeper.Keeper) *IBCModule {
+	return &IBCModule{
 		keeper: k,
 	}
 }
@@ -172,4 +172,12 @@ func (im IBCModule) UnmarshalPacketData(ctx sdk.Context, portID string, channelI
 	}
 
 	return data, version, nil
+}
+
+// SetICS4Wrapper sets the ICS4Wrapper for the IBCModule.
+func (im *IBCModule) SetICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	if wrapper == nil {
+		panic("ICS4Wrapper cannot be nil")
+	}
+	im.keeper.WithICS4Wrapper(wrapper)
 }

@@ -829,7 +829,7 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsGoAPICall
 		suite.Require().NoError(err)
 
 		// attempt to start a second handshake via the controller msg server
-		msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		msgServer := controllerkeeper.NewMsgServerImpl(suite.chainA.GetSimApp().ICAControllerKeeper)
 		msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion, ordering)
 
 		res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
@@ -846,7 +846,7 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServer
 		path.SetupConnections()
 
 		// initiate a channel handshake such that channel.State == INIT
-		msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		msgServer := controllerkeeper.NewMsgServerImpl(suite.chainA.GetSimApp().ICAControllerKeeper)
 		msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion, ordering)
 
 		res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
@@ -881,7 +881,7 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 		channelSeq := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
 
 		// route a new MsgRegisterInterchainAccount in order to reopen the
-		msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		msgServer := controllerkeeper.NewMsgServerImpl(suite.chainA.GetSimApp().ICAControllerKeeper)
 		msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), path.EndpointA.ChannelConfig.Version, ordering)
 
 		res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)

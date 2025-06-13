@@ -26,25 +26,35 @@ var (
 // ICA controller keeper and the underlying application.
 type IBCMiddleware struct {
 	app    porttypes.IBCModule
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the associated keeper.
 // The underlying application is set to nil and authentication is assumed to
 // be performed by a Cosmos SDK module that sends messages to controller message server.
-func NewIBCMiddleware(k keeper.Keeper) IBCMiddleware {
-	return IBCMiddleware{
+func NewIBCMiddleware(k *keeper.Keeper) *IBCMiddleware {
+	return &IBCMiddleware{
 		app:    nil,
 		keeper: k,
 	}
 }
 
 // NewIBCMiddlewareWithAuth creates a new IBCMiddleware given the associated keeper and underlying application
-func NewIBCMiddlewareWithAuth(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
-	return IBCMiddleware{
+func NewIBCMiddlewareWithAuth(app porttypes.IBCModule, k *keeper.Keeper) *IBCMiddleware {
+	return &IBCMiddleware{
 		app:    app,
 		keeper: k,
 	}
+}
+
+// SetUnderlyingApplication sets the underlying application for the middleware.
+func (im *IBCMiddleware) SetUnderlyingApplication(app porttypes.IBCModule) {
+	im.app = app
+}
+
+// SetICS4Wrapper sets the ICS4Wrapper for the middleware.
+func (im *IBCMiddleware) SetICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
+	im.keeper.WithICS4Wrapper(ics4Wrapper)
 }
 
 // OnChanOpenInit implements the IBCMiddleware interface

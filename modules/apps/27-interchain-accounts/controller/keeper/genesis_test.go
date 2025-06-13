@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 
 			tc.malleate()
 
-			keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAControllerKeeper, genesisState)
+			keeper.InitGenesis(suite.chainA.GetContext(), *suite.chainA.GetSimApp().ICAControllerKeeper, genesisState)
 
 			channelID, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 			suite.Require().True(found)
@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 		interchainAccAddr, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 		suite.Require().True(exists)
 
-		genesisState := keeper.ExportGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAControllerKeeper)
+		genesisState := keeper.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.GetSimApp().ICAControllerKeeper)
 
 		suite.Require().Equal(path.EndpointA.ChannelID, genesisState.ActiveChannels[0].ChannelId)
 		suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.ActiveChannels[0].PortId)

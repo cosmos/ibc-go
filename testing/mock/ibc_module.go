@@ -31,9 +31,9 @@ type IBCModule struct {
 }
 
 // NewIBCModule creates a new IBCModule given the underlying mock IBC application and scopedKeeper.
-func NewIBCModule(appModule *AppModule, app *IBCApp) IBCModule {
+func NewIBCModule(appModule *AppModule, app *IBCApp) *IBCModule {
 	appModule.ibcApps = append(appModule.ibcApps, app)
-	return IBCModule{
+	return &IBCModule{
 		appModule: appModule,
 		IBCApp:    app,
 	}
@@ -149,4 +149,10 @@ func (IBCModule) UnmarshalPacketData(ctx sdk.Context, portID string, channelID s
 		return MockPacketData, Version, nil
 	}
 	return nil, "", MockApplicationCallbackError
+}
+
+func (im *IBCModule) SetICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	if wrapper == nil {
+		panic("ICS4Wrapper cannot be nil")
+	}
 }

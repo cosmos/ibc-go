@@ -53,16 +53,21 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new forward Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, transferKeeper types.TransferKeeper, channelKeeper types.ChannelKeeper, bankKeeper types.BankKeeper, ics4Wrapper porttypes.ICS4Wrapper, authority string) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, transferKeeper types.TransferKeeper, channelKeeper types.ChannelKeeper, bankKeeper types.BankKeeper, authority string) *Keeper {
 	return &Keeper{
 		cdc:            cdc,
 		storeService:   storeService,
 		transferKeeper: transferKeeper,
+		ics4Wrapper:    channelKeeper,
 		channelKeeper:  channelKeeper,
 		bankKeeper:     bankKeeper,
-		ics4Wrapper:    ics4Wrapper,
 		authority:      authority,
 	}
+}
+
+// WithICS4Wrapper sets the ICS4Wrapper for the keeper.
+func (k *Keeper) WithICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = ics4Wrapper
 }
 
 // GetAuthority returns the module's authority.

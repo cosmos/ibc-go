@@ -155,3 +155,15 @@ func (BlockUpgradeMiddleware) WriteAcknowledgement(
 func (BlockUpgradeMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return Version, true
 }
+
+// SetICS4Wrapper sets the ICS4Wrapper. This function may be used after
+// the module's initialization to set the middleware which is above this
+// module in the IBC application stack.
+func (im BlockUpgradeMiddleware) SetICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	panic("unused")
+}
+
+// SetUnderlyingApplication sets the underlying application of the middleware.
+func (im BlockUpgradeMiddleware) SetUnderlyingApplication(app porttypes.IBCModule) {
+	panic("unused")
+}

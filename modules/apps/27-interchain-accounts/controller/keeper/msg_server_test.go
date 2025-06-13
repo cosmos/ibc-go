@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 				tc.malleate()
 
 				ctx := suite.chainA.GetContext()
-				msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+				msgServer := keeper.NewMsgServerImpl(suite.chainA.GetSimApp().ICAControllerKeeper)
 				res, err := msgServer.RegisterInterchainAccount(ctx, msg)
 
 				if tc.expErr == nil {
@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 				tc.malleate() // malleate mutates test data
 
 				ctx := suite.chainA.GetContext()
-				msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+				msgServer := keeper.NewMsgServerImpl(suite.chainA.GetSimApp().ICAControllerKeeper)
 				res, err := msgServer.SendTx(ctx, msg)
 
 				if tc.expErr == nil {
