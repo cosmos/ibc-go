@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -14,7 +12,7 @@ func (k Keeper) BeginBlocker(ctx sdk.Context) {
 			if rateLimit.Quota.DurationHours != 0 && epochNumber%rateLimit.Quota.DurationHours == 0 {
 				err := k.ResetRateLimit(ctx, rateLimit.Path.Denom, rateLimit.Path.ChannelOrClientId)
 				if err != nil {
-					k.Logger(ctx).Error(fmt.Sprintf("Unable to reset quota for Denom: %s, ChannelOrClientId: %s", rateLimit.Path.Denom, rateLimit.Path.ChannelOrClientId))
+					k.Logger(ctx).Error("Unable to reset quota", "Denom", rateLimit.Path.Denom, "ChannelOrClientId", rateLimit.Path.ChannelOrClientId, "error", err)
 				}
 			}
 		}
