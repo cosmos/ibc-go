@@ -16,7 +16,6 @@ import (
 	"cosmossdk.io/math"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -51,14 +50,6 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	chanAB := s.GetChainAToChainBChannel(testName)
 	chanBC := s.GetChainBToChainCChannel(testName)
 
-	ab, err := query.Channel(ctx, chainA, transfertypes.PortID, chanAB.ChannelID)
-	s.Require().NoError(err)
-	s.Require().NotNil(ab)
-
-	bc, err := query.Channel(ctx, chainB, transfertypes.PortID, chanBC.ChannelID)
-	s.Require().NoError(err)
-	s.Require().NotNil(bc)
-
 	escrowAddrAB := transfertypes.GetEscrowAddress(chanAB.PortID, chanAB.ChannelID)
 	escrowAddrBC := transfertypes.GetEscrowAddress(chanBC.PortID, chanBC.ChannelID)
 
@@ -66,20 +57,22 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.PortID, chanAB.ChannelID)
 	ibcTokenC := testsuite.GetIBCToken(ibcTokenB.Path(), chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
 
-	// Send packet from a -> b -> c -> d that should timeout between b -> c
+	zeroBal := math.NewInt(0)
+
+	// Send packet from a -> b -> c that should timeout between b -> c
 	retries := uint8(0)
 
-	firstHopMetadata := &PacketMetadata{
+	bToCMetadata := &PacketMetadata{
 		Forward: &ForwardMetadata{
 			Receiver: userC.FormattedAddress(),
 			Channel:  chanBC.ChannelID,
 			Port:     chanBC.PortID,
 			Retries:  &retries,
-			Timeout:  time.Second * 10, // Set a timeout too short to get picked up by the relayer in time to ensure the packet times out between b -> c
+			Timeout:  time.Second * 10, // Short timeout
 		},
 	}
 
-	memo, err := json.Marshal(firstHopMetadata)
+	memo, err := json.Marshal(bToCMetadata)
 	s.Require().NoError(err)
 
 	opts := ibc.TransferOptions{
@@ -110,6 +103,23 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	time.Sleep(time.Second * 12) // Wait for timeout
 	s.Require().NoError(testutil.WaitForBlocks(ctx, 1, chainA, chainB))
 
+	// Verify that the users funds are still in escrow on chainA and chainB before we relay the timeout between chainB and chainC
+	userABalance, err := chainA.GetBalance(ctx, userA.FormattedAddress(), chainA.Config().Denom)
+	s.Require().NoError(err)
+	userBBalance, err := chainB.GetBalance(ctx, userB.FormattedAddress(), ibcTokenB.IBCDenom())
+	s.Require().NoError(err)
+
+	s.Require().Equal(testvalues.StartingTokenAmount-transferAmount.Int64(), userABalance.Int64())
+	s.Require().Equal(zeroBal, userBBalance)
+
+	escrowBalanceAB, err := chainA.GetBalance(ctx, escrowAddrAB.String(), chainA.Config().Denom)
+	s.Require().NoError(err)
+	escrowBalanceBC, err := chainB.GetBalance(ctx, escrowAddrBC.String(), ibcTokenB.IBCDenom())
+	s.Require().NoError(err)
+
+	s.Require().Equal(transferAmount, escrowBalanceAB)
+	s.Require().Equal(transferAmount, escrowBalanceBC)
+
 	// Relay the packet from chainB to chainC, which should timeout
 	err = relayer.Flush(ctx, s.GetRelayerExecReporter(), s.GetPathByChains(chainB, chainC), chanBC.ChannelID)
 	s.Require().NoError(err)
@@ -131,26 +141,24 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	_, err = testutil.PollForAck(ctx, chainA, aHeightAfterTimeout, aHeightAfterTimeout+30, transferTx.Packet)
 	s.Require().NoError(err)
 
-	// Assert balances to ensure that the funds are still on the original sending chain
-	chainABalance, err := chainA.GetBalance(ctx, userA.FormattedAddress(), chainA.Config().Denom)
+	// Verify that the users funds have been returned to userA on chainA, and that all escrow balances are zero
+	userABalance, err = chainA.GetBalance(ctx, userA.FormattedAddress(), chainA.Config().Denom)
 	s.Require().NoError(err)
 
-	chainBBalance, err := chainB.GetBalance(ctx, userB.FormattedAddress(), ibcTokenB.IBCDenom())
+	userBBalance, err = chainB.GetBalance(ctx, userB.FormattedAddress(), ibcTokenB.IBCDenom())
 	s.Require().NoError(err)
 
-	chainCBalance, err := chainC.GetBalance(ctx, userC.FormattedAddress(), ibcTokenC.IBCDenom())
+	userCBalance, err := chainC.GetBalance(ctx, userC.FormattedAddress(), ibcTokenC.IBCDenom())
 	s.Require().NoError(err)
 
-	zeroBal := math.NewInt(0)
+	s.Require().Equal(testvalues.StartingTokenAmount, userABalance.Int64())
+	s.Require().Equal(zeroBal, userCBalance)
+	s.Require().Equal(zeroBal, userBBalance)
 
-	s.Require().Equal(testvalues.StartingTokenAmount, chainABalance.Int64())
-	s.Require().Equal(zeroBal, chainCBalance)
-	s.Require().Equal(zeroBal, chainBBalance)
-
-	escrowBalanceAB, err := chainA.GetBalance(ctx, escrowAddrAB.String(), chainA.Config().Denom)
+	escrowBalanceAB, err = chainA.GetBalance(ctx, escrowAddrAB.String(), chainA.Config().Denom)
 	s.Require().NoError(err)
 
-	escrowBalanceBC, err := chainB.GetBalance(ctx, escrowAddrBC.String(), ibcTokenB.IBCDenom())
+	escrowBalanceBC, err = chainB.GetBalance(ctx, escrowAddrBC.String(), ibcTokenB.IBCDenom())
 	s.Require().NoError(err)
 
 	s.Require().Equal(zeroBal, escrowBalanceAB)
@@ -160,7 +168,7 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	err = relayer.StartRelayer(ctx, s.GetRelayerExecReporter())
 	s.Require().NoError(err)
 
-	firstHopMetadata = &PacketMetadata{
+	bToCMetadata = &PacketMetadata{
 		Forward: &ForwardMetadata{
 			Receiver: userC.FormattedAddress(),
 			Channel:  chanBC.ChannelID,
@@ -168,38 +176,39 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 		},
 	}
 
-	memo, err = json.Marshal(firstHopMetadata)
+	memo, err = json.Marshal(bToCMetadata)
 	s.Require().NoError(err)
 
 	opts = ibc.TransferOptions{
 		Memo: string(memo),
 	}
 
-	aHeightAfterTimeout, err = chainA.Height(ctx)
+	aHeightBeforeTransfer, err := chainA.Height(ctx)
 	s.Require().NoError(err)
 
 	transferTx, err = chainA.SendIBCTransfer(ctx, chanAB.ChannelID, userA.KeyName(), walletAmount, opts)
 	s.Require().NoError(err)
 
-	_, err = testutil.PollForAck(ctx, chainA, aHeightAfterTimeout, aHeightAfterTimeout+30, transferTx.Packet)
+	// Verify that the ack has come all the way back to chainA (only happens after the entire packet lifecycle is complete)
+	_, err = testutil.PollForAck(ctx, chainA, aHeightBeforeTransfer, aHeightAfterTimeout+30, transferTx.Packet)
 	s.Require().NoError(err)
 
 	err = testutil.WaitForBlocks(ctx, 10, chainA)
 	s.Require().NoError(err)
 
-	// Assert balances are updated to reflect tokens now being on ChainD
-	chainABalance, err = chainA.GetBalance(ctx, userA.FormattedAddress(), chainA.Config().Denom)
+	// Verify that the users funds have been forwarded to userC on chainC, and that the escrow balances are correct
+	userABalance, err = chainA.GetBalance(ctx, userA.FormattedAddress(), chainA.Config().Denom)
 	s.Require().NoError(err)
 
-	chainBBalance, err = chainB.GetBalance(ctx, userB.FormattedAddress(), ibcTokenB.IBCDenom())
+	userBBalance, err = chainB.GetBalance(ctx, userB.FormattedAddress(), ibcTokenB.IBCDenom())
 	s.Require().NoError(err)
 
-	chainCBalance, err = chainC.GetBalance(ctx, userC.FormattedAddress(), ibcTokenC.IBCDenom())
+	userCBalance, err = chainC.GetBalance(ctx, userC.FormattedAddress(), ibcTokenC.IBCDenom())
 	s.Require().NoError(err)
 
-	s.Require().Equal(testvalues.StartingTokenAmount-transferAmount.Int64(), chainABalance.Int64())
-	s.Require().Equal(zeroBal, chainBBalance)
-	s.Require().Equal(transferAmount, chainCBalance)
+	s.Require().Equal(testvalues.StartingTokenAmount-transferAmount.Int64(), userABalance.Int64())
+	s.Require().Equal(zeroBal, userBBalance)
+	s.Require().Equal(transferAmount, userCBalance)
 
 	escrowBalanceAB, err = chainA.GetBalance(ctx, escrowAddrAB.String(), chainA.Config().Denom)
 	s.Require().NoError(err)
