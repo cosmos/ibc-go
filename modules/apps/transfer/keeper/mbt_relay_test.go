@@ -17,7 +17,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cometbft/cometbft/crypto"
+	"github.com/cometbft/cometbft/v2/crypto"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"

@@ -24,8 +24,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	cmttypes "github.com/cometbft/cometbft/types"
+	abci "github.com/cometbft/cometbft/v2/abci/types"
+	cmttypes "github.com/cometbft/cometbft/v2/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/keeper"
 	"github.com/cosmos/ibc-go/v10/testing/simapp"
@@ -128,7 +128,7 @@ func setupWithGenesisValSet(tb testing.TB, valSet *cmttypes.ValidatorSet, genAcc
 
 	// init chain will set the validator set and initialize the genesis accounts
 	_, err = app.InitChain(
-		&abci.RequestInitChain{
+		&abci.InitChainRequest{
 			ChainId:         chainID,
 			Validators:      []abci.ValidatorUpdate{},
 			AppStateBytes:   stateBytes,

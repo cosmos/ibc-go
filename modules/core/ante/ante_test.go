@@ -11,11 +11,11 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cometbft/cometbft/crypto/tmhash"
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	cmtprotoversion "github.com/cometbft/cometbft/proto/tendermint/version"
-	cmttypes "github.com/cometbft/cometbft/types"
-	cmtversion "github.com/cometbft/cometbft/version"
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v2"
+	cmtprotoversion "github.com/cometbft/cometbft/api/cometbft/version/v1"
+	"github.com/cometbft/cometbft/v2/crypto/tmhash"
+	cmttypes "github.com/cometbft/cometbft/v2/types"
+	cmtversion "github.com/cometbft/cometbft/v2/version"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"

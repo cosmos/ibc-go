@@ -2,8 +2,9 @@ package simapp
 
 import (
 	storetypes "cosmossdk.io/store/types"
-	circuittypes "cosmossdk.io/x/circuit/types"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
+
+	circuittypes "github.com/cosmos/cosmos-sdk/x/circuit/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/simapp/upgrades"
 )

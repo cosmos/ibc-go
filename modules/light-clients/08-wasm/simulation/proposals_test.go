@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtproto "github.com/cometbft/cometbft/api/cometbft/types/v2"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/simulation"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"

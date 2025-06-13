@@ -37,7 +37,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	cmtcfg "github.com/cometbft/cometbft/config"
+	cmtcfg "github.com/cometbft/cometbft/v2/config"
 
 	"github.com/cosmos/ibc-go/simapp"
 	"github.com/cosmos/ibc-go/simapp/params"

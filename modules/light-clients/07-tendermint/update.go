@@ -10,8 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cometbft/cometbft/light"
-	cmttypes "github.com/cometbft/cometbft/types"
+	"github.com/cometbft/cometbft/v2/light"
+	cmttypes "github.com/cometbft/cometbft/v2/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
