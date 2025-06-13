@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	proto "github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/gogoproto/proto"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -50,19 +50,19 @@ type IBCTestSuite struct {
 }
 
 // SetupTest creates a coordinator with 2 test chains.
-func (suite *IBCTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+func (s *IBCTestSuite) SetupTest() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
 
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 }
 
 func TestIBCTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(IBCTestSuite))
 }
 
-func (suite *IBCTestSuite) TestValidateGenesis() {
-	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.ProposedHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.ProposedHeader.Height-1)), suite.chainA.ProposedHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
+func (s *IBCTestSuite) TestValidateGenesis() {
+	header := s.chainA.CreateTMClientHeader(s.chainA.ChainID, s.chainA.ProposedHeader.Height, clienttypes.NewHeight(0, uint64(s.chainA.ProposedHeader.Height-1)), s.chainA.ProposedHeader.Time, s.chainA.Vals, s.chainA.Vals, s.chainA.Vals, s.chainA.Signers)
 
 	testCases := []struct {
 		name     string
@@ -80,7 +80,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 				ClientGenesis: clienttypes.NewGenesisState(
 					[]clienttypes.IdentifiedClientState{
 						clienttypes.NewIdentifiedClientState(
-							clientID, ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+							clientID, ibctm.NewClientState(s.chainA.ChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 						),
 					},
 					[]clienttypes.ClientConsensusStates{
@@ -186,7 +186,7 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 				ClientGenesis: clienttypes.NewGenesisState(
 					[]clienttypes.IdentifiedClientState{
 						clienttypes.NewIdentifiedClientState(
-							clientID, ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+							clientID, ibctm.NewClientState(s.chainA.ChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 						),
 					},
 					nil,
@@ -281,26 +281,25 @@ func (suite *IBCTestSuite) TestValidateGenesis() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		err := tc.genState.Validate()
 		if tc.expError == nil {
-			suite.Require().NoError(err, tc.name)
+			s.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
-			suite.Require().Contains(err.Error(), tc.expError.Error())
+			s.Require().Error(err, tc.name)
+			s.Require().Contains(err.Error(), tc.expError.Error())
 		}
 	}
 }
 
-func (suite *IBCTestSuite) TestInitGenesis() {
-	header := suite.chainA.CreateTMClientHeader(suite.chainA.ChainID, suite.chainA.ProposedHeader.Height, clienttypes.NewHeight(0, uint64(suite.chainA.ProposedHeader.Height-1)), suite.chainA.ProposedHeader.Time, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Vals, suite.chainA.Signers)
+func (s *IBCTestSuite) TestInitGenesis() {
+	header := s.chainA.CreateTMClientHeader(s.chainA.ChainID, s.chainA.ProposedHeader.Height, clienttypes.NewHeight(0, uint64(s.chainA.ProposedHeader.Height-1)), s.chainA.ProposedHeader.Time, s.chainA.Vals, s.chainA.Vals, s.chainA.Vals, s.chainA.Signers)
 
 	packet := channelv2types.NewPacket(
 		1, "07-tendermint-0", "07-tendermint-1",
-		uint64(suite.chainA.GetContext().BlockTime().Unix()), mockv2.NewMockPayload("src", "dst"),
+		uint64(s.chainA.GetContext().BlockTime().Unix()), mockv2.NewMockPayload("src", "dst"),
 	)
 	bz, err := proto.Marshal(&packet)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	testCases := []struct {
 		name     string
@@ -316,7 +315,7 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 				ClientGenesis: clienttypes.NewGenesisState(
 					[]clienttypes.IdentifiedClientState{
 						clienttypes.NewIdentifiedClientState(
-							clientID, ibctm.NewClientState(suite.chainA.ChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+							clientID, ibctm.NewClientState(s.chainA.ChainID, ibctm.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 						),
 					},
 					[]clienttypes.ClientConsensusStates{
@@ -418,17 +417,15 @@ func (suite *IBCTestSuite) TestInitGenesis() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
+		app := simapp.Setup(s.T(), false)
 
-		app := simapp.Setup(suite.T(), false)
-
-		suite.NotPanics(func() {
+		s.Require().NotPanics(func() {
 			ibc.InitGenesis(app.NewContext(false), *app.IBCKeeper, tc.genState)
 		})
 	}
 }
 
-func (suite *IBCTestSuite) TestExportGenesis() {
+func (s *IBCTestSuite) TestExportGenesis() {
 	testCases := []struct {
 		msg      string
 		malleate func()
@@ -437,39 +434,39 @@ func (suite *IBCTestSuite) TestExportGenesis() {
 			"success",
 			func() {
 				// creates clients
-				ibctesting.NewPath(suite.chainA, suite.chainB).Setup()
+				ibctesting.NewPath(s.chainA, s.chainB).Setup()
 				// create extra clients
-				ibctesting.NewPath(suite.chainA, suite.chainB).SetupClients()
-				ibctesting.NewPath(suite.chainA, suite.chainB).SetupClients()
+				ibctesting.NewPath(s.chainA, s.chainB).SetupClients()
+				ibctesting.NewPath(s.chainA, s.chainB).SetupClients()
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest()
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest()
 
 			tc.malleate()
 
 			var gs *types.GenesisState
-			suite.NotPanics(func() {
-				gs = ibc.ExportGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper())
+			s.Require().NotPanics(func() {
+				gs = ibc.ExportGenesis(s.chainA.GetContext(), *s.chainA.App.GetIBCKeeper())
 			})
 
 			// init genesis based on export
-			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
+			s.Require().NotPanics(func() {
+				ibc.InitGenesis(s.chainA.GetContext(), *s.chainA.App.GetIBCKeeper(), gs)
 			})
 
-			suite.NotPanics(func() {
-				cdc := codec.NewProtoCodec(suite.chainA.GetSimApp().InterfaceRegistry())
+			s.Require().NotPanics(func() {
+				cdc := codec.NewProtoCodec(s.chainA.GetSimApp().InterfaceRegistry())
 				genState := cdc.MustMarshalJSON(gs)
 				cdc.MustUnmarshalJSON(genState, gs)
 			})
 
 			// init genesis based on marshal and unmarshal
-			suite.NotPanics(func() {
-				ibc.InitGenesis(suite.chainA.GetContext(), *suite.chainA.App.GetIBCKeeper(), gs)
+			s.Require().NotPanics(func() {
+				ibc.InitGenesis(s.chainA.GetContext(), *s.chainA.App.GetIBCKeeper(), gs)
 			})
 		})
 	}

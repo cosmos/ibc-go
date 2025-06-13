@@ -39,7 +39,7 @@ func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, ck 
 }
 
 // Logger returns a module-specific logger.
-func (Keeper) Logger(ctx sdk.Context) log.Logger {
+func (*Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 
@@ -190,7 +190,8 @@ func (k *Keeper) IterateConnections(ctx sdk.Context, cb func(types.IdentifiedCon
 }
 
 // GetAllConnections returns all stored ConnectionEnd objects.
-func (k *Keeper) GetAllConnections(ctx sdk.Context) (connections []types.IdentifiedConnection) {
+func (k *Keeper) GetAllConnections(ctx sdk.Context) []types.IdentifiedConnection {
+	var connections []types.IdentifiedConnection
 	k.IterateConnections(ctx, func(connection types.IdentifiedConnection) bool {
 		connections = append(connections, connection)
 		return false

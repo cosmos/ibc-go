@@ -7,7 +7,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *TypesTestSuite) TestValidateBasic() {
+func (s *TypesTestSuite) TestValidateBasic() {
 	testCases := []struct {
 		name       string
 		packetData types.InterchainAccountPacketData
@@ -69,22 +69,22 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
 			err := tc.packetData.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestGetPacketSender() {
+func (s *TypesTestSuite) TestGetPacketSender() {
 	testCases := []struct {
 		name      string
 		srcPortID string
@@ -108,13 +108,12 @@ func (suite *TypesTestSuite) TestGetPacketSender() {
 	}
 
 	for _, tc := range testCases {
-
 		packetData := types.InterchainAccountPacketData{}
-		suite.Require().Equal(tc.expSender, packetData.GetPacketSender(tc.srcPortID))
+		s.Require().Equal(tc.expSender, packetData.GetPacketSender(tc.srcPortID))
 	}
 }
 
-func (suite *TypesTestSuite) TestPacketDataProvider() {
+func (s *TypesTestSuite) TestPacketDataProvider() {
 	expCallbackAddr := ibctesting.TestAccAddress
 
 	testCases := []struct {
@@ -175,13 +174,12 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 	}
 
 	for _, tc := range testCases {
-
 		customData := tc.packetData.GetCustomPacketData("src_callback")
-		suite.Require().Equal(tc.expCustomData, customData)
+		s.Require().Equal(tc.expCustomData, customData)
 	}
 }
 
-func (suite *TypesTestSuite) TestPacketDataUnmarshalerInterface() {
+func (s *TypesTestSuite) TestPacketDataUnmarshalerInterface() {
 	expPacketData := types.InterchainAccountPacketData{
 		Type: types.EXECUTE_TX,
 		Data: []byte("data"),
@@ -190,14 +188,14 @@ func (suite *TypesTestSuite) TestPacketDataUnmarshalerInterface() {
 
 	var packetData types.InterchainAccountPacketData
 	err := packetData.UnmarshalJSON(expPacketData.GetBytes())
-	suite.Require().NoError(err)
-	suite.Require().Equal(expPacketData, packetData)
+	s.Require().NoError(err)
+	s.Require().Equal(expPacketData, packetData)
 
 	// test invalid packet data
 	invalidPacketDataBytes := []byte("invalid packet data")
 
 	var invalidPacketData types.InterchainAccountPacketData
 	err = packetData.UnmarshalJSON(invalidPacketDataBytes)
-	suite.Require().Error(err)
-	suite.Require().Equal(types.InterchainAccountPacketData{}, invalidPacketData)
+	s.Require().Error(err)
+	s.Require().Equal(types.InterchainAccountPacketData{}, invalidPacketData)
 }

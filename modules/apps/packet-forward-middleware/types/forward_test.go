@@ -18,7 +18,7 @@ func TestForwardMetadataUnmarshalStringNext(t *testing.T) {
 
 	nextBz, err := json.Marshal(packetMetadata.Forward.Next)
 	require.NoError(t, err)
-	require.Equal(t, `{"forward":{"receiver":"noble1l505zhahp24v5jsmps9vs5asah759fdce06sfp","port":"transfer","channel":"channel-0","timeout":0}}`, string(nextBz))
+	require.JSONEq(t, `{"forward":{"receiver":"noble1l505zhahp24v5jsmps9vs5asah759fdce06sfp","port":"transfer","channel":"channel-0","timeout":0}}`, string(nextBz))
 }
 
 func TestForwardMetadataUnmarshalJSONNext(t *testing.T) {
@@ -30,7 +30,7 @@ func TestForwardMetadataUnmarshalJSONNext(t *testing.T) {
 
 	nextBz, err := json.Marshal(packetMetadata.Forward.Next)
 	require.NoError(t, err)
-	require.Equal(t, `{"forward":{"receiver":"noble1l505zhahp24v5jsmps9vs5asah759fdce06sfp","port":"transfer","channel":"channel-0","timeout":0}}`, string(nextBz))
+	require.JSONEq(t, `{"forward":{"receiver":"noble1l505zhahp24v5jsmps9vs5asah759fdce06sfp","port":"transfer","channel":"channel-0","timeout":0}}`, string(nextBz))
 }
 
 func TestTimeoutUnmarshalString(t *testing.T) {
