@@ -247,8 +247,9 @@ func (im IBCMiddleware) receiveFunds(ctx sdk.Context, channelVersion string, pac
 
 	overrideDataBz := transfertypes.ModuleCdc.MustMarshalJSON(&data)
 
-	packet.Data = overrideDataBz // Override data.
-	ack := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
+	overridePacket := packet
+	overridePacket.Data = overrideDataBz // Override data.
+	ack := im.app.OnRecvPacket(ctx, channelVersion, overridePacket, relayer)
 	if ack == nil {
 		return errors.New("ack is nil")
 	}
