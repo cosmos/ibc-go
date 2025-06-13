@@ -245,10 +245,7 @@ func (im IBCMiddleware) receiveFunds(ctx sdk.Context, channelVersion string, pac
 	data.Receiver = overrideReceiver
 	data.Memo = "" // Memo explicitly emptied.
 
-	overrideDataBz, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
+	overrideDataBz := transfertypes.ModuleCdc.MustMarshalJSON(&data)
 
 	packet.Data = overrideDataBz // Override data.
 	ack := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
