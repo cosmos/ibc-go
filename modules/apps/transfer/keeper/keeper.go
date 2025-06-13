@@ -43,13 +43,12 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeService corestore.KVStoreService,
-	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	msgRouter types.MessageRouter,
 	authKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	authority string,
-) Keeper {
+) *Keeper {
 	// ensure ibc transfer module account is set
 	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(errors.New("the IBC transfer module account has not been set"))
@@ -59,10 +58,10 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	return Keeper{
+	return &Keeper{
 		cdc:           cdc,
 		storeService:  storeService,
-		ics4Wrapper:   ics4Wrapper,
+		ics4Wrapper:   channelKeeper, // default ICS4Wrapper is the channel keeper
 		channelKeeper: channelKeeper,
 		msgRouter:     msgRouter,
 		AuthKeeper:    authKeeper,

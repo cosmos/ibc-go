@@ -17,7 +17,7 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
+	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -59,7 +59,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().MsgServiceRouter(),
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().BankKeeper,
@@ -71,7 +70,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().MsgServiceRouter(),
 				authkeeper.AccountKeeper{}, // empty account keeper
 				suite.chainA.GetSimApp().BankKeeper,
@@ -82,7 +80,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().MsgServiceRouter(),
 				suite.chainA.GetSimApp().AccountKeeper,
@@ -338,9 +335,9 @@ func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
 	// test if the ics4 wrapper is the pfm keeper initially
 	ics4Wrapper := suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
 
-	_, isPFMKeeper := ics4Wrapper.(*packetforwardkeeper.Keeper)
+	_, isPFMKeeper := ics4Wrapper.(*packetforward.IBCMiddleware)
 	suite.Require().True(isPFMKeeper)
-	suite.Require().IsType((*packetforwardkeeper.Keeper)(nil), ics4Wrapper)
+	suite.Require().IsType((*packetforward.IBCMiddleware)(nil), ics4Wrapper)
 
 	// set the ics4 wrapper to the channel keeper
 	suite.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(nil)
