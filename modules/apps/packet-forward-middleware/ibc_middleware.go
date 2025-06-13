@@ -242,10 +242,11 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 // receiveFunds receives funds from the packet into the override receiver
 // address and returns an error if the funds cannot be received.
 func (im IBCMiddleware) receiveFunds(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData, overrideReceiver string, relayer sdk.AccAddress) error {
-	data.Receiver = overrideReceiver
-	data.Memo = "" // Memo explicitly emptied.
+	overrideData := data
+	overrideData.Receiver = overrideReceiver
+	overrideData.Memo = "" // Memo explicitly emptied.
 
-	overrideDataBz := transfertypes.ModuleCdc.MustMarshalJSON(&data)
+	overrideDataBz := transfertypes.ModuleCdc.MustMarshalJSON(&overrideData)
 
 	overridePacket := packet
 	overridePacket.Data = overrideDataBz // Override data.
