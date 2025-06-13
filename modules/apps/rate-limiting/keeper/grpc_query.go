@@ -58,7 +58,7 @@ func (k Keeper) RateLimitsByChainID(c context.Context, req *types.QueryRateLimit
 			var ok bool
 			clientState, ok = k.clientKeeper.GetClientState(ctx, rateLimit.Path.ChannelOrClientId)
 			if !ok {
-				return &types.QueryRateLimitsByChainIDResponse{}, errorsmod.Wrapf(types.ErrInvalidClientState, "Unable to fetch client state from channel or client Id")
+				return &types.QueryRateLimitsByChainIDResponse{}, errorsmod.Wrapf(types.ErrInvalidClientState, "Unable to fetch client state from channel or client Id %s", rateLimit.Path.ChannelOrClientId)
 			}
 		}
 
