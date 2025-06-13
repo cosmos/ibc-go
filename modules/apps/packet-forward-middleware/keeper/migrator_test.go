@@ -19,14 +19,14 @@ func (s *KeeperTestSuite) TestMigrator() {
 		accA, accB, accC, port string
 		firstHopMetadata       *pfmtypes.PacketMetadata
 		err                    error
-		nxtBz                  []byte
+		nextBz                 []byte
 		pathAB, pathBC         *ibctesting.Path
 	)
 
 	tests := []struct {
-		name       string
-		malleate   func()
-		shuldEmpty bool
+		name        string
+		malleate    func()
+		shouldEmpty bool
 	}{
 		{
 			name: "A -> B -> C. A and B escrowed",
@@ -40,9 +40,10 @@ func (s *KeeperTestSuite) TestMigrator() {
 						Retries:  &retries,
 					},
 				}
-				nxtBz, err = json.Marshal(firstHopMetadata)
+				nextBz, err = json.Marshal(firstHopMetadata)
 				s.Require().NoError(err)
 			},
+			shouldEmpty: false,
 		},
 		{
 			name: "A -> B -> A. Everything unescrowed",
@@ -56,10 +57,10 @@ func (s *KeeperTestSuite) TestMigrator() {
 						Retries:  &retries,
 					},
 				}
-				nxtBz, err = json.Marshal(firstHopMetadata)
+				nextBz, err = json.Marshal(firstHopMetadata)
 				s.Require().NoError(err)
 			},
-			shuldEmpty: true,
+			shouldEmpty: true,
 		},
 	}
 	for _, tc := range tests {
@@ -90,7 +91,7 @@ func (s *KeeperTestSuite) TestMigrator() {
 
 			tc.malleate() // Hammer time!!!
 
-			transferMsg := transfertypes.NewMsgTransfer(port, pathAB.EndpointA.ChannelID, sendCoin, accA, accB, s.chainB.GetTimeoutHeight(), 0, string(nxtBz))
+			transferMsg := transfertypes.NewMsgTransfer(port, pathAB.EndpointA.ChannelID, sendCoin, accA, accB, s.chainB.GetTimeoutHeight(), 0, string(nextBz))
 			result, err := s.chainA.SendMsgs(transferMsg)
 			s.Require().NoError(err)
 
@@ -113,7 +114,7 @@ func (s *KeeperTestSuite) TestMigrator() {
 			s.Require().Equal(randSendAmt, totalEscrowA[0].Amount.Int64())
 
 			totalEscrowB, _ = v3.TotalEscrow(ctxB, s.chainB.GetSimApp().BankKeeper, s.chainB.App.GetIBCKeeper().ChannelKeeper, port)
-			if tc.shuldEmpty {
+			if tc.shouldEmpty {
 				s.Require().Empty(totalEscrowB)
 			} else {
 				s.Require().Equal(randSendAmt, totalEscrowB[0].Amount.Int64())
@@ -121,7 +122,7 @@ func (s *KeeperTestSuite) TestMigrator() {
 
 			// Artificially set escrow balance to 0. So that we can show that after the migration, balances are restored.
 			transferKeeperA.SetTotalEscrowForDenom(ctxA, sdk.NewInt64Coin(totalEscrowA[0].Denom, 0))
-			if !tc.shuldEmpty {
+			if !tc.shouldEmpty {
 				transferKeeperB.SetTotalEscrowForDenom(ctxB, sdk.NewInt64Coin(totalEscrowB[0].Denom, 0))
 			}
 
@@ -137,7 +138,7 @@ func (s *KeeperTestSuite) TestMigrator() {
 			denomEscrowA := transferKeeperA.GetTotalEscrowForDenom(ctxA, totalEscrowA[0].Denom)
 			s.Require().Equal(randSendAmt, denomEscrowA.Amount.Int64())
 
-			if !tc.shuldEmpty {
+			if !tc.shouldEmpty {
 				denomEscrowB := transferKeeperB.GetTotalEscrowForDenom(ctxB, totalEscrowB[0].Denom)
 				s.Require().Equal(randSendAmt, denomEscrowB.Amount.Int64())
 			}
