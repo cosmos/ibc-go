@@ -10,12 +10,12 @@ import (
 	"strings"
 	"sync"
 
+	interchaintest "github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/chain/cosmos"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	"github.com/cosmos/interchaintest/v10/testreporter"
+	test "github.com/cosmos/interchaintest/v10/testutil"
 	dockerclient "github.com/docker/docker/client"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
@@ -128,14 +128,14 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 	}
 
 	// This env variables are set by the interchain test code:
-	// https://github.com/strangelove-ventures/interchaintest/blob/7aa0fd6487f76238ab44231fdaebc34627bc5990/chain/cosmos/cosmos_chain.go#L1007-L1008
+	// https://github.com/cosmos/interchaintest/blob/7aa0fd6487f76238ab44231fdaebc34627bc5990/chain/cosmos/cosmos_chain.go#L1007-L1008
 	t.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
 
 	chainName := tc.GetGenesisChainName()
 	chainIdx, err := tc.GetChainIndex(chainName)
 	s.Require().NoError(err)
 
-	// Interchaintest adds a suffix (https://github.com/strangelove-ventures/interchaintest/blob/a3f4c7bcccf1925ffa6dc793a298f15497919a38/chainspec.go#L125)
+	// Interchaintest adds a suffix (https://github.com/cosmos/interchaintest/blob/a3f4c7bcccf1925ffa6dc793a298f15497919a38/chainspec.go#L125)
 	// to the chain name, so we need to do the same.
 	genesisChainName := fmt.Sprintf("%s-%d", chainName, chainIdx+1)
 	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
@@ -143,7 +143,7 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 
 // initializeRelayerPool pre-loads the relayer pool with n relayers.
 // this is a workaround due to the restriction on relayer creation during the test
-// ref: https://github.com/strangelove-ventures/interchaintest/issues/1153
+// ref: https://github.com/cosmos/interchaintest/issues/1153
 // if the above issue is resolved, it should be possible to lazily create relayers in each test.
 func (s *E2ETestSuite) initializeRelayerPool(n int) []ibc.Relayer {
 	var relayers []ibc.Relayer
