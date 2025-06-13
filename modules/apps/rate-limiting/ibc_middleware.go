@@ -1,7 +1,6 @@
 package ratelimiting
 
 import (
-	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -112,7 +111,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 // If the packet is allowed, it then calls the underlying ICS4Wrapper SendPacket.
 func (im IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
 	if im.channelKeeper == nil {
-		return 0, errors.New("channel keeper is not set on IBCMiddleware")
+		return 0, errorsmod.Wrap(channeltypes.ErrKeeperNotSet, "channel keeper is not set on IBCMiddleware")
 	}
 
 	// Get the next sequence number from the channel keeper.
