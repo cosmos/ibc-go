@@ -126,9 +126,6 @@ func ParseDenomFromRecvPacket(packet channeltypes.Packet, packetData transfertyp
 	hop := transfertypes.NewHop(sourcePort, sourceChannel)
 	sourcePrefix := hop.String() + "/"
 
-	// TODO: Refactor.
-	// denomTrace.Path() will not be "". So we can calculate the updated prefix in the if block
-	// and the denomTrace and denom finding can be moved out of the conditional block.
 	if strings.HasPrefix(packetData.Denom, sourcePrefix) {
 		// Remove the source prefix (e.g. transfer/channel-X/transfer/channel-Z/ujuno -> transfer/channel-Z/ujuno)
 		unprefixedDenom := packetData.Denom[len(sourcePrefix):]
