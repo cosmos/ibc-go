@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iancoleman/orderedmap"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
@@ -74,9 +75,9 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
 	s.StartRelayer(relayer, testName)
 
-	chanAB := s.GetChainAToChainBChannel(testName)
-	chanBC := s.GetChainBToChainCChannel(testName)
-	chanCD := s.GetChainCToChainDChannel(testName)
+	chanAB := s.GetChannelBetweenChains(testName, chainA, chainB)
+	chanBC := s.GetChannelBetweenChains(testName, chainB, chainC)
+	chanCD := s.GetChannelBetweenChains(testName, chainC, chainB)
 
 	ab, err := query.Channel(ctx, chainA, transfertypes.PortID, chanAB.ChannelID)
 	s.Require().NoError(err)
@@ -132,9 +133,7 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 		}
 		nextBz, err := json.Marshal(secondHopMetadata)
 		s.Require().NoError(err)
-
-		var next *pfmtypes.JSONObject
-		json.Unmarshal(nextBz, next)
+		next := pfmtypes.NewJSONObject(false, nextBz, *orderedmap.New())
 
 		firstHopMetadata := &pfmtypes.PacketMetadata{
 			Forward: &pfmtypes.ForwardMetadata{

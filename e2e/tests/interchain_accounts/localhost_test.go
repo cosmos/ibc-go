@@ -50,7 +50,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 
 	chains := s.GetAllChains()
 	chainA := chains[0]
@@ -207,7 +207,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 
 	chains := s.GetAllChains()
 	chainA := chains[0]

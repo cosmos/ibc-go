@@ -41,12 +41,11 @@ func (s *TransferTestSuiteSendReceive) TestReceiveEnabledParam() {
 
 	testName := t.Name()
 	// Note: explicitly not using t.Parallel() in this test as it makes chain wide changes
-	s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
 	relayer := s.GetRelayerForTest(testName)
-	channelA := s.GetChainAToChainBChannel(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	chainAVersion := chainA.Config().Images[0].Version
 

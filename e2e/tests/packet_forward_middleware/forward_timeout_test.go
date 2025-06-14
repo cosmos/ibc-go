@@ -48,15 +48,15 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 
 	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
 
-	chanAB := s.GetChainAToChainBChannel(testName)
-	chanBC := s.GetChainBToChainCChannel(testName)
+	chanAB := s.GetChannelBetweenChains(testName, chainA, chainB)
+	chanBC := s.GetChannelBetweenChains(testName, chainB, chainC)
 
 	escrowAddrAB := transfertypes.GetEscrowAddress(chanAB.PortID, chanAB.ChannelID)
 	escrowAddrBC := transfertypes.GetEscrowAddress(chanBC.PortID, chanBC.ChannelID)
 
 	denomA := chainA.Config().Denom
-	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.PortID, chanAB.ChannelID)
-	ibcTokenC := testsuite.GetIBCToken(ibcTokenB.Path(), chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
+	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
+	ibcTokenC := testsuite.GetIBCToken(ibcTokenB.Path(), chanBC.Counterparty.PortID, chanBC.Counterparty.ChannelID)
 
 	zeroBal := math.NewInt(0)
 
@@ -189,6 +189,8 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 
 	transferTx, err = chainA.SendIBCTransfer(ctx, chanAB.ChannelID, userA.KeyName(), walletAmount, opts)
 	s.Require().NoError(err)
+
+	s.FlushPackets(ctx, relayer, []ibc.Chain{chainA, chainB, chainC})
 
 	// Verify that the ack has come all the way back to chainA (only happens after the entire packet lifecycle is complete)
 	_, err = testutil.PollForAck(ctx, chainA, aHeightBeforeTransfer, aHeightAfterTimeout+30, transferTx.Packet)

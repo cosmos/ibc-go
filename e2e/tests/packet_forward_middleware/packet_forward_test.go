@@ -5,11 +5,9 @@ package pfm
 import (
 	"context"
 	"encoding/json"
-	"strings"
 	"testing"
-	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/iancoleman/orderedmap"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -18,8 +16,6 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	pfmtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 type PFMTestSuite struct {
@@ -50,9 +46,9 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
 	s.StartRelayer(relayer, testName)
 
-	chanAB := s.GetChainAToChainBChannel(testName)
-	chanBC := s.GetChainBToChainCChannel(testName)
-	chanCD := s.GetChainCToChainDChannel(testName)
+	chanAB := s.GetChannelBetweenChains(testName, chainA, chainB)
+	chanBC := s.GetChannelBetweenChains(testName, chainB, chainC)
+	chanCD := s.GetChannelBetweenChains(testName, chainC, chainD)
 
 	ab, err := query.Channel(ctx, chainA, transfertypes.PortID, chanAB.ChannelID)
 	s.Require().NoError(err)
@@ -71,8 +67,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	escrowAddrCD := transfertypes.GetEscrowAddress(chanCD.PortID, chanCD.ChannelID)
 
 	denomA := chainA.Config().Denom
-	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.PortID, chanAB.ChannelID)
-	ibcTokenC := testsuite.GetIBCToken(ibcTokenB.Path(), chanAB.Counterparty.PortID, chanCD.Counterparty.ChannelID)
+	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
+	ibcTokenC := testsuite.GetIBCToken(ibcTokenB.Path(), chanBC.Counterparty.PortID, chanBC.Counterparty.ChannelID)
 	ibcTokenD := testsuite.GetIBCToken(ibcTokenC.Path(), chanCD.Counterparty.PortID, chanCD.Counterparty.ChannelID)
 
 	t.Run("Multihop forward [A -> B -> C -> D]", func(_ *testing.T) {
@@ -89,9 +85,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		}
 		nextBz, err := json.Marshal(secondHopMetadata)
 		s.Require().NoError(err)
+		next := pfmtypes.NewJSONObject(false, nextBz, *orderedmap.New())
 
-		var next *pfmtypes.JSONObject
-		json.Unmarshal(nextBz, next)
 		firstHopMetadata := &pfmtypes.PacketMetadata{
 			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userC.FormattedAddress(),
@@ -104,18 +99,10 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		memo, err := json.Marshal(firstHopMetadata)
 		s.Require().NoError(err)
 
-		bHeight, err := chainB.Height(ctx)
-		s.Require().NoError(err)
-
 		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
 		s.AssertTxSuccess(txResp)
 
-		packet, err := ibctesting.ParseV1PacketFromEvents(txResp.Events)
-		s.Require().NoError(err)
-		s.Require().NotNil(packet)
-
-		_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainB.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, bHeight, bHeight+40, nil)
-		s.Require().NoError(err)
+		s.FlushPackets(ctx, relayer, []ibc.Chain{chainA, chainB, chainC, chainD})
 
 		actualBalance, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)
@@ -125,15 +112,6 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		escrowBalAB, err := query.Balance(ctx, chainA, escrowAddrAB.String(), denomA)
 		s.Require().NoError(err)
 		s.Require().Equal(testvalues.IBCTransferAmount, escrowBalAB.Int64())
-
-		s.Require().Eventually(func() bool {
-			_, err := query.GRPCQuery[chantypes.QueryPacketCommitmentResponse](ctx, chainA, &chantypes.QueryPacketCommitmentRequest{
-				PortId:    chanAB.PortID,
-				ChannelId: chanAB.ChannelID,
-				Sequence:  packet.Sequence,
-			})
-			return err != nil && strings.Contains(err.Error(), "packet commitment hash not found")
-		}, time.Second*70, time.Second)
 
 		versionB := chainB.Config().Images[0].Version
 		if testvalues.TokenMetadataFeatureReleases.IsSupported(versionB) {
@@ -163,9 +141,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		}
 		nextBz, err := json.Marshal(secondHopMetadata)
 		s.Require().NoError(err)
-
-		var next *pfmtypes.JSONObject
-		json.Unmarshal(nextBz, next)
+		next := pfmtypes.NewJSONObject(false, nextBz, *orderedmap.New())
 
 		firstHopMetadata := &pfmtypes.PacketMetadata{
 			Forward: &pfmtypes.ForwardMetadata{
@@ -179,27 +155,11 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		memo, err := json.Marshal(firstHopMetadata)
 		s.Require().NoError(err)
 
-		cHeight, err := chainC.Height(ctx)
-		s.Require().NoError(err)
-
 		txResp := s.Transfer(ctx, chainD, userD, chanCD.Counterparty.PortID, chanCD.Counterparty.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userD.FormattedAddress(), userC.FormattedAddress(), s.GetTimeoutHeight(ctx, chainD), 0, string(memo))
 		s.AssertTxSuccess(txResp)
 
-		packet, err := ibctesting.ParseV1PacketFromEvents(txResp.Events)
-		s.Require().NoError(err)
-		s.Require().NotNil(packet)
-
-		_, err = cosmos.PollForMessage[*chantypes.MsgRecvPacket](ctx, chainC.(*cosmos.CosmosChain), cosmos.DefaultEncoding().InterfaceRegistry, cHeight, cHeight+40, nil)
-		s.Require().NoError(err)
-
-		s.Require().Eventually(func() bool {
-			_, err := query.GRPCQuery[chantypes.QueryPacketCommitmentResponse](ctx, chainD, &chantypes.QueryPacketCommitmentRequest{
-				PortId:    chanCD.Counterparty.PortID,
-				ChannelId: chanCD.Counterparty.ChannelID,
-				Sequence:  packet.Sequence,
-			})
-			return err != nil && strings.Contains(err.Error(), "packet commitment hash not found")
-		}, time.Second*70, time.Second)
+		// Flush the packet all the way back to Chain A and then the acknowledgement back to Chain D
+		s.FlushPackets(ctx, relayer, []ibc.Chain{chainA, chainB, chainC, chainD})
 
 		// All escrow accounts have been cleared
 		escrowBalAB, err := query.Balance(ctx, chainA, escrowAddrAB.String(), denomA)
@@ -235,8 +195,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		nextBz, err := json.Marshal(secondHopMetadata)
 		s.Require().NoError(err)
 
-		var next *pfmtypes.JSONObject
-		json.Unmarshal(nextBz, next)
+		next := pfmtypes.NewJSONObject(false, nextBz, *orderedmap.New())
 
 		firstHopMetadata := &pfmtypes.PacketMetadata{
 			Forward: &pfmtypes.ForwardMetadata{
@@ -253,8 +212,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
 		s.AssertTxFailure(txResp, transfertypes.ErrDenomNotFound)
 
-		_, err = ibctesting.ParseV1PacketFromEvents(txResp.Events)
-		s.Require().ErrorContains(err, "acknowledgement event attribute not found")
+		// Flush the packet all the way back to Chain D and then the acknowledgement back to Chain A
+		s.FlushPackets(ctx, relayer, []ibc.Chain{chainA, chainB, chainC, chainD})
 
 		// C -> D should not happen.
 		// Refunded UserA on chain A.
@@ -289,6 +248,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		txResp = s.Transfer(ctx, chainB, userB, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID, testvalues.DefaultTransferAmount(denomB), userB.FormattedAddress(), userA.FormattedAddress(), s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(txResp)
 
+		s.FlushPackets(ctx, relayer, []ibc.Chain{chainB, chainA})
+
 		escrowBalBC, err = query.Balance(ctx, chainB, escrowAddrCD.String(), denomB)
 		s.Require().NoError(err)
 		s.Require().Equal(escrowBalBC.Int64(), testvalues.IBCTransferAmount)
@@ -300,6 +261,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		// Proof that unwinding happens.
 		txResp = s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcTokenA.IBCDenom()), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(txResp)
+
+		s.FlushPackets(ctx, relayer, []ibc.Chain{chainA, chainB})
 
 		// Escrow account is cleared on chain B
 		escrowBalBC, err = query.Balance(ctx, chainB, escrowAddrCD.String(), denomB)
@@ -332,6 +295,9 @@ func (s *PFMTestSuite) TestForwardPacket() {
 
 		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
 		s.AssertTxSuccess(txResp)
+
+		s.FlushPackets(ctx, relayer, []ibc.Chain{chainA, chainB})
+		s.FlushPackets(ctx, relayer, []ibc.Chain{chainB, chainA})
 
 		balanceAIntAfter, err := s.GetChainANativeBalance(ctx, userA)
 		s.Require().NoError(err)

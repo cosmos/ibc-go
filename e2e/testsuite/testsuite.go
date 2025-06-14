@@ -2,6 +2,7 @@ package testsuite
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -14,6 +15,7 @@ import (
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/relayer/hermes"
 	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -65,7 +67,7 @@ type E2ETestSuite struct {
 	testSuiteName       string
 	testPathsByTestName map[string][]string
 	testPathsByChains   map[ibc.Chain]map[ibc.Chain]string
-	channelsByChain     map[string]map[ibc.Chain][]ibc.ChannelOutput
+	channelByChains     map[string]map[ibc.Chain]map[ibc.Chain]ibc.ChannelOutput
 
 	// channelLock ensures concurrent tests are not creating and accessing channels as the same time.
 	channelLock sync.Mutex
@@ -85,7 +87,7 @@ func (s *E2ETestSuite) initState() {
 	s.proposalIDs = map[string]uint64{}
 	s.testPathsByTestName = make(map[string][]string)
 	s.testPathsByChains = make(map[ibc.Chain]map[ibc.Chain]string)
-	s.channelsByChain = make(map[string]map[ibc.Chain][]ibc.ChannelOutput)
+	s.channelByChains = make(map[string]map[ibc.Chain]map[ibc.Chain]ibc.ChannelOutput)
 	s.relayerPool = []ibc.Relayer{}
 	s.testRelayerMap = make(map[string]ibc.Relayer)
 	s.relayerWallets = make(relayer.Map)
@@ -199,20 +201,10 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, chainCount int, channelO
 	}
 }
 
-// CreateDefaultPaths creates a path between the chains using the default client and channel options.
-// this should be called as the setup function in most tests if no additional options are required.
-func (s *E2ETestSuite) CreateDefaultPaths(testName string) ibc.Relayer {
-	return s.CreatePaths(ibc.DefaultClientOpts(), DefaultChannelOpts(s.GetAllChains()), testName)
-}
-
 // CreatePaths creates paths between the chains using the provided client and channel options.
 // The paths are created such that ChainA is connected to ChainB, ChainB is connected to ChainC etc.
 func (s *E2ETestSuite) CreatePaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) ibc.Relayer {
 	s.T().Logf("Setting up path for: %s", testName)
-
-	if s.channelsByChain[testName] == nil {
-		s.channelsByChain[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
-	}
 
 	r := s.GetRelayerForTest(testName)
 
@@ -255,13 +247,7 @@ func (s *E2ETestSuite) CreatePath(
 	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
 	s.Require().NoError(err)
 
-	s.createChannelWithLock(ctx, r, pathName, testName, channelOpts, chainA, chainB)
-
-	aChannels := s.channelsByChain[testName][chainA]
-	bChannels := s.channelsByChain[testName][chainB]
-
-	aChannel := aChannels[len(aChannels)-1]
-	bChannel := bChannels[len(bChannels)-1]
+	aChannel, bChannel := s.createChannelWithLock(ctx, r, pathName, testName, channelOpts, chainA, chainB)
 
 	if s.testPathsByChains[chainA] == nil {
 		s.testPathsByChains[chainA] = make(map[ibc.Chain]string)
@@ -277,7 +263,7 @@ func (s *E2ETestSuite) CreatePath(
 
 // createChannelWithLock creates a channel between the two provided chains for the given test name. This applies a lock
 // to ensure that the channels that are created are correctly mapped to the test that created them.
-func (s *E2ETestSuite) createChannelWithLock(ctx context.Context, r ibc.Relayer, pathName, testName string, channelOpts ibc.CreateChannelOptions, chainA, chainB ibc.Chain) {
+func (s *E2ETestSuite) createChannelWithLock(ctx context.Context, r ibc.Relayer, pathName, testName string, channelOpts ibc.CreateChannelOptions, chainA, chainB ibc.Chain) (ibc.ChannelOutput, ibc.ChannelOutput) {
 	// NOTE: we need to lock the creation of channels and applying of packet filters, as if we don't, the result
 	// of `r.GetChannels` may return channels created by other relayers in different tests.
 	s.channelLock.Lock()
@@ -288,21 +274,70 @@ func (s *E2ETestSuite) createChannelWithLock(ctx context.Context, r ibc.Relayer,
 	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
 	s.Require().NoError(err)
 
-	for _, c := range []ibc.Chain{chainA, chainB} {
-		channels, err := r.GetChannels(ctx, s.GetRelayerExecReporter(), c.Config().ChainID)
-		s.Require().NoError(err)
+	aChannels := s.fetchChannelsBetweenChains(ctx, r, chainA, chainB)
+	latestAChannel := getLatestChannel(aChannels)
+	s.mapChannel(testName, chainA, chainB, latestAChannel)
 
-		if _, ok := s.channelsByChain[testName][c]; !ok {
-			s.channelsByChain[testName][c] = []ibc.ChannelOutput{}
+	bChannels := s.fetchChannelsBetweenChains(ctx, r, chainB, chainA)
+	latestBChannel := getLatestChannel(bChannels)
+	s.mapChannel(testName, chainB, chainA, latestBChannel)
+
+	err = relayer.ApplyPacketFilter(ctx, s.T(), r, chainB.Config().ChainID, []ibc.ChannelOutput{latestAChannel, latestBChannel})
+	s.Require().NoError(err)
+
+	return latestAChannel, latestBChannel
+}
+
+func (s *E2ETestSuite) fetchChannelsBetweenChains(ctx context.Context, r ibc.Relayer, chainA ibc.Chain, chainB ibc.Chain) []ibc.ChannelOutput {
+	hermesQueryChannels := []string{"hermes", "--json", "query", "channels", "--chain", chainA.Config().ChainID, "--counterparty-chain", chainB.Config().ChainID, "--show-counterparty", "--verbose"}
+	hermesResp := r.Exec(ctx, s.GetRelayerExecReporter(), hermesQueryChannels, nil)
+	s.Require().NoError(hermesResp.Err, "failed to query channels between %s and %s", chainA.Config().ChainID, chainB.Config().ChainID)
+
+	fmt.Printf("hermes query channels response: %s\n", hermesResp.Stdout)
+
+	// extractJsonResult:
+	stdoutLines := strings.Split(string(hermesResp.Stdout), "\n")
+	var jsonOutput string
+	for _, line := range stdoutLines {
+		if strings.Contains(line, "result") {
+			jsonOutput = line
+			break
 		}
-
-		// keep track of channels associated with a given chain for access within the tests.
-		// only the most recent channel is relevant.
-		s.channelsByChain[testName][c] = append(s.channelsByChain[testName][c], getLatestChannel(channels))
-
-		err = relayer.ApplyPacketFilter(ctx, s.T(), r, c.Config().ChainID, s.channelsByChain[testName][c])
-		s.Require().NoError(err, "failed to watch port and channel on chain: %s", c.Config().ChainID)
 	}
+	jsonBz := []byte(jsonOutput)
+	var result hermes.ChannelOutputResult
+	err := json.Unmarshal(jsonBz, &result)
+	s.Require().NoError(err, "failed to unmarshal hermes channel output result: %s", err)
+
+	var ibcChannelOutput []ibc.ChannelOutput
+	for _, r := range result.Result {
+		ibcChannelOutput = append(ibcChannelOutput, ibc.ChannelOutput{
+			State:    r.ChannelEnd.State,
+			Ordering: r.ChannelEnd.Ordering,
+			Counterparty: ibc.ChannelCounterparty{
+				PortID:    r.ChannelEnd.Remote.PortID,
+				ChannelID: r.ChannelEnd.Remote.ChannelID,
+			},
+			ConnectionHops: r.ChannelEnd.ConnectionHops,
+			Version:        r.ChannelEnd.Version,
+			PortID:         r.CounterPartyChannelEnd.Remote.PortID,
+			ChannelID:      r.CounterPartyChannelEnd.Remote.ChannelID,
+		})
+	}
+
+	return ibcChannelOutput
+}
+
+func (s *E2ETestSuite) mapChannel(testName string, fromChain ibc.Chain, toChain ibc.Chain, channel ibc.ChannelOutput) {
+	if _, ok := s.channelByChains[testName]; !ok {
+		s.channelByChains[testName] = make(map[ibc.Chain]map[ibc.Chain]ibc.ChannelOutput)
+	}
+
+	if _, ok := s.channelByChains[testName][fromChain]; !ok {
+		s.channelByChains[testName][fromChain] = make(map[ibc.Chain]ibc.ChannelOutput)
+	}
+
+	s.channelByChains[testName][fromChain][toChain] = channel
 }
 
 // getLatestChannel returns the latest channel from the list of channels.
@@ -314,28 +349,12 @@ func getLatestChannel(channels []ibc.ChannelOutput) ibc.ChannelOutput {
 	})
 }
 
-// GetChainAToChainBChannel returns the ibc.ChannelOutput for the current test.
-// this defaults to the first entry in the list, and will be what is needed in the case of
-// a single channel test.
-func (s *E2ETestSuite) GetChainAToChainBChannel(testName string) ibc.ChannelOutput {
-	return s.GetChannelsForTest(s.GetAllChains()[0], testName)[0]
-}
+// GetChannelsBetweenChains returns the channels between the two provided chains for the specified test.
+func (s *E2ETestSuite) GetChannelBetweenChains(testname string, chainA ibc.Chain, chainB ibc.Chain) ibc.ChannelOutput {
+	channel, ok := s.channelByChains[testname][chainA][chainB]
+	s.Require().True(ok, "channel not found between chains %s and %s for test %s", chainA.Config().ChainID, chainB.Config().ChainID, testname)
 
-// GetChainBToChainCChannel returns the ibc.ChannelOutput for the current test.
-func (s *E2ETestSuite) GetChainBToChainCChannel(testName string) ibc.ChannelOutput {
-	return s.GetChannelsForTest(s.GetAllChains()[1], testName)[1]
-}
-
-// GetChainCToChainDChannel returns the ibc.ChannelOutput for the current test.
-func (s *E2ETestSuite) GetChainCToChainDChannel(testName string) ibc.ChannelOutput {
-	return s.GetChannelsForTest(s.GetAllChains()[2], testName)[1]
-}
-
-// GetChannelsForTest returns all channels for the specified test.
-func (s *E2ETestSuite) GetChannelsForTest(chain ibc.Chain, testName string) []ibc.ChannelOutput {
-	channels, ok := s.channelsByChain[testName][chain]
-	s.Require().True(ok, "channel not found for test %s", testName)
-	return channels
+	return channel
 }
 
 // GetRelayerForTest returns the relayer for the current test from the available pool of relayers.
@@ -385,6 +404,37 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, testName string) (ib
 	s.relayerWallets.AddRelayer(testName, chainBRelayerUser)
 
 	return chainARelayerUser, chainBRelayerUser
+}
+
+func (s *E2ETestSuite) FlushPackets(ctx context.Context, ibcrelayer ibc.Relayer, orderedChains []ibc.Chain) {
+	for i := 0; i < len(orderedChains)-1; i++ {
+		chainA := orderedChains[i]
+		chainB := orderedChains[i+1]
+
+		s.T().Logf("Flushing packets between %s and %s", chainA.Config().ChainID, chainB.Config().ChainID)
+
+		pathName := s.GetPathByChains(chainA, chainB)
+		channel := s.GetChannelBetweenChains(s.T().Name(), chainA, chainB)
+		err := ibcrelayer.Flush(ctx, s.GetRelayerExecReporter(), pathName, channel.ChannelID)
+		s.Require().NoError(err)
+
+		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
+	}
+
+	// Then we flush back the acknowledgements
+	for i := len(orderedChains) - 1; i > 0; i-- {
+		chainA := orderedChains[i]
+		chainB := orderedChains[i-1]
+
+		s.T().Logf("Flushing acknowledgements between %s and %s", chainA.Config().ChainID, chainB.Config().ChainID)
+
+		pathName := s.GetPathByChains(chainA, chainB)
+		channel := s.GetChannelBetweenChains(s.T().Name(), chainA, chainB)
+		err := ibcrelayer.Flush(ctx, s.GetRelayerExecReporter(), pathName, channel.ChannelID)
+		s.Require().NoError(err)
+
+		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB))
+	}
 }
 
 // ChainOptionModifier is a function which accepts 2 chains as inputs, and returns a channel creation modifier function
