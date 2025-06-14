@@ -143,7 +143,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().MsgServiceRouter(),
 				suite.chainA.GetSimApp().GRPCQueryRouter(),
@@ -155,7 +154,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				authkeeper.AccountKeeper{}, // empty account keeper
 				suite.chainA.GetSimApp().MsgServiceRouter(),
 				suite.chainA.GetSimApp().GRPCQueryRouter(),
@@ -166,7 +164,6 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				suite.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				suite.chainA.GetSimApp().AccountKeeper,
 				suite.chainA.GetSimApp().MsgServiceRouter(),

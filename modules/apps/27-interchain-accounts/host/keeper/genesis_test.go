@@ -29,7 +29,7 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 		Port: icatypes.HostPortID,
 	}
 
-	keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
+	keeper.InitGenesis(suite.chainA.GetContext(), *suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
 
 	channelID, found := suite.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 	suite.Require().True(found)
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestGenesisParams() {
 				Params: tc.input,
 			}
 			if tc.expPanicMsg == "" {
-				keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
+				keeper.InitGenesis(suite.chainA.GetContext(), *suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
 
 				channelID, found := suite.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 				suite.Require().True(found)
@@ -98,7 +98,7 @@ func (suite *KeeperTestSuite) TestGenesisParams() {
 				suite.Require().Equal(expParams, params)
 			} else {
 				suite.PanicsWithError(tc.expPanicMsg, func() {
-					keeper.InitGenesis(suite.chainA.GetContext(), suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
+					keeper.InitGenesis(suite.chainA.GetContext(), *suite.chainA.GetSimApp().ICAHostKeeper, genesisState)
 				})
 			}
 		})
@@ -118,7 +118,7 @@ func (suite *KeeperTestSuite) TestExportGenesis() {
 		interchainAccAddr, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 		suite.Require().True(exists)
 
-		genesisState := keeper.ExportGenesis(suite.chainB.GetContext(), suite.chainB.GetSimApp().ICAHostKeeper)
+		genesisState := keeper.ExportGenesis(suite.chainB.GetContext(), *suite.chainB.GetSimApp().ICAHostKeeper)
 
 		suite.Require().Equal(path.EndpointB.ChannelID, genesisState.ActiveChannels[0].ChannelId)
 		suite.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.ActiveChannels[0].PortId)
