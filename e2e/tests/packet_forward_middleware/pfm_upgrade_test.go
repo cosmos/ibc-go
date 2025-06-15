@@ -66,7 +66,7 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 	testName := t.Name()
 
 	chains := s.GetAllChains()
-	chainA, chainB, chainC, _ := chains[0], chains[1], chains[2], chains[3]
+	chainA, chainB, chainC, chainD := chains[0], chains[1], chains[2], chains[3]
 
 	userA := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
@@ -77,7 +77,7 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 
 	chanAB := s.GetChannelBetweenChains(testName, chainA, chainB)
 	chanBC := s.GetChannelBetweenChains(testName, chainB, chainC)
-	chanCD := s.GetChannelBetweenChains(testName, chainC, chainB)
+	chanCD := s.GetChannelBetweenChains(testName, chainC, chainD)
 
 	ab, err := query.Channel(ctx, chainA, transfertypes.PortID, chanAB.ChannelID)
 	s.Require().NoError(err)
