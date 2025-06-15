@@ -388,6 +388,8 @@ func NewSimApp(
 
 	// Middleware Stacks
 
+	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, govAuthority)
+
 	// PacketForwardMiddleware must be created before TransferKeeper
 	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.RateLimitKeeper.ICS4Wrapper(), govAuthority)
 
@@ -395,8 +397,6 @@ func NewSimApp(
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.MsgServiceRouter(), app.AccountKeeper, app.BankKeeper, govAuthority)
 
 	app.PFMKeeper.SetTransferKeeper(app.TransferKeeper)
-
-	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, govAuthority)
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
