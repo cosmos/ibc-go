@@ -84,9 +84,7 @@ func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, chan
 	return im.app.UnmarshalPacketData(ctx, portID, channelID, bz)
 }
 
-func getDenomForThisChain(port, channel, counterpartyPort, counterpartyChannel, denomPath string) string {
-	denom := transfertypes.ExtractDenomFromPath(denomPath)
-
+func getDenomForThisChain(port, channel, counterpartyPort, counterpartyChannel string, denom transfertypes.Denom) string {
 	if denom.HasPrefix(counterpartyPort, counterpartyChannel) {
 		// unwind denom
 		denom.Trace = denom.Trace[1:]
@@ -150,6 +148,12 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
 
+	transferDetail, err := transfertypes.PacketDataV1ToV2(data)
+	if err != nil {
+		logger.Error(fmt.Sprintf("packetForwardMiddleware OnRecvPacket could not convert FungibleTokenPacketData to InternalRepresentation: %s", err.Error()))
+		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
+	}
+
 	logger.Debug("packetForwardMiddleware OnRecvPacket",
 		"sequence", packet.Sequence,
 		"src-channel", packet.SourceChannel,
@@ -162,7 +166,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 	)
 
 	d := make(map[string]any)
-	err := json.Unmarshal([]byte(data.Memo), &d)
+	err = json.Unmarshal([]byte(data.Memo), &d)
 	logger.Debug("packetForwardMiddleware json", "memo", data.Memo)
 	if err != nil || d["forward"] == nil {
 		// not a packet that should be forwarded
@@ -200,12 +204,12 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 
 	// if this packet's token denom is already the base denom for some native token on this chain,
 	// we do not need to do any further composition of the denom before forwarding the packet
-	denomOnThisChain := getDenomForThisChain(packet.DestinationPort, packet.DestinationChannel, packet.SourcePort, packet.SourceChannel, data.Denom)
+	denomOnThisChain := getDenomForThisChain(packet.DestinationPort, packet.DestinationChannel, packet.SourcePort, packet.SourceChannel, transferDetail.Token.Denom)
 
-	amountInt, ok := sdkmath.NewIntFromString(data.Amount)
+	amountInt, ok := sdkmath.NewIntFromString(transferDetail.Token.Amount)
 	if !ok {
-		logger.Error("packetForwardMiddleware OnRecvPacket error parsing amount for forward", "amount", data.Amount)
-		return newErrorAcknowledgement(fmt.Errorf("error parsing amount for forward: %s", data.Amount))
+		logger.Error("packetForwardMiddleware OnRecvPacket error parsing amount for forward", "amount", transferDetail.Token.Amount)
+		return newErrorAcknowledgement(fmt.Errorf("error parsing amount for forward: %s", transferDetail.Token.Amount))
 	}
 
 	token := sdk.NewCoin(denomOnThisChain, amountInt)
@@ -237,25 +241,14 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 // receiveFunds receives funds from the packet into the override receiver
 // address and returns an error if the funds cannot be received.
 func (im IBCMiddleware) receiveFunds(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData, overrideReceiver string, relayer sdk.AccAddress) error {
-	overrideData := transfertypes.FungibleTokenPacketData{
-		Denom:    data.Denom,
-		Amount:   data.Amount,
-		Sender:   data.Sender,
-		Receiver: overrideReceiver, // override receiver
-		// Memo explicitly zeroed
-	}
-	overrideDataBz := transfertypes.ModuleCdc.MustMarshalJSON(&overrideData)
-	overridePacket := channeltypes.Packet{
-		Sequence:           packet.Sequence,
-		SourcePort:         packet.SourcePort,
-		SourceChannel:      packet.SourceChannel,
-		DestinationPort:    packet.DestinationPort,
-		DestinationChannel: packet.DestinationChannel,
-		Data:               overrideDataBz, // override data
-		TimeoutHeight:      packet.TimeoutHeight,
-		TimeoutTimestamp:   packet.TimeoutTimestamp,
-	}
+	overrideData := data
+	overrideData.Receiver = overrideReceiver
+	overrideData.Memo = "" // Memo explicitly emptied.
 
+	overrideDataBz := transfertypes.ModuleCdc.MustMarshalJSON(&overrideData)
+
+	overridePacket := packet
+	overridePacket.Data = overrideDataBz // Override data.
 	ack := im.app.OnRecvPacket(ctx, channelVersion, overridePacket, relayer)
 	if ack == nil {
 		return errors.New("ack is nil")
@@ -282,6 +275,11 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion 
 		)
 		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
 	}
+	transferDetail, err := transfertypes.PacketDataV1ToV2(data)
+	if err != nil {
+		im.keeper.Logger(ctx).Error("packetForwardMiddleware error converting FungibleTokenPacket to InternalRepresentation")
+		return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
+	}
 
 	im.keeper.Logger(ctx).Debug("packetForwardMiddleware OnAcknowledgementPacket",
 		"sequence", packet.Sequence,
@@ -306,7 +304,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion 
 	if inFlightPacket != nil {
 		im.keeper.RemoveInFlightPacket(ctx, packet)
 		// this is a forwarded packet, so override handling to avoid refund from being processed.
-		return im.keeper.WriteAcknowledgementForForwardedPacket(ctx, packet, data, inFlightPacket, ack)
+		return im.keeper.WriteAcknowledgementForForwardedPacket(ctx, packet, transferDetail, inFlightPacket, ack)
 	}
 
 	return im.app.OnAcknowledgementPacket(ctx, channelVersion, packet, acknowledgement, relayer)
@@ -327,6 +325,12 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	}
 
+	transferDetail, err := transfertypes.PacketDataV1ToV2(data)
+	if err != nil {
+		im.keeper.Logger(ctx).Error("packetForwardMiddleware error converting FungibleTokenPacket to InternalRepresentation")
+		return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
+	}
+
 	im.keeper.Logger(ctx).Debug("packetForwardMiddleware OnTimeoutPacket",
 		"sequence", packet.Sequence,
 		"src-channel", packet.SourceChannel,
@@ -343,13 +347,13 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 		if err != nil {
 			// this is a forwarded packet, so override handling to avoid refund from being processed on this chain.
 			// WriteAcknowledgement with proxied ack to return success/fail to previous chain.
-			return im.keeper.WriteAcknowledgementForForwardedPacket(ctx, packet, data, inFlightPacket, newErrorAcknowledgement(err))
+			return im.keeper.WriteAcknowledgementForForwardedPacket(ctx, packet, transferDetail, inFlightPacket, newErrorAcknowledgement(err))
 		}
 		// timeout should be retried. In order to do that, we need to handle this timeout to refund on this chain first.
 		if err := im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer); err != nil {
 			return err
 		}
-		return im.keeper.RetryTimeout(ctx, packet.SourceChannel, packet.SourcePort, data, inFlightPacket)
+		return im.keeper.RetryTimeout(ctx, packet.SourceChannel, packet.SourcePort, transferDetail, inFlightPacket)
 	}
 
 	return im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
