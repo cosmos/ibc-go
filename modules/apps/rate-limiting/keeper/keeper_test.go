@@ -331,30 +331,3 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	suite.Require().True(found)
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
 }
-
-// func (suite *KeeperTestSuite) TestUnsetParams() {
-// 	suite.SetupTest()
-// 	ctx := suite.chainA.GetContext()
-// 	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.SubModuleName))
-// 	store.Delete([]byte(types.ParamsKey))
-
-// 	suite.Require().Panics(func() {
-// 		suite.chainA.GetSimApp().ICAHostKeeper.GetParams(ctx)
-// 	})
-// }
-
-// func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
-// 	suite.SetupTest()
-
-// 	// test if the ics4 wrapper is the channel keeper initially
-// 	ics4Wrapper := suite.chainA.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
-
-// 	_, isChannelKeeper := ics4Wrapper.(*channelkeeper.Keeper)
-// 	suite.Require().True(isChannelKeeper)
-// 	suite.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
-
-// 	// set the ics4 wrapper to the channel keeper
-// 	suite.chainA.GetSimApp().ICAHostKeeper.WithICS4Wrapper(nil)
-// 	ics4Wrapper = suite.chainA.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
-// 	suite.Require().Nil(ics4Wrapper)
-// }
