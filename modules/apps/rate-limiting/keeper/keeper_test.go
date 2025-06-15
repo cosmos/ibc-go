@@ -332,44 +332,6 @@ func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	suite.Require().Equal(expectedAccAddr, retrievedAddr)
 }
 
-// func (suite *KeeperTestSuite) TestParams() {
-// 	expParams := types.DefaultParams()
-
-// 	params := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(suite.chainA.GetContext())
-// 	suite.Require().Equal(expParams, params)
-
-// 	testCases := []struct {
-// 		name   string
-// 		input  types.Params
-// 		errMsg string
-// 	}{
-// 		{"success: set default params", types.DefaultParams(), ""},
-// 		{"success: non-default params", types.NewParams(!types.DefaultHostEnabled, []string{"/cosmos.staking.v1beta1.MsgDelegate"}), ""},
-// 		{"success: set empty byte for allow messages", types.NewParams(true, nil), ""},
-// 		{"failure: set empty string for allow messages", types.NewParams(true, []string{""}), "parameter must not contain empty strings"},
-// 		{"failure: set space string for allow messages", types.NewParams(true, []string{" "}), "parameter must not contain empty strings"},
-// 	}
-
-// 	for _, tc := range testCases {
-// 		tc := tc
-
-// 		suite.Run(tc.name, func() {
-// 			suite.SetupTest() // reset
-// 			ctx := suite.chainA.GetContext()
-// 			err := tc.input.Validate()
-// 			suite.chainA.GetSimApp().ICAHostKeeper.SetParams(ctx, tc.input)
-// 			if tc.errMsg == "" {
-// 				suite.Require().NoError(err)
-// 				expected := tc.input
-// 				p := suite.chainA.GetSimApp().ICAHostKeeper.GetParams(ctx)
-// 				suite.Require().Equal(expected, p)
-// 			} else {
-// 				suite.Require().ErrorContains(err, tc.errMsg)
-// 			}
-// 		})
-// 	}
-// }
-
 // func (suite *KeeperTestSuite) TestUnsetParams() {
 // 	suite.SetupTest()
 // 	ctx := suite.chainA.GetContext()
