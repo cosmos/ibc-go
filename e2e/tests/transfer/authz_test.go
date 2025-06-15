@@ -38,10 +38,6 @@ func (s *AuthzTransferTestSuite) SetupSuite() {
 	s.SetupChains(context.TODO(), 2, nil)
 }
 
-func (s *AuthzTransferTestSuite) CreateAuthzTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAToChainBChannel(testName)
-}
-
 // QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
 func (*AuthzTransferTestSuite) QueryGranterGrants(ctx context.Context, chain ibc.Chain, granterAddress string) ([]*authz.GrantAuthorization, error) {
 	res, err := query.GRPCQuery[authz.QueryGranterGrantsResponse](ctx, chain, &authz.QueryGranterGrantsRequest{
@@ -60,10 +56,13 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.CreateAuthzTestPath(testName)
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	granterWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granterAddress := granterWallet.FormattedAddress()
@@ -221,9 +220,13 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.CreateAuthzTestPath(testName)
 
 	chainA, chainB := s.GetChains()
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
+
 	chainADenom := chainA.Config().Denom
 	chainAVersion := chainA.Config().Images[0].Version
 
