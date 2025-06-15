@@ -2,12 +2,10 @@ package v2
 
 import (
 	"encoding/json"
-	"fmt"
-
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
@@ -29,37 +27,23 @@ func NewIBCMiddleware(k keeper.Keeper, app api.IBCModule) IBCMiddleware {
 	}
 }
 
-func (im IBCMiddleware) OnSendPacket(
-	ctx sdk.Context,
-	sourceClient string,
-	destinationClient string,
-	sequence uint64,
-	payload channeltypesv2.Payload,
-	signer sdk.AccAddress,
-) error {
+func (im IBCMiddleware) OnSendPacket(ctx sdk.Context, sourceClient string, destinationClient string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
 	packet, err := v2ToV1Packet(payload, sourceClient, destinationClient, sequence)
 	if err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("ICS20 rate limiting OnSendPacket failed to convert v2 packet to v1 packet: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("ICS20 rate limiting OnSendPacket failed to convert v2 packet to v1 packet", "error", err)
 		return err
 	}
 	if err := im.keeper.SendRateLimitedPacket(ctx, packet); err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("ICS20 packet send was denied: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("ICS20 packet send was denied", "error", err)
 		return err
 	}
 	return im.app.OnSendPacket(ctx, sourceClient, destinationClient, sequence, payload, signer)
 }
 
-func (im IBCMiddleware) OnRecvPacket(
-	ctx sdk.Context,
-	sourceClient string,
-	destinationClient string,
-	sequence uint64,
-	payload channeltypesv2.Payload,
-	relayer sdk.AccAddress,
-) channeltypesv2.RecvPacketResult {
+func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, sourceClient string, destinationClient string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 	packet, err := v2ToV1Packet(payload, sourceClient, destinationClient, sequence)
 	if err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("ICS20 rate limiting OnRecvPacket failed to convert v2 packet to v1 packet: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("ICS20 rate limiting OnRecvPacket failed to convert v2 packet to v1 packet", "error", err)
 		return channeltypesv2.RecvPacketResult{
 			Status:          channeltypesv2.PacketStatus_Failure,
 			Acknowledgement: channeltypes.NewErrorAcknowledgement(err).Acknowledgement(),
@@ -68,7 +52,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	// Check if the packet would cause the rate limit to be exceeded,
 	// and if so, return an ack error
 	if err := im.keeper.ReceiveRateLimitedPacket(ctx, packet); err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("ICS20 packet receive was denied: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("ICS20 packet receive was denied", "error", err)
 		return channeltypesv2.RecvPacketResult{
 			Status:          channeltypesv2.PacketStatus_Failure,
 			Acknowledgement: channeltypes.NewErrorAcknowledgement(err).Acknowledgement(),
@@ -79,42 +63,27 @@ func (im IBCMiddleware) OnRecvPacket(
 	return im.app.OnRecvPacket(ctx, sourceClient, destinationClient, sequence, payload, relayer)
 }
 
-func (im IBCMiddleware) OnTimeoutPacket(
-	ctx sdk.Context,
-	sourceClient string,
-	destinationClient string,
-	sequence uint64,
-	payload channeltypesv2.Payload,
-	relayer sdk.AccAddress,
-) error {
+func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, sourceClient string, destinationClient string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
 	packet, err := v2ToV1Packet(payload, sourceClient, destinationClient, sequence)
 	if err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("ICS20 rate limiting OnTimeoutPacket failed to convert v2 packet to v1 packet: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("ICS20 rate limiting OnTimeoutPacket failed to convert v2 packet to v1 packet", "error", err)
 		return err
 	}
 	if err := im.keeper.TimeoutRateLimitedPacket(ctx, packet); err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("ICS20 RateLimited OnTimeoutPacket failed: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("ICS20 RateLimited OnTimeoutPacket failed", "error", err)
 		return err
 	}
 	return im.app.OnTimeoutPacket(ctx, sourceClient, destinationClient, sequence, payload, relayer)
 }
 
-func (im IBCMiddleware) OnAcknowledgementPacket(
-	ctx sdk.Context,
-	sourceClient string,
-	destinationClient string,
-	sequence uint64,
-	acknowledgement []byte,
-	payload channeltypesv2.Payload,
-	relayer sdk.AccAddress,
-) error {
+func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, sourceClient string, destinationClient string, sequence uint64, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
 	packet, err := v2ToV1Packet(payload, sourceClient, destinationClient, sequence)
 	if err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("ICS20 rate limiting OnAckPacketfailed to convert v2 packet to v1 packet: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("ICS20 rate limiting OnAckPacketfailed to convert v2 packet to v1 packet", "error", err)
 		return err
 	}
 	if err := im.keeper.AcknowledgeRateLimitedPacket(ctx, packet, acknowledgement); err != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("ICS20 RateLimited OnAckPacket failed: %s", err.Error()))
+		im.keeper.Logger(ctx).Error("ICS20 RateLimited OnAckPacket failed", "error", err)
 		return err
 	}
 	return im.app.OnAcknowledgementPacket(ctx, sourceClient, destinationClient, sequence, acknowledgement, payload, relayer)
