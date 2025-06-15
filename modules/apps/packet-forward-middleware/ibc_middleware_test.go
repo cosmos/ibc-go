@@ -83,7 +83,7 @@ func (s *PFMTestSuite) TestOnRecvPacket_NoMemo() {
 	err := s.chainA.Codec.UnmarshalJSON(ack.Acknowledgement(), expectedAck)
 	s.Require().NoError(err)
 
-	s.Require().Equal("", expectedAck.GetError())
+	s.Require().Empty(expectedAck.GetError())
 	s.Require().ElementsMatch([]byte{1}, expectedAck.GetResult())
 }
 
@@ -126,7 +126,7 @@ func (s *PFMTestSuite) TestOnRecvPacket_NoForward() {
 	expectedAck := &channeltypes.Acknowledgement{}
 	err := s.chainA.Codec.UnmarshalJSON(ack.Acknowledgement(), expectedAck)
 	s.Require().NoError(err)
-	s.Require().Equal("", expectedAck.GetError())
+	s.Require().Empty(expectedAck.GetError())
 
 	s.Require().Equal([]byte{1}, expectedAck.GetResult())
 }
