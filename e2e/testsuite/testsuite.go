@@ -293,8 +293,7 @@ func (s *E2ETestSuite) fetchChannelsBetweenChains(ctx context.Context, r ibc.Rel
 	hermesResp := r.Exec(ctx, s.GetRelayerExecReporter(), hermesQueryChannels, nil)
 	s.Require().NoError(hermesResp.Err, "failed to query channels between %s and %s", chainA.Config().ChainID, chainB.Config().ChainID)
 
-	fmt.Printf("hermes query channels response: %s\n", hermesResp.Stdout)
-
+	// This code is taken from interchaintests own Hermes query code, but since we need it here, it is copied - for now.
 	// extractJsonResult:
 	stdoutLines := strings.Split(string(hermesResp.Stdout), "\n")
 	var jsonOutput string
