@@ -116,18 +116,18 @@ type KeeperTestSuite struct {
 	chainC *ibctesting.TestChain
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
+func (s *KeeperTestSuite) SetupTest() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.chainC = s.coordinator.GetChain(ibctesting.GetChainID(3))
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestNewKeeper() {
+func (s *KeeperTestSuite) TestNewKeeper() {
 	testCases := []struct {
 		name          string
 		instantiateFn func()
@@ -137,13 +137,13 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			name: "success",
 			instantiateFn: func() {
 				keeper.NewKeeper(
-					suite.chainA.GetSimApp().AppCodec(),
-					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
-					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // This is now used as ics4Wrapper
-					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-					suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, // Add clientKeeper
-					suite.chainA.GetSimApp().BankKeeper,
-					suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
+					s.chainA.GetSimApp().AppCodec(),
+					runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
+					s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // This is now used as ics4Wrapper
+					s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+					s.chainA.GetSimApp().IBCKeeper.ClientKeeper, // Add clientKeeper
+					s.chainA.GetSimApp().BankKeeper,
+					s.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
 				)
 			},
 			panicMsg: "",
@@ -152,12 +152,12 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 			name: "failure: empty authority",
 			instantiateFn: func() {
 				keeper.NewKeeper(
-					suite.chainA.GetSimApp().AppCodec(),
-					runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
-					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // ics4Wrapper
-					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-					suite.chainA.GetSimApp().IBCKeeper.ClientKeeper, // clientKeeper
-					suite.chainA.GetSimApp().BankKeeper,
+					s.chainA.GetSimApp().AppCodec(),
+					runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
+					s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, // ics4Wrapper
+					s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+					s.chainA.GetSimApp().IBCKeeper.ClientKeeper, // clientKeeper
+					s.chainA.GetSimApp().BankKeeper,
 					"", // empty authority
 				)
 			},
@@ -167,61 +167,56 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 
 	for _, tc := range testCases {
 		tc := tc
-		suite.SetupTest()
+		s.SetupTest()
 
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			if tc.panicMsg == "" {
-				suite.Require().NotPanics(
-					tc.instantiateFn,
-				)
+				s.Require().NotPanics(tc.instantiateFn)
 			} else {
-				suite.Require().PanicsWithError(
-					tc.panicMsg,
-					tc.instantiateFn,
-				)
+				s.Require().PanicsWithError(tc.panicMsg, tc.instantiateFn)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetInterchainAccountAddress() {
+func (s *KeeperTestSuite) TestGetInterchainAccountAddress() {
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
-		suite.SetupTest()
+		s.SetupTest()
 
-		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path := NewICAPath(s.chainA, s.chainB, ordering)
 		path.SetupConnections()
 
 		err := SetupICAPath(path, TestOwnerAddress)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
 		counterpartyPortID := path.EndpointA.ChannelConfig.PortID
 
-		retrievedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, counterpartyPortID)
-		suite.Require().True(found)
-		suite.Require().NotEmpty(retrievedAddr)
+		retrievedAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, counterpartyPortID)
+		s.Require().True(found)
+		s.Require().NotEmpty(retrievedAddr)
 
-		retrievedAddr, found = suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, "invalid port")
-		suite.Require().False(found)
-		suite.Require().Empty(retrievedAddr)
+		retrievedAddr, found = s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, "invalid port")
+		s.Require().False(found)
+		s.Require().Empty(retrievedAddr)
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
+func (s *KeeperTestSuite) TestGetAllActiveChannels() {
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		var (
 			expectedChannelID = "test-channel"
 			expectedPortID    = "test-port"
 		)
 
-		suite.SetupTest()
+		s.SetupTest()
 
-		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path := NewICAPath(s.chainA, s.chainB, ordering)
 		path.SetupConnections()
 
 		err := SetupICAPath(path, TestOwnerAddress)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
-		suite.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedChannelID)
+		s.chainB.GetSimApp().ICAHostKeeper.SetActiveChannelID(s.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedChannelID)
 
 		expectedChannels := []genesistypes.ActiveChannel{
 			{
@@ -236,31 +231,31 @@ func (suite *KeeperTestSuite) TestGetAllActiveChannels() {
 			},
 		}
 
-		activeChannels := suite.chainB.GetSimApp().ICAHostKeeper.GetAllActiveChannels(suite.chainB.GetContext())
-		suite.Require().Len(activeChannels, len(expectedChannels))
-		suite.Require().Equal(expectedChannels, activeChannels)
+		activeChannels := s.chainB.GetSimApp().ICAHostKeeper.GetAllActiveChannels(s.chainB.GetContext())
+		s.Require().Len(activeChannels, len(expectedChannels))
+		s.Require().Equal(expectedChannels, activeChannels)
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
+func (s *KeeperTestSuite) TestGetAllInterchainAccounts() {
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		var (
 			expectedAccAddr = "test-acc-addr"
 			expectedPortID  = "test-port"
 		)
 
-		suite.SetupTest()
+		s.SetupTest()
 
-		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path := NewICAPath(s.chainA, s.chainB, ordering)
 		path.SetupConnections()
 
 		err := SetupICAPath(path, TestOwnerAddress)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
-		interchainAccAddr, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-		suite.Require().True(exists)
+		interchainAccAddr, exists := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+		s.Require().True(exists)
 
-		suite.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)
+		s.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)
 
 		expectedAccounts := []genesistypes.RegisteredInterchainAccount{
 			{
@@ -275,36 +270,36 @@ func (suite *KeeperTestSuite) TestGetAllInterchainAccounts() {
 			},
 		}
 
-		interchainAccounts := suite.chainB.GetSimApp().ICAHostKeeper.GetAllInterchainAccounts(suite.chainB.GetContext())
-		suite.Require().Len(interchainAccounts, len(expectedAccounts))
-		suite.Require().Equal(expectedAccounts, interchainAccounts)
+		interchainAccounts := s.chainB.GetSimApp().ICAHostKeeper.GetAllInterchainAccounts(s.chainB.GetContext())
+		s.Require().Len(interchainAccounts, len(expectedAccounts))
+		s.Require().Equal(expectedAccounts, interchainAccounts)
 	}
 }
 
-func (suite *KeeperTestSuite) TestIsActiveChannel() {
+func (s *KeeperTestSuite) TestIsActiveChannel() {
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
-		suite.SetupTest()
+		s.SetupTest()
 
-		path := NewICAPath(suite.chainA, suite.chainB, ordering)
+		path := NewICAPath(s.chainA, s.chainB, ordering)
 		path.SetupConnections()
 
 		err := SetupICAPath(path, TestOwnerAddress)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
-		isActive := suite.chainB.GetSimApp().ICAHostKeeper.IsActiveChannel(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-		suite.Require().True(isActive)
+		isActive := s.chainB.GetSimApp().ICAHostKeeper.IsActiveChannel(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+		s.Require().True(isActive)
 	}
 }
 
-func (suite *KeeperTestSuite) TestSetInterchainAccountAddress() {
+func (s *KeeperTestSuite) TestSetInterchainAccountAddress() {
 	var (
 		expectedAccAddr = "test-acc-addr"
 		expectedPortID  = "test-port"
 	)
 
-	suite.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)
+	s.chainB.GetSimApp().ICAHostKeeper.SetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID, expectedAccAddr)
 
-	retrievedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID)
-	suite.Require().True(found)
-	suite.Require().Equal(expectedAccAddr, retrievedAddr)
+	retrievedAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, expectedPortID)
+	s.Require().True(found)
+	s.Require().Equal(expectedAccAddr, retrievedAddr)
 }
