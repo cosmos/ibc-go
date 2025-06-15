@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	// "fmt"
-
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -10,13 +8,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	genesistypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/genesis/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
 	keeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-
-	// ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	genesistypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/genesis/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
@@ -54,7 +50,6 @@ func (MockMsgRouter) Handler(msg sdk.Msg) func(ctx sdk.Context, msg sdk.Msg) (*s
 }
 
 func NewICAPath(chainA, chainB *ibctesting.TestChain, ordering channeltypes.Order) *ibctesting.Path {
-
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = icatypes.HostPortID
 	path.EndpointB.ChannelConfig.PortID = icatypes.HostPortID
