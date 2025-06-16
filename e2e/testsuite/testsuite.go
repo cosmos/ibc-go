@@ -404,7 +404,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, testName string) (ib
 }
 
 func (s *E2ETestSuite) FlushPackets(ctx context.Context, ibcrelayer ibc.Relayer, orderedChains []ibc.Chain) {
-	for i := 0; i < len(orderedChains)-1; i++ {
+	for i := range len(orderedChains) - 1 {
 		chainA := orderedChains[i]
 		chainB := orderedChains[i+1]
 
