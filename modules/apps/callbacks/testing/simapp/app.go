@@ -595,7 +595,7 @@ func NewSimApp(
 	// not need it by default, so feel free to comment the next line if you do
 	// not need tips.
 	// To read more about tips:
-	// https://docs.cosmos.network/main/core/tips.html
+	// https://docs.cosmos.network/v0.46/core/tips.html
 	//
 	// Please note that changing any of the anteHandler or postHandler chain is
 	// likely to be a state-machine breaking change, which needs a coordinated
