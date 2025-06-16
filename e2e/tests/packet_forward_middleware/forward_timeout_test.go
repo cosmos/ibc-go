@@ -103,7 +103,6 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	s.Require().NoError(err)
 
 	time.Sleep(time.Second * 12) // Wait for timeout
-	s.Require().NoError(testutil.WaitForBlocks(ctx, 1, chainA, chainB))
 
 	// Verify that the users funds are still in escrow on chainA and chainB before we relay the timeout between chainB and chainC
 	userABalance, err := chainA.GetBalance(ctx, userA.FormattedAddress(), chainA.Config().Denom)
