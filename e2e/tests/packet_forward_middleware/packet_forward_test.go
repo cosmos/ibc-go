@@ -43,7 +43,8 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	userC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
 	userD := s.CreateUserOnChainD(ctx, testvalues.StartingTokenAmount)
 
-	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
+	relayer := s.GetRelayerForTest(t.Name())
 	s.StartRelayer(relayer, testName)
 
 	chanAB := s.GetChannelBetweenChains(testName, chainA, chainB)

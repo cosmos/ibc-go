@@ -72,7 +72,8 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 	userB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	userC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
 
-	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
+	relayer := s.GetRelayerForTest(t.Name())
 	s.StartRelayer(relayer, testName)
 
 	chanAB := s.GetChannelBetweenChains(testName, chainA, chainB)

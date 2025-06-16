@@ -203,7 +203,7 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, chainCount int, channelO
 
 // CreatePaths creates paths between the chains using the provided client and channel options.
 // The paths are created such that ChainA is connected to ChainB, ChainB is connected to ChainC etc.
-func (s *E2ETestSuite) CreatePaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) ibc.Relayer {
+func (s *E2ETestSuite) CreatePaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) {
 	s.T().Logf("Setting up path for: %s", testName)
 
 	r := s.GetRelayerForTest(testName)
@@ -214,8 +214,6 @@ func (s *E2ETestSuite) CreatePaths(clientOpts ibc.CreateClientOptions, channelOp
 		chainA, chainB := allChains[i], allChains[i+1]
 		s.CreatePath(ctx, r, chainA, chainB, clientOpts, channelOpts, testName)
 	}
-
-	return r
 }
 
 // CreatePath creates a path between chainA and chainB using the provided client and channel options.

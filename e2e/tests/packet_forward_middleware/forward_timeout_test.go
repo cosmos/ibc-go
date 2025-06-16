@@ -46,7 +46,8 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	userB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	userC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
 
-	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
+	relayer := s.GetRelayerForTest(t.Name())
 
 	chanAB := s.GetChannelBetweenChains(testName, chainA, chainB)
 	chanBC := s.GetChannelBetweenChains(testName, chainB, chainC)
