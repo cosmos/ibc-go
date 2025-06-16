@@ -245,7 +245,7 @@ func (s *E2ETestSuite) CreatePath(
 	err = test.WaitForBlocks(ctx, 1, chainA, chainB)
 	s.Require().NoError(err)
 
-	aChannel, bChannel := s.createChannelWithLock(ctx, r, pathName, testName, channelOpts, chainA, chainB)
+	channelA, channelB := s.createChannelWithLock(ctx, r, pathName, testName, channelOpts, chainA, chainB)
 
 	if s.testPathsByChains[chainA] == nil {
 		s.testPathsByChains[chainA] = make(map[ibc.Chain]string)
@@ -256,7 +256,7 @@ func (s *E2ETestSuite) CreatePath(
 	}
 	s.testPathsByChains[chainB][chainA] = pathName
 
-	return aChannel, bChannel
+	return channelA, channelB
 }
 
 // createChannelWithLock creates a channel between the two provided chains for the given test name. This applies a lock
