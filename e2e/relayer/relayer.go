@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/interchaintest/v10/ibc"
 	"github.com/cosmos/interchaintest/v10/relayer"
 	"github.com/cosmos/interchaintest/v10/relayer/hermes"
-	dockerclient "github.com/docker/docker/client"
+	dockerclient "github.com/moby/moby/client"
 	"github.com/pelletier/go-toml"
 	"go.uber.org/zap"
 )

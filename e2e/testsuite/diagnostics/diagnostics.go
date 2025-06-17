@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	dockertypes "github.com/docker/docker/api/types"
-	dockerclient "github.com/docker/docker/client"
+	dockerclient "github.com/moby/moby/client"
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/internal/directories"

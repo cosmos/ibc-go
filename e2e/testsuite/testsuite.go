@@ -17,7 +17,7 @@ import (
 	"github.com/cosmos/interchaintest/v10/relayer/hermes"
 	"github.com/cosmos/interchaintest/v10/testreporter"
 	test "github.com/cosmos/interchaintest/v10/testutil"
-	dockerclient "github.com/docker/docker/client"
+	dockerclient "github.com/moby/moby/client"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
