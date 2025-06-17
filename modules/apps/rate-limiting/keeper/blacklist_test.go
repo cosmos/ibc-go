@@ -2,11 +2,6 @@ package keeper_test
 
 import "slices"
 
-// Helper function to check if an element is in an array
-func isInArray(element string, arr []string) bool {
-	return slices.Contains(arr, element)
-}
-
 func (s *KeeperTestSuite) TestDenomBlacklist() {
 	allDenoms := []string{"denom1", "denom2", "denom3", "denom4"}
 	denomsToBlacklist := []string{"denom1", "denom3"}
@@ -26,11 +21,11 @@ func (s *KeeperTestSuite) TestDenomBlacklist() {
 	for _, denom := range allDenoms {
 		isBlacklisted := s.chainA.GetSimApp().RateLimitKeeper.IsDenomBlacklisted(s.chainA.GetContext(), denom)
 
-		if isInArray(denom, denomsToBlacklist) {
+		if slices.Contains(denomsToBlacklist, denom) {
 			s.Require().True(isBlacklisted, "%s should have been blacklisted", denom)
-		} else {
-			s.Require().False(isBlacklisted, "%s should not have been blacklisted", denom)
+			continue
 		}
+		s.Require().False(isBlacklisted, "%s should not have been blacklisted", denom)
 	}
 	actualBlacklistedDenoms := s.chainA.GetSimApp().RateLimitKeeper.GetAllBlacklistedDenoms(s.chainA.GetContext())
 	s.Require().Len(actualBlacklistedDenoms, len(denomsToBlacklist), "number of blacklisted denoms")
@@ -43,10 +38,10 @@ func (s *KeeperTestSuite) TestDenomBlacklist() {
 	for _, denom := range allDenoms {
 		isBlacklisted := s.chainA.GetSimApp().RateLimitKeeper.IsDenomBlacklisted(s.chainA.GetContext(), denom)
 
-		if isInArray(denom, denomsToBlacklist) {
+		if slices.Contains(denomsToBlacklist, denom) {
 			s.Require().False(isBlacklisted, "%s should have been removed from the blacklist", denom)
-		} else {
-			s.Require().False(isBlacklisted, "%s should never have been blacklisted", denom)
+			continue
 		}
+		s.Require().False(isBlacklisted, "%s should never have been blacklisted", denom)
 	}
 }
