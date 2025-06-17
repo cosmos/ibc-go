@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	cmttypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/v2/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
@@ -143,7 +143,7 @@ func (suite *TendermintTestSuite) TestVerifyHeader() {
 
 				header = suite.chainB.CreateTMClientHeader(suite.chainB.ChainID, suite.chainB.ProposedHeader.Height+1, trustedHeight, suite.chainB.ProposedHeader.Time, altValSet, altValSet, trustedVals, altSigners)
 			},
-			expErr: errors.New("failed to verify header: cant trust new val set"),
+			expErr: errors.New("failed to verify header: can't trust new val set"),
 		},
 		{
 			name: "unsuccessful verify header: header height revision and trusted height revision mismatch",

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	cmttypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/v2/types"
 
 	client "github.com/cosmos/ibc-go/v10/modules/core/02-client"
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
