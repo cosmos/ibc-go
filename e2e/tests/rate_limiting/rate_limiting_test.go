@@ -52,10 +52,11 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	s.Require().NoError(err)
 	s.Require().NotNil(authority)
 
-	relayer := s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
 	s.StartRelayer(relayer, testName)
 
-	chanAB := s.GetChainAToChainBChannel(testName)
+	chanAB := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	escrowAddrA := transfertypes.GetEscrowAddress(chanAB.PortID, chanAB.ChannelID)
 	denomA := chainA.Config().Denom
