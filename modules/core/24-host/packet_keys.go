@@ -22,13 +22,13 @@ const (
 // NextSequenceRecvKey returns the store key for the receive sequence of a particular
 // channel binded to a specific port
 func NextSequenceRecvKey(portID, channelID string) []byte {
-	return fmt.Appendf(nil, "%s/%s", KeyNextSeqRecvPrefix, channelPath(portID, channelID))
+	return fmt.Appendf(nil, "%s/%s", KeyNextSeqRecvPrefix, ChannelPath(portID, channelID))
 }
 
 // NextSequenceAckKey returns the store key for the acknowledgement sequence of
 // a particular channel binded to a specific port.
 func NextSequenceAckKey(portID, channelID string) []byte {
-	return fmt.Appendf(nil, "%s/%s", KeyNextSeqAckPrefix, channelPath(portID, channelID))
+	return fmt.Appendf(nil, "%s/%s", KeyNextSeqAckPrefix, ChannelPath(portID, channelID))
 }
 
 // PacketCommitmentKey returns the store key of under which a packet commitment
@@ -39,7 +39,7 @@ func PacketCommitmentKey(portID, channelID string, sequence uint64) []byte {
 
 // PacketCommitmentPrefixKey defines the prefix for commitments to packet data fields store path.
 func PacketCommitmentPrefixKey(portID, channelID string) []byte {
-	return fmt.Appendf(nil, "%s/%s/%s", KeyPacketCommitmentPrefix, channelPath(portID, channelID), KeySequencePrefix)
+	return fmt.Appendf(nil, "%s/%s/%s", KeyPacketCommitmentPrefix, ChannelPath(portID, channelID), KeySequencePrefix)
 }
 
 // PacketAcknowledgementKey returns the store key of under which a packet
@@ -50,18 +50,18 @@ func PacketAcknowledgementKey(portID, channelID string, sequence uint64) []byte 
 
 // PacketAcknowledgementPrefixKey defines the prefix for commitments to packet data fields store path.
 func PacketAcknowledgementPrefixKey(portID, channelID string) []byte {
-	return fmt.Appendf(nil, "%s/%s/%s", KeyPacketAckPrefix, channelPath(portID, channelID), KeySequencePrefix)
+	return fmt.Appendf(nil, "%s/%s/%s", KeyPacketAckPrefix, ChannelPath(portID, channelID), KeySequencePrefix)
 }
 
 // PacketReceiptKey returns the store key of under which a packet
 // receipt is stored
 func PacketReceiptKey(portID, channelID string, sequence uint64) []byte {
-	return fmt.Appendf(nil, "%s/%s/%s", KeyPacketReceiptPrefix, channelPath(portID, channelID), sequencePath(sequence))
+	return fmt.Appendf(nil, "%s/%s/%s", KeyPacketReceiptPrefix, ChannelPath(portID, channelID), sequencePath(sequence))
 }
 
 // RecvStartSequenceKey returns the store key for the recv start sequence of a particular channel
 func RecvStartSequenceKey(portID, channelID string) []byte {
-	return fmt.Appendf(nil, "%s/%s", KeyRecvStartSequence, channelPath(portID, channelID))
+	return fmt.Appendf(nil, "%s/%s", KeyRecvStartSequence, ChannelPath(portID, channelID))
 }
 
 func sequencePath(sequence uint64) string {

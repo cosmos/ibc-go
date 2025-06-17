@@ -61,7 +61,7 @@ func (suite *MigrationsV11TestSuite) TestMigrateStore() {
 		seq, ok := ibcKeeper.ChannelKeeper.GetNextSequenceSend(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		suite.Require().True(ok)
 		store.Delete(hostv2.NextSequenceSendKey(path.EndpointA.ChannelID))
-		store.Set(v11.NextSequenceSendKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), sdk.Uint64ToBigEndian(seq))
+		store.Set(v11.NextSequenceSendV1Key(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), sdk.Uint64ToBigEndian(seq))
 
 		// Remove counterparty to mock pre migration channels
 		clientStore := ibcKeeper.ClientKeeper.ClientStore(ctx, path.EndpointA.ChannelID)
@@ -117,7 +117,7 @@ func (suite *MigrationsV11TestSuite) TestMigrateStore() {
 		}
 
 		// ensure that sequence migrated correctly
-		bz, _ := store.Get(v11.NextSequenceSendKey(mock.PortID, channelId))
+		bz, _ := store.Get(v11.NextSequenceSendV1Key(mock.PortID, channelId))
 		suite.Require().Nil(bz)
 		seq, ok := ibcKeeper.ChannelKeeper.GetNextSequenceSend(ctx, mock.PortID, channelId)
 		suite.Require().True(ok)

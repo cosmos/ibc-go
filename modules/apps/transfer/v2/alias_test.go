@@ -269,6 +269,6 @@ func mockV1Format(endpoint *ibctesting.Endpoint) {
 	// so we can migrate it in our tests
 	storeService := runtime.NewKVStoreService(endpoint.Chain.GetSimApp().GetKey(ibcexported.StoreKey))
 	store := storeService.OpenKVStore(endpoint.Chain.GetContext())
-	store.Set(v11.NextSequenceSendKey(endpoint.ChannelConfig.PortID, endpoint.ChannelID), sdk.Uint64ToBigEndian(seq))
+	store.Set(v11.NextSequenceSendV1Key(endpoint.ChannelConfig.PortID, endpoint.ChannelID), sdk.Uint64ToBigEndian(seq))
 	store.Delete(hostv2.NextSequenceSendKey(endpoint.ChannelID))
 }
