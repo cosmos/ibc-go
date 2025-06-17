@@ -6,6 +6,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/cosmos/interchaintest/v10/ibc"
 	test "github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -41,11 +42,11 @@ func (s *TransferTestSuiteSendEnabled) TestSendEnabledParam() {
 
 	testName := t.Name()
 	// Note: explicitly not using t.Parallel() in this test as it makes chain wide changes
-	s.CreateTransferPath(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 
 	chainA, chainB := s.GetChains()
 
-	channelA := s.GetChainAToChainBChannel(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 	chainAVersion := chainA.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
 

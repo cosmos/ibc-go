@@ -11,6 +11,7 @@ import (
 
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/cosmos/interchaintest/v10/testutil"
+	"github.com/cosmos/interchaintest/v10/ibc"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -46,7 +47,8 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	relayer := s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
 
 	chainA, chainB := s.GetChains()
 

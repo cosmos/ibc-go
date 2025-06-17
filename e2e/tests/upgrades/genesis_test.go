@@ -66,13 +66,12 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	ctx := context.Background()
 	testName := t.Name()
 
-	relayer := s.CreateDefaultPaths(testName)
-	channelA := s.GetChainAToChainBChannel(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
-	var (
-		chainADenom    = chainA.Config().Denom
-		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
-	)
+	chainADenom := chainA.Config().Denom
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()

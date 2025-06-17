@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iancoleman/orderedmap"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	test "github.com/cosmos/interchaintest/v10/testutil"
@@ -16,6 +17,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	pfmtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	chantypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -64,18 +66,19 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 	testName := t.Name()
 
 	chains := s.GetAllChains()
-	chainA, chainB, chainC, _ := chains[0], chains[1], chains[2], chains[3]
+	chainA, chainB, chainC, chainD := chains[0], chains[1], chains[2], chains[3]
 
 	userA := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	userC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
 
-	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), t.Name())
+	relayer := s.GetRelayerForTest(t.Name())
 	s.StartRelayer(relayer, testName)
 
-	chanAB := s.GetChainAToChainBChannel(testName)
-	chanBC := s.GetChainBToChainCChannel(testName)
-	chanCD := s.GetChainCToChainDChannel(testName)
+	chanAB := s.GetChannelBetweenChains(testName, chainA, chainB)
+	chanBC := s.GetChannelBetweenChains(testName, chainB, chainC)
+	chanCD := s.GetChannelBetweenChains(testName, chainC, chainD)
 
 	ab, err := query.Channel(ctx, chainA, transfertypes.PortID, chanAB.ChannelID)
 	s.Require().NoError(err)
@@ -122,8 +125,8 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 
 	// Send the IBC denom that chain A received from the previous step
 	t.Run("Send from A -> B -> C ->X D", func(_ *testing.T) {
-		secondHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		secondHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: "cosmos1wgz9ntx6e5vu4npeabcde88d7kfsymag62p6y2",
 				Channel:  chanCD.ChannelID,
 				Port:     chanCD.PortID,
@@ -131,14 +134,14 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 		}
 		nextBz, err := json.Marshal(secondHopMetadata)
 		s.Require().NoError(err)
-		next := string(nextBz)
+		next := pfmtypes.NewJSONObject(false, nextBz, *orderedmap.New())
 
-		firstHopMetadata := &PacketMetadata{
-			Forward: &ForwardMetadata{
+		firstHopMetadata := &pfmtypes.PacketMetadata{
+			Forward: &pfmtypes.ForwardMetadata{
 				Receiver: userC.FormattedAddress(),
 				Channel:  chanBC.ChannelID,
 				Port:     chanBC.PortID,
-				Next:     &next,
+				Next:     next,
 			},
 		}
 
@@ -152,7 +155,7 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcDenomOnA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
 		s.AssertTxSuccess(txResp)
 
-		packet, err := ibctesting.ParsePacketFromEvents(txResp.Events)
+		packet, err := ibctesting.ParseV1PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 
