@@ -6,6 +6,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -40,13 +41,13 @@ func (s *TransferTestSuiteSendReceive) TestReceiveEnabledParam() {
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 	// Note: explicitly not using t.Parallel() in this test as it makes chain wide changes
-	s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
 	relayer := s.GetRelayerForTest(testName)
-	channelA := s.GetChainAToChainBChannel(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	chainAVersion := chainA.Config().Images[0].Version
 

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -46,7 +47,8 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	relayer := s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
 
 	chainA, chainB := s.GetChains()
 
