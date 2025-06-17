@@ -60,10 +60,6 @@ func (s *UpgradeTestSuite) SetupSuite() {
 	s.SetupChains(context.TODO(), 2, nil)
 }
 
-func (s *UpgradeTestSuite) CreateUpgradeTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAToChainBChannel(testName)
-}
-
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
 // The software upgrade proposal is broadcast by the provided wallet.
 func (s *UpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, planName, currentVersion, upgradeVersion string) {
@@ -137,17 +133,18 @@ func (s *UpgradeTestSuite) TestIBCChainUpgrade() {
 
 	ctx := context.Background()
 	testName := t.Name()
-	relayer, channelA := s.CreateUpgradeTestPath(testName)
 
 	chainA, chainB := s.GetChains()
 
-	var (
-		chainADenom    = chainA.Config().Denom
-		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
-		chainBDenom    = chainB.Config().Denom
-		chainAIBCToken = testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
-	)
+	chainADenom := chainA.Config().Denom
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
+
+	chainBDenom := chainB.Config().Denom
+	chainAIBCToken := testsuite.GetIBCToken(chainBDenom, channelA.PortID, channelA.ChannelID) // IBC token sent to chainA
 
 	// create separate user specifically for the upgrade proposal to more easily verify starting
 	// and end balances of the chainA users.
@@ -244,7 +241,7 @@ func (s *UpgradeTestSuite) TestChainUpgrade() {
 	ctx := context.Background()
 
 	testName := t.Name()
-	s.CreateUpgradeTestPath(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 
 	// TODO(chatton): this test is still creating a relayer and a channel, but it is not using them.
 	chain := s.GetAllChains()[0]
@@ -308,14 +305,14 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	ctx := context.Background()
 	testName := t.Name()
 
-	relayer, channelA := s.CreateUpgradeTestPath(testName)
-
 	chainA, chainB := s.GetChains()
 
-	var (
-		chainADenom    = chainA.Config().Denom
-		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
-	)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
+
+	chainADenom := chainA.Config().Denom
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -465,9 +462,11 @@ func (s *UpgradeTestSuite) TestV7ToV7_1ChainUpgrade() {
 	ctx := context.Background()
 	testName := t.Name()
 
-	relayer, channelA := s.CreateUpgradeTestPath(testName)
-
 	chainA, chainB := s.GetChains()
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 
@@ -563,9 +562,11 @@ func (s *UpgradeTestSuite) TestV7ToV8ChainUpgrade() {
 	ctx := context.Background()
 	testName := t.Name()
 
-	relayer, channelA := s.CreateUpgradeTestPath(testName)
-
 	chainA, chainB := s.GetChains()
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 
@@ -658,11 +659,12 @@ func (s *UpgradeTestSuite) TestV8ToV8_1ChainUpgrade() {
 	ctx := context.Background()
 
 	testName := t.Name()
-	relayer := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
-
-	channelA := s.GetChainAToChainBChannel(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
 
 	chainA, chainB := s.GetChains()
+
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 	chainADenom := chainA.Config().Denom
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -733,9 +735,12 @@ func (s *UpgradeTestSuite) TestV8ToV10ChainUpgrade() {
 
 	testName := t.Name()
 
-	relayer, channelA := s.CreateUpgradeTestPath(testName)
-
 	chainA, chainB := s.GetChains()
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
+
 	chainADenom := chainA.Config().Denom
 	chainBDenom := chainB.Config().Denom
 

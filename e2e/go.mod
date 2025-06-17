@@ -17,9 +17,10 @@ require (
 	github.com/cosmos/cosmos-sdk v0.54.0-alpha.0.0.20250610171936-b482ce4a740c
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0
-	github.com/cosmos/ibc-go/v10 v10.0.0-beta.0.0.20250611193252-a9170dcac535
+	github.com/cosmos/ibc-go/v10 v10.3.0
 	github.com/cosmos/interchaintest/v10 v10.0.0-alpha.2.0.20250611231223-e9b89758db37
 	github.com/docker/docker v28.0.0+incompatible
+	github.com/iancoleman/orderedmap v0.3.0
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
@@ -162,7 +163,6 @@ require (
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
 	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/huandu/skiplist v1.2.1 // indirect
-	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/icza/dyno v0.0.0-20230330125955-09f820a8d9c0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect

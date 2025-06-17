@@ -150,6 +150,17 @@ func ParseIBCV1Packets(eventType string, events []abci.Event) ([]channeltypes.Pa
 	return packets, nil
 }
 
+// ParseV1PacketFromEvents parses events emitted from a v2 send packet
+// and returns the first EventTypeSendPacket packet found.
+// Returns an error if no packet is found.
+func ParseV2PacketFromEvents(events []abci.Event) (channeltypesv2.Packet, error) {
+	packets, err := ParseIBCV2Packets(channeltypesv2.EventTypeSendPacket, events)
+	if err != nil {
+		return channeltypesv2.Packet{}, err
+	}
+	return packets[0], nil
+}
+
 // ParseIBCV2Packets parses events and returns all the v2 packets found.
 // Returns an error if no v2 packet is found.
 func ParseIBCV2Packets(eventType string, events []abci.Event) ([]channeltypesv2.Packet, error) {
@@ -212,6 +223,23 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	for _, ev := range events {
 		if ev.Type == channeltypes.EventTypeWriteAck {
 			if attribute, found := attributeByKey(ev.Attributes, channeltypes.AttributeKeyAckHex); found {
+				value, err := hex.DecodeString(attribute.Value)
+				if err != nil {
+					return nil, err
+				}
+				return value, nil
+			}
+		}
+	}
+	return nil, errors.New("acknowledgement event attribute not found")
+}
+
+// ParseAckV2FromEvents parses events emitted from a MsgRecvPacket and returns the
+// acknowledgement for v2 packets.
+func ParseAckV2FromEvents(events []abci.Event) ([]byte, error) {
+	for _, ev := range events {
+		if ev.Type == channeltypesv2.EventTypeWriteAck {
+			if attribute, found := attributeByKey(ev.Attributes, channeltypesv2.AttributeKeyEncodedAckHex); found {
 				value, err := hex.DecodeString(attribute.Value)
 				if err != nil {
 					return nil, err
