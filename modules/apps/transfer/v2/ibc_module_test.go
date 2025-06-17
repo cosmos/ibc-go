@@ -229,7 +229,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			suite.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
-			msg := types.NewMsgTransferWithEncoding(types.PortID, suite.pathAToB.EndpointA.ClientID, originalCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf)
+			msg := types.NewMsgTransferWithEncoding(types.PortID, suite.pathAToB.EndpointA.ClientID, originalCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf, false)
 			resp, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 
@@ -299,7 +299,7 @@ func (suite *TransferTestSuite) TestOnAckPacket() {
 			suite.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
-			msg := types.NewMsgTransferWithEncoding(types.PortID, suite.pathAToB.EndpointA.ClientID, originalCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf)
+			msg := types.NewMsgTransferWithEncoding(types.PortID, suite.pathAToB.EndpointA.ClientID, originalCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf, false)
 
 			resp, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
@@ -382,7 +382,7 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			suite.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
-			msg := types.NewMsgTransferWithEncoding(types.PortID, suite.pathAToB.EndpointA.ClientID, originalCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf)
+			msg := types.NewMsgTransferWithEncoding(types.PortID, suite.pathAToB.EndpointA.ClientID, originalCoin, suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf, false)
 			resp, err := suite.chainA.SendMsgs(msg)
 			suite.Require().NoError(err) // message committed
 			packets, err := ibctesting.ParseIBCV2Packets(channeltypes.EventTypeSendPacket, resp.Events)
