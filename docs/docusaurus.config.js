@@ -198,7 +198,7 @@ const config = {
               },
               {
                 label: "interchaintest",
-                href: "https://github.com/strangelove-ventures/interchaintest",
+                href: "https://github.com/cosmos/interchaintest",
               },
               {
                 label: "CosmWasm",

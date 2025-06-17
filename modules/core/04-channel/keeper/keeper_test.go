@@ -7,6 +7,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
@@ -466,4 +467,77 @@ func (s *KeeperTestSuite) TestSetPacketAcknowledgement() {
 	s.Require().True(found)
 	s.Require().Equal(ackHash, storedAckHash)
 	s.Require().True(s.chainA.App.GetIBCKeeper().ChannelKeeper.HasPacketAcknowledgement(ctxA, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq))
+}
+
+// TestGetV2Counterparty verifies that the v2 counterparty is correctly retrieved from v1 channel.
+func (suite *KeeperTestSuite) TestGetV2Counterparty() {
+	var (
+		path            *ibctesting.Path
+		expCounterparty clientv2types.CounterpartyInfo
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+	}{
+		{
+			name:     "success",
+			malleate: func() {},
+		},
+		{
+			name: "channel not found",
+			malleate: func() {
+				path.EndpointA.ChannelID = "fake-channel"
+				expCounterparty = clientv2types.CounterpartyInfo{}
+			},
+		},
+		{
+			name: "channel not OPEN",
+			malleate: func() {
+				channel, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(ok)
+				channel.State = types.CLOSED
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+				expCounterparty = clientv2types.CounterpartyInfo{}
+			},
+		},
+		{
+			name: "channel not UNORDERED",
+			malleate: func() {
+				channel, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(ok)
+				channel.Ordering = types.ORDERED
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+				expCounterparty = clientv2types.CounterpartyInfo{}
+			},
+		},
+		{
+			name: "connection not found",
+			malleate: func() {
+				channel, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				suite.Require().True(ok)
+				channel.ConnectionHops = []string{"fake-connection"}
+				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+				expCounterparty = clientv2types.CounterpartyInfo{}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path.Setup()
+
+			expCounterparty = clientv2types.CounterpartyInfo{
+				ClientId:     path.EndpointB.ChannelID,
+				MerklePrefix: [][]byte{[]byte("ibc"), []byte("")},
+			}
+
+			tc.malleate()
+
+			counterparty, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetV2Counterparty(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			suite.Require().Equal(expCounterparty, counterparty)
+			suite.Require().Equal(ok, !reflect.DeepEqual(expCounterparty, clientv2types.CounterpartyInfo{}))
+		})
+	}
 }

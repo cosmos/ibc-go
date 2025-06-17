@@ -76,6 +76,37 @@ func (ep *Endpoint) MsgRecvPacket(packet channeltypesv2.Packet) error {
 	return ep.Counterparty.UpdateClient()
 }
 
+// MsgRecvPacketWithAck returns the acknowledgement for the given packet by sending a MsgRecvPacket on the associated endpoint.
+func (endpoint *Endpoint) MsgRecvPacketWithAck(packet channeltypesv2.Packet) (channeltypesv2.Acknowledgement, error) {
+	// get proof of packet commitment from chainA
+	packetKey := hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence)
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	msg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return channeltypesv2.Acknowledgement{}, err
+	}
+
+	ackBz, err := ParseAckV2FromEvents(res.Events)
+	if err != nil {
+		return channeltypesv2.Acknowledgement{}, err
+	}
+	var ack channeltypesv2.Acknowledgement
+	err = proto.Unmarshal(ackBz, &ack)
+	if err != nil {
+		return channeltypesv2.Acknowledgement{}, err
+	}
+
+	err = endpoint.Counterparty.UpdateClient()
+	if err != nil {
+		return channeltypesv2.Acknowledgement{}, err
+	}
+
+	return ack, nil
+}
+
 // MsgAcknowledgePacket sends a MsgAcknowledgement on the associated endpoint with the provided packet and ack.
 func (ep *Endpoint) MsgAcknowledgePacket(packet channeltypesv2.Packet, ack channeltypesv2.Acknowledgement) error {
 	packetKey := hostv2.PacketAcknowledgementKey(packet.DestinationClient, packet.Sequence)
@@ -102,4 +133,20 @@ func (ep *Endpoint) MsgTimeoutPacket(packet channeltypesv2.Packet) error {
 	}
 
 	return ep.Counterparty.UpdateClient()
+}
+
+// RelayPacket relayes packet that was previously sent on the given endpoint.
+func (endpoint *Endpoint) RelayPacket(packet channeltypesv2.Packet) error {
+	// receive packet on counterparty
+	ack, err := endpoint.Counterparty.MsgRecvPacketWithAck(packet)
+	if err != nil {
+		return err
+	}
+
+	// acknowledge packet on endpoint
+	if err := endpoint.MsgAcknowledgePacket(packet, ack); err != nil {
+		return err
+	}
+
+	return nil
 }

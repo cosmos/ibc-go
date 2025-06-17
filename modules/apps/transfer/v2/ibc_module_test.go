@@ -230,7 +230,7 @@ func (s *TransferTestSuite) TestOnRecvPacket() {
 			s.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
-			msg := types.NewMsgTransferWithEncoding(types.PortID, s.pathAToB.EndpointA.ClientID, originalCoin, s.chainA.SenderAccount.GetAddress().String(), s.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf)
+			msg := types.NewMsgTransferWithEncoding(types.PortID, s.pathAToB.EndpointA.ClientID, originalCoin, s.chainA.SenderAccount.GetAddress().String(), s.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf, false)
 			resp, err := s.chainA.SendMsgs(msg)
 			s.Require().NoError(err) // message committed
 
@@ -300,7 +300,7 @@ func (s *TransferTestSuite) TestOnAckPacket() {
 			s.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
-			msg := types.NewMsgTransferWithEncoding(types.PortID, s.pathAToB.EndpointA.ClientID, originalCoin, s.chainA.SenderAccount.GetAddress().String(), s.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf)
+			msg := types.NewMsgTransferWithEncoding(types.PortID, s.pathAToB.EndpointA.ClientID, originalCoin, s.chainA.SenderAccount.GetAddress().String(), s.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf, false)
 
 			resp, err := s.chainA.SendMsgs(msg)
 			s.Require().NoError(err) // message committed
@@ -383,9 +383,10 @@ func (s *TransferTestSuite) TestOnTimeoutPacket() {
 			s.Require().True(ok)
 			originalCoin := sdk.NewCoin(tc.sourceDenomToTransfer, amount)
 
-			msg := types.NewMsgTransferWithEncoding(types.PortID, s.pathAToB.EndpointA.ClientID, originalCoin, s.chainA.SenderAccount.GetAddress().String(), s.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf)
+			msg := types.NewMsgTransferWithEncoding(types.PortID, s.pathAToB.EndpointA.ClientID, originalCoin, s.chainA.SenderAccount.GetAddress().String(), s.chainB.SenderAccount.GetAddress().String(), clienttypes.Height{}, timeoutTimestamp, "", types.EncodingProtobuf, false)
 			resp, err := s.chainA.SendMsgs(msg)
 			s.Require().NoError(err) // message committed
+
 			packets, err := ibctesting.ParseIBCV2Packets(channeltypes.EventTypeSendPacket, resp.Events)
 			s.Require().NoError(err)
 
