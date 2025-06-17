@@ -20,7 +20,7 @@ require (
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0
 	github.com/cosmos/ibc-go/v10 v10.3.0
-	github.com/cosmos/interchaintest/v10 v10.0.0-rc.1
+	github.com/cosmos/interchaintest/v10 v10.0.0
 	github.com/docker/docker v28.0.0+incompatible
 	github.com/iancoleman/orderedmap v0.3.0
 	github.com/moby/moby v27.5.1+incompatible
