@@ -128,10 +128,11 @@ func (suite *TransferTestSuite) TestAliasedTransferChannel() {
 	revTimeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
 
 	// send v2 packet
-	msgTransferRev := types.NewMsgTransferAliased(
+	// using encoding here just to use both message constructor functions
+	msgTransferRev := types.NewMsgTransferWithEncoding(
 		path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
 		revCoin, receiver.String(), sender.String(),
-		clienttypes.Height{}, revTimeoutTimestamp, "",
+		clienttypes.Height{}, revTimeoutTimestamp, "", "application/json", true,
 	)
 	res, err = revPath.EndpointA.Chain.SendMsgs(msgTransferRev)
 	suite.Require().NoError(err, "send v2 packet failed")
