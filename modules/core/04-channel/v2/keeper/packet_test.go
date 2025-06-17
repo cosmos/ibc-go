@@ -756,7 +756,6 @@ func (suite *KeeperTestSuite) TestPostMigrationAliasing() {
 
 	err = path.EndpointA.MsgTimeoutPacket(packetv2Timeout)
 	suite.Require().NoError(err, "timeout v2 packet failed")
-
 }
 
 func mockV1Format(endpoint *ibctesting.Endpoint) {

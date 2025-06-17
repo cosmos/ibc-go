@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/cosmos/interchaintest/v10/ibc"
 	"github.com/iancoleman/orderedmap"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"

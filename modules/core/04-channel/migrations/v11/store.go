@@ -32,7 +32,8 @@ func NextSequenceSendV1Key(portID, channelID string) []byte {
 // - Migrating the NextSequenceSend path to use the v2 format
 // - Store an alias key mapping the v1 channel ID to the underlying client ID
 func MigrateStore(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.BinaryCodec,
-	ibcKeeper *keeper.Keeper) error {
+	ibcKeeper *keeper.Keeper,
+) error {
 	store := storeService.OpenKVStore(ctx)
 
 	ibcKeeper.ChannelKeeper.IterateChannels(ctx, func(ic types.IdentifiedChannel) (stop bool) {
