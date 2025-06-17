@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -116,12 +117,13 @@ func (suite *TransferTestSuite) TestAliasedTransferChannel() {
 	revToken := types.Token{
 		Denom: types.Denom{
 			Trace: []types.Hop{
-				types.Hop{
+				{
 					PortId:    path.EndpointB.ChannelConfig.PortID,
 					ChannelId: path.EndpointB.ChannelID,
 				},
 			},
-			Base: ibctesting.TestCoin.Denom},
+			Base: ibctesting.TestCoin.Denom,
+		},
 		Amount: ibctesting.TestCoin.Amount.MulRaw(2).String(),
 	}
 	revCoin, err := revToken.ToCoin()
@@ -243,7 +245,6 @@ func (suite *TransferTestSuite) TestDifferentAppPostAlias() {
 	err = path.RelayPacket(transferv1Packet)
 	suite.Require().NoError(err)
 	suite.Require().Equal(uint64(3), transferv1Packet.Sequence, "sequence should be incremented across protocol versions")
-
 }
 
 // assertEscrowEqual asserts that the amounts escrowed for each of the coins on chain matches the expectedAmounts

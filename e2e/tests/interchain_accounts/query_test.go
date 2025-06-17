@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/cosmos/interchaintest/v10/testutil"
 	"github.com/cosmos/interchaintest/v10/ibc"
+	"github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"

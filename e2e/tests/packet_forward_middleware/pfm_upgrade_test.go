@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iancoleman/orderedmap"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	test "github.com/cosmos/interchaintest/v10/testutil"
+	"github.com/iancoleman/orderedmap"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
