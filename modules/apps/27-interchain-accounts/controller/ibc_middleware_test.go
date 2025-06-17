@@ -19,6 +19,7 @@ import (
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
 const invalidVersion = "invalid|version"
@@ -106,6 +107,88 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 	}
 
 	return path.EndpointB.ChanOpenConfirm()
+}
+
+func (suite *InterchainAccountsTestSuite) TestSetUnderlyingApplication() {
+	var (
+		app porttypes.IBCModule
+		mw  porttypes.Middleware
+	)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPanic bool
+	}{
+		{
+			"success", func() {}, false,
+		},
+		{
+			"nil underlying app", func() {
+				app = nil
+			}, true,
+		},
+		{
+			"app already set", func() {
+				mw.SetUnderlyingApplication(&ibcmock.IBCModule{})
+			}, true,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+
+			app = &ibcmock.IBCModule{}
+			mw = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
+
+			tc.malleate() // malleate mutates test data
+
+			if tc.expPanic {
+				suite.Require().Panics(func() {
+					mw.SetUnderlyingApplication(app)
+				})
+			} else {
+				suite.Require().NotPanics(func() {
+					mw.SetUnderlyingApplication(app)
+				})
+			}
+		})
+	}
+}
+
+func (suite *InterchainAccountsTestSuite) TestSetICS4Wrapper() {
+	var wrapper porttypes.ICS4Wrapper
+	mw := controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
+	testCases := []struct {
+		name     string
+		malleate func()
+		expPanic bool
+	}{
+		{
+			"success", func() {}, false,
+		},
+		{
+			"nil ICS4Wrapper", func() {
+				wrapper = nil
+			}, true,
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest() // reset
+			wrapper = suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper
+			tc.malleate() // malleate mutates test data
+			if tc.expPanic {
+				suite.Require().Panics(func() {
+					mw.SetICS4Wrapper(wrapper)
+				})
+			} else {
+				suite.Require().NotPanics(func() {
+					mw.SetICS4Wrapper(wrapper)
+				})
+			}
+		})
+	}
 }
 
 func (suite *InterchainAccountsTestSuite) TestOnChanOpenInit() {
@@ -829,7 +912,7 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsGoAPICall
 		suite.Require().NoError(err)
 
 		// attempt to start a second handshake via the controller msg server
-		msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		msgServer := controllerkeeper.NewMsgServerImpl(suite.chainA.GetSimApp().ICAControllerKeeper)
 		msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion, ordering)
 
 		res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
@@ -846,7 +929,7 @@ func (suite *InterchainAccountsTestSuite) TestInFlightHandshakeRespectsMsgServer
 		path.SetupConnections()
 
 		// initiate a channel handshake such that channel.State == INIT
-		msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		msgServer := controllerkeeper.NewMsgServerImpl(suite.chainA.GetSimApp().ICAControllerKeeper)
 		msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), TestVersion, ordering)
 
 		res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)
@@ -881,7 +964,7 @@ func (suite *InterchainAccountsTestSuite) TestClosedChannelReopensWithMsgServer(
 		channelSeq := suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext())
 
 		// route a new MsgRegisterInterchainAccount in order to reopen the
-		msgServer := controllerkeeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+		msgServer := controllerkeeper.NewMsgServerImpl(suite.chainA.GetSimApp().ICAControllerKeeper)
 		msgRegisterInterchainAccount := types.NewMsgRegisterInterchainAccount(path.EndpointA.ConnectionID, suite.chainA.SenderAccount.GetAddress().String(), path.EndpointA.ChannelConfig.Version, ordering)
 
 		res, err := msgServer.RegisterInterchainAccount(suite.chainA.GetContext(), msgRegisterInterchainAccount)

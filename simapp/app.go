@@ -168,10 +168,10 @@ type SimApp struct {
 	UpgradeKeeper         *upgradekeeper.Keeper
 	AuthzKeeper           authzkeeper.Keeper
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	ICAControllerKeeper   icacontrollerkeeper.Keeper
-	ICAHostKeeper         icahostkeeper.Keeper
+	ICAControllerKeeper   *icacontrollerkeeper.Keeper
+	ICAHostKeeper         *icahostkeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
-	TransferKeeper        ibctransferkeeper.Keeper
+	TransferKeeper        *ibctransferkeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	GroupKeeper           groupkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
@@ -364,7 +364,6 @@ func NewSimApp(
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[icacontrollertypes.StoreKey]),
 		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
 		app.MsgServiceRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -372,27 +371,22 @@ func NewSimApp(
 	// ICA Host keeper
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[icahosttypes.StoreKey]),
-		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper, app.AccountKeeper,
 		app.MsgServiceRouter(), app.GRPCQueryRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Packet Forward Middleware keeper
-	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.ICAControllerKeeper.GetICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
 
 	// Middleware Stacks
 
-	// PacketForwardMiddleware must be created before TransferKeeper
-	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, app.ICAControllerKeeper.GetICS4Wrapper(), authtypes.NewModuleAddress(govtypes.ModuleName).String())
-
 	// Create Transfer Keeper
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]),
-		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.MsgServiceRouter(),
 		app.AccountKeeper, app.BankKeeper,
@@ -412,11 +406,13 @@ func NewSimApp(
 	// - Transfer
 
 	// create IBC module from bottom to top of stack
-	transferStack := packetforward.NewIBCMiddleware(transfer.NewIBCModule(app.TransferKeeper), app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
-	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
+	transferStack := porttypes.NewIBCStackBuilder()
+	transferStack.Base(transfer.NewIBCModule(app.TransferKeeper)).Next(
+		packetforward.NewIBCMiddleware(app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp),
+	)
 
 	// Add transfer stack to IBC Router
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack.Build(app.IBCKeeper.ChannelKeeper))
 
 	// Packet Forward Middleware Stack.
 
@@ -487,7 +483,7 @@ func NewSimApp(
 		// IBC modules
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
-		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		ica.NewAppModule(app.ICAControllerKeeper, app.ICAHostKeeper),
 		packetforward.NewAppModule(app.PFMKeeper),
 
 		// IBC light clients
