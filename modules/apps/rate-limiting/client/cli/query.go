@@ -18,26 +18,6 @@ const (
 	FlagDenom = "denom"
 )
 
-// GetQueryCmd returns the cli query commands for this module.
-func GetQueryCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
-		DisableFlagParsing:         true,
-		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
-	}
-
-	cmd.AddCommand(
-		GetCmdQueryRateLimit(),
-		GetCmdQueryAllRateLimits(),
-		GetCmdQueryRateLimitsByChainID(),
-		GetCmdQueryAllBlacklistedDenoms(),
-		GetCmdQueryAllWhitelistedAddresses(),
-	)
-	return cmd
-}
-
 // GetCmdQueryRateLimit implements a command to query rate limits by channel-id or client-id and denom
 func GetCmdQueryRateLimit() *cobra.Command {
 	cmd := &cobra.Command{
@@ -68,8 +48,8 @@ Example:
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
+			// Query all rate limits for the channel/client ID if denom is not specified.
 			if denom == "" {
-				// Query all rate limits for the channel/client ID if denom is not specified
 				req := &types.QueryRateLimitsByChannelOrClientIDRequest{
 					ChannelOrClientId: channelOrClientID,
 				}
@@ -77,7 +57,6 @@ Example:
 				if err != nil {
 					return err
 				}
-				// Use PrintProto for slice types as PrintObjectLegacy might not work well
 				return clientCtx.PrintProto(res)
 			}
 
