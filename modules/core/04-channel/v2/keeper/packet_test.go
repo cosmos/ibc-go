@@ -9,7 +9,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
-	v11 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v11"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v11"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
@@ -607,25 +607,25 @@ func (s *KeeperTestSuite) TestTimeoutPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestAliasedChannel() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+func (s *KeeperTestSuite) TestAliasedChannel() {
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.Setup()
 
 	// mock v1 format for both sides of the channel
-	mockV1Format(path.EndpointA)
-	mockV1Format(path.EndpointB)
+	s.mockV1Format(path.EndpointA)
+	s.mockV1Format(path.EndpointB)
 
 	// migrate the store for both chains
-	err := v11.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.App.GetIBCKeeper())
-	suite.Require().NoError(err, "migrate store failed for chain A")
-	err = v11.MigrateStore(suite.chainB.GetContext(), runtime.NewKVStoreService(suite.chainB.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainB.App.AppCodec(), suite.chainB.App.GetIBCKeeper())
-	suite.Require().NoError(err, "migrate store failed for chain B")
+	err := v11.MigrateStore(s.chainA.GetContext(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), s.chainA.App.AppCodec(), s.chainA.App.GetIBCKeeper())
+	s.Require().NoError(err, "migrate store failed for chain A")
+	err = v11.MigrateStore(s.chainB.GetContext(), runtime.NewKVStoreService(s.chainB.GetSimApp().GetKey(ibcexported.StoreKey)), s.chainB.App.AppCodec(), s.chainB.App.GetIBCKeeper())
+	s.Require().NoError(err, "migrate store failed for chain B")
 
 	// create v2 path from the original client ids
 	// the path config is only used for updating
 	// the packet client ids will be the original channel identifiers
 	// but they are not validated against the client ids in the path in the tests
-	pathv2 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	pathv2 := ibctesting.NewPath(s.chainA, s.chainB)
 	pathv2.EndpointA.ClientID = path.EndpointA.ClientID
 	pathv2.EndpointB.ClientID = path.EndpointB.ClientID
 
@@ -634,18 +634,18 @@ func (suite *KeeperTestSuite) TestAliasedChannel() {
 	payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 	// create a timeout timestamp that is 1 hour in the future
-	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
-	timeoutTimestampNano := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).UnixNano())
+	timeoutTimestamp := uint64(s.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
+	timeoutTimestampNano := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).UnixNano())
 
 	// send v1 packet
 	sequence, err := path.EndpointA.SendPacket(clienttypes.Height{}, timeoutTimestampNano, ibctesting.MockPacketData)
-	suite.Require().NoError(err)
-	suite.Require().Equal(uint64(1), sequence, "sequence should be 1 for first packet on channel")
+	s.Require().NoError(err)
+	s.Require().Equal(uint64(1), sequence, "sequence should be 1 for first packet on channel")
 	packetv1 := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.Height{}, timeoutTimestampNano)
 
 	// relay v1 packet
 	err = path.RelayPacket(packetv1)
-	suite.Require().NoError(err, "relay v1 packet failed")
+	s.Require().NoError(err, "relay v1 packet failed")
 
 	// send v2 packet
 	msgSendPacket := types.NewMsgSendPacket(
@@ -655,32 +655,32 @@ func (suite *KeeperTestSuite) TestAliasedChannel() {
 		payload,
 	)
 	res, err := path.EndpointA.Chain.SendMsgs(msgSendPacket)
-	suite.Require().NoError(err, "send v2 packet failed")
+	s.Require().NoError(err, "send v2 packet failed")
 
 	packetv2, err := ibctesting.ParseV2PacketFromEvents(res.Events)
-	suite.Require().NoError(err, "parse v2 packet from events failed")
-	suite.Require().Equal(uint64(2), packetv2.Sequence, "sequence should be incremented across protocol versions")
+	s.Require().NoError(err, "parse v2 packet from events failed")
+	s.Require().Equal(uint64(2), packetv2.Sequence, "sequence should be incremented across protocol versions")
 
 	err = path.EndpointB.UpdateClient()
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// relay v2 packet
 	err = pathv2.EndpointA.RelayPacket(packetv2)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// send v1 packet again
 	sequence, err = path.EndpointA.SendPacket(clienttypes.Height{}, timeoutTimestampNano, ibctesting.MockPacketData)
-	suite.Require().NoError(err)
-	suite.Require().Equal(uint64(3), sequence, "sequence should be 3 for first packet on channel")
+	s.Require().NoError(err)
+	s.Require().Equal(uint64(3), sequence, "sequence should be 3 for first packet on channel")
 	packetv1 = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.Height{}, timeoutTimestampNano)
 
 	// relay v1 packet again
 	err = path.RelayPacket(packetv1)
-	suite.Require().NoError(err, "relay v1 packet failed")
+	s.Require().NoError(err, "relay v1 packet failed")
 }
 
-func (suite *KeeperTestSuite) TestPostMigrationAliasing() {
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+func (s *KeeperTestSuite) TestPostMigrationAliasing() {
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.Setup()
 
 	// ensure we can send a v2 packet on the channel automatically
@@ -689,7 +689,7 @@ func (suite *KeeperTestSuite) TestPostMigrationAliasing() {
 	// the path config is only used for updating
 	// the packet client ids will be the original channel identifiers
 	// but they are not validated against the client ids in the path in the tests
-	pathv2 := ibctesting.NewPath(suite.chainA, suite.chainB)
+	pathv2 := ibctesting.NewPath(s.chainA, s.chainB)
 	pathv2.EndpointA.ClientID = path.EndpointA.ClientID
 	pathv2.EndpointB.ClientID = path.EndpointB.ClientID
 
@@ -698,18 +698,18 @@ func (suite *KeeperTestSuite) TestPostMigrationAliasing() {
 	payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 	// create a timeout timestamp that is 1 hour in the future
-	timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
-	timeoutTimestampNano := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).UnixNano())
+	timeoutTimestamp := uint64(s.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
+	timeoutTimestampNano := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).UnixNano())
 
 	// send v1 packet
 	sequence, err := path.EndpointA.SendPacket(clienttypes.Height{}, timeoutTimestampNano, ibctesting.MockPacketData)
-	suite.Require().NoError(err)
-	suite.Require().Equal(uint64(1), sequence, "sequence should be 1 for first packet on channel")
+	s.Require().NoError(err)
+	s.Require().Equal(uint64(1), sequence, "sequence should be 1 for first packet on channel")
 	packetv1 := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.Height{}, timeoutTimestampNano)
 
 	// relay v1 packet
 	err = path.RelayPacket(packetv1)
-	suite.Require().NoError(err, "relay v1 packet failed")
+	s.Require().NoError(err, "relay v1 packet failed")
 
 	// send v2 packet
 	msgSendPacket := types.NewMsgSendPacket(
@@ -719,21 +719,21 @@ func (suite *KeeperTestSuite) TestPostMigrationAliasing() {
 		payload,
 	)
 	res, err := path.EndpointA.Chain.SendMsgs(msgSendPacket)
-	suite.Require().NoError(err, "send v2 packet failed")
+	s.Require().NoError(err, "send v2 packet failed")
 
 	packetv2, err := ibctesting.ParseV2PacketFromEvents(res.Events)
-	suite.Require().NoError(err, "parse v2 packet from events failed")
-	suite.Require().Equal(uint64(2), packetv2.Sequence, "sequence should be incremented across protocol versions")
+	s.Require().NoError(err, "parse v2 packet from events failed")
+	s.Require().Equal(uint64(2), packetv2.Sequence, "sequence should be incremented across protocol versions")
 
 	err = path.EndpointB.UpdateClient()
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// relay v2 packet
 	err = pathv2.EndpointA.RelayPacket(packetv2)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// send a v2 packet on the channel id that will timeout
-	timedOutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Second).Unix())
+	timedOutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Second).Unix())
 	// send v2 packet
 	msgSendPacketTimeout := types.NewMsgSendPacket(
 		path.EndpointA.ChannelID,
@@ -742,34 +742,34 @@ func (suite *KeeperTestSuite) TestPostMigrationAliasing() {
 		payload,
 	)
 	res, err = path.EndpointA.Chain.SendMsgs(msgSendPacketTimeout)
-	suite.Require().NoError(err, "send v2 packet failed")
+	s.Require().NoError(err, "send v2 packet failed")
 
 	packetv2Timeout, err := ibctesting.ParseV2PacketFromEvents(res.Events)
-	suite.Require().NoError(err, "parse v2 packet from events failed")
-	suite.Require().Equal(uint64(2), packetv2.Sequence, "sequence should be incremented across protocol versions")
+	s.Require().NoError(err, "parse v2 packet from events failed")
+	s.Require().Equal(uint64(2), packetv2.Sequence, "sequence should be incremented across protocol versions")
 
-	suite.coordinator.IncrementTime()
+	s.coordinator.IncrementTime()
 
 	err = path.EndpointA.UpdateClient()
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	err = path.EndpointA.MsgTimeoutPacket(packetv2Timeout)
-	suite.Require().NoError(err, "timeout v2 packet failed")
+	s.Require().NoError(err, "timeout v2 packet failed")
 }
 
-func mockV1Format(endpoint *ibctesting.Endpoint) {
+func (s *KeeperTestSuite) mockV1Format(endpoint *ibctesting.Endpoint) {
 	// mock v1 format by setting the sequence in the old key
 	seq, ok := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
-	if !ok {
-		panic("sequence not found")
-	}
+	s.Require().True(ok, "next sequence send should exist in v1 format")
 
 	// move the next sequence send back to the old v1 format key
 	// so we can migrate it in our tests
 	storeService := runtime.NewKVStoreService(endpoint.Chain.GetSimApp().GetKey(ibcexported.StoreKey))
 	store := storeService.OpenKVStore(endpoint.Chain.GetContext())
-	store.Set(v11.NextSequenceSendV1Key(endpoint.ChannelConfig.PortID, endpoint.ChannelID), sdk.Uint64ToBigEndian(seq))
-	store.Delete(hostv2.NextSequenceSendKey(endpoint.ChannelID))
+	err := store.Set(v11.NextSequenceSendV1Key(endpoint.ChannelConfig.PortID, endpoint.ChannelID), sdk.Uint64ToBigEndian(seq))
+	s.Require().NoError(err)
+	err = store.Delete(hostv2.NextSequenceSendKey(endpoint.ChannelID))
+	s.Require().NoError(err)
 
 	// Remove counterparty to mock pre migration channels
 	clientStore := endpoint.Chain.App.GetIBCKeeper().ClientKeeper.ClientStore(endpoint.Chain.GetContext(), endpoint.ChannelID)

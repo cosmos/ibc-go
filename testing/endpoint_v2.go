@@ -77,14 +77,14 @@ func (ep *Endpoint) MsgRecvPacket(packet channeltypesv2.Packet) error {
 }
 
 // MsgRecvPacketWithAck returns the acknowledgement for the given packet by sending a MsgRecvPacket on the associated endpoint.
-func (endpoint *Endpoint) MsgRecvPacketWithAck(packet channeltypesv2.Packet) (channeltypesv2.Acknowledgement, error) {
+func (ep *Endpoint) MsgRecvPacketWithAck(packet channeltypesv2.Packet) (channeltypesv2.Acknowledgement, error) {
 	// get proof of packet commitment from chainA
 	packetKey := hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence)
-	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+	proof, proofHeight := ep.Counterparty.QueryProof(packetKey)
 
-	msg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+	msg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, ep.Chain.SenderAccount.GetAddress().String())
 
-	res, err := endpoint.Chain.SendMsgs(msg)
+	res, err := ep.Chain.SendMsgs(msg)
 	if err != nil {
 		return channeltypesv2.Acknowledgement{}, err
 	}
@@ -99,7 +99,7 @@ func (endpoint *Endpoint) MsgRecvPacketWithAck(packet channeltypesv2.Packet) (ch
 		return channeltypesv2.Acknowledgement{}, err
 	}
 
-	err = endpoint.Counterparty.UpdateClient()
+	err = ep.Counterparty.UpdateClient()
 	if err != nil {
 		return channeltypesv2.Acknowledgement{}, err
 	}
@@ -136,17 +136,13 @@ func (ep *Endpoint) MsgTimeoutPacket(packet channeltypesv2.Packet) error {
 }
 
 // RelayPacket relayes packet that was previously sent on the given endpoint.
-func (endpoint *Endpoint) RelayPacket(packet channeltypesv2.Packet) error {
+func (ep *Endpoint) RelayPacket(packet channeltypesv2.Packet) error {
 	// receive packet on counterparty
-	ack, err := endpoint.Counterparty.MsgRecvPacketWithAck(packet)
+	ack, err := ep.Counterparty.MsgRecvPacketWithAck(packet)
 	if err != nil {
 		return err
 	}
 
 	// acknowledge packet on endpoint
-	if err := endpoint.MsgAcknowledgePacket(packet, ack); err != nil {
-		return err
-	}
-
-	return nil
+	return ep.MsgAcknowledgePacket(packet, ack)
 }

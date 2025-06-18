@@ -342,7 +342,8 @@ func (k *Keeper) IteratePacketSequence(ctx sdk.Context, iterator db.Iterator, cb
 
 // GetAllPacketSendSeqs returns all stored next send sequences.
 // NOTE: Implemented differently from NextSequenceRecv/Ack since the key format is different
-func (k *Keeper) GetAllPacketSendSeqs(ctx sdk.Context) (seqs []types.PacketSequence) {
+func (k *Keeper) GetAllPacketSendSeqs(ctx sdk.Context) []types.PacketSequence {
+	var seqs []types.PacketSequence
 	k.IterateChannels(ctx, func(ic types.IdentifiedChannel) bool {
 		nextSeqSend, ok := k.GetNextSequenceSend(ctx, ic.PortId, ic.ChannelId)
 		if !ok {

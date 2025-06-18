@@ -470,7 +470,7 @@ func (s *KeeperTestSuite) TestSetPacketAcknowledgement() {
 }
 
 // TestGetV2Counterparty verifies that the v2 counterparty is correctly retrieved from v1 channel.
-func (suite *KeeperTestSuite) TestGetV2Counterparty() {
+func (s *KeeperTestSuite) TestGetV2Counterparty() {
 	var (
 		path            *ibctesting.Path
 		expCounterparty clientv2types.CounterpartyInfo
@@ -493,39 +493,39 @@ func (suite *KeeperTestSuite) TestGetV2Counterparty() {
 		{
 			name: "channel not OPEN",
 			malleate: func() {
-				channel, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(ok)
+				channel, ok := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				s.Require().True(ok)
 				channel.State = types.CLOSED
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+				s.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 				expCounterparty = clientv2types.CounterpartyInfo{}
 			},
 		},
 		{
 			name: "channel not UNORDERED",
 			malleate: func() {
-				channel, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(ok)
+				channel, ok := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				s.Require().True(ok)
 				channel.Ordering = types.ORDERED
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+				s.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 				expCounterparty = clientv2types.CounterpartyInfo{}
 			},
 		},
 		{
 			name: "connection not found",
 			malleate: func() {
-				channel, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-				suite.Require().True(ok)
+				channel, ok := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+				s.Require().True(ok)
 				channel.ConnectionHops = []string{"fake-connection"}
-				suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+				s.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 				expCounterparty = clientv2types.CounterpartyInfo{}
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		s.Run(tc.name, func() {
+			s.SetupTest()
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.Setup()
 
 			expCounterparty = clientv2types.CounterpartyInfo{
@@ -535,9 +535,9 @@ func (suite *KeeperTestSuite) TestGetV2Counterparty() {
 
 			tc.malleate()
 
-			counterparty, ok := suite.chainA.App.GetIBCKeeper().ChannelKeeper.GetV2Counterparty(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			suite.Require().Equal(expCounterparty, counterparty)
-			suite.Require().Equal(ok, !reflect.DeepEqual(expCounterparty, clientv2types.CounterpartyInfo{}))
+			counterparty, ok := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetV2Counterparty(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
+			s.Require().Equal(expCounterparty, counterparty)
+			s.Require().Equal(ok, !reflect.DeepEqual(expCounterparty, clientv2types.CounterpartyInfo{}))
 		})
 	}
 }
