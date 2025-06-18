@@ -32,6 +32,16 @@ func (s *KeeperTestSuite) resetRateLimits(denom string, durations []uint64, nonZ
 	}
 }
 
+func (s *KeeperTestSuite) TestBeginBlocker_NoPanic() {
+	err := s.chainA.GetSimApp().RateLimitKeeper.SetHourEpoch(s.chainA.GetContext(), types.HourEpoch{
+		Duration: 0,
+	})
+	s.Require().NoError(err)
+	s.Require().NotPanics(func() {
+		s.chainA.GetSimApp().RateLimitKeeper.BeginBlocker(s.chainA.GetContext())
+	})
+}
+
 func (s *KeeperTestSuite) TestBeginBlocker() {
 	// We'll create three rate limits with different durations
 	// And then pass in epoch ids that will cause each to trigger a reset in order
