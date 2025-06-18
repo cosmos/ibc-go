@@ -22,9 +22,9 @@ const (
 func GetCmdQueryRateLimit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rate-limit [channel-or-client-id]",
-		Short: "Query rate limits by channel-id/client-id and denom",
+		Short: "Query rate limits from a given channel-id/client-id and denom",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query rate limits by channel-id/client-id and denom.
+			fmt.Sprintf(`Query rate limits from a given channel-id/client-id and denom.
 If the denom flag is omitted, all rate limits for the given channel-id/client-id are returned.
 
 Example:
@@ -84,7 +84,7 @@ Example:
 func GetCmdQueryAllRateLimits() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-rate-limits",
-		Short: "Query all rate limits",
+		Short: "Query for all rate limits",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -113,7 +113,7 @@ func GetCmdQueryAllRateLimits() *cobra.Command {
 func GetCmdQueryRateLimitsByChainID() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rate-limits-by-chain [chain-id]",
-		Short: "Query all rate limits associated with the channels/clients connecting to the given ChainID",
+		Short: "Query for all rate limits associated with the channels/clients connecting to the given ChainID",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			chainID := args[0]
@@ -145,7 +145,7 @@ func GetCmdQueryRateLimitsByChainID() *cobra.Command {
 func GetCmdQueryAllBlacklistedDenoms() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-blacklisted-denoms",
-		Short: "Query all blacklisted denoms",
+		Short: "Query for all blacklisted denoms",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -172,7 +172,7 @@ func GetCmdQueryAllBlacklistedDenoms() *cobra.Command {
 func GetCmdQueryAllWhitelistedAddresses() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-whitelisted-addresses",
-		Short: "Query all whitelisted address pairs",
+		Short: "Query for all whitelisted address pairs",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
