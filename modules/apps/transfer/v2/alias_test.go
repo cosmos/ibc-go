@@ -28,8 +28,8 @@ func (suite *TransferTestSuite) TestAliasedTransferChannel() {
 	path.Setup()
 
 	// mock v1 format for both sides of the channel
-	mockV1Format(path.EndpointA)
-	mockV1Format(path.EndpointB)
+	suite.mockV1Format(path.EndpointA)
+	suite.mockV1Format(path.EndpointB)
 
 	// migrate the store for both chains
 	err := v11.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.App.GetIBCKeeper())
@@ -166,8 +166,8 @@ func (suite *TransferTestSuite) TestDifferentAppPostAlias() {
 	path.Setup()
 
 	// mock v1 format for both sides of the channel
-	mockV1Format(path.EndpointA)
-	mockV1Format(path.EndpointB)
+	suite.mockV1Format(path.EndpointA)
+	suite.mockV1Format(path.EndpointB)
 
 	// migrate the store for both chains
 	err := v11.MigrateStore(suite.chainA.GetContext(), runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(ibcexported.StoreKey)), suite.chainA.App.AppCodec(), suite.chainA.App.GetIBCKeeper())
@@ -259,7 +259,7 @@ func (suite *TransferTestSuite) assertReceiverEqual(chain *ibctesting.TestChain,
 	suite.Require().Equal(expectedAmount, amount.Amount, "receiver balance should match expected amount")
 }
 
-func mockV1Format(endpoint *ibctesting.Endpoint) {
+func (suite *TransferTestSuite) mockV1Format(endpoint *ibctesting.Endpoint) {
 	// mock v1 format by setting the sequence in the old key
 	seq, ok := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceSend(endpoint.Chain.GetContext(), endpoint.ChannelConfig.PortID, endpoint.ChannelID)
 	if !ok {
@@ -270,6 +270,8 @@ func mockV1Format(endpoint *ibctesting.Endpoint) {
 	// so we can migrate it in our tests
 	storeService := runtime.NewKVStoreService(endpoint.Chain.GetSimApp().GetKey(ibcexported.StoreKey))
 	store := storeService.OpenKVStore(endpoint.Chain.GetContext())
-	store.Set(v11.NextSequenceSendV1Key(endpoint.ChannelConfig.PortID, endpoint.ChannelID), sdk.Uint64ToBigEndian(seq))
-	store.Delete(hostv2.NextSequenceSendKey(endpoint.ChannelID))
+	err := store.Set(v11.NextSequenceSendV1Key(endpoint.ChannelConfig.PortID, endpoint.ChannelID), sdk.Uint64ToBigEndian(seq))
+	suite.Require().NoError(err)
+	err = store.Delete(hostv2.NextSequenceSendKey(endpoint.ChannelID))
+	suite.Require().NoError(err)
 }

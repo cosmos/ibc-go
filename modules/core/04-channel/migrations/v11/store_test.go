@@ -60,15 +60,18 @@ func (suite *MigrationsV11TestSuite) TestMigrateStore() {
 		// to mock channels that were created before the new changes
 		seq, ok := ibcKeeper.ChannelKeeper.GetNextSequenceSend(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 		suite.Require().True(ok)
-		store.Delete(hostv2.NextSequenceSendKey(path.EndpointA.ChannelID))
-		store.Set(v11.NextSequenceSendV1Key(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), sdk.Uint64ToBigEndian(seq))
+		err := store.Delete(hostv2.NextSequenceSendKey(path.EndpointA.ChannelID))
+		suite.Require().NoError(err)
+		err = store.Set(v11.NextSequenceSendV1Key(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID), sdk.Uint64ToBigEndian(seq))
+		suite.Require().NoError(err)
 
 		// Remove counterparty to mock pre migration channels
 		clientStore := ibcKeeper.ClientKeeper.ClientStore(ctx, path.EndpointA.ChannelID)
 		clientStore.Delete(clientv2types.CounterpartyKey())
 
 		// Remove alias to mock pre migration channels
-		store.Delete(channelv2types.AliasKey(path.EndpointA.ChannelID))
+		err = store.Delete(channelv2types.AliasKey(path.EndpointA.ChannelID))
+		suite.Require().NoError(err)
 
 		if i%5 == 0 {
 			channel, ok := ibcKeeper.ChannelKeeper.GetChannel(ctx, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -86,40 +89,40 @@ func (suite *MigrationsV11TestSuite) TestMigrateStore() {
 	suite.Require().NoError(err)
 
 	for i := range numberOfChannels {
-		channelId := types.FormatChannelIdentifier(uint64(i))
-		channel, ok := ibcKeeper.ChannelKeeper.GetChannel(ctx, mock.PortID, channelId)
+		channelID := types.FormatChannelIdentifier(uint64(i))
+		channel, ok := ibcKeeper.ChannelKeeper.GetChannel(ctx, mock.PortID, channelID)
 		suite.Require().True(ok, i)
 
 		if channel.Ordering == types.UNORDERED && channel.State == types.OPEN {
 			// ensure counterparty set
-			expCounterparty, ok := ibcKeeper.ChannelKeeper.GetV2Counterparty(ctx, mock.PortID, channelId)
+			expCounterparty, ok := ibcKeeper.ChannelKeeper.GetV2Counterparty(ctx, mock.PortID, channelID)
 			suite.Require().True(ok)
-			counterparty, ok := ibcKeeper.ClientV2Keeper.GetClientCounterparty(ctx, channelId)
+			counterparty, ok := ibcKeeper.ClientV2Keeper.GetClientCounterparty(ctx, channelID)
 			suite.Require().True(ok)
 			suite.Require().Equal(expCounterparty, counterparty, "counterparty not set correctly")
 
 			// ensure base client mapping set
-			baseClientId, ok := ibcKeeper.ChannelKeeperV2.GetClientForAlias(ctx, channelId)
+			baseClientID, ok := ibcKeeper.ChannelKeeperV2.GetClientForAlias(ctx, channelID)
 			suite.Require().True(ok)
-			suite.Require().NotEqual(channelId, baseClientId)
+			suite.Require().NotEqual(channelID, baseClientID)
 			connection, ok := ibcKeeper.ConnectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 			suite.Require().True(ok)
-			suite.Require().Equal(connection.ClientId, baseClientId, "base client mapping not set correctly")
+			suite.Require().Equal(connection.ClientId, baseClientID, "base client mapping not set correctly")
 		} else {
 			// ensure counterparty not set for closed channels
-			_, ok := ibcKeeper.ClientV2Keeper.GetClientCounterparty(ctx, channelId)
+			_, ok := ibcKeeper.ClientV2Keeper.GetClientCounterparty(ctx, channelID)
 			suite.Require().False(ok, "counterparty should not be set for closed channels")
 
 			// ensure base client mapping not set for closed channels
-			baseClientId, ok := ibcKeeper.ChannelKeeperV2.GetClientForAlias(ctx, channelId)
+			baseClientID, ok := ibcKeeper.ChannelKeeperV2.GetClientForAlias(ctx, channelID)
 			suite.Require().False(ok)
-			suite.Require().Equal("", baseClientId, "base client mapping should not be set for closed channels")
+			suite.Require().Equal("", baseClientID, "base client mapping should not be set for closed channels")
 		}
 
 		// ensure that sequence migrated correctly
-		bz, _ := store.Get(v11.NextSequenceSendV1Key(mock.PortID, channelId))
+		bz, _ := store.Get(v11.NextSequenceSendV1Key(mock.PortID, channelID))
 		suite.Require().Nil(bz)
-		seq, ok := ibcKeeper.ChannelKeeper.GetNextSequenceSend(ctx, mock.PortID, channelId)
+		seq, ok := ibcKeeper.ChannelKeeper.GetNextSequenceSend(ctx, mock.PortID, channelID)
 		suite.Require().True(ok)
 		suite.Require().Equal(uint64(1), seq)
 
