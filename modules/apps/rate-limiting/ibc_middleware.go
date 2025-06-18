@@ -28,7 +28,6 @@ type IBCMiddleware struct {
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper, underlying application, and channel keeper.
 func NewIBCMiddleware(app porttypes.PacketUnmarshalarModule, k keeper.Keeper, ck *channelkeeper.Keeper) IBCMiddleware {
-	k.SetICS4Wrapper(ck)
 	return IBCMiddleware{
 		app:           app,
 		keeper:        k,
