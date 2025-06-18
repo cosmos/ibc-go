@@ -29,15 +29,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new rate-limiting Keeper instance
-func NewKeeper(
-	cdc codec.BinaryCodec,
-	storeService corestore.KVStoreService,
-	ics4Wrapper porttypes.ICS4Wrapper,
-	channelKeeper types.ChannelKeeper,
-	clientKeeper types.ClientKeeper,
-	bankKeeper types.BankKeeper,
-	authority string,
-) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper, clientKeeper types.ClientKeeper, bankKeeper types.BankKeeper, authority string) Keeper {
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
@@ -73,14 +65,4 @@ func (k Keeper) GetAuthority() string {
 // Logger returns a module-specific logger.
 func (Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
-}
-
-// GetPort returns the portID for the rate-limiting module.
-func (k Keeper) GetPort(ctx sdk.Context) string {
-	store := k.storeService.OpenKVStore(ctx)
-	bz, err := store.Get(types.KeyPort(types.PortID))
-	if err != nil {
-		panic(err)
-	}
-	return string(bz)
 }

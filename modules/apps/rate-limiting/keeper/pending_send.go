@@ -17,8 +17,8 @@ import (
 // Sets the sequence number of a packet that was just sent
 func (k Keeper) SetPendingSendPacket(ctx sdk.Context, channelID string, sequence uint64) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, []byte(types.PendingSendPacketPrefix))
-	key := types.KeyPendingSendPacket(channelID, sequence)
+	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
+	key := types.PendingSendPacketKey(channelID, sequence)
 	store.Set(key, []byte{1})
 }
 
@@ -26,8 +26,8 @@ func (k Keeper) SetPendingSendPacket(ctx sdk.Context, channelID string, sequence
 // Used after the ack or timeout for a packet has been received
 func (k Keeper) RemovePendingSendPacket(ctx sdk.Context, channelID string, sequence uint64) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, []byte(types.PendingSendPacketPrefix))
-	key := types.KeyPendingSendPacket(channelID, sequence)
+	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
+	key := types.PendingSendPacketKey(channelID, sequence)
 	store.Delete(key)
 }
 
@@ -35,8 +35,8 @@ func (k Keeper) RemovePendingSendPacket(ctx sdk.Context, channelID string, seque
 // sent during the current quota
 func (k Keeper) CheckPacketSentDuringCurrentQuota(ctx sdk.Context, channelID string, sequence uint64) bool {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, []byte(types.PendingSendPacketPrefix))
-	key := types.KeyPendingSendPacket(channelID, sequence)
+	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
+	key := types.PendingSendPacketKey(channelID, sequence)
 	valueBz := store.Get(key)
 	found := len(valueBz) != 0
 	return found
@@ -45,7 +45,7 @@ func (k Keeper) CheckPacketSentDuringCurrentQuota(ctx sdk.Context, channelID str
 // Get all pending packet sequence numbers
 func (k Keeper) GetAllPendingSendPackets(ctx sdk.Context) []string {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, []byte(types.PendingSendPacketPrefix))
+	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 
 	iterator := store.Iterator(nil, nil)
 	defer iterator.Close()
@@ -83,7 +83,7 @@ func (k Keeper) GetAllPendingSendPackets(ctx sdk.Context) []string {
 // This is executed when the quota resets
 func (k Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID string) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, []byte(types.PendingSendPacketPrefix))
+	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(channelID))
 	defer iterator.Close()

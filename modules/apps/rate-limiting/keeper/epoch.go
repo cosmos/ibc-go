@@ -11,7 +11,7 @@ import (
 func (k Keeper) SetHourEpoch(ctx sdk.Context, epoch types.HourEpoch) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	epochBz := k.cdc.MustMarshal(&epoch)
-	store.Set([]byte(types.HourEpochKey), epochBz)
+	store.Set(types.HourEpochKey, epochBz)
 }
 
 // Reads the hour epoch from the store
@@ -19,7 +19,7 @@ func (k Keeper) SetHourEpoch(ctx sdk.Context, epoch types.HourEpoch) {
 func (k Keeper) GetHourEpoch(ctx sdk.Context) (epoch types.HourEpoch) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 
-	epochBz := store.Get([]byte(types.HourEpochKey))
+	epochBz := store.Get(types.HourEpochKey)
 	if len(epochBz) == 0 {
 		// Log an error if the epoch key is not found (should be initialized at genesis)
 		k.Logger(ctx).Error("hour epoch not found in store")

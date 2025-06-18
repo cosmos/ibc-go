@@ -1,7 +1,7 @@
 package types
 
 import (
-	"fmt"
+	"encoding/binary"
 )
 
 const (
@@ -16,46 +16,41 @@ const (
 
 	// QuerierRoute is the querier route for IBC rate-limiting
 	QuerierRoute = ModuleName
-
-	// PortID is the default port id that rate-limiting module binds to
-	PortID = "ratelimiting"
-
-	// Version defines the current version for the rate-limiting module
-	Version = "ratelimiting-1"
-
-	// ParamsKey is the store key for rate-limiting module parameters
-	ParamsKey = "params"
 )
 
+func bytes(p string) []byte {
+	return []byte(p)
+}
+
 var (
-	PortKeyPrefix             = "port"
-	PathKeyPrefix             = "path"
-	RateLimitKeyPrefix        = "rate-limit"
-	PendingSendPacketPrefix   = "pending-send-packet"
-	DenomBlacklistKeyPrefix   = "denom-blacklist"
-	AddressWhitelistKeyPrefix = "address-blacklist"
-	HourEpochKey              = "hour-epoch"
+	RateLimitKeyPrefix        = bytes("rate-limit")
+	PendingSendPacketPrefix   = bytes("pending-send-packet")
+	DenomBlacklistKeyPrefix   = bytes("denom-blacklist")
+	AddressWhitelistKeyPrefix = bytes("address-blacklist")
+	HourEpochKey              = bytes("hour-epoch")
 
 	PendingSendPacketChannelLength = 16
 )
 
-func KeyPort(portID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s", PortKeyPrefix, portID))
-}
-
 // Get the rate limit byte key built from the denom and channelId
-func KeyRateLimitItem(denom string, channelID string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", RateLimitKeyPrefix, denom, channelID))
+func RateLimitItemKey(denom string, channelID string) []byte {
+	return append(bytes(denom), bytes(channelID)...)
 }
 
 // Get the pending send packet key from the channel ID and sequence number
 // The channel ID must be fixed length to allow for extracting the underlying
 // values from a key
-func KeyPendingSendPacket(channelID string, sequenceNumber uint64) []byte {
-	return []byte(fmt.Sprintf("%s/%d", channelID, sequenceNumber))
+func PendingSendPacketKey(channelID string, sequenceNumber uint64) []byte {
+	channelIDBz := make([]byte, PendingSendPacketChannelLength)
+	copy(channelIDBz, channelID)
+
+	sequenceNumberBz := make([]byte, 8)
+	binary.BigEndian.PutUint64(sequenceNumberBz, sequenceNumber)
+
+	return append(channelIDBz, sequenceNumberBz...)
 }
 
 // Get the whitelist path key from a sender and receiver address
-func KeyAddressWhitelist(sender, receiver string) []byte {
-	return []byte(fmt.Sprintf("%s/%s/%s", AddressWhitelistKeyPrefix, sender, receiver))
+func AddressWhitelistKey(sender, receiver string) []byte {
+	return append(bytes(sender), bytes(receiver)...)
 }

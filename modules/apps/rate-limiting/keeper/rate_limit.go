@@ -15,9 +15,9 @@ import (
 // Stores/Updates a rate limit object in the store
 func (k Keeper) SetRateLimit(ctx sdk.Context, rateLimit types.RateLimit) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, []byte(types.RateLimitKeyPrefix))
+	store := prefix.NewStore(adapter, types.RateLimitKeyPrefix)
 
-	rateLimitKey := types.KeyRateLimitItem(rateLimit.Path.Denom, rateLimit.Path.ChannelOrClientId)
+	rateLimitKey := types.RateLimitItemKey(rateLimit.Path.Denom, rateLimit.Path.ChannelOrClientId)
 	rateLimitValue := k.cdc.MustMarshal(&rateLimit)
 
 	store.Set(rateLimitKey, rateLimitValue)
@@ -26,17 +26,17 @@ func (k Keeper) SetRateLimit(ctx sdk.Context, rateLimit types.RateLimit) {
 // Removes a rate limit object from the store using denom and channel-id
 func (k Keeper) RemoveRateLimit(ctx sdk.Context, denom string, channelID string) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, []byte(types.RateLimitKeyPrefix))
-	rateLimitKey := types.KeyRateLimitItem(denom, channelID)
+	store := prefix.NewStore(adapter, types.RateLimitKeyPrefix)
+	rateLimitKey := types.RateLimitItemKey(denom, channelID)
 	store.Delete(rateLimitKey)
 }
 
 // Grabs and returns a rate limit object from the store using denom and channel-id
 func (k Keeper) GetRateLimit(ctx sdk.Context, denom string, channelID string) (rateLimit types.RateLimit, found bool) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, []byte(types.RateLimitKeyPrefix))
+	store := prefix.NewStore(adapter, types.RateLimitKeyPrefix)
 
-	rateLimitKey := types.KeyRateLimitItem(denom, channelID)
+	rateLimitKey := types.RateLimitItemKey(denom, channelID)
 	rateLimitValue := store.Get(rateLimitKey)
 
 	if len(rateLimitValue) == 0 {
@@ -50,7 +50,7 @@ func (k Keeper) GetRateLimit(ctx sdk.Context, denom string, channelID string) (r
 // Returns all rate limits stored
 func (k Keeper) GetAllRateLimits(ctx sdk.Context) []types.RateLimit {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, []byte(types.RateLimitKeyPrefix))
+	store := prefix.NewStore(adapter, types.RateLimitKeyPrefix)
 
 	iterator := store.Iterator(nil, nil)
 	defer iterator.Close()
