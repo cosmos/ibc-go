@@ -2,6 +2,7 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -60,7 +61,9 @@ func (k Keeper) CheckHourEpochStarting(ctx sdk.Context) (bool, uint64, error) {
 		hourEpoch.EpochStartTime = currentEpochEndTime
 		hourEpoch.EpochStartHeight = ctx.BlockHeight()
 
-		k.SetHourEpoch(ctx, hourEpoch)
+		if err := k.SetHourEpoch(ctx, hourEpoch); err != nil {
+			return false, 0, err
+		}
 		return true, hourEpoch.EpochNumber, nil
 	}
 

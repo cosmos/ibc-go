@@ -54,11 +54,12 @@ func (s *KeeperTestSuite) TestBeginBlocker() {
 
 		// Setup epochs so that the hook triggers
 		// (epoch start time + duration must be before block time)
-		s.chainA.GetSimApp().RateLimitKeeper.SetHourEpoch(s.chainA.GetContext(), types.HourEpoch{
+		err := s.chainA.GetSimApp().RateLimitKeeper.SetHourEpoch(s.chainA.GetContext(), types.HourEpoch{
 			EpochNumber:    epochID - 1,
 			Duration:       time.Minute,
 			EpochStartTime: blockTime.Add(-2 * time.Minute),
 		})
+		s.Require().NoError(err)
 		s.chainA.GetSimApp().RateLimitKeeper.BeginBlocker(s.chainA.GetContext())
 
 		// Check rate limits (only one rate limit should reset for each hook trigger)
