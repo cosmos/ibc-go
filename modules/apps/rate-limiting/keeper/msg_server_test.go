@@ -153,7 +153,6 @@ func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
 	invalidSignerMsg.Signer = ""
 	_, err = msgServer.UpdateRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
 	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
-
 }
 
 func (s *KeeperTestSuite) TestMsgServer_RemoveRateLimit() {

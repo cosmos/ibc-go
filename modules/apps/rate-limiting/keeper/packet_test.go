@@ -12,6 +12,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 
@@ -215,34 +216,71 @@ func (s *KeeperTestSuite) TestParsePacketInfo() {
 	s.Require().Equal(expectedRecvPacketInfo, actualRecvPacketInfo, "recv packet")
 }
 
-func (s *KeeperTestSuite) TestCheckAcknowledementSucceeded() {
-	// Test case 1: Successful ack (legacy format)
-	ackSuccessLegacy := transfertypes.ModuleCdc.MustMarshalJSON(&channeltypes.Acknowledgement{
-		Response: &channeltypes.Acknowledgement_Result{Result: []byte{1}},
-	})
-	success, err := s.chainA.GetSimApp().RateLimitKeeper.CheckAcknowledementSucceeded(s.chainA.GetContext(), ackSuccessLegacy)
-	s.Require().NoError(err, "no error expected for successful legacy ack")
-	s.Require().True(success, "successful legacy ack should return true")
+func (s *KeeperTestSuite) TestCheckAcknowledgementSucceeded() {
+	testCases := []struct {
+		name        string
+		ack         []byte
+		wantSuccess bool
+		wantErr     error
+	}{
+		{
+			name: "success legacy format",
+			ack: func() []byte {
+				return transfertypes.ModuleCdc.MustMarshalJSON(&channeltypes.Acknowledgement{
+					Response: &channeltypes.Acknowledgement_Result{Result: []byte{1}},
+				})
+			}(),
+			wantSuccess: true,
+			wantErr:     nil,
+		},
+		{
+			name: "failed legacy format - empty result",
+			ack: func() []byte {
+				return transfertypes.ModuleCdc.MustMarshalJSON(&channeltypes.Acknowledgement{
+					Response: &channeltypes.Acknowledgement_Result{},
+				})
+			}(),
+			wantSuccess: false,
+			wantErr:     channeltypes.ErrInvalidAcknowledgement,
+		},
+		{
+			name: "failed legacy format",
+			ack: func() []byte {
+				return transfertypes.ModuleCdc.MustMarshalJSON(&channeltypes.Acknowledgement{
+					Response: &channeltypes.Acknowledgement_Error{Error: "some error"},
+				})
+			}(),
+			wantSuccess: false,
+			wantErr:     nil,
+		},
+		{
+			name:        "failed v2 format",
+			ack:         channeltypesv2.ErrorAcknowledgement[:],
+			wantSuccess: false,
+			wantErr:     nil,
+		},
+		{
+			name:        "invalid format",
+			ack:         []byte("invalid ack"),
+			wantSuccess: false,
+			wantErr:     sdkerrors.ErrUnknownRequest,
+		},
+	}
 
-	// Test case 2: Failed ack (legacy format)
-	ackFailLegacy := transfertypes.ModuleCdc.MustMarshalJSON(&channeltypes.Acknowledgement{
-		Response: &channeltypes.Acknowledgement_Error{Error: "some error"},
-	})
-	success, err = s.chainA.GetSimApp().RateLimitKeeper.CheckAcknowledementSucceeded(s.chainA.GetContext(), ackFailLegacy)
-	s.Require().NoError(err, "no error expected for failed legacy ack")
-	s.Require().False(success, "failed legacy ack should return false")
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			success, err := s.chainA.GetSimApp().RateLimitKeeper.CheckAcknowledementSucceeded(s.chainA.GetContext(), tc.ack)
 
-	// Test case 3: Failed ack (IBC v2 universal format)
-	ackFailV2 := channeltypesv2.ErrorAcknowledgement[:] // Use the predefined error ack bytes
-	success, err = s.chainA.GetSimApp().RateLimitKeeper.CheckAcknowledementSucceeded(s.chainA.GetContext(), ackFailV2)
-	s.Require().NoError(err, "no error expected for failed v2 ack")
-	s.Require().False(success, "failed v2 ack should return false")
+			if tc.wantErr != nil {
+				s.Require().ErrorIs(err, tc.wantErr, tc.name)
+			} else {
+				s.Require().NoError(err, "unexpected error for %s", tc.name)
+			}
 
-	// Test case 4: Invalid ack format
-	invalidAck := []byte("invalid ack")
-	success, err = s.chainA.GetSimApp().RateLimitKeeper.CheckAcknowledementSucceeded(s.chainA.GetContext(), invalidAck)
-	s.Require().Error(err, "error expected for invalid ack format")
-	s.Require().False(success, "invalid ack should return false")
+			s.Require().Equal(tc.wantSuccess, success,
+				"expected success=%v for %s", tc.wantSuccess, tc.name)
+		})
+	}
 }
 
 func (s *KeeperTestSuite) createRateLimitCloseToQuota(denom string, channelID string, direction types.PacketDirection) {
