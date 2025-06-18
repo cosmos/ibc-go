@@ -61,9 +61,9 @@ func (s *KeeperTestSuite) createChannelValue(_ string, channelValue sdkmath.Int)
 }
 
 // Helper function to add a rate limit with an optional error expectation
-func (s *KeeperTestSuite) addRateLimit(expectedErr *errorsmod.Error) {
+func (s *KeeperTestSuite) addRateLimit(msgAddRateLimit types.MsgAddRateLimit, expectedErr *errorsmod.Error) {
 	msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().RateLimitKeeper)
-	_, actualErr := msgServer.AddRateLimit(sdk.WrapSDKContext(s.chainA.GetContext()), &addRateLimitMsg)
+	_, actualErr := msgServer.AddRateLimit(s.chainA.GetContext(), &msgAddRateLimit)
 
 	// If it should have been added successfully, confirm no error
 	// and confirm the rate limit was created
@@ -74,18 +74,18 @@ func (s *KeeperTestSuite) addRateLimit(expectedErr *errorsmod.Error) {
 		s.Require().True(found)
 	} else {
 		// If it should have failed, check the error
-		s.Require().Equal(actualErr, expectedErr)
+		s.Require().ErrorIs(actualErr, expectedErr)
 	}
 }
 
 // Helper function to add a rate limit successfully
-func (s *KeeperTestSuite) addRateLimitSuccessful() {
-	s.addRateLimit(nil)
+func (s *KeeperTestSuite) addRateLimitSuccessful(msgAddRateLimit types.MsgAddRateLimit) {
+	s.addRateLimit(msgAddRateLimit, nil)
 }
 
 // Helper function to add a rate limit with an expected error
-func (s *KeeperTestSuite) addRateLimitWithError(expectedErr *errorsmod.Error) {
-	s.addRateLimit(expectedErr)
+func (s *KeeperTestSuite) addRateLimitWithError(msgAddRateLimit types.MsgAddRateLimit, expectedErr *errorsmod.Error) {
+	s.addRateLimit(msgAddRateLimit, expectedErr)
 }
 
 func (s *KeeperTestSuite) TestMsgServer_AddRateLimit() {
@@ -94,22 +94,27 @@ func (s *KeeperTestSuite) TestMsgServer_AddRateLimit() {
 	channelValue := sdkmath.NewInt(100)
 
 	// First try to add a rate limit when there's no channel value, it will fail
-	s.addRateLimitWithError(types.ErrZeroChannelValue)
+	s.addRateLimitWithError(addRateLimitMsg, types.ErrZeroChannelValue)
 
 	// Create channel value
 	s.createChannelValue(denom, channelValue)
 
 	// Then try to add a rate limit before the channel has been created, it will also fail
-	s.addRateLimitWithError(types.ErrChannelNotFound)
+	s.addRateLimitWithError(addRateLimitMsg, types.ErrChannelNotFound)
 
 	// Create the channel
 	s.createChannel(channelID)
 
 	// Now add a rate limit successfully
-	s.addRateLimitSuccessful()
+	s.addRateLimitSuccessful(addRateLimitMsg)
 
 	// Finally, try to add the same rate limit again - it should fail
-	s.addRateLimitWithError(types.ErrRateLimitAlreadyExists)
+	s.addRateLimitWithError(addRateLimitMsg, types.ErrRateLimitAlreadyExists)
+
+	// Verify that signer == authority required
+	invalidSignerMsg := addRateLimitMsg
+	invalidSignerMsg.Signer = ""
+	s.addRateLimitWithError(invalidSignerMsg, govtypes.ErrInvalidSigner)
 }
 
 func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
@@ -124,14 +129,14 @@ func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
 	s.createChannelValue(denom, channelValue)
 
 	// Attempt to update a rate limit that does not exist
-	_, err := msgServer.UpdateRateLimit(sdk.WrapSDKContext(s.chainA.GetContext()), &updateRateLimitMsg)
+	_, err := msgServer.UpdateRateLimit(s.chainA.GetContext(), &updateRateLimitMsg)
 	s.Require().Equal(err, types.ErrRateLimitNotFound)
 
 	// Add a rate limit successfully
-	s.addRateLimitSuccessful()
+	s.addRateLimitSuccessful(addRateLimitMsg)
 
 	// Update the rate limit successfully
-	_, err = msgServer.UpdateRateLimit(sdk.WrapSDKContext(s.chainA.GetContext()), &updateRateLimitMsg)
+	_, err = msgServer.UpdateRateLimit(s.chainA.GetContext(), &updateRateLimitMsg)
 	s.Require().NoError(err)
 
 	// Check ratelimit quota is updated correctly
@@ -142,6 +147,13 @@ func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
 		MaxPercentRecv: updateRateLimitMsg.MaxPercentRecv,
 		DurationHours:  updateRateLimitMsg.DurationHours,
 	})
+
+	// Attempt to update a rate limit that has invalid authority
+	invalidSignerMsg := updateRateLimitMsg
+	invalidSignerMsg.Signer = ""
+	_, err = msgServer.UpdateRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
+	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
+
 }
 
 func (s *KeeperTestSuite) TestMsgServer_RemoveRateLimit() {
@@ -155,19 +167,25 @@ func (s *KeeperTestSuite) TestMsgServer_RemoveRateLimit() {
 	s.createChannelValue(denom, channelValue)
 
 	// Attempt to remove a rate limit that does not exist
-	_, err := msgServer.RemoveRateLimit(sdk.WrapSDKContext(s.chainA.GetContext()), &removeRateLimitMsg)
+	_, err := msgServer.RemoveRateLimit(s.chainA.GetContext(), &removeRateLimitMsg)
 	s.Require().Equal(err, types.ErrRateLimitNotFound)
 
 	// Add a rate limit successfully
-	s.addRateLimitSuccessful()
+	s.addRateLimitSuccessful(addRateLimitMsg)
 
 	// Remove the rate limit successfully
-	_, err = msgServer.RemoveRateLimit(sdk.WrapSDKContext(s.chainA.GetContext()), &removeRateLimitMsg)
+	_, err = msgServer.RemoveRateLimit(s.chainA.GetContext(), &removeRateLimitMsg)
 	s.Require().NoError(err)
 
 	// Confirm it was removed
 	_, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().False(found)
+
+	// Attempt to Remove a rate limit that has invalid authority
+	invalidSignerMsg := removeRateLimitMsg
+	invalidSignerMsg.Signer = ""
+	_, err = msgServer.RemoveRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
+	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
 }
 
 func (s *KeeperTestSuite) TestMsgServer_ResetRateLimit() {
@@ -181,14 +199,14 @@ func (s *KeeperTestSuite) TestMsgServer_ResetRateLimit() {
 	s.createChannelValue(denom, channelValue)
 
 	// Attempt to reset a rate limit that does not exist
-	_, err := msgServer.ResetRateLimit(sdk.WrapSDKContext(s.chainA.GetContext()), &resetRateLimitMsg)
+	_, err := msgServer.ResetRateLimit(s.chainA.GetContext(), &resetRateLimitMsg)
 	s.Require().Equal(err, types.ErrRateLimitNotFound)
 
 	// Add a rate limit successfully
-	s.addRateLimitSuccessful()
+	s.addRateLimitSuccessful(addRateLimitMsg)
 
 	// Reset the rate limit successfully
-	_, err = msgServer.ResetRateLimit(sdk.WrapSDKContext(s.chainA.GetContext()), &resetRateLimitMsg)
+	_, err = msgServer.ResetRateLimit(s.chainA.GetContext(), &resetRateLimitMsg)
 	s.Require().NoError(err)
 
 	// Check ratelimit quota is flow correctly
@@ -199,4 +217,10 @@ func (s *KeeperTestSuite) TestMsgServer_ResetRateLimit() {
 		Outflow:      sdkmath.ZeroInt(),
 		ChannelValue: channelValue,
 	})
+
+	// Attempt to Remove a rate limit that has invalid authority
+	invalidSignerMsg := resetRateLimitMsg
+	invalidSignerMsg.Signer = ""
+	_, err = msgServer.ResetRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
+	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
 }
