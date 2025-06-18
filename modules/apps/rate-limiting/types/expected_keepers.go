@@ -18,6 +18,7 @@ type BankKeeper interface {
 type ChannelKeeper interface {
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (clientID string, clientState exported.ClientState, err error)
+	GetNextSequenceSend(ctx sdk.Context, sourcePort, sourceChannel string) (uint64, bool)
 }
 
 // ClientKeeper defines the expected IBC client keeper

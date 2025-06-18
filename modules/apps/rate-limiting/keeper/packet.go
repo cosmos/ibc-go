@@ -14,6 +14,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 )
@@ -193,7 +194,23 @@ func ParsePacketInfo(packet channeltypes.Packet, direction types.PacketDirection
 
 // Middleware implementation for SendPacket with rate limiting
 // Checks whether the rate limit has been exceeded - and if it hasn't, sends the packet
-func (k Keeper) SendRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packet) error {
+func (k Keeper) SendRateLimitedPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) error {
+	// Get the next sequence number from the channel keeper.
+
+	seq, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
+	if !found {
+		return errorsmod.Wrapf(channeltypes.ErrSequenceSendNotFound, "source port: %s, source channel: %s", sourcePort, sourceChannel)
+	}
+
+	packet := channeltypes.Packet{
+		Sequence:         seq,
+		SourcePort:       sourcePort,
+		SourceChannel:    sourceChannel,
+		TimeoutHeight:    timeoutHeight,
+		TimeoutTimestamp: timeoutTimestamp,
+		Data:             data,
+	}
+
 	packetInfo, err := ParsePacketInfo(packet, types.PACKET_SEND)
 	if err != nil {
 		return err

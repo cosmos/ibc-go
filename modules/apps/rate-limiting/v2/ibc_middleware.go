@@ -33,7 +33,7 @@ func (im IBCMiddleware) OnSendPacket(ctx sdk.Context, sourceClient string, desti
 		im.keeper.Logger(ctx).Error("ICS20 rate limiting OnSendPacket failed to convert v2 packet to v1 packet", "error", err)
 		return err
 	}
-	if err := im.keeper.SendRateLimitedPacket(ctx, packet); err != nil {
+	if err := im.keeper.SendRateLimitedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data); err != nil {
 		im.keeper.Logger(ctx).Error("ICS20 packet send was denied", "error", err)
 		return err
 	}

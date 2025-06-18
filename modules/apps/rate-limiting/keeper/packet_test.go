@@ -318,7 +318,6 @@ func (s *KeeperTestSuite) TestSendRateLimitedPacket() {
 	// For send packets, the source will be stride and the destination will be the host
 	denom := ustrd
 	sourceChannel := channelOnStride
-	destinationChannel := channelOnHost
 	amountToExceed := "5"
 	sequence := uint64(10)
 
@@ -328,18 +327,11 @@ func (s *KeeperTestSuite) TestSendRateLimitedPacket() {
 	// This packet should cause an Outflow quota exceed error
 	packetData, err := json.Marshal(transfertypes.FungibleTokenPacketData{Denom: denom, Amount: amountToExceed})
 	s.Require().NoError(err)
-	packet := channeltypes.Packet{
-		SourcePort:         transferPort,
-		SourceChannel:      sourceChannel,
-		DestinationPort:    transferPort,
-		DestinationChannel: destinationChannel,
-		Data:               packetData,
-		Sequence:           sequence,
-	}
 
+	s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetNextSequenceSend(s.chainA.GetContext(), transferPort, sourceChannel, sequence)
 	// We check for a quota error because it doesn't appear until the end of the function
 	// We're avoiding checking for a success here because we can get a false positive if the rate limit doesn't exist
-	err = s.chainA.GetSimApp().RateLimitKeeper.SendRateLimitedPacket(s.chainA.GetContext(), packet)
+	err = s.chainA.GetSimApp().RateLimitKeeper.SendRateLimitedPacket(s.chainA.GetContext(), transferPort, sourceChannel, clienttypes.Height{}, 0, packetData)
 	s.Require().ErrorIs(err, types.ErrQuotaExceeded, "error type")
 	s.Require().ErrorContains(err, "Outflow exceeds quota", "error text")
 
@@ -347,7 +339,7 @@ func (s *KeeperTestSuite) TestSendRateLimitedPacket() {
 	err = s.chainA.GetSimApp().RateLimitKeeper.ResetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().NoError(err, "no error expected when resetting rate limit")
 
-	err = s.chainA.GetSimApp().RateLimitKeeper.SendRateLimitedPacket(s.chainA.GetContext(), packet)
+	err = s.chainA.GetSimApp().RateLimitKeeper.SendRateLimitedPacket(s.chainA.GetContext(), transferPort, sourceChannel, clienttypes.Height{}, 0, packetData)
 	s.Require().NoError(err, "no error expected when sending packet after reset")
 
 	// Check that the pending packet was stored
@@ -716,7 +708,7 @@ func (s *KeeperTestSuite) TestSendPacket_Allowed() {
 	s.Require().Truef(ok, "Transfer keeper's ICS4Wrapper should be the PacketForward Middleware. Found %T", shouldPFM)
 
 	// We need the transfer keeper's ICS4Wrapper which *is* the ratelimiting middleware
-	middleware, ok := s.chainA.GetSimApp().PFMKeeper.ICS4Wrapper().(ratelimiting.IBCMiddleware)
+	middleware := s.chainA.GetSimApp().PFMKeeper.ICS4Wrapper().(ratelimiting.IBCMiddleware)
 	s.Require().Truef(ok, "PFM keeper's ICS4Wrapper should be the PacketForward Middleware. Found %T", middleware)
 
 	// Directly call the middleware's SendPacket

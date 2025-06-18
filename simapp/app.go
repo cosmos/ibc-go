@@ -413,6 +413,8 @@ func NewSimApp(
 	// create IBC module from bottom to top of stack
 	pfmMiddleware := packetforward.NewIBCMiddleware(transfer.NewIBCModule(app.TransferKeeper), app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)
 	transferStack := ratelimiting.NewIBCMiddleware(pfmMiddleware, app.RateLimitKeeper, app.IBCKeeper.ChannelKeeper)
+
+	app.PFMKeeper.SetICS4Wrapper(transferStack)
 	app.RateLimitKeeper.SetICS4Wrapper(app.IBCKeeper.ChannelKeeper)
 	app.TransferKeeper.WithICS4Wrapper(app.PFMKeeper)
 

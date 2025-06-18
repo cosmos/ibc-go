@@ -74,6 +74,11 @@ func (k *Keeper) SetTransferKeeper(transferKeeper types.TransferKeeper) {
 	k.transferKeeper = transferKeeper
 }
 
+// SetICS4Wrapper sets the ICS4 wrapper.
+func (k *Keeper) SetICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = ics4Wrapper
+}
+
 // ICS4Wrapper gets the ICS4 Wrapper for PFM.
 func (k *Keeper) ICS4Wrapper() porttypes.ICS4Wrapper {
 	return k.ics4Wrapper

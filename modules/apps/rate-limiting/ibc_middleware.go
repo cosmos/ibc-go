@@ -1,8 +1,6 @@
 package ratelimiting
 
 import (
-	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
@@ -20,19 +18,17 @@ var (
 
 // IBCMiddleware implements the ICS26 callbacks for the rate-limiting middleware.
 type IBCMiddleware struct {
-	app           porttypes.PacketUnmarshalarModule
-	keeper        keeper.Keeper
-	channelKeeper *channelkeeper.Keeper
-	ics4Wrapper   porttypes.ICS4Wrapper
+	app         porttypes.PacketUnmarshalarModule
+	keeper      keeper.Keeper
+	ics4Wrapper porttypes.ICS4Wrapper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper, underlying application, and channel keeper.
 func NewIBCMiddleware(app porttypes.PacketUnmarshalarModule, k keeper.Keeper, ck *channelkeeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
-		app:           app,
-		keeper:        k,
-		channelKeeper: ck,
-		ics4Wrapper:   ck,
+		app:         app,
+		keeper:      k,
+		ics4Wrapper: ck,
 	}
 }
 
@@ -102,33 +98,14 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 // SendPacket implements the ICS4 Wrapper interface.
 // It calls the keeper's SendRateLimitedPacket function first to check the rate limit.
 // If the packet is allowed, it then calls the underlying ICS4Wrapper SendPacket.
-func (im IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
-	if im.channelKeeper == nil {
-		return 0, errorsmod.Wrap(channeltypes.ErrKeeperNotSet, "channel keeper is not set on IBCMiddleware")
-	}
-
-	// Get the next sequence number from the channel keeper.
-	seq, found := im.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
-	if !found {
-		return 0, errorsmod.Wrapf(channeltypes.ErrSequenceSendNotFound, "source port: %s, source channel: %s", sourcePort, sourceChannel)
-	}
-
-	packetToCheck := channeltypes.Packet{
-		Sequence:         seq,
-		SourcePort:       sourcePort,
-		SourceChannel:    sourceChannel,
-		TimeoutHeight:    timeoutHeight,
-		TimeoutTimestamp: timeoutTimestamp,
-		Data:             data,
-	}
-
-	err = im.keeper.SendRateLimitedPacket(ctx, packetToCheck)
+func (im IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (uint64, error) {
+	err := im.keeper.SendRateLimitedPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	if err != nil {
 		im.keeper.Logger(ctx).Error("ICS20 packet send was denied by rate limiter", "error", err)
 		return 0, err
 	}
 
-	seq, err = im.ics4Wrapper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+	seq, err := im.ics4Wrapper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 	if err != nil {
 		return 0, err
 	}
