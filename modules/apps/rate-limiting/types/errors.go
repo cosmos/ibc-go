@@ -13,4 +13,7 @@ var (
 	ErrChannelNotFound        = errorsmod.Register(ModuleName, 6, "channel does not exist")
 	ErrDenomIsBlacklisted     = errorsmod.Register(ModuleName, 7, "denom is blacklisted")
 	ErrUnsupportedAttribute   = errorsmod.Register(ModuleName, 8, "unsupported attribute")
+	ErrEpochNotFound          = errorsmod.Register(ModuleName, 9, "hour epoch not found in store")
+	ErrUnmarshalEpoch         = errorsmod.Register(ModuleName, 10, "could not unmarshal epochBz")
+	ErrInvalidEpoce           = errorsmod.Register(ModuleName, 11, "invalid hour epoch")
 )

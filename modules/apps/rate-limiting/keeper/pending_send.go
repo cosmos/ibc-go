@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"cosmossdk.io/store/prefix"
@@ -52,25 +52,11 @@ func (k Keeper) GetAllPendingSendPackets(ctx sdk.Context) []string {
 
 	pendingPackets := []string{}
 	for ; iterator.Valid(); iterator.Next() {
-		key := string(iterator.Key())
+		key := iterator.Key()
 
-		// The key format from KeyPendingSendPacket is "{PendingSendPacketPrefix}/{channelId}/{sequenceNumber}"
-		// When using prefix.NewStore with PendingSendPacketPrefix, the store keys are just "{channelId}/{sequenceNumber}"
-		parts := strings.Split(key, "/")
-		if len(parts) != 2 {
-			// Skip invalid keys - this should not happen
-			continue
-		}
-
-		channelID := parts[0]
-
-		// The sequence number is formatted with %20d in KeyPendingSendPacket, so we need to trim spaces
-		sequenceStr := strings.TrimSpace(parts[1])
-		sequence, err := strconv.ParseUint(sequenceStr, 10, 64)
-		if err != nil {
-			// Skip invalid sequence numbers - this should not happen
-			continue
-		}
+		channelID := string(key[:types.PendingSendPacketChannelLength])
+		channelID = strings.TrimRight(channelID, "\x00") // removes null bytes from suffix
+		sequence := binary.BigEndian.Uint64(key[types.PendingSendPacketChannelLength:])
 
 		packetID := fmt.Sprintf("%s/%d", channelID, sequence)
 		pendingPackets = append(pendingPackets, packetID)

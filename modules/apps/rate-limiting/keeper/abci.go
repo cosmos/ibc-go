@@ -7,7 +7,11 @@ import (
 // Before each hour epoch, check if any of the rate limits have expired,
 // and reset them if they have
 func (k Keeper) BeginBlocker(ctx sdk.Context) {
-	epochStarting, epochNumber := k.CheckHourEpochStarting(ctx)
+	epochStarting, epochNumber, err := k.CheckHourEpochStarting(ctx)
+	if err != nil {
+		k.Logger(ctx).Error("BeginBlocker", "error", err)
+		return
+	}
 	if !epochStarting {
 		return
 	}

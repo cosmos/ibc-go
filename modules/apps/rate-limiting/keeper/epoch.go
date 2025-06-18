@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -8,42 +9,46 @@ import (
 )
 
 // Stores the hour epoch
-func (k Keeper) SetHourEpoch(ctx sdk.Context, epoch types.HourEpoch) {
+func (k Keeper) SetHourEpoch(ctx sdk.Context, epoch types.HourEpoch) error {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	epochBz := k.cdc.MustMarshal(&epoch)
+	epochBz, err := k.cdc.Marshal(&epoch)
+	if err != nil {
+		return err
+	}
 	store.Set(types.HourEpochKey, epochBz)
+	return nil
 }
 
 // Reads the hour epoch from the store
 // Returns a zero-value epoch and logs an error if the epoch is not found or fails to unmarshal.
-func (k Keeper) GetHourEpoch(ctx sdk.Context) (epoch types.HourEpoch) {
+func (k Keeper) GetHourEpoch(ctx sdk.Context) (types.HourEpoch, error) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 
+	var epoch types.HourEpoch
 	epochBz := store.Get(types.HourEpochKey)
 	if len(epochBz) == 0 {
-		// Log an error if the epoch key is not found (should be initialized at genesis)
-		k.Logger(ctx).Error("hour epoch not found in store")
-		return types.HourEpoch{} // Return zero-value epoch
+		return types.HourEpoch{}, types.ErrEpochNotFound
 	}
 
 	if err := k.cdc.Unmarshal(epochBz, &epoch); err != nil {
-		// Log an error if unmarshalling fails (indicates corrupted data)
-		k.Logger(ctx).Error("failed to unmarshal hour epoch", "error", err)
-		return types.HourEpoch{} // Return zero-value epoch
+		return types.HourEpoch{}, errorsmod.Wrapf(types.ErrUnmarshalEpoch, "error: %s", err.Error())
 	}
 
-	return epoch
+	return epoch, nil
 }
 
-// Checks if it's time to start the new hour epoch
-func (k Keeper) CheckHourEpochStarting(ctx sdk.Context) (epochStarting bool, epochNumber uint64) {
-	hourEpoch := k.GetHourEpoch(ctx)
+// Checks if it's time to start the new hour epoch.
+// This function returns epochStarting, epochNumber and a possible error.
+func (k Keeper) CheckHourEpochStarting(ctx sdk.Context) (bool, uint64, error) {
+	hourEpoch, err := k.GetHourEpoch(ctx)
+	if err != nil {
+		return false, 0, err
+	}
 
 	// If GetHourEpoch returned a zero-value epoch (due to error or missing key),
 	// we cannot proceed with the check.
 	if hourEpoch.Duration == 0 || hourEpoch.EpochStartTime.IsZero() {
-		k.Logger(ctx).Error("cannot check hour epoch starting: epoch data is invalid or missing")
-		return false, 0
+		return false, 0, errorsmod.Wrapf(types.ErrInvalidEpoce, "cannot check hour epoch starting. epoch: %v", hourEpoch)
 	}
 
 	// If the block time is later than the current epoch start time + epoch duration,
@@ -56,9 +61,9 @@ func (k Keeper) CheckHourEpochStarting(ctx sdk.Context) (epochStarting bool, epo
 		hourEpoch.EpochStartHeight = ctx.BlockHeight()
 
 		k.SetHourEpoch(ctx, hourEpoch)
-		return true, hourEpoch.EpochNumber
+		return true, hourEpoch.EpochNumber, nil
 	}
 
 	// Otherwise, indicate that a new epoch is not starting
-	return false, 0
+	return false, 0, nil
 }
