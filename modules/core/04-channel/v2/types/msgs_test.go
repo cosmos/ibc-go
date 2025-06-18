@@ -12,6 +12,7 @@ import (
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	"github.com/cosmos/ibc-go/v10/testing/mock/v2"
 	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
 )
 
@@ -37,6 +38,7 @@ func TestTypesTestSuite(t *testing.T) {
 
 func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 	var msg *types.MsgSendPacket
+	var payload types.Payload
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -45,6 +47,12 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 		{
 			name:     "success",
 			malleate: func() {},
+		},
+		{
+			name: "success, multiple payloads",
+			malleate: func() {
+				msg.Payloads = append(msg.Payloads, payload)
+			},
 		},
 		{
 			name: "failure: invalid source channel",
@@ -63,21 +71,29 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 		{
 			name: "failure: invalid length for payload",
 			malleate: func() {
-				msg.Payloads = []types.Payload{{}, {}}
+				msg.Payloads = []types.Payload{}
 			},
 			expError: types.ErrInvalidPayload,
 		},
 		{
 			name: "failure: invalid packetdata",
 			malleate: func() {
-				msg.Payloads = []types.Payload{}
+				msg.Payloads = []types.Payload{{}}
 			},
-			expError: types.ErrInvalidPayload,
+			expError: host.ErrInvalidID,
 		},
 		{
 			name: "failure: invalid payload",
 			malleate: func() {
 				msg.Payloads[0].DestinationPort = ""
+			},
+			expError: host.ErrInvalidID,
+		},
+		{
+			name: "failure: invalid multiple payload",
+			malleate: func() {
+				payload.DestinationPort = ""
+				msg.Payloads = append(msg.Payloads, payload)
 			},
 			expError: host.ErrInvalidID,
 		},
@@ -91,10 +107,11 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 	}
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
+			payload = types.Payload{SourcePort: ibctesting.MockPort, DestinationPort: ibctesting.MockPort, Version: "ics20-1", Encoding: transfertypes.EncodingJSON, Value: ibctesting.MockPacketData}
 			msg = types.NewMsgSendPacket(
 				ibctesting.FirstChannelID, s.chainA.GetTimeoutTimestamp(),
 				s.chainA.SenderAccount.GetAddress().String(),
-				types.Payload{SourcePort: ibctesting.MockPort, DestinationPort: ibctesting.MockPort, Version: "ics20-1", Encoding: transfertypes.EncodingJSON, Value: ibctesting.MockPacketData},
+				payload,
 			)
 
 			tc.malleate()
@@ -104,7 +121,8 @@ func (s *TypesTestSuite) TestMsgSendPacketValidateBasic() {
 			if expPass {
 				s.Require().NoError(err)
 			} else {
-				ibctesting.RequireErrorIsOrContains(s.T(), err, tc.expError)
+				s.Require().Error(err)
+				ibctesting.RequireErrorIsOrContains(s.T(), err, tc.expError, err.Error())
 			}
 		})
 	}
@@ -122,11 +140,17 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 			malleate: func() {},
 		},
 		{
-			name: "failure: invalid packet",
+			name: "success, multiple payloads",
+			malleate: func() {
+				msg.Packet.Payloads = append(msg.Packet.Payloads, mock.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			},
+		},
+		{
+			name: "failure: invalid payload",
 			malleate: func() {
 				msg.Packet.Payloads = []types.Payload{}
 			},
-			expError: types.ErrInvalidPacket,
+			expError: types.ErrInvalidPayload,
 		},
 		{
 			name: "failure: invalid proof commitment",
@@ -138,9 +162,23 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 		{
 			name: "failure: invalid length for packet payloads",
 			malleate: func() {
-				msg.Packet.Payloads = []types.Payload{{}, {}}
+				msg.Packet.Payloads = []types.Payload{}
 			},
-			expError: types.ErrInvalidPacket,
+			expError: types.ErrInvalidPayload,
+		},
+		{
+			name: "failure: invalid individual payload",
+			malleate: func() {
+				msg.Packet.Payloads = []types.Payload{{}}
+			},
+			expError: host.ErrInvalidID,
+		},
+		{
+			name: "failure: invalid multiple payload",
+			malleate: func() {
+				msg.Packet.Payloads = append(msg.Packet.Payloads, types.Payload{})
+			},
+			expError: host.ErrInvalidID,
 		},
 		{
 			name: "failure: invalid signer",
@@ -183,6 +221,12 @@ func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
 			malleate: func() {},
 		},
 		{
+			name: "success, multiple payloads",
+			malleate: func() {
+				msg.Packet.Payloads = append(msg.Packet.Payloads, mock.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			},
+		},
+		{
 			name: "failure: invalid proof of acknowledgement",
 			malleate: func() {
 				msg.ProofAcked = []byte{}
@@ -192,9 +236,23 @@ func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
 		{
 			name: "failure: invalid length for packet payloads",
 			malleate: func() {
-				msg.Packet.Payloads = []types.Payload{{}, {}}
+				msg.Packet.Payloads = []types.Payload{}
 			},
-			expError: types.ErrInvalidPacket,
+			expError: types.ErrInvalidPayload,
+		},
+		{
+			name: "failure: invalid individual payload",
+			malleate: func() {
+				msg.Packet.Payloads = []types.Payload{{}}
+			},
+			expError: host.ErrInvalidID,
+		},
+		{
+			name: "failure: invalid multiple payload",
+			malleate: func() {
+				msg.Packet.Payloads = append(msg.Packet.Payloads, types.Payload{})
+			},
+			expError: host.ErrInvalidID,
 		},
 		{
 			name: "failure: invalid signer",
@@ -254,6 +312,12 @@ func (s *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 			malleate: func() {},
 		},
 		{
+			name: "success, multiple payloads",
+			malleate: func() {
+				msg.Packet.Payloads = append(msg.Packet.Payloads, mock.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			},
+		},
+		{
 			name: "failure: invalid signer",
 			malleate: func() {
 				msg.Signer = ""
@@ -263,9 +327,23 @@ func (s *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 		{
 			name: "failure: invalid length for packet payloads",
 			malleate: func() {
-				msg.Packet.Payloads = []types.Payload{{}, {}}
+				msg.Packet.Payloads = []types.Payload{}
 			},
-			expError: types.ErrInvalidPacket,
+			expError: types.ErrInvalidPayload,
+		},
+		{
+			name: "failure: invalid individual payload",
+			malleate: func() {
+				msg.Packet.Payloads = []types.Payload{{}}
+			},
+			expError: host.ErrInvalidID,
+		},
+		{
+			name: "failure: invalid multiple payload",
+			malleate: func() {
+				msg.Packet.Payloads = append(msg.Packet.Payloads, types.Payload{})
+			},
+			expError: host.ErrInvalidID,
 		},
 		{
 			name: "failure: invalid packet",

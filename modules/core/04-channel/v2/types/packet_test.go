@@ -17,6 +17,7 @@ import (
 // TestValidateBasic tests the ValidateBasic function of Packet
 func TestValidateBasic(t *testing.T) {
 	var packet types.Packet
+	var payload types.Payload
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -35,27 +36,41 @@ func TestValidateBasic(t *testing.T) {
 			nil,
 		},
 		{
+			"success, multiple payloads",
+			func() {
+				packet.Payloads = append(packet.Payloads, payload)
+			},
+			nil,
+		},
+		{
 			"failure: invalid single payloads size",
 			func() {
 				// bytes that are larger than MaxPayloadsSize
 				packet.Payloads[0].Value = make([]byte, channeltypesv1.MaximumPayloadsSize+1)
 			},
-			types.ErrInvalidPacket,
+			types.ErrInvalidPayload,
 		},
-		// TODO: add test cases for multiple payloads when enabled (#7008)
+		{
+			"failure: invalid total payloads size",
+			func() {
+				payload.Value = make([]byte, channeltypesv1.MaximumPayloadsSize-1)
+				packet.Payloads = append(packet.Payloads, payload)
+			},
+			types.ErrInvalidPayload,
+		},
 		{
 			"failure: payloads is nil",
 			func() {
 				packet.Payloads = nil
 			},
-			types.ErrInvalidPacket,
+			types.ErrInvalidPayload,
 		},
 		{
 			"failure: empty payload",
 			func() {
 				packet.Payloads = []types.Payload{}
 			},
-			types.ErrInvalidPacket,
+			types.ErrInvalidPayload,
 		},
 		{
 			"failure: invalid payload source port ID",
@@ -123,13 +138,14 @@ func TestValidateBasic(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			packet = types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, uint64(time.Now().Unix()), types.Payload{
+			payload = types.Payload{
 				SourcePort:      ibctesting.MockPort,
 				DestinationPort: ibctesting.MockPort,
 				Version:         "ics20-v2",
 				Encoding:        transfertypes.EncodingProtobuf,
 				Value:           mock.MockPacketData,
-			})
+			}
+			packet = types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, uint64(time.Now().Unix()), payload)
 
 			tc.malleate()
 
