@@ -581,7 +581,7 @@ func (suite *TendermintTestSuite) TestVerifyMisbehaviourNonRevisionChainID() {
 		{
 			"invalid tendermint misbehaviour", func() {
 				misbehaviour = &solomachine.Misbehaviour{}
-			}, errors.New("nvalid client type"),
+			}, errors.New("invalid client type"),
 		},
 		{
 			"trusting period expired", func() {
