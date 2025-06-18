@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"bytes"
 	"errors"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 	"github.com/cosmos/ibc-go/v10/testing/mock"
+	mockv1 "github.com/cosmos/ibc-go/v10/testing/mock"
 	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
 )
 
@@ -21,7 +23,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		path             *ibctesting.Path
 		expectedPacket   types.Packet
 		timeoutTimestamp uint64
-		payload          types.Payload
+		payloads         []types.Payload
 	)
 
 	testCases := []struct {
@@ -35,11 +37,18 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			expError: nil,
 		},
 		{
+			name: "success multiple payloads",
+			malleate: func() {
+				payloads = append(payloads, payloads[0])
+			},
+			expError: nil,
+		},
+		{
 			name: "success: valid timeout timestamp",
 			malleate: func() {
 				// ensure a message timeout.
 				timeoutTimestamp = uint64(suite.chainA.GetContext().BlockTime().Add(types.MaxTimeoutDelta - 10*time.Second).Unix())
-				expectedPacket = types.NewPacket(1, path.EndpointA.ClientID, path.EndpointB.ClientID, timeoutTimestamp, payload)
+				expectedPacket = types.NewPacket(1, path.EndpointA.ClientID, path.EndpointB.ClientID, timeoutTimestamp, payloads...)
 			},
 			expError: nil,
 		},
@@ -84,6 +93,19 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			expError: mock.MockApplicationCallbackError,
 		},
 		{
+			name: "failure: multiple payload application callback error",
+			malleate: func() {
+				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnSendPacket = func(ctx sdk.Context, sourceID string, destinationID string, sequence uint64, data types.Payload, signer sdk.AccAddress) error {
+					if bytes.Equal(mockv1.MockFailPacketData, data.Value) {
+						return mock.MockApplicationCallbackError
+					}
+					return nil
+				}
+				payloads = append(payloads, mockv2.NewErrorMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			},
+			expError: mock.MockApplicationCallbackError,
+		},
+		{
 			name: "failure: client not found",
 			malleate: func() {
 				path.EndpointA.ClientID = ibctesting.InvalidID
@@ -93,7 +115,7 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 		{
 			name: "failure: route to non existing app",
 			malleate: func() {
-				payload.SourcePort = "foo"
+				payloads[0].SourcePort = "foo"
 			},
 			expError: errors.New("no route for foo"),
 		},
@@ -107,13 +129,12 @@ func (suite *KeeperTestSuite) TestMsgSendPacket() {
 			path.SetupV2()
 
 			timeoutTimestamp = suite.chainA.GetTimeoutTimestampSecs()
-			payload = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
-
-			expectedPacket = types.NewPacket(1, path.EndpointA.ClientID, path.EndpointB.ClientID, timeoutTimestamp, payload)
+			payloads = []types.Payload{mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)}
 
 			tc.malleate()
 
-			packet, err := path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
+			expectedPacket = types.NewPacket(1, path.EndpointA.ClientID, path.EndpointB.ClientID, timeoutTimestamp, payloads...)
+			packet, err := path.EndpointA.MsgSendPacket(timeoutTimestamp, payloads...)
 
 			expPass := tc.expError == nil
 			if expPass {

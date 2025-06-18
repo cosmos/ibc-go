@@ -26,6 +26,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 	var (
 		path        *ibctesting.Path
 		packet      types.Packet
+		payload     types.Payload
 		expSequence uint64
 	)
 
@@ -37,6 +38,13 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		{
 			"success",
 			func() {},
+			nil,
+		},
+		{
+			"success multiple payloads",
+			func() {
+				packet.Payloads = append(packet.Payloads, payload)
+			},
 			nil,
 		},
 		{
@@ -61,6 +69,13 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			func() {
 				// invalid data
 				packet.Payloads[0].SourcePort = ""
+			},
+			types.ErrInvalidPacket,
+		},
+		{
+			"multiple payload failed packet validation",
+			func() {
+				packet.Payloads = append(packet.Payloads, types.Payload{})
 			},
 			types.ErrInvalidPacket,
 		},
@@ -108,7 +123,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			payload = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
@@ -217,8 +232,8 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
-			// send packet
-			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
+			// send packet with multiple payloads
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload, payload)
 			suite.Require().NoError(err)
 
 			tc.malleate()
@@ -245,8 +260,9 @@ func (suite *KeeperTestSuite) TestRecvPacket() {
 
 func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 	var (
-		packet types.Packet
-		ack    types.Acknowledgement
+		packet  types.Packet
+		payload types.Payload
+		ack     types.Acknowledgement
 	)
 
 	testCases := []struct {
@@ -258,6 +274,63 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			"success",
 			func() {},
 			nil,
+		},
+		{
+			"success with error ack",
+			func() {
+				ack = types.Acknowledgement{
+					AppAcknowledgements: [][]byte{types.ErrorAcknowledgement[:]},
+				}
+			},
+			nil,
+		},
+		{
+			"success multiple payloads",
+			func() {
+				packet.Payloads = append(packet.Payloads, payload)
+				ack = types.Acknowledgement{
+					AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement, mockv2.MockRecvPacketResult.Acknowledgement},
+				}
+			},
+			nil,
+		},
+		{
+			"success multiple payloads with error ack",
+			func() {
+				packet.Payloads = append(packet.Payloads, payload)
+				ack = types.Acknowledgement{
+					AppAcknowledgements: [][]byte{types.ErrorAcknowledgement[:]},
+				}
+			},
+			nil,
+		},
+		{
+			"failure: multiple payloads length doesn't match ack length",
+			func() {
+				packet.Payloads = append(packet.Payloads, payload, payload)
+				ack = types.Acknowledgement{
+					AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement, mockv2.MockRecvPacketResult.Acknowledgement},
+				}
+			},
+			types.ErrInvalidAcknowledgement,
+		},
+		{
+			"failure: single payload length doesn't match ack",
+			func() {
+				ack = types.Acknowledgement{
+					AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement, mockv2.MockRecvPacketResult.Acknowledgement},
+				}
+			},
+			types.ErrInvalidAcknowledgement,
+		},
+		{
+			"failure: invalid acknowledgement, error acknowledgement with success acknowledgement together",
+			func() {
+				ack = types.Acknowledgement{
+					AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement, types.ErrorAcknowledgement[:]},
+				}
+			},
+			types.ErrInvalidAcknowledgement,
 		},
 		{
 			"failure: client not found",
@@ -296,7 +369,8 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 		{
 			"failure: async packet not found",
 			func() {
-				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.DeleteAsyncPacket(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
+				packet.Sequence = 2
+				suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
 			},
 			types.ErrInvalidAcknowledgement,
 		},
@@ -309,7 +383,7 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 			path := ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			payload = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
@@ -322,11 +396,13 @@ func (suite *KeeperTestSuite) TestWriteAcknowledgement() {
 				AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement},
 			}
 
-			// mock receive with async acknowledgement
-			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence)
-			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetAsyncPacket(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, packet)
-
 			tc.malleate()
+
+			// mock receive with async acknowledgement
+			// we mock the receive of a sequence 1 manually so that the malleate can change the packet sequence
+			// in order to not have the keys do not match the packet sequence
+			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetPacketReceipt(suite.chainB.GetContext(), packet.DestinationClient, 1)
+			suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.SetAsyncPacket(suite.chainB.GetContext(), packet.DestinationClient, 1, packet)
 
 			err := suite.chainB.App.GetIBCKeeper().ChannelKeeperV2.WriteAcknowledgement(suite.chainB.GetContext(), packet.DestinationClient, packet.Sequence, ack)
 
@@ -349,7 +425,11 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 		packet types.Packet
 		err    error
 		ack    = types.Acknowledgement{
-			AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement},
+			AppAcknowledgements: [][]byte{
+				mockv2.MockRecvPacketResult.Acknowledgement,
+				mockv2.MockRecvPacketResult.Acknowledgement,
+				mockv2.MockRecvPacketResult.Acknowledgement,
+			},
 		}
 		freezeClient bool
 	)
@@ -422,8 +502,8 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
-			// send packet
-			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
+			// send packet with multiple payloads
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload, payload, payload)
 			suite.Require().NoError(err)
 
 			err = path.EndpointB.MsgRecvPacket(packet)
@@ -458,6 +538,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 	var (
 		path         *ibctesting.Path
 		packet       types.Packet
+		payload      types.Payload
 		freezeClient bool
 	)
 
@@ -470,6 +551,17 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"success",
 			func() {
 				// send packet
+				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
+					packet.TimeoutTimestamp, packet.Payloads)
+				suite.Require().NoError(err, "send packet failed")
+			},
+			nil,
+		},
+		{
+			"success multiple payloads",
+			func() {
+				// send packet with multiple payloads
+				packet.Payloads = append(packet.Payloads, payload)
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
 					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
@@ -566,7 +658,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			path.SetupV2()
 
 			// create default packet with a timed out timestamp
-			payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			payload = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			// make timeoutTimestamp 1 second more than sending chain time to ensure it passes SendPacket
 			// and times out successfully after update

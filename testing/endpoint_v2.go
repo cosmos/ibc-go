@@ -21,18 +21,18 @@ func (endpoint *Endpoint) RegisterCounterparty() (err error) {
 }
 
 // MsgSendPacket sends a packet on the associated endpoint using a predefined sender. The constructed packet is returned.
-func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, payload channeltypesv2.Payload) (channeltypesv2.Packet, error) {
+func (endpoint *Endpoint) MsgSendPacket(timeoutTimestamp uint64, payloads ...channeltypesv2.Payload) (channeltypesv2.Packet, error) {
 	senderAccount := SenderAccount{
 		SenderPrivKey: endpoint.Chain.SenderPrivKey,
 		SenderAccount: endpoint.Chain.SenderAccount,
 	}
 
-	return endpoint.MsgSendPacketWithSender(timeoutTimestamp, payload, senderAccount)
+	return endpoint.MsgSendPacketWithSender(timeoutTimestamp, payloads, senderAccount)
 }
 
 // MsgSendPacketWithSender sends a packet on the associated endpoint using the provided sender. The constructed packet is returned.
-func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, payload channeltypesv2.Payload, sender SenderAccount) (channeltypesv2.Packet, error) {
-	msgSendPacket := channeltypesv2.NewMsgSendPacket(endpoint.ClientID, timeoutTimestamp, sender.SenderAccount.GetAddress().String(), payload)
+func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, payloads []channeltypesv2.Payload, sender SenderAccount) (channeltypesv2.Packet, error) {
+	msgSendPacket := channeltypesv2.NewMsgSendPacket(endpoint.ClientID, timeoutTimestamp, sender.SenderAccount.GetAddress().String(), payloads...)
 
 	res, err := endpoint.Chain.SendMsgsWithSender(sender, msgSendPacket)
 	if err != nil {
@@ -56,7 +56,7 @@ func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, paylo
 	if err != nil {
 		return channeltypesv2.Packet{}, err
 	}
-	packet := channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ClientID, endpoint.Counterparty.ClientID, timeoutTimestamp, payload)
+	packet := channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ClientID, endpoint.Counterparty.ClientID, timeoutTimestamp, payloads...)
 
 	return packet, nil
 }
