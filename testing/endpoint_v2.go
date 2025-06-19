@@ -58,6 +58,11 @@ func (endpoint *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, paylo
 	}
 	packet := channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ClientID, endpoint.Counterparty.ClientID, timeoutTimestamp, payloads...)
 
+	err = endpoint.Counterparty.UpdateClient()
+	if err != nil {
+		return channeltypesv2.Packet{}, err
+	}
+
 	return packet, nil
 }
 
