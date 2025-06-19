@@ -1103,7 +1103,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence, types.CommitAcknowledgement(ack))
 
 				path.EndpointB.Chain.NextBlock()
-				path.EndpointA.UpdateClient()
+				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			expResult: func(commitment []byte, err error) {
 				suite.Require().Error(err)
@@ -1130,7 +1130,7 @@ func (suite *KeeperTestSuite) TestAcknowledgePacket() {
 				path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.SetPacketAcknowledgement(path.EndpointB.Chain.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sequence, types.CommitAcknowledgement(ack))
 
 				path.EndpointB.Chain.NextBlock()
-				path.EndpointA.UpdateClient()
+				suite.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			expResult: func(commitment []byte, err error) {
 				suite.Require().NoError(err)
