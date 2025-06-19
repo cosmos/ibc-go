@@ -855,36 +855,3 @@ func (app *SimApp) GetTxConfig() client.TxConfig {
 func (app *SimApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return app.memKeys[storeKey]
 }
-
-// QueryRouterAdapter adapts a GRPCQueryRouter to the interface expected by the rate-limiting module
-type QueryRouterAdapter struct {
-	router *baseapp.GRPCQueryRouter
-}
-
-func NewQueryRouterAdapter(router *baseapp.GRPCQueryRouter) *QueryRouterAdapter {
-	return &QueryRouterAdapter{router: router}
-}
-
-func (*QueryRouterAdapter) Route(path string) func(sdk.Context, interface{}) ([]byte, error) {
-	// This is a simplification for testing purposes
-	// In a real implementation, this would need to properly adapt the handler
-	return func(ctx sdk.Context, req interface{}) ([]byte, error) {
-		return nil, nil
-	}
-}
-
-// Similarly, we might need an adapter for MsgServiceRouter
-type MsgRouterAdapter struct {
-	router *baseapp.MsgServiceRouter
-}
-
-func NewMsgRouterAdapter(router *baseapp.MsgServiceRouter) *MsgRouterAdapter {
-	return &MsgRouterAdapter{router: router}
-}
-
-func (*MsgRouterAdapter) Handler(msg sdk.Msg) func(sdk.Context, sdk.Msg) (*sdk.Result, error) {
-	// Simplified for testing purposes
-	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-		return nil, nil
-	}
-}
