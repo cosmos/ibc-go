@@ -50,7 +50,7 @@ func (k Keeper) GetAllPendingSendPackets(ctx sdk.Context) []string {
 	iterator := store.Iterator(nil, nil)
 	defer iterator.Close()
 
-	pendingPackets := []string{}
+	pendingPackets := make([]string, 0)
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
 

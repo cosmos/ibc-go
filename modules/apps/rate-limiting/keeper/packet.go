@@ -69,21 +69,15 @@ func (k Keeper) CheckAcknowledementSucceeded(ctx sdk.Context, ack []byte) (succe
 //
 // For NATIVE denoms, return as is (e.g. ustrd)
 // For NON-NATIVE denoms, take the ibc hash (e.g. hash "transfer/channel-2/usoms" into "ibc/...")
-func ParseDenomFromSendPacket(packet transfertypes.FungibleTokenPacketData) (denom string) {
+func ParseDenomFromSendPacket(packet transfertypes.FungibleTokenPacketData) string {
 	// Check if the denom is already an IBC denom (starts with "ibc/")
 	if strings.HasPrefix(packet.Denom, "ibc/") {
 		return packet.Denom
 	}
 
 	// Determine the denom by looking at the denom trace path
-	denomTrace := transfertypes.ExtractDenomFromPath(packet.Denom)
-
-	// Native assets will have an empty trace path and can be returned as is
-	if len(denomTrace.Trace) == 0 {
-		return packet.Denom
-	}
-	// Non-native assets should be hashed
-	return denomTrace.IBCDenom()
+	denom := transfertypes.ExtractDenomFromPath(packet.Denom)
+	return denom.IBCDenom()
 }
 
 // ParseDenomFromRecvPacket parses the denom from the Recv Packet that will be used by the rate limit module.
@@ -118,7 +112,7 @@ func ParseDenomFromSendPacket(packet transfertypes.FungibleTokenPacketData) (den
 //	       Packet Denom:      transfer/channel-X/transfer/channel-Z/ujuno
 //	        -> Remove Prefix: transfer/channel-Z/ujuno
 //	        -> Hash:          ibc/...
-func ParseDenomFromRecvPacket(packet channeltypes.Packet, packetData transfertypes.FungibleTokenPacketData) (denom string) {
+func ParseDenomFromRecvPacket(packet channeltypes.Packet, packetData transfertypes.FungibleTokenPacketData) string {
 	sourcePort := packet.SourcePort
 	sourceChannel := packet.SourceChannel
 
@@ -132,24 +126,16 @@ func ParseDenomFromRecvPacket(packet channeltypes.Packet, packetData transfertyp
 		unprefixedDenom := packetData.Denom[len(sourcePrefix):]
 
 		// Native assets will have an empty trace path and can be returned as is
-		denomTrace := transfertypes.ExtractDenomFromPath(unprefixedDenom)
-		if denomTrace.Path() == "" {
-			denom = unprefixedDenom
-		} else {
-			// Non-native assets should be hashed
-			denom = denomTrace.IBCDenom()
-		}
-		return denom
+		denom := transfertypes.ExtractDenomFromPath(unprefixedDenom)
+		return denom.IBCDenom()
 	}
 	// Prefix the destination channel - this will contain the trailing slash (e.g. transfer/channel-X/)
 	destinationPrefix := transfertypes.NewHop(packet.GetDestPort(), packet.GetDestChannel())
 	prefixedDenom := destinationPrefix.String() + "/" + packetData.Denom
 
 	// Hash the denom trace
-	denomTrace := transfertypes.ExtractDenomFromPath(prefixedDenom)
-	denom = denomTrace.IBCDenom()
-
-	return denom
+	denom := transfertypes.ExtractDenomFromPath(prefixedDenom)
+	return denom.IBCDenom()
 }
 
 // ParsePacketInfo parses the sender and channelId and denom for the corresponding RateLimit object, and
@@ -195,8 +181,6 @@ func ParsePacketInfo(packet channeltypes.Packet, direction types.PacketDirection
 // Middleware implementation for SendPacket with rate limiting
 // Checks whether the rate limit has been exceeded - and if it hasn't, sends the packet
 func (k Keeper) SendRateLimitedPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) error {
-	// Get the next sequence number from the channel keeper.
-
 	seq, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
 		return errorsmod.Wrapf(channeltypes.ErrSequenceSendNotFound, "source port: %s, source channel: %s", sourcePort, sourceChannel)
@@ -239,7 +223,7 @@ func (k Keeper) ReceiveRateLimitedPacket(ctx sdk.Context, packet channeltypes.Pa
 		// If the packet data is unparseable, we can't apply rate limiting.
 		// Log the error and allow the packet to proceed to the underlying app
 		// which is responsible for handling invalid packet data.
-		k.Logger(ctx).Debug(fmt.Sprintf("Unable to parse packet data for rate limiting: %s", err.Error()))
+		k.Logger(ctx).Error("Unable to parse packet data for rate limiting", "error", err)
 		return nil // Returning nil allows the packet to continue down the stack
 	}
 

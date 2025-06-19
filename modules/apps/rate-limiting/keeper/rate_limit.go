@@ -71,13 +71,11 @@ func (k Keeper) GetAllRateLimits(ctx sdk.Context) []types.RateLimit {
 
 // Adds a new rate limit. Fails if the rate limit already exists or the channel value is 0
 func (k Keeper) AddRateLimit(ctx sdk.Context, msg *types.MsgAddRateLimit) error {
-	// Confirm the channel value is not zero
 	channelValue := k.GetChannelValue(ctx, msg.Denom)
 	if channelValue.IsZero() {
 		return types.ErrZeroChannelValue
 	}
 
-	// Confirm the rate limit does not already exist
 	_, found := k.GetRateLimit(ctx, msg.Denom, msg.ChannelOrClientId)
 	if found {
 		return types.ErrRateLimitAlreadyExists
@@ -91,7 +89,7 @@ func (k Keeper) AddRateLimit(ctx sdk.Context, msg *types.MsgAddRateLimit) error 
 		// If the status is Unauthorized or Unknown, it means the client doesn't exist or is invalid
 		if status == ibcexported.Unknown || status == ibcexported.Unauthorized {
 			// Return specific error indicating neither channel nor client was found
-			return types.ErrChannelNotFound // Re-using ErrChannelNotFound, consider a more specific error if needed
+			return types.ErrChannelNotFound
 		}
 		// If status is Active, Expired, or Frozen, the client exists, proceed.
 	}
@@ -123,7 +121,6 @@ func (k Keeper) AddRateLimit(ctx sdk.Context, msg *types.MsgAddRateLimit) error 
 
 // Updates an existing rate limit. Fails if the rate limit doesn't exist
 func (k Keeper) UpdateRateLimit(ctx sdk.Context, msg *types.MsgUpdateRateLimit) error {
-	// Confirm the rate limit exists
 	_, found := k.GetRateLimit(ctx, msg.Denom, msg.ChannelOrClientId)
 	if !found {
 		return types.ErrRateLimitNotFound

@@ -30,10 +30,10 @@ func (s *KeeperTestSuite) TestGenesis() {
 	blockHeight := int64(10)
 
 	testCases := []struct {
-		name          string
-		genesisState  types.GenesisState
-		firstEpoch    bool
-		expectedError string
+		name         string
+		genesisState types.GenesisState
+		firstEpoch   bool
+		panicError   string
 	}{
 		{
 			name:         "valid default state",
@@ -65,7 +65,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 				RateLimits:                       createRateLimits(),
 				PendingSendPacketSequenceNumbers: []string{"channel-0/1", "channel-2|3"},
 			},
-			expectedError: "invalid pending send packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}",
+			panicError: "invalid pending send packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}",
 		},
 	}
 
@@ -75,12 +75,12 @@ func (s *KeeperTestSuite) TestGenesis() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			// Call initGenesis with a panic wrapper for the error cases
-			defer func() {
-				if recoveryError := recover(); recoveryError != nil {
-					s.Require().Equal(tc.expectedError, recoveryError, "expected error from panic")
-				}
-			}()
+			if tc.panicError != "" {
+				s.Require().PanicsWithValue(tc.panicError, func() {
+					s.chainA.GetSimApp().RateLimitKeeper.InitGenesis(s.chainA.GetContext(), tc.genesisState)
+				})
+				return
+			}
 			s.chainA.GetSimApp().RateLimitKeeper.InitGenesis(s.chainA.GetContext(), tc.genesisState)
 
 			// If the hour epoch was not initialized in the raw genState,

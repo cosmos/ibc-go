@@ -406,8 +406,7 @@ func (s *KeeperTestSuite) TestUndoSendPacket() {
 	checkOutflow := func(channelId, denom string, expectedAmount sdkmath.Int) {
 		rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelId)
 		s.Require().True(found, "rate limit should have been found")
-		s.Require().Equal(expectedAmount.Int64(), rateLimit.Flow.Outflow.Int64(),
-			"outflow - channel: %s, denom: %s", channelId, denom)
+		s.Require().Equal(expectedAmount.Int64(), rateLimit.Flow.Outflow.Int64(), "outflow - channel: %s, denom: %s", channelId, denom)
 	}
 
 	// Create two rate limits

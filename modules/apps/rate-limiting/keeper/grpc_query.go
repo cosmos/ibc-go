@@ -20,11 +20,11 @@ var _ types.QueryServer = Keeper{}
 
 // Query all rate limits
 func (k Keeper) AllRateLimits(c context.Context, req *types.QueryAllRateLimitsRequest) (*types.QueryAllRateLimitsResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(c)
 
 	rateLimits := k.GetAllRateLimits(ctx)
 	return &types.QueryAllRateLimitsResponse{RateLimits: rateLimits}, nil
@@ -32,11 +32,11 @@ func (k Keeper) AllRateLimits(c context.Context, req *types.QueryAllRateLimitsRe
 
 // Query a rate limit by denom and channelId
 func (k Keeper) RateLimit(c context.Context, req *types.QueryRateLimitRequest) (*types.QueryRateLimitResponse, error) {
-	ctx := sdk.UnwrapSDKContext(c)
-
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
+
+	ctx := sdk.UnwrapSDKContext(c)
 
 	rateLimit, found := k.GetRateLimit(ctx, req.Denom, req.ChannelOrClientId)
 	if !found {
@@ -47,9 +47,13 @@ func (k Keeper) RateLimit(c context.Context, req *types.QueryRateLimitRequest) (
 
 // Query all rate limits for a given chain
 func (k Keeper) RateLimitsByChainID(c context.Context, req *types.QueryRateLimitsByChainIDRequest) (*types.QueryRateLimitsByChainIDResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
-	rateLimits := []types.RateLimit{}
+	rateLimits := make([]types.RateLimit, 0)
 	for _, rateLimit := range k.GetAllRateLimits(ctx) {
 
 		// Determine the client state from the channel Id
@@ -63,18 +67,20 @@ func (k Keeper) RateLimitsByChainID(c context.Context, req *types.QueryRateLimit
 		}
 
 		// Check if the client state is a tendermint client
-		if clientState.ClientType() == exported.Tendermint {
-			// Type assert to tendermint client state
-			tmClientState, ok := clientState.(*tmclient.ClientState)
-			if !ok {
-				// This should never happen if ClientType() == Tendermint, but check anyway
-				continue
-			}
+		if clientState.ClientType() != exported.Tendermint {
+			continue
+		}
 
-			// If the chain ID matches, add the rate limit to the returned list
-			if tmClientState.GetChainID() == req.ChainId {
-				rateLimits = append(rateLimits, rateLimit)
-			}
+		// Type assert to tendermint client state
+		tmClientState, ok := clientState.(*tmclient.ClientState)
+		if !ok {
+			// This should never happen if ClientType() == Tendermint, but check anyway
+			continue
+		}
+
+		// If the chain ID matches, add the rate limit to the returned list
+		if tmClientState.GetChainID() == req.ChainId {
+			rateLimits = append(rateLimits, rateLimit)
 		}
 	}
 
@@ -83,11 +89,14 @@ func (k Keeper) RateLimitsByChainID(c context.Context, req *types.QueryRateLimit
 
 // Query all rate limits for a given channel
 func (k Keeper) RateLimitsByChannelOrClientID(c context.Context, req *types.QueryRateLimitsByChannelOrClientIDRequest) (*types.QueryRateLimitsByChannelOrClientIDResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
-	rateLimits := []types.RateLimit{}
+	rateLimits := make([]types.RateLimit, 0)
 	for _, rateLimit := range k.GetAllRateLimits(ctx) {
-		// If the channel ID matches, add the rate limit to the returned list
 		if rateLimit.Path.ChannelOrClientId == req.ChannelOrClientId {
 			rateLimits = append(rateLimits, rateLimit)
 		}
@@ -98,6 +107,10 @@ func (k Keeper) RateLimitsByChannelOrClientID(c context.Context, req *types.Quer
 
 // Query all blacklisted denoms
 func (k Keeper) AllBlacklistedDenoms(c context.Context, req *types.QueryAllBlacklistedDenomsRequest) (*types.QueryAllBlacklistedDenomsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 	blacklistedDenoms := k.GetAllBlacklistedDenoms(ctx)
 	return &types.QueryAllBlacklistedDenomsResponse{Denoms: blacklistedDenoms}, nil
@@ -105,6 +118,10 @@ func (k Keeper) AllBlacklistedDenoms(c context.Context, req *types.QueryAllBlack
 
 // Query all whitelisted addresses
 func (k Keeper) AllWhitelistedAddresses(c context.Context, req *types.QueryAllWhitelistedAddressesRequest) (*types.QueryAllWhitelistedAddressesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 	whitelistedAddresses := k.GetAllWhitelistedAddressPairs(ctx)
 	return &types.QueryAllWhitelistedAddressesResponse{AddressPairs: whitelistedAddresses}, nil

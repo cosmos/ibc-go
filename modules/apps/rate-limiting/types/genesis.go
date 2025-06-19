@@ -33,8 +33,8 @@ func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		RateLimits:                       []RateLimit{},
 		WhitelistedAddressPairs:          []WhitelistedAddressPair{},
-		BlacklistedDenoms:                []string{},
-		PendingSendPacketSequenceNumbers: []string{},
+		BlacklistedDenoms:                make([]string, 0),
+		PendingSendPacketSequenceNumbers: make([]string, 0),
 		HourEpoch: HourEpoch{
 			EpochNumber: 0,
 			Duration:    time.Hour,
@@ -45,7 +45,6 @@ func DefaultGenesis() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
-	// Validate the format of the pending send packets
 	for _, pendingPacketID := range gs.PendingSendPacketSequenceNumbers {
 		if _, _, err := ParsePendingPacketID(pendingPacketID); err != nil {
 			return err
