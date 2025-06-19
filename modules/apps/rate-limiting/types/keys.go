@@ -23,9 +23,10 @@ func bytes(p string) []byte {
 }
 
 var (
-	RateLimitKeyPrefix        = bytes("rate-limit")
-	PendingSendPacketPrefix   = bytes("pending-send-packet")
-	DenomBlacklistKeyPrefix   = bytes("denom-blacklist")
+	RateLimitKeyPrefix      = bytes("rate-limit")
+	PendingSendPacketPrefix = bytes("pending-send-packet")
+	DenomBlacklistKeyPrefix = bytes("denom-blacklist")
+	// TODO: Fix IBCGO-2368
 	AddressWhitelistKeyPrefix = bytes("address-blacklist")
 	HourEpochKey              = bytes("hour-epoch")
 
