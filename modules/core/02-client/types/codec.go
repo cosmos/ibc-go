@@ -1,16 +1,12 @@
 package types
 
 import (
-<<<<<<< HEAD
-	proto "github.com/cosmos/gogoproto/proto"
-=======
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/gogoproto/proto"
->>>>>>> de2f70a4 (fix: support amino encoding on MsgRecoverClient (#8448))
 
 	errorsmod "cosmossdk.io/errors"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
