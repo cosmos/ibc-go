@@ -1,0 +1,76 @@
+syntax = "proto3";
+package ibc.applications.rate_limiting.v1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types";
+
+// PacketDirection defines whether the transfer packet is being sent from
+// this chain or is being received on this chain
+enum PacketDirection {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  PACKET_SEND = 0;
+  PACKET_RECV = 1;
+}
+
+// Path holds the denom and channelID that define the rate limited route
+message Path {
+  string denom                = 1;
+  string channel_or_client_id = 2;
+}
+
+// Quota defines the rate limit thresholds for transfer packets
+message Quota {
+  // MaxPercentSend defines the threshold for outflows
+  // The threshold is defined as a percentage (e.g. 10 indicates 10%)
+  string max_percent_send = 1 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+  // MaxPercentSend defines the threshold for inflows
+  // The threshold is defined as a percentage (e.g. 10 indicates 10%)
+  string max_percent_recv = 2 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+  // DurationHours specifies the number of hours before the rate limit
+  // is reset (e.g. 24 indicates that the rate limit is reset each day)
+  uint64 duration_hours = 3;
+}
+
+// Flow tracks all the inflows and outflows of a channel.
+message Flow {
+  // Inflow defines the total amount of inbound transfers for the given
+  // rate limit in the current window
+  string inflow = 1 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+  // Outflow defines the total amount of outbound transfers for the given
+  // rate limit in the current window
+  string outflow = 2 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+  // ChannelValue stores the total supply of the denom at the start of
+  // the rate limit. This is used as the denominator when checking
+  // the rate limit threshold
+  // The ChannelValue is fixed for the duration of the rate limit window
+  string channel_value = 3 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+}
+
+// RateLimit stores all the context about a given rate limit, including
+// the relevant denom and channel, rate limit thresholds, and current
+// progress towards the limits
+message RateLimit {
+  Path  path  = 1;
+  Quota quota = 2;
+  Flow  flow  = 3;
+}
+
+// WhitelistedAddressPair represents a sender-receiver combo that is
+// not subject to rate limit restrictions
+message WhitelistedAddressPair {
+  string sender   = 1;
+  string receiver = 2;
+}
+
+// HourEpoch is the epoch type.
+message HourEpoch {
+  uint64                   epoch_number = 1;
+  google.protobuf.Duration duration     = 2
+      [(gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.jsontag) = "duration,omitempty"];
+  google.protobuf.Timestamp epoch_start_time   = 3 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  int64                     epoch_start_height = 4;
+}
