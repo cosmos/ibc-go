@@ -708,7 +708,7 @@ func (s *KeeperTestSuite) TestSendPacket_Allowed() {
 	s.Require().Truef(ok, "Transfer keeper's ICS4Wrapper should be the PacketForward Middleware. Found %T", shouldPFM)
 
 	// We need the transfer keeper's ICS4Wrapper which *is* the ratelimiting middleware
-	middleware := s.chainA.GetSimApp().PFMKeeper.ICS4Wrapper().(ratelimiting.IBCMiddleware)
+	middleware, ok := s.chainA.GetSimApp().PFMKeeper.ICS4Wrapper().(ratelimiting.IBCMiddleware)
 	s.Require().Truef(ok, "PFM keeper's ICS4Wrapper should be the PacketForward Middleware. Found %T", middleware)
 
 	// Directly call the middleware's SendPacket
