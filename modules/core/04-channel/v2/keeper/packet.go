@@ -57,26 +57,26 @@ func (k *Keeper) sendPacket(
 	}
 
 	// Before we do client keeper level checks, we first get underlying base clientID
-	clientId := packet.SourceClient
-	if underlyingClientId, isAlias := k.GetClientForAlias(ctx, packet.SourceClient); isAlias {
-		clientId = underlyingClientId
+	clientID := packet.SourceClient
+	if underlyingClientID, isAlias := k.GetClientForAlias(ctx, packet.SourceClient); isAlias {
+		clientID = underlyingClientID
 	}
 
 	// check that the client of counterparty chain is still active
-	if status := k.ClientKeeper.GetClientStatus(ctx, clientId); status != exported.Active {
-		return 0, "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientId, status)
+	if status := k.ClientKeeper.GetClientStatus(ctx, clientID); status != exported.Active {
+		return 0, "", errorsmod.Wrapf(clienttypes.ErrClientNotActive, "client (%s) status is %s", clientID, status)
 	}
 
 	// retrieve latest height and timestamp of the client of counterparty chain
-	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, clientId)
+	latestHeight := k.ClientKeeper.GetClientLatestHeight(ctx, clientID)
 	if latestHeight.IsZero() {
-		return 0, "", errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", clientId)
+		return 0, "", errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", clientID)
 	}
 
 	// client timestamps are in nanoseconds while packet timeouts are in seconds
 	// thus to compare them, we convert the client timestamp to seconds in uint64
 	// to be consistent with IBC V2 specified timeout behaviour
-	latestTimestampNano, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientId, latestHeight)
+	latestTimestampNano, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientID, latestHeight)
 	if err != nil {
 		return 0, "", err
 	}
@@ -146,21 +146,21 @@ func (k *Keeper) recvPacket(
 	commitment := types.CommitPacket(packet)
 
 	// Before we do client keeper level checks, we first get underlying base clientID
-	clientId := packet.DestinationClient
-	if underlyingClientId, isAlias := k.GetClientForAlias(ctx, packet.DestinationClient); isAlias {
-		clientId = underlyingClientId
+	clientID := packet.DestinationClient
+	if underlyingClientID, isAlias := k.GetClientForAlias(ctx, packet.DestinationClient); isAlias {
+		clientID = underlyingClientID
 	}
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		clientId,
+		clientID,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 		commitment,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientId)
+		return errorsmod.Wrapf(err, "failed packet commitment verification for client (%s)", clientID)
 	}
 
 	// Set Packet Receipt to prevent timeout from occurring on counterparty
@@ -283,21 +283,21 @@ func (k *Keeper) acknowledgePacket(ctx sdk.Context, packet types.Packet, acknowl
 	merklePath := types.BuildMerklePath(counterparty.MerklePrefix, path)
 
 	// Before we do client keeper level checks, we first get underlying base clientID
-	clientId := packet.SourceClient
-	if underlyingClientId, isAlias := k.GetClientForAlias(ctx, packet.SourceClient); isAlias {
-		clientId = underlyingClientId
+	clientID := packet.SourceClient
+	if underlyingClientID, isAlias := k.GetClientForAlias(ctx, packet.SourceClient); isAlias {
+		clientID = underlyingClientID
 	}
 
 	if err := k.ClientKeeper.VerifyMembership(
 		ctx,
-		clientId,
+		clientID,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 		types.CommitAcknowledgement(acknowledgement),
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientId)
+		return errorsmod.Wrapf(err, "failed packet acknowledgement verification for client (%s)", clientID)
 	}
 
 	k.DeletePacketCommitment(ctx, packet.SourceClient, packet.Sequence)
@@ -335,16 +335,16 @@ func (k *Keeper) timeoutPacket(
 	}
 
 	// Before we do client keeper level checks, we first get underlying base clientID
-	clientId := packet.SourceClient
-	if underlyingClientId, isAlias := k.GetClientForAlias(ctx, packet.SourceClient); isAlias {
-		clientId = underlyingClientId
+	clientID := packet.SourceClient
+	if underlyingClientID, isAlias := k.GetClientForAlias(ctx, packet.SourceClient); isAlias {
+		clientID = underlyingClientID
 	}
 
 	// check that timeout timestamp has passed on the other end
 	// client timestamps are in nanoseconds while packet timeouts are in seconds
 	// so we convert client timestamp to seconds in uint64 to be consistent
 	// with IBC V2 timeout behaviour
-	proofTimestampNano, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientId, proofHeight)
+	proofTimestampNano, err := k.ClientKeeper.GetClientTimestampAtHeight(ctx, clientID, proofHeight)
 	if err != nil {
 		return err
 	}
@@ -376,13 +376,13 @@ func (k *Keeper) timeoutPacket(
 
 	if err := k.ClientKeeper.VerifyNonMembership(
 		ctx,
-		clientId,
+		clientID,
 		proofHeight,
 		0, 0,
 		proof,
 		merklePath,
 	); err != nil {
-		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientId)
+		return errorsmod.Wrapf(err, "failed packet receipt absence verification for client (%s)", clientID)
 	}
 
 	// delete packet commitment to prevent replay
