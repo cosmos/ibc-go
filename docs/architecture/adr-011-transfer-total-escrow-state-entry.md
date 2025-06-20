@@ -99,7 +99,7 @@ A gRPC query endpoint is added so that it is possible to retrieve the total amou
 ```proto
 // TotalEscrowForDenom returns the total amount of tokens in escrow based on the denom.
 rpc TotalEscrowForDenom(QueryTotalEscrowForDenomRequest) returns (QueryTotalEscrowForDenomResponse) {
-  option (google.api.http).get = "/ibc/apps/transfer/v1/denoms/{denom=**}/total_escrow";
+  option (google.api.http).get = "/ibc/apps/transfer/v1/total_escrow/{denom=**}";
 }
 
 // QueryTotalEscrowForDenomRequest is the request type for TotalEscrowForDenom RPC method.
