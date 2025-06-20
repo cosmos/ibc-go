@@ -64,6 +64,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+* [\#8545](https://github.com/cosmos/ibc-go/pull/8545) Support sending multiple payloads in the same packet for atomic payload execution.
+
 ### Dependencies
 
 * [\#8369](https://github.com/cosmos/ibc-go/pull/8369) Bump **github.com/CosmWasm/wasmvm** to **2.2.4**
