@@ -1,8 +1,7 @@
-version: "2"
 run:
   tests: true
 linters:
-  default: none
+  disable-all: true
   enable:
     - errcheck
     - goconst
@@ -18,18 +17,19 @@ linters:
     - unconvert
     - unparam
     - unused
-  settings:
-    gocritic:
-      disabled-checks:
-        - appendAssign
-    gosec:
-      excludes:
-        - G101
-        - G107
-        - G115
-        - G404
-      confidence: medium
-    revive:
+
+linters-settings:
+  gocritic:
+    disabled-checks:
+      - appendAssign
+  gosec:
+    excludes:
+      - G101
+      - G107
+      - G115
+      - G404
+    confidence: medium
+  revive:
       enable-all-rules: true
       rules:
         - name: redundant-import-alias
@@ -85,36 +85,26 @@ linters:
             - fmt.Println
             - myFunction
           disabled: false
-  exclusions:
-    generated: lax
-    presets:
-      - comments
-      - common-false-positives
-      - legacy
-      - std-error-handling
-    rules:
-      - linters:
-          - revive
-        text: differs only by capitalization to method
-      - linters:
-          - gosec
-        text: Use of weak random number generator
-      - linters:
-          - gosec
-        text: 'G115: integer overflow conversion'
-      - linters:
-          - staticcheck
-        text: 'SA1019:'
-      - linters:
-          - gosec
-        text: 'G115: integer overflow conversion'
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
 issues:
   max-issues-per-linter: 10000
   max-same-issues: 10000
+  exclude-rules:
+    - linters:
+        - revive
+      text: differs only by capitalization to method
+    - linters:
+        - gosec
+      text: Use of weak random number generator
+    - linters:
+        - gosec
+      text: 'G115: integer overflow conversion'
+    - linters:
+        - staticcheck
+      text: 'SA1019:'
+  exclude-dirs:
+    - third_party
+    - builtin
+    - examples
 formatters:
   enable:
     - gci
@@ -131,9 +121,3 @@ formatters:
         - prefix(github.com/cometbft/cometbft)
         - prefix(github.com/cosmos/ibc-go)
       custom-order: true
-  exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$

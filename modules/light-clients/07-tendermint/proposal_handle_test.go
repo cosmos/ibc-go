@@ -107,7 +107,7 @@ func (suite *TendermintTestSuite) TestCheckSubstituteAndUpdateState() {
 			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(suite.chainA.GetContext(), substitutePath.EndpointA.ClientID, substituteClientState)
 
 			// update substitute a few times
-			for range 3 {
+			for i := 0; i < 3; i++ {
 				err := substitutePath.EndpointA.UpdateClient()
 				suite.Require().NoError(err)
 				// skip a block

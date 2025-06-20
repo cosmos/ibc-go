@@ -17,7 +17,7 @@ import (
 
 func (suite *MigrationsV7TestSuite) TestMigrateGenesisSolomachine() {
 	// create tendermint clients
-	for range 3 {
+	for i := 0; i < 3; i++ {
 		path := ibctesting.NewPath(suite.chainA, suite.chainB)
 
 		path.SetupClients()

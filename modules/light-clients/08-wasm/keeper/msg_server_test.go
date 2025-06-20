@@ -351,7 +351,7 @@ func (suite *KeeperTestSuite) TestMsgRemoveChecksum() {
 
 				expChecksums = []types.Checksum{}
 
-				for i := range 20 {
+				for i := 0; i < 20; i++ {
 					mockCode := wasmtesting.CreateMockContract([]byte{byte(i)})
 					checksum, err := types.CreateChecksum(mockCode)
 					suite.Require().NoError(err)
