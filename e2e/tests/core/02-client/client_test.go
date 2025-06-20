@@ -1,6 +1,6 @@
 //go:build !test_e2e
 
-package client
+package client_test
 
 import (
 	"context"

@@ -1,6 +1,6 @@
 //go:build !test_e2e
 
-package pfm
+package pfm_test
 
 import (
 	"context"

@@ -1,6 +1,6 @@
 //go:build !test_e2e
 
-package transfer
+package transfer_test
 
 import (
 	"context"

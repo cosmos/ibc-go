@@ -1,6 +1,6 @@
 //go:build !test_e2e
 
-package interchainaccounts
+package interchainaccounts_test
 
 import (
 	"context"
