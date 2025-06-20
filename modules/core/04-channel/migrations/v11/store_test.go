@@ -116,7 +116,7 @@ func (s *MigrationsV11TestSuite) TestMigrateStore() {
 			// ensure base client mapping not set for closed channels
 			baseClientID, ok := ibcKeeper.ChannelKeeperV2.GetClientForAlias(ctx, channelID)
 			s.Require().False(ok)
-			s.Require().Empty(baseClientID, "base client mapping should not be set for closed channels")
+			s.Require().Equal("", baseClientID, "base client mapping should not be set for closed channels")
 		}
 
 		// ensure that sequence migrated correctly

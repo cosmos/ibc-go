@@ -64,6 +64,13 @@ func (c *Coordinator) IncrementTimeBy(increment time.Duration) {
 	c.UpdateTime()
 }
 
+// SetTime sets the coordinator's current time to the specified time and updates
+// the proposed header time for all chains.
+func (coord *Coordinator) SetTime(t time.Time) {
+	coord.CurrentTime = t.UTC()
+	coord.UpdateTime()
+}
+
 // UpdateTime updates all clocks for the TestChains to the current global time.
 func (c *Coordinator) UpdateTime() {
 	for _, chain := range c.Chains {
