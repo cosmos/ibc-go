@@ -26,11 +26,14 @@ var (
 	RateLimitKeyPrefix      = bytes("rate-limit")
 	PendingSendPacketPrefix = bytes("pending-send-packet")
 	DenomBlacklistKeyPrefix = bytes("denom-blacklist")
-	// TODO: Fix IBCGO-2368
-	AddressWhitelistKeyPrefix = bytes("address-blacklist")
+	// Fixed IBCGO-2368: Changed from "address-blacklist" to "address-whitelist"
+	AddressWhitelistKeyPrefix = bytes("address-whitelist")
 	HourEpochKey              = bytes("hour-epoch")
 
 	PendingSendPacketChannelLength = 16
+
+	// Legacy key for migration purposes
+	LegacyAddressWhitelistKeyPrefix = bytes("address-blacklist")
 )
 
 // Get the rate limit byte key built from the denom and channelId

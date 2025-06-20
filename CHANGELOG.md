@@ -56,6 +56,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (apps/rate-limiting) [\#8546](https://github.com/cosmos/ibc-go/issues/8546) Fix incorrect `AddressWhitelistKeyPrefix` key name from "address-blacklist" to "address-whitelist".
+
 ### Testing API
 
 * [\#8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message`.
@@ -74,6 +76,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### API Breaking
 
 ### State Machine Breaking
+
+* (apps/rate-limiting) [\#8546](https://github.com/cosmos/ibc-go/issues/8546) Migrate address whitelist store keys from incorrect "address-blacklist" prefix to correct "address-whitelist" prefix.
 
 ### Improvements
 
