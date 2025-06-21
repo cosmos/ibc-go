@@ -10,7 +10,7 @@ import (
 )
 
 // Adds a denom to a blacklist to prevent all IBC transfers with that denom
-func (k Keeper) AddDenomToBlacklist(ctx sdk.Context, denom string) {
+func (k *Keeper) AddDenomToBlacklist(ctx sdk.Context, denom string) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.DenomBlacklistKeyPrefix)
 	key := []byte(denom)
@@ -18,7 +18,7 @@ func (k Keeper) AddDenomToBlacklist(ctx sdk.Context, denom string) {
 }
 
 // Removes a denom from a blacklist to re-enable IBC transfers for that denom
-func (k Keeper) RemoveDenomFromBlacklist(ctx sdk.Context, denom string) {
+func (k *Keeper) RemoveDenomFromBlacklist(ctx sdk.Context, denom string) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.DenomBlacklistKeyPrefix)
 	key := []byte(denom)
@@ -26,7 +26,7 @@ func (k Keeper) RemoveDenomFromBlacklist(ctx sdk.Context, denom string) {
 }
 
 // Check if a denom is currently blacklisted
-func (k Keeper) IsDenomBlacklisted(ctx sdk.Context, denom string) bool {
+func (k *Keeper) IsDenomBlacklisted(ctx sdk.Context, denom string) bool {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.DenomBlacklistKeyPrefix)
 
@@ -38,7 +38,7 @@ func (k Keeper) IsDenomBlacklisted(ctx sdk.Context, denom string) bool {
 }
 
 // Get all the blacklisted denoms
-func (k Keeper) GetAllBlacklistedDenoms(ctx sdk.Context) []string {
+func (k *Keeper) GetAllBlacklistedDenoms(ctx sdk.Context) []string {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.DenomBlacklistKeyPrefix)
 

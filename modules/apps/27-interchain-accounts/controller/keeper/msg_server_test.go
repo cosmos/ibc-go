@@ -17,7 +17,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
+func (s *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 	var (
 		msg               *types.MsgRegisterInterchainAccount
 		expectedOrderding channeltypes.Order
@@ -67,46 +67,46 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			suite.Run(tc.name, func() {
+			s.Run(tc.name, func() {
 				expectedOrderding = ordering
 
-				suite.SetupTest()
+				s.SetupTest()
 
-				path := NewICAPath(suite.chainA, suite.chainB, ordering)
+				path := NewICAPath(s.chainA, s.chainB, ordering)
 				path.SetupConnections()
 
 				msg = types.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, ibctesting.TestAccAddress, "", ordering)
 
 				tc.malleate()
 
-				ctx := suite.chainA.GetContext()
-				msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+				ctx := s.chainA.GetContext()
+				msgServer := keeper.NewMsgServerImpl(&s.chainA.GetSimApp().ICAControllerKeeper)
 				res, err := msgServer.RegisterInterchainAccount(ctx, msg)
 
 				if tc.expErr == nil {
-					suite.Require().NoError(err)
-					suite.Require().NotNil(res)
-					suite.Require().Equal(expectedChannelID, res.ChannelId)
+					s.Require().NoError(err)
+					s.Require().NotNil(res)
+					s.Require().Equal(expectedChannelID, res.ChannelId)
 
 					events := ctx.EventManager().Events()
-					suite.Require().Len(events, 2)
-					suite.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
-					suite.Require().Equal(events[1].Type, sdk.EventTypeMessage)
+					s.Require().Len(events, 2)
+					s.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
+					s.Require().Equal(events[1].Type, sdk.EventTypeMessage)
 
 					path.EndpointA.ChannelConfig.PortID = res.PortId
 					path.EndpointA.ChannelID = res.ChannelId
 					channel := path.EndpointA.GetChannel()
-					suite.Require().Equal(expectedOrderding, channel.Ordering)
+					s.Require().Equal(expectedOrderding, channel.Ordering)
 				} else {
-					suite.Require().ErrorIs(err, tc.expErr)
-					suite.Require().Nil(res)
+					s.Require().ErrorIs(err, tc.expErr)
+					s.Require().Nil(res)
 				}
 			})
 		}
 	}
 }
 
-func (suite *KeeperTestSuite) TestSubmitTx() {
+func (s *KeeperTestSuite) TestSubmitTx() {
 	var (
 		path *ibctesting.Path
 		msg  *types.MsgSendTx
@@ -145,32 +145,32 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			suite.Run(tc.name, func() {
-				suite.SetupTest()
+			s.Run(tc.name, func() {
+				s.SetupTest()
 
 				owner := TestOwnerAddress
-				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path = NewICAPath(s.chainA, s.chainB, ordering)
 				path.SetupConnections()
 
 				err := SetupICAPath(path, owner)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				// get the address of the interchain account stored in state during handshake step
-				interchainAccountAddr, found := suite.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(suite.chainA.GetContext(), path.EndpointA.ConnectionID, portID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainA.GetSimApp().ICAControllerKeeper.GetInterchainAccountAddress(s.chainA.GetContext(), path.EndpointA.ConnectionID, portID)
+				s.Require().True(found)
 
 				// create bank transfer message that will execute on the host chain
 				icaMsg := &banktypes.MsgSend{
 					FromAddress: interchainAccountAddr,
-					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+					ToAddress:   s.chainB.SenderAccount.GetAddress().String(),
 					Amount:      sdk.NewCoins(ibctesting.TestCoin),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{icaMsg}, icatypes.EncodingProtobuf)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{icaMsg}, icatypes.EncodingProtobuf)
+				s.Require().NoError(err)
 
 				packetData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -178,23 +178,23 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 					Memo: "memo",
 				}
 
-				timeoutTimestamp := uint64(suite.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
+				timeoutTimestamp := uint64(s.chainA.GetContext().BlockTime().Add(time.Minute).UnixNano())
 				connectionID := path.EndpointA.ConnectionID
 
 				msg = types.NewMsgSendTx(owner, connectionID, timeoutTimestamp, packetData)
 
 				tc.malleate() // malleate mutates test data
 
-				ctx := suite.chainA.GetContext()
-				msgServer := keeper.NewMsgServerImpl(&suite.chainA.GetSimApp().ICAControllerKeeper)
+				ctx := s.chainA.GetContext()
+				msgServer := keeper.NewMsgServerImpl(&s.chainA.GetSimApp().ICAControllerKeeper)
 				res, err := msgServer.SendTx(ctx, msg)
 
 				if tc.expErr == nil {
-					suite.Require().NoError(err)
-					suite.Require().NotNil(res)
+					s.Require().NoError(err)
+					s.Require().NotNil(res)
 				} else {
-					suite.Require().ErrorIs(err, tc.expErr)
-					suite.Require().Nil(res)
+					s.Require().ErrorIs(err, tc.expErr)
+					s.Require().Nil(res)
 				}
 			})
 		}
@@ -202,8 +202,8 @@ func (suite *KeeperTestSuite) TestSubmitTx() {
 }
 
 // TestUpdateParams tests UpdateParams rpc handler
-func (suite *KeeperTestSuite) TestUpdateParams() {
-	signer := suite.chainA.GetSimApp().TransferKeeper.GetAuthority()
+func (s *KeeperTestSuite) TestUpdateParams() {
+	signer := s.chainA.GetSimApp().TransferKeeper.GetAuthority()
 	testCases := []struct {
 		name   string
 		msg    *types.MsgUpdateParams
@@ -237,15 +237,15 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			_, err := suite.chainA.GetSimApp().ICAControllerKeeper.UpdateParams(suite.chainA.GetContext(), tc.msg)
+		s.Run(tc.name, func() {
+			s.SetupTest()
+			_, err := s.chainA.GetSimApp().ICAControllerKeeper.UpdateParams(s.chainA.GetContext(), tc.msg)
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				p := suite.chainA.GetSimApp().ICAControllerKeeper.GetParams(suite.chainA.GetContext())
-				suite.Require().Equal(tc.msg.Params, p)
+				s.Require().NoError(err)
+				p := s.chainA.GetSimApp().ICAControllerKeeper.GetParams(s.chainA.GetContext())
+				s.Require().Equal(tc.msg.Params, p)
 			} else {
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

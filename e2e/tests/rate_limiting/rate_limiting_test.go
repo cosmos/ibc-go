@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	interchaintest "github.com/cosmos/interchaintest/v10"
-	ibc "github.com/cosmos/interchaintest/v10/ibc"
-	testutil "github.com/cosmos/interchaintest/v10/testutil"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	"github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -108,11 +108,11 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().Len(resp.RateLimits, 1)
 
 		rateLimit := resp.RateLimits[0]
-		s.Require().Equal(rateLimit.Flow.Outflow.Int64(), int64(0))
-		s.Require().Equal(rateLimit.Flow.Inflow.Int64(), int64(0))
+		s.Require().Equal(int64(0), rateLimit.Flow.Outflow.Int64())
+		s.Require().Equal(int64(0), rateLimit.Flow.Inflow.Int64())
 		s.Require().Equal(rateLimit.Quota.MaxPercentSend.Int64(), sendPercentage)
 		s.Require().Equal(rateLimit.Quota.MaxPercentRecv.Int64(), recvPercentage)
-		s.Require().Equal(rateLimit.Quota.DurationHours, uint64(1))
+		s.Require().Equal(uint64(1), rateLimit.Quota.DurationHours)
 	})
 
 	t.Run("Transfer updates the rate limit flow", func(_ *testing.T) {
@@ -141,7 +141,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		// Check the flow has been updated.
 		rateLimit := s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
 		s.Require().NotNil(rateLimit)
-		s.Require().Equal(rateLimit.Flow.Outflow.Int64(), testvalues.IBCTransferAmount)
+		s.Require().Equal(testvalues.IBCTransferAmount, rateLimit.Flow.Outflow.Int64())
 	})
 
 	t.Run("Fill and exceed quota", func(_ *testing.T) {

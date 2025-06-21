@@ -396,7 +396,7 @@ func NewSimApp(
 	// Create Transfer Keeper
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.MsgServiceRouter(), app.AccountKeeper, app.BankKeeper, govAuthority)
 
-	app.PFMKeeper.SetTransferKeeper(app.TransferKeeper)
+	app.PFMKeeper.SetTransferKeeper(&app.TransferKeeper)
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:

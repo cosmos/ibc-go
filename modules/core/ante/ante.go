@@ -1,6 +1,8 @@
 package ante
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -144,10 +146,10 @@ func (rrd RedundantRelayDecorator) recvPacketCheckTx(ctx sdk.Context, msg *chann
 	cacheCtx, writeFn := ctx.CacheContext()
 	_, err := rrd.k.ChannelKeeper.RecvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case channeltypes.ErrNoOpMsg:
+	case errors.Is(err, channeltypes.ErrNoOpMsg):
 		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, errorsmod.Wrap(err, "receive packet verification failed")
@@ -164,10 +166,10 @@ func (rrd RedundantRelayDecorator) recvPacketReCheckTx(ctx sdk.Context, msg *cha
 	cacheCtx, writeFn := ctx.CacheContext()
 	err := rrd.k.ChannelKeeper.RecvPacketReCheckTx(cacheCtx, msg.Packet)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case channeltypes.ErrNoOpMsg:
+	case errors.Is(err, channeltypes.ErrNoOpMsg):
 		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
 	default:
 		return nil, errorsmod.Wrap(err, "receive packet verification failed")

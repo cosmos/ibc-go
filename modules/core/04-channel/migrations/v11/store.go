@@ -36,7 +36,7 @@ func MigrateStore(ctx sdk.Context, storeService corestore.KVStoreService, cdc co
 ) error {
 	store := storeService.OpenKVStore(ctx)
 
-	ibcKeeper.ChannelKeeper.IterateChannels(ctx, func(ic types.IdentifiedChannel) (stop bool) {
+	ibcKeeper.ChannelKeeper.IterateChannels(ctx, func(ic types.IdentifiedChannel) bool {
 		// only add counterparty for channels that are OPEN and UNORDERED
 		// set a base client mapping from the channelId to the underlying base client
 		counterparty, ok := ibcKeeper.ChannelKeeper.GetV2Counterparty(ctx, ic.PortId, ic.ChannelId)

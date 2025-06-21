@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/cosmos/cosmos-sdk/runtime"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
@@ -13,7 +11,7 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 )
 
-func (suite *TypesTestSuite) TestAddRoute() {
+func (s *TypesTestSuite) TestAddRoute() {
 	var (
 		clientType string
 		router     *types.Router
@@ -49,11 +47,11 @@ func (suite *TypesTestSuite) TestAddRoute() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			cdc := suite.chainA.App.AppCodec()
+		s.Run(tc.name, func() {
+			s.SetupTest()
+			cdc := s.chainA.App.AppCodec()
 
-			storeProvider := types.NewStoreProvider(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(exported.StoreKey)))
+			storeProvider := types.NewStoreProvider(runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(exported.StoreKey)))
 			tmLightClientModule := ibctm.NewLightClientModule(cdc, storeProvider)
 			router = types.NewRouter()
 
@@ -61,9 +59,9 @@ func (suite *TypesTestSuite) TestAddRoute() {
 
 			if tc.expError == nil {
 				router.AddRoute(clientType, &tmLightClientModule)
-				suite.Require().True(router.HasRoute(clientType))
+				s.Require().True(router.HasRoute(clientType))
 			} else {
-				require.Panics(suite.T(), func() {
+				s.Require().Panics(func() {
 					router.AddRoute(clientType, &tmLightClientModule)
 				}, tc.expError.Error())
 			}
@@ -71,7 +69,7 @@ func (suite *TypesTestSuite) TestAddRoute() {
 	}
 }
 
-func (suite *TypesTestSuite) TestHasGetRoute() {
+func (s *TypesTestSuite) TestHasGetRoute() {
 	var clientType string
 
 	testCases := []struct {
@@ -103,11 +101,11 @@ func (suite *TypesTestSuite) TestHasGetRoute() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			cdc := suite.chainA.App.AppCodec()
+		s.Run(tc.name, func() {
+			s.SetupTest()
+			cdc := s.chainA.App.AppCodec()
 
-			storeProvider := types.NewStoreProvider(runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(exported.StoreKey)))
+			storeProvider := types.NewStoreProvider(runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(exported.StoreKey)))
 			tmLightClientModule := ibctm.NewLightClientModule(cdc, storeProvider)
 			router := types.NewRouter()
 			router.AddRoute(exported.Tendermint, &tmLightClientModule)
@@ -118,14 +116,14 @@ func (suite *TypesTestSuite) TestHasGetRoute() {
 			route, ok := router.GetRoute(clientType)
 
 			if tc.expPass {
-				suite.Require().True(hasRoute)
-				suite.Require().True(ok)
-				suite.Require().NotNil(route)
-				suite.Require().IsType(&ibctm.LightClientModule{}, route)
+				s.Require().True(hasRoute)
+				s.Require().True(ok)
+				s.Require().NotNil(route)
+				s.Require().IsType(&ibctm.LightClientModule{}, route)
 			} else {
-				suite.Require().False(hasRoute)
-				suite.Require().False(ok)
-				suite.Require().Nil(route)
+				s.Require().False(hasRoute)
+				s.Require().False(ok)
+				s.Require().Nil(route)
 			}
 		})
 	}

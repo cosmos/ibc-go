@@ -7,7 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 
-	keeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
@@ -72,7 +72,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		s.SetupTest()
 
 		s.Run(tc.name, func() {

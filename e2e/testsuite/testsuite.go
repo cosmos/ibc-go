@@ -225,7 +225,7 @@ func (s *E2ETestSuite) CreatePath(
 	clientOpts ibc.CreateClientOptions,
 	channelOpts ibc.CreateChannelOptions,
 	testName string,
-) (chainAChannel ibc.ChannelOutput, chainBChannel ibc.ChannelOutput) {
+) (ibc.ChannelOutput, ibc.ChannelOutput) {
 	pathName := s.generatePathName()
 	s.testPathsByTestName[testName] = append(s.testPathsByTestName[testName], pathName)
 
@@ -404,7 +404,7 @@ func (s *E2ETestSuite) GetRelayerUsers(ctx context.Context, testName string) (ib
 }
 
 func (s *E2ETestSuite) FlushPackets(ctx context.Context, ibcrelayer ibc.Relayer, orderedChains []ibc.Chain) {
-	for i := 0; i < len(orderedChains)-1; i++ {
+	for i := range len(orderedChains) - 1 {
 		chainA := orderedChains[i]
 		chainB := orderedChains[i+1]
 
@@ -581,10 +581,10 @@ func (s *E2ETestSuite) RecoverRelayerWallets(ctx context.Context, ibcrelayer ibc
 	rlyBName := fmt.Sprintf("%s-%s", ChainBRelayerName, testName)
 
 	if err := chainA.RecoverKey(ctx, rlyAName, chainARelayerWallet.Mnemonic()); err != nil {
-		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain A: %s", err)
+		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain A: %w", err)
 	}
 	if err := chainB.RecoverKey(ctx, rlyBName, chainBRelayerWallet.Mnemonic()); err != nil {
-		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain B: %s", err)
+		return nil, nil, fmt.Errorf("could not recover relayer wallet on chain B: %w", err)
 	}
 	return chainARelayerWallet, chainBRelayerWallet, nil
 }

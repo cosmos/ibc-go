@@ -9,7 +9,7 @@ import (
 )
 
 // InitGenesis initializes the rate-limiting module's state from a provided genesis state.
-func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
+func (k *Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	// Set rate limits, blacklists, and whitelists
 	for _, rateLimit := range state.RateLimits {
 		k.SetRateLimit(ctx, rateLimit)
@@ -48,7 +48,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 }
 
 // ExportGenesis returns the rate-limiting module's exported genesis.
-func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
+func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	rateLimits := k.GetAllRateLimits(ctx)
 	hourEpoch, err := k.GetHourEpoch(ctx)
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 
 // Adds an pair of sender and receiver addresses to the whitelist to allow all
 // IBC transfers between those addresses to skip all flow calculations
-func (k Keeper) SetWhitelistedAddressPair(ctx sdk.Context, whitelist types.WhitelistedAddressPair) {
+func (k *Keeper) SetWhitelistedAddressPair(ctx sdk.Context, whitelist types.WhitelistedAddressPair) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.AddressWhitelistKeyPrefix)
 	key := types.AddressWhitelistKey(whitelist.Sender, whitelist.Receiver)
@@ -20,7 +20,7 @@ func (k Keeper) SetWhitelistedAddressPair(ctx sdk.Context, whitelist types.White
 }
 
 // Removes a whitelisted address pair so that it's transfers are counted in the quota
-func (k Keeper) RemoveWhitelistedAddressPair(ctx sdk.Context, sender, receiver string) {
+func (k *Keeper) RemoveWhitelistedAddressPair(ctx sdk.Context, sender, receiver string) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.AddressWhitelistKeyPrefix)
 	key := types.AddressWhitelistKey(sender, receiver)
@@ -28,7 +28,7 @@ func (k Keeper) RemoveWhitelistedAddressPair(ctx sdk.Context, sender, receiver s
 }
 
 // Check if a sender/receiver address pair is currently whitelisted
-func (k Keeper) IsAddressPairWhitelisted(ctx sdk.Context, sender, receiver string) bool {
+func (k *Keeper) IsAddressPairWhitelisted(ctx sdk.Context, sender, receiver string) bool {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.AddressWhitelistKeyPrefix)
 
@@ -40,7 +40,7 @@ func (k Keeper) IsAddressPairWhitelisted(ctx sdk.Context, sender, receiver strin
 }
 
 // Get all the whitelisted addresses
-func (k Keeper) GetAllWhitelistedAddressPairs(ctx sdk.Context) []types.WhitelistedAddressPair {
+func (k *Keeper) GetAllWhitelistedAddressPairs(ctx sdk.Context) []types.WhitelistedAddressPair {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.AddressWhitelistKeyPrefix)
 

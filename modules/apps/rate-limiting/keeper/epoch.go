@@ -10,7 +10,7 @@ import (
 )
 
 // Stores the hour epoch
-func (k Keeper) SetHourEpoch(ctx sdk.Context, epoch types.HourEpoch) error {
+func (k *Keeper) SetHourEpoch(ctx sdk.Context, epoch types.HourEpoch) error {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	epochBz, err := k.cdc.Marshal(&epoch)
 	if err != nil {
@@ -22,7 +22,7 @@ func (k Keeper) SetHourEpoch(ctx sdk.Context, epoch types.HourEpoch) error {
 
 // Reads the hour epoch from the store
 // Returns a zero-value epoch and logs an error if the epoch is not found or fails to unmarshal.
-func (k Keeper) GetHourEpoch(ctx sdk.Context) (types.HourEpoch, error) {
+func (k *Keeper) GetHourEpoch(ctx sdk.Context) (types.HourEpoch, error) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 
 	var epoch types.HourEpoch
@@ -40,7 +40,7 @@ func (k Keeper) GetHourEpoch(ctx sdk.Context) (types.HourEpoch, error) {
 
 // Checks if it's time to start the new hour epoch.
 // This function returns epochStarting, epochNumber and a possible error.
-func (k Keeper) CheckHourEpochStarting(ctx sdk.Context) (bool, uint64, error) {
+func (k *Keeper) CheckHourEpochStarting(ctx sdk.Context) (bool, uint64, error) {
 	hourEpoch, err := k.GetHourEpoch(ctx)
 	if err != nil {
 		return false, 0, err

@@ -29,7 +29,7 @@ type RateLimitedPacketInfo struct {
 
 // CheckAcknowledementSucceeded unmarshals IBC Acknowledgements, and determines
 // whether the tx was successful
-func (k Keeper) CheckAcknowledementSucceeded(ctx sdk.Context, ack []byte) (success bool, err error) {
+func (k *Keeper) CheckAcknowledementSucceeded(ctx sdk.Context, ack []byte) (bool, error) {
 	// Check if the ack is the IBC v2 universal error acknowledgement
 	if bytes.Equal(ack, channeltypesv2.ErrorAcknowledgement[:]) {
 		return false, nil
@@ -180,7 +180,7 @@ func ParsePacketInfo(packet channeltypes.Packet, direction types.PacketDirection
 
 // Middleware implementation for SendPacket with rate limiting
 // Checks whether the rate limit has been exceeded - and if it hasn't, sends the packet
-func (k Keeper) SendRateLimitedPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) error {
+func (k *Keeper) SendRateLimitedPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) error {
 	seq, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
 		return errorsmod.Wrapf(channeltypes.ErrSequenceSendNotFound, "source port: %s, source channel: %s", sourcePort, sourceChannel)
@@ -217,7 +217,7 @@ func (k Keeper) SendRateLimitedPacket(ctx sdk.Context, sourcePort, sourceChannel
 
 // Middleware implementation for RecvPacket with rate limiting
 // Checks whether the rate limit has been exceeded - and if it hasn't, allows the packet
-func (k Keeper) ReceiveRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packet) error {
+func (k *Keeper) ReceiveRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packet) error {
 	packetInfo, err := ParsePacketInfo(packet, types.PACKET_RECV)
 	if err != nil {
 		// If the packet data is unparseable, we can't apply rate limiting.
@@ -235,7 +235,7 @@ func (k Keeper) ReceiveRateLimitedPacket(ctx sdk.Context, packet channeltypes.Pa
 
 // AcknowledgeRateLimitedPacket implements for OnAckPacket for porttypes.Middleware.
 // If the packet failed, we should decrement the Outflow.
-func (k Keeper) AcknowledgeRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte) error {
+func (k *Keeper) AcknowledgeRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte) error {
 	ackSuccess, err := k.CheckAcknowledementSucceeded(ctx, acknowledgement)
 	if err != nil {
 		return err
@@ -259,7 +259,7 @@ func (k Keeper) AcknowledgeRateLimitedPacket(ctx sdk.Context, packet channeltype
 
 // Middleware implementation for OnAckPacket with rate limiting
 // The Outflow should be decremented from the failed packet
-func (k Keeper) TimeoutRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packet) error {
+func (k *Keeper) TimeoutRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packet) error {
 	packetInfo, err := ParsePacketInfo(packet, types.PACKET_SEND)
 	if err != nil {
 		return err

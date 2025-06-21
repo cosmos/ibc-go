@@ -11,13 +11,13 @@ import (
 
 // The total value on a given path (aka, the denominator in the percentage calculation)
 // is the total supply of the given denom
-func (k Keeper) GetChannelValue(ctx sdk.Context, denom string) sdkmath.Int {
+func (k *Keeper) GetChannelValue(ctx sdk.Context, denom string) sdkmath.Int {
 	return k.bankKeeper.GetSupply(ctx, denom).Amount
 }
 
 // CheckRateLimitAndUpdateFlow checks whether the given packet will exceed the rate limit.
 // Called by OnRecvPacket and OnSendPacket
-func (k Keeper) CheckRateLimitAndUpdateFlow(ctx sdk.Context, direction types.PacketDirection, packetInfo RateLimitedPacketInfo) (updatedFlow bool, err error) {
+func (k *Keeper) CheckRateLimitAndUpdateFlow(ctx sdk.Context, direction types.PacketDirection, packetInfo RateLimitedPacketInfo) (bool, error) {
 	denom := packetInfo.Denom
 	channelOrClientID := packetInfo.ChannelID
 	amount := packetInfo.Amount
@@ -55,7 +55,7 @@ func (k Keeper) CheckRateLimitAndUpdateFlow(ctx sdk.Context, direction types.Pac
 }
 
 // If a SendPacket fails or times out, undo the outflow increment that happened during the send
-func (k Keeper) UndoSendPacket(ctx sdk.Context, channelOrClientID string, sequence uint64, denom string, amount sdkmath.Int) error {
+func (k *Keeper) UndoSendPacket(ctx sdk.Context, channelOrClientID string, sequence uint64, denom string, amount sdkmath.Int) error {
 	rateLimit, found := k.GetRateLimit(ctx, denom, channelOrClientID)
 	if !found {
 		return nil

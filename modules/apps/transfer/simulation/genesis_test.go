@@ -47,7 +47,7 @@ func TestRandomizedGenState(t *testing.T) {
 	require.Equal(t, "euzxpfgkqegqiqwixnku", ibcTransferGenesis.PortId)
 	require.True(t, ibcTransferGenesis.Params.SendEnabled)
 	require.True(t, ibcTransferGenesis.Params.ReceiveEnabled)
-	require.Len(t, ibcTransferGenesis.Denoms, 0)
+	require.Empty(t, ibcTransferGenesis.Denoms)
 }
 
 // TestRandomizedGenState tests abnormal scenarios of applying RandomizedGenState.

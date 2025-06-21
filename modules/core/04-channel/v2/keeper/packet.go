@@ -175,7 +175,7 @@ func (k *Keeper) recvPacket(
 
 // writeAcknowledgement writes the acknowledgement to the store and emits the packet and acknowledgement
 // for relayers to relay the acknowledgement to the counterparty chain.
-func (k Keeper) writeAcknowledgement(
+func (k *Keeper) writeAcknowledgement(
 	ctx sdk.Context,
 	packet types.Packet,
 	ack types.Acknowledgement,

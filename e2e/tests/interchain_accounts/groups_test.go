@@ -154,7 +154,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2) // 1 transfer (created by default), 1 interchain-accounts
+		s.Require().Len(channels, 2) // 1 transfer (created by default), 1 interchain-accounts
 	})
 
 	t.Run("fund interchain account wallet", func(t *testing.T) {
