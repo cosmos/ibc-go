@@ -91,7 +91,7 @@ func (s *KeeperTestSuite) TestMigrator() {
 
 			tc.malleate() // Hammer time!!!
 
-			transferMsg := transfertypes.NewMsgTransfer(port, pathAB.EndpointA.ChannelID, sendCoin, accA, accB, s.chainB.GetTimeoutHeight(), 0, string(nextMemo))
+			transferMsg := transfertypes.NewMsgTransfer(port, pathAB.EndpointA.ChannelID, sendCoin, accA, accB, s.chainB.GetTimeoutHeight(), 0, nextMemo)
 			result, err := s.chainA.SendMsgs(transferMsg)
 			s.Require().NoError(err)
 

@@ -98,11 +98,9 @@ func GetPacketMetadataFromPacketdata(transferDetail ibcexported.PacketDataProvid
 	return PacketMetadata{
 		Forward: forwardMetadata,
 	}, true, nil
-
 }
 
 func getForwardMetadata(forwardData map[string]any) (ForwardMetadata, error) {
-
 	receiver, ok := forwardData[ForwardReceiverKey].(string)
 	if !ok {
 		return ForwardMetadata{}, errorsmod.Wrapf(ErrMetadataKeyNotFound, "key %s not found in packet data", ForwardReceiverKey)

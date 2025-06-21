@@ -69,7 +69,7 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 			Channel:  chanBC.ChannelID,
 			Port:     chanBC.PortID,
 			Retries:  &retries,
-			Timeout:  time.Duration(time.Second * 10), // Short timeout
+			Timeout:  time.Second * 10, // Short timeout
 		},
 	}
 
@@ -180,7 +180,7 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	s.Require().NoError(err)
 
 	opts = ibc.TransferOptions{
-		Memo: string(memo),
+		Memo: memo,
 	}
 
 	aHeightBeforeTransfer, err := chainA.Height(ctx)

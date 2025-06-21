@@ -210,7 +210,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 
 	token := sdk.NewCoin(denomOnThisChain, amountInt)
 
-	timeout := time.Duration(metadata.Timeout)
+	timeout := metadata.Timeout
 
 	if timeout.Nanoseconds() <= 0 {
 		timeout = im.forwardTimeout

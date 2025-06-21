@@ -95,7 +95,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		memo, err := firstHopMetadata.ToMemo()
 		s.Require().NoError(err)
 
-		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, memo)
 		s.AssertTxSuccess(txResp)
 
 		s.FlushPackets(ctx, relayer, []ibc.Chain{chainA, chainB, chainC, chainD})
@@ -148,7 +148,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		memo, err := firstHopMetadata.ToMemo()
 		s.Require().NoError(err)
 
-		txResp := s.Transfer(ctx, chainD, userD, chanCD.Counterparty.PortID, chanCD.Counterparty.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userD.FormattedAddress(), userC.FormattedAddress(), s.GetTimeoutHeight(ctx, chainD), 0, string(memo))
+		txResp := s.Transfer(ctx, chainD, userD, chanCD.Counterparty.PortID, chanCD.Counterparty.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userD.FormattedAddress(), userC.FormattedAddress(), s.GetTimeoutHeight(ctx, chainD), 0, memo)
 		s.AssertTxSuccess(txResp)
 
 		// Flush the packet all the way back to Chain A and then the acknowledgement back to Chain D
@@ -198,7 +198,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		memo, err := firstHopMetadata.ToMemo()
 		s.Require().NoError(err)
 
-		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, memo)
 		s.AssertTxFailure(txResp, transfertypes.ErrDenomNotFound)
 
 		// Flush the packet all the way back to Chain D and then the acknowledgement back to Chain A
@@ -282,7 +282,7 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		memo, err := firstHopMetadata.ToMemo()
 		s.Require().NoError(err)
 
-		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, memo)
 		s.AssertTxSuccess(txResp)
 
 		s.FlushPackets(ctx, relayer, []ibc.Chain{chainA, chainB})

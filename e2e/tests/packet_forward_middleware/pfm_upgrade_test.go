@@ -147,7 +147,7 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 		s.Require().NoError(err)
 
 		ibcDenomOnA := ibcTokenA.IBCDenom()
-		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcDenomOnA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcDenomOnA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, memo)
 		s.AssertTxSuccess(txResp)
 
 		packet, err := ibctesting.ParseV1PacketFromEvents(txResp.Events)

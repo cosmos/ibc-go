@@ -100,7 +100,7 @@ func TestTimeoutUnmarshalString(t *testing.T) {
 	require.Equal(t, "noble1f4cur2krsua2th9kkp7n0zje4stea4p9tu70u8", forwardMetadata.Receiver)
 	require.Equal(t, "transfer", forwardMetadata.Port)
 	require.Equal(t, "channel-0", forwardMetadata.Channel)
-	require.Equal(t, time.Duration(60*time.Second), forwardMetadata.Timeout)
+	require.Equal(t, 60*time.Second, forwardMetadata.Timeout)
 	require.Nil(t, forwardMetadata.Retries)
 	require.Nil(t, forwardMetadata.Next)
 }
@@ -124,7 +124,7 @@ func TestTimeoutUnmarshalJSON(t *testing.T) {
 	require.Equal(t, "noble1f4cur2krsua2th9kkp7n0zje4stea4p9tu70u8", forwardMetadata.Receiver)
 	require.Equal(t, "transfer", forwardMetadata.Port)
 	require.Equal(t, "channel-0", forwardMetadata.Channel)
-	require.Equal(t, time.Duration(60*time.Second), forwardMetadata.Timeout)
+	require.Equal(t, 60*time.Second, forwardMetadata.Timeout)
 	require.Nil(t, forwardMetadata.Retries)
 	require.Nil(t, forwardMetadata.Next)
 }

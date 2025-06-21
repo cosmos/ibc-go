@@ -129,7 +129,7 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 
 			fundAcc(ctxB, s.chainB.GetSimApp().BankKeeper, intermediateAcc)
 
-			err := pfmKeeperB.ForwardTransferPacket(ctxB, nil, srcPacket, initialSender.String(), intermediateAcc.String(), metadata, ibctesting.TestCoin, 2, time.Duration(timeout), nil, tc.nonRefundable)
+			err := pfmKeeperB.ForwardTransferPacket(ctxB, nil, srcPacket, initialSender.String(), intermediateAcc.String(), metadata, ibctesting.TestCoin, 2, timeout, nil, tc.nonRefundable)
 			s.Require().NoError(err)
 
 			inflightPacket, err := pfmKeeperB.GetInflightPacket(ctxB, srcPacket)
@@ -195,7 +195,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	initialSender := s.chainA.SenderAccount.GetAddress()
 	finalReceiver := s.chainB.SenderAccount.GetAddress()
 
-	err := s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, time.Duration(timeout), nil, nonRefundable)
+	err := s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
 	s.Require().NoError(err)
 
 	// Get the inflight packer
@@ -205,7 +205,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	s.Require().Equal(inflightPacket.RetriesRemaining, int32(retries))
 
 	// Call the same function again with inflight packet. Num retries should decrease.
-	err = s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, time.Duration(timeout), nil, nonRefundable)
+	err = s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
 	s.Require().NoError(err)
 
 	// Get the inflight packer
