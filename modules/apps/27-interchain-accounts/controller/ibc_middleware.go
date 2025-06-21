@@ -174,7 +174,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 // OnRecvPacket implements the IBCMiddleware interface
 func (IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
-	_ string,
+	orderBy string,
 	packet channeltypes.Packet,
 	_ sdk.AccAddress,
 ) ibcexported.Acknowledgement {

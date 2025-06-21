@@ -1,0 +1,212 @@
+--> Running linter
+Linting /workspace/e2e/go.mod
++ cd /workspace/e2e
++ golangci-lint run ./... -c /workspace/.golangci.yml --timeout=15m
+testsuite/query/queries.go:90:16: G115: integer overflow conversion uint64 -> int64 (gosec)
+		Height: int64(height),
+		             ^
+tests/rate_limiting/rate_limiting_test.go:226:28: G115: integer overflow conversion int64 -> uint64 (gosec)
+		DurationHours:     uint64(duration),
+		                         ^
+testsuite/testsuite.go:345:13: G115: integer overflow conversion uint64 -> int (gosec)
+		return int(seqA - seqB)
+		          ^
+testsuite/testsuite.go:758:87: G115: integer overflow conversion int64 -> uint64 (gosec)
+	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.Config().ChainID), uint64(height)+1000)
+	                                                                                     ^
+testsuite/tx.go:315:16: G115: integer overflow conversion int -> uint64 (gosec)
+		Page:  uint64(page),
+		             ^
+testsuite/tx.go:316:16: G115: integer overflow conversion int -> uint64 (gosec)
+		Limit: uint64(limit),
+		             ^
+testsuite/tx.go:307:29: unused-parameter: parameter 'orderBy' seems to be unused, consider removing or renaming it as _ (revive)
+	page, limit int, queryReq, orderBy string,
+	                           ^
+testsuite/testsuite.go:816:25: unused-parameter: parameter 'chains' seems to be unused, consider removing or renaming it as _ (revive)
+func DefaultChannelOpts(chains []ibc.Chain) ibc.CreateChannelOptions {
+                        ^
+tests/interchain_accounts/base_test.go:141:101: G115: integer overflow conversion int64 -> uint64 (gosec)
+			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			                                                                                                 ^
+tests/interchain_accounts/base_test.go:235:101: G115: integer overflow conversion int64 -> uint64 (gosec)
+			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			                                                                                                 ^
+tests/interchain_accounts/base_test.go:526:101: G115: integer overflow conversion int64 -> uint64 (gosec)
+			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			                                                                                                 ^
+tests/interchain_accounts/gov_test.go:115:109: G115: integer overflow conversion int64 -> uint64 (gosec)
+			msgSendTx := controllertypes.NewMsgSendTx(govModuleAddress.String(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			                                                                                                         ^
+tests/interchain_accounts/groups_test.go:187:100: G115: integer overflow conversion int64 -> uint64 (gosec)
+		msgSubmitTx := controllertypes.NewMsgSendTx(groupPolicyAddr, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+		                                                                                                 ^
+tests/interchain_accounts/localhost_test.go:168:115: G115: integer overflow conversion int64 -> uint64 (gosec)
+		msgSendTx := controllertypes.NewMsgSendTx(userAWallet.FormattedAddress(), exported.LocalhostConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+		                                                                                                                ^
+tests/interchain_accounts/localhost_test.go:453:115: G115: integer overflow conversion int64 -> uint64 (gosec)
+		msgSendTx := controllertypes.NewMsgSendTx(userAWallet.FormattedAddress(), exported.LocalhostConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+		                                                                                                                ^
+tests/interchain_accounts/params_test.go:232:101: G115: integer overflow conversion int64 -> uint64 (gosec)
+			msgSendTx := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			                                                                                                 ^
+tests/interchain_accounts/query_test.go:110:103: G115: integer overflow conversion int64 -> uint64 (gosec)
+			icaQueryMsg := controllertypes.NewMsgSendTx(controllerAddress, ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			                                                                                                   ^
+tests/interchain_accounts/query_test.go:128:28: G115: integer overflow conversion int64 -> uint64 (gosec)
+				expQueryHeight = uint64(txSearchRes.TxResponses[0].Height)
+				                       ^
+tests/core/02-client/client_test.go:316:18: G115: integer overflow conversion uint64 -> int64 (gosec)
+				Height: int64(latestHeight.GetRevisionHeight()),
+				             ^
+tests/core/02-client/client_test.go:352:80: G115: integer overflow conversion uint64 -> int64 (gosec)
+		maliciousHeader, err = createMaliciousTMHeader(chainB.Config().ChainID, int64(latestHeight.GetRevisionHeight()), trustedHeight,
+		                                                                             ^
+tests/upgrades/genesis_test.go:194:120: G115: integer overflow conversion int64 -> uint64 (gosec)
+			msgSendTx := controllertypes.NewMsgSendTx(controllerAccount.FormattedAddress(), ibctesting.FirstConnectionID, uint64(time.Hour.Nanoseconds()), packetData)
+			                                                                                                                    ^
+tests/upgrades/genesis_test.go:3:9: package should be `upgrades_test` instead of `upgrades` (testpackage)
+package upgrades
+        ^
+tests/upgrades/upgrade_test.go:3:9: package should be `upgrades_test` instead of `upgrades` (testpackage)
+package upgrades
+        ^
++ set +x
+Linting /workspace/modules/light-clients/08-wasm/go.mod
++ cd /workspace/modules/light-clients/08-wasm
++ golangci-lint run ./... -c /workspace/.golangci.yml --timeout=15m
+testing/simapp/simd/cmd/root.go:245:19: unused-parameter: parameter 'cmd' seems to be unused, consider removing or renaming it as _ (revive)
+	preCheck := func(cmd *cobra.Command, _ []string) error {
+	                 ^
+keeper/querier_test.go:213:71: G115: integer overflow conversion int64 -> uint64 (gosec)
+				proof, proofHeight := endpoint.QueryProofAtHeight(proofKey, uint64(s.chainA.GetContext().BlockHeight()))
+				                                                                  ^
+keeper/snapshotter_test.go:67:28: G115: integer overflow conversion int64 -> uint64 (gosec)
+			snapshotHeight := uint64(wasmClientApp.LastBlockHeight())
+			                        ^
+keeper/keeper_test.go:81:32: unused-parameter: parameter 'checksum' seems to be unused, consider removing or renaming it as _ (revive)
+	s.mockVM.InstantiateFn = func(checksum wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+	                              ^
+keeper/querier_test.go:31:14: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+	return func(ctx sdk.Context, request json.RawMessage) ([]byte, error) {
+	            ^
+keeper/contract_keeper_test.go:234:79: unused-parameter: parameter 'store' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				                                                                          ^
+keeper/contract_keeper_test.go:245:79: unused-parameter: parameter 'store' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				                                                                          ^
+keeper/contract_keeper_test.go:256:79: unused-parameter: parameter 'store' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.MigrateFn = func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				                                                                          ^
+keeper/keeper_test.go:103:57: unused-parameter: parameter 'checksum' seems to be unused, consider removing or renaming it as _ (revive)
+	s.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+	                                                       ^
+keeper/keeper_test.go:266:27: unused-parameter: parameter 'checksum' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.PinFn = func(checksum wasmvm.Checksum) error {
+				                      ^
+client/cli/query.go:59:34: unused-parameter: parameter 'args' seems to be unused, consider removing or renaming it as _ (revive)
+		RunE: func(cmd *cobra.Command, args []string) error {
+		                               ^
+simulation/proposals.go:33:27: unused-parameter: parameter 'r' seems to be unused, consider removing or renaming it as _ (revive)
+func SimulateMsgStoreCode(r *rand.Rand, _ sdk.Context, _ []simtypes.Account) sdk.Msg {
+                          ^
+keeper/snapshotter.go:63:57: G115: integer overflow conversion uint64 -> int64 (gosec)
+	cacheMS, err := ws.cms.CacheMultiStoreWithVersion(int64(height))
+	                                                       ^
+keeper/snapshotter.go:132:61: G115: integer overflow conversion uint64 -> int64 (gosec)
+	ctx := sdk.NewContext(ws.cms, cmtproto.Header{Height: int64(height)}, false, nil)
+	                                                           ^
+keeper/snapshotter.go:105:16: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func restoreV1(ctx sdk.Context, k *Keeper, compressedCode []byte) error {
+               ^
+keeper/querier.go:112:52: unused-parameter: parameter 'caller' seems to be unused, consider removing or renaming it as _ (revive)
+func (e QueryPlugins) HandleQuery(ctx sdk.Context, caller string, request wasmvmtypes.QueryRequest) ([]byte, error) {
+                                                   ^
+keeper/querier.go:166:14: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+	return func(ctx sdk.Context, request json.RawMessage) ([]byte, error) {
+	            ^
+keeper/contract_keeper.go:280:22: unused-parameter: parameter 'canon' seems to be unused, consider removing or renaming it as _ (revive)
+func humanizeAddress(canon []byte) (string, uint64, error) {
+                     ^
+keeper/grpc_query.go:53:20: unused-parameter: parameter 'value' seems to be unused, consider removing or renaming it as _ (revive)
+		func(key []byte, value collections.NoValue) (string, error) {
+		                 ^
+keeper/contract_keeper.go:284:26: unused-parameter: parameter 'human' seems to be unused, consider removing or renaming it as _ (revive)
+func canonicalizeAddress(human string) ([]byte, uint64, error) {
+                         ^
+keeper/contract_keeper.go:288:22: unused-parameter: parameter 'human' seems to be unused, consider removing or renaming it as _ (revive)
+func validateAddress(human string) (uint64, error) {
+                     ^
+simulation/proposals_test.go:22:7: G404: Use of weak random number generator (math/rand or math/rand/v2 instead of crypto/rand) (gosec)
+	r := rand.New(s)
+	     ^
+types/utils.go:35:41: G115: integer overflow conversion uint64 -> int64 (gosec)
+	return io.ReadAll(limitReader(zr, int64(limit)))
+	                                       ^
+module.go:120:31: unused-parameter: parameter 'simState' seems to be unused, consider removing or renaming it as _ (revive)
+func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+                              ^
+types/validation_test.go:46:39: G115: integer overflow conversion int -> uint64 (gosec)
+				require.Equal(t, expLength, uint64(length), t.Name())
+				                                  ^
+blsverifier/handler.go:33:14: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+	return func(ctx sdk.Context, request json.RawMessage) ([]byte, error) {
+	            ^
+testing/simapp/app.go:225:63: G404: Use of weak random number generator (math/rand or math/rand/v2 instead of crypto/rand) (gosec)
+	wasmDir := path.Join("ibc_08-wasm_client_data", strconv.Itoa(rand.Intn(10000)))
+	                                                             ^
+testing/simapp/export.go:20:49: unused-parameter: parameter 'modulesToExport' seems to be unused, consider removing or renaming it as _ (revive)
+	forZeroHeight bool, jailAllowedAddrs []string, modulesToExport []string,
+	                                               ^
+light_client_module_test.go:131:29: G115: integer overflow conversion int64 -> uint64 (gosec)
+	expectedTimestamp := uint64(time.Now().UnixNano())
+	                           ^
+wasm_test.go:75:51: unused-parameter: parameter 'env' seems to be unused, consider removing or renaming it as _ (revive)
+	s.mockVM.InstantiateFn = func(_ wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+	                                                 ^
+wasm_test.go:97:76: unused-parameter: parameter 'env' seems to be unused, consider removing or renaming it as _ (revive)
+	s.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+	                                                                          ^
+light_client_module_test.go:51:79: unused-parameter: parameter 'env' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+				                                                                          ^
+light_client_module_test.go:62:79: unused-parameter: parameter 'env' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+				                                                                          ^
+light_client_module_test.go:73:79: unused-parameter: parameter 'env' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(_ wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+				                                                                          ^
+light_client_module_test.go:718:111: unused-parameter: parameter 'queryMsg' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+				                                                                                                          ^
+light_client_module_test.go:730:111: unused-parameter: parameter 'queryMsg' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+				                                                                                                          ^
+light_client_module_test.go:739:111: unused-parameter: parameter 'queryMsg' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.RegisterQueryCallback(types.VerifyClientMessageMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, queryMsg []byte, _ wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+				                                                                                                          ^
+light_client_module_test.go:1260:132: unused-parameter: parameter 'store' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, sudoMsg []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				                                                                                                                               ^
+light_client_module_test.go:1333:126: unused-parameter: parameter 'store' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				                                                                                                                         ^
+light_client_module_test.go:1343:126: unused-parameter: parameter 'store' seems to be unused, consider removing or renaming it as _ (revive)
+				s.mockVM.RegisterSudoCallback(types.UpdateStateOnMisbehaviourMsg{}, func(_ wasmvm.Checksum, _ wasmvmtypes.Env, _ []byte, store wasmvm.KVStore, _ wasmvm.GoAPI, _ wasmvm.Querier, _ wasmvm.GasMeter, _ uint64, _ wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+				                                                                                                                         ^
++ set +x
+Linting /workspace/simapp/go.mod
++ cd /workspace/simapp
++ golangci-lint run ./... -c /workspace/.golangci.yml --timeout=15m
+export.go:20:49: unused-parameter: parameter 'modulesToExport' seems to be unused, consider removing or renaming it as _ (revive)
+	forZeroHeight bool, jailAllowedAddrs []string, modulesToExport []string,
+	                                               ^
++ set +x
+Linting /workspace/go.mod
++ cd /workspace
++ golangci-lint run ./... -c /workspace/.golangci.yml --timeout=15m
+testing/chain_test.go:1: : # github.com/cosmos/ibc-go/v10/testing_test [github.com/cosmos/ibc-go/v10/testing.test]
+testing/coordinator_test.go:4:2: "fmt" imported and not used (typecheck)
+package ibctesting_test
++ set +x

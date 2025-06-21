@@ -15,7 +15,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
-	"github.com/cosmos/ibc-go/v10/modules/core/migrations/v7"
+	v7 "github.com/cosmos/ibc-go/v10/modules/core/migrations/v7"
 	"github.com/cosmos/ibc-go/v10/modules/core/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )

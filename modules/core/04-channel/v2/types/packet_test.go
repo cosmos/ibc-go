@@ -122,7 +122,7 @@ func TestValidateBasic(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			packet = types.NewPacket(1, ibctesting.FirstChannelID, ibctesting.SecondChannelID, uint64(time.Now().Unix()), types.Payload{
 				SourcePort:      ibctesting.MockPort,
 				DestinationPort: ibctesting.MockPort,

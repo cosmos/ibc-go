@@ -60,20 +60,20 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 	s.Require().NoError(err)
 	s.Require().NotNil(govModuleAddress)
 
-	t.Run("execute proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
+	t.Run("execute proposal for MsgRegisterInterchainAccount", func(_ *testing.T) {
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, govModuleAddress.String(), version, channeltypes.ORDERED)
 		s.ExecuteAndPassGovV1Proposal(ctx, msgRegisterAccount, chainA, controllerAccount)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
+	t.Run("start relayer", func(_ *testing.T) {
 		s.StartRelayer(relayer, testName)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
 	var interchainAccAddr string
-	t.Run("verify interchain account registration success", func(t *testing.T) {
+	t.Run("verify interchain account registration success", func(_ *testing.T) {
 		var err error
 		interchainAccAddr, err = query.InterchainAccount(ctx, chainA, govModuleAddress.String(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
@@ -84,8 +84,8 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 		s.Require().Len(channels, 2)
 	})
 
-	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
-		t.Run("fund interchain account wallet", func(t *testing.T) {
+	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(_ *testing.T) {
+		t.Run("fund interchain account wallet", func(_ *testing.T) {
 			// fund the host account, so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: interchainAccAddr,
@@ -95,7 +95,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 			s.Require().NoError(err)
 		})
 
-		t.Run("execute proposal for MsgSendTx", func(t *testing.T) {
+		t.Run("execute proposal for MsgSendTx", func(_ *testing.T) {
 			msgBankSend := &banktypes.MsgSend{
 				FromAddress: interchainAccAddr,
 				ToAddress:   chainBAddress,
@@ -118,7 +118,7 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB)) // wait for the ica tx to be relayed
 
-		t.Run("verify tokens transferred", func(t *testing.T) {
+		t.Run("verify tokens transferred", func(_ *testing.T) {
 			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 

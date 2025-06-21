@@ -86,12 +86,12 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("ensure delay is set to the default of 30 seconds", func(t *testing.T) {
+	t.Run("ensure delay is set to the default of 30 seconds", func(_ *testing.T) {
 		delay := s.QueryMaxExpectedTimePerBlockParam(ctx, chainA)
 		s.Require().Equal(uint64(connectiontypes.DefaultTimePerBlock), delay)
 	})
 
-	t.Run("change the delay to 60 seconds", func(t *testing.T) {
+	t.Run("change the delay to 60 seconds", func(_ *testing.T) {
 		delay := uint64(1 * time.Minute)
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
 			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
@@ -110,19 +110,19 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 		}
 	})
 
-	t.Run("validate the param was successfully changed", func(t *testing.T) {
+	t.Run("validate the param was successfully changed", func(_ *testing.T) {
 		expectedDelay := uint64(1 * time.Minute)
 		delay := s.QueryMaxExpectedTimePerBlockParam(ctx, chainA)
 		s.Require().Equal(expectedDelay, delay)
 	})
 
-	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
-		t.Run("send tokens from chainB to chainA", func(t *testing.T) {
+	t.Run("ensure packets can be received, send from chainB to chainA", func(_ *testing.T) {
+		t.Run("send tokens from chainB to chainA", func(_ *testing.T) {
 			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 			s.AssertTxSuccess(transferTxResp)
 		})
 
-		t.Run("tokens are escrowed", func(t *testing.T) {
+		t.Run("tokens are escrowed", func(_ *testing.T) {
 			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 
@@ -130,11 +130,11 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 			s.Require().Equal(expected, actualBalance)
 		})
 
-		t.Run("start relayer", func(t *testing.T) {
+		t.Run("start relayer", func(_ *testing.T) {
 			s.StartRelayer(relayer, testName)
 		})
 
-		t.Run("packets are relayed", func(t *testing.T) {
+		t.Run("packets are relayed", func(_ *testing.T) {
 			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 
 			actualBalance, err := query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
@@ -145,7 +145,7 @@ func (s *ConnectionTestSuite) TestMaxExpectedTimePerBlockParam() {
 			s.Require().Equal(expected, actualBalance.Int64())
 		})
 
-		t.Run("stop relayer", func(t *testing.T) {
+		t.Run("stop relayer", func(_ *testing.T) {
 			s.StopRelayer(ctx, relayer)
 		})
 	})

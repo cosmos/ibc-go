@@ -91,7 +91,7 @@ func TestConvertToErrorEvents(t *testing.T) {
 	}
 
 	for _, tc := range tc {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			// initial events and expected events are reset so that the test fails if
 			// the malleate function does not set them
 			events = nil

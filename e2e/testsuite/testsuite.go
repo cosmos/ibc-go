@@ -150,7 +150,7 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 // ref: https://github.com/cosmos/interchaintest/issues/1153
 // if the above issue is resolved, it should be possible to lazily create relayers in each test.
 func (s *E2ETestSuite) initializeRelayerPool(n int) []ibc.Relayer {
-	var relayers []ibc.Relayer
+	relayers := make([]ibc.Relayer, 0, n)
 	for range n {
 		relayers = append(relayers, relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network))
 	}
@@ -306,7 +306,7 @@ func (s *E2ETestSuite) fetchChannelsBetweenChains(ctx context.Context, r ibc.Rel
 	err := json.Unmarshal(jsonBz, &result)
 	s.Require().NoError(err, "failed to unmarshal hermes channel output result: %s", err)
 
-	var ibcChannelOutput []ibc.ChannelOutput
+	ibcChannelOutput := make([]ibc.ChannelOutput, 0, len(result.Result))
 	for _, r := range result.Result {
 		ibcChannelOutput = append(ibcChannelOutput, ibc.ChannelOutput{
 			State:    r.ChannelEnd.State,
@@ -594,7 +594,7 @@ func (s *E2ETestSuite) StartRelayer(r ibc.Relayer, testName string) {
 	s.Require().NoError(r.StartRelayer(context.TODO(), s.GetRelayerExecReporter(), s.GetPaths(testName)...), "failed to start relayer")
 
 	chains := s.GetAllChains()
-	var chainHeighters []test.ChainHeighter
+	chainHeighters := make([]test.ChainHeighter, 0, len(chains))
 	for _, c := range chains {
 		chainHeighters = append(chainHeighters, c)
 	}

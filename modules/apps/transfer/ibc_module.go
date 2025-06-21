@@ -123,7 +123,7 @@ func (IBCModule) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
-	_ string,
+	orderBy string,
 	counterpartyVersion string,
 ) error {
 	if !slices.Contains(types.SupportedVersions, counterpartyVersion) {

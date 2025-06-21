@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
+	v2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
 )
 
 // TestPacketCommitmentKey is primarily used to document the expected key output

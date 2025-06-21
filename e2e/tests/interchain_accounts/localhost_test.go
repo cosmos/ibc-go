@@ -74,7 +74,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 	controllerPortID, err := icatypes.NewControllerPortID(userAWallet.FormattedAddress())
 	s.Require().NoError(err)
 
-	t.Run("channel open init localhost - broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+	t.Run("channel open init localhost - broadcast MsgRegisterInterchainAccount", func(_ *testing.T) {
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(exported.LocalhostConnectionID, userAWallet.FormattedAddress(), version, channeltypes.ORDERED)
 
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgRegisterAccount)
@@ -83,7 +83,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenInitRes))
 	})
 
-	t.Run("channel open try localhost", func(t *testing.T) {
+	t.Run("channel open try localhost", func(_ *testing.T) {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			icatypes.HostPortID, icatypes.Version,
 			channeltypes.ORDERED, []string{exported.LocalhostConnectionID},
@@ -97,7 +97,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenTryRes))
 	})
 
-	t.Run("channel open ack localhost", func(t *testing.T) {
+	t.Run("channel open ack localhost", func(_ *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			controllerPortID, msgChanOpenInitRes.ChannelId,
 			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.Version,
@@ -108,7 +108,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("channel open confirm localhost", func(t *testing.T) {
+	t.Run("channel open confirm localhost", func(_ *testing.T) {
 		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
 			icatypes.HostPortID, msgChanOpenTryRes.ChannelId,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
@@ -118,7 +118,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("query localhost interchain accounts channel ends", func(t *testing.T) {
+	t.Run("query localhost interchain accounts channel ends", func(_ *testing.T) {
 		channelEndA, err := query.Channel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
@@ -130,7 +130,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		s.Require().Equal(channelEndA.ConnectionHops, channelEndB.ConnectionHops)
 	})
 
-	t.Run("verify interchain account registration and deposit funds", func(t *testing.T) {
+	t.Run("verify interchain account registration and deposit funds", func(_ *testing.T) {
 		interchainAccAddress, err := query.InterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotEmpty(interchainAccAddress)
@@ -144,7 +144,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		s.Require().NoError(chainA.SendFunds(ctx, interchaintest.FaucetAccountKeyName, walletAmount))
 	})
 
-	t.Run("send packet localhost interchain accounts", func(t *testing.T) {
+	t.Run("send packet localhost interchain accounts", func(_ *testing.T) {
 		interchainAccAddress, err := query.InterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotEmpty(interchainAccAddress)
@@ -175,7 +175,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		s.Require().NotNil(packet)
 	})
 
-	t.Run("recv packet localhost interchain accounts", func(t *testing.T) {
+	t.Run("recv packet localhost interchain accounts", func(_ *testing.T) {
 		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
@@ -186,14 +186,14 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		s.Require().NotNil(ack)
 	})
 
-	t.Run("acknowledge packet localhost interchain accounts", func(t *testing.T) {
+	t.Run("acknowledge packet localhost interchain accounts", func(_ *testing.T) {
 		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(packet, ack, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("verify tokens transferred", func(t *testing.T) {
+	t.Run("verify tokens transferred", func(_ *testing.T) {
 		balance, err := query.Balance(ctx, chainA, userBWallet.FormattedAddress(), chainADenom)
 		s.Require().NoError(err)
 
@@ -231,7 +231,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	controllerPortID, err := icatypes.NewControllerPortID(userAWallet.FormattedAddress())
 	s.Require().NoError(err)
 
-	t.Run("channel open init localhost - broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+	t.Run("channel open init localhost - broadcast MsgRegisterInterchainAccount", func(_ *testing.T) {
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(exported.LocalhostConnectionID, userAWallet.FormattedAddress(), version, channeltypes.ORDERED)
 
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgRegisterAccount)
@@ -240,7 +240,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenInitRes))
 	})
 
-	t.Run("channel open try localhost", func(t *testing.T) {
+	t.Run("channel open try localhost", func(_ *testing.T) {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			icatypes.HostPortID, icatypes.Version,
 			channeltypes.ORDERED, []string{exported.LocalhostConnectionID},
@@ -254,7 +254,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenTryRes))
 	})
 
-	t.Run("channel open ack localhost", func(t *testing.T) {
+	t.Run("channel open ack localhost", func(_ *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			controllerPortID, msgChanOpenInitRes.ChannelId,
 			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.Version,
@@ -265,7 +265,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("channel open confirm localhost", func(t *testing.T) {
+	t.Run("channel open confirm localhost", func(_ *testing.T) {
 		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
 			icatypes.HostPortID, msgChanOpenTryRes.ChannelId,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
@@ -275,7 +275,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("query localhost interchain accounts channel ends", func(t *testing.T) {
+	t.Run("query localhost interchain accounts channel ends", func(_ *testing.T) {
 		channelEndA, err := query.Channel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
@@ -287,7 +287,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().Equal(channelEndA.ConnectionHops, channelEndB.ConnectionHops)
 	})
 
-	t.Run("verify interchain account registration and deposit funds", func(t *testing.T) {
+	t.Run("verify interchain account registration and deposit funds", func(_ *testing.T) {
 		interchainAccAddress, err := query.InterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotEmpty(interchainAccAddress)
@@ -301,7 +301,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().NoError(chainA.SendFunds(ctx, interchaintest.FaucetAccountKeyName, walletAmount))
 	})
 
-	t.Run("send localhost interchain accounts packet with timeout", func(t *testing.T) {
+	t.Run("send localhost interchain accounts packet with timeout", func(_ *testing.T) {
 		interchainAccAddress, err := query.InterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotEmpty(interchainAccAddress)
@@ -332,14 +332,14 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().NotNil(packet)
 	})
 
-	t.Run("timeout localhost interchain accounts packet", func(t *testing.T) {
+	t.Run("timeout localhost interchain accounts packet", func(_ *testing.T) {
 		msgTimeout := channeltypes.NewMsgTimeout(packet, 1, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgTimeout)
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("close interchain accounts host channel end", func(t *testing.T) {
+	t.Run("close interchain accounts host channel end", func(_ *testing.T) {
 		// Pass in zero for counterpartyUpgradeSequence given that channel has not undergone any upgrades.
 		msgCloseConfirm := channeltypes.NewMsgChannelCloseConfirm(icatypes.HostPortID, msgChanOpenTryRes.ChannelId, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
@@ -347,7 +347,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("verify localhost interchain accounts channel is closed", func(t *testing.T) {
+	t.Run("verify localhost interchain accounts channel is closed", func(_ *testing.T) {
 		channelEndA, err := query.Channel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 
@@ -359,7 +359,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().Equal(channeltypes.CLOSED, channelEndB.State, "the channel was not in an expected state")
 	})
 
-	t.Run("channel open init localhost: create new channel for existing account", func(t *testing.T) {
+	t.Run("channel open init localhost: create new channel for existing account", func(_ *testing.T) {
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(exported.LocalhostConnectionID, userAWallet.FormattedAddress(), version, channeltypes.ORDERED)
 
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgRegisterAccount)
@@ -369,7 +369,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenInitRes))
 	})
 
-	t.Run("channel open try localhost", func(t *testing.T) {
+	t.Run("channel open try localhost", func(_ *testing.T) {
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			icatypes.HostPortID, icatypes.Version,
 			channeltypes.ORDERED, []string{exported.LocalhostConnectionID},
@@ -384,7 +384,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenTryRes))
 	})
 
-	t.Run("channel open ack localhost", func(t *testing.T) {
+	t.Run("channel open ack localhost", func(_ *testing.T) {
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			controllerPortID, msgChanOpenInitRes.ChannelId,
 			msgChanOpenTryRes.ChannelId, msgChanOpenTryRes.Version,
@@ -395,7 +395,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("channel open confirm localhost", func(t *testing.T) {
+	t.Run("channel open confirm localhost", func(_ *testing.T) {
 		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
 			icatypes.HostPortID, msgChanOpenTryRes.ChannelId,
 			localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress(),
@@ -405,7 +405,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("query localhost interchain accounts channel ends", func(t *testing.T) {
+	t.Run("query localhost interchain accounts channel ends", func(_ *testing.T) {
 		channelEndA, err := query.Channel(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId)
 		s.Require().NoError(err)
 		s.Require().NotNil(channelEndA)
@@ -417,7 +417,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().Equal(channelEndA.ConnectionHops, channelEndB.ConnectionHops)
 	})
 
-	t.Run("verify interchain account and existing balance", func(t *testing.T) {
+	t.Run("verify interchain account and existing balance", func(_ *testing.T) {
 		interchainAccAddress, err := query.InterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotEmpty(interchainAccAddress)
@@ -429,7 +429,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().Equal(expected, balance.Int64())
 	})
 
-	t.Run("send packet localhost interchain accounts", func(t *testing.T) {
+	t.Run("send packet localhost interchain accounts", func(_ *testing.T) {
 		interchainAccAddress, err := query.InterchainAccount(ctx, chainA, userAWallet.FormattedAddress(), exported.LocalhostConnectionID)
 		s.Require().NoError(err)
 		s.Require().NotEmpty(interchainAccAddress)
@@ -460,7 +460,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().NotNil(packet)
 	})
 
-	t.Run("recv packet localhost interchain accounts", func(t *testing.T) {
+	t.Run("recv packet localhost interchain accounts", func(_ *testing.T) {
 		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
@@ -471,14 +471,14 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		s.Require().NotNil(ack)
 	})
 
-	t.Run("acknowledge packet localhost interchain accounts", func(t *testing.T) {
+	t.Run("acknowledge packet localhost interchain accounts", func(_ *testing.T) {
 		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(packet, ack, localhost.SentinelProof, clienttypes.ZeroHeight(), rlyWallet.FormattedAddress())
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("verify tokens transferred", func(t *testing.T) {
+	t.Run("verify tokens transferred", func(_ *testing.T) {
 		s.AssertPacketRelayed(ctx, chainA, controllerPortID, msgChanOpenInitRes.ChannelId, 1)
 
 		balance, err := query.Balance(ctx, chainA, userBWallet.FormattedAddress(), chainADenom)

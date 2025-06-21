@@ -5,13 +5,14 @@ package types
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	types "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
 	types1 "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
-	io "io"
-	math "math"
-	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

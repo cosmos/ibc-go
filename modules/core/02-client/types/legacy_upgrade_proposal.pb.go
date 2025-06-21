@@ -4,15 +4,16 @@
 package types
 
 import (
-	types "cosmossdk.io/x/upgrade/types"
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+
+	types "cosmossdk.io/x/upgrade/types"
 	_ "github.com/cosmos/cosmos-proto"
 	types1 "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	io "io"
-	math "math"
-	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

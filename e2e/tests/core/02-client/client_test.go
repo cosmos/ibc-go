@@ -82,7 +82,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	const legacyPlanHeight = planHeight * 2
 	var newChainID string
 
-	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(t *testing.T) {
+	t.Run("execute proposal for MsgIBCSoftwareUpgrade", func(_ *testing.T) {
 		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
@@ -113,7 +113,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.ExecuteAndPassGovV1Proposal(ctx, scheduleUpgradeMsg, chainA, chainAWallet)
 	})
 
-	t.Run("check that IBC software upgrade has been scheduled successfully on chainA", func(t *testing.T) {
+	t.Run("check that IBC software upgrade has been scheduled successfully on chainA", func(_ *testing.T) {
 		// checks there is an upgraded client state stored
 		upgradedCsResp, err := query.GRPCQuery[clienttypes.QueryUpgradedClientStateResponse](ctx, chainA, &clienttypes.QueryUpgradedClientStateRequest{})
 		s.Require().NoError(err)
@@ -138,7 +138,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 		s.Require().Equal(planHeight, plan.Height)
 	})
 
-	t.Run("ensure legacy proposal does not succeed", func(t *testing.T) {
+	t.Run("ensure legacy proposal does not succeed", func(_ *testing.T) {
 		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		s.Require().NotNil(authority)
@@ -185,7 +185,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 	relayer := s.GetRelayerForTest(testName)
 
-	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
+	t.Run("create substitute client with correct trusting period", func(_ *testing.T) {
 		// TODO: update when client identifier created is accessible
 		// currently assumes first client is 07-tendermint-0
 		substituteClientID = clienttypes.FormatClientIdentifier(ibcexported.Tendermint, 0)
@@ -196,7 +196,7 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
-	t.Run("create subject client with bad trusting period", func(t *testing.T) {
+	t.Run("create subject client with bad trusting period", func(_ *testing.T) {
 		createClientOptions := ibc.CreateClientOptions{
 			TrustingPeriod: badTrustingPeriod.String(),
 		}
@@ -210,27 +210,27 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 
 	time.Sleep(badTrustingPeriod)
 
-	t.Run("update substitute client", func(t *testing.T) {
+	t.Run("update substitute client", func(_ *testing.T) {
 		s.UpdateClients(ctx, relayer, pathName)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("check status of each client", func(t *testing.T) {
-		t.Run("substitute should be active", func(t *testing.T) {
+	t.Run("check status of each client", func(_ *testing.T) {
+		t.Run("substitute should be active", func(_ *testing.T) {
 			status, err := query.ClientStatus(ctx, chainA, substituteClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})
 
-		t.Run("subject should be expired", func(t *testing.T) {
+		t.Run("subject should be expired", func(_ *testing.T) {
 			status, err := query.ClientStatus(ctx, chainA, subjectClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Expired.String(), status)
 		})
 	})
 
-	t.Run("execute proposal for MsgRecoverClient", func(t *testing.T) {
+	t.Run("execute proposal for MsgRecoverClient", func(_ *testing.T) {
 		authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 		s.Require().NoError(err)
 		recoverClientMsg := clienttypes.NewMsgRecoverClient(authority.String(), subjectClientID, substituteClientID)
@@ -238,14 +238,14 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 		s.ExecuteAndPassGovV1Proposal(ctx, recoverClientMsg, chainA, chainAWallet)
 	})
 
-	t.Run("check status of each client", func(t *testing.T) {
-		t.Run("substitute should be active", func(t *testing.T) {
+	t.Run("check status of each client", func(_ *testing.T) {
+		t.Run("substitute should be active", func(_ *testing.T) {
 			status, err := query.ClientStatus(ctx, chainA, substituteClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
 		})
 
-		t.Run("subject should be active", func(t *testing.T) {
+		t.Run("subject should be active", func(_ *testing.T) {
 			status, err := query.ClientStatus(ctx, chainA, subjectClientID)
 			s.Require().NoError(err)
 			s.Require().Equal(ibcexported.Active.String(), status)
@@ -276,7 +276,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
-	t.Run("update clients", func(t *testing.T) {
+	t.Run("update clients", func(_ *testing.T) {
 		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)[0])
 		s.Require().NoError(err)
 
@@ -284,7 +284,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		s.Require().NoError(err)
 	})
 
-	t.Run("fetch trusted height", func(t *testing.T) {
+	t.Run("fetch trusted height", func(_ *testing.T) {
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		s.Require().True(ok)
 
@@ -292,7 +292,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		s.Require().True(trustedHeight.GT(clienttypes.ZeroHeight()))
 	})
 
-	t.Run("update clients", func(t *testing.T) {
+	t.Run("update clients", func(_ *testing.T) {
 		err := relayer.UpdateClients(ctx, s.GetRelayerExecReporter(), s.GetPaths(testName)[0])
 		s.Require().NoError(err)
 
@@ -300,7 +300,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		s.Require().NoError(err)
 	})
 
-	t.Run("fetch client state latest height", func(t *testing.T) {
+	t.Run("fetch client state latest height", func(_ *testing.T) {
 		tmClientState, ok := clientState.(*ibctm.ClientState)
 		s.Require().True(ok)
 
@@ -308,10 +308,10 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		s.Require().True(latestHeight.GT(clienttypes.ZeroHeight()))
 	})
 
-	t.Run("create validator set", func(t *testing.T) {
+	t.Run("create validator set", func(_ *testing.T) {
 		var validators []*cmtservice.Validator
 
-		t.Run("fetch block header at latest client state height", func(t *testing.T) {
+		t.Run("fetch block header at latest client state height", func(_ *testing.T) {
 			headerResp, err := query.GRPCQuery[cmtservice.GetBlockByHeightResponse](ctx, chainB, &cmtservice.GetBlockByHeightRequest{
 				Height: int64(latestHeight.GetRevisionHeight()),
 			})
@@ -320,12 +320,12 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 			header = &headerResp.SdkBlock.Header
 		})
 
-		t.Run("get validators at latest height", func(t *testing.T) {
+		t.Run("get validators at latest height", func(_ *testing.T) {
 			validators, err = query.GetValidatorSetByHeight(ctx, chainB, latestHeight.GetRevisionHeight())
 			s.Require().NoError(err)
 		})
 
-		t.Run("extract validator private keys", func(t *testing.T) {
+		t.Run("extract validator private keys", func(_ *testing.T) {
 			privateKeys := s.extractChainPrivateKeys(ctx, chainB)
 			s.Require().NotEmpty(privateKeys, "private keys are empty")
 
@@ -345,7 +345,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 
 	s.Require().NotEmpty(validatorSet, "validator set is empty")
 
-	t.Run("create malicious header", func(t *testing.T) {
+	t.Run("create malicious header", func(_ *testing.T) {
 		valSet := cmttypes.NewValidatorSet(validatorSet)
 		err := valSet.ValidateBasic()
 		s.Require().NoError(err, "invalid validator set: %s", err)
@@ -354,7 +354,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		s.Require().NoError(err)
 	})
 
-	t.Run("update client with duplicate misbehaviour header", func(t *testing.T) {
+	t.Run("update client with duplicate misbehaviour header", func(_ *testing.T) {
 		rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 		msgUpdateClient, err := clienttypes.NewMsgUpdateClient(ibctesting.FirstClientID, maliciousHeader, rlyWallet.FormattedAddress())
 		s.Require().NoError(err)
@@ -363,7 +363,7 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("ensure client status is frozen", func(t *testing.T) {
+	t.Run("ensure client status is frozen", func(_ *testing.T) {
 		status, err := query.ClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Frozen.String(), status)
@@ -384,7 +384,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("ensure allowed clients are set to the default", func(t *testing.T) {
+	t.Run("ensure allowed clients are set to the default", func(_ *testing.T) {
 		allowedClients := s.QueryAllowedClients(ctx, chainA)
 
 		defaultAllowedClients := clienttypes.DefaultAllowedClients
@@ -398,7 +398,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	})
 
 	allowedClient := ibcexported.Solomachine
-	t.Run("change the allowed client to only allow solomachine clients", func(t *testing.T) {
+	t.Run("change the allowed client to only allow solomachine clients", func(_ *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
 			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
@@ -418,12 +418,12 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 		}
 	})
 
-	t.Run("validate the param was successfully changed", func(t *testing.T) {
+	t.Run("validate the param was successfully changed", func(_ *testing.T) {
 		allowedClients := s.QueryAllowedClients(ctx, chainA)
 		s.Require().Equal([]string{allowedClient}, allowedClients)
 	})
 
-	t.Run("ensure querying non-allowed client's status returns Unauthorized Status", func(t *testing.T) {
+	t.Run("ensure querying non-allowed client's status returns Unauthorized Status", func(_ *testing.T) {
 		status, err := query.ClientStatus(ctx, chainA, ibctesting.FirstClientID)
 		s.Require().NoError(err)
 		s.Require().Equal(ibcexported.Unauthorized.String(), status)

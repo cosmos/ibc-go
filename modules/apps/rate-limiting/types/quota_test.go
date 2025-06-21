@@ -72,7 +72,7 @@ func TestCheckExceedsQuota(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(_ *testing.T) {
 			res := quota.CheckExceedsQuota(test.direction, test.amount, test.totalValue)
 			require.Equal(t, res, test.exceeded, "test: %s", test.name)
 		})

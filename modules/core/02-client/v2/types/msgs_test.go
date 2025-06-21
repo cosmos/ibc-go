@@ -101,7 +101,7 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			err := tc.msg.ValidateBasic()
 			if tc.expError == nil {
 				require.NoError(t, err)
@@ -216,7 +216,7 @@ func TestMsgUpdateClientConfigValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			err := tc.msg.ValidateBasic()
 			if tc.expError == nil {
 				require.NoError(t, err)

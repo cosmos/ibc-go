@@ -112,7 +112,7 @@ func TestGeneratePacketData(t *testing.T) {
 
 			cdc := codec.NewProtoCodec(ir)
 
-			t.Run(fmt.Sprintf("%s with %s encoding", tc.name, encoding), func(t *testing.T) {
+			t.Run(fmt.Sprintf("%s with %s encoding", tc.name, encoding), func(_ *testing.T) {
 				bz, err := cli.GeneratePacketData(cdc, []byte(tc.message), tc.memo, encoding)
 
 				if tc.expectedPass {

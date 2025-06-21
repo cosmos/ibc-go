@@ -406,7 +406,7 @@ func (k *Keeper) GetAllPacketCommitments(ctx sdk.Context) []types.PacketState {
 // IteratePacketCommitmentAtChannel provides an iterator over all PacketCommitment objects
 // at a specified channel. For each packet commitment, cb will be called. If the cb returns
 // true, the iterator will close and stop.
-func (k *Keeper) IteratePacketCommitmentAtChannel(ctx sdk.Context, portID, channelID string, cb func(_, _ string, sequence uint64, hash []byte) bool) {
+func (k *Keeper) IteratePacketCommitmentAtChannel(ctx sdk.Context, portID, channelID string, cb func(_, orderBy string, sequence uint64, hash []byte) bool) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, host.PacketCommitmentPrefixKey(portID, channelID))
 	k.iterateHashes(ctx, iterator, cb)
@@ -416,7 +416,7 @@ func (k *Keeper) IteratePacketCommitmentAtChannel(ctx sdk.Context, portID, chann
 // port ID and channel ID.
 func (k *Keeper) GetAllPacketCommitmentsAtChannel(ctx sdk.Context, portID, channelID string) []types.PacketState {
 	var commitments []types.PacketState
-	k.IteratePacketCommitmentAtChannel(ctx, portID, channelID, func(_, _ string, sequence uint64, hash []byte) bool {
+	k.IteratePacketCommitmentAtChannel(ctx, portID, channelID, func(_, orderBy string, sequence uint64, hash []byte) bool {
 		pc := types.NewPacketState(portID, channelID, sequence, hash)
 		commitments = append(commitments, pc)
 		return false

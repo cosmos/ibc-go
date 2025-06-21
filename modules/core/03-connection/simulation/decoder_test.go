@@ -55,7 +55,7 @@ func TestDecodeStore(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.name, func(_ *testing.T) {
 			res, found := simulation.NewDecodeStore(cdc, kvPairs.Pairs[i], kvPairs.Pairs[i])
 			if i == len(tests)-1 {
 				require.False(t, found, string(kvPairs.Pairs[i].Key))

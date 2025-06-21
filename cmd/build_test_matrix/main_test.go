@@ -17,13 +17,13 @@ const (
 )
 
 func TestGetGithubActionMatrixForTests(t *testing.T) {
-	t.Run("empty dir with no test cases fails", func(t *testing.T) {
+	t.Run("empty dir with no test cases fails", func(_ *testing.T) {
 		testingDir := t.TempDir()
 		_, err := getGithubActionMatrixForTests(testingDir, "", "", nil)
 		require.Error(t, err)
 	})
 
-	t.Run("only test functions are picked up", func(t *testing.T) {
+	t.Run("only test functions are picked up", func(_ *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 
@@ -45,7 +45,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		assertGithubActionTestMatricesEqual(t, expected, gh)
 	})
 
-	t.Run("all files are picked up", func(t *testing.T) {
+	t.Run("all files are picked up", func(_ *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 		createFileWithTestSuiteAndTests(t, "TransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
@@ -77,7 +77,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		assertGithubActionTestMatricesEqual(t, expected, gh)
 	})
 
-	t.Run("single test can be specified", func(t *testing.T) {
+	t.Run("single test can be specified", func(_ *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 		createFileWithTestSuiteAndTests(t, "TransferTestSuite", "TestC", "TestD", testingDir, goTestFileNameTwo)
@@ -97,7 +97,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		assertGithubActionTestMatricesEqual(t, expected, gh)
 	})
 
-	t.Run("error if single test doesn't exist", func(t *testing.T) {
+	t.Run("error if single test doesn't exist", func(_ *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, goTestFileNameOne)
 
@@ -105,7 +105,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("non test files are skipped", func(t *testing.T) {
+	t.Run("non test files are skipped", func(_ *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
 
@@ -114,7 +114,7 @@ func TestGetGithubActionMatrixForTests(t *testing.T) {
 		require.Empty(t, gh.Include)
 	})
 
-	t.Run("fails when there are multiple suite runs", func(t *testing.T) {
+	t.Run("fails when there are multiple suite runs", func(_ *testing.T) {
 		testingDir := t.TempDir()
 		createFileWithTestSuiteAndTests(t, "FeeMiddlewareTestSuite", "TestA", "TestB", testingDir, nonTestFile)
 

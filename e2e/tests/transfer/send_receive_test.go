@@ -70,18 +70,18 @@ func (s *TransferTestSuiteSendReceive) TestReceiveEnabledParam() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("ensure transfer receive is enabled", func(t *testing.T) {
+	t.Run("ensure transfer receive is enabled", func(_ *testing.T) {
 		enabled := s.QueryTransferParams(ctx, chainA).ReceiveEnabled
 		s.Require().True(enabled)
 	})
 
-	t.Run("ensure packets can be received, send from chainB to chainA", func(t *testing.T) {
-		t.Run("send from chainB to chainA", func(t *testing.T) {
+	t.Run("ensure packets can be received, send from chainB to chainA", func(_ *testing.T) {
+		t.Run("send from chainB to chainA", func(_ *testing.T) {
 			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 			s.AssertTxSuccess(transferTxResp)
 		})
 
-		t.Run("tokens are escrowed", func(t *testing.T) {
+		t.Run("tokens are escrowed", func(_ *testing.T) {
 			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 
@@ -89,11 +89,11 @@ func (s *TransferTestSuiteSendReceive) TestReceiveEnabledParam() {
 			s.Require().Equal(expected, actualBalance)
 		})
 
-		t.Run("start relayer", func(t *testing.T) {
+		t.Run("start relayer", func(_ *testing.T) {
 			s.StartRelayer(relayer, testName)
 		})
 
-		t.Run("packets are relayed", func(t *testing.T) {
+		t.Run("packets are relayed", func(_ *testing.T) {
 			s.AssertPacketRelayed(ctx, chainA, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, 1)
 			actualBalance, err := query.Balance(ctx, chainA, chainAAddress, chainAIBCToken.IBCDenom())
 
@@ -103,12 +103,12 @@ func (s *TransferTestSuiteSendReceive) TestReceiveEnabledParam() {
 			s.Require().Equal(expected, actualBalance.Int64())
 		})
 
-		t.Run("stop relayer", func(t *testing.T) {
+		t.Run("stop relayer", func(_ *testing.T) {
 			s.StopRelayer(ctx, relayer)
 		})
 	})
 
-	t.Run("change receive enabled parameter to disabled ", func(t *testing.T) {
+	t.Run("change receive enabled parameter to disabled ", func(_ *testing.T) {
 		if isSelfManagingParams {
 			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, false))
 			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
@@ -122,18 +122,18 @@ func (s *TransferTestSuiteSendReceive) TestReceiveEnabledParam() {
 		}
 	})
 
-	t.Run("ensure transfer params are disabled", func(t *testing.T) {
+	t.Run("ensure transfer params are disabled", func(_ *testing.T) {
 		enabled := s.QueryTransferParams(ctx, chainA).ReceiveEnabled
 		s.Require().False(enabled)
 	})
 
-	t.Run("ensure ics20 transfer fails", func(t *testing.T) {
-		t.Run("send from chainB to chainA", func(t *testing.T) {
+	t.Run("ensure ics20 transfer fails", func(_ *testing.T) {
+		t.Run("send from chainB to chainA", func(_ *testing.T) {
 			transferTxResp := s.Transfer(ctx, chainB, chainBWallet, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID, testvalues.DefaultTransferAmount(chainBDenom), chainBAddress, chainAAddress, s.GetTimeoutHeight(ctx, chainA), 0, "")
 			s.AssertTxSuccess(transferTxResp)
 		})
 
-		t.Run("tokens are escrowed", func(t *testing.T) {
+		t.Run("tokens are escrowed", func(_ *testing.T) {
 			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 
@@ -141,11 +141,11 @@ func (s *TransferTestSuiteSendReceive) TestReceiveEnabledParam() {
 			s.Require().Equal(expected, actualBalance)
 		})
 
-		t.Run("start relayer", func(t *testing.T) {
+		t.Run("start relayer", func(_ *testing.T) {
 			s.StartRelayer(relayer, testName)
 		})
 
-		t.Run("tokens are unescrowed in failed acknowledgement", func(t *testing.T) {
+		t.Run("tokens are unescrowed in failed acknowledgement", func(_ *testing.T) {
 			actualBalance, err := s.GetChainBNativeBalance(ctx, chainBWallet)
 			s.Require().NoError(err)
 

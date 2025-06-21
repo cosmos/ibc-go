@@ -5,14 +5,15 @@ package v7
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	types1 "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	types2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	io "io"
-	math "math"
-	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

@@ -66,8 +66,7 @@ func (im IBCModule) OnChanOpenTry(
 // OnChanOpenAck implements the IBCModule interface
 func (IBCModule) OnChanOpenAck(
 	_ sdk.Context,
-	_,
-	_ string,
+	_, _ string,
 	_ string,
 	_ string,
 ) error {

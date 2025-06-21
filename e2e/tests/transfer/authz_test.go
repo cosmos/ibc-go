@@ -73,12 +73,12 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	receiverWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
-	t.Run("start relayer", func(t *testing.T) {
+	t.Run("start relayer", func(_ *testing.T) {
 		s.StartRelayer(relayer, testName)
 	})
 
 	// createMsgGrantFn initializes a TransferAuthorization and broadcasts a MsgGrant message.
-	createMsgGrantFn := func(t *testing.T) {
+	createMsgGrantFn := func(_ *testing.T) {
 		t.Helper()
 		transferAuth := transfertypes.TransferAuthorization{
 			Allocations: []transfertypes.Allocation{
@@ -110,9 +110,9 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	// verifyGrantFn returns a test function which asserts chainA has a grant authorization
 	// with the given spend limit.
-	verifyGrantFn := func(expectedLimit int64) func(t *testing.T) {
+	verifyGrantFn := func(expectedLimit int64) func(_ *testing.T) {
 		t.Helper()
-		return func(t *testing.T) {
+		return func(_ *testing.T) {
 			t.Helper()
 			grantAuths, err := s.QueryGranterGrants(ctx, chainA, granterAddress)
 
@@ -128,7 +128,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	t.Run("broadcast MsgGrant", createMsgGrantFn)
 
-	t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
+	t.Run("broadcast MsgExec for ibc MsgTransfer", func(_ *testing.T) {
 		transferMsg := testsuite.GetMsgTransfer(
 			channelA.PortID,
 			channelA.ChannelID,
@@ -153,7 +153,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		s.AssertTxSuccess(resp)
 	})
 
-	t.Run("verify granter wallet amount", func(t *testing.T) {
+	t.Run("verify granter wallet amount", func(_ *testing.T) {
 		actualBalance, err := s.GetChainANativeBalance(ctx, granterWallet)
 		s.Require().NoError(err)
 
@@ -163,7 +163,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	s.Require().NoError(test.WaitForBlocks(context.TODO(), 10, chainB))
 
-	t.Run("verify receiver wallet amount", func(t *testing.T) {
+	t.Run("verify receiver wallet amount", func(_ *testing.T) {
 		chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 		actualBalance, err := query.Balance(ctx, chainB, receiverWalletAddress, chainBIBCToken.IBCDenom())
 
@@ -177,7 +177,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	t.Run("granter grant was reinitialized", verifyGrantFn(testvalues.StartingTokenAmount))
 
-	t.Run("revoke access", func(t *testing.T) {
+	t.Run("revoke access", func(_ *testing.T) {
 		msgRevoke := authz.MsgRevoke{
 			Granter:    granterAddress,
 			Grantee:    granteeAddress,
@@ -188,7 +188,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		s.AssertTxSuccess(resp)
 	})
 
-	t.Run("exec unauthorized MsgTransfer", func(t *testing.T) {
+	t.Run("exec unauthorized MsgTransfer", func(_ *testing.T) {
 		transferMsg := testsuite.GetMsgTransfer(
 			channelA.PortID,
 			channelA.ChannelID,
@@ -239,13 +239,13 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	receiverWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	receiverWalletAddress := receiverWallet.FormattedAddress()
 
-	t.Run("start relayer", func(t *testing.T) {
+	t.Run("start relayer", func(_ *testing.T) {
 		s.StartRelayer(relayer, testName)
 	})
 
 	const spendLimit = 1000
 
-	t.Run("broadcast MsgGrant", func(t *testing.T) {
+	t.Run("broadcast MsgGrant", func(_ *testing.T) {
 		transferAuth := transfertypes.TransferAuthorization{
 			Allocations: []transfertypes.Allocation{
 				{
@@ -274,10 +274,10 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 		s.AssertTxSuccess(resp)
 	})
 
-	t.Run("exceed spend limit", func(t *testing.T) {
+	t.Run("exceed spend limit", func(_ *testing.T) {
 		const invalidSpendAmount = spendLimit + 1
 
-		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
+		t.Run("broadcast MsgExec for ibc MsgTransfer", func(_ *testing.T) {
 			transferMsg := testsuite.GetMsgTransfer(
 				channelA.PortID,
 				channelA.ChannelID,
@@ -306,13 +306,13 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			}
 		})
 
-		t.Run("verify granter wallet amount", func(t *testing.T) {
+		t.Run("verify granter wallet amount", func(_ *testing.T) {
 			actualBalance, err := s.GetChainANativeBalance(ctx, granterWallet)
 			s.Require().NoError(err)
 			s.Require().Equal(testvalues.StartingTokenAmount, actualBalance)
 		})
 
-		t.Run("verify receiver wallet amount", func(t *testing.T) {
+		t.Run("verify receiver wallet amount", func(_ *testing.T) {
 			chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID)
 			actualBalance, err := query.Balance(ctx, chainB, receiverWalletAddress, chainBIBCToken.IBCDenom())
 
@@ -320,7 +320,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			s.Require().Equal(int64(0), actualBalance.Int64())
 		})
 
-		t.Run("granter grant spend limit unchanged", func(t *testing.T) {
+		t.Run("granter grant spend limit unchanged", func(_ *testing.T) {
 			grantAuths, err := s.QueryGranterGrants(ctx, chainA, granterAddress)
 
 			s.Require().NoError(err)
@@ -333,11 +333,11 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 		})
 	})
 
-	t.Run("send funds to invalid address", func(t *testing.T) {
+	t.Run("send funds to invalid address", func(_ *testing.T) {
 		invalidWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 		invalidWalletAddress := invalidWallet.FormattedAddress()
 
-		t.Run("broadcast MsgExec for ibc MsgTransfer", func(t *testing.T) {
+		t.Run("broadcast MsgExec for ibc MsgTransfer", func(_ *testing.T) {
 			transferMsg := testsuite.GetMsgTransfer(
 				channelA.PortID,
 				channelA.ChannelID,

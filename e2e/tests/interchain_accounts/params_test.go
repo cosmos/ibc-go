@@ -76,12 +76,12 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	controllerAccount := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	controllerAddress := controllerAccount.FormattedAddress()
 
-	t.Run("ensure the controller is enabled", func(t *testing.T) {
+	t.Run("ensure the controller is enabled", func(_ *testing.T) {
 		params := s.QueryControllerParams(ctx, chainA)
 		s.Require().True(params.ControllerEnabled)
 	})
 
-	t.Run("disable the controller", func(t *testing.T) {
+	t.Run("disable the controller", func(_ *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainAVersion) {
 			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainA)
 			s.Require().NoError(err)
@@ -102,12 +102,12 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 		}
 	})
 
-	t.Run("ensure controller is disabled", func(t *testing.T) {
+	t.Run("ensure controller is disabled", func(_ *testing.T) {
 		params := s.QueryControllerParams(ctx, chainA)
 		s.Require().False(params.ControllerEnabled)
 	})
 
-	t.Run("ensure that broadcasting a MsgRegisterInterchainAccount fails", func(t *testing.T) {
+	t.Run("ensure that broadcasting a MsgRegisterInterchainAccount fails", func(_ *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
@@ -138,14 +138,14 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 	var hostAccount string
 
 	// Assert that default value for enabled is true.
-	t.Run("ensure the host is enabled", func(t *testing.T) {
+	t.Run("ensure the host is enabled", func(_ *testing.T) {
 		params := s.QueryHostParams(ctx, chainB)
 		s.Require().True(params.HostEnabled)
 		s.Require().Equal([]string{hosttypes.AllowAllHostMsgs}, params.AllowMessages)
 	})
 
-	t.Run("ensure ica packets are flowing before disabling the host", func(t *testing.T) {
-		t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+	t.Run("ensure ica packets are flowing before disabling the host", func(_ *testing.T) {
+		t.Run("broadcast MsgRegisterInterchainAccount", func(_ *testing.T) {
 			// explicitly set the version string because we don't want to use incentivized channels.
 			version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 			msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
@@ -154,11 +154,11 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 			s.AssertTxSuccess(txResp)
 		})
 
-		t.Run("start relayer", func(t *testing.T) {
+		t.Run("start relayer", func(_ *testing.T) {
 			s.StartRelayer(relayer, testName)
 		})
 
-		t.Run("verify interchain account", func(t *testing.T) {
+		t.Run("verify interchain account", func(_ *testing.T) {
 			var err error
 			hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 			s.Require().NoError(err)
@@ -169,12 +169,12 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 			s.Require().Len(channels, 2)
 		})
 
-		t.Run("stop relayer", func(t *testing.T) {
+		t.Run("stop relayer", func(_ *testing.T) {
 			s.StopRelayer(ctx, relayer)
 		})
 	})
 
-	t.Run("disable the host", func(t *testing.T) {
+	t.Run("disable the host", func(_ *testing.T) {
 		if testvalues.SelfParamsFeatureReleases.IsSupported(chainBVersion) {
 			authority, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
 			s.Require().NoError(err)
@@ -195,13 +195,13 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 		}
 	})
 
-	t.Run("ensure the host is disabled", func(t *testing.T) {
+	t.Run("ensure the host is disabled", func(_ *testing.T) {
 		params := s.QueryHostParams(ctx, chainB)
 		s.Require().False(params.HostEnabled)
 	})
 
-	t.Run("ensure that ica packets are not flowing", func(t *testing.T) {
-		t.Run("fund interchain account wallet", func(t *testing.T) {
+	t.Run("ensure that ica packets are not flowing", func(_ *testing.T) {
+		t.Run("fund interchain account wallet", func(_ *testing.T) {
 			// fund the host account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
@@ -211,7 +211,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 			s.Require().NoError(err)
 		})
 
-		t.Run("broadcast MsgSendTx", func(t *testing.T) {
+		t.Run("broadcast MsgSendTx", func(_ *testing.T) {
 			// assemble bank transfer message from host account to user account on host chain
 			msgSend := &banktypes.MsgSend{
 				FromAddress: hostAccount,
@@ -241,13 +241,13 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 			s.AssertTxSuccess(resp)
 		})
 
-		t.Run("start relayer", func(t *testing.T) {
+		t.Run("start relayer", func(_ *testing.T) {
 			s.StartRelayer(relayer, testName)
 		})
 
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 
-		t.Run("verify no tokens were transferred", func(t *testing.T) {
+		t.Run("verify no tokens were transferred", func(_ *testing.T) {
 			chainBAccountBalance, err := query.Balance(ctx, chainB, chainBAddress, chainB.Config().Denom)
 			s.Require().NoError(err)
 			s.Require().Equal(testvalues.StartingTokenAmount, chainBAccountBalance.Int64())
@@ -257,7 +257,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 			s.Require().Equal(testvalues.StartingTokenAmount, hostAccountBalance.Int64())
 		})
 
-		t.Run("verify acknowledgement error in ack transaction", func(t *testing.T) {
+		t.Run("verify acknowledgement error in ack transaction", func(_ *testing.T) {
 			cmd := "message.action='/ibc.core.channel.v1.MsgRecvPacket'"
 			txSearchRes, err := s.QueryTxsByEvents(ctx, chainB, 1, 1, cmd, "")
 			s.Require().NoError(err)

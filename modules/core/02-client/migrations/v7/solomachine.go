@@ -134,7 +134,7 @@ func (ClientState) VerifyUpgradeAndUpdateState(
 // VerifyClientState panics!
 func (ClientState) VerifyClientState(
 	store storetypes.KVStore, cdc codec.BinaryCodec,
-	_ exported.Height, _ exported.Prefix, _ string, _ []byte, clientState exported.ClientState,
+	_ exported.Height, _ exported.Prefix, orderBy string, _ []byte, clientState exported.ClientState,
 ) error {
 	panic(errors.New("legacy solo machine is deprecated"))
 }

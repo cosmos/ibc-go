@@ -203,7 +203,7 @@ func TestParseV1PacketsFromEvents(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			allPackets, err := ibctesting.ParseIBCV1Packets(channeltypes.EventTypeSendPacket, tc.events)
 
 			if tc.expectedError == "" {
@@ -377,7 +377,7 @@ func TestParseV2PacketsFromEvents(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			packets, err := ibctesting.ParseIBCV2Packets(tc.eventType, tc.events)
 			if tc.expectedError != "" {
 				require.ErrorContains(t, err, tc.expectedError)

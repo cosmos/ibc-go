@@ -315,7 +315,7 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			err := tc.packetData.ValidateBasic()
 
 			if tc.expErr == nil {
@@ -362,7 +362,7 @@ func TestGetPacketSender(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			require.Equal(t, tc.expSender, tc.packetData.GetPacketSender(types.PortID))
 		})
 	}
@@ -461,7 +461,7 @@ func TestPacketDataProvider(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			customData := tc.packetData.GetCustomPacketData("src_callback")
 			require.Equal(t, tc.expCustomData, customData)
 		})

@@ -45,7 +45,7 @@ func TestCommitPacket(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			transferData, err := json.Marshal(transfertypes.FungibleTokenPacketData{
 				Denom:    "uatom",
 				Amount:   "1000000",

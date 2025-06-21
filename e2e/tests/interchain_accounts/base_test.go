@@ -82,7 +82,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	var hostAccount string
 
-	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+	t.Run("broadcast MsgRegisterInterchainAccount", func(_ *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, order)
@@ -91,11 +91,11 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
+	t.Run("start relayer", func(_ *testing.T) {
 		s.StartRelayer(relayer, testName)
 	})
 
-	t.Run("verify interchain account", func(t *testing.T) {
+	t.Run("verify interchain account", func(_ *testing.T) {
 		var err error
 		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
@@ -109,8 +109,8 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 		s.Require().Contains(orderMapping[order], icaChannel.Ordering)
 	})
 
-	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {
-		t.Run("fund interchain account wallet", func(t *testing.T) {
+	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(_ *testing.T) {
+		t.Run("fund interchain account wallet", func(_ *testing.T) {
 			// fund the host account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
@@ -120,7 +120,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 			s.Require().NoError(err)
 		})
 
-		t.Run("broadcast MsgSendTx", func(t *testing.T) {
+		t.Run("broadcast MsgSendTx", func(_ *testing.T) {
 			// assemble bank transfer message from host account to user account on host chain
 			msgSend := &banktypes.MsgSend{
 				FromAddress: hostAccount,
@@ -152,7 +152,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
 
-		t.Run("verify tokens transferred", func(t *testing.T) {
+		t.Run("verify tokens transferred", func(_ *testing.T) {
 			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
@@ -182,7 +182,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	var hostAccount string
 
-	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+	t.Run("broadcast MsgRegisterInterchainAccount", func(_ *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
@@ -191,11 +191,11 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
+	t.Run("start relayer", func(_ *testing.T) {
 		s.StartRelayer(relayer, testName)
 	})
 
-	t.Run("verify interchain account", func(t *testing.T) {
+	t.Run("verify interchain account", func(_ *testing.T) {
 		var err error
 		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
@@ -206,15 +206,15 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 		s.Require().Len(channels, 2)
 	})
 
-	t.Run("fail to execute bank transfer over ICA", func(t *testing.T) {
-		t.Run("verify empty host wallet", func(t *testing.T) {
+	t.Run("fail to execute bank transfer over ICA", func(_ *testing.T) {
+		t.Run("verify empty host wallet", func(_ *testing.T) {
 			hostAccountBalance, err := query.Balance(ctx, chainB, hostAccount, chainB.Config().Denom)
 
 			s.Require().NoError(err)
 			s.Require().Zero(hostAccountBalance.Int64())
 		})
 
-		t.Run("broadcast MsgSendTx", func(t *testing.T) {
+		t.Run("broadcast MsgSendTx", func(_ *testing.T) {
 			// assemble bank transfer message from host account to user account on host chain
 			msgSend := &banktypes.MsgSend{
 				FromAddress: hostAccount,
@@ -246,7 +246,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
 
-		t.Run("verify balance is the same", func(t *testing.T) {
+		t.Run("verify balance is the same", func(_ *testing.T) {
 			balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 			s.Require().NoError(err)
 
@@ -280,7 +280,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		channelIDAfterReopening = "channel-2"
 	)
 
-	t.Run("register interchain account", func(t *testing.T) {
+	t.Run("register interchain account", func(_ *testing.T) {
 		var err error
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
@@ -290,11 +290,11 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		s.Require().NoError(err)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
+	t.Run("start relayer", func(_ *testing.T) {
 		s.StartRelayer(relayer, testName)
 	})
 
-	t.Run("verify interchain account", func(t *testing.T) {
+	t.Run("verify interchain account", func(_ *testing.T) {
 		var err error
 		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
@@ -305,12 +305,12 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	})
 
 	// stop the relayer to let the submit tx message time out
-	t.Run("stop relayer", func(t *testing.T) {
+	t.Run("stop relayer", func(_ *testing.T) {
 		s.StopRelayer(ctx, relayer)
 	})
 
-	t.Run("submit tx message with bank transfer message times out", func(t *testing.T) {
-		t.Run("fund interchain account wallet", func(t *testing.T) {
+	t.Run("submit tx message with bank transfer message times out", func(_ *testing.T) {
+		t.Run("fund interchain account wallet", func(_ *testing.T) {
 			// fund the host account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
@@ -320,7 +320,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 			s.Require().NoError(err)
 		})
 
-		t.Run("broadcast MsgSendTx", func(t *testing.T) {
+		t.Run("broadcast MsgSendTx", func(_ *testing.T) {
 			// assemble bank transfer message from host account to user account on host chain
 			msgSend := &banktypes.MsgSend{
 				FromAddress: hostAccount,
@@ -355,18 +355,18 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		})
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
+	t.Run("start relayer", func(_ *testing.T) {
 		s.StartRelayer(relayer, testName)
 	})
 
-	t.Run("verify channel is closed due to timeout on ordered channel", func(t *testing.T) {
+	t.Run("verify channel is closed due to timeout on ordered channel", func(_ *testing.T) {
 		channel, err := query.Channel(ctx, chainA, portID, initialChannelID)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.CLOSED, channel.State, "the channel was not in an expected state")
 	})
 
-	t.Run("verify tokens not transferred", func(t *testing.T) {
+	t.Run("verify tokens not transferred", func(_ *testing.T) {
 		balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
@@ -379,7 +379,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 
 	// re-register interchain account to reopen the channel now that it has been closed due to timeout
 	// on an ordered channel
-	t.Run("register interchain account", func(t *testing.T) {
+	t.Run("register interchain account", func(_ *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterInterchainAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.ORDERED)
@@ -388,14 +388,14 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 	})
 
-	t.Run("verify new channel is now open and interchain account has been reregistered with the same portID", func(t *testing.T) {
+	t.Run("verify new channel is now open and interchain account has been reregistered with the same portID", func(_ *testing.T) {
 		channel, err := query.Channel(ctx, chainA, portID, channelIDAfterReopening)
 		s.Require().NoError(err)
 
 		s.Require().Equal(channeltypes.OPEN, channel.State, "the channel was not in an expected state")
 	})
 
-	t.Run("broadcast MsgSendTx", func(t *testing.T) {
+	t.Run("broadcast MsgSendTx", func(_ *testing.T) {
 		// assemble bank transfer message from host account to user account on host chain
 		msgSend := &banktypes.MsgSend{
 			FromAddress: hostAccount,
@@ -429,7 +429,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 		s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB))
 	})
 
-	t.Run("verify tokens transferred", func(t *testing.T) {
+	t.Run("verify tokens transferred", func(_ *testing.T) {
 		balance, err := query.Balance(ctx, chainB, chainBAccount.FormattedAddress(), chainB.Config().Denom)
 		s.Require().NoError(err)
 
@@ -463,7 +463,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 	controllerAddress := controllerAccount.FormattedAddress()
 	var hostAccount string
 
-	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+	t.Run("broadcast MsgRegisterInterchainAccount", func(_ *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, order)
@@ -472,11 +472,11 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
+	t.Run("start relayer", func(_ *testing.T) {
 		s.StartRelayer(relayer, testName)
 	})
 
-	t.Run("verify interchain account", func(t *testing.T) {
+	t.Run("verify interchain account", func(_ *testing.T) {
 		var err error
 		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
@@ -490,8 +490,8 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 		s.Require().Contains(orderMapping[order], icaChannel.Ordering)
 	})
 
-	t.Run("interchain account submits a governance proposal on behalf of the corresponding owner account", func(t *testing.T) {
-		t.Run("fund interchain account wallet", func(t *testing.T) {
+	t.Run("interchain account submits a governance proposal on behalf of the corresponding owner account", func(_ *testing.T) {
+		t.Run("fund interchain account wallet", func(_ *testing.T) {
 			// fund the host account so it has some $$ to send
 			err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 				Address: hostAccount,
@@ -501,7 +501,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 			s.Require().NoError(err)
 		})
 
-		t.Run("broadcast MsgSendTx for MsgSubmitProposal", func(t *testing.T) {
+		t.Run("broadcast MsgSendTx for MsgSubmitProposal", func(_ *testing.T) {
 			govModuleAddress, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
 			s.Require().NoError(err)
 			s.Require().NotNil(govModuleAddress)
@@ -536,7 +536,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 			s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB))
 		})
 
-		t.Run("verify proposal included", func(t *testing.T) {
+		t.Run("verify proposal included", func(_ *testing.T) {
 			proposalResp, err := query.GRPCQuery[govv1.QueryProposalResponse](ctx, chainB, &govv1.QueryProposalRequest{ProposalId: 1})
 			s.Require().NoError(err)
 

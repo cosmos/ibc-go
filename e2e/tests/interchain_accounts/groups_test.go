@@ -104,7 +104,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
-	t.Run("create group with new threshold decision policy", func(t *testing.T) {
+	t.Run("create group with new threshold decision policy", func(_ *testing.T) {
 		members := []grouptypes.MemberRequest{
 			{
 				Address: chainAAddress,
@@ -120,7 +120,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("submit proposal for MsgRegisterInterchainAccount", func(t *testing.T) {
+	t.Run("submit proposal for MsgRegisterInterchainAccount", func(_ *testing.T) {
 		groupPolicyAddr = s.QueryGroupPolicyAddress(ctx, chainA)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, groupPolicyAddr, icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID), channeltypes.ORDERED)
 
@@ -131,7 +131,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("vote and exec proposal", func(t *testing.T) {
+	t.Run("vote and exec proposal", func(_ *testing.T) {
 		msgVote := &grouptypes.MsgVote{
 			ProposalId: InitialProposalID,
 			Voter:      chainAAddress,
@@ -143,11 +143,11 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
+	t.Run("start relayer", func(_ *testing.T) {
 		s.StartRelayer(relayer, testName)
 	})
 
-	t.Run("verify interchain account registration success", func(t *testing.T) {
+	t.Run("verify interchain account registration success", func(_ *testing.T) {
 		interchainAccAddr, err = query.InterchainAccount(ctx, chainA, groupPolicyAddr, ibctesting.FirstConnectionID)
 		s.Require().NotEmpty(interchainAccAddr)
 		s.Require().NoError(err)
@@ -157,7 +157,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.Require().Len(channels, 2) // 1 transfer (created by default), 1 interchain-accounts
 	})
 
-	t.Run("fund interchain account wallet", func(t *testing.T) {
+	t.Run("fund interchain account wallet", func(_ *testing.T) {
 		err := chainB.SendFunds(ctx, interchaintest.FaucetAccountKeyName, ibc.WalletAmount{
 			Address: interchainAccAddr,
 			Amount:  sdkmath.NewInt(testvalues.StartingTokenAmount),
@@ -166,7 +166,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.Require().NoError(err)
 	})
 
-	t.Run("submit proposal for MsgSendTx", func(t *testing.T) {
+	t.Run("submit proposal for MsgSendTx", func(_ *testing.T) {
 		msgBankSend := &banktypes.MsgSend{
 			FromAddress: interchainAccAddr,
 			ToAddress:   chainBAddress,
@@ -192,7 +192,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("vote and exec proposal", func(t *testing.T) {
+	t.Run("vote and exec proposal", func(_ *testing.T) {
 		msgVote := &grouptypes.MsgVote{
 			ProposalId: InitialProposalID + 1,
 			Voter:      chainAAddress,
@@ -204,7 +204,7 @@ func (s *InterchainAccountsGroupsTestSuite) TestInterchainAccountsGroupsIntegrat
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("verify tokens transferred", func(t *testing.T) {
+	t.Run("verify tokens transferred", func(_ *testing.T) {
 		s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 		balance, err := query.Balance(ctx, chainB, chainBAddress, chainB.Config().Denom)
 

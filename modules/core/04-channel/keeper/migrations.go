@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v10"
+	v10 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v10"
 )
 
 // Migrator is a struct for handling in-place store migrations.

@@ -45,27 +45,27 @@ func NewLightClientModule(cdc codec.BinaryCodec, storeService corestore.KVStoreS
 }
 
 // Initialize returns an error because it is stateless.
-func (LightClientModule) Initialize(_ sdk.Context, _ string, _, _ []byte) error {
+func (LightClientModule) Initialize(_ sdk.Context, orderBy string, _, _ []byte) error {
 	return errorsmod.Wrap(clienttypes.ErrClientExists, "localhost is stateless and cannot be initialized")
 }
 
 // VerifyClientMessage is unsupported by the 09-localhost client type and returns an error.
-func (LightClientModule) VerifyClientMessage(_ sdk.Context, _ string, _ exported.ClientMessage) error {
+func (LightClientModule) VerifyClientMessage(_ sdk.Context, orderBy string, _ exported.ClientMessage) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "client message verification is unsupported by the localhost client")
 }
 
 // CheckForMisbehaviour is unsupported by the 09-localhost client type and performs a no-op, returning false.
-func (LightClientModule) CheckForMisbehaviour(_ sdk.Context, _ string, _ exported.ClientMessage) bool {
+func (LightClientModule) CheckForMisbehaviour(_ sdk.Context, orderBy string, _ exported.ClientMessage) bool {
 	return false
 }
 
 // UpdateStateOnMisbehaviour is unsupported by the 09-localhost client type and performs a no-op.
-func (LightClientModule) UpdateStateOnMisbehaviour(_ sdk.Context, _ string, _ exported.ClientMessage) {
+func (LightClientModule) UpdateStateOnMisbehaviour(_ sdk.Context, orderBy string, _ exported.ClientMessage) {
 	// no-op
 }
 
 // UpdateState performs a no-op and returns the context height in the updated heights return value.
-func (LightClientModule) UpdateState(ctx sdk.Context, _ string, _ exported.ClientMessage) []exported.Height {
+func (LightClientModule) UpdateState(ctx sdk.Context, orderBy string, _ exported.ClientMessage) []exported.Height {
 	return []exported.Height{clienttypes.GetSelfHeight(ctx)}
 }
 
@@ -155,27 +155,27 @@ func (l LightClientModule) VerifyNonMembership(
 }
 
 // Status always returns Active. The 09-localhost status cannot be changed.
-func (LightClientModule) Status(_ sdk.Context, _ string) exported.Status {
+func (LightClientModule) Status(_ sdk.Context, orderBy string) exported.Status {
 	return exported.Active
 }
 
 // LatestHeight returns the context height.
-func (LightClientModule) LatestHeight(ctx sdk.Context, _ string) exported.Height {
+func (LightClientModule) LatestHeight(ctx sdk.Context, orderBy string) exported.Height {
 	return clienttypes.GetSelfHeight(ctx)
 }
 
 // TimestampAtHeight returns the current block time retrieved from the application context. The localhost client does not store consensus states and thus
 // cannot provide a timestamp for the provided height.
-func (LightClientModule) TimestampAtHeight(ctx sdk.Context, _ string, _ exported.Height) (uint64, error) {
+func (LightClientModule) TimestampAtHeight(ctx sdk.Context, orderBy string, _ exported.Height) (uint64, error) {
 	return uint64(ctx.BlockTime().UnixNano()), nil
 }
 
 // RecoverClient returns an error. The localhost cannot be modified by proposals.
-func (LightClientModule) RecoverClient(_ sdk.Context, _, _ string) error {
+func (LightClientModule) RecoverClient(_ sdk.Context, _, orderBy string) error {
 	return errorsmod.Wrap(clienttypes.ErrUpdateClientFailed, "cannot update localhost client with a proposal")
 }
 
 // VerifyUpgradeAndUpdateState returns an error since localhost cannot be upgraded.
-func (LightClientModule) VerifyUpgradeAndUpdateState(_ sdk.Context, _ string, _, _, _, _ []byte) error {
+func (LightClientModule) VerifyUpgradeAndUpdateState(_ sdk.Context, orderBy string, _, _, _, _ []byte) error {
 	return errorsmod.Wrap(clienttypes.ErrInvalidUpgradeClient, "cannot upgrade localhost client")
 }

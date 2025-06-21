@@ -64,17 +64,17 @@ func (s *TransferTestSuiteSendEnabled) TestSendEnabledParam() {
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
 
-	t.Run("ensure transfer sending is enabled", func(t *testing.T) {
+	t.Run("ensure transfer sending is enabled", func(_ *testing.T) {
 		enabled := s.QueryTransferParams(ctx, chainA).SendEnabled
 		s.Require().True(enabled)
 	})
 
-	t.Run("ensure packets can be sent", func(t *testing.T) {
+	t.Run("ensure packets can be sent", func(_ *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxSuccess(transferTxResp)
 	})
 
-	t.Run("change send enabled parameter to disabled", func(t *testing.T) {
+	t.Run("change send enabled parameter to disabled", func(_ *testing.T) {
 		if isSelfManagingParams {
 			msg := transfertypes.NewMsgUpdateParams(govModuleAddress.String(), transfertypes.NewParams(false, true))
 			s.ExecuteAndPassGovV1Proposal(ctx, msg, chainA, chainAWallet)
@@ -88,12 +88,12 @@ func (s *TransferTestSuiteSendEnabled) TestSendEnabledParam() {
 		}
 	})
 
-	t.Run("ensure transfer params are disabled", func(t *testing.T) {
+	t.Run("ensure transfer params are disabled", func(_ *testing.T) {
 		enabled := s.QueryTransferParams(ctx, chainA).SendEnabled
 		s.Require().False(enabled)
 	})
 
-	t.Run("ensure ics20 transfer fails", func(t *testing.T) {
+	t.Run("ensure ics20 transfer fails", func(_ *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
 		s.AssertTxFailure(transferTxResp, transfertypes.ErrSendDisabled)
 	})

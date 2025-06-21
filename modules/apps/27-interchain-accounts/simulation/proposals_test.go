@@ -76,7 +76,7 @@ func TestProposalMsgs(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			// execute ProposalMsgs function
 			weightedProposalMsgs := simulation.ProposalMsgs(tc.controller, tc.host)
 			require.Len(t, weightedProposalMsgs, len(tc.expMsgs))

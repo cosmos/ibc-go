@@ -406,7 +406,7 @@ func (k *Keeper) IterateClientStates(ctx sdk.Context, storePrefix []byte, cb fun
 // GetAllClients returns all stored light client State objects.
 func (k *Keeper) GetAllClients(ctx sdk.Context) []exported.ClientState {
 	var states []exported.ClientState
-	k.IterateClientStates(ctx, nil, func(_ string, state exported.ClientState) bool {
+	k.IterateClientStates(ctx, nil, func(orderBy string, state exported.ClientState) bool {
 		states = append(states, state)
 		return false
 	})

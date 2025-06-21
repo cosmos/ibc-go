@@ -59,7 +59,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 	chainBAccount := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	var hostAccount string
 
-	t.Run("broadcast MsgRegisterInterchainAccount", func(t *testing.T) {
+	t.Run("broadcast MsgRegisterInterchainAccount", func(_ *testing.T) {
 		// explicitly set the version string because we don't want to use incentivized channels.
 		version := icatypes.NewDefaultMetadataString(ibctesting.FirstConnectionID, ibctesting.FirstConnectionID)
 		msgRegisterAccount := controllertypes.NewMsgRegisterInterchainAccount(ibctesting.FirstConnectionID, controllerAddress, version, channeltypes.UNORDERED)
@@ -68,11 +68,11 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 		s.AssertTxSuccess(txResp)
 	})
 
-	t.Run("start relayer", func(t *testing.T) {
+	t.Run("start relayer", func(_ *testing.T) {
 		s.StartRelayer(relayer, testName)
 	})
 
-	t.Run("verify interchain account", func(t *testing.T) {
+	t.Run("verify interchain account", func(_ *testing.T) {
 		var err error
 		hostAccount, err = query.InterchainAccount(ctx, chainA, controllerAddress, ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
@@ -83,9 +83,9 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 		s.Require().Len(channels, 2)
 	})
 
-	t.Run("query via interchain account", func(t *testing.T) {
+	t.Run("query via interchain account", func(_ *testing.T) {
 		// the host account need not be funded
-		t.Run("broadcast query packet", func(t *testing.T) {
+		t.Run("broadcast query packet", func(_ *testing.T) {
 			balanceQuery := banktypes.NewQueryBalanceRequest(chainBAccount.Address(), chainB.Config().Denom)
 			queryBz, err := balanceQuery.Marshal()
 			s.Require().NoError(err)
@@ -115,11 +115,11 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			s.Require().NoError(testutil.WaitForBlocks(ctx, 20, chainA, chainB))
 		})
 
-		t.Run("verify query response", func(t *testing.T) {
+		t.Run("verify query response", func(_ *testing.T) {
 			var expQueryHeight uint64
 
 			ack := &channeltypes.Acknowledgement_Result{}
-			t.Run("retrieve acknowledgement", func(t *testing.T) {
+			t.Run("retrieve acknowledgement", func(_ *testing.T) {
 				cmd := "message.action='/ibc.core.channel.v1.MsgRecvPacket'"
 				txSearchRes, err := s.QueryTxsByEvents(ctx, chainB, 1, 1, cmd, "")
 				s.Require().NoError(err)
@@ -143,14 +143,14 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			})
 
 			icaAck := &sdk.TxMsgData{}
-			t.Run("unmarshal ica response", func(t *testing.T) {
+			t.Run("unmarshal ica response", func(_ *testing.T) {
 				err := proto.Unmarshal(ack.Result, icaAck)
 				s.Require().NoError(err)
 				s.Require().Len(icaAck.GetMsgResponses(), 1)
 			})
 
 			queryTxResp := &icahosttypes.MsgModuleQuerySafeResponse{}
-			t.Run("unmarshal MsgModuleQuerySafeResponse", func(t *testing.T) {
+			t.Run("unmarshal MsgModuleQuerySafeResponse", func(_ *testing.T) {
 				err := proto.Unmarshal(icaAck.MsgResponses[0].Value, queryTxResp)
 				s.Require().NoError(err)
 				s.Require().Len(queryTxResp.Responses, 1)
@@ -158,7 +158,7 @@ func (s *InterchainAccountsQueryTestSuite) TestInterchainAccountsQuery() {
 			})
 
 			balanceResp := &banktypes.QueryBalanceResponse{}
-			t.Run("unmarshal and verify bank query response", func(t *testing.T) {
+			t.Run("unmarshal and verify bank query response", func(_ *testing.T) {
 				err := proto.Unmarshal(queryTxResp.Responses[0], balanceResp)
 				s.Require().NoError(err)
 				s.Require().Equal(chainB.Config().Denom, balanceResp.Balance.Denom)

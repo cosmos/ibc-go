@@ -144,7 +144,7 @@ func TestValidate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			err := tc.token.Validate()
 			if tc.expError == nil {
 				require.NoError(t, err, tc.name)
@@ -189,7 +189,7 @@ func TestToCoin(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			coin, err := tc.token.ToCoin()
 
 			require.Equal(t, tc.expCoin, coin, tc.name)

@@ -1,0 +1,356 @@
+--> Running linter
+Linting /workspace/e2e/go.mod
++ cd /workspace/e2e
++ golangci-lint run ./... -c /workspace/.golangci.yml --timeout=15m
+level=error msg="Running error: context loading failed: no go files to analyze: running `go mod tidy` may solve the problem"
++ set +x
+Linting /workspace/modules/light-clients/08-wasm/go.mod
++ cd /workspace/modules/light-clients/08-wasm
++ golangci-lint run ./... -c /workspace/.golangci.yml --timeout=15m
+level=error msg="Running error: context loading failed: no go files to analyze: running `go mod tidy` may solve the problem"
++ set +x
+Linting /workspace/simapp/go.mod
++ cd /workspace/simapp
++ golangci-lint run ./... -c /workspace/.golangci.yml --timeout=15m
+simd/cmd/root.go:74:4: undefined: cmd (typecheck)
+			cmd.SetOut(cmd.OutOrStdout())
+			^
+simd/cmd/root.go:75:4: undefined: cmd (typecheck)
+			cmd.SetErr(cmd.ErrOrStderr())
+			^
+simd/cmd/root.go:77:49: undefined: cmd (typecheck)
+			initClientCtx = initClientCtx.WithCmdContext(cmd.Context())
+			                                             ^
+simd/cmd/root.go:78:75: undefined: cmd (typecheck)
+			initClientCtx, err := client.ReadPersistentCommandFlags(initClientCtx, cmd.Flags())
+			                                                                       ^
+simd/cmd/root.go:106:63: undefined: cmd (typecheck)
+			if err := client.SetCmdClientContextHandler(initClientCtx, cmd); err != nil {
+			                                                           ^
+simd/cmd/root.go:113:48: undefined: cmd (typecheck)
+			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customCMTConfig)
+			                                            ^
++ set +x
+Linting /workspace/go.mod
++ cd /workspace
++ golangci-lint run ./... -c /workspace/.golangci.yml --timeout=15m
+modules/apps/27-interchain-accounts/controller/client/cli/query.go:24:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/27-interchain-accounts/controller/client/cli/query.go:35:46: undefined: cmd (typecheck)
+			res, err := queryClient.InterchainAccount(cmd.Context(), req)
+			                                          ^
+modules/apps/27-interchain-accounts/controller/client/cli/query.go:58:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/27-interchain-accounts/controller/client/cli/query.go:64:35: undefined: cmd (typecheck)
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			                               ^
+modules/apps/27-interchain-accounts/controller/client/cli/tx.go:48:48: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			                                            ^
+modules/apps/27-interchain-accounts/controller/client/cli/tx.go:60:32: use of package cmd not in selector (typecheck)
+			order, err := parseOrdering(cmd)
+			                            ^
+modules/apps/27-interchain-accounts/controller/client/cli/tx.go:87:48: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			                                            ^
+modules/apps/27-interchain-accounts/host/client/cli/cli.go:1: : # github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/client/cli
+modules/apps/27-interchain-accounts/host/client/cli/query.go:33:51: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/query.go:39:35: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/query.go:62:51: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:68:48: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:75:17: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:80:21: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:94:4: undefined: cmd (typecheck)
+package cli
+modules/apps/27-interchain-accounts/client/cli/cli.go:7:10: could not import github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/client/cli (-: # github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/client/cli
+modules/apps/27-interchain-accounts/host/client/cli/query.go:33:51: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/query.go:39:35: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/query.go:62:51: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:68:48: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:75:17: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:80:21: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:94:4: undefined: cmd) (typecheck)
+	hostcli "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/client/cli"
+	        ^
+modules/apps/transfer/client/cli/query.go:24:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/transfer/client/cli/query.go:34:34: undefined: cmd (typecheck)
+			res, err := queryClient.Denom(cmd.Context(), req)
+			                              ^
+modules/apps/transfer/client/cli/query.go:56:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/transfer/client/cli/query.go:62:43: undefined: cmd (typecheck)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			                                       ^
+modules/apps/transfer/client/cli/query.go:71:35: undefined: cmd (typecheck)
+			res, err := queryClient.Denoms(cmd.Context(), req)
+			                               ^
+modules/apps/transfer/client/cli/query.go:94:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/transfer/client/cli/query.go:100:35: undefined: cmd (typecheck)
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			                               ^
+modules/apps/transfer/client/cli/query.go:123:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/transfer/client/cli/query.go:148:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/transfer/client/cli/query.go:158:38: undefined: cmd (typecheck)
+			res, err := queryClient.DenomHash(cmd.Context(), req)
+			                                  ^
+modules/apps/transfer/client/cli/query.go:180:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/transfer/client/cli/query.go:191:48: undefined: cmd (typecheck)
+			res, err := queryClient.TotalEscrowForDenom(cmd.Context(), req)
+			                                            ^
+modules/apps/transfer/client/cli/tx.go:48:48: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			                                            ^
+modules/core/02-client/client/cli/query.go:33:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:39:43: undefined: cmd (typecheck)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			                                       ^
+modules/core/02-client/client/cli/query.go:48:41: undefined: cmd (typecheck)
+			res, err := queryClient.ClientStates(cmd.Context(), req)
+			                                     ^
+modules/core/02-client/client/cli/query.go:71:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:81:57: undefined: cmd (typecheck)
+			counterpartyRes, err := queryClient.CounterpartyInfo(cmd.Context(), req)
+			                                                     ^
+modules/core/02-client/client/cli/query.go:104:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:114:49: undefined: cmd (typecheck)
+			paramsResp, err := queryClient.ClientCreator(cmd.Context(), req)
+			                                             ^
+modules/core/02-client/client/cli/query.go:137:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:147:42: undefined: cmd (typecheck)
+			paramsResp, err := queryClient.Config(cmd.Context(), req)
+			                                      ^
+modules/core/02-client/client/cli/query.go:171:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:176:16: undefined: cmd (typecheck)
+			prove, _ := cmd.Flags().GetBool(flags.FlagProve)
+			            ^
+modules/core/02-client/client/cli/query.go:202:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:214:53: undefined: cmd (typecheck)
+			clientStatusRes, err := queryClient.ClientStatus(cmd.Context(), req)
+			                                                 ^
+modules/core/02-client/client/cli/query.go:238:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:246:43: undefined: cmd (typecheck)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			                                       ^
+modules/core/02-client/client/cli/query.go:256:44: undefined: cmd (typecheck)
+			res, err := queryClient.ConsensusStates(cmd.Context(), req)
+			                                        ^
+modules/core/02-client/client/cli/query.go:280:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:289:43: undefined: cmd (typecheck)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			                                       ^
+modules/core/02-client/client/cli/query.go:299:50: undefined: cmd (typecheck)
+			res, err := queryClient.ConsensusStateHeights(cmd.Context(), req)
+			                                              ^
+modules/core/02-client/client/cli/query.go:324:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:329:28: undefined: cmd (typecheck)
+			queryLatestHeight, _ := cmd.Flags().GetBool(flagLatestHeight)
+			                        ^
+modules/core/02-client/client/cli/query.go:343:16: undefined: cmd (typecheck)
+			prove, _ := cmd.Flags().GetBool(flags.FlagProve)
+			            ^
+modules/core/02-client/client/cli/query.go:370:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:397:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:424:51: undefined: cmd (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/core/02-client/client/cli/query.go:430:39: undefined: cmd (typecheck)
+			res, _ := queryClient.ClientParams(cmd.Context(), &types.QueryClientParamsRequest{})
+			                                   ^
+modules/core/02-client/client/cli/tx.go:42:48: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			                                            ^
+modules/core/02-client/client/cli/tx.go:98:48: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			                                            ^
+modules/core/02-client/client/cli/tx.go:133:48: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			                                            ^
+modules/core/02-client/client/cli/tx.go:158:48: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			                                            ^
+modules/core/02-client/client/cli/tx.go:192:48: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			                                            ^
+modules/core/02-client/client/cli/tx.go:238:48: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			                                            ^
+modules/core/02-client/client/cli/tx.go:301:48: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			                                            ^
+modules/core/02-client/client/cli/tx.go:419:48: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientTxContext(cmd)
+			                                            ^
+modules/core/03-connection/client/cli/cli.go:1: : # github.com/cosmos/ibc-go/v10/modules/core/03-connection/client/cli
+modules/core/03-connection/client/cli/query.go:27:51: undefined: cmd
+modules/core/03-connection/client/cli/query.go:33:43: undefined: cmd
+modules/core/03-connection/client/cli/query.go:42:40: undefined: cmd
+modules/core/03-connection/client/cli/query.go:66:51: undefined: cmd
+modules/core/03-connection/client/cli/query.go:71:16: undefined: cmd
+modules/core/03-connection/client/cli/query.go:98:51: undefined: cmd
+modules/core/03-connection/client/cli/query.go:103:16: undefined: cmd
+modules/core/03-connection/client/cli/query.go:130:51: undefined: cmd
+modules/core/03-connection/client/cli/query.go:136:43: undefined: cmd (typecheck)
+package cli
+modules/core/03-connection/module.go:6:2: could not import github.com/cosmos/ibc-go/v10/modules/core/03-connection/client/cli (-: # github.com/cosmos/ibc-go/v10/modules/core/03-connection/client/cli
+modules/core/03-connection/client/cli/query.go:27:51: undefined: cmd
+modules/core/03-connection/client/cli/query.go:33:43: undefined: cmd
+modules/core/03-connection/client/cli/query.go:42:40: undefined: cmd
+modules/core/03-connection/client/cli/query.go:66:51: undefined: cmd
+modules/core/03-connection/client/cli/query.go:71:16: undefined: cmd
+modules/core/03-connection/client/cli/query.go:98:51: undefined: cmd
+modules/core/03-connection/client/cli/query.go:103:16: undefined: cmd
+modules/core/03-connection/client/cli/query.go:130:51: undefined: cmd
+modules/core/03-connection/client/cli/query.go:136:43: undefined: cmd) (typecheck)
+	"github.com/cosmos/ibc-go/v10/modules/core/03-connection/client/cli"
+	^
+modules/core/04-channel/client/cli/cli.go:1: : # github.com/cosmos/ibc-go/v10/modules/core/04-channel/client/cli
+modules/core/04-channel/client/cli/query.go:32:51: undefined: cmd
+modules/core/04-channel/client/cli/query.go:38:43: undefined: cmd
+modules/core/04-channel/client/cli/query.go:47:37: undefined: cmd
+modules/core/04-channel/client/cli/query.go:73:51: undefined: cmd
+modules/core/04-channel/client/cli/query.go:79:16: undefined: cmd
+modules/core/04-channel/client/cli/query.go:106:51: undefined: cmd
+modules/core/04-channel/client/cli/query.go:111:43: undefined: cmd
+modules/core/04-channel/client/cli/query.go:121:47: undefined: cmd
+modules/core/04-channel/client/cli/query.go:145:51: undefined: cmd
+modules/core/04-channel/client/cli/query.go:176:51: undefined: cmd
+modules/core/04-channel/client/cli/query.go:176:51: too many errors (typecheck)
+package cli
+modules/core/04-channel/module.go:6:2: could not import github.com/cosmos/ibc-go/v10/modules/core/04-channel/client/cli (-: # github.com/cosmos/ibc-go/v10/modules/core/04-channel/client/cli
+modules/core/04-channel/client/cli/query.go:32:51: undefined: cmd
+modules/core/04-channel/client/cli/query.go:38:43: undefined: cmd
+modules/core/04-channel/client/cli/query.go:47:37: undefined: cmd
+modules/core/04-channel/client/cli/query.go:73:51: undefined: cmd
+modules/core/04-channel/client/cli/query.go:79:16: undefined: cmd
+modules/core/04-channel/client/cli/query.go:106:51: undefined: cmd
+modules/core/04-channel/client/cli/query.go:111:43: undefined: cmd
+modules/core/04-channel/client/cli/query.go:121:47: undefined: cmd
+modules/core/04-channel/client/cli/query.go:145:51: undefined: cmd
+modules/core/04-channel/client/cli/query.go:176:51: undefined: cmd
+modules/core/04-channel/client/cli/query.go:176:51: too many errors) (typecheck)
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/client/cli"
+	^
+modules/core/04-channel/v2/client/cli/abci.go:1: : # github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/client/cli
+modules/core/04-channel/v2/client/cli/query.go:32:51: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:37:18: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:52:45: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:77:51: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:88:18: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:103:45: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:126:51: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:132:43: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:142:46: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:167:51: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:167:51: too many errors (typecheck)
+package cli
+modules/core/04-channel/v2/module.go:6:2: could not import github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/client/cli (-: # github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/client/cli
+modules/core/04-channel/v2/client/cli/query.go:32:51: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:37:18: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:52:45: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:77:51: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:88:18: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:103:45: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:126:51: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:132:43: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:142:46: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:167:51: undefined: cmd
+modules/core/04-channel/v2/client/cli/query.go:167:51: too many errors) (typecheck)
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/client/cli"
+	^
+modules/apps/rate-limiting/client/cli/query.go:46:51: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/rate-limiting/client/cli/query.go:91:51: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/rate-limiting/client/cli/query.go:122:51: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/rate-limiting/client/cli/query.go:152:51: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/rate-limiting/client/cli/query.go:179:51: use of package cmd not in selector (typecheck)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			                                               ^
+modules/apps/27-interchain-accounts/controller/ibc_middleware_test.go:18:2: "github.com/cosmos/ibc-go/v10/modules/core/05-port/types" imported as porttypes and not used (typecheck)
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	^
+modules/apps/27-interchain-accounts/host/client/cli/tx_test.go:15:2: could not import github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/client/cli (-: # github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/client/cli
+modules/apps/27-interchain-accounts/host/client/cli/query.go:33:51: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/query.go:39:35: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/query.go:62:51: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:68:48: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:75:17: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:80:21: undefined: cmd
+modules/apps/27-interchain-accounts/host/client/cli/tx.go:94:4: undefined: cmd) (typecheck)
+	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/client/cli"
+	^
+modules/apps/packet-forward-middleware/ibc_middleware_test.go:14:2: "github.com/cosmos/ibc-go/v10/modules/core/05-port/types" imported as porttypes and not used (typecheck)
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
+	^
+modules/apps/rate-limiting/keeper/packet_test.go:19:2: "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper" imported as packerforwardkeeper and not used (typecheck)
+	packerforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
+	^
+modules/core/02-client/migrations/v7/genesis_test.go:6:2: "github.com/cosmos/cosmos-sdk/codec" imported and not used (typecheck)
+	"github.com/cosmos/cosmos-sdk/codec"
+	^
+modules/core/02-client/migrations/v7/store_test.go:9:2: "github.com/cosmos/cosmos-sdk/codec" imported and not used (typecheck)
+	"github.com/cosmos/cosmos-sdk/codec"
+	^
+modules/core/04-channel/keeper/packet_test.go:16:2: "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint" imported as ibctm and not used (typecheck)
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	^
+modules/core/04-channel/v2/keeper/packet_test.go:18:2: "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint" imported as ibctm and not used (typecheck)
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	^
+modules/core/23-commitment/types/codec_test.go:12:2: v2 redeclared in this block (typecheck)
+	v2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	^
+modules/core/23-commitment/types/codec_test.go:11:2: other declaration of v2 (typecheck)
+	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	^
+modules/core/23-commitment/types/merkle_test.go:13:2: v2 redeclared in this block (typecheck)
+	v2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	^
+modules/core/23-commitment/types/merkle_test.go:12:2: other declaration of v2 (typecheck)
+	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	^
+modules/core/migrations/v7/genesis_test.go:8:2: "github.com/cosmos/cosmos-sdk/codec" imported and not used (typecheck)
+	"github.com/cosmos/cosmos-sdk/codec"
+	^
++ set +x

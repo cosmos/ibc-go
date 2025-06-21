@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/02-client/migrations/v7"
+	v7 "github.com/cosmos/ibc-go/v10/modules/core/02-client/migrations/v7"
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"

@@ -53,7 +53,7 @@ func TestValidateHop(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			tc := tc
 
 			err := tc.hop.Validate()

@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v11"
+	v11 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v11"
 	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channelv2types "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"

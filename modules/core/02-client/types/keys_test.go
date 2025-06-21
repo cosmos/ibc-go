@@ -47,7 +47,7 @@ func TestParseClientIdentifier(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			clientType, seq, err := types.ParseClientIdentifier(tc.clientID)
 			valid := types.IsValidClientID(tc.clientID)
 			require.Equal(t, tc.expSeq, seq, tc.clientID)

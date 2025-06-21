@@ -5,6 +5,11 @@ package tendermint
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+	time "time"
+
 	github_com_cometbft_cometbft_libs_bytes "github.com/cometbft/cometbft/libs/bytes"
 	types2 "github.com/cometbft/cometbft/proto/tendermint/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
@@ -15,10 +20,6 @@ import (
 	_go "github.com/cosmos/ics23/go"
 	_ "google.golang.org/protobuf/types/known/durationpb"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
-	io "io"
-	math "math"
-	math_bits "math/bits"
-	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

@@ -80,7 +80,7 @@ func TestParseDenomFromSendPacket(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			packet := transfertypes.FungibleTokenPacketData{
 				Denom: tc.packetDenomTrace,
 			}
@@ -147,7 +147,7 @@ func TestParseDenomFromRecvPacket(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			packet := channeltypes.Packet{
 				SourcePort:         transferPort,
 				DestinationPort:    transferPort,

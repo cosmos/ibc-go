@@ -83,7 +83,7 @@ func TestMsgTransferValidation(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expError == nil {
@@ -119,7 +119,7 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			err := tc.msg.ValidateBasic()
 
 			if tc.expError == nil {
@@ -143,7 +143,7 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.name, func(_ *testing.T) {
 			msg := types.MsgUpdateParams{
 				Signer: tc.address.String(),
 				Params: types.DefaultParams(),

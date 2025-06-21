@@ -43,7 +43,7 @@ func TestGRPCRequest(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("Case %s", tc.msg), func(t *testing.T) {
+		t.Run(fmt.Sprintf("Case %s", tc.msg), func(_ *testing.T) {
 			err := validate.GRPCRequest(tc.portID, tc.channelID)
 
 			if tc.expErr == nil {
