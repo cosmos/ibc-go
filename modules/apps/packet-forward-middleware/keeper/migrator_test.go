@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	"encoding/json"
 	"math/rand"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -19,7 +19,7 @@ func (s *KeeperTestSuite) TestMigrator() {
 		accA, accB, accC, port string
 		firstHopMetadata       *pfmtypes.PacketMetadata
 		err                    error
-		nextBz                 []byte
+		nextMemo               string
 		pathAB, pathBC         *ibctesting.Path
 	)
 
@@ -32,15 +32,15 @@ func (s *KeeperTestSuite) TestMigrator() {
 			name: "A -> B -> C. A and B escrowed",
 			malleate: func() {
 				firstHopMetadata = &pfmtypes.PacketMetadata{
-					Forward: &pfmtypes.ForwardMetadata{
+					Forward: pfmtypes.ForwardMetadata{
 						Receiver: accC,
 						Port:     port,
 						Channel:  pathBC.EndpointA.ChannelID,
-						Timeout:  pfmtypes.Duration(100000000000),
+						Timeout:  time.Duration(100000000000),
 						Retries:  &retries,
 					},
 				}
-				nextBz, err = json.Marshal(firstHopMetadata)
+				nextMemo, err = firstHopMetadata.ToMemo()
 				s.Require().NoError(err)
 			},
 			shouldEmpty: false,
@@ -49,15 +49,15 @@ func (s *KeeperTestSuite) TestMigrator() {
 			name: "A -> B -> A. Everything unescrowed",
 			malleate: func() {
 				firstHopMetadata = &pfmtypes.PacketMetadata{
-					Forward: &pfmtypes.ForwardMetadata{
+					Forward: pfmtypes.ForwardMetadata{
 						Receiver: accA,
 						Port:     port,
 						Channel:  pathAB.EndpointB.ChannelID,
-						Timeout:  pfmtypes.Duration(100000000000),
+						Timeout:  time.Duration(100000000000),
 						Retries:  &retries,
 					},
 				}
-				nextBz, err = json.Marshal(firstHopMetadata)
+				nextMemo, err = firstHopMetadata.ToMemo()
 				s.Require().NoError(err)
 			},
 			shouldEmpty: true,
@@ -91,7 +91,7 @@ func (s *KeeperTestSuite) TestMigrator() {
 
 			tc.malleate() // Hammer time!!!
 
-			transferMsg := transfertypes.NewMsgTransfer(port, pathAB.EndpointA.ChannelID, sendCoin, accA, accB, s.chainB.GetTimeoutHeight(), 0, string(nextBz))
+			transferMsg := transfertypes.NewMsgTransfer(port, pathAB.EndpointA.ChannelID, sendCoin, accA, accB, s.chainB.GetTimeoutHeight(), 0, nextMemo)
 			result, err := s.chainA.SendMsgs(transferMsg)
 			s.Require().NoError(err)
 
