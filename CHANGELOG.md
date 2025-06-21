@@ -64,6 +64,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+*[\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.
+
 ### Dependencies
 
 * [\#8369](https://github.com/cosmos/ibc-go/pull/8369) Bump **github.com/CosmWasm/wasmvm** to **2.2.4**
