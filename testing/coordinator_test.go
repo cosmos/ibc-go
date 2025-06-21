@@ -1,7 +1,6 @@
 package ibctesting_test
 
 import (
-	"fmt"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
@@ -31,8 +30,8 @@ func TestCoordinatorTestSuite(t *testing.T) {
 
 func (s *CoordinatorTestSuite) TestChainCodecRootResolveNotSet() {
 	resolved, err := s.chainA.Codec.InterfaceRegistry().Resolve("/")
-	s.Require().Error(err, fmt.Sprintf("Root typeUrl should not be resolvable: %T", resolved))
+	s.Require().Error(err, "Root typeUrl should not be resolvable: %T", resolved)
 
 	resolved, err = s.chainB.Codec.InterfaceRegistry().Resolve("/")
-	s.Require().Error(err, fmt.Sprintf("Root typeUrl should not be resolvable: %T", resolved))
+	s.Require().Error(err, "Root typeUrl should not be resolvable: %T", resolved)
 }

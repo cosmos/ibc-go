@@ -10,7 +10,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	v11 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v11"
+	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v11"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
