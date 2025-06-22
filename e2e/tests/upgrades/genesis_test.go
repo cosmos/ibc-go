@@ -133,14 +133,14 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 			ConnectionId: ibctesting.FirstConnectionID,
 		})
 		s.Require().NoError(err)
-		s.Require().NotZero(len(res.Address))
+		s.Require().NotEmpty(res.Address)
 
 		hostAccount = res.Address
 		s.Require().NotEmpty(hostAccount)
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Len(channels, 2)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")

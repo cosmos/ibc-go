@@ -90,7 +90,7 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite stri
 	fset := token.NewFileSet()
 	err := filepath.Walk(e2eRootDirectory, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
-			return fmt.Errorf("error walking e2e directory: %s", err)
+			return fmt.Errorf("error walking e2e directory: %w", err)
 		}
 
 		// only look at test files
@@ -100,7 +100,7 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite stri
 
 		f, err := parser.ParseFile(fset, path, nil, 0)
 		if err != nil {
-			return fmt.Errorf("failed parsing file: %s", err)
+			return fmt.Errorf("failed parsing file: %w", err)
 		}
 
 		suiteNameForFile, testCases, err := extractSuiteAndTestNames(f)

@@ -22,7 +22,7 @@ var defaultTimeoutHeight = clienttypes.NewHeight(1, 100000)
 
 // TestVerifyConnectionState verifies the connection state of the connection
 // on chainB. The connections on chainA and chainB are fully opened.
-func (suite *KeeperTestSuite) TestVerifyConnectionState() {
+func (s *KeeperTestSuite) TestVerifyConnectionState() {
 	var (
 		path       *ibctesting.Path
 		heightDiff uint64
@@ -41,21 +41,21 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 		}, errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "failed connection state verification for client (07-tendermint-0): client state height < proof height ({1 9} < {1 14}), please ensure the client has been updated")},
 		{"client status is not active - client is expired", func() {
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen")},
 	}
 
 	for _, tc := range cases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupConnections()
 
 			connectionKey := host.ConnectionKey(path.EndpointB.ConnectionID)
-			proof, proofHeight := suite.chainB.QueryProof(connectionKey)
+			proof, proofHeight := s.chainB.QueryProof(connectionKey)
 
 			tc.malleate()
 
@@ -63,16 +63,16 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 
 			expectedConnection := path.EndpointB.GetConnection()
 
-			err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyConnectionState(
-				suite.chainA.GetContext(), connection,
+			err := s.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyConnectionState(
+				s.chainA.GetContext(), connection,
 				malleateHeight(proofHeight, heightDiff), proof, path.EndpointB.ConnectionID, expectedConnection,
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -80,7 +80,7 @@ func (suite *KeeperTestSuite) TestVerifyConnectionState() {
 
 // TestVerifyChannelState verifies the channel state of the channel on
 // chainB. The channels on chainA and chainB are fully opened.
-func (suite *KeeperTestSuite) TestVerifyChannelState() {
+func (s *KeeperTestSuite) TestVerifyChannelState() {
 	var (
 		path       *ibctesting.Path
 		heightDiff uint64
@@ -99,37 +99,37 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 		}, errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "failed channel state verification for client (07-tendermint-0): client state height < proof height ({1 15} < {1 20}), please ensure the client has been updated")},
 		{"client status is not active - client is expired", func() {
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen")},
 	}
 
 	for _, tc := range cases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.Setup()
 
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			proof, proofHeight := suite.chainB.QueryProof(channelKey)
+			proof, proofHeight := s.chainB.QueryProof(channelKey)
 
 			tc.malleate()
 			connection := path.EndpointA.GetConnection()
 
 			channel := path.EndpointB.GetChannel()
 
-			err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyChannelState(
-				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
+			err := s.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyChannelState(
+				s.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
 				path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel,
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -138,7 +138,7 @@ func (suite *KeeperTestSuite) TestVerifyChannelState() {
 // TestVerifyPacketCommitment has chainB verify the packet commitment
 // on channelA. The channels on chainA and chainB are fully opened and a
 // packet is sent from chainA to chainB, but has not been received.
-func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
+func (s *KeeperTestSuite) TestVerifyPacketCommitment() {
 	var (
 		path            *ibctesting.Path
 		packet          channeltypes.Packet
@@ -172,21 +172,21 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed packet commitment verification for client (07-tendermint-0): failed to verify membership proof at index 0: provided value doesn't match proof")},
 		{"client status is not active - client is expired", func() {
 			clientState, ok := path.EndpointB.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointB.SetClientState(clientState)
 		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen")},
 	}
 
 	for _, tc := range cases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
 
 			// reset variables
@@ -198,24 +198,24 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 			connection := path.EndpointB.GetConnection()
 			connection.DelayPeriod = delayTimePeriod
 			commitmentKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-			proof, proofHeight := suite.chainA.QueryProof(commitmentKey)
+			proof, proofHeight := s.chainA.QueryProof(commitmentKey)
 
 			// set time per block param
 			if timePerBlock != 0 {
-				suite.chainB.App.GetIBCKeeper().ConnectionKeeper.SetParams(suite.chainB.GetContext(), types.NewParams(timePerBlock))
+				s.chainB.App.GetIBCKeeper().ConnectionKeeper.SetParams(s.chainB.GetContext(), types.NewParams(timePerBlock))
 			}
 
 			commitment := channeltypes.CommitPacket(packet)
-			err = suite.chainB.App.GetIBCKeeper().ConnectionKeeper.VerifyPacketCommitment(
-				suite.chainB.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
+			err = s.chainB.App.GetIBCKeeper().ConnectionKeeper.VerifyPacketCommitment(
+				s.chainB.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
 				packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence(), commitment,
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -224,7 +224,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketCommitment() {
 // TestVerifyPacketAcknowledgement has chainA verify the acknowledgement on
 // channelB. The channels on chainA and chainB are fully opened and a packet
 // is sent from chainA to chainB and received.
-func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
+func (s *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 	var (
 		path            *ibctesting.Path
 		ack             exported.Acknowledgement
@@ -259,34 +259,34 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed packet acknowledgement verification for client (07-tendermint-0): failed to verify membership proof at index 0: provided value doesn't match proof")},
 		{"client status is not active - client is expired", func() {
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen")},
 	}
 
 	for _, tc := range cases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()                 // reset
+		s.Run(tc.name, func() {
+			s.SetupTest()                     // reset
 			ack = ibcmock.MockAcknowledgement // must be explicitly changed
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.Setup()
 
 			// send and receive packet
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// increment receiving chain's (chainB) time by 2 hour to always pass receive
-			suite.coordinator.IncrementTimeBy(time.Hour * 2)
-			suite.coordinator.CommitBlock(suite.chainB)
+			s.coordinator.IncrementTimeBy(time.Hour * 2)
+			s.coordinator.CommitBlock(s.chainB)
 
 			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
 			err = path.EndpointB.RecvPacket(packet)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			packetAckKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-			proof, proofHeight := suite.chainB.QueryProof(packetAckKey)
+			proof, proofHeight := s.chainB.QueryProof(packetAckKey)
 
 			// reset variables
 			heightDiff = 0
@@ -299,19 +299,19 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 
 			// set time per block param
 			if timePerBlock != 0 {
-				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(timePerBlock))
+				s.chainA.App.GetIBCKeeper().ConnectionKeeper.SetParams(s.chainA.GetContext(), types.NewParams(timePerBlock))
 			}
 
-			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyPacketAcknowledgement(
-				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
+			err = s.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyPacketAcknowledgement(
+				s.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
 				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(), ack.Acknowledgement(),
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -320,7 +320,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketAcknowledgement() {
 // TestVerifyPacketReceiptAbsence has chainA verify the receipt
 // absence on channelB. The channels on chainA and chainB are fully opened and
 // a packet is sent from chainA to chainB and not received.
-func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
+func (s *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 	var (
 		path            *ibctesting.Path
 		packet          channeltypes.Packet
@@ -352,30 +352,30 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 		}, errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "failed packet commitment verification for client (07-tendermint-0): client state height < proof height ({1 17} < {1 22}), please ensure the client has been updated")},
 		{"verification failed - acknowledgement was received", func() {
 			// increment receiving chain's (chainB) time by 2 hour to always pass receive
-			suite.coordinator.IncrementTimeBy(time.Hour * 2)
-			suite.coordinator.CommitBlock(suite.chainB)
+			s.coordinator.IncrementTimeBy(time.Hour * 2)
+			s.coordinator.CommitBlock(s.chainB)
 
 			err := path.EndpointB.RecvPacket(packet)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed packet commitment verification for client (07-tendermint-0): failed to verify membership proof at index 0: provided value doesn't match proof")},
 		{"client status is not active - client is expired", func() {
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen")},
 	}
 
 	for _, tc := range cases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.Setup()
 
 			// send, only receive in malleate if applicable
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 			packet = channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
 
 			// reset variables
@@ -388,32 +388,32 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 			connection.DelayPeriod = delayTimePeriod
 
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 			if clientState.FrozenHeight.IsZero() {
 				// need to update height to prove absence or receipt
-				suite.coordinator.CommitBlock(suite.chainA, suite.chainB)
+				s.coordinator.CommitBlock(s.chainA, s.chainB)
 				err = path.EndpointA.UpdateClient()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			}
 
 			packetReceiptKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-			proof, proofHeight := suite.chainB.QueryProof(packetReceiptKey)
+			proof, proofHeight := s.chainB.QueryProof(packetReceiptKey)
 
 			// set time per block param
 			if timePerBlock != 0 {
-				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(timePerBlock))
+				s.chainA.App.GetIBCKeeper().ConnectionKeeper.SetParams(s.chainA.GetContext(), types.NewParams(timePerBlock))
 			}
 
-			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyPacketReceiptAbsence(
-				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
+			err = s.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyPacketReceiptAbsence(
+				s.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
 				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence(),
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -422,7 +422,7 @@ func (suite *KeeperTestSuite) TestVerifyPacketReceiptAbsence() {
 // TestVerifyNextSequenceRecv has chainA verify the next sequence receive on
 // channelB. The channels on chainA and chainB are fully opened and a packet
 // is sent from chainA to chainB and received.
-func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
+func (s *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 	var (
 		path            *ibctesting.Path
 		heightDiff      uint64
@@ -457,33 +457,33 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed packet commitment verification for client (07-tendermint-0): failed to verify membership proof at index 0: provided value doesn't match proof")},
 		{"client status is not active - client is expired", func() {
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 			clientState.FrozenHeight = clienttypes.NewHeight(0, 1)
 			path.EndpointA.SetClientState(clientState)
 		}, errorsmod.Wrap(clienttypes.ErrClientNotActive, "client (07-tendermint-0) status is Frozen")},
 	}
 
 	for _, tc := range cases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.Setup()
 
 			// send and receive packet
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, 0, ibctesting.MockPacketData)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// increment receiving chain's (chainB) time by 2 hour to always pass receive
-			suite.coordinator.IncrementTimeBy(time.Hour * 2)
-			suite.coordinator.CommitBlock(suite.chainB)
+			s.coordinator.IncrementTimeBy(time.Hour * 2)
+			s.coordinator.CommitBlock(s.chainB)
 
 			packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, 0)
 			err = path.EndpointB.RecvPacket(packet)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			nextSeqRecvKey := host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
-			proof, proofHeight := suite.chainB.QueryProof(nextSeqRecvKey)
+			proof, proofHeight := s.chainB.QueryProof(nextSeqRecvKey)
 
 			// reset variables
 			heightDiff = 0
@@ -493,21 +493,21 @@ func (suite *KeeperTestSuite) TestVerifyNextSequenceRecv() {
 
 			// set time per block param
 			if timePerBlock != 0 {
-				suite.chainA.App.GetIBCKeeper().ConnectionKeeper.SetParams(suite.chainA.GetContext(), types.NewParams(timePerBlock))
+				s.chainA.App.GetIBCKeeper().ConnectionKeeper.SetParams(s.chainA.GetContext(), types.NewParams(timePerBlock))
 			}
 
 			connection := path.EndpointA.GetConnection()
 			connection.DelayPeriod = delayTimePeriod
-			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyNextSequenceRecv(
-				suite.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
+			err = s.chainA.App.GetIBCKeeper().ConnectionKeeper.VerifyNextSequenceRecv(
+				s.chainA.GetContext(), connection, malleateHeight(proofHeight, heightDiff), proof,
 				packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence()+offsetSeq,
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

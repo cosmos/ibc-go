@@ -13,8 +13,6 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	// Initialize store refund path for forwarded packets in genesis state that have not yet been acked.
 	store := k.storeService.OpenKVStore(ctx)
 	for key, value := range state.InFlightPackets {
-		key := key
-		value := value
 		bz := k.cdc.MustMarshal(&value)
 		if err := store.Set([]byte(key), bz); err != nil {
 			panic(err)

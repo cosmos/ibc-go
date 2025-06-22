@@ -35,7 +35,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"success",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(&ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			nil,
 		},
@@ -49,21 +49,21 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"panics with nil contract keeper",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, nil, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(&ibcmock.IBCModule{}, &channelkeeper.Keeper{}, nil, maxCallbackGas)
 			},
 			errors.New("contract keeper cannot be nil"),
 		},
 		{
 			"panics with nil ics4Wrapper",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, nil, simapp.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(&ibcmock.IBCModule{}, nil, simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			errors.New("ICS4Wrapper cannot be nil"),
 		},
 		{
 			"panics with zero maxCallbackGas",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, uint64(0))
+				_ = ibccallbacks.NewIBCMiddleware(&ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, uint64(0))
 			},
 			errors.New("maxCallbackGas cannot be zero"),
 		},
@@ -395,18 +395,14 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				return transferStack.OnAcknowledgementPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, ack, s.chainA.SenderAccount.GetAddress())
 			}
 
-			switch tc.expError {
-			case nil:
+			switch {
+			case tc.expError == nil:
 				err := onAcknowledgementPacket()
 				s.Require().Nil(err)
-
-			case panicError:
-				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
-					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit),
-				}, func() {
+			case errors.Is(tc.expError, panicError):
+				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit)}, func() {
 					_ = onAcknowledgementPacket()
 				})
-
 			default:
 				err := onAcknowledgementPacket()
 				s.Require().ErrorIs(err, tc.expError)
@@ -885,7 +881,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				if exists {
 					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
 				}
-
 			} else {
 				s.Require().ErrorIs(err, tc.expError)
 			}

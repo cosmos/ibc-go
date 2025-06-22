@@ -1,7 +1,6 @@
 package ibctesting
 
 import (
-	"fmt"
 	"strconv"
 	"testing"
 	"time"
@@ -54,34 +53,34 @@ func NewCustomAppCoordinator(t *testing.T, n int, appCreator AppCreator) *Coordi
 // by 5 seconds.
 //
 // CONTRACT: this function must be called after every Commit on any TestChain.
-func (coord *Coordinator) IncrementTime() {
-	coord.IncrementTimeBy(TimeIncrement)
+func (c *Coordinator) IncrementTime() {
+	c.IncrementTimeBy(TimeIncrement)
 }
 
 // IncrementTimeBy iterates through all the TestChain's and increments their current header time
 // by specified time.
-func (coord *Coordinator) IncrementTimeBy(increment time.Duration) {
-	coord.CurrentTime = coord.CurrentTime.Add(increment).UTC()
-	coord.UpdateTime()
+func (c *Coordinator) IncrementTimeBy(increment time.Duration) {
+	c.CurrentTime = c.CurrentTime.Add(increment).UTC()
+	c.UpdateTime()
 }
 
 // SetTime sets the coordinator's current time to the specified time and updates
 // the proposed header time for all chains.
-func (coord *Coordinator) SetTime(t time.Time) {
-	coord.CurrentTime = t.UTC()
-	coord.UpdateTime()
+func (c *Coordinator) SetTime(t time.Time) {
+	c.CurrentTime = t.UTC()
+	c.UpdateTime()
 }
 
 // UpdateTime updates all clocks for the TestChains to the current global time.
-func (coord *Coordinator) UpdateTime() {
-	for _, chain := range coord.Chains {
-		coord.UpdateTimeForChain(chain)
+func (c *Coordinator) UpdateTime() {
+	for _, chain := range c.Chains {
+		c.UpdateTimeForChain(chain)
 	}
 }
 
 // UpdateTimeForChain updates the clock for a specific chain.
-func (coord *Coordinator) UpdateTimeForChain(chain *TestChain) {
-	chain.ProposedHeader.Time = coord.CurrentTime.UTC()
+func (c *Coordinator) UpdateTimeForChain(chain *TestChain) {
+	chain.ProposedHeader.Time = c.CurrentTime.UTC()
 }
 
 // Setup constructs a TM client, connection, and channel on both chains provided. It will
@@ -138,9 +137,9 @@ func (*Coordinator) CreateTransferChannels(path *Path) {
 
 // GetChain returns the TestChain using the given chainID and returns an error if it does
 // not exist.
-func (coord *Coordinator) GetChain(chainID string) *TestChain {
-	chain, found := coord.Chains[chainID]
-	require.True(coord.T, found, fmt.Sprintf("%s chain does not exist", chainID))
+func (c *Coordinator) GetChain(chainID string) *TestChain {
+	chain, found := c.Chains[chainID]
+	require.True(c.T, found, "%s chain does not exist", chainID)
 	return chain
 }
 
@@ -152,17 +151,17 @@ func GetChainID(index int) string {
 // CommitBlock commits a block on the provided indexes and then increments the global time.
 //
 // CONTRACT: the passed in list of indexes must not contain duplicates
-func (coord *Coordinator) CommitBlock(chains ...*TestChain) {
+func (c *Coordinator) CommitBlock(chains ...*TestChain) {
 	for _, chain := range chains {
 		chain.NextBlock()
 	}
-	coord.IncrementTime()
+	c.IncrementTime()
 }
 
 // CommitNBlocks commits n blocks to state and updates the block height by 1 for each commit.
-func (coord *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
-	for i := uint64(0); i < n; i++ {
+func (c *Coordinator) CommitNBlocks(chain *TestChain, n uint64) {
+	for range n {
 		chain.NextBlock()
-		coord.IncrementTime()
+		c.IncrementTime()
 	}
 }
