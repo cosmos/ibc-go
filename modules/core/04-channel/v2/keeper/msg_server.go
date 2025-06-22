@@ -89,14 +89,7 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 		cb := k.Router.Route(pd.DestinationPort)
 		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, pd, signer)
 
-		if res.Status != types.PacketStatus_Failure {
-			// successful app acknowledgement cannot equal sentinel error acknowledgement
-			if bytes.Equal(res.GetAcknowledgement(), types.ErrorAcknowledgement[:]) {
-				return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "application acknowledgement cannot be sentinel error acknowledgement")
-			}
-			// append app acknowledgement to the overall acknowledgement
-			ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
-		} else {
+		if res.Status == types.PacketStatus_Failure {
 			isSuccess = false
 			// construct acknowledgement with single app acknowledgement that is the sentinel error acknowledgement
 			ack = types.Acknowledgement{
@@ -106,6 +99,13 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 			ctx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
 			break
 		}
+
+		// successful app acknowledgement cannot equal sentinel error acknowledgement
+		if bytes.Equal(res.GetAcknowledgement(), types.ErrorAcknowledgement[:]) {
+			return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "application acknowledgement cannot be sentinel error acknowledgement")
+		}
+		// append app acknowledgement to the overall acknowledgement
+		ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
 
 		if res.Status == types.PacketStatus_Async {
 			// Set packet acknowledgement to async if any of the acknowledgements are async.

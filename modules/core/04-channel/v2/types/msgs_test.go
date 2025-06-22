@@ -12,7 +12,6 @@ import (
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	"github.com/cosmos/ibc-go/v10/testing/mock/v2"
 	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
 )
 
@@ -142,7 +141,7 @@ func (s *TypesTestSuite) TestMsgRecvPacketValidateBasic() {
 		{
 			name: "success, multiple payloads",
 			malleate: func() {
-				msg.Packet.Payloads = append(msg.Packet.Payloads, mock.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+				msg.Packet.Payloads = append(msg.Packet.Payloads, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
 			},
 		},
 		{
@@ -223,7 +222,7 @@ func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
 		{
 			name: "success, multiple payloads",
 			malleate: func() {
-				msg.Packet.Payloads = append(msg.Packet.Payloads, mock.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+				msg.Packet.Payloads = append(msg.Packet.Payloads, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
 			},
 		},
 		{
@@ -314,7 +313,7 @@ func (s *TypesTestSuite) TestMsgTimeoutValidateBasic() {
 		{
 			name: "success, multiple payloads",
 			malleate: func() {
-				msg.Packet.Payloads = append(msg.Packet.Payloads, mock.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+				msg.Packet.Payloads = append(msg.Packet.Payloads, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
 			},
 		},
 		{

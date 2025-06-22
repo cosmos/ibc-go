@@ -13,7 +13,6 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	"github.com/cosmos/ibc-go/v10/testing/mock"
 	mockv1 "github.com/cosmos/ibc-go/v10/testing/mock"
 	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
 )
@@ -87,23 +86,23 @@ func (s *KeeperTestSuite) TestMsgSendPacket() {
 			name: "failure: application callback error",
 			malleate: func() {
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnSendPacket = func(ctx sdk.Context, sourceID string, destinationID string, sequence uint64, data types.Payload, signer sdk.AccAddress) error {
-					return mock.MockApplicationCallbackError
+					return mockv1.MockApplicationCallbackError
 				}
 			},
-			expError: mock.MockApplicationCallbackError,
+			expError: mockv1.MockApplicationCallbackError,
 		},
 		{
 			name: "failure: multiple payload application callback error",
 			malleate: func() {
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnSendPacket = func(ctx sdk.Context, sourceID string, destinationID string, sequence uint64, data types.Payload, signer sdk.AccAddress) error {
 					if bytes.Equal(mockv1.MockFailPacketData, data.Value) {
-						return mock.MockApplicationCallbackError
+						return mockv1.MockApplicationCallbackError
 					}
 					return nil
 				}
 				payloads = append(payloads, mockv2.NewErrorMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
 			},
-			expError: mock.MockApplicationCallbackError,
+			expError: mockv1.MockApplicationCallbackError,
 		},
 		{
 			name: "failure: client not found",
@@ -389,7 +388,7 @@ func (s *KeeperTestSuite) TestMsgAcknowledgement() {
 				// Modify the callback to return an error.
 				// This way, we can verify that the callback is not executed in a No-op case.
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(sdk.Context, string, string, uint64, types.Payload, []byte, sdk.AccAddress) error {
-					return mock.MockApplicationCallbackError
+					return mockv1.MockApplicationCallbackError
 				}
 			},
 			payloads: []types.Payload{mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)},
@@ -456,11 +455,11 @@ func (s *KeeperTestSuite) TestMsgAcknowledgement() {
 			name: "failure: callback fails",
 			malleate: func() {
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(sdk.Context, string, string, uint64, types.Payload, []byte, sdk.AccAddress) error {
-					return mock.MockApplicationCallbackError
+					return mockv1.MockApplicationCallbackError
 				}
 			},
 			payloads: []types.Payload{mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)},
-			expError: mock.MockApplicationCallbackError,
+			expError: mockv1.MockApplicationCallbackError,
 		},
 		{
 			name: "failure: callback fails on one of the multiple payloads",
@@ -468,7 +467,7 @@ func (s *KeeperTestSuite) TestMsgAcknowledgement() {
 				// create custom callback that fails on one of the payloads in the test case.
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(ctx sdk.Context, sourceClient string, destinationClient string, sequence uint64, data types.Payload, acknowledgement []byte, relayer sdk.AccAddress) error {
 					if data.DestinationPort == mockv2.ModuleNameB {
-						return mock.MockApplicationCallbackError
+						return mockv1.MockApplicationCallbackError
 					}
 					return nil
 				}
@@ -485,7 +484,7 @@ func (s *KeeperTestSuite) TestMsgAcknowledgement() {
 				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
 				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameA),
 			},
-			expError: mock.MockApplicationCallbackError,
+			expError: mockv1.MockApplicationCallbackError,
 		},
 		{
 			name: "failure: counterparty not found",
@@ -507,7 +506,7 @@ func (s *KeeperTestSuite) TestMsgAcknowledgement() {
 		{
 			name: "failure: failed membership verification",
 			malleate: func() {
-				ack.AppAcknowledgements[0] = mock.MockFailPacketData
+				ack.AppAcknowledgements[0] = mockv1.MockFailPacketData
 			},
 			payloads: []types.Payload{mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)},
 			expError: errors.New("failed packet acknowledgement verification"),
@@ -576,7 +575,7 @@ func (s *KeeperTestSuite) TestMsgTimeout() {
 				// Modify the callback to return a different error.
 				// This way, we can verify that the callback is not executed in a No-op case.
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(sdk.Context, string, string, uint64, types.Payload, sdk.AccAddress) error {
-					return mock.MockApplicationCallbackError
+					return mockv1.MockApplicationCallbackError
 				}
 				s.Require().NoError(path.EndpointA.UpdateClient())
 			},
@@ -621,12 +620,12 @@ func (s *KeeperTestSuite) TestMsgTimeout() {
 			name: "failure: callback fails",
 			malleate: func() {
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(sdk.Context, string, string, uint64, types.Payload, sdk.AccAddress) error {
-					return mock.MockApplicationCallbackError
+					return mockv1.MockApplicationCallbackError
 				}
 				s.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			payloads: []types.Payload{mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)},
-			expError: mock.MockApplicationCallbackError,
+			expError: mockv1.MockApplicationCallbackError,
 		},
 		{
 			name: "failure: callback fails on one of the multiple payloads",
@@ -634,7 +633,7 @@ func (s *KeeperTestSuite) TestMsgTimeout() {
 				// create custom callback that fails on one of the payloads in the test case.
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, data types.Payload, relayer sdk.AccAddress) error {
 					if bytes.Equal(mockv1.MockFailPacketData, data.Value) {
-						return mock.MockApplicationCallbackError
+						return mockv1.MockApplicationCallbackError
 					}
 					return nil
 				}
@@ -645,7 +644,7 @@ func (s *KeeperTestSuite) TestMsgTimeout() {
 				mockv2.NewErrorMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
 				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
 			},
-			expError: mock.MockApplicationCallbackError,
+			expError: mockv1.MockApplicationCallbackError,
 		},
 		{
 			name: "failure: client not found",
