@@ -12,11 +12,16 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
-// TODO: Move to internal package
+// PacketMetadata represents the metadata for a packet in the packet-forward middleware.
+// Do not use this type directly with json encoding/decoding, as it is not json serializable.
+// Instead use the provided helper methods to convert it, or use the Metadata keys defined in this package.
 type PacketMetadata struct {
 	Forward ForwardMetadata
 }
 
+// ForwardMetadata represents the metadata for forwarding a packet.
+// Do not use this type directly with json encoding/decoding, as it is not json serializable.
+// Instead use the provided helper methods to convert it, or use the Metadata keys defined in this package.
 type ForwardMetadata struct {
 	Receiver string
 	Port     string
@@ -200,55 +205,3 @@ func parseDuration(duration any) (time.Duration, error) {
 		return 0, errors.New("invalid duration")
 	}
 }
-
-// // JSONObject is a wrapper type to allow either a primitive type or a JSON object.
-// // In the case the value is a JSON object, OrderedMap type is used so that key order
-// // is retained across Unmarshal/Marshal.
-// type JSONObject struct {
-// 	obj        bool
-// 	primitive  []byte
-// 	orderedMap orderedmap.OrderedMap
-// }
-//
-// // NewJSONObject is a constructor used for tests.
-// // The usage of JSONObject in the middleware is only json Marshal/Unmarshal
-// func NewJSONObject(object bool, primitive []byte, orderedMap orderedmap.OrderedMap) *JSONObject {
-// 	return &JSONObject{
-// 		obj:        object,
-// 		primitive:  primitive,
-// 		orderedMap: orderedMap,
-// 	}
-// }
-//
-// // UnmarshalJSON overrides the default json.Unmarshal behavior
-// func (o *JSONObject) UnmarshalJSON(b []byte) error {
-// 	if err := o.orderedMap.UnmarshalJSON(b); err != nil {
-// 		// If ordered map unmarshal fails, this is a primitive value
-// 		o.obj = false
-// 		// Attempt to unmarshal as string, this removes extra JSON escaping
-// 		var primitiveStr string
-// 		if err := json.Unmarshal(b, &primitiveStr); err != nil {
-// 			o.primitive = b
-// 			return nil
-// 		}
-// 		o.primitive = []byte(primitiveStr)
-// 		return nil
-// 	}
-// 	// This is a JSON object, now stored as an ordered map to retain key order.
-// 	o.obj = true
-// 	return nil
-// }
-//
-// // MarshalJSON overrides the default json.Marshal behavior
-// func (o JSONObject) MarshalJSON() ([]byte, error) {
-// 	if o.obj {
-// 		// non-primitive, return marshaled ordered map.
-// 		return o.orderedMap.MarshalJSON()
-// 	}
-// 	// primitive, return raw bytes.
-// 	return o.primitive, nil
-// }
-//
-// func (d *Duration) MarshalJSON() ([]byte, error) {
-// 	return json.Marshal(time.Duration(*d).Nanoseconds())
-// }
