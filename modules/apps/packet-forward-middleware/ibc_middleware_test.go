@@ -79,7 +79,6 @@ func (s *PFMTestSuite) TestSetUnderlyingApplication() {
 	s.Require().Panics(func() {
 		pfm.SetUnderlyingApplication(&ibcmock.IBCModule{})
 	}, "underlying application should not be set again")
-
 }
 
 func (s *PFMTestSuite) TestOnRecvPacket_NonfungibleToken() {

@@ -37,7 +37,7 @@ func (b *IBCStackBuilder) Build(channelKeeper ICS4Wrapper) IBCModule {
 	// and setting the underlying application for each middleware
 	// and the ICS4wrapper for the underlying module.
 	underlyingModule := b.baseModule
-	for i := 0; i < len(b.middlewares); i++ {
+	for i := range len(b.middlewares) {
 		b.middlewares[i].SetUnderlyingApplication(underlyingModule)
 		underlyingModule.SetICS4Wrapper(b.middlewares[i])
 		underlyingModule = b.middlewares[i]

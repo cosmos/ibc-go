@@ -138,7 +138,7 @@ func newErrorAcknowledgement(err error) channeltypes.Acknowledgement {
 // OnRecvPacket checks the memo field on this packet and if the metadata inside's root key indicates this packet
 // should be handled by the swap middleware it attempts to perform a swap. If the swap is successful
 // the underlying application's OnRecvPacket callback is invoked, an ack error is returned otherwise.
-func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
+func (im *IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	logger := im.keeper.Logger(ctx)
 
 	var data transfertypes.FungibleTokenPacketData
@@ -239,7 +239,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 
 // receiveFunds receives funds from the packet into the override receiver
 // address and returns an error if the funds cannot be received.
-func (im IBCMiddleware) receiveFunds(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData, overrideReceiver string, relayer sdk.AccAddress) error {
+func (im *IBCMiddleware) receiveFunds(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, data transfertypes.FungibleTokenPacketData, overrideReceiver string, relayer sdk.AccAddress) error {
 	overrideData := data
 	overrideData.Receiver = overrideReceiver
 	overrideData.Memo = "" // Memo explicitly emptied.
@@ -261,7 +261,7 @@ func (im IBCMiddleware) receiveFunds(ctx sdk.Context, channelVersion string, pac
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface.
-func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
+func (im *IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		im.keeper.Logger(ctx).Error("packetForwardMiddleware error parsing packet data from ack packet",
@@ -310,7 +310,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, channelVersion 
 }
 
 // OnTimeoutPacket implements the IBCModule interface.
-func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+func (im *IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		im.keeper.Logger(ctx).Error("packetForwardMiddleware error parsing packet data from timeout packet",
@@ -359,16 +359,16 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 }
 
 // SendPacket implements the ICS4 Wrapper interface.
-func (im IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (uint64, error) {
+func (im *IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (uint64, error) {
 	return im.keeper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface.
-func (im IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, ack ibcexported.Acknowledgement) error {
+func (im *IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, ack ibcexported.Acknowledgement) error {
 	return im.keeper.WriteAcknowledgement(ctx, packet, ack)
 }
 
-func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (im *IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }
 

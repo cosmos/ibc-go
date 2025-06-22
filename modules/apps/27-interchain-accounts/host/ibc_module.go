@@ -34,7 +34,7 @@ func NewIBCModule(k *keeper.Keeper) *IBCModule {
 }
 
 // OnChanOpenInit implements the IBCModule interface
-func (IBCModule) OnChanOpenInit(
+func (*IBCModule) OnChanOpenInit(
 	_ sdk.Context,
 	_ channeltypes.Order,
 	_ []string,
@@ -47,7 +47,7 @@ func (IBCModule) OnChanOpenInit(
 }
 
 // OnChanOpenTry implements the IBCModule interface
-func (im IBCModule) OnChanOpenTry(
+func (im *IBCModule) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -64,7 +64,7 @@ func (im IBCModule) OnChanOpenTry(
 }
 
 // OnChanOpenAck implements the IBCModule interface
-func (IBCModule) OnChanOpenAck(
+func (*IBCModule) OnChanOpenAck(
 	_ sdk.Context,
 	_,
 	_ string,
@@ -75,7 +75,7 @@ func (IBCModule) OnChanOpenAck(
 }
 
 // OnChanOpenConfirm implements the IBCModule interface
-func (im IBCModule) OnChanOpenConfirm(
+func (im *IBCModule) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -88,7 +88,7 @@ func (im IBCModule) OnChanOpenConfirm(
 }
 
 // OnChanCloseInit implements the IBCModule interface
-func (IBCModule) OnChanCloseInit(
+func (*IBCModule) OnChanCloseInit(
 	_ sdk.Context,
 	_ string,
 	_ string,
@@ -98,7 +98,7 @@ func (IBCModule) OnChanCloseInit(
 }
 
 // OnChanCloseConfirm implements the IBCModule interface
-func (im IBCModule) OnChanCloseConfirm(
+func (im *IBCModule) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -107,7 +107,7 @@ func (im IBCModule) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCModule interface
-func (im IBCModule) OnRecvPacket(
+func (im *IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	_ string,
 	packet channeltypes.Packet,
@@ -136,7 +136,7 @@ func (im IBCModule) OnRecvPacket(
 }
 
 // OnAcknowledgementPacket implements the IBCModule interface
-func (IBCModule) OnAcknowledgementPacket(
+func (*IBCModule) OnAcknowledgementPacket(
 	_ sdk.Context,
 	_ string,
 	_ channeltypes.Packet,
@@ -147,7 +147,7 @@ func (IBCModule) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCModule interface
-func (IBCModule) OnTimeoutPacket(
+func (*IBCModule) OnTimeoutPacket(
 	_ sdk.Context,
 	_ string,
 	_ channeltypes.Packet,
@@ -159,7 +159,7 @@ func (IBCModule) OnTimeoutPacket(
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into an InterchainAccountPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (im IBCModule) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (any, string, error) {
+func (im *IBCModule) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (any, string, error) {
 	var data icatypes.InterchainAccountPacketData
 	err := data.UnmarshalJSON(bz)
 	if err != nil {

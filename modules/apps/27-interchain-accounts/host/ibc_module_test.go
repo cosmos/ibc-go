@@ -112,24 +112,24 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 	return path.EndpointB.ChanOpenConfirm()
 }
 
-func (suite *InterchainAccountsTestSuite) TestSetICS4Wrapper() {
-	suite.SetupTest() // reset
+func (s *InterchainAccountsTestSuite) TestSetICS4Wrapper() {
+	s.SetupTest() // reset
 
-	module := icahost.NewIBCModule(suite.chainB.GetSimApp().ICAHostKeeper)
+	module := icahost.NewIBCModule(s.chainB.GetSimApp().ICAHostKeeper)
 
-	suite.Require().Panics(func() {
+	s.Require().Panics(func() {
 		module.SetICS4Wrapper(nil)
 	}, "ICS4Wrapper should not be nil")
 
 	// set ICS4Wrapper
-	suite.Require().NotPanics(func() {
-		module.SetICS4Wrapper(suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper)
+	s.Require().NotPanics(func() {
+		module.SetICS4Wrapper(s.chainB.GetSimApp().IBCKeeper.ChannelKeeper)
 	})
 
 	// verify ICS4Wrapper is set
-	ics4Wrapper := suite.chainB.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
-	suite.Require().NotNil(ics4Wrapper)
-	suite.Require().Equal(suite.chainB.GetSimApp().IBCKeeper.ChannelKeeper, ics4Wrapper)
+	ics4Wrapper := s.chainB.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
+	s.Require().NotNil(ics4Wrapper)
+	s.Require().Equal(s.chainB.GetSimApp().IBCKeeper.ChannelKeeper, ics4Wrapper)
 }
 
 // Test initiating a ChanOpenInit using the host chain instead of the controller chain

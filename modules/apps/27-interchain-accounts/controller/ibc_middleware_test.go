@@ -109,7 +109,7 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 	return path.EndpointB.ChanOpenConfirm()
 }
 
-func (suite *InterchainAccountsTestSuite) TestSetUnderlyingApplication() {
+func (s *InterchainAccountsTestSuite) TestSetUnderlyingApplication() {
 	var (
 		app porttypes.IBCModule
 		mw  porttypes.Middleware
@@ -135,20 +135,20 @@ func (suite *InterchainAccountsTestSuite) TestSetUnderlyingApplication() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
 			app = &ibcmock.IBCModule{}
-			mw = controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
+			mw = controller.NewIBCMiddleware(s.chainA.GetSimApp().ICAControllerKeeper)
 
 			tc.malleate() // malleate mutates test data
 
 			if tc.expPanic {
-				suite.Require().Panics(func() {
+				s.Require().Panics(func() {
 					mw.SetUnderlyingApplication(app)
 				})
 			} else {
-				suite.Require().NotPanics(func() {
+				s.Require().NotPanics(func() {
 					mw.SetUnderlyingApplication(app)
 				})
 			}
@@ -156,9 +156,9 @@ func (suite *InterchainAccountsTestSuite) TestSetUnderlyingApplication() {
 	}
 }
 
-func (suite *InterchainAccountsTestSuite) TestSetICS4Wrapper() {
+func (s *InterchainAccountsTestSuite) TestSetICS4Wrapper() {
 	var wrapper porttypes.ICS4Wrapper
-	mw := controller.NewIBCMiddleware(suite.chainA.GetSimApp().ICAControllerKeeper)
+	mw := controller.NewIBCMiddleware(s.chainA.GetSimApp().ICAControllerKeeper)
 	testCases := []struct {
 		name     string
 		malleate func()
@@ -174,16 +174,16 @@ func (suite *InterchainAccountsTestSuite) TestSetICS4Wrapper() {
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			wrapper = suite.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
+			wrapper = s.chainA.GetSimApp().GetIBCKeeper().ChannelKeeper
 			tc.malleate() // malleate mutates test data
 			if tc.expPanic {
-				suite.Require().Panics(func() {
+				s.Require().Panics(func() {
 					mw.SetICS4Wrapper(wrapper)
 				})
 			} else {
-				suite.Require().NotPanics(func() {
+				s.Require().NotPanics(func() {
 					mw.SetICS4Wrapper(wrapper)
 				})
 			}
