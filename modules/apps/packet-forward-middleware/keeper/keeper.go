@@ -74,6 +74,16 @@ func (k *Keeper) SetTransferKeeper(transferKeeper types.TransferKeeper) {
 	k.transferKeeper = transferKeeper
 }
 
+// SetICS4Wrapper sets the ICS4 wrapper.
+func (k *Keeper) SetICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = ics4Wrapper
+}
+
+// ICS4Wrapper gets the ICS4 Wrapper for PFM.
+func (k *Keeper) ICS4Wrapper() porttypes.ICS4Wrapper {
+	return k.ics4Wrapper
+}
+
 // Logger returns a module-specific logger.
 func (*Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+types.ModuleName)
@@ -214,11 +224,11 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 		// Funds in the escrow account were burned,
 		// so on a timeout or acknowledgement error we need to mint the funds back to the escrow account.
 		if err := k.bankKeeper.MintCoins(ctx, transfertypes.ModuleName, newToken); err != nil {
-			return fmt.Errorf("cannot mint coins to the %s module account: %v", transfertypes.ModuleName, err)
+			return fmt.Errorf("cannot mint coins to the %s module account: %w", transfertypes.ModuleName, err)
 		}
 
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, transfertypes.ModuleName, refundEscrowAddress, newToken); err != nil {
-			return fmt.Errorf("cannot send coins from the %s module to the escrow account %s: %v", transfertypes.ModuleName, refundEscrowAddress, err)
+			return fmt.Errorf("cannot send coins from the %s module to the escrow account %s: %w", transfertypes.ModuleName, refundEscrowAddress, err)
 		}
 
 		currentTotalEscrow := k.transferKeeper.GetTotalEscrowForDenom(ctx, coin.GetDenom())
@@ -322,6 +332,7 @@ func (k *Keeper) TimeoutShouldRetry(ctx sdk.Context, packet channeltypes.Packet)
 
 	// Not a forwarded packet. Ignore.
 	if inFlightPacket == nil {
+		// nolint:nilnil
 		return nil, nil
 	}
 
@@ -390,6 +401,7 @@ func (k *Keeper) GetInflightPacket(ctx sdk.Context, packet channeltypes.Packet) 
 		return nil, err
 	}
 	if len(bz) == 0 {
+		// nolint:nilnil
 		return nil, nil
 	}
 	var inFlightPacket types.InFlightPacket
@@ -416,7 +428,7 @@ func (k *Keeper) RemoveInFlightPacket(ctx sdk.Context, packet channeltypes.Packe
 }
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
-func (k *Keeper) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
+func (k *Keeper) SendPacket(ctx sdk.Context, sourcePort, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (uint64, error) {
 	return k.ics4Wrapper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 

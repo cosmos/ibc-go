@@ -28,7 +28,7 @@ import (
 // Prior to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
-func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string,
+func (k *Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, version string,
 	ordering channeltypes.Order,
 ) error {
 	portID, err := icatypes.NewControllerPortID(owner)
@@ -57,7 +57,7 @@ func (k Keeper) RegisterInterchainAccount(ctx sdk.Context, connectionID, owner, 
 
 // registerInterchainAccount registers an interchain account, returning the channel id of the MsgChannelOpenInitResponse
 // and an error if one occurred.
-func (k Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID, version string,
+func (k *Keeper) registerInterchainAccount(ctx sdk.Context, connectionID, portID, version string,
 	ordering channeltypes.Order,
 ) (string, error) {
 	// if there is an active channel for this portID / connectionID return an error

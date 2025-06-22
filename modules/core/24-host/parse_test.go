@@ -38,7 +38,6 @@ func TestParseIdentifier(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		seq, err := host.ParseIdentifier(tc.identifier, tc.prefix)
 		require.Equal(t, tc.expSeq, seq)
 
@@ -95,7 +94,7 @@ func TestMustParseConnectionPath(t *testing.T) {
 		if tc.expErr == nil {
 			require.NotPanics(t, func() {
 				connID := host.MustParseConnectionPath(tc.path)
-				require.Equal(t, connID, tc.expected)
+				require.Equal(t, tc.expected, connID)
 			})
 		} else {
 			require.Panics(t, func() {

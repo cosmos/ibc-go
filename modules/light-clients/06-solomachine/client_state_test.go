@@ -15,10 +15,9 @@ const (
 	testPortID                   = "testportid"
 )
 
-func (suite *SoloMachineTestSuite) TestClientStateValidate() {
+func (s *SoloMachineTestSuite) TestClientStateValidate() {
 	// test singlesig and multisig public keys
-	for _, sm := range []*ibctesting.Solomachine{suite.solomachine, suite.solomachineMulti} {
-
+	for _, sm := range []*ibctesting.Solomachine{s.solomachine, s.solomachineMulti} {
 		testCases := []struct {
 			name        string
 			clientState *solomachine.ClientState
@@ -57,22 +56,22 @@ func (suite *SoloMachineTestSuite) TestClientStateValidate() {
 		}
 
 		for _, tc := range testCases {
-			suite.Run(tc.name, func() {
+			s.Run(tc.name, func() {
 				err := tc.clientState.Validate()
 
 				if tc.expErr == nil {
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 				} else {
-					suite.Require().Error(err)
-					suite.Require().ErrorContains(err, tc.expErr.Error())
+					s.Require().Error(err)
+					s.Require().ErrorContains(err, tc.expErr.Error())
 				}
 			})
 		}
 	}
 }
 
-func (suite *SoloMachineTestSuite) TestSignBytesMarshalling() {
-	sm := suite.solomachine
+func (s *SoloMachineTestSuite) TestSignBytesMarshalling() {
+	sm := s.solomachine
 	path := []byte("solomachine")
 	signBytesNilData := solomachine.SignBytes{
 		Sequence:    sm.GetHeight().GetRevisionHeight(),
@@ -90,11 +89,11 @@ func (suite *SoloMachineTestSuite) TestSignBytesMarshalling() {
 		Data:        []byte{},
 	}
 
-	signBzNil, err := suite.chainA.Codec.Marshal(&signBytesNilData)
-	suite.Require().NoError(err)
+	signBzNil, err := s.chainA.Codec.Marshal(&signBytesNilData)
+	s.Require().NoError(err)
 
-	signBzEmptyArray, err := suite.chainA.Codec.Marshal(&signBytesEmptyArray)
-	suite.Require().NoError(err)
+	signBzEmptyArray, err := s.chainA.Codec.Marshal(&signBytesEmptyArray)
+	s.Require().NoError(err)
 
-	suite.Require().True(bytes.Equal(signBzNil, signBzEmptyArray))
+	s.Require().True(bytes.Equal(signBzNil, signBzEmptyArray))
 }

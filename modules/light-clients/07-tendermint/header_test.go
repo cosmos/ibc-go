@@ -11,17 +11,17 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 )
 
-func (suite *TendermintTestSuite) TestGetHeight() {
-	header := suite.chainA.LatestCommittedHeader
-	suite.Require().NotEqual(uint64(0), header.GetHeight())
+func (s *TendermintTestSuite) TestGetHeight() {
+	header := s.chainA.LatestCommittedHeader
+	s.Require().NotEqual(uint64(0), header.GetHeight())
 }
 
-func (suite *TendermintTestSuite) TestGetTime() {
-	header := suite.chainA.LatestCommittedHeader
-	suite.Require().NotEqual(time.Time{}, header.GetTime())
+func (s *TendermintTestSuite) TestGetTime() {
+	header := s.chainA.LatestCommittedHeader
+	s.Require().NotEqual(time.Time{}, header.GetTime())
 }
 
-func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
+func (s *TendermintTestSuite) TestHeaderValidateBasic() {
 	var header *ibctm.Header
 	testCases := []struct {
 		name     string
@@ -39,13 +39,13 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 			header.Commit.Height = -1
 		}, errors.New("header is not a tendermint header")},
 		{"signed header failed tendermint ValidateBasic", func() {
-			header = suite.chainA.LatestCommittedHeader
+			header = s.chainA.LatestCommittedHeader
 			header.Commit = nil
 		}, errors.New("header failed basic validation")},
 		{"trusted height is equal to header height", func() {
 			var ok bool
 			header.TrustedHeight, ok = header.GetHeight().(clienttypes.Height)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 		}, errors.New("invalid header height")},
 		{"validator set nil", func() {
 			header.ValidatorSet = nil
@@ -55,27 +55,27 @@ func (suite *TendermintTestSuite) TestHeaderValidateBasic() {
 		}, errors.New("validator set is not tendermint validator set")},
 		{"header validator hash does not equal hash of validator set", func() {
 			// use chainB's randomly generated validator set
-			header.ValidatorSet = suite.chainB.LatestCommittedHeader.ValidatorSet
+			header.ValidatorSet = s.chainB.LatestCommittedHeader.ValidatorSet
 		}, errors.New("validator set does not match hash")},
 	}
 
-	suite.Require().Equal(exported.Tendermint, suite.header.ClientType())
+	s.Require().Equal(exported.Tendermint, s.header.ClientType())
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-			header = suite.chainA.LatestCommittedHeader // must be explicitly changed in malleate
+			header = s.chainA.LatestCommittedHeader // must be explicitly changed in malleate
 
 			tc.malleate()
 
 			err := header.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorContains(err, tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().ErrorContains(err, tc.expErr.Error())
 			}
 		})
 	}

@@ -29,9 +29,5 @@ func (cs ClientState) Validate() error {
 		return errorsmod.Wrap(ErrInvalidData, "data cannot be empty")
 	}
 
-	if err := ValidateWasmChecksum(cs.Checksum); err != nil {
-		return err
-	}
-
-	return nil
+	return ValidateWasmChecksum(cs.Checksum)
 }

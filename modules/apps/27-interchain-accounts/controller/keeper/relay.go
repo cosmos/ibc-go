@@ -20,13 +20,13 @@ import (
 // Prior to v6.x.x of ibc-go, the controller module was only functional as middleware, with authentication performed
 // by the underlying application. For a full summary of the changes in v6.x.x, please see ADR009.
 // This API will be removed in later releases.
-func (k Keeper) SendTx(ctx sdk.Context, connectionID, portID string,
+func (k *Keeper) SendTx(ctx sdk.Context, connectionID, portID string,
 	icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64,
 ) (uint64, error) {
 	return k.sendTx(ctx, connectionID, portID, icaPacketData, timeoutTimestamp)
 }
 
-func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string,
+func (k *Keeper) sendTx(ctx sdk.Context, connectionID, portID string,
 	icaPacketData icatypes.InterchainAccountPacketData, timeoutTimestamp uint64,
 ) (uint64, error) {
 	if !k.GetParams(ctx).ControllerEnabled {
@@ -55,6 +55,6 @@ func (k Keeper) sendTx(ctx sdk.Context, connectionID, portID string,
 
 // OnTimeoutPacket removes the active channel associated with the provided packet, the underlying channel end is closed
 // due to the semantics of ORDERED channels
-func (Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet) error {
+func (*Keeper) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet) error {
 	return nil
 }

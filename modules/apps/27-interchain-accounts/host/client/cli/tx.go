@@ -86,7 +86,7 @@ otherwise the encoding flag can be used in combination with either "proto3" or "
 				return fmt.Errorf("unsupported encoding type: %s", encoding)
 			}
 
-			packetDataBytes, err := generatePacketData(cdc, []byte(args[0]), memo, encoding)
+			packetDataBytes, err := GeneratePacketData(cdc, []byte(args[0]), memo, encoding)
 			if err != nil {
 				return err
 			}
@@ -102,9 +102,9 @@ otherwise the encoding flag can be used in combination with either "proto3" or "
 	return cmd
 }
 
-// generatePacketData takes in message bytes and a memo and serializes the message into an
+// GeneratePacketData takes in message bytes and a memo and serializes the message into an
 // instance of InterchainAccountPacketData which is returned as bytes.
-func generatePacketData(cdc *codec.ProtoCodec, msgBytes []byte, memo string, encoding string) ([]byte, error) {
+func GeneratePacketData(cdc *codec.ProtoCodec, msgBytes []byte, memo string, encoding string) ([]byte, error) {
 	protoMessages, err := convertBytesIntoProtoMessages(cdc, msgBytes)
 	if err != nil {
 		return nil, err

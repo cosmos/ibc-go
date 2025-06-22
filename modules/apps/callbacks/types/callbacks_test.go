@@ -494,7 +494,6 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 				if len(tc.expCallbackData.Calldata) > 0 {
 					s.Require().Equal([]byte("calldata"), callbackData.Calldata, tc.name)
 				}
-
 			} else {
 				s.Require().ErrorIs(err, tc.expError, tc.name)
 			}

@@ -54,11 +54,7 @@ func (m MsgRemoveChecksum) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	if err := ValidateWasmChecksum(m.Checksum); err != nil {
-		return err
-	}
-
-	return nil
+	return ValidateWasmChecksum(m.Checksum)
 }
 
 // MsgMigrateContract creates a new MsgMigrateContract instance

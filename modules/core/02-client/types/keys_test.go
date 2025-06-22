@@ -59,7 +59,7 @@ func TestParseClientIdentifier(t *testing.T) {
 			} else {
 				require.Error(t, err, tc.name, tc.clientID)
 				require.False(t, valid)
-				require.Equal(t, "", clientType)
+				require.Empty(t, clientType)
 				require.ErrorContains(t, err, tc.expErr.Error())
 			}
 		})

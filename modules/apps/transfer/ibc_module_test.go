@@ -19,7 +19,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *TransferTestSuite) TestOnChanOpenInit() {
+func (s *TransferTestSuite) TestOnChanOpenInit() {
 	var (
 		channel      *channeltypes.Channel
 		path         *ibctesting.Path
@@ -74,9 +74,9 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
+			path = ibctesting.NewTransferPath(s.chainA, s.chainB)
 			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
@@ -91,23 +91,23 @@ func (suite *TransferTestSuite) TestOnChanOpenInit() {
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			transferModule := transfer.NewIBCModule(suite.chainA.GetSimApp().TransferKeeper)
-			version, err := transferModule.OnChanOpenInit(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
+			transferModule := transfer.NewIBCModule(s.chainA.GetSimApp().TransferKeeper)
+			version, err := transferModule.OnChanOpenInit(s.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, counterparty, channel.Version,
 			)
 
 			if tc.expError == nil {
-				suite.Require().NoError(err)
-				suite.Require().Equal(tc.expVersion, version)
+				s.Require().NoError(err)
+				s.Require().Equal(tc.expVersion, version)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
 }
 
-func (suite *TransferTestSuite) TestOnChanOpenTry() {
+func (s *TransferTestSuite) TestOnChanOpenTry() {
 	var (
 		channel             *channeltypes.Channel
 		path                *ibctesting.Path
@@ -153,10 +153,10 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(s.chainA, s.chainB)
 			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 
@@ -170,26 +170,26 @@ func (suite *TransferTestSuite) TestOnChanOpenTry() {
 			}
 			counterpartyVersion = types.V1
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
-			suite.Require().True(ok)
+			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
+			s.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			version, err := cbs.OnChanOpenTry(suite.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
+			version, err := cbs.OnChanOpenTry(s.chainA.GetContext(), channel.Ordering, channel.ConnectionHops,
 				path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel.Counterparty, counterpartyVersion,
 			)
 			if tc.expError == nil {
-				suite.Require().NoError(err)
-				suite.Require().Equal(tc.expVersion, version)
+				s.Require().NoError(err)
+				s.Require().Equal(tc.expVersion, version)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
 }
 
-func (suite *TransferTestSuite) TestOnChanOpenAck() {
+func (s *TransferTestSuite) TestOnChanOpenAck() {
 	var counterpartyVersion string
 
 	testCases := []struct {
@@ -210,32 +210,32 @@ func (suite *TransferTestSuite) TestOnChanOpenAck() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 			path.SetupConnections()
 			path.EndpointA.ChannelID = ibctesting.FirstChannelID
 			counterpartyVersion = types.V1
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
-			suite.Require().True(ok)
+			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
+			s.Require().True(ok)
 
 			tc.malleate() // explicitly change fields in channel and testChannel
 
-			err := cbs.OnChanOpenAck(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelID, counterpartyVersion)
+			err := cbs.OnChanOpenAck(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointA.Counterparty.ChannelID, counterpartyVersion)
 
 			if tc.expError == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
 }
 
-func (suite *TransferTestSuite) TestOnRecvPacket() {
+func (s *TransferTestSuite) TestOnRecvPacket() {
 	// This test suite mostly covers the top-level logic of the ibc module OnRecvPacket function
 	// The core logic is covered in keeper OnRecvPacket
 	var (
@@ -274,7 +274,7 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 		{
 			"failure: receive disabled",
 			func() {
-				suite.chainB.GetSimApp().TransferKeeper.SetParams(suite.chainB.GetContext(), types.Params{ReceiveEnabled: false})
+				s.chainB.GetSimApp().TransferKeeper.SetParams(s.chainB.GetContext(), types.Params{ReceiveEnabled: false})
 			},
 			channeltypes.NewErrorAcknowledgement(types.ErrReceiveDisabled),
 			"fungible token transfers to this chain are disabled",
@@ -282,10 +282,10 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(s.chainA, s.chainB)
 			path.Setup()
 
 			token := types.Token{
@@ -295,8 +295,8 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			packetData := types.NewFungibleTokenPacketData(
 				token.Denom.Path(),
 				token.Amount,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(),
+				s.chainA.SenderAccount.GetAddress().String(),
+				s.chainB.SenderAccount.GetAddress().String(),
 				"",
 			)
 
@@ -317,17 +317,17 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			}
 
 			seq := uint64(1)
-			packet = channeltypes.NewPacket(packetData.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), suite.chainA.GetTimeoutTimestamp())
+			packet = channeltypes.NewPacket(packetData.GetBytes(), seq, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, clienttypes.ZeroHeight(), s.chainA.GetTimeoutTimestamp())
 
-			ctx := suite.chainB.GetContext()
-			cbs, ok := suite.chainB.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
-			suite.Require().True(ok)
+			ctx := s.chainB.GetContext()
+			cbs, ok := s.chainB.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
+			s.Require().True(ok)
 
 			tc.malleate() // change fields in packet
 
-			ack := cbs.OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, suite.chainB.SenderAccount.GetAddress())
+			ack := cbs.OnRecvPacket(ctx, path.EndpointB.GetChannel().Version, packet, s.chainB.SenderAccount.GetAddress())
 
-			suite.Require().Equal(tc.expAck, ack)
+			s.Require().Equal(tc.expAck, ack)
 
 			expectedEvents := sdk.Events{
 				sdk.NewEvent(
@@ -337,12 +337,12 @@ func (suite *TransferTestSuite) TestOnRecvPacket() {
 			}.ToABCIEvents()
 
 			expectedEvents = sdk.MarkEventsToIndex(expectedEvents, map[string]struct{}{})
-			ibctesting.AssertEvents(&suite.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
+			ibctesting.AssertEvents(&s.Suite, expectedEvents, ctx.EventManager().Events().ToABCIEvents())
 		})
 	}
 }
 
-func (suite *TransferTestSuite) TestOnAcknowledgePacket() {
+func (s *TransferTestSuite) TestOnAcknowledgePacket() {
 	var (
 		path   *ibctesting.Path
 		packet channeltypes.Packet
@@ -400,10 +400,10 @@ func (suite *TransferTestSuite) TestOnAcknowledgePacket() {
 			func() {
 				ack = channeltypes.NewErrorAcknowledgement(ibcerrors.ErrInsufficientFunds).Acknowledgement()
 
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
-				suite.Require().True(ok)
+				cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
+				s.Require().True(ok)
 
-				suite.Require().NoError(cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, ack, suite.chainA.SenderAccount.GetAddress()))
+				s.Require().NoError(cbs.OnAcknowledgementPacket(s.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, ack, s.chainA.SenderAccount.GetAddress()))
 			},
 			errors.New("unable to unescrow tokens"),
 			false,
@@ -426,55 +426,55 @@ func (suite *TransferTestSuite) TestOnAcknowledgePacket() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(s.chainA, s.chainB)
 			path.Setup()
 
-			timeoutHeight := suite.chainA.GetTimeoutHeight()
+			timeoutHeight := s.chainA.GetTimeoutHeight()
 			msg := types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				ibctesting.TestCoin,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(),
+				s.chainA.SenderAccount.GetAddress().String(),
+				s.chainB.SenderAccount.GetAddress().String(),
 				timeoutHeight,
 				0,
 				"",
 			)
-			res, err := suite.chainA.SendMsgs(msg)
-			suite.Require().NoError(err) // message committed
+			res, err := s.chainA.SendMsgs(msg)
+			s.Require().NoError(err) // message committed
 
 			packet, err = ibctesting.ParseV1PacketFromEvents(res.Events)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
-			suite.Require().True(ok)
+			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
+			s.Require().True(ok)
 
 			ack = channeltypes.NewResultAcknowledgement([]byte{byte(1)}).Acknowledgement()
 
 			tc.malleate() // change fields in packet
 
-			err = cbs.OnAcknowledgementPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, ack, suite.chainA.SenderAccount.GetAddress())
+			err = cbs.OnAcknowledgementPacket(s.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, ack, s.chainA.SenderAccount.GetAddress())
 
 			if tc.expError == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				if tc.expRefund {
 					escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
-					escrowBalanceAfter := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
-					suite.Require().Equal(sdkmath.NewInt(0), escrowBalanceAfter.Amount)
+					escrowBalanceAfter := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
+					s.Require().Equal(sdkmath.NewInt(0), escrowBalanceAfter.Amount)
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
 }
 
-func (suite *TransferTestSuite) TestOnTimeoutPacket() {
+func (s *TransferTestSuite) TestOnTimeoutPacket() {
 	var path *ibctesting.Path
 	var packet channeltypes.Packet
 
@@ -510,61 +510,61 @@ func (suite *TransferTestSuite) TestOnTimeoutPacket() {
 			"already timed-out packet",
 			ibctesting.TestCoin,
 			func() {
-				cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
-				suite.Require().True(ok)
+				cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
+				s.Require().True(ok)
 
-				suite.Require().NoError(cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress()))
+				s.Require().NoError(cbs.OnTimeoutPacket(s.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, s.chainA.SenderAccount.GetAddress()))
 			},
 			errors.New("unable to unescrow tokens"),
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(s.chainA, s.chainB)
 			path.Setup()
 
-			timeoutHeight := suite.chainA.GetTimeoutHeight()
+			timeoutHeight := s.chainA.GetTimeoutHeight()
 			msg := types.NewMsgTransfer(
 				path.EndpointA.ChannelConfig.PortID,
 				path.EndpointA.ChannelID,
 				tc.coinsToSendToB,
-				suite.chainA.SenderAccount.GetAddress().String(),
-				suite.chainB.SenderAccount.GetAddress().String(),
+				s.chainA.SenderAccount.GetAddress().String(),
+				s.chainB.SenderAccount.GetAddress().String(),
 				timeoutHeight,
 				0,
 				"",
 			)
-			res, err := suite.chainA.SendMsgs(msg)
-			suite.Require().NoError(err) // message committed
+			res, err := s.chainA.SendMsgs(msg)
+			s.Require().NoError(err) // message committed
 
 			packet, err = ibctesting.ParseV1PacketFromEvents(res.Events)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
-			cbs, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
-			suite.Require().True(ok)
+			cbs, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(ibctesting.TransferPort)
+			s.Require().True(ok)
 
 			tc.malleate() // change fields in packet
 
-			err = cbs.OnTimeoutPacket(suite.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, suite.chainA.SenderAccount.GetAddress())
+			err = cbs.OnTimeoutPacket(s.chainA.GetContext(), path.EndpointA.GetChannel().Version, packet, s.chainA.SenderAccount.GetAddress())
 
 			if tc.expError == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				escrowAddress := types.GetEscrowAddress(packet.GetSourcePort(), packet.GetSourceChannel())
-				escrowBalanceAfter := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
-				suite.Require().Equal(sdkmath.NewInt(0), escrowBalanceAfter.Amount)
+				escrowBalanceAfter := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, sdk.DefaultBondDenom)
+				s.Require().Equal(sdkmath.NewInt(0), escrowBalanceAfter.Amount)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
 }
 
-func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
+func (s *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	var (
 		sender   = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
 		receiver = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address()).String()
@@ -617,39 +617,39 @@ func (suite *TransferTestSuite) TestPacketDataUnmarshalerInterface() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			tc.malleate()
 
-			path := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 			path.Setup()
 
-			transferStack, ok := suite.chainA.App.GetIBCKeeper().PortKeeper.Route(types.ModuleName)
-			suite.Require().True(ok)
+			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(types.ModuleName)
+			s.Require().True(ok)
 
 			unmarshalerStack, ok := transferStack.(porttypes.PacketDataUnmarshaler)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 
-			packetData, version, err := unmarshalerStack.UnmarshalPacketData(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)
+			packetData, version, err := unmarshalerStack.UnmarshalPacketData(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, data)
 
 			if tc.expError == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				v2PacketData, ok := packetData.(types.InternalTransferRepresentation)
-				suite.Require().True(ok)
-				suite.Require().Equal(path.EndpointA.ChannelConfig.Version, version)
+				s.Require().True(ok)
+				s.Require().Equal(path.EndpointA.ChannelConfig.Version, version)
 
 				if v1PacketData, ok := initialPacketData.(types.FungibleTokenPacketData); ok {
 					// Note: testing of the denom trace parsing/conversion should be done as part of testing internal conversion functions
-					suite.Require().Equal(v1PacketData.Amount, v2PacketData.Token.Amount)
-					suite.Require().Equal(v1PacketData.Sender, v2PacketData.Sender)
-					suite.Require().Equal(v1PacketData.Receiver, v2PacketData.Receiver)
-					suite.Require().Equal(v1PacketData.Memo, v2PacketData.Memo)
+					s.Require().Equal(v1PacketData.Amount, v2PacketData.Token.Amount)
+					s.Require().Equal(v1PacketData.Sender, v2PacketData.Sender)
+					s.Require().Equal(v1PacketData.Receiver, v2PacketData.Receiver)
+					s.Require().Equal(v1PacketData.Memo, v2PacketData.Memo)
 				} else {
-					suite.Require().Equal(initialPacketData.(types.InternalTransferRepresentation), v2PacketData)
+					s.Require().Equal(initialPacketData.(types.InternalTransferRepresentation), v2PacketData)
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), tc.expError.Error())
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), tc.expError.Error())
 			}
 		})
 	}
