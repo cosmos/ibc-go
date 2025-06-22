@@ -159,7 +159,7 @@ type SimApp struct {
 	TransferKeeper        *ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	PFMKeeper             *packetforwardkeeper.Keeper
-	RateLimitKeeper       ratelimitkeeper.Keeper
+	RateLimitKeeper       *ratelimitkeeper.Keeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -361,10 +361,6 @@ func NewSimApp(
 
 	// Middleware Stacks
 
-	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-	// PacketForwardMiddleware must be created before TransferKeeper // TODO: Is this correct?
-	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-
 	// Create Transfer Keeper
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]),
@@ -374,7 +370,8 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	app.PFMKeeper.SetTransferKeeper(app.TransferKeeper) // TODO: Is this correct, feels wrong...
+	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// Mock Module Stack
 

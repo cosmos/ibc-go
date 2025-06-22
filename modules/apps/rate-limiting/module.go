@@ -94,11 +94,11 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for this module
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // NewAppModule creates a new rate-limiting module
-func NewAppModule(k keeper.Keeper) AppModule {
+func NewAppModule(k *keeper.Keeper) AppModule {
 	return AppModule{
 		keeper: k,
 	}
@@ -107,7 +107,7 @@ func NewAppModule(k keeper.Keeper) AppModule {
 // RegisterServices registers module services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper)) // Use the msgServer implementation
-	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(&am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(am.keeper))
 }
 
 // InitGenesis performs genesis initialization for the rate-limiting module. It returns

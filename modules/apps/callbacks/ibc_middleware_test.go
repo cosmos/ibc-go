@@ -73,8 +73,6 @@ func (s *CallbacksTestSuite) TestSetICS4Wrapper() {
 	s.Require().Nil(cbsMiddleware.GetICS4Wrapper())
 
 	s.Require().Panics(func() {
-		//nolint:staticcheck // SA1019: SetICS4Wrapper is deprecated, use WithICS4Wrapper instead
-		// this is to test the panic behavior of the deprecated method
 		cbsMiddleware.SetICS4Wrapper(nil)
 	}, "expected panic when setting nil ICS4Wrapper")
 
@@ -90,16 +88,12 @@ func (s *CallbacksTestSuite) TestSetUnderlyingApplication() {
 	cbsMiddleware := ibccallbacks.IBCMiddleware{}
 
 	s.Require().Panics(func() {
-		//nolint:staticcheck // SA1019: SetUnderlyingApplication is deprecated, use WithUnderlyingApplication instead
-		// this is to test the panic behavior of the deprecated method
 		cbsMiddleware.SetUnderlyingApplication(nil)
 	}, "expected panic when setting nil underlying application")
 
 	cbsMiddleware.SetUnderlyingApplication(&ibcmock.IBCModule{})
 
 	s.Require().Panics(func() {
-		//nolint:staticcheck // SA1019: SetICS4Wrapper is deprecated, use WithICS4Wrapper instead
-		// this is to test the panic behavior of the deprecated method
 		cbsMiddleware.SetUnderlyingApplication(&ibcmock.IBCModule{})
 	}, "expected panic when setting underlying application a second time")
 }

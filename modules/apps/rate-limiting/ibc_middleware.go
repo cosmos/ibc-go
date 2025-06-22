@@ -19,13 +19,12 @@ var (
 
 // IBCMiddleware implements the ICS26 callbacks for the rate-limiting middleware.
 type IBCMiddleware struct {
-	app         porttypes.PacketUnmarshalerModule
-	keeper      keeper.Keeper
-	ics4Wrapper porttypes.ICS4Wrapper
+	app    porttypes.PacketUnmarshalerModule
+	keeper *keeper.Keeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper, underlying application, and channel keeper.
-func NewIBCMiddleware(k keeper.Keeper) *IBCMiddleware {
+func NewIBCMiddleware(k *keeper.Keeper) *IBCMiddleware {
 	return &IBCMiddleware{
 		keeper: k,
 	}
@@ -104,24 +103,19 @@ func (im *IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceCh
 		return 0, err
 	}
 
-	seq, err := im.ics4Wrapper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
-	if err != nil {
-		return 0, err
-	}
-
-	return seq, nil
+	return im.keeper.SendPacket(ctx, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface.
 // It calls the underlying ICS4Wrapper.
 func (im *IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, ack ibcexported.Acknowledgement) error {
-	return im.ics4Wrapper.WriteAcknowledgement(ctx, packet, ack)
+	return im.keeper.WriteAcknowledgement(ctx, packet, ack)
 }
 
 // GetAppVersion implements the ICS4 Wrapper interface.
 // It calls the underlying ICS4Wrapper.
 func (im *IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-	return im.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
+	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }
 
 // UnmarshalPacketData implements the PacketDataUnmarshaler interface.
@@ -134,7 +128,6 @@ func (im *IBCMiddleware) SetICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 	if wrapper == nil {
 		panic("ICS4Wrapper cannot be nil")
 	}
-	im.ics4Wrapper = wrapper
 	im.keeper.SetICS4Wrapper(wrapper)
 }
 

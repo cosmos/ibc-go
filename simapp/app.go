@@ -176,7 +176,7 @@ type SimApp struct {
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	CircuitKeeper         circuitkeeper.Keeper
 	PFMKeeper             *packetforwardkeeper.Keeper
-	RateLimitKeeper       ratelimitkeeper.Keeper
+	RateLimitKeeper       *ratelimitkeeper.Keeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -374,17 +374,7 @@ func NewSimApp(
 		govAuthority,
 	)
 
-	// Packet Forward Middleware keeper
-	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-
-	// Create IBC Router
-	ibcRouter := porttypes.NewRouter()
-
-	// Middleware Stacks
-
-	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, govAuthority)
-
-	// Create Transfer Keeper
+	// Transfer Keeper
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]),
 		app.IBCKeeper.ChannelKeeper,
@@ -393,7 +383,13 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	app.PFMKeeper.SetTransferKeeper(app.TransferKeeper)
+	// Packet Forward Middleware keeper
+	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+
+	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, govAuthority)
+
+	// Create IBC Router
+	ibcRouter := porttypes.NewRouter()
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:

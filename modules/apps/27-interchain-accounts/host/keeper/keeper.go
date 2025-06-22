@@ -65,8 +65,10 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		storeService:  storeService,
-		cdc:           cdc,
+		storeService: storeService,
+		cdc:          cdc,
+		// Defaults to using the channel keeper as the ICS4Wrapper
+		// This can be overridden later with WithICS4Wrapper (e.g. by the middleware stack wiring)
 		ics4Wrapper:   channelKeeper,
 		channelKeeper: channelKeeper,
 		accountKeeper: accountKeeper,
