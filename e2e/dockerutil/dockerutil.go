@@ -28,7 +28,7 @@ func GetTestContainers(ctx context.Context, suiteName string, dc *dockerclient.C
 		),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed listing containers: %s", err)
+		return nil, fmt.Errorf("failed listing containers: %w", err)
 	}
 
 	return testContainers, nil
@@ -41,7 +41,7 @@ func GetContainerLogs(ctx context.Context, dc *dockerclient.Client, containerNam
 		ShowStderr: true,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed reading logs in test cleanup: %s", err)
+		return nil, fmt.Errorf("failed reading logs in test cleanup: %w", err)
 	}
 	return io.ReadAll(readCloser)
 }

@@ -250,7 +250,6 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		msg := types.MsgUpdateParams{
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),
@@ -264,6 +263,5 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 		} else {
 			require.ErrorContains(t, err, tc.expErr.Error())
 		}
-
 	}
 }

@@ -28,7 +28,7 @@ var (
 	solomachineClientID = clienttypes.FormatClientIdentifier(exported.Solomachine, 0)
 )
 
-func (suite *TendermintTestSuite) TestInitialize() {
+func (s *TendermintTestSuite) TestInitialize() {
 	var consensusState exported.ConsensusState
 	var clientState exported.ClientState
 
@@ -52,14 +52,14 @@ func (suite *TendermintTestSuite) TestInitialize() {
 		{
 			"invalid client state: solomachine client state",
 			func() {
-				clientState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ClientState()
+				clientState = ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2).ClientState()
 			},
 			errors.New("failed to unmarshal client state bytes into client state"),
 		},
 		{
 			"invalid consensus: consensus state is solomachine consensus",
 			func() {
-				consensusState = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2).ConsensusState()
+				consensusState = ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2).ConsensusState()
 			},
 			errors.New("failed to unmarshal consensus state bytes into consensus state"),
 		},
@@ -73,49 +73,49 @@ func (suite *TendermintTestSuite) TestInitialize() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
-			path := ibctesting.NewPath(suite.chainA, suite.chainB)
+		s.Run(tc.name, func() {
+			s.SetupTest()
+			path := ibctesting.NewPath(s.chainA, s.chainB)
 
 			tmConfig, ok := path.EndpointA.ClientConfig.(*ibctesting.TendermintConfig)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 
 			clientState = ibctm.NewClientState(
 				path.EndpointA.Chain.ChainID,
 				tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
-				suite.chainA.LatestCommittedHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
+				s.chainA.LatestCommittedHeader.GetHeight().(clienttypes.Height), commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath,
 			)
 
-			consensusState = ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), suite.chainA.ProposedHeader.ValidatorsHash)
+			consensusState = ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), s.chainA.ProposedHeader.ValidatorsHash)
 
-			clientID := suite.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(suite.chainA.GetContext(), clientState.ClientType())
+			clientID := s.chainA.App.GetIBCKeeper().ClientKeeper.GenerateClientIdentifier(s.chainA.GetContext(), clientState.ClientType())
 
-			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
-			suite.Require().NoError(err)
+			lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), clientID)
+			s.Require().NoError(err)
 
 			tc.malleate()
 
-			clientStateBz := suite.chainA.Codec.MustMarshal(clientState)
-			consStateBz := suite.chainA.Codec.MustMarshal(consensusState)
+			clientStateBz := s.chainA.Codec.MustMarshal(clientState)
+			consStateBz := s.chainA.Codec.MustMarshal(consensusState)
 
-			err = lightClientModule.Initialize(suite.chainA.GetContext(), path.EndpointA.ClientID, clientStateBz, consStateBz)
+			err = lightClientModule.Initialize(s.chainA.GetContext(), path.EndpointA.ClientID, clientStateBz, consStateBz)
 
-			store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+			store := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), path.EndpointA.ClientID)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err, "valid case returned an error")
-				suite.Require().True(store.Has(host.ClientStateKey()))
-				suite.Require().True(store.Has(host.ConsensusStateKey(suite.chainB.LatestCommittedHeader.GetHeight())))
+				s.Require().NoError(err, "valid case returned an error")
+				s.Require().True(store.Has(host.ClientStateKey()))
+				s.Require().True(store.Has(host.ConsensusStateKey(s.chainB.LatestCommittedHeader.GetHeight())))
 			} else {
-				suite.Require().ErrorContains(err, tc.expErr.Error())
-				suite.Require().False(store.Has(host.ClientStateKey()))
-				suite.Require().False(store.Has(host.ConsensusStateKey(suite.chainB.LatestCommittedHeader.GetHeight())))
+				s.Require().ErrorContains(err, tc.expErr.Error())
+				s.Require().False(store.Has(host.ClientStateKey()))
+				s.Require().False(store.Has(host.ConsensusStateKey(s.chainB.LatestCommittedHeader.GetHeight())))
 			}
 		})
 	}
 }
 
-func (suite *TendermintTestSuite) TestVerifyClientMessage() {
+func (s *TendermintTestSuite) TestVerifyClientMessage() {
 	var path *ibctesting.Path
 
 	testCases := []struct {
@@ -131,7 +131,7 @@ func (suite *TendermintTestSuite) TestVerifyClientMessage() {
 		{
 			"failure: client state not found",
 			func() {
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				store := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), path.EndpointA.ClientID)
 				store.Delete(host.ClientStateKey())
 			},
 			clienttypes.ErrClientNotFound,
@@ -139,119 +139,119 @@ func (suite *TendermintTestSuite) TestVerifyClientMessage() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupClients()
 
-			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			suite.Require().NoError(err)
+			lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), path.EndpointA.ClientID)
+			s.Require().NoError(err)
 
 			// ensure counterparty state is committed
-			suite.coordinator.CommitBlock(suite.chainB)
+			s.coordinator.CommitBlock(s.chainB)
 			trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 			header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			tc.malleate()
 
-			err = lightClientModule.VerifyClientMessage(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
+			err = lightClientModule.VerifyClientMessage(s.chainA.GetContext(), path.EndpointA.ClientID, header)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *TendermintTestSuite) TestCheckForMisbehaviourPanicsOnClientStateNotFound() {
-	suite.SetupTest()
+func (s *TendermintTestSuite) TestCheckForMisbehaviourPanicsOnClientStateNotFound() {
+	s.SetupTest()
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.SetupClients()
 
-	lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
-	suite.Require().NoError(err)
+	lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), path.EndpointA.ClientID)
+	s.Require().NoError(err)
 
 	// ensure counterparty state is committed
-	suite.coordinator.CommitBlock(suite.chainB)
+	s.coordinator.CommitBlock(s.chainB)
 	trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 	header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// delete client state
-	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	store := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), path.EndpointA.ClientID)
 	store.Delete(host.ClientStateKey())
 
-	suite.Require().PanicsWithError(errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
+	s.Require().PanicsWithError(errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
 		func() {
-			lightClientModule.CheckForMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
+			lightClientModule.CheckForMisbehaviour(s.chainA.GetContext(), path.EndpointA.ClientID, header)
 		},
 	)
 }
 
-func (suite *TendermintTestSuite) TestUpdateStateOnMisbehaviourPanicsOnClientStateNotFound() {
-	suite.SetupTest()
+func (s *TendermintTestSuite) TestUpdateStateOnMisbehaviourPanicsOnClientStateNotFound() {
+	s.SetupTest()
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.SetupClients()
 
-	lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
-	suite.Require().NoError(err)
+	lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), path.EndpointA.ClientID)
+	s.Require().NoError(err)
 
 	// ensure counterparty state is committed
-	suite.coordinator.CommitBlock(suite.chainB)
+	s.coordinator.CommitBlock(s.chainB)
 	trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 	header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// delete client state
-	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	store := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), path.EndpointA.ClientID)
 	store.Delete(host.ClientStateKey())
 
-	suite.Require().PanicsWithError(
+	s.Require().PanicsWithError(
 		errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
 		func() {
-			lightClientModule.UpdateStateOnMisbehaviour(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
+			lightClientModule.UpdateStateOnMisbehaviour(s.chainA.GetContext(), path.EndpointA.ClientID, header)
 		},
 	)
 }
 
-func (suite *TendermintTestSuite) TestUpdateStatePanicsOnClientStateNotFound() {
-	suite.SetupTest()
+func (s *TendermintTestSuite) TestUpdateStatePanicsOnClientStateNotFound() {
+	s.SetupTest()
 
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.SetupClients()
 
-	lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
-	suite.Require().NoError(err)
+	lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), path.EndpointA.ClientID)
+	s.Require().NoError(err)
 
 	// ensure counterparty state is committed
-	suite.coordinator.CommitBlock(suite.chainB)
+	s.coordinator.CommitBlock(s.chainB)
 	trustedHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 	header, err := path.EndpointA.Counterparty.Chain.IBCClientHeader(path.EndpointA.Counterparty.Chain.LatestCommittedHeader, trustedHeight)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// delete client state
-	store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+	store := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), path.EndpointA.ClientID)
 	store.Delete(host.ClientStateKey())
 
-	suite.Require().PanicsWithError(
+	s.Require().PanicsWithError(
 		errorsmod.Wrap(clienttypes.ErrClientNotFound, path.EndpointA.ClientID).Error(),
 		func() {
-			lightClientModule.UpdateState(suite.chainA.GetContext(), path.EndpointA.ClientID, header)
+			lightClientModule.UpdateState(s.chainA.GetContext(), path.EndpointA.ClientID, header)
 		},
 	)
 }
 
-func (suite *TendermintTestSuite) TestVerifyMembership() {
+func (s *TendermintTestSuite) TestVerifyMembership() {
 	var (
 		testingpath      *ibctesting.Path
 		delayTimePeriod  uint64
@@ -281,15 +281,15 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 				key := host.FullConsensusStateKey(testingpath.EndpointB.ClientID, latestHeight)
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
-				proof, proofHeight = suite.chainB.QueryProof(key)
+				proof, proofHeight = s.chainB.QueryProof(key)
 
 				consensusState, ok := testingpath.EndpointB.GetConsensusState(latestHeight).(*ibctm.ConsensusState)
-				suite.Require().True(ok)
-				value, err = suite.chainB.Codec.MarshalInterface(consensusState)
-				suite.Require().NoError(err)
+				s.Require().True(ok)
+				value, err = s.chainB.Codec.MarshalInterface(consensusState)
+				s.Require().NoError(err)
 			},
 			nil,
 		},
@@ -297,14 +297,14 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			"successful Connection verification", func() {
 				key := host.ConnectionKey(testingpath.EndpointB.ConnectionID)
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
-				proof, proofHeight = suite.chainB.QueryProof(key)
+				proof, proofHeight = s.chainB.QueryProof(key)
 
 				connection := testingpath.EndpointB.GetConnection()
-				value, err = suite.chainB.Codec.Marshal(&connection)
-				suite.Require().NoError(err)
+				value, err = s.chainB.Codec.Marshal(&connection)
+				s.Require().NoError(err)
 			},
 			nil,
 		},
@@ -312,14 +312,14 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			"successful Channel verification", func() {
 				key := host.ChannelKey(testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID)
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
-				proof, proofHeight = suite.chainB.QueryProof(key)
+				proof, proofHeight = s.chainB.QueryProof(key)
 
 				channel := testingpath.EndpointB.GetChannel()
-				value, err = suite.chainB.Codec.Marshal(&channel)
-				suite.Require().NoError(err)
+				value, err = s.chainB.Codec.Marshal(&channel)
+				s.Require().NoError(err)
 			},
 			nil,
 		},
@@ -327,14 +327,14 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			"successful PacketCommitment verification", func() {
 				// send from chainB to chainA since we are proving chainB sent a packet
 				sequence, err := testingpath.EndpointB.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				// make packet commitment proof
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, clienttypes.NewHeight(1, 100), 0)
 				key := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
 
@@ -345,18 +345,18 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			"successful Acknowledgement verification", func() {
 				// send from chainA to chainB since we are proving chainB wrote an acknowledgement
 				sequence, err := testingpath.EndpointA.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				// write receipt and ack
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 				err = testingpath.EndpointB.RecvPacket(packet)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				key := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 				merklePath := commitmenttypes.NewMerklePath(key)
 
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
 
@@ -370,17 +370,17 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 
 				// send packet
 				sequence, err := testingpath.EndpointA.SendPacket(clienttypes.NewHeight(1, 100), 0, ibctesting.MockPacketData)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				// next seq recv incremented
 				packet := channeltypes.NewPacket(ibctesting.MockPacketData, sequence, testingpath.EndpointA.ChannelConfig.PortID, testingpath.EndpointA.ChannelID, testingpath.EndpointB.ChannelConfig.PortID, testingpath.EndpointB.ChannelID, clienttypes.NewHeight(1, 100), 0)
 				err = testingpath.EndpointB.RecvPacket(packet)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				key := host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
 				merklePath := commitmenttypes.NewMerklePath(key)
 
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
 
@@ -393,12 +393,12 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 				key := transfertypes.PortKey
 				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(testingpath.EndpointA.GetClientLatestHeight().GetRevisionHeight()))
+				proof, proofHeight = s.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(testingpath.EndpointA.GetClientLatestHeight().GetRevisionHeight()))
 
-				value = []byte(suite.chainB.GetSimApp().TransferKeeper.GetPort(suite.chainB.GetContext()))
-				suite.Require().NoError(err)
+				value = []byte(s.chainB.GetSimApp().TransferKeeper.GetPort(s.chainB.GetContext()))
+				s.Require().NoError(err)
 			},
 			nil,
 		},
@@ -468,7 +468,7 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 		{
 			"client state not found",
 			func() {
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+				store := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), testingpath.EndpointA.ClientID)
 				store.Delete(host.ClientStateKey())
 			},
 			clienttypes.ErrClientNotFound,
@@ -476,9 +476,9 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
+			testingpath = ibctesting.NewPath(s.chainA, s.chainB)
 			testingpath.SetChannelOrdered()
 			testingpath.Setup()
 
@@ -490,35 +490,35 @@ func (suite *TendermintTestSuite) TestVerifyMembership() {
 			// may be overwritten by malleate()
 			key := host.FullClientStateKey(testingpath.EndpointB.ClientID)
 			merklePath := commitmenttypes.NewMerklePath(key)
-			path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-			suite.Require().NoError(err)
+			path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+			s.Require().NoError(err)
 
-			proof, proofHeight = suite.chainB.QueryProof(key)
+			proof, proofHeight = s.chainB.QueryProof(key)
 
 			clientState, ok := testingpath.EndpointB.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
-			value, err = suite.chainB.Codec.MarshalInterface(clientState)
-			suite.Require().NoError(err)
+			s.Require().True(ok)
+			value, err = s.chainB.Codec.MarshalInterface(clientState)
+			s.Require().NoError(err)
 
 			tc.malleate() // make changes as necessary
 
-			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
-			suite.Require().NoError(err)
+			lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), testingpath.EndpointA.ClientID)
+			s.Require().NoError(err)
 
 			err = lightClientModule.VerifyMembership(
-				suite.chainA.GetContext(), testingpath.EndpointA.ClientID, proofHeight, delayTimePeriod, delayBlockPeriod,
+				s.chainA.GetContext(), testingpath.EndpointA.ClientID, proofHeight, delayTimePeriod, delayBlockPeriod,
 				proof, path, value,
 			)
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().ErrorContains(err, tc.expErr.Error())
+				s.Require().ErrorContains(err, tc.expErr.Error())
 			}
 		})
 	}
 }
 
-func (suite *TendermintTestSuite) TestVerifyNonMembership() {
+func (s *TendermintTestSuite) TestVerifyNonMembership() {
 	var (
 		testingpath         *ibctesting.Path
 		delayTimePeriod     uint64
@@ -549,10 +549,10 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful ConsensusState verification of non membership", func() {
 				key := host.FullConsensusStateKey(invalidClientID, testingpath.EndpointB.GetClientLatestHeight())
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
-				proof, proofHeight = suite.chainB.QueryProof(key)
+				proof, proofHeight = s.chainB.QueryProof(key)
 			},
 			nil,
 		},
@@ -560,10 +560,10 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful Connection verification of non membership", func() {
 				key := host.ConnectionKey(invalidConnectionID)
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
-				proof, proofHeight = suite.chainB.QueryProof(key)
+				proof, proofHeight = s.chainB.QueryProof(key)
 			},
 			nil,
 		},
@@ -571,10 +571,10 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful Channel verification of non membership", func() {
 				key := host.ChannelKey(testingpath.EndpointB.ChannelConfig.PortID, invalidChannelID)
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
-				proof, proofHeight = suite.chainB.QueryProof(key)
+				proof, proofHeight = s.chainB.QueryProof(key)
 			},
 			nil,
 		},
@@ -583,8 +583,8 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 				// make packet commitment proof
 				key := host.PacketCommitmentKey(invalidPortID, invalidChannelID, 1)
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
 			},
@@ -594,8 +594,8 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful Acknowledgement verification of non membership", func() {
 				key := host.PacketAcknowledgementKey(invalidPortID, invalidChannelID, 1)
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
 			},
@@ -605,8 +605,8 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			"successful NextSequenceRecv verification of non membership", func() {
 				key := host.NextSequenceRecvKey(invalidPortID, invalidChannelID)
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
 				proof, proofHeight = testingpath.EndpointB.QueryProof(key)
 			},
@@ -617,9 +617,9 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 				key := []byte{0x08}
 				merklePath := commitmenttypes.NewMerklePath(key)
 				path, err = commitmenttypes.ApplyPrefix(commitmenttypes.NewMerklePrefix([]byte(transfertypes.StoreKey)), merklePath)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				proof, proofHeight = suite.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(testingpath.EndpointA.GetClientLatestHeight().GetRevisionHeight()))
+				proof, proofHeight = s.chainB.QueryProofForStore(transfertypes.StoreKey, key, int64(testingpath.EndpointA.GetClientLatestHeight().GetRevisionHeight()))
 			},
 			nil,
 		},
@@ -677,10 +677,10 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 				// change the value being proved
 				key := host.FullClientStateKey(testingpath.EndpointB.ClientID)
 				merklePath := commitmenttypes.NewMerklePath(key)
-				path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
-				proof, proofHeight = suite.chainB.QueryProof(key)
+				proof, proofHeight = s.chainB.QueryProof(key)
 			},
 			commitmenttypes.ErrInvalidProof,
 		},
@@ -694,7 +694,7 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 		{
 			"client state not found",
 			func() {
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
+				store := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), testingpath.EndpointA.ClientID)
 				store.Delete(host.ClientStateKey())
 			},
 			clienttypes.ErrClientNotFound,
@@ -702,9 +702,9 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			testingpath = ibctesting.NewPath(suite.chainA, suite.chainB)
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
+			testingpath = ibctesting.NewPath(s.chainA, s.chainB)
 			testingpath.SetChannelOrdered()
 			testingpath.Setup()
 
@@ -717,31 +717,31 @@ func (suite *TendermintTestSuite) TestVerifyNonMembership() {
 			key := host.FullClientStateKey("invalid-client-id")
 
 			merklePath := commitmenttypes.NewMerklePath(key)
-			path, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-			suite.Require().NoError(err)
+			path, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+			s.Require().NoError(err)
 
-			proof, proofHeight = suite.chainB.QueryProof(key)
+			proof, proofHeight = s.chainB.QueryProof(key)
 
 			tc.malleate() // make changes as necessary
 
-			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), testingpath.EndpointA.ClientID)
-			suite.Require().NoError(err)
+			lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), testingpath.EndpointA.ClientID)
+			s.Require().NoError(err)
 
 			err = lightClientModule.VerifyNonMembership(
-				suite.chainA.GetContext(), testingpath.EndpointA.ClientID, proofHeight, delayTimePeriod, delayBlockPeriod,
+				s.chainA.GetContext(), testingpath.EndpointA.ClientID, proofHeight, delayTimePeriod, delayBlockPeriod,
 				proof, path,
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().ErrorContains(err, tc.expErr.Error())
+				s.Require().ErrorContains(err, tc.expErr.Error())
 			}
 		})
 	}
 }
 
-func (suite *TendermintTestSuite) TestStatus() {
+func (s *TendermintTestSuite) TestStatus() {
 	var (
 		path        *ibctesting.Path
 		clientState *ibctm.ClientState
@@ -769,7 +769,7 @@ func (suite *TendermintTestSuite) TestStatus() {
 			"client status without consensus state",
 			func() {
 				newLatestHeight, ok := clientState.LatestHeight.Increment().(clienttypes.Height)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 				clientState.LatestHeight = newLatestHeight
 				path.EndpointA.SetClientState(clientState)
 			},
@@ -778,14 +778,14 @@ func (suite *TendermintTestSuite) TestStatus() {
 		{
 			"client status is expired",
 			func() {
-				suite.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
+				s.coordinator.IncrementTimeBy(clientState.TrustingPeriod)
 			},
 			exported.Expired,
 		},
 		{
 			"client state not found",
 			func() {
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				store := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), path.EndpointA.ClientID)
 				store.Delete(host.ClientStateKey())
 			},
 			exported.Unknown,
@@ -793,28 +793,28 @@ func (suite *TendermintTestSuite) TestStatus() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupClients()
 
-			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			suite.Require().NoError(err)
+			lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), path.EndpointA.ClientID)
+			s.Require().NoError(err)
 
 			var ok bool
 			clientState, ok = path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 
 			tc.malleate()
 
-			status := lightClientModule.Status(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			suite.Require().Equal(tc.expStatus, status)
+			status := lightClientModule.Status(s.chainA.GetContext(), path.EndpointA.ClientID)
+			s.Require().Equal(tc.expStatus, status)
 		})
 	}
 }
 
-func (suite *TendermintTestSuite) TestLatestHeight() {
+func (s *TendermintTestSuite) TestLatestHeight() {
 	var (
 		path   *ibctesting.Path
 		height exported.Height
@@ -833,7 +833,7 @@ func (suite *TendermintTestSuite) TestLatestHeight() {
 		{
 			"client state not found",
 			func() {
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				store := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), path.EndpointA.ClientID)
 				store.Delete(host.ClientStateKey())
 			},
 			clienttypes.ZeroHeight(),
@@ -841,24 +841,24 @@ func (suite *TendermintTestSuite) TestLatestHeight() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupClients()
 
-			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			suite.Require().NoError(err)
+			lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), path.EndpointA.ClientID)
+			s.Require().NoError(err)
 
 			tc.malleate()
 
-			height = lightClientModule.LatestHeight(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			suite.Require().Equal(tc.expHeight, height)
+			height = lightClientModule.LatestHeight(s.chainA.GetContext(), path.EndpointA.ClientID)
+			s.Require().Equal(tc.expHeight, height)
 		})
 	}
 }
 
-func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
+func (s *TendermintTestSuite) TestGetTimestampAtHeight() {
 	var (
 		path   *ibctesting.Path
 		height exported.Height
@@ -878,7 +878,7 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 		{
 			"failure: client state not found",
 			func() {
-				store := suite.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(suite.chainA.GetContext(), path.EndpointA.ClientID)
+				store := s.chainA.App.GetIBCKeeper().ClientKeeper.ClientStore(s.chainA.GetContext(), path.EndpointA.ClientID)
 				store.Delete(host.ClientStateKey())
 			},
 			clienttypes.ErrClientNotFound,
@@ -887,7 +887,7 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 			"failure: consensus state not found for height",
 			func() {
 				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 				height = clientState.LatestHeight.Increment()
 			},
 			clienttypes.ErrConsensusStateNotFound,
@@ -895,44 +895,44 @@ func (suite *TendermintTestSuite) TestGetTimestampAtHeight() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupClients()
 
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 			height = clientState.LatestHeight
 
 			// grab consensusState from store and update with a predefined timestamp
 			consensusState := path.EndpointA.GetConsensusState(height)
 			tmConsensusState, ok := consensusState.(*ibctm.ConsensusState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 
 			tmConsensusState.Timestamp = expectedTimestamp
 			path.EndpointA.SetConsensusState(tmConsensusState, height)
 
-			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), path.EndpointA.ClientID)
-			suite.Require().NoError(err)
+			lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), path.EndpointA.ClientID)
+			s.Require().NoError(err)
 
 			tc.malleate()
 
-			timestamp, err := lightClientModule.TimestampAtHeight(suite.chainA.GetContext(), path.EndpointA.ClientID, height)
+			timestamp, err := lightClientModule.TimestampAtHeight(s.chainA.GetContext(), path.EndpointA.ClientID, height)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				expectedTimestamp := uint64(expectedTimestamp.UnixNano())
-				suite.Require().Equal(expectedTimestamp, timestamp)
+				s.Require().Equal(expectedTimestamp, timestamp)
 			} else {
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *TendermintTestSuite) TestRecoverClient() {
+func (s *TendermintTestSuite) TestRecoverClient() {
 	var (
 		subjectClientID, substituteClientID string
 		subjectClientState                  exported.ClientState
@@ -980,47 +980,47 @@ func (suite *TendermintTestSuite) TestRecoverClient() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			ctx := suite.chainA.GetContext()
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
+			ctx := s.chainA.GetContext()
 
-			subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			subjectPath := ibctesting.NewPath(s.chainA, s.chainB)
 			subjectPath.SetupClients()
 			subjectClientID = subjectPath.EndpointA.ClientID
-			subjectClientState = suite.chainA.GetClientState(subjectClientID)
+			subjectClientState = s.chainA.GetClientState(subjectClientID)
 
-			substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
+			substitutePath := ibctesting.NewPath(s.chainA, s.chainB)
 			substitutePath.SetupClients()
 			substituteClientID = substitutePath.EndpointA.ClientID
 
 			tmClientState, ok := subjectClientState.(*ibctm.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 			tmClientState.FrozenHeight = tmClientState.LatestHeight
-			suite.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, subjectPath.EndpointA.ClientID, tmClientState)
+			s.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(ctx, subjectPath.EndpointA.ClientID, tmClientState)
 
-			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), subjectClientID)
-			suite.Require().NoError(err)
+			lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), subjectClientID)
+			s.Require().NoError(err)
 
 			tc.malleate()
 
 			err = lightClientModule.RecoverClient(ctx, subjectClientID, substituteClientID)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				// assert that status of subject client is now Active
-				lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), subjectClientID)
-				suite.Require().NoError(err)
-				suite.Require().Equal(lightClientModule.Status(suite.chainA.GetContext(), subjectClientID), exported.Active)
+				lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), subjectClientID)
+				s.Require().NoError(err)
+				s.Require().Equal(lightClientModule.Status(s.chainA.GetContext(), subjectClientID), exported.Active)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
+func (s *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 	var (
 		clientID                                              string
 		path                                                  *ibctesting.Path
@@ -1038,26 +1038,26 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 			"success",
 			func() {
 				// upgrade height is at next block
-				upgradeHeight := clienttypes.NewHeight(0, uint64(suite.chainB.GetContext().BlockHeight()+1))
+				upgradeHeight := clienttypes.NewHeight(0, uint64(s.chainB.GetContext().BlockHeight()+1))
 
 				// zero custom fields and store in upgrade store
 				zeroedUpgradedClient := upgradedClientState.(*ibctm.ClientState).ZeroCustomFields()
 				zeroedUpgradedClientAny, err := codectypes.NewAnyWithValue(zeroedUpgradedClient)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), suite.chainB.Codec.MustMarshal(zeroedUpgradedClientAny))
-				suite.Require().NoError(err)
+				err = s.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(s.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), s.chainB.Codec.MustMarshal(zeroedUpgradedClientAny))
+				s.Require().NoError(err)
 
-				err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), suite.chainB.Codec.MustMarshal(upgradedConsensusStateAny))
-				suite.Require().NoError(err)
+				err = s.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(s.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), s.chainB.Codec.MustMarshal(upgradedConsensusStateAny))
+				s.Require().NoError(err)
 
 				// commit upgrade store changes and update clients
-				suite.coordinator.CommitBlock(suite.chainB)
+				s.coordinator.CommitBlock(s.chainB)
 				err = path.EndpointA.UpdateClient()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				upgradedClientStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(upgradeHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(upgradeHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
+				upgradedClientStateProof, _ = s.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(upgradeHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
+				upgradedConsensusStateProof, _ = s.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(upgradeHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
 			},
 			nil,
 		},
@@ -1090,75 +1090,75 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 			"upgraded client state height is not greater than current height",
 			func() {
 				// upgrade height is at next block
-				upgradeHeight := clienttypes.NewHeight(1, uint64(suite.chainB.GetContext().BlockHeight()+1))
+				upgradeHeight := clienttypes.NewHeight(1, uint64(s.chainB.GetContext().BlockHeight()+1))
 
 				// zero custom fields and store in upgrade store
 				zeroedUpgradedClient := upgradedClientState.(*ibctm.ClientState).ZeroCustomFields()
 				zeroedUpgradedClientAny, err := codectypes.NewAnyWithValue(zeroedUpgradedClient)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), suite.chainB.Codec.MustMarshal(zeroedUpgradedClientAny))
-				suite.Require().NoError(err)
+				err = s.chainB.GetSimApp().UpgradeKeeper.SetUpgradedClient(s.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), s.chainB.Codec.MustMarshal(zeroedUpgradedClientAny))
+				s.Require().NoError(err)
 
-				err = suite.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(suite.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), suite.chainB.Codec.MustMarshal(upgradedConsensusStateAny))
-				suite.Require().NoError(err)
+				err = s.chainB.GetSimApp().UpgradeKeeper.SetUpgradedConsensusState(s.chainB.GetContext(), int64(upgradeHeight.GetRevisionHeight()), s.chainB.Codec.MustMarshal(upgradedConsensusStateAny))
+				s.Require().NoError(err)
 
 				// change upgraded client state height to be lower than current client state height
 				tmClient, ok := upgradedClientState.(*ibctm.ClientState)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 
 				newLatestheight, ok := path.EndpointA.GetClientLatestHeight().Decrement()
-				suite.Require().True(ok)
+				s.Require().True(ok)
 
 				tmClient.LatestHeight, ok = newLatestheight.(clienttypes.Height)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 				upgradedClientStateAny, err = codectypes.NewAnyWithValue(tmClient)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				suite.coordinator.CommitBlock(suite.chainB)
+				s.coordinator.CommitBlock(s.chainB)
 				err = path.EndpointA.UpdateClient()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				upgradedClientStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(upgradeHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
-				upgradedConsensusStateProof, _ = suite.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(upgradeHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
+				upgradedClientStateProof, _ = s.chainB.QueryUpgradeProof(upgradetypes.UpgradedClientKey(int64(upgradeHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
+				upgradedConsensusStateProof, _ = s.chainB.QueryUpgradeProof(upgradetypes.UpgradedConsStateKey(int64(upgradeHeight.GetRevisionHeight())), path.EndpointA.GetClientLatestHeight().GetRevisionHeight())
 			},
 			ibcerrors.ErrInvalidHeight,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupClients()
 
 			clientID = path.EndpointA.ClientID
 			clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-			suite.Require().True(ok)
+			s.Require().True(ok)
 			revisionNumber := clienttypes.ParseChainID(clientState.ChainId)
 
 			newUnbondindPeriod := ubdPeriod + trustingPeriod
 			newChainID, err := clienttypes.SetRevisionNumber(clientState.ChainId, revisionNumber+1)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			upgradedClientState = ibctm.NewClientState(newChainID, ibctm.DefaultTrustLevel, trustingPeriod, newUnbondindPeriod, maxClockDrift, clienttypes.NewHeight(revisionNumber+1, clientState.LatestHeight.GetRevisionHeight()+1), commitmenttypes.GetSDKSpecs(), upgradePath)
 			upgradedClientStateAny, err = codectypes.NewAnyWithValue(upgradedClientState)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			nextValsHash := sha256.Sum256([]byte("new-nextValsHash"))
 			upgradedConsensusState := ibctm.NewConsensusState(time.Now(), commitmenttypes.NewMerkleRoot([]byte("new-hash")), nextValsHash[:])
 
 			upgradedConsensusStateAny, err = codectypes.NewAnyWithValue(upgradedConsensusState)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			tc.malleate()
 
-			lightClientModule, err := suite.chainA.App.GetIBCKeeper().ClientKeeper.Route(suite.chainA.GetContext(), clientID)
-			suite.Require().NoError(err)
+			lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), clientID)
+			s.Require().NoError(err)
 
 			err = lightClientModule.VerifyUpgradeAndUpdateState(
-				suite.chainA.GetContext(),
+				s.chainA.GetContext(),
 				clientID,
 				upgradedClientStateAny.Value,
 				upgradedConsensusStateAny.Value,
@@ -1167,20 +1167,20 @@ func (suite *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				expClientState := path.EndpointA.GetClientState()
-				expClientStateBz := suite.chainA.Codec.MustMarshal(expClientState)
-				suite.Require().Equal(upgradedClientStateAny.Value, expClientStateBz)
+				expClientStateBz := s.chainA.Codec.MustMarshal(expClientState)
+				s.Require().Equal(upgradedClientStateAny.Value, expClientStateBz)
 
 				expConsensusState := ibctm.NewConsensusState(upgradedConsensusState.Timestamp, commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), upgradedConsensusState.NextValidatorsHash)
-				expConsensusStateBz := suite.chainA.Codec.MustMarshal(expConsensusState)
+				expConsensusStateBz := s.chainA.Codec.MustMarshal(expConsensusState)
 
-				consensusStateBz := suite.chainA.Codec.MustMarshal(path.EndpointA.GetConsensusState(path.EndpointA.GetClientLatestHeight()))
-				suite.Require().Equal(expConsensusStateBz, consensusStateBz)
+				consensusStateBz := s.chainA.Codec.MustMarshal(path.EndpointA.GetConsensusState(path.EndpointA.GetClientLatestHeight()))
+				s.Require().Equal(expConsensusStateBz, consensusStateBz)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

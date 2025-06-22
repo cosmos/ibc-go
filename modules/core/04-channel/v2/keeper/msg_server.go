@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"context"
+	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -66,11 +67,10 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.recvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case types.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
+	case errors.Is(err, types.ErrNoOpMsg):
 		ctx.Logger().Debug("no-op on redundant relay", "source-client", msg.Packet.SourceClient)
 		return &types.MsgRecvPacketResponse{Result: types.NOOP}, nil
 	default:
@@ -85,9 +85,6 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 
 	var isAsync bool
 	isSuccess := true
-	// Cache context before doing any application callbacks
-	// so that we may write or discard state changes from callbacks atomically.
-	cacheCtx, writeFn = ctx.CacheContext()
 	for _, pd := range msg.Packet.Payloads {
 		cb := k.Router.Route(pd.DestinationPort)
 		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, pd, signer)
@@ -170,10 +167,10 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *types.MsgAcknowledg
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.acknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case types.ErrNoOpMsg:
+	case errors.Is(err, types.ErrNoOpMsg):
 		ctx.Logger().Debug("no-op on redundant relay", "source-client", msg.Packet.SourceClient)
 		return &types.MsgAcknowledgementResponse{Result: types.NOOP}, nil
 	default:
@@ -224,10 +221,10 @@ func (k *Keeper) Timeout(goCtx context.Context, timeout *types.MsgTimeout) (*typ
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.timeoutPacket(cacheCtx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case types.ErrNoOpMsg:
+	case errors.Is(err, types.ErrNoOpMsg):
 		ctx.Logger().Debug("no-op on redundant relay", "source-client", timeout.Packet.SourceClient)
 		return &types.MsgTimeoutResponse{Result: types.NOOP}, nil
 	default:

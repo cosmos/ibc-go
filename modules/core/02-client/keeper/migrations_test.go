@@ -6,18 +6,18 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
-func (suite *KeeperTestSuite) TestMigrateToStatelessLocalhost() {
+func (s *KeeperTestSuite) TestMigrateToStatelessLocalhost() {
 	// set localhost in state
-	clientStore := suite.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(suite.chainA.GetContext(), ibcexported.LocalhostClientID)
+	clientStore := s.chainA.GetSimApp().IBCKeeper.ClientKeeper.ClientStore(s.chainA.GetContext(), ibcexported.LocalhostClientID)
 	clientStore.Set(host.ClientStateKey(), []byte("clientState"))
 
-	m := keeper.NewMigrator(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
-	err := m.MigrateToStatelessLocalhost(suite.chainA.GetContext())
-	suite.Require().NoError(err)
-	suite.Require().False(clientStore.Has(host.ClientStateKey()))
+	m := keeper.NewMigrator(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	err := m.MigrateToStatelessLocalhost(s.chainA.GetContext())
+	s.Require().NoError(err)
+	s.Require().False(clientStore.Has(host.ClientStateKey()))
 
 	// rerun migration on no localhost set
-	err = m.MigrateToStatelessLocalhost(suite.chainA.GetContext())
-	suite.Require().NoError(err)
-	suite.Require().False(clientStore.Has(host.ClientStateKey()))
+	err = m.MigrateToStatelessLocalhost(s.chainA.GetContext())
+	s.Require().NoError(err)
+	s.Require().False(clientStore.Has(host.ClientStateKey()))
 }
