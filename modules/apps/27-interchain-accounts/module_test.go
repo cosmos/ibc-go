@@ -18,6 +18,6 @@ func TestICATestSuite(t *testing.T) {
 	testifysuite.Run(t, new(InterchainAccountsTestSuite))
 }
 
-func (suite *InterchainAccountsTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
+func (s *InterchainAccountsTestSuite) SetupTest() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
 }

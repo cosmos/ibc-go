@@ -37,20 +37,20 @@ type TypesTestSuite struct {
 	solomachine *ibctesting.Solomachine
 }
 
-func (suite *TypesTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	suite.solomachine = ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachinesingle", "testing", 1)
-}
-
 func TestTypesTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TypesTestSuite))
 }
 
+func (s *TypesTestSuite) SetupTest() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.solomachine = ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachinesingle", "testing", 1)
+}
+
 // tests that different clients within MsgCreateClient can be marshaled
 // and unmarshaled.
-func (suite *TypesTestSuite) TestMarshalMsgCreateClient() {
+func (s *TypesTestSuite) TestMarshalMsgCreateClient() {
 	var (
 		msg *types.MsgCreateClient
 		err error
@@ -62,43 +62,43 @@ func (suite *TypesTestSuite) TestMarshalMsgCreateClient() {
 	}{
 		{
 			"solo machine client", func() {
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2)
-				msg, err = types.NewMsgCreateClient(soloMachine.ClientState(), soloMachine.ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)
+				msg, err = types.NewMsgCreateClient(soloMachine.ClientState(), soloMachine.ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 		},
 		{
 			"tendermint client", func() {
-				tendermintClient := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-				msg, err = types.NewMsgCreateClient(tendermintClient, suite.chainA.CurrentTMClientHeader().ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				tendermintClient := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				msg, err = types.NewMsgCreateClient(tendermintClient, s.chainA.CurrentTMClientHeader().ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
 			tc.malleate()
 
-			cdc := suite.chainA.App.AppCodec()
+			cdc := s.chainA.App.AppCodec()
 
 			// marshal message
 			bz, err := cdc.MarshalJSON(msg)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// unmarshal message
 			newMsg := &types.MsgCreateClient{}
 			err = cdc.UnmarshalJSON(bz, newMsg)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
-			suite.Require().True(proto.Equal(msg, newMsg))
+			s.Require().True(proto.Equal(msg, newMsg))
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
+func (s *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 	var (
 		msg = &types.MsgCreateClient{}
 		err error
@@ -112,17 +112,17 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 		{
 			"valid - tendermint client",
 			func() {
-				tendermintClient := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-				msg, err = types.NewMsgCreateClient(tendermintClient, suite.chainA.CurrentTMClientHeader().ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				tendermintClient := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				msg, err = types.NewMsgCreateClient(tendermintClient, s.chainA.CurrentTMClientHeader().ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 			nil,
 		},
 		{
 			"invalid tendermint client",
 			func() {
-				msg, err = types.NewMsgCreateClient(&ibctm.ClientState{}, suite.chainA.CurrentTMClientHeader().ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				msg, err = types.NewMsgCreateClient(&ibctm.ClientState{}, s.chainA.CurrentTMClientHeader().ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 			errorsmod.Wrap(ibctm.ErrInvalidChainID, "chain id cannot be empty string"),
 		},
@@ -136,9 +136,9 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 		{
 			"failed to unpack consensus state",
 			func() {
-				tendermintClient := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-				msg, err = types.NewMsgCreateClient(tendermintClient, suite.chainA.CurrentTMClientHeader().ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				tendermintClient := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				msg, err = types.NewMsgCreateClient(tendermintClient, s.chainA.CurrentTMClientHeader().ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 				msg.ConsensusState = nil
 			},
 			errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil"),
@@ -153,37 +153,37 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 		{
 			"valid - solomachine client",
 			func() {
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2)
-				msg, err = types.NewMsgCreateClient(soloMachine.ClientState(), soloMachine.ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)
+				msg, err = types.NewMsgCreateClient(soloMachine.ClientState(), soloMachine.ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 			nil,
 		},
 		{
 			"invalid solomachine client",
 			func() {
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2)
-				msg, err = types.NewMsgCreateClient(&solomachine.ClientState{}, soloMachine.ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)
+				msg, err = types.NewMsgCreateClient(&solomachine.ClientState{}, soloMachine.ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 			errorsmod.Wrap(types.ErrInvalidClient, "sequence cannot be 0"),
 		},
 		{
 			"invalid solomachine consensus state",
 			func() {
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2)
-				msg, err = types.NewMsgCreateClient(soloMachine.ClientState(), &solomachine.ConsensusState{}, suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)
+				msg, err = types.NewMsgCreateClient(soloMachine.ClientState(), &solomachine.ConsensusState{}, s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 			errorsmod.Wrap(types.ErrInvalidConsensus, "timestamp cannot be 0"),
 		},
 		{
 			"invalid - client state and consensus state client types do not match",
 			func() {
-				tendermintClient := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2)
-				msg, err = types.NewMsgCreateClient(tendermintClient, soloMachine.ConsensusState(), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				tendermintClient := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)
+				msg, err = types.NewMsgCreateClient(tendermintClient, soloMachine.ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 			errorsmod.Wrap(types.ErrInvalidClientType, "client type for client state and consensus state do not match"),
 		},
@@ -193,17 +193,17 @@ func (suite *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 		tc.malleate()
 		err = msg.ValidateBasic()
 		if tc.expErr == nil {
-			suite.Require().NoError(err, tc.name)
+			s.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
-			suite.Require().ErrorIs(err, tc.expErr)
+			s.Require().Error(err, tc.name)
+			s.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
 
 // tests that different header within MsgUpdateClient can be marshaled
 // and unmarshaled.
-func (suite *TypesTestSuite) TestMarshalMsgUpdateClient() {
+func (s *TypesTestSuite) TestMarshalMsgUpdateClient() {
 	var (
 		msg *types.MsgUpdateClient
 		err error
@@ -215,42 +215,42 @@ func (suite *TypesTestSuite) TestMarshalMsgUpdateClient() {
 	}{
 		{
 			"solo machine client", func() {
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2)
-				msg, err = types.NewMsgUpdateClient(soloMachine.ClientID, soloMachine.CreateHeader(soloMachine.Diversifier), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)
+				msg, err = types.NewMsgUpdateClient(soloMachine.ClientID, soloMachine.CreateHeader(soloMachine.Diversifier), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 		},
 		{
 			"tendermint client", func() {
-				msg, err = types.NewMsgUpdateClient("tendermint", suite.chainA.CurrentTMClientHeader(), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				msg, err = types.NewMsgUpdateClient("tendermint", s.chainA.CurrentTMClientHeader(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
 			tc.malleate()
 
-			cdc := suite.chainA.App.AppCodec()
+			cdc := s.chainA.App.AppCodec()
 
 			// marshal message
 			bz, err := cdc.MarshalJSON(msg)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// unmarshal message
 			newMsg := &types.MsgUpdateClient{}
 			err = cdc.UnmarshalJSON(bz, newMsg)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
-			suite.Require().True(proto.Equal(msg, newMsg))
+			s.Require().True(proto.Equal(msg, newMsg))
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
+func (s *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 	var (
 		msg = &types.MsgUpdateClient{}
 		err error
@@ -271,16 +271,16 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 		{
 			"valid - tendermint header",
 			func() {
-				msg, err = types.NewMsgUpdateClient("tendermint", suite.chainA.CurrentTMClientHeader(), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				msg, err = types.NewMsgUpdateClient("tendermint", s.chainA.CurrentTMClientHeader(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 			nil,
 		},
 		{
 			"invalid tendermint header",
 			func() {
-				msg, err = types.NewMsgUpdateClient("tendermint", &ibctm.Header{}, suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				msg, err = types.NewMsgUpdateClient("tendermint", &ibctm.Header{}, s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 			errorsmod.Wrap(types.ErrInvalidHeader, "tendermint signed header cannot be nil"),
 		},
@@ -301,18 +301,18 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 		{
 			"valid - solomachine header",
 			func() {
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2)
-				msg, err = types.NewMsgUpdateClient(soloMachine.ClientID, soloMachine.CreateHeader(soloMachine.Diversifier), suite.chainA.SenderAccount.GetAddress().String())
+				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)
+				msg, err = types.NewMsgUpdateClient(soloMachine.ClientID, soloMachine.CreateHeader(soloMachine.Diversifier), s.chainA.SenderAccount.GetAddress().String())
 
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			},
 			nil,
 		},
 		{
 			"invalid solomachine header",
 			func() {
-				msg, err = types.NewMsgUpdateClient("solomachine", &solomachine.Header{}, suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				msg, err = types.NewMsgUpdateClient("solomachine", &solomachine.Header{}, s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 			errorsmod.Wrap(types.ErrInvalidHeader, "timestamp cannot be zero"),
 		},
@@ -322,15 +322,15 @@ func (suite *TypesTestSuite) TestMsgUpdateClient_ValidateBasic() {
 		tc.malleate()
 		err = msg.ValidateBasic()
 		if tc.expErr == nil {
-			suite.Require().NoError(err, tc.name)
+			s.Require().NoError(err, tc.name)
 		} else {
-			suite.Require().Error(err, tc.name)
-			suite.Require().ErrorIs(err, tc.expErr)
+			s.Require().Error(err, tc.name)
+			s.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
 
-func (suite *TypesTestSuite) TestMarshalMsgUpgradeClient() {
+func (s *TypesTestSuite) TestMarshalMsgUpgradeClient() {
 	var (
 		msg *types.MsgUpgradeClient
 		err error
@@ -343,43 +343,43 @@ func (suite *TypesTestSuite) TestMarshalMsgUpgradeClient() {
 		{
 			"client upgrades to new tendermint client",
 			func() {
-				tendermintClient := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				tendermintClient := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 				tendermintConsState := &ibctm.ConsensusState{NextValidatorsHash: []byte("nextValsHash")}
-				msg, err = types.NewMsgUpgradeClient("clientid", tendermintClient, tendermintConsState, []byte("proofUpgradeClient"), []byte("proofUpgradeConsState"), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				msg, err = types.NewMsgUpgradeClient("clientid", tendermintClient, tendermintConsState, []byte("proofUpgradeClient"), []byte("proofUpgradeConsState"), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 		},
 		{
 			"client upgrades to new solomachine client",
 			func() {
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 1)
-				msg, err = types.NewMsgUpgradeClient("clientid", soloMachine.ClientState(), soloMachine.ConsensusState(), []byte("proofUpgradeClient"), []byte("proofUpgradeConsState"), suite.chainA.SenderAccount.GetAddress().String())
-				suite.Require().NoError(err)
+				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 1)
+				msg, err = types.NewMsgUpgradeClient("clientid", soloMachine.ClientState(), soloMachine.ConsensusState(), []byte("proofUpgradeClient"), []byte("proofUpgradeConsState"), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
 			tc.malleate()
 
-			cdc := suite.chainA.App.AppCodec()
+			cdc := s.chainA.App.AppCodec()
 
 			// marshal message
 			bz, err := cdc.MarshalJSON(msg)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// unmarshal message
 			newMsg := &types.MsgUpgradeClient{}
 			err = cdc.UnmarshalJSON(bz, newMsg)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgUpgradeClient_ValidateBasic() {
+func (s *TypesTestSuite) TestMsgUpgradeClient_ValidateBasic() {
 	cases := []struct {
 		name     string
 		malleate func(*types.MsgUpgradeClient)
@@ -421,9 +421,9 @@ func (suite *TypesTestSuite) TestMsgUpgradeClient_ValidateBasic() {
 		{
 			name: "client and consensus type does not match",
 			malleate: func(msg *types.MsgUpgradeClient) {
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 2)
+				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)
 				soloConsensus, err := types.PackConsensusState(soloMachine.ConsensusState())
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				msg.ConsensusState = soloConsensus
 			},
 			expErr: errorsmod.Wrap(types.ErrInvalidUpgradeClient, "consensus state's client-type does not match client. expected: 07-tendermint, got: 06-solomachine"),
@@ -452,25 +452,24 @@ func (suite *TypesTestSuite) TestMsgUpgradeClient_ValidateBasic() {
 	}
 
 	for _, tc := range cases {
-
-		clientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+		clientState := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 		consState := &ibctm.ConsensusState{NextValidatorsHash: []byte("nextValsHash")}
-		msg, err := types.NewMsgUpgradeClient("testclientid", clientState, consState, []byte("proofUpgradeClient"), []byte("proofUpgradeConsState"), suite.chainA.SenderAccount.GetAddress().String())
-		suite.Require().NoError(err)
+		msg, err := types.NewMsgUpgradeClient("testclientid", clientState, consState, []byte("proofUpgradeClient"), []byte("proofUpgradeConsState"), s.chainA.SenderAccount.GetAddress().String())
+		s.Require().NoError(err)
 
 		tc.malleate(msg)
 		err = msg.ValidateBasic()
 		if tc.expErr == nil {
-			suite.Require().NoError(err, "valid case %s failed", tc.name)
+			s.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
-			suite.Require().Error(err, "invalid case %s passed", tc.name)
-			suite.Require().ErrorIs(err, tc.expErr)
+			s.Require().Error(err, "invalid case %s passed", tc.name)
+			s.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
 
 // TestMsgRecoverClientValidateBasic tests ValidateBasic for MsgRecoverClient
-func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
+func (s *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 	var msg *types.MsgRecoverClient
 
 	testCases := []struct {
@@ -524,9 +523,9 @@ func (suite *TypesTestSuite) TestMsgRecoverClientValidateBasic() {
 
 		err := msg.ValidateBasic()
 		if tc.expError == nil {
-			suite.Require().NoError(err, "valid case %s failed", tc.name)
+			s.Require().NoError(err, "valid case %s failed", tc.name)
 		} else {
-			suite.Require().ErrorIs(err, tc.expError, "invalid case %s passed", tc.name)
+			s.Require().ErrorIs(err, tc.expError, "invalid case %s passed", tc.name)
 		}
 	}
 }
@@ -560,7 +559,7 @@ func TestMsgRecoverClientGetSigners(t *testing.T) {
 }
 
 // TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade tests NewMsgIBCSoftwareUpgrade
-func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade() {
+func (s *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade() {
 	testCases := []struct {
 		name                string
 		upgradedClientState exported.ClientState
@@ -568,7 +567,7 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade(
 	}{
 		{
 			"success",
-			ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+			ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
 			nil,
 		},
 		{
@@ -590,15 +589,15 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_NewMsgIBCSoftwareUpgrade(
 		)
 
 		if tc.expErr == nil {
-			suite.Require().NoError(err)
-			suite.Assert().Equal(ibctesting.TestAccAddress, msg.Signer)
-			suite.Assert().Equal(plan, msg.Plan)
+			s.Require().NoError(err)
+			s.Equal(ibctesting.TestAccAddress, msg.Signer)
+			s.Equal(plan, msg.Plan)
 			unpackedClientState, err := types.UnpackClientState(msg.UpgradedClientState)
-			suite.Require().NoError(err)
-			suite.Assert().Equal(tc.upgradedClientState, unpackedClientState)
+			s.Require().NoError(err)
+			s.Equal(tc.upgradedClientState, unpackedClientState)
 		} else {
-			suite.Require().True(errors.Is(err, ibcerrors.ErrPackAny))
-			suite.Require().ErrorIs(err, tc.expErr)
+			s.Require().ErrorIs(err, ibcerrors.ErrPackAny)
+			s.Require().ErrorIs(err, tc.expErr)
 		}
 	}
 }
@@ -648,7 +647,7 @@ func TestMsgIBCSoftwareUpgrade_GetSigners(t *testing.T) {
 }
 
 // TestMsgIBCSoftwareUpgrade_ValidateBasic tests ValidateBasic for MsgIBCSoftwareUpgrade
-func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
+func (s *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 	var (
 		signer    string
 		plan      upgradetypes.Plan
@@ -693,10 +692,10 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 			Name:   "upgrade IBC clients",
 			Height: 1000,
 		}
-		upgradedClientState := ibctm.NewClientState(suite.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+		upgradedClientState := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 		var err error
 		anyClient, err = types.PackClientState(upgradedClientState)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
 		tc.malleate()
 
@@ -709,18 +708,18 @@ func (suite *TypesTestSuite) TestMsgIBCSoftwareUpgrade_ValidateBasic() {
 		err = msg.ValidateBasic()
 
 		if tc.expError == nil {
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}
 		if tc.expError != nil {
-			suite.Require().True(errors.Is(err, tc.expError))
+			s.Require().ErrorIs(err, tc.expError)
 		}
 	}
 }
 
 // tests a MsgIBCSoftwareUpgrade can be marshaled and unmarshaled, and the
 // client state can be unpacked
-func (suite *TypesTestSuite) TestMarshalMsgIBCSoftwareUpgrade() {
-	cdc := suite.chainA.App.AppCodec()
+func (s *TypesTestSuite) TestMarshalMsgIBCSoftwareUpgrade() {
+	cdc := s.chainA.App.AppCodec()
 
 	// create proposal
 	plan := upgradetypes.Plan{
@@ -729,25 +728,25 @@ func (suite *TypesTestSuite) TestMarshalMsgIBCSoftwareUpgrade() {
 	}
 
 	msg, err := types.NewMsgIBCSoftwareUpgrade(ibctesting.TestAccAddress, plan, &ibctm.ClientState{})
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// marshal message
 	bz, err := cdc.MarshalJSON(msg)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// unmarshal proposal
 	newMsg := &types.MsgIBCSoftwareUpgrade{}
 	err = cdc.UnmarshalJSON(bz, newMsg)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// unpack client state
 	_, err = types.UnpackClientState(newMsg.UpgradedClientState)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 }
 
 // TestMsgUpdateParamsValidateBasic tests ValidateBasic for MsgUpdateParams
-func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
-	signer := suite.chainA.App.GetIBCKeeper().GetAuthority()
+func (s *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
+	signer := s.chainA.App.GetIBCKeeper().GetAuthority()
 	testCases := []struct {
 		name   string
 		msg    *types.MsgUpdateParams
@@ -776,13 +775,13 @@ func (suite *TypesTestSuite) TestMsgUpdateParamsValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.msg.ValidateBasic()
 			if tc.expErr == nil {
-				suite.Require().NoError(err, "valid case %s failed", tc.name)
+				s.Require().NoError(err, "valid case %s failed", tc.name)
 			} else {
-				suite.Require().Error(err, "invalid case %s passed", tc.name)
-				suite.Require().Equal(tc.expErr.Error(), err.Error())
+				s.Require().Error(err, "invalid case %s passed", tc.name)
+				s.Require().Equal(tc.expErr.Error(), err.Error())
 			}
 		})
 	}
@@ -800,7 +799,6 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		msg := types.MsgUpdateParams{
 			Signer: tc.address.String(),
 			Params: types.DefaultParams(),

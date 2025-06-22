@@ -21,19 +21,19 @@ type MerkleTestSuite struct {
 	iavlStore *iavl.Store
 }
 
-func (suite *MerkleTestSuite) SetupTest() {
+func (s *MerkleTestSuite) SetupTest() {
 	db := dbm.NewMemDB()
-	suite.store = rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
+	s.store = rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
 
-	suite.storeKey = storetypes.NewKVStoreKey("iavlStoreKey")
+	s.storeKey = storetypes.NewKVStoreKey("iavlStoreKey")
 
-	suite.store.MountStoreWithDB(suite.storeKey, storetypes.StoreTypeIAVL, nil)
-	err := suite.store.LoadVersion(0)
-	suite.Require().NoError(err)
+	s.store.MountStoreWithDB(s.storeKey, storetypes.StoreTypeIAVL, nil)
+	err := s.store.LoadVersion(0)
+	s.Require().NoError(err)
 
 	var ok bool
-	suite.iavlStore, ok = suite.store.GetCommitStore(suite.storeKey).(*iavl.Store)
-	suite.Require().True(ok)
+	s.iavlStore, ok = s.store.GetCommitStore(s.storeKey).(*iavl.Store)
+	s.Require().True(ok)
 }
 
 func TestMerkleTestSuite(t *testing.T) {

@@ -16,10 +16,10 @@ import (
 )
 
 const (
-	denom              = "transfer/gaiachannel/atom"
-	amount             = "100"
-	largeAmount        = "18446744073709551616"                                                           // one greater than largest uint64 (^uint64(0))
-	invalidLargeAmount = "115792089237316195423570985008687907853269984665640564039457584007913129639936" // 2^256
+	packetDenom              = "transfer/gaiachannel/atom"
+	packetAmount             = "100"
+	packetLargeAmount        = "18446744073709551616"                                                           // one greater than largest uint64 (^uint64(0))
+	packetInvalidLargeAmount = "115792089237316195423570985008687907853269984665640564039457584007913129639936" // 2^256
 )
 
 // TestFungibleTokenPacketDataValidateBasic tests ValidateBasic for FungibleTokenPacketData
@@ -29,21 +29,20 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 		packetData types.FungibleTokenPacketData
 		expErr     error
 	}{
-		{"valid packet", types.NewFungibleTokenPacketData(denom, amount, sender, receiver, ""), nil},
-		{"valid packet with memo", types.NewFungibleTokenPacketData(denom, amount, sender, receiver, "memo"), nil},
-		{"valid packet with large amount", types.NewFungibleTokenPacketData(denom, largeAmount, sender, receiver, ""), nil},
-		{"invalid denom", types.NewFungibleTokenPacketData("", amount, sender, receiver, ""), types.ErrInvalidDenomForTransfer},
-		{"invalid denom, invalid portID", types.NewFungibleTokenPacketData("(transfer)/channel-1/uatom", amount, sender, receiver, ""), host.ErrInvalidID},
-		{"invalid empty amount", types.NewFungibleTokenPacketData(denom, "", sender, receiver, ""), types.ErrInvalidAmount},
-		{"invalid zero amount", types.NewFungibleTokenPacketData(denom, "0", sender, receiver, ""), types.ErrInvalidAmount},
-		{"invalid negative amount", types.NewFungibleTokenPacketData(denom, "-1", sender, receiver, ""), types.ErrInvalidAmount},
-		{"invalid large amount", types.NewFungibleTokenPacketData(denom, invalidLargeAmount, sender, receiver, ""), types.ErrInvalidAmount},
-		{"missing sender address", types.NewFungibleTokenPacketData(denom, amount, emptyAddr, receiver, ""), ibcerrors.ErrInvalidAddress},
-		{"missing recipient address", types.NewFungibleTokenPacketData(denom, amount, sender, emptyAddr, ""), ibcerrors.ErrInvalidAddress},
+		{"valid packet", types.NewFungibleTokenPacketData(packetDenom, packetAmount, sender, receiver, ""), nil},
+		{"valid packet with memo", types.NewFungibleTokenPacketData(packetDenom, packetAmount, sender, receiver, "memo"), nil},
+		{"valid packet with large amount", types.NewFungibleTokenPacketData(packetDenom, packetLargeAmount, sender, receiver, ""), nil},
+		{"invalid denom", types.NewFungibleTokenPacketData("", packetAmount, sender, receiver, ""), types.ErrInvalidDenomForTransfer},
+		{"invalid denom, invalid portID", types.NewFungibleTokenPacketData("(transfer)/channel-1/uatom", packetAmount, sender, receiver, ""), host.ErrInvalidID},
+		{"invalid empty amount", types.NewFungibleTokenPacketData(packetDenom, "", sender, receiver, ""), types.ErrInvalidAmount},
+		{"invalid zero amount", types.NewFungibleTokenPacketData(packetDenom, "0", sender, receiver, ""), types.ErrInvalidAmount},
+		{"invalid negative amount", types.NewFungibleTokenPacketData(packetDenom, "-1", sender, receiver, ""), types.ErrInvalidAmount},
+		{"invalid large amount", types.NewFungibleTokenPacketData(packetDenom, packetInvalidLargeAmount, sender, receiver, ""), types.ErrInvalidAmount},
+		{"missing sender address", types.NewFungibleTokenPacketData(packetDenom, packetAmount, emptyAddr, receiver, ""), ibcerrors.ErrInvalidAddress},
+		{"missing recipient address", types.NewFungibleTokenPacketData(packetDenom, packetAmount, sender, emptyAddr, ""), ibcerrors.ErrInvalidAddress},
 	}
 
 	for i, tc := range testCases {
-
 		err := tc.packetData.ValidateBasic()
 		if tc.expErr == nil {
 			require.NoError(t, err, "valid test case %d failed: %v", i, err)
@@ -53,19 +52,19 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestGetPacketSender() {
+func (s *TypesTestSuite) TestGetPacketSender() {
 	packetData := types.FungibleTokenPacketData{
-		Denom:    denom,
-		Amount:   amount,
+		Denom:    packetDenom,
+		Amount:   packetAmount,
 		Sender:   sender,
 		Receiver: receiver,
 		Memo:     "",
 	}
 
-	suite.Require().Equal(sender, packetData.GetPacketSender(types.PortID))
+	s.Require().Equal(sender, packetData.GetPacketSender(types.PortID))
 }
 
-func (suite *TypesTestSuite) TestPacketDataProvider() {
+func (s *TypesTestSuite) TestPacketDataProvider() {
 	testCases := []struct {
 		name          string
 		packetData    types.FungibleTokenPacketData
@@ -74,8 +73,8 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 		{
 			"success: src_callback key in memo",
 			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
+				Denom:    packetDenom,
+				Amount:   packetAmount,
 				Sender:   sender,
 				Receiver: receiver,
 				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver),
@@ -87,8 +86,8 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 		{
 			"success: src_callback key in memo with additional fields",
 			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
+				Denom:    packetDenom,
+				Amount:   packetAmount,
 				Sender:   sender,
 				Receiver: receiver,
 				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "200000"}}`, receiver),
@@ -101,8 +100,8 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 		{
 			"success: src_callback has string value",
 			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
+				Denom:    packetDenom,
+				Amount:   packetAmount,
 				Sender:   sender,
 				Receiver: receiver,
 				Memo:     `{"src_callback": "string"}`,
@@ -112,8 +111,8 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 		{
 			"failure: empty memo",
 			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
+				Denom:    packetDenom,
+				Amount:   packetAmount,
 				Sender:   sender,
 				Receiver: receiver,
 				Memo:     "",
@@ -123,8 +122,8 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 		{
 			"failure: non-json memo",
 			types.FungibleTokenPacketData{
-				Denom:    denom,
-				Amount:   amount,
+				Denom:    packetDenom,
+				Amount:   packetAmount,
 				Sender:   sender,
 				Receiver: receiver,
 				Memo:     "invalid",
@@ -134,34 +133,33 @@ func (suite *TypesTestSuite) TestPacketDataProvider() {
 	}
 
 	for _, tc := range testCases {
-
 		customData := tc.packetData.GetCustomPacketData("src_callback")
-		suite.Require().Equal(tc.expCustomData, customData)
+		s.Require().Equal(tc.expCustomData, customData)
 	}
 }
 
-func (suite *TypesTestSuite) TestFungibleTokenPacketDataOmitEmpty() {
+func (s *TypesTestSuite) TestFungibleTokenPacketDataOmitEmpty() {
 	// check that omitempty is present for the memo field
 	packetData := types.FungibleTokenPacketData{
-		Denom:    denom,
-		Amount:   amount,
+		Denom:    packetDenom,
+		Amount:   packetAmount,
 		Sender:   sender,
 		Receiver: receiver,
 		// Default value for non-specified memo field is empty string
 	}
 
 	bz, err := json.Marshal(packetData)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// check that the memo field is not present in the marshalled bytes
-	suite.Require().NotContains(string(bz), "memo")
+	s.Require().NotContains(string(bz), "memo")
 
 	packetData.Memo = "abc"
 	bz, err = json.Marshal(packetData)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// check that the memo field is present in the marshalled bytes
-	suite.Require().Contains(string(bz), "memo")
+	s.Require().Contains(string(bz), "memo")
 }
 
 // TestInternalTransferRepresentationValidateBasic tests ValidateBasic for FungibleTokenPacketData
@@ -175,8 +173,8 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 			"success: valid packet",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				sender,
 				receiver,
@@ -188,8 +186,8 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 			"success: valid packet with memo",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				sender,
 				receiver,
@@ -201,8 +199,8 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 			"success: valid packet with large amount",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: largeAmount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetLargeAmount,
 				},
 				sender,
 				receiver,
@@ -215,7 +213,7 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 			types.NewInternalTransferRepresentation(
 				types.Token{
 					Denom:  types.NewDenom("", types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Amount: packetAmount,
 				},
 				sender,
 				receiver,
@@ -227,7 +225,7 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 			"failure: invalid empty amount",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 					Amount: "",
 				},
 				sender,
@@ -240,7 +238,7 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 			"failure: invalid zero amount",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 					Amount: "0",
 				},
 				sender,
@@ -253,7 +251,7 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 			"failure: invalid negative amount",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
 					Amount: "-100",
 				},
 				sender,
@@ -266,8 +264,8 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 			"failure: invalid large amount",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: invalidLargeAmount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetInvalidLargeAmount,
 				},
 				sender,
 				receiver,
@@ -279,8 +277,8 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 			"failure: missing sender address",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				"",
 				receiver,
@@ -292,8 +290,8 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 			"failure: missing recipient address",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				sender,
 				"",
@@ -305,8 +303,8 @@ func TestInternalTransferRepresentationValidateBasic(t *testing.T) {
 			"failure: memo field too large",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: largeAmount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetLargeAmount,
 				},
 				sender,
 				receiver,
@@ -339,8 +337,8 @@ func TestGetPacketSender(t *testing.T) {
 			"non-empty sender field",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				sender,
 				receiver,
@@ -352,8 +350,8 @@ func TestGetPacketSender(t *testing.T) {
 			"empty sender field",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				"",
 				receiver,
@@ -380,8 +378,8 @@ func TestPacketDataProvider(t *testing.T) {
 			"success: src_callback key in memo",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				sender,
 				receiver,
@@ -396,8 +394,8 @@ func TestPacketDataProvider(t *testing.T) {
 			"success: src_callback key in memo with additional fields",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				sender,
 				receiver,
@@ -412,8 +410,8 @@ func TestPacketDataProvider(t *testing.T) {
 			"success: src_callback has string value",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				sender,
 				receiver,
@@ -425,8 +423,8 @@ func TestPacketDataProvider(t *testing.T) {
 			"failure: src_callback key not found memo",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				sender,
 				receiver,
@@ -438,8 +436,8 @@ func TestPacketDataProvider(t *testing.T) {
 			"failure: empty memo",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				sender,
 				receiver,
@@ -451,8 +449,8 @@ func TestPacketDataProvider(t *testing.T) {
 			"failure: non-json memo",
 			types.NewInternalTransferRepresentation(
 				types.Token{
-					Denom:  types.NewDenom(denom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
-					Amount: amount,
+					Denom:  types.NewDenom(packetDenom, types.NewHop("transfer", "channel-0"), types.NewHop("transfer", "channel-1")),
+					Amount: packetAmount,
 				},
 				sender,
 				receiver,

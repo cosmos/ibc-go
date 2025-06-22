@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	test "github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -67,7 +67,7 @@ func (s *InterchainAccountsParamsTestSuite) TestControllerEnabledParam() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 
 	chainA, _ := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version
@@ -123,7 +123,8 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	relayer := s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
 
 	chainA, chainB := s.GetChains()
 	chainBVersion := chainB.Config().Images[0].Version
@@ -165,7 +166,7 @@ func (s *InterchainAccountsParamsTestSuite) TestHostEnabledParam() {
 
 			channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 			s.Require().NoError(err)
-			s.Require().Equal(len(channels), 2)
+			s.Require().Len(channels, 2)
 		})
 
 		t.Run("stop relayer", func(t *testing.T) {

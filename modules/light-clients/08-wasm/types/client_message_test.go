@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 )
 
-func (suite *TypesTestSuite) TestClientMessageValidateBasic() {
+func (s *TypesTestSuite) TestClientMessageValidateBasic() {
 	testCases := []struct {
 		name          string
 		clientMessage *types.ClientMessage
@@ -36,17 +36,17 @@ func (suite *TypesTestSuite) TestClientMessageValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			clientMessage := tc.clientMessage
 
-			suite.Require().Equal(types.Wasm, clientMessage.ClientType())
+			s.Require().Equal(types.Wasm, clientMessage.ClientType())
 			err := clientMessage.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

@@ -90,7 +90,10 @@ import (
 	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
 	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
-	transfer "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
+	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting"
+	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
+	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	transferv2 "github.com/cosmos/ibc-go/v10/modules/apps/transfer/v2"
@@ -156,6 +159,7 @@ type SimApp struct {
 	TransferKeeper        *ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 	PFMKeeper             *packetforwardkeeper.Keeper
+	RateLimitKeeper       ratelimitkeeper.Keeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -250,6 +254,7 @@ func NewSimApp(
 		govtypes.StoreKey, group.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		packetforwardtypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
 		authzkeeper.StoreKey, consensusparamtypes.StoreKey,
+		ratelimittypes.StoreKey,
 	)
 
 	// register streaming services
@@ -356,7 +361,8 @@ func NewSimApp(
 
 	// Middleware Stacks
 
-	// PacketForwardMiddleware must be created before TransferKeeper
+	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	// PacketForwardMiddleware must be created before TransferKeeper // TODO: Is this correct?
 	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), nil, app.IBCKeeper.ChannelKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
 	// Create Transfer Keeper
@@ -368,7 +374,7 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	app.PFMKeeper.SetTransferKeeper(app.TransferKeeper)
+	app.PFMKeeper.SetTransferKeeper(app.TransferKeeper) // TODO: Is this correct, feels wrong...
 
 	// Mock Module Stack
 
@@ -397,11 +403,14 @@ func NewSimApp(
 	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// create IBC module from bottom to top of stack
+	// - Rate Limit
+	// - Packet Forward Middleware
+	// - Transfer
 	transferStack := porttypes.NewIBCStackBuilder()
 	transferApp := transfer.NewIBCModule(app.TransferKeeper)
-	transferStack.Base(transferApp).Next(
-		packetforward.NewIBCMiddleware(app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp),
-	)
+	transferStack.Base(transferApp).
+		Next(packetforward.NewIBCMiddleware(app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)).
+		Next(ratelimiting.NewIBCMiddleware(app.RateLimitKeeper))
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack.Build(app.IBCKeeper.ChannelKeeper))
@@ -480,6 +489,7 @@ func NewSimApp(
 		// IBC modules
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
+		ratelimiting.NewAppModule(app.RateLimitKeeper),
 		ica.NewAppModule(app.ICAControllerKeeper, app.ICAHostKeeper),
 		mockModule,
 		packetforward.NewAppModule(app.PFMKeeper),
@@ -523,6 +533,7 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		icatypes.ModuleName,
+		ratelimittypes.ModuleName,
 		ibcmock.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
@@ -544,7 +555,7 @@ func NewSimApp(
 		authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
-		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
+		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName, ratelimittypes.ModuleName,
 		packetforwardtypes.ModuleName, icatypes.ModuleName, ibcmock.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName,
 	}

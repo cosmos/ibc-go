@@ -143,10 +143,9 @@ func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.
 	// this will create the IAVL key that is used to store client in upgrade store
 	lastKey := upgradePath[len(upgradePath)-1]
 	appendedKey := fmt.Sprintf("%s/%d/%s", lastKey, lastHeight.GetRevisionHeight(), upgradetypes.KeyUpgradedClient)
-
 	clientPath = append(clientPath, appendedKey)
 
-	var clientKey [][]byte
+	clientKey := make([][]byte, 0, len(clientPath))
 	for _, part := range clientPath {
 		clientKey = append(clientKey, []byte(part))
 	}
@@ -164,10 +163,9 @@ func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight export
 	// this will create the IAVL key that is used to store client in upgrade store
 	lastKey := upgradePath[len(upgradePath)-1]
 	appendedKey := fmt.Sprintf("%s/%d/%s", lastKey, lastHeight.GetRevisionHeight(), upgradetypes.KeyUpgradedConsState)
-
 	consPath = append(consPath, appendedKey)
 
-	var consStateKey [][]byte
+	consStateKey := make([][]byte, 0, len(consPath))
 	for _, part := range consPath {
 		consStateKey = append(consStateKey, []byte(part))
 	}

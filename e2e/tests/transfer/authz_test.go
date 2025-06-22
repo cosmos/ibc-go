@@ -6,8 +6,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	test "github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -38,10 +38,6 @@ func (s *AuthzTransferTestSuite) SetupSuite() {
 	s.SetupChains(context.TODO(), 2, nil)
 }
 
-func (s *AuthzTransferTestSuite) CreateAuthzTestPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	return s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAToChainBChannel(testName)
-}
-
 // QueryGranterGrants returns all GrantAuthorizations for the given granterAddress.
 func (*AuthzTransferTestSuite) QueryGranterGrants(ctx context.Context, chain ibc.Chain, granterAddress string) ([]*authz.GrantAuthorization, error) {
 	res, err := query.GRPCQuery[authz.QueryGranterGrantsResponse](ctx, chain, &authz.QueryGranterGrantsRequest{
@@ -60,10 +56,13 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.CreateAuthzTestPath(testName)
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	granterWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	granterAddress := granterWallet.FormattedAddress()
@@ -105,7 +104,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
+		resp := s.BroadcastMessages(t.Context(), chainA, granterWallet, msgGrant)
 		s.AssertTxSuccess(resp)
 	}
 
@@ -150,7 +149,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			Msgs:    []*codectypes.Any{protoAny},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+		resp := s.BroadcastMessages(t.Context(), chainA, granteeWallet, msgExec)
 		s.AssertTxSuccess(resp)
 	})
 
@@ -182,10 +181,10 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 		msgRevoke := authz.MsgRevoke{
 			Granter:    granterAddress,
 			Grantee:    granteeAddress,
-			MsgTypeUrl: transfertypes.TransferAuthorization{}.MsgTypeURL(),
+			MsgTypeUrl: (*transfertypes.TransferAuthorization)(nil).MsgTypeURL(),
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, &msgRevoke)
+		resp := s.BroadcastMessages(t.Context(), chainA, granterWallet, &msgRevoke)
 		s.AssertTxSuccess(resp)
 	})
 
@@ -210,7 +209,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 			Msgs:    []*codectypes.Any{protoAny},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+		resp := s.BroadcastMessages(t.Context(), chainA, granteeWallet, msgExec)
 		s.AssertTxFailure(resp, authz.ErrNoAuthorizationFound)
 	})
 }
@@ -221,9 +220,13 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.CreateAuthzTestPath(testName)
 
 	chainA, chainB := s.GetChains()
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
+
 	chainADenom := chainA.Config().Denom
 	chainAVersion := chainA.Config().Images[0].Version
 
@@ -267,7 +270,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 			},
 		}
 
-		resp := s.BroadcastMessages(context.TODO(), chainA, granterWallet, msgGrant)
+		resp := s.BroadcastMessages(t.Context(), chainA, granterWallet, msgGrant)
 		s.AssertTxSuccess(resp)
 	})
 
@@ -295,7 +298,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				Msgs:    []*codectypes.Any{protoAny},
 			}
 
-			resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+			resp := s.BroadcastMessages(t.Context(), chainA, granteeWallet, msgExec)
 			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
 				s.AssertTxFailure(resp, ibcerrors.ErrInsufficientFunds)
 			} else {
@@ -355,7 +358,7 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 				Msgs:    []*codectypes.Any{protoAny},
 			}
 
-			resp := s.BroadcastMessages(context.TODO(), chainA, granteeWallet, msgExec)
+			resp := s.BroadcastMessages(t.Context(), chainA, granteeWallet, msgExec)
 			if testvalues.IbcErrorsFeatureReleases.IsSupported(chainAVersion) {
 				s.AssertTxFailure(resp, ibcerrors.ErrInvalidAddress)
 			} else {

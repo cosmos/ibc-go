@@ -71,7 +71,6 @@ func (ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, 
 			if !bytes.Equal(blockID1.Hash, blockID2.Hash) {
 				return true
 			}
-
 		} else if !msg.Header1.Header.Time.After(msg.Header2.Header.Time) {
 			// Header1 is at greater height than Header2, therefore Header1 time must be less than or equal to
 			// Header2 time in order to be valid misbehaviour (violation of monotonic time).
