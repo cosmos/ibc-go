@@ -6,7 +6,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
+func (s *KeeperTestSuite) TestQueryInterchainAccount() {
 	var req *types.QueryInterchainAccountRequest
 
 	testCases := []struct {
@@ -44,14 +44,14 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			suite.Run(tc.name, func() {
-				suite.SetupTest()
+			s.Run(tc.name, func() {
+				s.SetupTest()
 
-				path := NewICAPath(suite.chainA, suite.chainB, ordering)
+				path := NewICAPath(s.chainA, s.chainB, ordering)
 				path.SetupConnections()
 
 				err := SetupICAPath(path, ibctesting.TestAccAddress)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				req = &types.QueryInterchainAccountRequest{
 					ConnectionId: ibctesting.FirstConnectionID,
@@ -60,25 +60,25 @@ func (suite *KeeperTestSuite) TestQueryInterchainAccount() {
 
 				tc.malleate()
 
-				res, err := suite.chainA.GetSimApp().ICAControllerKeeper.InterchainAccount(suite.chainA.GetContext(), req)
+				res, err := s.chainA.GetSimApp().ICAControllerKeeper.InterchainAccount(s.chainA.GetContext(), req)
 
 				if tc.errMsg == "" {
-					expAddress, exists := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
-					suite.Require().True(exists)
+					expAddress, exists := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
+					s.Require().True(exists)
 
-					suite.Require().NoError(err)
-					suite.Require().Equal(expAddress, res.Address)
+					s.Require().NoError(err)
+					s.Require().Equal(expAddress, res.Address)
 				} else {
-					suite.Require().ErrorContains(err, tc.errMsg)
+					s.Require().ErrorContains(err, tc.errMsg)
 				}
 			})
 		}
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryParams() {
-	ctx := suite.chainA.GetContext()
+func (s *KeeperTestSuite) TestQueryParams() {
+	ctx := s.chainA.GetContext()
 	expParams := types.DefaultParams()
-	res, _ := suite.chainA.GetSimApp().ICAControllerKeeper.Params(ctx, &types.QueryParamsRequest{})
-	suite.Require().Equal(&expParams, res.Params)
+	res, _ := s.chainA.GetSimApp().ICAControllerKeeper.Params(ctx, &types.QueryParamsRequest{})
+	s.Require().Equal(&expParams, res.Params)
 }

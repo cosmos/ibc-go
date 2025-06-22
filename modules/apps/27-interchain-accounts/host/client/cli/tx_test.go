@@ -1,4 +1,4 @@
-package cli
+package cli_test
 
 import (
 	"fmt"
@@ -12,6 +12,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/client/cli"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
 )
 
@@ -104,7 +105,6 @@ func TestGeneratePacketData(t *testing.T) {
 	encodings := []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}
 	for _, encoding := range encodings {
 		for _, tc := range tests {
-
 			ir := codectypes.NewInterfaceRegistry()
 			if tc.registerInterfaceFn != nil {
 				tc.registerInterfaceFn(ir)
@@ -113,7 +113,7 @@ func TestGeneratePacketData(t *testing.T) {
 			cdc := codec.NewProtoCodec(ir)
 
 			t.Run(fmt.Sprintf("%s with %s encoding", tc.name, encoding), func(t *testing.T) {
-				bz, err := generatePacketData(cdc, []byte(tc.message), tc.memo, encoding)
+				bz, err := cli.GeneratePacketData(cdc, []byte(tc.message), tc.memo, encoding)
 
 				if tc.expectedPass {
 					require.NoError(t, err)

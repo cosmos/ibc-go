@@ -6,7 +6,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
+func (s *KeeperTestSuite) TestRegisterInterchainAccount() {
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		var (
 			owner string
@@ -33,12 +33,12 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 				"MsgChanOpenInit fails - channel is already active & in state OPEN",
 				func() {
 					portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 
-					channelID := channeltypes.FormatChannelIdentifier(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(suite.chainA.GetContext()))
+					channelID := channeltypes.FormatChannelIdentifier(s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(s.chainA.GetContext()))
 					path.EndpointA.ChannelID = channelID
 
-					suite.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(suite.chainA.GetContext(), ibctesting.FirstConnectionID, portID, path.EndpointA.ChannelID)
+					s.chainA.GetSimApp().ICAControllerKeeper.SetActiveChannelID(s.chainA.GetContext(), ibctesting.FirstConnectionID, portID, path.EndpointA.ChannelID)
 
 					counterparty := channeltypes.NewCounterparty(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
 					channel := channeltypes.Channel{
@@ -48,45 +48,45 @@ func (suite *KeeperTestSuite) TestRegisterInterchainAccount() {
 						ConnectionHops: []string{path.EndpointA.ConnectionID},
 						Version:        TestVersion,
 					}
-					suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(suite.chainA.GetContext(), portID, path.EndpointA.ChannelID, channel)
+					s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(s.chainA.GetContext(), portID, path.EndpointA.ChannelID, channel)
 				},
 				icatypes.ErrActiveChannelAlreadySet,
 			},
 		}
 
 		for _, tc := range testCases {
-			suite.Run(tc.name, func() {
-				suite.SetupTest()
+			s.Run(tc.name, func() {
+				s.SetupTest()
 
 				owner = TestOwnerAddress // must be explicitly changed
 
-				path = NewICAPath(suite.chainA, suite.chainB, ordering)
+				path = NewICAPath(s.chainA, s.chainB, ordering)
 				path.SetupConnections()
 
 				tc.malleate() // malleate mutates test data
 
-				err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), path.EndpointA.ConnectionID, owner, TestVersion, ordering)
+				err = s.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(s.chainA.GetContext(), path.EndpointA.ConnectionID, owner, TestVersion, ordering)
 
 				if tc.expErr == nil {
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 				} else {
-					suite.Require().ErrorIs(err, tc.expErr)
+					s.Require().ErrorIs(err, tc.expErr)
 				}
 			})
 		}
 	}
 }
 
-func (suite *KeeperTestSuite) TestRegisterSameOwnerMultipleConnections() {
+func (s *KeeperTestSuite) TestRegisterSameOwnerMultipleConnections() {
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
-		suite.SetupTest()
+		s.SetupTest()
 
 		owner := TestOwnerAddress
 
-		pathAToB := NewICAPath(suite.chainA, suite.chainB, ordering)
+		pathAToB := NewICAPath(s.chainA, s.chainB, ordering)
 		pathAToB.SetupConnections()
 
-		pathAToC := NewICAPath(suite.chainA, suite.chainC, ordering)
+		pathAToC := NewICAPath(s.chainA, s.chainC, ordering)
 		pathAToC.SetupConnections()
 
 		// build ICS27 metadata with connection identifiers for path A->B
@@ -98,8 +98,8 @@ func (suite *KeeperTestSuite) TestRegisterSameOwnerMultipleConnections() {
 			TxType:                 icatypes.TxTypeSDKMultiMsg,
 		}
 
-		err := suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), pathAToB.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)), ordering)
-		suite.Require().NoError(err)
+		err := s.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(s.chainA.GetContext(), pathAToB.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)), ordering)
+		s.Require().NoError(err)
 
 		// build ICS27 metadata with connection identifiers for path A->C
 		metadata = &icatypes.Metadata{
@@ -110,7 +110,7 @@ func (suite *KeeperTestSuite) TestRegisterSameOwnerMultipleConnections() {
 			TxType:                 icatypes.TxTypeSDKMultiMsg,
 		}
 
-		err = suite.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(suite.chainA.GetContext(), pathAToC.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)), ordering)
-		suite.Require().NoError(err)
+		err = s.chainA.GetSimApp().ICAControllerKeeper.RegisterInterchainAccount(s.chainA.GetContext(), pathAToC.EndpointA.ConnectionID, owner, string(icatypes.ModuleCdc.MustMarshalJSON(metadata)), ordering)
+		s.Require().NoError(err)
 	}
 }

@@ -108,7 +108,7 @@ func GetCallbackData(
 	version, srcPortID string,
 	remainingGas, maxGas uint64,
 	callbackKey string,
-) (cbData CallbackData, isCbPacket bool, err error) {
+) (CallbackData, bool, error) {
 	packetDataProvider, ok := packetData.(ibcexported.PacketDataProvider)
 	if !ok {
 		return CallbackData{}, false, ErrNotPacketDataProvider

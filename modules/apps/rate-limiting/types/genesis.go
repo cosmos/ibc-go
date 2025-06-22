@@ -5,22 +5,22 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	time "time"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 )
 
 // Splits a pending send packet of the form {channelId}/{sequenceNumber} into the channel Id
 // and sequence number respectively
-func ParsePendingPacketID(pendingPacketID string) (channelID string, sequence uint64, err error) {
+func ParsePendingPacketID(pendingPacketID string) (string, uint64, error) {
 	splits := strings.Split(pendingPacketID, "/")
 	if len(splits) != 2 {
 		return "", 0, fmt.Errorf("invalid pending send packet (%s), must be of form: {channelId}/{sequenceNumber}", pendingPacketID)
 	}
-	channelID = splits[0]
+	channelID := splits[0]
 	sequenceString := splits[1]
 
-	sequence, err = strconv.ParseUint(sequenceString, 10, 64)
+	sequence, err := strconv.ParseUint(sequenceString, 10, 64)
 	if err != nil {
 		return "", 0, errorsmod.Wrapf(err, "unable to parse sequence number (%s) from pending send packet, %s", sequenceString, err)
 	}
