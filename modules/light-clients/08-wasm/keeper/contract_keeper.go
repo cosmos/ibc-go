@@ -34,7 +34,7 @@ var (
 )
 
 // instantiateContract calls vm.Instantiate with appropriate arguments.
-func (k Keeper) instantiateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
+func (k *Keeper) instantiateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := types.NewMultipliedGasMeter(sdkGasMeter, types.VMGasRegister)
 	gasLimit := VMGasRegister.RuntimeGasForContract(ctx)
@@ -53,7 +53,7 @@ func (k Keeper) instantiateContract(ctx sdk.Context, clientID string, clientStor
 }
 
 // callContract calls vm.Sudo with internally constructed gas meter and environment.
-func (k Keeper) callContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
+func (k *Keeper) callContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := types.NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.RuntimeGasForContract(ctx)
@@ -67,7 +67,7 @@ func (k Keeper) callContract(ctx sdk.Context, clientID string, clientStore store
 }
 
 // queryContract calls vm.Query.
-func (k Keeper) queryContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.QueryResult, error) {
+func (k *Keeper) queryContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.QueryResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := types.NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.RuntimeGasForContract(ctx)
@@ -82,7 +82,7 @@ func (k Keeper) queryContract(ctx sdk.Context, clientID string, clientStore stor
 }
 
 // migrateContract calls vm.Migrate with internally constructed gas meter and environment.
-func (k Keeper) migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
+func (k *Keeper) migrateContract(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, checksum types.Checksum, msg []byte) (*wasmvmtypes.ContractResult, error) {
 	sdkGasMeter := ctx.GasMeter()
 	multipliedGasMeter := types.NewMultipliedGasMeter(sdkGasMeter, VMGasRegister)
 	gasLimit := VMGasRegister.RuntimeGasForContract(ctx)
@@ -97,7 +97,7 @@ func (k Keeper) migrateContract(ctx sdk.Context, clientID string, clientStore st
 }
 
 // WasmInstantiate accepts a message to instantiate a wasm contract, JSON encodes it and calls instantiateContract.
-func (k Keeper) WasmInstantiate(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, cs *types.ClientState, payload types.InstantiateMessage) error {
+func (k *Keeper) WasmInstantiate(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, cs *types.ClientState, payload types.InstantiateMessage) error {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return errorsmod.Wrap(err, "failed to marshal payload for wasm contract instantiation")
@@ -136,7 +136,7 @@ func (k Keeper) WasmInstantiate(ctx sdk.Context, clientID string, clientStore st
 // - the response of the contract call contains non-empty events
 // - the response of the contract call contains non-empty attributes
 // - the data bytes of the response cannot be unmarshaled into the result type
-func (k Keeper) WasmSudo(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, cs *types.ClientState, payload types.SudoMsg) ([]byte, error) {
+func (k *Keeper) WasmSudo(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, cs *types.ClientState, payload types.SudoMsg) ([]byte, error) {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to marshal payload for wasm execution")
@@ -171,7 +171,7 @@ func (k Keeper) WasmSudo(ctx sdk.Context, clientID string, clientStore storetype
 // WasmMigrate migrate calls the migrate entry point of the contract with the given payload and returns the result.
 // WasmMigrate returns an error if:
 // - the contract migration returns an error
-func (k Keeper) WasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *types.ClientState, clientID string, payload []byte) error {
+func (k *Keeper) WasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs *types.ClientState, clientID string, payload []byte) error {
 	res, err := k.migrateContract(ctx, clientID, clientStore, cs.Checksum, payload)
 	if err != nil {
 		return errorsmod.Wrap(types.ErrVMError, err.Error())
@@ -192,7 +192,7 @@ func (k Keeper) WasmMigrate(ctx sdk.Context, clientStore storetypes.KVStore, cs 
 // WasmQuery returns an error if:
 // - the contract query returns an error
 // - the data bytes of the response cannot be unmarshal into the result type
-func (k Keeper) WasmQuery(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, cs *types.ClientState, payload types.QueryMsg) ([]byte, error) {
+func (k *Keeper) WasmQuery(ctx sdk.Context, clientID string, clientStore storetypes.KVStore, cs *types.ClientState, payload types.QueryMsg) ([]byte, error) {
 	encodedData, err := json.Marshal(payload)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to marshal payload for wasm query")

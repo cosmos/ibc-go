@@ -372,7 +372,7 @@ func (q *queryServer) PacketAcknowledgements(goCtx context.Context, req *types.Q
 			errorsmod.Wrapf(types.ErrChannelNotFound, "port ID (%s) channel ID (%s)", req.PortId, req.ChannelId).Error(),
 		)
 	}
-	var acks []*types.PacketState
+	var acks []*types.PacketState // nolint: prealloc
 	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(ctx)), host.PacketAcknowledgementPrefixKey(req.PortId, req.ChannelId))
 
 	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
@@ -552,7 +552,6 @@ func (q *queryServer) UnreceivedAcks(goCtx context.Context, req *types.QueryUnre
 		if commitment := q.GetPacketCommitment(ctx, req.PortId, req.ChannelId, seq); len(commitment) != 0 {
 			unreceivedSequences = append(unreceivedSequences, seq)
 		}
-
 	}
 
 	selfHeight := clienttypes.GetSelfHeight(ctx)

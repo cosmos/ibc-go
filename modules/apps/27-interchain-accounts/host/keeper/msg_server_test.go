@@ -11,7 +11,7 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
 
-func (suite *KeeperTestSuite) TestModuleQuerySafe() {
+func (s *KeeperTestSuite) TestModuleQuerySafe() {
 	var (
 		msg          *types.MsgModuleQuerySafe
 		expResponses [][]byte
@@ -24,21 +24,21 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 		{
 			"success",
 			func() {
-				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
-				suite.Require().NoError(err)
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
+				s.Require().NoError(err)
 
 				queryReq := types.QueryRequest{
 					Path: "/cosmos.bank.v1beta1.Query/Balance",
 					Data: balanceQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq})
+				msg = types.NewMsgModuleQuerySafe(s.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq})
 
-				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+				balance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
 				expResp := banktypes.QueryBalanceResponse{Balance: &balance}
 				expRespBz, err := expResp.Marshal()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				expResponses = [][]byte{expRespBz}
 			},
@@ -47,8 +47,8 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 		{
 			"success: multiple queries",
 			func() {
-				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
-				suite.Require().NoError(err)
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
+				s.Require().NoError(err)
 
 				queryReq := types.QueryRequest{
 					Path: "/cosmos.bank.v1beta1.Query/Balance",
@@ -57,26 +57,26 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 
 				paramsQuery := stakingtypes.QueryParamsRequest{}
 				paramsQueryBz, err := paramsQuery.Marshal()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				paramsQueryReq := types.QueryRequest{
 					Path: "/cosmos.staking.v1beta1.Query/Params",
 					Data: paramsQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq, paramsQueryReq})
+				msg = types.NewMsgModuleQuerySafe(s.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq, paramsQueryReq})
 
-				balance := suite.chainA.GetSimApp().BankKeeper.GetBalance(suite.chainA.GetContext(), suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+				balance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 
 				expResp := banktypes.QueryBalanceResponse{Balance: &balance}
 				expRespBz, err := expResp.Marshal()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				params, err := suite.chainA.GetSimApp().StakingKeeper.GetParams(suite.chainA.GetContext())
-				suite.Require().NoError(err)
+				params, err := s.chainA.GetSimApp().StakingKeeper.GetParams(s.chainA.GetContext())
+				s.Require().NoError(err)
 				expParamsResp := stakingtypes.QueryParamsResponse{Params: params}
 				expParamsRespBz, err := expParamsResp.Marshal()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				expResponses = [][]byte{expRespBz, expParamsRespBz}
 			},
@@ -85,8 +85,8 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 		{
 			"failure: not module query safe",
 			func() {
-				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
-				suite.Require().NoError(err)
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
+				s.Require().NoError(err)
 
 				queryReq := types.QueryRequest{
 					Path: "/cosmos.bank.v1beta1.Query/Balance",
@@ -95,37 +95,37 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 
 				paramsQuery := transfertypes.QueryParamsRequest{}
 				paramsQueryBz, err := paramsQuery.Marshal()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				paramsQueryReq := types.QueryRequest{
 					Path: "/ibc.applications.transfer.v1.Query/Params",
 					Data: paramsQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq, paramsQueryReq})
+				msg = types.NewMsgModuleQuerySafe(s.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq, paramsQueryReq})
 			},
 			ibcerrors.ErrInvalidRequest,
 		},
 		{
 			"failure: invalid query path",
 			func() {
-				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(suite.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
-				suite.Require().NoError(err)
+				balanceQueryBz, err := banktypes.NewQueryBalanceRequest(s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom).Marshal()
+				s.Require().NoError(err)
 
 				queryReq := types.QueryRequest{
 					Path: "/cosmos.invalid.Query/Invalid",
 					Data: balanceQueryBz,
 				}
 
-				msg = types.NewMsgModuleQuerySafe(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq})
+				msg = types.NewMsgModuleQuerySafe(s.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), []types.QueryRequest{queryReq})
 			},
 			ibcerrors.ErrInvalidRequest,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
 			// reset
 			msg = nil
@@ -133,24 +133,24 @@ func (suite *KeeperTestSuite) TestModuleQuerySafe() {
 
 			tc.malleate()
 
-			ctx := suite.chainA.GetContext()
-			msgServer := keeper.NewMsgServerImpl(suite.chainA.GetSimApp().ICAHostKeeper)
+			ctx := s.chainA.GetContext()
+			msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().ICAHostKeeper)
 			res, err := msgServer.ModuleQuerySafe(ctx, msg)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
 
-				suite.Require().ElementsMatch(expResponses, res.Responses)
+				s.Require().ElementsMatch(expResponses, res.Responses)
 			} else {
-				suite.Require().ErrorIs(err, tc.expErr)
-				suite.Require().Nil(res)
+				s.Require().ErrorIs(err, tc.expErr)
+				s.Require().Nil(res)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestUpdateParams() {
+func (s *KeeperTestSuite) TestUpdateParams() {
 	testCases := []struct {
 		name   string
 		msg    *types.MsgUpdateParams
@@ -158,7 +158,7 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 	}{
 		{
 			"success",
-			types.NewMsgUpdateParams(suite.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), types.DefaultParams()),
+			types.NewMsgUpdateParams(s.chainA.GetSimApp().ICAHostKeeper.GetAuthority(), types.DefaultParams()),
 			nil,
 		},
 		{
@@ -169,19 +169,19 @@ func (suite *KeeperTestSuite) TestUpdateParams() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
-			ctx := suite.chainA.GetContext()
-			msgServer := keeper.NewMsgServerImpl(suite.chainA.GetSimApp().ICAHostKeeper)
+			ctx := s.chainA.GetContext()
+			msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().ICAHostKeeper)
 			res, err := msgServer.UpdateParams(ctx, tc.msg)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
 			} else {
-				suite.Require().ErrorIs(err, tc.expErr)
-				suite.Require().Nil(res)
+				s.Require().ErrorIs(err, tc.expErr)
+				s.Require().Nil(res)
 			}
 		})
 	}

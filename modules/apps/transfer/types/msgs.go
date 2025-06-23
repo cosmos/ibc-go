@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
@@ -61,13 +62,35 @@ func NewMsgTransfer(
 	}
 }
 
+// NewMsgTransferAliased creates a new MsgTransfer instance
+// with isV2 set to true, indicating that it is using the V2 protocol
+// with v1 channel identifiers.
+func NewMsgTransferAliased(
+	sourcePort, sourceChannel string,
+	token sdk.Coin, sender, receiver string,
+	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
+	memo string,
+) *MsgTransfer {
+	return &MsgTransfer{
+		SourcePort:       sourcePort,
+		SourceChannel:    sourceChannel,
+		Token:            token,
+		Sender:           sender,
+		Receiver:         receiver,
+		TimeoutHeight:    timeoutHeight,
+		TimeoutTimestamp: timeoutTimestamp,
+		Memo:             memo,
+		UseAliasing:      true, // This indicates that the message is using the V2 protocol with aliased channel identifiers
+	}
+}
+
 // NewMsgTransferWithEncoding creates a new MsgTransfer instance
 // with the provided encoding
 func NewMsgTransferWithEncoding(
 	sourcePort, sourceChannel string,
 	token sdk.Coin, sender, receiver string,
 	timeoutHeight clienttypes.Height, timeoutTimestamp uint64,
-	memo string, encoding string,
+	memo string, encoding string, useAliasing bool,
 ) *MsgTransfer {
 	return &MsgTransfer{
 		SourcePort:       sourcePort,
@@ -79,6 +102,7 @@ func NewMsgTransferWithEncoding(
 		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             memo,
 		Encoding:         encoding,
+		UseAliasing:      useAliasing,
 	}
 }
 
@@ -118,8 +142,18 @@ func (msg MsgTransfer) validateIdentifiers() error {
 	if err := host.PortIdentifierValidator(msg.SourcePort); err != nil {
 		return errorsmod.Wrapf(err, "invalid source port ID %s", msg.SourcePort)
 	}
-	if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
-		return errorsmod.Wrapf(err, "invalid source channel ID %s", msg.SourceChannel)
+	// if we are using aliasing, then the source channel must be in the channel id format
+	// expected by ibc-go
+	// otherwise, it may be either a client id using v2 directly or a channel id using ibc v1
+	// thus, we perform a less strict check
+	if msg.UseAliasing {
+		if _, err := channeltypes.ParseChannelSequence(msg.SourceChannel); err != nil {
+			return errorsmod.Wrapf(err, "invalid source channel ID %s", msg.SourceChannel)
+		}
+	} else {
+		if err := host.ChannelIdentifierValidator(msg.SourceChannel); err != nil {
+			return errorsmod.Wrapf(err, "invalid source channel ID %s", msg.SourceChannel)
+		}
 	}
 
 	return nil

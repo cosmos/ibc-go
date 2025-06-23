@@ -26,7 +26,7 @@ func TestProposalMsgs(t *testing.T) {
 
 	// execute ProposalMsgs function
 	weightedProposalMsgs := simulation.ProposalMsgs()
-	require.Equal(t, 1, len(weightedProposalMsgs))
+	require.Len(t, weightedProposalMsgs, 1)
 	w0 := weightedProposalMsgs[0]
 
 	require.Equal(t, simulation.OpWeightMsgStoreCode, w0.AppParamsKey())
@@ -37,5 +37,5 @@ func TestProposalMsgs(t *testing.T) {
 	require.True(t, ok)
 
 	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgStoreCode.Signer)
-	require.Equal(t, msgStoreCode.WasmByteCode, []byte{0x01})
+	require.Equal(t, []byte{0x01}, msgStoreCode.WasmByteCode)
 }

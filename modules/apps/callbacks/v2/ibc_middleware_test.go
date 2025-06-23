@@ -12,7 +12,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
-	v2 "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channelkeeperv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
@@ -338,18 +338,14 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				return cbs.OnAcknowledgementPacket(ctx, s.path.EndpointA.ClientID, s.path.EndpointB.ClientID, 1, ack, payload, s.chainA.SenderAccount.GetAddress())
 			}
 
-			switch tc.expError {
-			case nil:
+			switch {
+			case tc.expError == nil:
 				err := onAcknowledgementPacket()
 				s.Require().Nil(err)
-
-			case panicError:
-				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
-					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit),
-				}, func() {
+			case errors.Is(tc.expError, panicError):
+				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit)}, func() {
 					_ = onAcknowledgementPacket()
 				})
-
 			default:
 				err := onAcknowledgementPacket()
 				s.Require().ErrorIs(err, tc.expError)
@@ -839,7 +835,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				if exists {
 					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
 				}
-
 			} else {
 				s.Require().ErrorIs(err, tc.expError)
 			}

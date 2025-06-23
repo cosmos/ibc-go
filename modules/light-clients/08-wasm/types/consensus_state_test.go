@@ -4,7 +4,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 )
 
-func (suite *TypesTestSuite) TestConsensusStateValidateBasic() {
+func (s *TypesTestSuite) TestConsensusStateValidateBasic() {
 	testCases := []struct {
 		name           string
 		consensusState *types.ConsensusState
@@ -28,15 +28,15 @@ func (suite *TypesTestSuite) TestConsensusStateValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			// check just to increase coverage
-			suite.Require().Equal(types.Wasm, tc.consensusState.ClientType())
+			s.Require().Equal(types.Wasm, tc.consensusState.ClientType())
 
 			err := tc.consensusState.ValidateBasic()
 			if tc.expectPass {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}

@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/chain/cosmos"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	test "github.com/cosmos/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -66,13 +66,12 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	ctx := context.Background()
 	testName := t.Name()
 
-	relayer := s.CreateDefaultPaths(testName)
-	channelA := s.GetChainAToChainBChannel(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
-	var (
-		chainADenom    = chainA.Config().Denom
-		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
-	)
+	chainADenom := chainA.Config().Denom
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -134,14 +133,14 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 			ConnectionId: ibctesting.FirstConnectionID,
 		})
 		s.Require().NoError(err)
-		s.Require().NotZero(len(res.Address))
+		s.Require().NotEmpty(res.Address)
 
 		hostAccount = res.Address
 		s.Require().NotEmpty(hostAccount)
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Len(channels, 2)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")

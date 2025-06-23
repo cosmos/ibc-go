@@ -23,7 +23,7 @@ import (
 	"github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
-func (suite *KeeperTestSuite) TestQueryClientState() {
+func (s *KeeperTestSuite) TestQueryClientState() {
 	var (
 		req            *types.QueryClientStateRequest
 		expClientState *codectypes.Any
@@ -63,12 +63,12 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 		{
 			"success",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := ibctesting.NewPath(s.chainA, s.chainB)
 				path.SetupClients()
 
 				var err error
 				expClientState, err = types.PackClientState(path.EndpointA.GetClientState())
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				req = &types.QueryClientStateRequest{
 					ClientId: path.EndpointA.ClientID,
@@ -79,32 +79,32 @@ func (suite *KeeperTestSuite) TestQueryClientState() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
 
 			tc.malleate()
-			ctx := suite.chainA.GetContext()
+			ctx := s.chainA.GetContext()
 
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			res, err := queryServer.ClientState(ctx, req)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(expClientState, res.ClientState)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Equal(expClientState, res.ClientState)
 
 				// ensure UnpackInterfaces is defined
 				cachedValue := res.ClientState.GetCachedValue()
-				suite.Require().NotNil(cachedValue)
+				s.Require().NotNil(cachedValue)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryClientStates() {
+func (s *KeeperTestSuite) TestQueryClientStates() {
 	var (
 		req             *types.QueryClientStatesRequest
 		expClientStates = types.IdentifiedClientStates{}
@@ -133,10 +133,10 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 		{
 			"success",
 			func() {
-				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path1 := ibctesting.NewPath(s.chainA, s.chainB)
 				path1.SetupClients()
 
-				path2 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path2 := ibctesting.NewPath(s.chainA, s.chainB)
 				path2.SetupClients()
 
 				clientStateA1 := path1.EndpointA.GetClientState()
@@ -159,27 +159,27 @@ func (suite *KeeperTestSuite) TestQueryClientStates() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
 			tc.malleate()
 
-			ctx := suite.chainA.GetContext()
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			ctx := s.chainA.GetContext()
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			res, err := queryServer.ClientStates(ctx, req)
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(expClientStates.Sort(), res.ClientStates)
-				suite.Require().Equal(len(expClientStates), int(res.Pagination.Total))
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Equal(expClientStates.Sort(), res.ClientStates)
+				s.Require().Equal(len(expClientStates), int(res.Pagination.Total))
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConsensusState() {
+func (s *KeeperTestSuite) TestQueryConsensusState() {
 	var (
 		req               *types.QueryConsensusStateRequest
 		expConsensusState *codectypes.Any
@@ -229,13 +229,13 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 		{
 			"success latest height",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := ibctesting.NewPath(s.chainA, s.chainB)
 				path.SetupClients()
 				cs := path.EndpointA.GetConsensusState(path.EndpointA.GetClientLatestHeight())
 
 				var err error
 				expConsensusState, err = types.PackConsensusState(cs)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				req = &types.QueryConsensusStateRequest{
 					ClientId:     path.EndpointA.ClientID,
@@ -247,18 +247,18 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 		{
 			"success with height",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := ibctesting.NewPath(s.chainA, s.chainB)
 				path.SetupClients()
 				height := path.EndpointA.GetClientLatestHeight()
 				cs := path.EndpointA.GetConsensusState(height)
 
 				var err error
 				expConsensusState, err = types.PackConsensusState(cs)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				// update client to new height
 				err = path.EndpointA.UpdateClient()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				req = &types.QueryConsensusStateRequest{
 					ClientId:       path.EndpointA.ClientID,
@@ -271,31 +271,31 @@ func (suite *KeeperTestSuite) TestQueryConsensusState() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
 
 			tc.malleate()
-			ctx := suite.chainA.GetContext()
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			ctx := s.chainA.GetContext()
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			res, err := queryServer.ConsensusState(ctx, req)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(expConsensusState, res.ConsensusState)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Equal(expConsensusState, res.ConsensusState)
 
 				// ensure UnpackInterfaces is defined
 				cachedValue := res.ConsensusState.GetCachedValue()
-				suite.Require().NotNil(cachedValue)
+				s.Require().NotNil(cachedValue)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConsensusStates() {
+func (s *KeeperTestSuite) TestQueryConsensusStates() {
 	var (
 		req                *types.QueryConsensusStatesRequest
 		expConsensusStates []types.ConsensusStateWithHeight
@@ -331,11 +331,11 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 		{
 			"success",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := ibctesting.NewPath(s.chainA, s.chainB)
 				path.SetupClients()
 
 				height1, ok := path.EndpointA.GetClientLatestHeight().(types.Height)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -344,9 +344,9 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 					))
 
 				err := path.EndpointA.UpdateClient()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				height2, ok := path.EndpointA.GetClientLatestHeight().(types.Height)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 				expConsensusStates = append(
 					expConsensusStates,
 					types.NewConsensusStateWithHeight(
@@ -374,34 +374,34 @@ func (suite *KeeperTestSuite) TestQueryConsensusStates() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
 
 			tc.malleate()
-			ctx := suite.chainA.GetContext()
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			ctx := s.chainA.GetContext()
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			res, err := queryServer.ConsensusStates(ctx, req)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(len(expConsensusStates), len(res.ConsensusStates))
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Equal(len(expConsensusStates), len(res.ConsensusStates))
 				for i := range expConsensusStates {
-					suite.Require().NotNil(res.ConsensusStates[i])
-					suite.Require().Equal(expConsensusStates[i], res.ConsensusStates[i])
+					s.Require().NotNil(res.ConsensusStates[i])
+					s.Require().Equal(expConsensusStates[i], res.ConsensusStates[i])
 					// ensure UnpackInterfaces is defined
 					cachedValue := res.ConsensusStates[i].ConsensusState.GetCachedValue()
-					suite.Require().NotNil(cachedValue)
+					s.Require().NotNil(cachedValue)
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
+func (s *KeeperTestSuite) TestQueryConsensusStateHeights() {
 	var (
 		req                      *types.QueryConsensusStateHeightsRequest
 		expConsensusStateHeights []types.Height
@@ -437,13 +437,13 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 		{
 			"success: returns consensus heights",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := ibctesting.NewPath(s.chainA, s.chainB)
 				path.SetupClients()
 
 				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientLatestHeight().(types.Height))
 
 				err := path.EndpointA.UpdateClient()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				expConsensusStateHeights = append(expConsensusStateHeights, path.EndpointA.GetClientLatestHeight().(types.Height))
 
@@ -467,31 +467,31 @@ func (suite *KeeperTestSuite) TestQueryConsensusStateHeights() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
 
 			tc.malleate()
-			ctx := suite.chainA.GetContext()
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			ctx := s.chainA.GetContext()
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			res, err := queryServer.ConsensusStateHeights(ctx, req)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(len(expConsensusStateHeights), len(res.ConsensusStateHeights))
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Equal(len(expConsensusStateHeights), len(res.ConsensusStateHeights))
 				for i := range expConsensusStateHeights {
-					suite.Require().NotNil(res.ConsensusStateHeights[i])
-					suite.Require().Equal(expConsensusStateHeights[i], res.ConsensusStateHeights[i])
+					s.Require().NotNil(res.ConsensusStateHeights[i])
+					s.Require().Equal(expConsensusStateHeights[i], res.ConsensusStateHeights[i])
 				}
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryClientStatus() {
+func (s *KeeperTestSuite) TestQueryClientStatus() {
 	var req *types.QueryClientStatusRequest
 
 	testCases := []struct {
@@ -526,7 +526,7 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 		{
 			"Active client status",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := ibctesting.NewPath(s.chainA, s.chainB)
 				path.SetupClients()
 				req = &types.QueryClientStatusRequest{
 					ClientId: path.EndpointA.ClientID,
@@ -537,14 +537,14 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 		{
 			"Unknown client status",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := ibctesting.NewPath(s.chainA, s.chainB)
 				path.SetupClients()
 				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 
 				// increment latest height so no consensus state is stored
 				clientState.LatestHeight, ok = clientState.LatestHeight.Increment().(types.Height)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 				path.EndpointA.SetClientState(clientState)
 
 				req = &types.QueryClientStatusRequest{
@@ -556,10 +556,10 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 		{
 			"Frozen client status",
 			func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := ibctesting.NewPath(s.chainA, s.chainB)
 				path.SetupClients()
 				clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 
 				clientState.FrozenHeight = types.NewHeight(0, 1)
 				path.EndpointA.SetClientState(clientState)
@@ -573,27 +573,27 @@ func (suite *KeeperTestSuite) TestQueryClientStatus() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
 
 			tc.malleate()
-			ctx := suite.chainA.GetContext()
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			ctx := s.chainA.GetContext()
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			res, err := queryServer.ClientStatus(ctx, req)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(tc.expStatus, res.Status)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Equal(tc.expStatus, res.Status)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryUpgradedClientState() {
+func (s *KeeperTestSuite) TestQueryUpgradedClientState() {
 	var (
 		req            *types.QueryUpgradedClientStateRequest
 		path           *ibctesting.Path
@@ -613,7 +613,7 @@ func (suite *KeeperTestSuite) TestQueryUpgradedClientState() {
 		{
 			"success",
 			func() {
-				validAuthority := suite.chainA.App.GetIBCKeeper().GetAuthority()
+				validAuthority := s.chainA.App.GetIBCKeeper().GetAuthority()
 
 				// update trusting period
 				clientState := path.EndpointA.GetClientState()
@@ -624,15 +624,15 @@ func (suite *KeeperTestSuite) TestQueryUpgradedClientState() {
 					upgradePlan,
 					clientState,
 				)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				resp, err := suite.chainA.App.GetIBCKeeper().IBCSoftwareUpgrade(suite.chainA.GetContext(), msg)
-				suite.Require().NoError(err)
-				suite.Require().NotNil(resp)
+				resp, err := s.chainA.App.GetIBCKeeper().IBCSoftwareUpgrade(s.chainA.GetContext(), msg)
+				s.Require().NoError(err)
+				s.Require().NotNil(resp)
 
 				var ok bool
 				expClientState, ok = clientState.(*ibctm.ClientState)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 			},
 			nil,
 		},
@@ -653,56 +653,56 @@ func (suite *KeeperTestSuite) TestQueryUpgradedClientState() {
 		{
 			"no upgraded client set in store",
 			func() {
-				err := suite.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(suite.chainA.GetContext(), upgradePlan)
-				suite.Require().NoError(err)
+				err := s.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(s.chainA.GetContext(), upgradePlan)
+				s.Require().NoError(err)
 			},
 			status.Error(codes.NotFound, "upgraded client not found"),
 		},
 		{
 			"invalid upgraded client state",
 			func() {
-				err := suite.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(suite.chainA.GetContext(), upgradePlan)
-				suite.Require().NoError(err)
+				err := s.chainA.GetSimApp().UpgradeKeeper.ScheduleUpgrade(s.chainA.GetContext(), upgradePlan)
+				s.Require().NoError(err)
 
 				bz := []byte{1, 2, 3}
-				err = suite.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(suite.chainA.GetContext(), upgradePlan.Height, bz)
-				suite.Require().NoError(err)
+				err = s.chainA.GetSimApp().UpgradeKeeper.SetUpgradedClient(s.chainA.GetContext(), upgradePlan.Height, bz)
+				s.Require().NoError(err)
 			},
 			status.Error(codes.Internal, "proto: Any: illegal tag 0 (wire type 1)"),
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupClients()
 
 			req = &types.QueryUpgradedClientStateRequest{}
 
 			tc.malleate()
 
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
-			res, err := queryServer.UpgradedClientState(suite.chainA.GetContext(), req)
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.UpgradedClientState(s.chainA.GetContext(), req)
 
 			if tc.expError == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				upgradedClientState, err := types.UnpackClientState(res.UpgradedClientState)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				upgradedClientStateCmt, ok := upgradedClientState.(*ibctm.ClientState)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 
-				suite.Require().Equal(expClientState.ZeroCustomFields(), upgradedClientStateCmt)
+				s.Require().Equal(expClientState.ZeroCustomFields(), upgradedClientStateCmt)
 			} else {
-				suite.Require().ErrorIs(err, tc.expError)
+				s.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
+func (s *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 	var (
 		req               *types.QueryUpgradedConsensusStateRequest
 		expConsensusState *codectypes.Any
@@ -733,40 +733,40 @@ func (suite *KeeperTestSuite) TestQueryUpgradedConsensusStates() {
 			func() {
 				req = &types.QueryUpgradedConsensusStateRequest{}
 
-				ctx := suite.chainA.GetContext()
+				ctx := s.chainA.GetContext()
 				lastHeight := types.NewHeight(0, uint64(ctx.BlockHeight()))
 				height = int64(lastHeight.GetRevisionHeight())
 				ctx = ctx.WithBlockHeight(height)
 
-				expConsensusState = types.MustPackConsensusState(suite.consensusState)
-				bz := types.MustMarshalConsensusState(suite.cdc, suite.consensusState)
-				err := suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetUpgradedConsensusState(ctx, height, bz)
-				suite.Require().NoError(err)
+				expConsensusState = types.MustPackConsensusState(s.consensusState)
+				bz := types.MustMarshalConsensusState(s.cdc, s.consensusState)
+				err := s.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetUpgradedConsensusState(ctx, height, bz)
+				s.Require().NoError(err)
 			},
 			nil,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
 
 			tc.malleate()
 
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
-			res, err := queryServer.UpgradedConsensusState(suite.chainA.GetContext(), req)
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			res, err := queryServer.UpgradedConsensusState(s.chainA.GetContext(), req)
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().True(expConsensusState.Equal(res.UpgradedConsensusState))
+				s.Require().NoError(err)
+				s.Require().True(expConsensusState.Equal(res.UpgradedConsensusState))
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryCreator() {
+func (s *KeeperTestSuite) TestQueryCreator() {
 	var (
 		req    *types.QueryClientCreatorRequest
 		expRes *types.QueryClientCreatorResponse
@@ -812,7 +812,7 @@ func (suite *KeeperTestSuite) TestQueryCreator() {
 					ClientId: path.EndpointA.ClientID,
 				}
 				expRes = &types.QueryClientCreatorResponse{
-					Creator: suite.chainA.SenderAccount.GetAddress().String(),
+					Creator: s.chainA.SenderAccount.GetAddress().String(),
 				}
 			},
 			nil,
@@ -820,36 +820,36 @@ func (suite *KeeperTestSuite) TestQueryCreator() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			suite.SetupTest() // reset
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		s.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			s.SetupTest() // reset
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 
 			tc.malleate()
-			ctx := suite.chainA.GetContext()
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			ctx := s.chainA.GetContext()
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			res, err := queryServer.ClientCreator(ctx, req)
 
 			if tc.expError == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(expRes, res)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Equal(expRes, res)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expError)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryClientParams() {
-	ctx := suite.chainA.GetContext()
+func (s *KeeperTestSuite) TestQueryClientParams() {
+	ctx := s.chainA.GetContext()
 	expParams := types.DefaultParams()
-	queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+	queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 	res, _ := queryServer.ClientParams(ctx, &types.QueryClientParamsRequest{})
-	suite.Require().Equal(&expParams, res.Params)
+	s.Require().Equal(&expParams, res.Params)
 }
 
-func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
+func (s *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 	const wasmClientID = "08-wasm-0"
 
 	var (
@@ -866,14 +866,14 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			"success",
 			func() {
 				channel := path.EndpointB.GetChannel()
-				bz, err := suite.chainB.Codec.Marshal(&channel)
-				suite.Require().NoError(err)
+				bz, err := s.chainB.Codec.Marshal(&channel)
+				s.Require().NoError(err)
 
 				channelProof, proofHeight := path.EndpointB.QueryProof(host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
 
 				merklePath := commitmenttypes.NewMerklePath(host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID))
-				merklePath, err = commitmenttypes.ApplyPrefix(suite.chainB.GetPrefix(), merklePath)
-				suite.Require().NoError(err)
+				merklePath, err = commitmenttypes.ApplyPrefix(s.chainB.GetPrefix(), merklePath)
+				s.Require().NoError(err)
 
 				req = &types.QueryVerifyMembershipRequest{
 					ClientId:    path.EndpointA.ClientID,
@@ -980,7 +980,7 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 			"client type not allowed",
 			func() {
 				params := types.NewParams("") // disable all clients
-				suite.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+				s.chainA.GetSimApp().GetIBCKeeper().ClientKeeper.SetParams(s.chainA.GetContext(), params)
 
 				req = &types.QueryVerifyMembershipRequest{
 					ClientId:    path.EndpointA.ClientID,
@@ -995,30 +995,30 @@ func (suite *KeeperTestSuite) TestQueryVerifyMembershipProof() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.Setup()
 
 			tc.malleate()
 
-			ctx := suite.chainA.GetContext()
+			ctx := s.chainA.GetContext()
 			initialGas := ctx.GasMeter().GasConsumed()
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientKeeper)
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientKeeper)
 			res, err := queryServer.VerifyMembership(ctx, req)
 
 			if tc.expError == nil {
-				suite.Require().NoError(err)
-				suite.Require().True(res.Success, "failed to verify membership proof")
+				s.Require().NoError(err)
+				s.Require().True(res.Success, "failed to verify membership proof")
 
 				gasConsumed := ctx.GasMeter().GasConsumed()
-				suite.Require().Greater(gasConsumed, initialGas, "gas consumed should be greater than initial gas")
+				s.Require().Greater(gasConsumed, initialGas, "gas consumed should be greater than initial gas")
 			} else {
-				suite.Require().ErrorContains(err, tc.expError.Error())
+				s.Require().ErrorContains(err, tc.expError.Error())
 
 				gasConsumed := ctx.GasMeter().GasConsumed()
-				suite.Require().GreaterOrEqual(gasConsumed, initialGas, "gas consumed should be greater than or equal to initial gas")
+				s.Require().GreaterOrEqual(gasConsumed, initialGas, "gas consumed should be greater than or equal to initial gas")
 			}
 		})
 	}

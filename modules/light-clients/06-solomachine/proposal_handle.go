@@ -20,7 +20,7 @@ import (
 // the client has been disallowed to be updated by a governance proposal,
 // the substitute is not a solo machine, or the current public key equals
 // the new public key.
-func (cs ClientState) CheckSubstituteAndUpdateState(
+func (cs *ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
 	_ storetypes.KVStore, substituteClient exported.ClientState,
 ) error {
@@ -48,7 +48,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 	cs.ConsensusState = substituteClientState.ConsensusState
 	cs.IsFrozen = false
 
-	setClientState(subjectClientStore, cdc, &cs)
+	setClientState(subjectClientStore, cdc, cs)
 
 	return nil
 }

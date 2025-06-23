@@ -115,11 +115,11 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	m := keeper.NewMigrator(*am.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 4, m.MigrateDenomMetadata); err != nil {
-		panic(fmt.Errorf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %v", err))
+		panic(fmt.Errorf("failed to migrate transfer app from version 4 to 5 (set denom metadata migration): %w", err))
 	}
 
 	if err := cfg.RegisterMigration(types.ModuleName, 5, m.MigrateDenomTraceToDenom); err != nil {
-		panic(fmt.Errorf("failed to migrate transfer app from version 5 to 6 (migrate DenomTrace to Denom): %v", err))
+		panic(fmt.Errorf("failed to migrate transfer app from version 5 to 6 (migrate DenomTrace to Denom): %w", err))
 	}
 }
 

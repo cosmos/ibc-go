@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	interchaintestutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	interchaintestutil "github.com/cosmos/interchaintest/v10/testutil"
 	"gopkg.in/yaml.v2"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -730,7 +730,7 @@ func DefaultChainOptions(chainCount int) (ChainOptions, error) {
 	// if running a single test, only one relayer is needed.
 	numRelayers := 1
 	if IsRunSuite() {
-		// arbitrary number that will not be required if https://github.com/strangelove-ventures/interchaintest/issues/1153 is resolved.
+		// arbitrary number that will not be required if https://github.com/cosmos/interchaintest/issues/1153 is resolved.
 		// It can be overridden in individual test suites in SetupSuite if required.
 		numRelayers = 10
 	}
@@ -757,7 +757,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 			{
 				Repository: cc.Image,
 				Version:    cc.Tag,
-				UidGid:     "1000:1000",
+				UIDGID:     "1000:1000",
 			},
 		},
 		Bin:                 cc.Binary,
@@ -883,7 +883,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 
 		govModuleBytes, err := json.Marshal(appStateMap[govtypes.ModuleName])
 		if err != nil {
-			return nil, fmt.Errorf("failed to extract gov genesis bytes: %s", err)
+			return nil, fmt.Errorf("failed to extract gov genesis bytes: %w", err)
 		}
 
 		govModuleGenesisBytes, err := modifyGovv1Beta1AppState(chainConfig, govModuleBytes)
@@ -900,7 +900,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(version) {
 			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
 			if err != nil {
-				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %w", err)
 			}
 
 			ibcGenesisBytes, err := modifyClientGenesisAppState(ibcModuleBytes)
@@ -919,7 +919,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 		if !testvalues.ChannelParamsFeatureReleases.IsSupported(version) {
 			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
 			if err != nil {
-				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %w", err)
 			}
 
 			ibcGenesisBytes, err := modifyChannelGenesisAppState(ibcModuleBytes)
@@ -933,13 +933,12 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
 			}
 			appStateMap[ibcexported.ModuleName] = ibcModuleGenesisMap
-
 		}
 
 		if !testvalues.ChannelsV2FeatureReleases.IsSupported(version) {
 			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
 			if err != nil {
-				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %w", err)
 			}
 
 			ibcGenesisBytes, err := modifyChannelV2GenesisAppState(ibcModuleBytes)
@@ -958,7 +957,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 		if !testvalues.ClientV2FeatureReleases.IsSupported(version) {
 			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
 			if err != nil {
-				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %w", err)
 			}
 
 			ibcGenesisBytes, err := modifyClientV2GenesisAppState(ibcModuleBytes)

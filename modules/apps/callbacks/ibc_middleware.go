@@ -89,7 +89,7 @@ func (im *IBCMiddleware) GetICS4Wrapper() porttypes.ICS4Wrapper {
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback returns an error, panics, or runs out of gas, then
 // the packet send is rejected.
-func (im IBCMiddleware) SendPacket(
+func (im *IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
@@ -136,7 +136,7 @@ func (im IBCMiddleware) SendPacket(
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) OnAcknowledgementPacket(
+func (im *IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
@@ -183,7 +183,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
+func (im *IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) error {
 	err := im.app.OnTimeoutPacket(ctx, channelVersion, packet, relayer)
 	if err != nil {
 		return err
@@ -222,7 +222,7 @@ func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, channelVersion string, 
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
+func (im *IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, packet channeltypes.Packet, relayer sdk.AccAddress) ibcexported.Acknowledgement {
 	ack := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	// if ack is nil (asynchronous acknowledgements), then the callback will be handled in WriteAcknowledgement
 	// if ack is not successful, all state changes are reverted. If a packet cannot be received, then there is
@@ -269,7 +269,7 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pac
 // It defers to the underlying application and then calls the contract callback.
 // If the contract callback runs out of gas and may be retried with a higher gas limit then the state changes are
 // reverted via a panic.
-func (im IBCMiddleware) WriteAcknowledgement(
+func (im *IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
@@ -311,7 +311,7 @@ func (im IBCMiddleware) WriteAcknowledgement(
 }
 
 // OnChanOpenInit defers to the underlying application
-func (im IBCMiddleware) OnChanOpenInit(
+func (im *IBCMiddleware) OnChanOpenInit(
 	ctx sdk.Context,
 	channelOrdering channeltypes.Order,
 	connectionHops []string,
@@ -324,7 +324,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 }
 
 // OnChanOpenTry defers to the underlying application
-func (im IBCMiddleware) OnChanOpenTry(
+func (im *IBCMiddleware) OnChanOpenTry(
 	ctx sdk.Context,
 	channelOrdering channeltypes.Order,
 	connectionHops []string, portID,
@@ -336,7 +336,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 }
 
 // OnChanOpenAck defers to the underlying application
-func (im IBCMiddleware) OnChanOpenAck(
+func (im *IBCMiddleware) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID,
@@ -347,28 +347,28 @@ func (im IBCMiddleware) OnChanOpenAck(
 }
 
 // OnChanOpenConfirm defers to the underlying application
-func (im IBCMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
+func (im *IBCMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
 // OnChanCloseInit defers to the underlying application
-func (im IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
+func (im *IBCMiddleware) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanCloseInit(ctx, portID, channelID)
 }
 
 // OnChanCloseConfirm defers to the underlying application
-func (im IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
+func (im *IBCMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
 	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
 // GetAppVersion implements the ICS4Wrapper interface. Callbacks has no version,
 // so the call is deferred to the underlying application.
-func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (im *IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }
 
 // UnmarshalPacketData defers to the underlying app to unmarshal the packet data.
 // This function implements the optional PacketDataUnmarshaler interface.
-func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (any, string, error) {
+func (im *IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (any, string, error) {
 	return im.app.UnmarshalPacketData(ctx, portID, channelID, bz)
 }

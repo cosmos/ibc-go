@@ -34,21 +34,21 @@ type KeeperTestSuite struct {
 	chainC *ibctesting.TestChain
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
+func (s *KeeperTestSuite) SetupTest() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+	s.chainC = s.coordinator.GetChain(ibctesting.GetChainID(3))
 
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.chainA.GetContext(), suite.chainA.GetSimApp().InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.chainA.GetSimApp().TransferKeeper)
+	queryHelper := baseapp.NewQueryServerTestHelper(s.chainA.GetContext(), s.chainA.GetSimApp().InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, s.chainA.GetSimApp().TransferKeeper)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) TestNewKeeper() {
+func (s *KeeperTestSuite) TestNewKeeper() {
 	testCases := []struct {
 		name          string
 		instantiateFn func()
@@ -56,50 +56,49 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	}{
 		{"success", func() {
 			keeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().AccountKeeper,
-				suite.chainA.GetSimApp().BankKeeper,
-				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
+				s.chainA.GetSimApp().AppCodec(),
+				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().MsgServiceRouter(),
+				s.chainA.GetSimApp().AccountKeeper,
+				s.chainA.GetSimApp().BankKeeper,
+				s.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
 		}, ""},
 		{"failure: transfer module account does not exist", func() {
 			keeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
+				s.chainA.GetSimApp().AppCodec(),
+				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().MsgServiceRouter(),
 				authkeeper.AccountKeeper{}, // empty account keeper
-				suite.chainA.GetSimApp().BankKeeper,
-				suite.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
+				s.chainA.GetSimApp().BankKeeper,
+				s.chainA.GetSimApp().ICAControllerKeeper.GetAuthority(),
 			)
 		}, "the IBC transfer module account has not been set"},
 		{"failure: empty authority", func() {
 			keeper.NewKeeper(
-				suite.chainA.GetSimApp().AppCodec(),
-				runtime.NewKVStoreService(suite.chainA.GetSimApp().GetKey(types.StoreKey)),
-				suite.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				suite.chainA.GetSimApp().MsgServiceRouter(),
-				suite.chainA.GetSimApp().AccountKeeper,
-				suite.chainA.GetSimApp().BankKeeper,
+				s.chainA.GetSimApp().AppCodec(),
+				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
+				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().MsgServiceRouter(),
+				s.chainA.GetSimApp().AccountKeeper,
+				s.chainA.GetSimApp().BankKeeper,
 				"", // authority
 			)
 		}, "authority must be non-empty"},
 	}
 
 	for _, tc := range testCases {
+		s.SetupTest()
 
-		suite.SetupTest()
-
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			if tc.panicMsg == "" {
-				suite.Require().NotPanics(
+				s.Require().NotPanics(
 					tc.instantiateFn,
 				)
 			} else {
-				suite.Require().PanicsWithError(
+				s.Require().PanicsWithError(
 					tc.panicMsg,
 					tc.instantiateFn,
 				)
@@ -108,7 +107,7 @@ func (suite *KeeperTestSuite) TestNewKeeper() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
+func (s *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 	const denom = "atom"
 	var expAmount sdkmath.Int
 
@@ -146,10 +145,10 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 			expAmount = sdkmath.NewInt(100)
-			ctx := suite.chainA.GetContext()
+			ctx := s.chainA.GetContext()
 
 			tc.malleate()
 
@@ -159,30 +158,30 @@ func (suite *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 			}
 
 			if tc.expError == nil {
-				suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, coin)
-				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
-				suite.Require().Equal(expAmount, total.Amount)
+				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, coin)
+				total := s.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
+				s.Require().Equal(expAmount, total.Amount)
 
-				storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
+				storeKey := s.chainA.GetSimApp().GetKey(types.ModuleName)
 				store := ctx.KVStore(storeKey)
 				key := types.TotalEscrowForDenomKey(denom)
 				if expAmount.IsZero() {
-					suite.Require().False(store.Has(key))
+					s.Require().False(store.Has(key))
 				} else {
-					suite.Require().True(store.Has(key))
+					s.Require().True(store.Has(key))
 				}
 			} else {
-				suite.Require().PanicsWithError(tc.expError.Error(), func() {
-					suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, coin)
+				s.Require().PanicsWithError(tc.expError.Error(), func() {
+					s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(ctx, coin)
 				})
-				total := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
-				suite.Require().Equal(sdkmath.ZeroInt(), total.Amount)
+				total := s.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, denom)
+				s.Require().Equal(sdkmath.ZeroInt(), total.Amount)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
+func (s *KeeperTestSuite) TestGetAllDenomEscrows() {
 	var (
 		store           storetypes.KVStore
 		cdc             codec.Codec
@@ -262,31 +261,31 @@ func (suite *KeeperTestSuite) TestGetAllDenomEscrows() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
 			expDenomEscrows = sdk.Coins{}
-			ctx := suite.chainA.GetContext()
+			ctx := s.chainA.GetContext()
 
-			storeKey := suite.chainA.GetSimApp().GetKey(types.ModuleName)
+			storeKey := s.chainA.GetSimApp().GetKey(types.ModuleName)
 			store = ctx.KVStore(storeKey)
-			cdc = suite.chainA.App.AppCodec()
+			cdc = s.chainA.App.AppCodec()
 
 			tc.malleate()
 
-			denomEscrows := suite.chainA.GetSimApp().TransferKeeper.GetAllTotalEscrowed(ctx)
+			denomEscrows := s.chainA.GetSimApp().TransferKeeper.GetAllTotalEscrowed(ctx)
 
 			if tc.expPass {
-				suite.Require().Len(expDenomEscrows, len(denomEscrows))
-				suite.Require().ElementsMatch(expDenomEscrows, denomEscrows)
+				s.Require().Len(expDenomEscrows, len(denomEscrows))
+				s.Require().ElementsMatch(expDenomEscrows, denomEscrows)
 			} else {
-				suite.Require().Empty(denomEscrows)
+				s.Require().Empty(denomEscrows)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestParams() {
+func (s *KeeperTestSuite) TestParams() {
 	testCases := []struct {
 		name     string
 		input    types.Params
@@ -300,53 +299,53 @@ func (suite *KeeperTestSuite) TestParams() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			ctx := suite.chainA.GetContext()
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
+			ctx := s.chainA.GetContext()
 			if tc.panicMsg == "" {
-				suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
+				s.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
 				expected := tc.input
-				p := suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
-				suite.Require().Equal(expected, p)
+				p := s.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
+				s.Require().Equal(expected, p)
 			} else {
-				suite.Require().PanicsWithError(tc.panicMsg, func() {
-					suite.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
+				s.Require().PanicsWithError(tc.panicMsg, func() {
+					s.chainA.GetSimApp().TransferKeeper.SetParams(ctx, tc.input)
 				})
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestUnsetParams() {
-	suite.SetupTest()
+func (s *KeeperTestSuite) TestUnsetParams() {
+	s.SetupTest()
 
-	ctx := suite.chainA.GetContext()
-	store := suite.chainA.GetContext().KVStore(suite.chainA.GetSimApp().GetKey(types.ModuleName))
+	ctx := s.chainA.GetContext()
+	store := s.chainA.GetContext().KVStore(s.chainA.GetSimApp().GetKey(types.ModuleName))
 	store.Delete([]byte(types.ParamsKey))
 
-	suite.Require().Panics(func() {
-		suite.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
+	s.Require().Panics(func() {
+		s.chainA.GetSimApp().TransferKeeper.GetParams(ctx)
 	})
 }
 
-func (suite *KeeperTestSuite) TestWithICS4Wrapper() {
-	suite.SetupTest()
+func (s *KeeperTestSuite) TestWithICS4Wrapper() {
+	s.SetupTest()
 
 	// test if the ics4 wrapper is the pfm keeper initially
-	ics4Wrapper := suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
+	ics4Wrapper := s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
 
 	_, isPFMKeeper := ics4Wrapper.(*packetforward.IBCMiddleware)
-	suite.Require().True(isPFMKeeper)
-	suite.Require().IsType((*packetforward.IBCMiddleware)(nil), ics4Wrapper)
+	s.Require().True(isPFMKeeper)
+	s.Require().IsType((*packetforward.IBCMiddleware)(nil), ics4Wrapper)
 
 	// set the ics4 wrapper to the channel keeper
-	suite.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(nil)
-	ics4Wrapper = suite.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
-	suite.Require().Nil(ics4Wrapper)
+	s.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(nil)
+	ics4Wrapper = s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
+	s.Require().Nil(ics4Wrapper)
 }
 
-func (suite *KeeperTestSuite) TestIsBlockedAddr() {
-	suite.SetupTest()
+func (s *KeeperTestSuite) TestIsBlockedAddr() {
+	s.SetupTest()
 
 	testCases := []struct {
 		name     string
@@ -355,24 +354,24 @@ func (suite *KeeperTestSuite) TestIsBlockedAddr() {
 	}{
 		{
 			"transfer module account address",
-			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName),
+			s.chainA.GetSimApp().AccountKeeper.GetModuleAddress(types.ModuleName),
 			false,
 		},
 		{
 			"regular address",
-			suite.chainA.SenderAccount.GetAddress(),
+			s.chainA.SenderAccount.GetAddress(),
 			false,
 		},
 		{
 			"blocked address",
-			suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName),
+			s.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName),
 			true,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(tc.expBlock, suite.chainA.GetSimApp().TransferKeeper.IsBlockedAddr(tc.addr))
+		s.Run(tc.name, func() {
+			s.Require().Equal(tc.expBlock, s.chainA.GetSimApp().TransferKeeper.IsBlockedAddr(tc.addr))
 		})
 	}
 }

@@ -19,7 +19,7 @@ import (
 var _ types.QueryServer = (*Keeper)(nil)
 
 // Code implements the Query/Code gRPC method
-func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types.QueryCodeResponse, error) {
+func (k *Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types.QueryCodeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -45,7 +45,7 @@ func (k Keeper) Code(goCtx context.Context, req *types.QueryCodeRequest) (*types
 }
 
 // Checksums implements the Query/Checksums gRPC method. It returns a list of hex encoded checksums stored.
-func (k Keeper) Checksums(goCtx context.Context, req *types.QueryChecksumsRequest) (*types.QueryChecksumsResponse, error) {
+func (k *Keeper) Checksums(goCtx context.Context, req *types.QueryChecksumsRequest) (*types.QueryChecksumsResponse, error) {
 	checksums, pageRes, err := sdkquery.CollectionPaginate(
 		goCtx,
 		k.GetChecksums(),
