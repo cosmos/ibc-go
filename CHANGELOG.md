@@ -39,6 +39,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 * [\#8285](https://github.com/cosmos/ibc-go/pull/8285) Packet forward middleware.
+* [\#8545](https://github.com/cosmos/ibc-go/pull/8545) Support sending multiple payloads in the same packet for atomic payload execution.
+* [\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.
 
 ### Dependencies
 
@@ -63,8 +65,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [v10.3.0](https://github.com/cosmos/ibc-go/releases/tag/v10.3.0) - 2025-06-06
 
 ### Features
-
-*[\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.
 
 ### Dependencies
 
