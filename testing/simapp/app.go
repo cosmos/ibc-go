@@ -397,14 +397,14 @@ func NewSimApp(
 	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// create IBC module from bottom to top of stack
-	transferStack := porttypes.NewIBCStackBuilder()
+	transferStack := porttypes.NewIBCStackBuilder(app.IBCKeeper.ChannelKeeper)
 	transferApp := transfer.NewIBCModule(app.TransferKeeper)
 	transferStack.Base(transferApp).Next(
 		packetforward.NewIBCMiddleware(app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp),
 	)
 
 	// Add transfer stack to IBC Router
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack.Build(app.IBCKeeper.ChannelKeeper))
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack.Build())
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:

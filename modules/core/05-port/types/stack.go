@@ -1,12 +1,15 @@
 package types
 
 type IBCStackBuilder struct {
-	middlewares []Middleware
-	baseModule  IBCModule
+	middlewares   []Middleware
+	baseModule    IBCModule
+	channelKeeper ICS4Wrapper
 }
 
-func NewIBCStackBuilder() *IBCStackBuilder {
-	return &IBCStackBuilder{}
+func NewIBCStackBuilder(chanKeeper ICS4Wrapper) *IBCStackBuilder {
+	return &IBCStackBuilder{
+		channelKeeper: chanKeeper,
+	}
 }
 
 func (b *IBCStackBuilder) Next(middleware Middleware) *IBCStackBuilder {
@@ -25,12 +28,15 @@ func (b *IBCStackBuilder) Base(baseModule IBCModule) *IBCStackBuilder {
 	return b
 }
 
-func (b *IBCStackBuilder) Build(channelKeeper ICS4Wrapper) IBCModule {
+func (b *IBCStackBuilder) Build() IBCModule {
 	if b.baseModule == nil {
 		panic("base module cannot be nil")
 	}
 	if len(b.middlewares) == 0 {
 		panic("middlewares cannot be empty")
+	}
+	if b.channelKeeper == nil {
+		panic("channel keeper cannot be nil")
 	}
 
 	// Build the stack by moving up the middleware list
@@ -45,7 +51,7 @@ func (b *IBCStackBuilder) Build(channelKeeper ICS4Wrapper) IBCModule {
 
 	// set the top level channel keeper as the ICS4Wrapper
 	// for the lop level middleware
-	b.middlewares[len(b.middlewares)-1].SetICS4Wrapper(channelKeeper)
+	b.middlewares[len(b.middlewares)-1].SetICS4Wrapper(b.channelKeeper)
 
 	return b.middlewares[len(b.middlewares)-1]
 }

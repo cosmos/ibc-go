@@ -58,21 +58,22 @@ customIBCModule1 := custom.NewIBCModule(customKeeper1, "portCustom1")
 customIBCModule2 := custom.NewIBCModule(customKeeper2, "portCustom2")
 
 // create IBC stacks by combining middleware with base application
+// IBC Stack builders are initialized with the IBC ChannelKeeper which is the top-level ICS4Wrapper
 // NOTE: since middleware2 is stateless it does not require a Keeper
 // stack 1 contains mw1 -> mw3 -> transfer
-stack1 := porttypes.NewStackBuilder().
+stack1 := porttypes.NewStackBuilder(ibcChannelKeeper).
   Base(transferIBCModule).
   Next(mw3).
   Next(mw1).
   Build()
 // stack 2 contains mw3 -> mw2 -> custom1
-stack2 := porttypes.NewStackBuilder().
+stack2 := porttypes.NewStackBuilder(ibcChannelKeeper).
   Base(customIBCModule1).
   Next(mw2).
   Next(mw3).
   Build()
 // stack 3 contains mw2 -> mw1 -> custom2
-stack3 := porttypes.NewStackBuilder().
+stack3 := porttypes.NewStackBuilder(ibcChannelKeeper).
   Base(customIBCModule2).
   Next(mw1).
   Next(mw2).

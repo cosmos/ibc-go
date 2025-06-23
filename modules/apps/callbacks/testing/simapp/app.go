@@ -386,27 +386,27 @@ func NewSimApp(
 	// - Transfer
 
 	// create IBC module from bottom to top of stack
-	transferStack := porttypes.NewIBCStackBuilder()
+	transferStack := porttypes.NewIBCStackBuilder(app.IBCKeeper.ChannelKeeper)
 	transferStack.Base(transfer.NewIBCModule(app.TransferKeeper)).Next(
 		ibccallbacks.NewIBCMiddleware(app.MockContractKeeper, maxCallbackGas),
 	)
 
 	// Add transfer stack to IBC Router
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack.Build(app.IBCKeeper.ChannelKeeper))
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack.Build())
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
 	// icaControllerKeeper.SendTx -> callbacks.SendPacket -> channel.SendPacket
 
 	// initialize ICA module with mock module as the authentication module on the controller side
-	icaControllerStack := porttypes.NewIBCStackBuilder()
+	icaControllerStack := porttypes.NewIBCStackBuilder(app.IBCKeeper.ChannelKeeper)
 
 	icaControllerStack.Base(ibcmock.NewIBCModule(&mockModule, ibcmock.NewIBCApp(""))).Next(
 		icacontroller.NewIBCMiddleware(app.ICAControllerKeeper),
 	).Next(
 		ibccallbacks.NewIBCMiddleware(app.MockContractKeeper, maxCallbackGas),
 	)
-	icaControllerApp := icaControllerStack.Build(app.IBCKeeper.ChannelKeeper)
+	icaControllerApp := icaControllerStack.Build()
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is:
 	// channel.RecvPacket -> icaHost.OnRecvPacket
