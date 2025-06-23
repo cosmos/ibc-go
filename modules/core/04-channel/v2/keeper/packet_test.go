@@ -26,7 +26,6 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 	var (
 		path        *ibctesting.Path
 		packet      types.Packet
-		payload     types.Payload
 		expSequence uint64
 	)
 
@@ -43,7 +42,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 		{
 			"success multiple payloads",
 			func() {
-				packet.Payloads = append(packet.Payloads, payload)
+				packet.Payloads = append(packet.Payloads, packet.Payloads...)
 			},
 			nil,
 		},
@@ -123,7 +122,7 @@ func (suite *KeeperTestSuite) TestSendPacket() {
 			path = ibctesting.NewPath(suite.chainA, suite.chainB)
 			path.SetupV2()
 
-			payload = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			timeoutTimestamp := uint64(suite.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
@@ -538,7 +537,6 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 	var (
 		path         *ibctesting.Path
 		packet       types.Packet
-		payload      types.Payload
 		freezeClient bool
 	)
 
@@ -561,7 +559,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			"success multiple payloads",
 			func() {
 				// send packet with multiple payloads
-				packet.Payloads = append(packet.Payloads, payload)
+				packet.Payloads = append(packet.Payloads, packet.Payloads...)
 				_, _, err := suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(suite.chainA.GetContext(), packet.SourceClient,
 					packet.TimeoutTimestamp, packet.Payloads)
 				suite.Require().NoError(err, "send packet failed")
@@ -658,7 +656,7 @@ func (suite *KeeperTestSuite) TestTimeoutPacket() {
 			path.SetupV2()
 
 			// create default packet with a timed out timestamp
-			payload = mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
+			payload := mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)
 
 			// make timeoutTimestamp 1 second more than sending chain time to ensure it passes SendPacket
 			// and times out successfully after update
