@@ -883,7 +883,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 
 		govModuleBytes, err := json.Marshal(appStateMap[govtypes.ModuleName])
 		if err != nil {
-			return nil, fmt.Errorf("failed to extract gov genesis bytes: %s", err)
+			return nil, fmt.Errorf("failed to extract gov genesis bytes: %w", err)
 		}
 
 		govModuleGenesisBytes, err := modifyGovv1Beta1AppState(chainConfig, govModuleBytes)
@@ -900,7 +900,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(version) {
 			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
 			if err != nil {
-				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %w", err)
 			}
 
 			ibcGenesisBytes, err := modifyClientGenesisAppState(ibcModuleBytes)
@@ -919,7 +919,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 		if !testvalues.ChannelParamsFeatureReleases.IsSupported(version) {
 			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
 			if err != nil {
-				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %w", err)
 			}
 
 			ibcGenesisBytes, err := modifyChannelGenesisAppState(ibcModuleBytes)
@@ -933,13 +933,12 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 				return nil, fmt.Errorf("failed to unmarshal gov genesis bytes into map: %w", err)
 			}
 			appStateMap[ibcexported.ModuleName] = ibcModuleGenesisMap
-
 		}
 
 		if !testvalues.ChannelsV2FeatureReleases.IsSupported(version) {
 			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
 			if err != nil {
-				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %w", err)
 			}
 
 			ibcGenesisBytes, err := modifyChannelV2GenesisAppState(ibcModuleBytes)
@@ -958,7 +957,7 @@ func defaultGovv1Beta1ModifyGenesis(version string) func(ibc.ChainConfig, []byte
 		if !testvalues.ClientV2FeatureReleases.IsSupported(version) {
 			ibcModuleBytes, err := json.Marshal(appStateMap[ibcexported.ModuleName])
 			if err != nil {
-				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %s", err)
+				return nil, fmt.Errorf("failed to extract ibc genesis bytes: %w", err)
 			}
 
 			ibcGenesisBytes, err := modifyClientV2GenesisAppState(ibcModuleBytes)

@@ -15,7 +15,7 @@ import (
 // and registers a new interchain account (if it doesn't exist).
 // The version returned will include the registered interchain
 // account address.
-func (k Keeper) OnChanOpenTry(
+func (k *Keeper) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -73,7 +73,6 @@ func (k Keeper) OnChanOpenTry(
 		if _, ok := k.accountKeeper.GetAccount(ctx, accAddress).(*icatypes.InterchainAccount); !ok {
 			return "", errorsmod.Wrapf(icatypes.ErrInvalidAccountReopening, "existing account address %s, does not have interchain account type", accAddress)
 		}
-
 	} else {
 		accAddress, err = k.createInterchainAccount(ctx, metadata.HostConnectionId, counterparty.PortId)
 		if err != nil {
@@ -92,7 +91,7 @@ func (k Keeper) OnChanOpenTry(
 }
 
 // OnChanOpenConfirm completes the handshake process by setting the active channel in state on the host chain
-func (k Keeper) OnChanOpenConfirm(
+func (k *Keeper) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -112,7 +111,7 @@ func (k Keeper) OnChanOpenConfirm(
 }
 
 // OnChanCloseConfirm removes the active channel stored in state
-func (Keeper) OnChanCloseConfirm(
+func (*Keeper) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,

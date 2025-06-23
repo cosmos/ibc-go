@@ -16,7 +16,7 @@ const (
 
 var invalidProof = []byte("invalid proof")
 
-func (suite *TendermintTestSuite) TestValidate() {
+func (s *TendermintTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string
 		clientState *ibctm.ClientState
@@ -121,13 +121,13 @@ func (suite *TendermintTestSuite) TestValidate() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.clientState.Validate()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().ErrorContains(err, tc.expErr.Error())
+				s.Require().ErrorContains(err, tc.expErr.Error())
 			}
 		})
 	}

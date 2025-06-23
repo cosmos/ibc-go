@@ -77,11 +77,11 @@ func (s *InterchainAccountsGovTestSuite) TestInterchainAccountsGovIntegration() 
 		var err error
 		interchainAccAddr, err = query.InterchainAccount(ctx, chainA, govModuleAddress.String(), ibctesting.FirstConnectionID)
 		s.Require().NoError(err)
-		s.Require().NotZero(len(interchainAccAddr))
+		s.Require().NotEmpty(interchainAccAddr)
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Len(channels, 2)
 	})
 
 	t.Run("interchain account executes a bank transfer on behalf of the corresponding owner account", func(t *testing.T) {

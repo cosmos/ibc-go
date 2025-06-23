@@ -66,13 +66,10 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 		allowedAddrsMap[addr] = true
 	}
 
-	/* Just to be safe, assert the invariants on current state. */
-	app.CrisisKeeper.AssertInvariants(ctx)
-
 	/* Handle fee distribution state. */
 
 	// withdraw all validator commission
-	err := app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
+	err := app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) bool {
 		valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 		if err != nil {
 			panic(err)
@@ -114,7 +111,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 	ctx = ctx.WithBlockHeight(0)
 
 	// reinitialize all validators
-	err = app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
+	err = app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) bool {
 		valBz, err := sdk.ValAddressFromBech32(val.GetOperator())
 		if err != nil {
 			panic(err)
@@ -168,7 +165,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 	/* Handle staking state. */
 
 	// iterate through redelegations, reset creation height
-	err = app.StakingKeeper.IterateRedelegations(ctx, func(_ int64, red stakingtypes.Redelegation) (stop bool) {
+	err = app.StakingKeeper.IterateRedelegations(ctx, func(_ int64, red stakingtypes.Redelegation) bool {
 		for i := range red.Entries {
 			red.Entries[i].CreationHeight = 0
 		}
@@ -183,7 +180,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 	}
 
 	// iterate through unbonding delegations, reset creation height
-	err = app.StakingKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
+	err = app.StakingKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) bool {
 		for i := range ubd.Entries {
 			ubd.Entries[i].CreationHeight = 0
 		}
@@ -234,7 +231,7 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 	// reset start height on signing infos
 	err = app.SlashingKeeper.IterateValidatorSigningInfos(
 		ctx,
-		func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool) {
+		func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) bool {
 			info.StartHeight = 0
 			err = app.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
 			if err != nil {

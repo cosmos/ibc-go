@@ -13,7 +13,7 @@ import (
 )
 
 // Stores/Updates a rate limit object in the store
-func (k Keeper) SetRateLimit(ctx sdk.Context, rateLimit types.RateLimit) {
+func (k *Keeper) SetRateLimit(ctx sdk.Context, rateLimit types.RateLimit) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.RateLimitKeyPrefix)
 
@@ -24,7 +24,7 @@ func (k Keeper) SetRateLimit(ctx sdk.Context, rateLimit types.RateLimit) {
 }
 
 // Removes a rate limit object from the store using denom and channel-id
-func (k Keeper) RemoveRateLimit(ctx sdk.Context, denom string, channelID string) {
+func (k *Keeper) RemoveRateLimit(ctx sdk.Context, denom string, channelID string) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.RateLimitKeyPrefix)
 	rateLimitKey := types.RateLimitItemKey(denom, channelID)
@@ -32,7 +32,7 @@ func (k Keeper) RemoveRateLimit(ctx sdk.Context, denom string, channelID string)
 }
 
 // Grabs and returns a rate limit object from the store using denom and channel-id
-func (k Keeper) GetRateLimit(ctx sdk.Context, denom string, channelID string) (rateLimit types.RateLimit, found bool) {
+func (k *Keeper) GetRateLimit(ctx sdk.Context, denom string, channelID string) (types.RateLimit, bool) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.RateLimitKeyPrefix)
 
@@ -40,15 +40,16 @@ func (k Keeper) GetRateLimit(ctx sdk.Context, denom string, channelID string) (r
 	rateLimitValue := store.Get(rateLimitKey)
 
 	if len(rateLimitValue) == 0 {
-		return rateLimit, false
+		return types.RateLimit{}, false
 	}
 
+	var rateLimit types.RateLimit
 	k.cdc.MustUnmarshal(rateLimitValue, &rateLimit)
 	return rateLimit, true
 }
 
 // Returns all rate limits stored
-func (k Keeper) GetAllRateLimits(ctx sdk.Context) []types.RateLimit {
+func (k *Keeper) GetAllRateLimits(ctx sdk.Context) []types.RateLimit {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.RateLimitKeyPrefix)
 
@@ -70,7 +71,7 @@ func (k Keeper) GetAllRateLimits(ctx sdk.Context) []types.RateLimit {
 }
 
 // Adds a new rate limit. Fails if the rate limit already exists or the channel value is 0
-func (k Keeper) AddRateLimit(ctx sdk.Context, msg *types.MsgAddRateLimit) error {
+func (k *Keeper) AddRateLimit(ctx sdk.Context, msg *types.MsgAddRateLimit) error {
 	channelValue := k.GetChannelValue(ctx, msg.Denom)
 	if channelValue.IsZero() {
 		return types.ErrZeroChannelValue
@@ -120,7 +121,7 @@ func (k Keeper) AddRateLimit(ctx sdk.Context, msg *types.MsgAddRateLimit) error 
 }
 
 // Updates an existing rate limit. Fails if the rate limit doesn't exist
-func (k Keeper) UpdateRateLimit(ctx sdk.Context, msg *types.MsgUpdateRateLimit) error {
+func (k *Keeper) UpdateRateLimit(ctx sdk.Context, msg *types.MsgUpdateRateLimit) error {
 	_, found := k.GetRateLimit(ctx, msg.Denom, msg.ChannelOrClientId)
 	if !found {
 		return types.ErrRateLimitNotFound
@@ -155,7 +156,7 @@ func (k Keeper) UpdateRateLimit(ctx sdk.Context, msg *types.MsgUpdateRateLimit) 
 // Reset the rate limit after expiration
 // The inflow and outflow should get reset to 0, the channelValue should be updated,
 // and all pending send packet sequence numbers should be removed
-func (k Keeper) ResetRateLimit(ctx sdk.Context, denom string, channelID string) error {
+func (k *Keeper) ResetRateLimit(ctx sdk.Context, denom string, channelID string) error {
 	rateLimit, found := k.GetRateLimit(ctx, denom, channelID)
 	if !found {
 		return types.ErrRateLimitNotFound

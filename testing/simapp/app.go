@@ -93,7 +93,7 @@ import (
 	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting"
 	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-	transfer "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	transferv2 "github.com/cosmos/ibc-go/v10/modules/apps/transfer/v2"
@@ -369,7 +369,7 @@ func NewSimApp(
 
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.MsgServiceRouter(), app.AccountKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
 
-	app.PFMKeeper.SetTransferKeeper(app.TransferKeeper)
+	app.PFMKeeper.SetTransferKeeper(&app.TransferKeeper)
 
 	// Mock Module Stack
 

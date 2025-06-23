@@ -57,59 +57,59 @@ type TendermintTestSuite struct {
 	clientTime time.Time
 }
 
-func (suite *TendermintTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+func TestTendermintTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(TendermintTestSuite))
+}
+
+func (s *TendermintTestSuite) SetupTest() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 2)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-	suite.coordinator.CommitNBlocks(suite.chainB, 2)
+	s.coordinator.CommitNBlocks(s.chainA, 2)
+	s.coordinator.CommitNBlocks(s.chainB, 2)
 
 	// TODO: deprecate usage in favor of testing package
 	checkTx := false
-	app := simapp.Setup(suite.T(), checkTx)
+	app := simapp.Setup(s.T(), checkTx)
 
-	suite.cdc = app.AppCodec()
+	s.cdc = app.AppCodec()
 
 	// now is the time of the current chain, must be after the updating header
 	// mocks ctx.BlockTime()
-	suite.now = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
-	suite.clientTime = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+	s.now = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
+	s.clientTime = time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 	// Header time is intended to be time for any new header used for updates
-	suite.headerTime = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
+	s.headerTime = time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 
-	suite.privVal = cmttypes.NewMockPV()
+	s.privVal = cmttypes.NewMockPV()
 
-	pubKey, err := suite.privVal.GetPubKey()
-	suite.Require().NoError(err)
+	pubKey, err := s.privVal.GetPubKey()
+	s.Require().NoError(err)
 
 	heightMinus1 := clienttypes.NewHeight(0, height.RevisionHeight-1)
 
 	val := cmttypes.NewValidator(pubKey, 10)
-	suite.signers = make(map[string]cmttypes.PrivValidator)
-	suite.signers[val.Address.String()] = suite.privVal
-	suite.valSet = cmttypes.NewValidatorSet([]*cmttypes.Validator{val})
-	suite.valsHash = suite.valSet.Hash()
-	suite.header = suite.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, suite.now, suite.valSet, suite.valSet, suite.valSet, suite.signers)
-	suite.ctx = app.NewContext(checkTx)
+	s.signers = make(map[string]cmttypes.PrivValidator)
+	s.signers[val.Address.String()] = s.privVal
+	s.valSet = cmttypes.NewValidatorSet([]*cmttypes.Validator{val})
+	s.valsHash = s.valSet.Hash()
+	s.header = s.chainA.CreateTMClientHeader(chainID, int64(height.RevisionHeight), heightMinus1, s.now, s.valSet, s.valSet, s.valSet, s.signers)
+	s.ctx = app.NewContext(checkTx)
 }
 
 func getAltSigners(altVal *cmttypes.Validator, altPrivVal cmttypes.PrivValidator) map[string]cmttypes.PrivValidator {
 	return map[string]cmttypes.PrivValidator{altVal.Address.String(): altPrivVal}
 }
 
-func getBothSigners(suite *TendermintTestSuite, altVal *cmttypes.Validator, altPrivVal cmttypes.PrivValidator) (*cmttypes.ValidatorSet, map[string]cmttypes.PrivValidator) {
+func getBothSigners(s *TendermintTestSuite, altVal *cmttypes.Validator, altPrivVal cmttypes.PrivValidator) (*cmttypes.ValidatorSet, map[string]cmttypes.PrivValidator) {
 	// Create bothValSet with both suite validator and altVal. Would be valid update
-	bothValSet := cmttypes.NewValidatorSet(append(suite.valSet.Validators, altVal))
+	bothValSet := cmttypes.NewValidatorSet(append(s.valSet.Validators, altVal))
 	// Create signer array and ensure it is in same order as bothValSet
-	_, suiteVal := suite.valSet.GetByIndex(0)
+	_, suiteVal := s.valSet.GetByIndex(0)
 	bothSigners := map[string]cmttypes.PrivValidator{
-		suiteVal.Address.String(): suite.privVal,
+		suiteVal.Address.String(): s.privVal,
 		altVal.Address.String():   altPrivVal,
 	}
 	return bothValSet, bothSigners
-}
-
-func TestTendermintTestSuite(t *testing.T) {
-	testifysuite.Run(t, new(TendermintTestSuite))
 }
