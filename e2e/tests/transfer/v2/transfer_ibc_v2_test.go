@@ -10,19 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	clienttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	"github.com/cosmos/interchaintest/v10/testutil"
@@ -31,6 +19,20 @@ import (
 	"github.com/cosmos/solidity-ibc-eureka/packages/go-relayer-api/dockerutil"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/cosmos/ibc-go/e2e/testsuite"
+	"github.com/cosmos/ibc-go/e2e/testsuite/query"
+	"github.com/cosmos/ibc-go/e2e/testvalues"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 type IBCV2TransferTestSuite struct {
@@ -71,7 +73,7 @@ func (s *IBCV2TransferTestSuite) TestIBCV2Transfer() {
 		ChainBUser:  relayerUserB.FormattedAddress(),
 	}))
 	relayerConfig.Address = "0.0.0.0"
-	relayerAPIContainer, err := container.SpinUpRelayerApiContainer(ctx, logger, docker, "ibc-go-relayer", relayerConfig, []string{"v1.2.0"})
+	relayerAPIContainer, err := container.SpinUpRelayerApiContainer(ctx, logger, docker, "v0.6.0", relayerConfig, []string{"v1.2.0"})
 	s.Require().NoError(err)
 	t.Cleanup(func() {
 		ctx := context.TODO()
@@ -190,7 +192,7 @@ func (s *IBCV2TransferTestSuite) BroadcastSdkTxBody(ctx context.Context, chain i
 		msgs = append(msgs, sdkMsg)
 	}
 
-	s.Require().NotZero(len(msgs))
+	s.Require().NotEmpty(msgs)
 
 	var resp sdk.TxResponse
 	for range retries {
