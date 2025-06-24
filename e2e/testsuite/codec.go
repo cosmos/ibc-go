@@ -29,8 +29,9 @@ import (
 	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	ratelimitingtypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	v7migrations "github.com/cosmos/ibc-go/v10/modules/core/02-client/migrations/v7"
+	clientmigrationsv7 "github.com/cosmos/ibc-go/v10/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clienttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
@@ -61,18 +62,25 @@ func SDKEncodingConfig() *testutil.TestEncodingConfig {
 func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 	cfg := testutil.MakeTestEncodingConfig()
 
-	// ibc types
+	// ibc core types
+	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	clienttypesv2.RegisterInterfaces(cfg.InterfaceRegistry)
+	clientmigrationsv7.RegisterInterfaces(cfg.InterfaceRegistry)
+	connectiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	channeltypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	channeltypesv2.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	// ibc light clients types
+	ibctmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	solomachine.RegisterInterfaces(cfg.InterfaceRegistry)
+	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	// ibc apps types
+	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	icahosttypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	solomachine.RegisterInterfaces(cfg.InterfaceRegistry)
-	v7migrations.RegisterInterfaces(cfg.InterfaceRegistry)
-	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	channeltypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	connectiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	ibctmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	channeltypesv2.RegisterInterfaces(cfg.InterfaceRegistry)
+
+	// ibc middleware types
 	packetforwardtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	ratelimitingtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
