@@ -21,18 +21,18 @@ func (ep *Endpoint) RegisterCounterparty() error {
 }
 
 // MsgSendPacket sends a packet on the associated endpoint using a predefined sender. The constructed packet is returned.
-func (ep *Endpoint) MsgSendPacket(timeoutTimestamp uint64, payload channeltypesv2.Payload) (channeltypesv2.Packet, error) {
+func (ep *Endpoint) MsgSendPacket(timeoutTimestamp uint64, payloads ...channeltypesv2.Payload) (channeltypesv2.Packet, error) {
 	senderAccount := SenderAccount{
 		SenderPrivKey: ep.Chain.SenderPrivKey,
 		SenderAccount: ep.Chain.SenderAccount,
 	}
 
-	return ep.MsgSendPacketWithSender(timeoutTimestamp, payload, senderAccount)
+	return ep.MsgSendPacketWithSender(timeoutTimestamp, payloads, senderAccount)
 }
 
 // MsgSendPacketWithSender sends a packet on the associated endpoint using the provided sender. The constructed packet is returned.
-func (ep *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, payload channeltypesv2.Payload, sender SenderAccount) (channeltypesv2.Packet, error) {
-	msgSendPacket := channeltypesv2.NewMsgSendPacket(ep.ClientID, timeoutTimestamp, sender.SenderAccount.GetAddress().String(), payload)
+func (ep *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, payloads []channeltypesv2.Payload, sender SenderAccount) (channeltypesv2.Packet, error) {
+	msgSendPacket := channeltypesv2.NewMsgSendPacket(ep.ClientID, timeoutTimestamp, sender.SenderAccount.GetAddress().String(), payloads...)
 
 	res, err := ep.Chain.SendMsgsWithSender(sender, msgSendPacket)
 	if err != nil {
@@ -56,7 +56,12 @@ func (ep *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, payload cha
 	if err != nil {
 		return channeltypesv2.Packet{}, err
 	}
-	packet := channeltypesv2.NewPacket(sendResponse.Sequence, ep.ClientID, ep.Counterparty.ClientID, timeoutTimestamp, payload)
+	packet := channeltypesv2.NewPacket(sendResponse.Sequence, ep.ClientID, ep.Counterparty.ClientID, timeoutTimestamp, payloads...)
+
+	err = ep.Counterparty.UpdateClient()
+	if err != nil {
+		return channeltypesv2.Packet{}, err
+	}
 
 	return packet, nil
 }
