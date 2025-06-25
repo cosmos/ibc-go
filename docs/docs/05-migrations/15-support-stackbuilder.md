@@ -16,8 +16,6 @@ Refer to the [integration guide](../01-ibc/04-middleware/03-integration.md) to u
 In order to be wired with the new StackBuilder primitive, applications and middlewares must implement new methods as part of their respective interfaces.
 
 IBC Applications must implement a new `SetICS4Wrapper` which will set the `ICS4Wrapper` through which the application will call `SendPacket` and `WriteAcknowledgement`. It is recommended that IBC applications are initialized first with the IBC ChannelKeeper directly, and then modified with a middleware ICS4Wrapper during the stack wiring. 
-```go
-```
 
 ```go
 // SetICS4Wrapper sets the ICS4Wrapper. This function may be used after
