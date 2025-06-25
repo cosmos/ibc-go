@@ -304,6 +304,7 @@ func (s *KeeperTestSuite) TestRetryTimeoutErrorGettingNext() {
 	// The function should still succeed since it only logs the error and continues
 	s.Require().NoError(err)
 }
+
 type transferMock struct{}
 
 func (*transferMock) Transfer(_ context.Context, _ *transfertypes.MsgTransfer) (*transfertypes.MsgTransferResponse, error) {

@@ -10,49 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 )
 
-// Original tests from the codebase
-// NOTE: Some original tests commented out as they expect custom JSON marshal/unmarshal behavior
-// that may not be fully implemented yet. Keeping the working test:
-
-/*
-func TestForwardMetadataUnmarshalStringNext(t *testing.T) {
-	const memo = "{\"forward\":{\"receiver\":\"noble1f4cur2krsua2th9kkp7n0zje4stea4p9tu70u8\",\"port\":\"transfer\",\"channel\":\"channel-0\",\"timeout\":0,\"next\":\"{\\\"forward\\\":{\\\"receiver\\\":\\\"noble1l505zhahp24v5jsmps9vs5asah759fdce06sfp\\\",\\\"port\\\":\\\"transfer\\\",\\\"channel\\\":\\\"channel-0\\\",\\\"timeout\\\":0}}\"}}"
-	var packetMetadata types.PacketMetadata
-
-	err := json.Unmarshal([]byte(memo), &packetMetadata)
-	require.NoError(t, err)
-
-	nextBz, err := json.Marshal(packetMetadata.Forward.Next)
-	require.NoError(t, err)
-	require.Equal(t, `{"forward":{"receiver":"noble1l505zhahp24v5jsmps9vs5asah759fdce06sfp","port":"transfer","channel":"channel-0","timeout":0}}`, string(nextBz))
-}
-
-func TestForwardMetadataUnmarshalJSONNext(t *testing.T) {
-	const memo = "{\"forward\":{\"receiver\":\"noble1f4cur2krsua2th9kkp7n0zje4stea4p9tu70u8\",\"port\":\"transfer\",\"channel\":\"channel-0\",\"timeout\":0,\"next\":{\"forward\":{\"receiver\":\"noble1l505zhahp24v5jsmps9vs5asah759fdce06sfp\",\"port\":\"transfer\",\"channel\":\"channel-0\",\"timeout\":0}}}}"
-	var packetMetadata types.PacketMetadata
-
-	err := json.Unmarshal([]byte(memo), &packetMetadata)
-	require.NoError(t, err)
-
-	nextBz, err := json.Marshal(packetMetadata.Forward.Next)
-	require.NoError(t, err)
-	require.Equal(t, `{"forward":{"receiver":"noble1l505zhahp24v5jsmps9vs5asah759fdce06sfp","port":"transfer","channel":"channel-0","timeout":0}}`, string(nextBz))
-}
-
-func TestTimeoutUnmarshalString(t *testing.T) {
-	const memo = "{\"forward\":{\"receiver\":\"noble1f4cur2krsua2th9kkp7n0zje4stea4p9tu70u8\",\"port\":\"transfer\",\"channel\":\"channel-0\",\"timeout\":\"60s\"}}"
-	var packetMetadata types.PacketMetadata
-
-	err := json.Unmarshal([]byte(memo), &packetMetadata)
-	require.NoError(t, err)
-
-	timeoutBz, err := json.Marshal(packetMetadata.Forward.Timeout)
-	require.NoError(t, err)
-
-	require.Equal(t, "60000000000", string(timeoutBz))
-}
-*/
-
 func TestTimeoutUnmarshalJSON(t *testing.T) {
 	const memo = "{\"forward\":{\"receiver\":\"noble1f4cur2krsua2th9kkp7n0zje4stea4p9tu70u8\",\"port\":\"transfer\",\"channel\":\"channel-0\",\"timeout\": 60000000000}}"
 	var packetMetadata types.PacketMetadata
@@ -71,10 +28,10 @@ func TestValidateForwardMetadata(t *testing.T) {
 	// Valid ForwardMetadata
 	metadata := types.ForwardMetadata{
 		Receiver: "validaddress",
-		Port: "validport",
-		Channel: "validchannel",
-		Timeout: time.Duration(0),
-		Retries: nil,
+		Port:     "validport",
+		Channel:  "validchannel",
+		Timeout:  time.Duration(0),
+		Retries:  nil,
 	}
 	err := metadata.Validate()
 	require.NoError(t, err)
@@ -101,8 +58,8 @@ func TestValidateForwardMetadata(t *testing.T) {
 	metadata.Next = &types.PacketMetadata{
 		Forward: types.ForwardMetadata{
 			Receiver: "nextreceiver",
-			Port: "nextport",
-			Channel: "nextchannel",
+			Port:     "nextport",
+			Channel:  "nextchannel",
 		},
 	}
 	err = metadata.Validate()
@@ -112,10 +69,10 @@ func TestValidateForwardMetadata(t *testing.T) {
 func TestForwardMetadataToMap(t *testing.T) {
 	metadata := types.ForwardMetadata{
 		Receiver: "receiver",
-		Port: "port",
-		Channel: "channel",
-		Timeout: time.Duration(30),
-		Retries: func(v uint8) *uint8 { return &v }(2),
+		Port:     "port",
+		Channel:  "channel",
+		Timeout:  time.Duration(30),
+		Retries:  func(v uint8) *uint8 { return &v }(2),
 	}
 
 	m := metadata.ToMap()
@@ -129,13 +86,14 @@ func TestForwardMetadataToMap(t *testing.T) {
 	metadata.Next = &types.PacketMetadata{
 		Forward: types.ForwardMetadata{
 			Receiver: "nextreceiver",
-			Port: "nextport",
-			Channel: "nextchannel",
+			Port:     "nextport",
+			Channel:  "nextchannel",
 		},
 	}
 
 	m = metadata.ToMap()
-	next := m["next"].(map[string]interface{})["forward"].(map[string]interface{})
+	next, ok := m["next"].(map[string]any)["forward"].(map[string]any)
+	require.True(t, ok)
 	require.Equal(t, "nextreceiver", next["receiver"])
 }
 
@@ -143,10 +101,10 @@ func TestPacketMetadataToMemo(t *testing.T) {
 	metadata := types.PacketMetadata{
 		Forward: types.ForwardMetadata{
 			Receiver: "receiver",
-			Port: "port",
-			Channel: "channel",
-			Timeout: time.Duration(30),
-			Retries: func(v uint8) *uint8 { return &v }(2),
+			Port:     "port",
+			Channel:  "channel",
+			Timeout:  time.Duration(30),
+			Retries:  func(v uint8) *uint8 { return &v }(2),
 		},
 	}
 
@@ -224,7 +182,7 @@ func TestGetPacketMetadataWithNestedNext(t *testing.T) {
 	require.Equal(t, "transfer", packetMetadata.Forward.Port)
 	require.Equal(t, "channel-0", packetMetadata.Forward.Channel)
 	require.Equal(t, time.Duration(0), packetMetadata.Forward.Timeout)
-	
+
 	// Verify nested Next metadata
 	require.NotNil(t, packetMetadata.Forward.Next)
 	require.Equal(t, "noble1l505zhahp24v5jsmps9vs5asah759fdce06sfp", packetMetadata.Forward.Next.Forward.Receiver)
@@ -236,7 +194,7 @@ func TestGetPacketMetadataWithNestedNext(t *testing.T) {
 func TestGetPacketMetadataWithStringNext(t *testing.T) {
 	// Test parsing nested Next metadata as a JSON string
 	nextJSON := `{"forward":{"receiver":"noble1l505zhahp24v5jsmps9vs5asah759fdce06sfp","port":"transfer","channel":"channel-0","timeout":0}}`
-	
+
 	mockProvider := &MockPacketDataProvider{
 		customData: map[string]any{
 			"forward": map[string]any{
@@ -253,7 +211,7 @@ func TestGetPacketMetadataWithStringNext(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, hasForward)
 	require.Equal(t, "noble1f4cur2krsua2th9kkp7n0zje4stea4p9tu70u8", packetMetadata.Forward.Receiver)
-	
+
 	// Verify nested Next metadata parsed from JSON string
 	require.NotNil(t, packetMetadata.Forward.Next)
 	require.Equal(t, "noble1l505zhahp24v5jsmps9vs5asah759fdce06sfp", packetMetadata.Forward.Next.Forward.Receiver)
@@ -383,4 +341,3 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 	require.True(t, hasForward)
 	require.Contains(t, err.Error(), "receiver")
 }
-
