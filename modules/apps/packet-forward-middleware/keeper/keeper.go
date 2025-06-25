@@ -251,7 +251,6 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 
 	// set memo for next transfer with next from this transfer.
 	if metadata.Next != nil {
-		// TODO: either implement custom JSON marshaler or create a custom function
 		var err error
 		memo, err = metadata.Next.ToMemo()
 		if err != nil {
