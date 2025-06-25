@@ -8,21 +8,41 @@ import (
 	"testing"
 	"time"
 
+	testifysuite "github.com/stretchr/testify/suite"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+
 	"github.com/cosmos/interchaintest/v10/ibc"
 	"github.com/cosmos/interchaintest/v10/testutil"
+
 	"github.com/cosmos/solidity-ibc-eureka/packages/go-relayer-api/config"
 	"github.com/cosmos/solidity-ibc-eureka/packages/go-relayer-api/container"
 	"github.com/cosmos/solidity-ibc-eureka/packages/go-relayer-api/dockerutil"
+
 	"go.uber.org/zap"
 )
 
-func (s *IBCV2TransferTestSuite) TestAlias() {
+func TestAliasTestSuite(t *testing.T) {
+	testifysuite.Run(t, new(AliasTestSuite))
+}
+
+type AliasTestSuite struct {
+	IBCV2TransferTestSuite
+}
+
+// SetupSuite sets up chains for the current test suite
+func (s *AliasTestSuite) SetupTest() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
+func (s *AliasTestSuite) TestAlias() {
 	t := s.T()
 	ctx := context.TODO()
 	logger := zap.NewExample()
@@ -82,6 +102,7 @@ func (s *IBCV2TransferTestSuite) TestAlias() {
 		Receiver:         userB.FormattedAddress(),
 		TimeoutTimestamp: timeoutTimestamp,
 		Memo:             "",
+		UseAliasing:      true, // Enable aliasing for the transfer
 	}
 	transferOnAResp := s.BroadcastMessages(ctx, chainA, userA, msg)
 	s.AssertTxSuccess(transferOnAResp)
