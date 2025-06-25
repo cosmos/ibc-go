@@ -275,6 +275,35 @@ func (s *KeeperTestSuite) TestForwardTransferPacketWithNext() {
 	s.Require().Equal(inflightPacket.RetriesRemaining, int32(retries))
 }
 
+func (s *KeeperTestSuite) TestRetryTimeoutErrorGettingNext() {
+	s.SetupTest()
+	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
+	path.Setup()
+
+	s.chainA.GetSimApp().PFMKeeper.SetTransferKeeper(&transferMock{})
+	ctx := s.chainA.GetContext()
+
+	// Create a transfer detail with invalid memo that will cause GetPacketMetadataFromPacketdata to fail
+	transferDetail := transfertypes.InternalTransferRepresentation{
+		Token: transfertypes.Token{
+			Denom:  transfertypes.Denom{Base: "denom"},
+			Amount: "1000",
+		},
+		Sender:   "sender",
+		Receiver: "receiver",
+		Memo:     `{"invalid_json": malformed}`, // This will cause JSON parsing to fail
+	}
+
+	inFlightPacket := &pfmtypes.InFlightPacket{
+		RetriesRemaining: 1,
+		Timeout:          1000,
+		Nonrefundable:    false,
+	}
+
+	err := s.chainA.GetSimApp().PFMKeeper.RetryTimeout(ctx, path.EndpointA.ChannelID, path.EndpointA.ChannelConfig.PortID, transferDetail, inFlightPacket)
+	// The function should still succeed since it only logs the error and continues
+	s.Require().NoError(err)
+}
 type transferMock struct{}
 
 func (*transferMock) Transfer(_ context.Context, _ *transfertypes.MsgTransfer) (*transfertypes.MsgTransferResponse, error) {
