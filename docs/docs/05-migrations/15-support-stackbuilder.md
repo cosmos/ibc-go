@@ -69,7 +69,7 @@ type Keeper struct {
     // Keeper is initialized with ICS4Wrapper
     // being equal to the top-level channelKeeper
     // this can be changed by calling WithICS4Wrapper
-    // with a different middleware ICS5Wrapper
+    // with a different middleware ICS4Wrapper
 	channelKeeper types.ChannelKeeper
 	...
 }
