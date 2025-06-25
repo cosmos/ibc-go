@@ -216,6 +216,65 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	s.Require().Equal(int32(retries-1), inflightPacket.RetriesRemaining)
 }
 
+func (s *KeeperTestSuite) TestForwardTransferPacketWithNext() {
+	s.SetupTest()
+	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
+	path.Setup()
+
+	s.chainA.GetSimApp().PFMKeeper.SetTransferKeeper(&transferMock{})
+	ctx := s.chainA.GetContext()
+	srcPacket := channeltypes.Packet{
+		Data:               []byte{1},
+		Sequence:           1,
+		SourcePort:         path.EndpointA.ChannelConfig.PortID,
+		SourceChannel:      path.EndpointA.ChannelID,
+		DestinationPort:    path.EndpointB.ChannelConfig.PortID,
+		DestinationChannel: path.EndpointB.ChannelID,
+		TimeoutHeight: clienttypes.Height{
+			RevisionNumber: 10,
+			RevisionHeight: 100,
+		},
+		TimeoutTimestamp: 10101001,
+	}
+
+	retries := uint8(2)
+	timeout := time.Duration(1010101010)
+	nonRefundable := false
+
+	// Test with valid metadata.Next - it should be a *PacketMetadata
+	nextPacketMetadata := &pfmtypes.PacketMetadata{
+		Forward: pfmtypes.ForwardMetadata{
+			Receiver: "next-receiver",
+			Port:     "port-1",
+			Channel:  "channel-1",
+			Timeout:  timeout,
+			Retries:  &retries,
+			Next:     nil,
+		},
+	}
+
+	metadata := pfmtypes.ForwardMetadata{
+		Receiver: "first-receiver",
+		Port:     path.EndpointA.ChannelConfig.PortID,
+		Channel:  path.EndpointA.ChannelID,
+		Timeout:  timeout,
+		Retries:  &retries,
+		Next:     nextPacketMetadata,
+	}
+
+	initialSender := s.chainA.SenderAccount.GetAddress()
+	finalReceiver := s.chainB.SenderAccount.GetAddress()
+
+	err := s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
+	s.Require().NoError(err)
+
+	// Verify the inflight packet was created
+	inflightPacket, err := s.chainA.GetSimApp().PFMKeeper.GetInflightPacket(ctx, srcPacket)
+	s.Require().NoError(err)
+	s.Require().NotNil(inflightPacket)
+	s.Require().Equal(inflightPacket.RetriesRemaining, int32(retries))
+}
+
 type transferMock struct{}
 
 func (*transferMock) Transfer(_ context.Context, _ *transfertypes.MsgTransfer) (*transfertypes.MsgTransferResponse, error) {
