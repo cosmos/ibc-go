@@ -8,7 +8,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/interchaintest/v10/testutil"
+	"github.com/cosmos/solidity-ibc-eureka/packages/go-relayer-api/config"
+	"github.com/cosmos/solidity-ibc-eureka/packages/go-relayer-api/container"
+	"github.com/cosmos/solidity-ibc-eureka/packages/go-relayer-api/dockerutil"
 	testifysuite "github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -16,19 +21,10 @@ import (
 
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
-
-	"github.com/cosmos/interchaintest/v10/testutil"
-
-	"github.com/cosmos/solidity-ibc-eureka/packages/go-relayer-api/config"
-	"github.com/cosmos/solidity-ibc-eureka/packages/go-relayer-api/container"
-	"github.com/cosmos/solidity-ibc-eureka/packages/go-relayer-api/dockerutil"
-
-	"go.uber.org/zap"
 )
 
 func TestMultiPayloadTestSuite(t *testing.T) {
