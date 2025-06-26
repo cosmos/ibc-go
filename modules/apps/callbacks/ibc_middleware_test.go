@@ -35,35 +35,21 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"success",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(&ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			nil,
 		},
 		{
-			"panics with nil underlying app",
-			func() {
-				_ = ibccallbacks.NewIBCMiddleware(nil, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
-			},
-			fmt.Errorf("underlying application does not implement %T", (*porttypes.PacketUnmarshalarModule)(nil)),
-		},
-		{
 			"panics with nil contract keeper",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(&ibcmock.IBCModule{}, &channelkeeper.Keeper{}, nil, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(nil, maxCallbackGas)
 			},
 			errors.New("contract keeper cannot be nil"),
 		},
 		{
-			"panics with nil ics4Wrapper",
-			func() {
-				_ = ibccallbacks.NewIBCMiddleware(&ibcmock.IBCModule{}, nil, simapp.ContractKeeper{}, maxCallbackGas)
-			},
-			errors.New("ICS4Wrapper cannot be nil"),
-		},
-		{
 			"panics with zero maxCallbackGas",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(&ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, uint64(0))
+				_ = ibccallbacks.NewIBCMiddleware(simapp.ContractKeeper{}, uint64(0))
 			},
 			errors.New("maxCallbackGas cannot be zero"),
 		},
@@ -80,16 +66,36 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 	}
 }
 
-func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
+func (s *CallbacksTestSuite) TestSetICS4Wrapper() {
 	s.setupChains()
 
 	cbsMiddleware := ibccallbacks.IBCMiddleware{}
 	s.Require().Nil(cbsMiddleware.GetICS4Wrapper())
 
-	cbsMiddleware.WithICS4Wrapper(s.chainA.App.GetIBCKeeper().ChannelKeeper)
+	s.Require().Panics(func() {
+		cbsMiddleware.SetICS4Wrapper(nil)
+	}, "expected panic when setting nil ICS4Wrapper")
+
+	cbsMiddleware.SetICS4Wrapper(s.chainA.App.GetIBCKeeper().ChannelKeeper)
 	ics4Wrapper := cbsMiddleware.GetICS4Wrapper()
 
 	s.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
+}
+
+func (s *CallbacksTestSuite) TestSetUnderlyingApplication() {
+	s.setupChains()
+
+	cbsMiddleware := ibccallbacks.IBCMiddleware{}
+
+	s.Require().Panics(func() {
+		cbsMiddleware.SetUnderlyingApplication(nil)
+	}, "expected panic when setting nil underlying application")
+
+	cbsMiddleware.SetUnderlyingApplication(&ibcmock.IBCModule{})
+
+	s.Require().Panics(func() {
+		cbsMiddleware.SetUnderlyingApplication(&ibcmock.IBCModule{})
+	}, "expected panic when setting underlying application a second time")
 }
 
 func (s *CallbacksTestSuite) TestSendPacket() {
@@ -1037,7 +1043,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 	s.Require().True(ok)
 
-	unmarshalerStack, ok := transferStack.(porttypes.PacketUnmarshalarModule)
+	unmarshalerStack, ok := transferStack.(porttypes.PacketUnmarshalerModule)
 	s.Require().True(ok)
 
 	expPacketDataICS20V1 := transfertypes.FungibleTokenPacketData{

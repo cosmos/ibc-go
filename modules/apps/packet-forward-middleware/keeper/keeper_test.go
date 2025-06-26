@@ -9,11 +9,13 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
 	pfmtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
@@ -163,7 +165,8 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 	path.Setup()
 
-	s.chainA.GetSimApp().PFMKeeper.SetTransferKeeper(&transferMock{})
+	pfmKeeper := keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
+
 	ctx := s.chainA.GetContext()
 	srcPacket := channeltypes.Packet{
 		Data:               []byte{1},
@@ -195,21 +198,21 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	initialSender := s.chainA.SenderAccount.GetAddress()
 	finalReceiver := s.chainB.SenderAccount.GetAddress()
 
-	err := s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
+	err := pfmKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
 	s.Require().NoError(err)
 
 	// Get the inflight packer
-	inflightPacket, err := s.chainA.GetSimApp().PFMKeeper.GetInflightPacket(ctx, srcPacket)
+	inflightPacket, err := pfmKeeper.GetInflightPacket(ctx, srcPacket)
 	s.Require().NoError(err)
 
 	s.Require().Equal(inflightPacket.RetriesRemaining, int32(retries))
 
 	// Call the same function again with inflight packet. Num retries should decrease.
-	err = s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
+	err = pfmKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
 	s.Require().NoError(err)
 
 	// Get the inflight packer
-	inflightPacket2, err := s.chainA.GetSimApp().PFMKeeper.GetInflightPacket(ctx, srcPacket)
+	inflightPacket2, err := pfmKeeper.GetInflightPacket(ctx, srcPacket)
 	s.Require().NoError(err)
 
 	s.Require().Equal(inflightPacket.RetriesRemaining, inflightPacket2.RetriesRemaining)
@@ -221,7 +224,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacketWithNext() {
 	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 	path.Setup()
 
-	s.chainA.GetSimApp().PFMKeeper.SetTransferKeeper(&transferMock{})
+	pfmKeeper := keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
 	ctx := s.chainA.GetContext()
 	srcPacket := channeltypes.Packet{
 		Data:               []byte{1},
@@ -265,11 +268,11 @@ func (s *KeeperTestSuite) TestForwardTransferPacketWithNext() {
 	initialSender := s.chainA.SenderAccount.GetAddress()
 	finalReceiver := s.chainB.SenderAccount.GetAddress()
 
-	err := s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
+	err := pfmKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
 	s.Require().NoError(err)
 
 	// Verify the inflight packet was created
-	inflightPacket, err := s.chainA.GetSimApp().PFMKeeper.GetInflightPacket(ctx, srcPacket)
+	inflightPacket, err := pfmKeeper.GetInflightPacket(ctx, srcPacket)
 	s.Require().NoError(err)
 	s.Require().NotNil(inflightPacket)
 	s.Require().Equal(inflightPacket.RetriesRemaining, int32(retries))
@@ -280,7 +283,7 @@ func (s *KeeperTestSuite) TestRetryTimeoutErrorGettingNext() {
 	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 	path.Setup()
 
-	s.chainA.GetSimApp().PFMKeeper.SetTransferKeeper(&transferMock{})
+	pfmKeeper := keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
 	ctx := s.chainA.GetContext()
 
 	// Create a transfer detail with invalid memo that will cause GetPacketMetadataFromPacketdata to fail
@@ -300,7 +303,7 @@ func (s *KeeperTestSuite) TestRetryTimeoutErrorGettingNext() {
 		Nonrefundable:    false,
 	}
 
-	err := s.chainA.GetSimApp().PFMKeeper.RetryTimeout(ctx, path.EndpointA.ChannelID, path.EndpointA.ChannelConfig.PortID, transferDetail, inFlightPacket)
+	err := pfmKeeper.RetryTimeout(ctx, path.EndpointA.ChannelID, path.EndpointA.ChannelConfig.PortID, transferDetail, inFlightPacket)
 	// The function should still succeed since it only logs the error and continues
 	s.Require().NoError(err)
 }

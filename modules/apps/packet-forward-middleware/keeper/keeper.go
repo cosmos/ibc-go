@@ -51,26 +51,28 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new forward Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, transferKeeper types.TransferKeeper, channelKeeper types.ChannelKeeper, bankKeeper types.BankKeeper, ics4Wrapper porttypes.ICS4Wrapper, authority string) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, transferKeeper types.TransferKeeper, channelKeeper types.ChannelKeeper, bankKeeper types.BankKeeper, authority string) *Keeper {
 	return &Keeper{
 		cdc:            cdc,
 		storeService:   storeService,
 		transferKeeper: transferKeeper,
-		channelKeeper:  channelKeeper,
-		bankKeeper:     bankKeeper,
-		ics4Wrapper:    ics4Wrapper,
-		authority:      authority,
+		// Defaults to using the channel keeper as the ICS4Wrapper
+		// This can be overridden later with WithICS4Wrapper (e.g. by the middleware stack wiring)
+		ics4Wrapper:   channelKeeper,
+		channelKeeper: channelKeeper,
+		bankKeeper:    bankKeeper,
+		authority:     authority,
 	}
+}
+
+// WithICS4Wrapper sets the ICS4Wrapper for the keeper.
+func (k *Keeper) WithICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = ics4Wrapper
 }
 
 // GetAuthority returns the module's authority.
 func (k *Keeper) GetAuthority() string {
 	return k.authority
-}
-
-// SetTransferKeeper sets the transferKeeper
-func (k *Keeper) SetTransferKeeper(transferKeeper types.TransferKeeper) {
-	k.transferKeeper = transferKeeper
 }
 
 // SetICS4Wrapper sets the ICS4 wrapper.
@@ -281,6 +283,7 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 			"denom", token.Denom,
 			"error", err,
 		)
+		// TODO: Should probably have custom errors!
 		return errorsmod.Wrap(sdkerrors.ErrInsufficientFunds, err.Error())
 	}
 

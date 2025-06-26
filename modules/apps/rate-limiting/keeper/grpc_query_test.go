@@ -46,7 +46,7 @@ func (s *KeeperTestSuite) setupQueryRateLimitTests() []types.RateLimit {
 }
 
 func (s *KeeperTestSuite) TestQueryAllRateLimits() {
-	querier := keeper.NewQuerier(&s.chainA.GetSimApp().RateLimitKeeper)
+	querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
 	expectedRateLimits := s.setupQueryRateLimitTests()
 	queryResponse, err := querier.AllRateLimits(s.chainA.GetContext(), &types.QueryAllRateLimitsRequest{})
 	s.Require().NoError(err)
@@ -54,7 +54,7 @@ func (s *KeeperTestSuite) TestQueryAllRateLimits() {
 }
 
 func (s *KeeperTestSuite) TestQueryRateLimit() {
-	querier := keeper.NewQuerier(&s.chainA.GetSimApp().RateLimitKeeper)
+	querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
 	allRateLimits := s.setupQueryRateLimitTests()
 	for _, expectedRateLimit := range allRateLimits {
 		queryResponse, err := querier.RateLimit(s.chainA.GetContext(), &types.QueryRateLimitRequest{
@@ -67,7 +67,7 @@ func (s *KeeperTestSuite) TestQueryRateLimit() {
 }
 
 func (s *KeeperTestSuite) TestQueryRateLimitsByChainId() {
-	querier := keeper.NewQuerier(&s.chainA.GetSimApp().RateLimitKeeper)
+	querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
 	allRateLimits := s.setupQueryRateLimitTests()
 	for i, expectedRateLimit := range allRateLimits {
 		chainID := fmt.Sprintf("chain-%d", i)
@@ -81,7 +81,7 @@ func (s *KeeperTestSuite) TestQueryRateLimitsByChainId() {
 }
 
 func (s *KeeperTestSuite) TestQueryRateLimitsByChannelOrClientId() {
-	querier := keeper.NewQuerier(&s.chainA.GetSimApp().RateLimitKeeper)
+	querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
 	allRateLimits := s.setupQueryRateLimitTests()
 	for i, expectedRateLimit := range allRateLimits {
 		channelID := fmt.Sprintf("channel-%d", i)
@@ -95,7 +95,7 @@ func (s *KeeperTestSuite) TestQueryRateLimitsByChannelOrClientId() {
 }
 
 func (s *KeeperTestSuite) TestQueryAllBlacklistedDenoms() {
-	querier := keeper.NewQuerier(&s.chainA.GetSimApp().RateLimitKeeper)
+	querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
 	s.chainA.GetSimApp().RateLimitKeeper.AddDenomToBlacklist(s.chainA.GetContext(), "denom-A")
 	s.chainA.GetSimApp().RateLimitKeeper.AddDenomToBlacklist(s.chainA.GetContext(), "denom-B")
 
@@ -105,7 +105,7 @@ func (s *KeeperTestSuite) TestQueryAllBlacklistedDenoms() {
 }
 
 func (s *KeeperTestSuite) TestQueryAllWhitelistedAddresses() {
-	querier := keeper.NewQuerier(&s.chainA.GetSimApp().RateLimitKeeper)
+	querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
 	s.chainA.GetSimApp().RateLimitKeeper.SetWhitelistedAddressPair(s.chainA.GetContext(), types.WhitelistedAddressPair{
 		Sender:   "address-A",
 		Receiver: "address-B",

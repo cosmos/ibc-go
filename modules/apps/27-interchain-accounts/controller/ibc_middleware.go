@@ -26,25 +26,44 @@ var (
 // ICA controller keeper and the underlying application.
 type IBCMiddleware struct {
 	app    porttypes.IBCModule
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the associated keeper.
 // The underlying application is set to nil and authentication is assumed to
 // be performed by a Cosmos SDK module that sends messages to controller message server.
-func NewIBCMiddleware(k keeper.Keeper) IBCMiddleware {
-	return IBCMiddleware{
+func NewIBCMiddleware(k *keeper.Keeper) *IBCMiddleware {
+	return &IBCMiddleware{
 		app:    nil,
 		keeper: k,
 	}
 }
 
 // NewIBCMiddlewareWithAuth creates a new IBCMiddleware given the associated keeper and underlying application
-func NewIBCMiddlewareWithAuth(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
-	return IBCMiddleware{
+func NewIBCMiddlewareWithAuth(app porttypes.IBCModule, k *keeper.Keeper) *IBCMiddleware {
+	return &IBCMiddleware{
 		app:    app,
 		keeper: k,
 	}
+}
+
+// SetUnderlyingApplication sets the underlying application for the middleware.
+func (im *IBCMiddleware) SetUnderlyingApplication(app porttypes.IBCModule) {
+	if app == nil {
+		panic(errors.New("underlying application cannot be nil"))
+	}
+	if im.app != nil {
+		panic(errors.New("underlying application already set"))
+	}
+	im.app = app
+}
+
+// SetICS4Wrapper sets the ICS4Wrapper for the middleware.
+func (im *IBCMiddleware) SetICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
+	if ics4Wrapper == nil {
+		panic(errors.New("ICS4Wrapper cannot be nil"))
+	}
+	im.keeper.WithICS4Wrapper(ics4Wrapper)
 }
 
 // OnChanOpenInit implements the IBCMiddleware interface
@@ -53,7 +72,7 @@ func NewIBCMiddlewareWithAuth(app porttypes.IBCModule, k keeper.Keeper) IBCMiddl
 // the controller side. The connected modules may not change the controller side portID or
 // version. They will be allowed to perform custom logic without changing
 // the parameters stored within a channel struct.
-func (im IBCMiddleware) OnChanOpenInit(
+func (im *IBCMiddleware) OnChanOpenInit(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -84,7 +103,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
-func (IBCMiddleware) OnChanOpenTry(
+func (*IBCMiddleware) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
 	connectionHops []string,
@@ -102,7 +121,7 @@ func (IBCMiddleware) OnChanOpenTry(
 // the controller side. The connected modules may not change the portID or
 // version. They will be allowed to perform custom logic without changing
 // the parameters stored within a channel struct.
-func (im IBCMiddleware) OnChanOpenAck(
+func (im *IBCMiddleware) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -131,7 +150,7 @@ func (im IBCMiddleware) OnChanOpenAck(
 }
 
 // OnChanOpenConfirm implements the IBCMiddleware interface
-func (IBCMiddleware) OnChanOpenConfirm(
+func (*IBCMiddleware) OnChanOpenConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -140,7 +159,7 @@ func (IBCMiddleware) OnChanOpenConfirm(
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
-func (IBCMiddleware) OnChanCloseInit(
+func (*IBCMiddleware) OnChanCloseInit(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -150,7 +169,7 @@ func (IBCMiddleware) OnChanCloseInit(
 }
 
 // OnChanCloseConfirm implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanCloseConfirm(
+func (im *IBCMiddleware) OnChanCloseConfirm(
 	ctx sdk.Context,
 	portID,
 	channelID string,
@@ -172,7 +191,7 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCMiddleware interface
-func (IBCMiddleware) OnRecvPacket(
+func (*IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	_ string,
 	packet channeltypes.Packet,
@@ -185,7 +204,7 @@ func (IBCMiddleware) OnRecvPacket(
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface
-func (im IBCMiddleware) OnAcknowledgementPacket(
+func (im *IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
@@ -210,7 +229,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
-func (im IBCMiddleware) OnTimeoutPacket(
+func (im *IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
 	channelVersion string,
 	packet channeltypes.Packet,
@@ -237,7 +256,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 }
 
 // SendPacket implements the ICS4 Wrapper interface
-func (IBCMiddleware) SendPacket(
+func (*IBCMiddleware) SendPacket(
 	ctx sdk.Context,
 	sourcePort string,
 	sourceChannel string,
@@ -249,7 +268,7 @@ func (IBCMiddleware) SendPacket(
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
-func (IBCMiddleware) WriteAcknowledgement(
+func (*IBCMiddleware) WriteAcknowledgement(
 	ctx sdk.Context,
 	packet ibcexported.PacketI,
 	ack ibcexported.Acknowledgement,
@@ -258,14 +277,14 @@ func (IBCMiddleware) WriteAcknowledgement(
 }
 
 // GetAppVersion returns the interchain accounts metadata.
-func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+func (im *IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }
 
 // UnmarshalPacketData attempts to unmarshal the provided packet data bytes
 // into an InterchainAccountPacketData. This function implements the optional
 // PacketDataUnmarshaler interface required for ADR 008 support.
-func (im IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (any, string, error) {
+func (im *IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (any, string, error) {
 	var data icatypes.InterchainAccountPacketData
 	err := data.UnmarshalJSON(bz)
 	if err != nil {

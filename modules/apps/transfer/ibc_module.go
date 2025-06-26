@@ -28,12 +28,12 @@ var (
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModule struct {
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper) IBCModule {
-	return IBCModule{
+func NewIBCModule(k *keeper.Keeper) *IBCModule {
+	return &IBCModule{
 		keeper: k,
 	}
 }
@@ -80,7 +80,7 @@ func (im IBCModule) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
+	if err := ValidateTransferChannelParams(ctx, *im.keeper, order, portID, channelID); err != nil {
 		return "", err
 	}
 
@@ -106,7 +106,7 @@ func (im IBCModule) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-	if err := ValidateTransferChannelParams(ctx, im.keeper, order, portID, channelID); err != nil {
+	if err := ValidateTransferChannelParams(ctx, *im.keeper, order, portID, channelID); err != nil {
 		return "", err
 	}
 
@@ -279,4 +279,15 @@ func (im IBCModule) UnmarshalPacketData(ctx sdk.Context, portID string, channelI
 
 	ftpd, err := types.UnmarshalPacketData(bz, ics20Version, "")
 	return ftpd, ics20Version, err
+}
+
+// SetICS4Wrapper sets the ICS4Wrapper. This function may be used after
+// the module's initialization to set the middleware which is above this
+// module in the IBC application stack.
+func (im IBCModule) SetICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
+	if wrapper == nil {
+		panic("ICS4Wrapper cannot be nil")
+	}
+
+	im.keeper.WithICS4Wrapper(wrapper)
 }

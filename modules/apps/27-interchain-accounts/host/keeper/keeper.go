@@ -52,9 +52,9 @@ type Keeper struct {
 // NewKeeper creates a new interchain accounts host Keeper instance
 func NewKeeper(
 	cdc codec.Codec, storeService corestore.KVStoreService,
-	ics4Wrapper porttypes.ICS4Wrapper, channelKeeper icatypes.ChannelKeeper,
+	channelKeeper icatypes.ChannelKeeper,
 	accountKeeper icatypes.AccountKeeper, msgRouter icatypes.MessageRouter, queryRouter icatypes.QueryRouter, authority string,
-) Keeper {
+) *Keeper {
 	// ensure ibc interchain accounts module account is set
 	if addr := accountKeeper.GetModuleAddress(icatypes.ModuleName); addr == nil {
 		panic(errors.New("the Interchain Accounts module account has not been set"))
@@ -64,10 +64,12 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	return Keeper{
-		storeService:  storeService,
-		cdc:           cdc,
-		ics4Wrapper:   ics4Wrapper,
+	return &Keeper{
+		storeService: storeService,
+		cdc:          cdc,
+		// Defaults to using the channel keeper as the ICS4Wrapper
+		// This can be overridden later with WithICS4Wrapper (e.g. by the middleware stack wiring)
+		ics4Wrapper:   channelKeeper,
 		channelKeeper: channelKeeper,
 		accountKeeper: accountKeeper,
 		msgRouter:     msgRouter,

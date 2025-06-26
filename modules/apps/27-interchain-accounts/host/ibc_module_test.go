@@ -112,6 +112,26 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 	return path.EndpointB.ChanOpenConfirm()
 }
 
+func (s *InterchainAccountsTestSuite) TestSetICS4Wrapper() {
+	s.SetupTest() // reset
+
+	module := icahost.NewIBCModule(s.chainB.GetSimApp().ICAHostKeeper)
+
+	s.Require().Panics(func() {
+		module.SetICS4Wrapper(nil)
+	}, "ICS4Wrapper should not be nil")
+
+	// set ICS4Wrapper
+	s.Require().NotPanics(func() {
+		module.SetICS4Wrapper(s.chainB.GetSimApp().IBCKeeper.ChannelKeeper)
+	})
+
+	// verify ICS4Wrapper is set
+	ics4Wrapper := s.chainB.GetSimApp().ICAHostKeeper.GetICS4Wrapper()
+	s.Require().NotNil(ics4Wrapper)
+	s.Require().Equal(s.chainB.GetSimApp().IBCKeeper.ChannelKeeper, ics4Wrapper)
+}
+
 // Test initiating a ChanOpenInit using the host chain instead of the controller chain
 // ChainA is the controller chain. ChainB is the host chain
 func (s *InterchainAccountsTestSuite) TestChanOpenInit() {
