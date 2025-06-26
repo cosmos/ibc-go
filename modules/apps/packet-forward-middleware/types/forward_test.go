@@ -416,4 +416,57 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 	require.Error(t, err)
 	require.True(t, hasForward)
 	require.Contains(t, err.Error(), "failed to get next forward metadata from packet data")
+
+	// Test next data is neither map nor string (invalid type)
+	mockProviderInvalidNextType := &MockPacketDataProvider{
+		customData: map[string]any{
+			"forward": map[string]any{
+				"receiver": "test-receiver",
+				"port":     "test-port",
+				"channel":  "test-channel",
+				"next":     42, // Invalid type (not map or string)
+			},
+		},
+	}
+
+	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderInvalidNextType)
+	require.Error(t, err)
+	require.True(t, hasForward)
+	require.Contains(t, err.Error(), "next forward metadata is not a valid map or string")
+
+	// Test missing "forward" key in next metadata
+	mockProviderMissingForwardInNext := &MockPacketDataProvider{
+		customData: map[string]any{
+			"forward": map[string]any{
+				"receiver": "test-receiver",
+				"port":     "test-port",
+				"channel":  "test-channel",
+				"next": map[string]any{
+					"other_key": "some_value", // Missing "forward" key
+				},
+			},
+		},
+	}
+
+	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderMissingForwardInNext)
+	require.Error(t, err)
+	require.True(t, hasForward)
+	require.Contains(t, err.Error(), "key forward not found in next forward metadata")
+
+	// Test invalid timeout type (not float64 or string)
+	mockProviderInvalidTimeoutType := &MockPacketDataProvider{
+		customData: map[string]any{
+			"forward": map[string]any{
+				"receiver": "test-receiver",
+				"port":     "test-port",
+				"channel":  "test-channel",
+				"timeout":  true, // Invalid type (boolean instead of duration)
+			},
+		},
+	}
+
+	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderInvalidTimeoutType)
+	require.Error(t, err)
+	require.True(t, hasForward)
+	require.Contains(t, err.Error(), "invalid duration")
 }
