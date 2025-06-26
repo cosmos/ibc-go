@@ -278,9 +278,9 @@ func TestGetPacketMetadataRetriesParsing(t *testing.T) {
 
 func TestGetPacketMetadataErrorCases(t *testing.T) {
 	tests := []struct {
-		name           string
-		customData     map[string]any
-		expectedError  string
+		name               string
+		customData         map[string]any
+		expectedError      string
 		expectedHasForward bool
 	}{
 		{
@@ -293,7 +293,7 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 					"timeout":  "invalid-duration",
 				},
 			},
-			expectedError: "time: invalid duration",
+			expectedError:      "time: invalid duration",
 			expectedHasForward: true,
 		},
 		{
@@ -306,7 +306,7 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 					"retries":  float64(300), // > 255
 				},
 			},
-			expectedError: "retries must be between 0 and 255",
+			expectedError:      "retries must be between 0 and 255",
 			expectedHasForward: true,
 		},
 		{
@@ -319,7 +319,7 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 					"retries":  "not-a-number", // Invalid type
 				},
 			},
-			expectedError: "key retries has invalid type, expected number",
+			expectedError:      "key retries has invalid type, expected number",
 			expectedHasForward: true,
 		},
 		{
@@ -332,7 +332,7 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 					"next":     "invalid json",
 				},
 			},
-			expectedError: "failed to unmarshal next forward metadata",
+			expectedError:      "failed to unmarshal next forward metadata",
 			expectedHasForward: true,
 		},
 		{
@@ -343,7 +343,7 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 					"channel": "test-channel",
 				},
 			},
-			expectedError: "receiver",
+			expectedError:      "receiver",
 			expectedHasForward: true,
 		},
 		{
@@ -354,7 +354,7 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 					"channel":  "test-channel",
 				},
 			},
-			expectedError: "port",
+			expectedError:      "port",
 			expectedHasForward: true,
 		},
 		{
@@ -365,7 +365,7 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 					"port":     "test-port",
 				},
 			},
-			expectedError: "channel",
+			expectedError:      "channel",
 			expectedHasForward: true,
 		},
 		{
@@ -384,7 +384,7 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 					},
 				},
 			},
-			expectedError: "failed to get next forward metadata from packet data",
+			expectedError:      "failed to get next forward metadata from packet data",
 			expectedHasForward: true,
 		},
 		{
@@ -397,7 +397,7 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 					"next":     42, // Invalid type (not map or string)
 				},
 			},
-			expectedError: "next forward metadata is not a valid map or string",
+			expectedError:      "next forward metadata is not a valid map or string",
 			expectedHasForward: true,
 		},
 		{
@@ -412,7 +412,7 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 					},
 				},
 			},
-			expectedError: "key forward not found in next forward metadata",
+			expectedError:      "key forward not found in next forward metadata",
 			expectedHasForward: true,
 		},
 		{
@@ -425,13 +425,13 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 					"timeout":  true, // Invalid type (boolean instead of duration)
 				},
 			},
-			expectedError: "invalid duration",
+			expectedError:      "invalid duration",
 			expectedHasForward: true,
 		},
 		{
-			name: "missing forward key entirely",
-			customData: map[string]any{},
-			expectedError: "key forward not found in packet data",
+			name:               "missing forward key entirely",
+			customData:         map[string]any{},
+			expectedError:      "key forward not found in packet data",
 			expectedHasForward: false,
 		},
 	}
