@@ -25,45 +25,85 @@ func TestTimeoutUnmarshalJSON(t *testing.T) {
 
 // Additional tests for improved coverage
 func TestValidateForwardMetadata(t *testing.T) {
-	// Valid ForwardMetadata
-	metadata := types.ForwardMetadata{
-		Receiver: "validaddress",
-		Port:     "validport",
-		Channel:  "validchannel",
-		Timeout:  time.Duration(0),
-		Retries:  nil,
-	}
-	err := metadata.Validate()
-	require.NoError(t, err)
-
-	// Invalid Receiver
-	metadata.Receiver = ""
-	err = metadata.Validate()
-	require.Error(t, err)
-
-	// Invalid Port
-	metadata.Receiver = "validaddress"
-	metadata.Port = "!nv@lidport"
-	err = metadata.Validate()
-	require.Error(t, err)
-
-	// Invalid Channel
-	metadata.Port = "validport"
-	metadata.Channel = "invalid|channel"
-	err = metadata.Validate()
-	require.Error(t, err)
-
-	// With Next metadata
-	metadata.Channel = "validchannel"
-	metadata.Next = &types.PacketMetadata{
-		Forward: types.ForwardMetadata{
-			Receiver: "nextreceiver",
-			Port:     "nextport",
-			Channel:  "nextchannel",
+	tests := []struct {
+		name      string
+		metadata  types.ForwardMetadata
+		expectErr bool
+	}{
+		{
+			name: "valid metadata",
+			metadata: types.ForwardMetadata{
+				Receiver: "validaddress",
+				Port:     "validport",
+				Channel:  "validchannel",
+				Timeout:  time.Duration(0),
+				Retries:  nil,
+			},
+			expectErr: false,
+		},
+		{
+			name: "empty receiver",
+			metadata: types.ForwardMetadata{
+				Receiver: "",
+				Port:     "validport",
+				Channel:  "validchannel",
+				Timeout:  time.Duration(0),
+				Retries:  nil,
+			},
+			expectErr: true,
+		},
+		{
+			name: "invalid port",
+			metadata: types.ForwardMetadata{
+				Receiver: "validaddress",
+				Port:     "!nv@lidport",
+				Channel:  "validchannel",
+				Timeout:  time.Duration(0),
+				Retries:  nil,
+			},
+			expectErr: true,
+		},
+		{
+			name: "invalid channel",
+			metadata: types.ForwardMetadata{
+				Receiver: "validaddress",
+				Port:     "validport",
+				Channel:  "invalid|channel",
+				Timeout:  time.Duration(0),
+				Retries:  nil,
+			},
+			expectErr: true,
+		},
+		{
+			name: "valid metadata with next",
+			metadata: types.ForwardMetadata{
+				Receiver: "validaddress",
+				Port:     "validport",
+				Channel:  "validchannel",
+				Timeout:  time.Duration(0),
+				Retries:  nil,
+				Next: &types.PacketMetadata{
+					Forward: types.ForwardMetadata{
+						Receiver: "nextreceiver",
+						Port:     "nextport",
+						Channel:  "nextchannel",
+					},
+				},
+			},
+			expectErr: false,
 		},
 	}
-	err = metadata.Validate()
-	require.NoError(t, err)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.metadata.Validate()
+			if tt.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestForwardMetadataToMap(t *testing.T) {
