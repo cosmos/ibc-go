@@ -4,7 +4,6 @@ package pfm
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -64,21 +63,21 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	// Send packet from a -> b -> c that should timeout between b -> c
 	retries := uint8(0)
 
-	bToCMetadata := &pfmtypes.PacketMetadata{
-		Forward: &pfmtypes.ForwardMetadata{
+	bToCMetadata := pfmtypes.PacketMetadata{
+		Forward: pfmtypes.ForwardMetadata{
 			Receiver: userC.FormattedAddress(),
 			Channel:  chanBC.ChannelID,
 			Port:     chanBC.PortID,
 			Retries:  &retries,
-			Timeout:  pfmtypes.Duration(time.Second * 10), // Short timeout
+			Timeout:  time.Second * 10, // Short timeout
 		},
 	}
 
-	memo, err := json.Marshal(bToCMetadata)
+	memo, err := bToCMetadata.ToMemo()
 	s.Require().NoError(err)
 
 	opts := ibc.TransferOptions{
-		Memo: string(memo),
+		Memo: memo,
 	}
 
 	transferAmount := math.NewInt(100_000)
@@ -169,19 +168,19 @@ func (s *PFMTimeoutTestSuite) TestTimeoutOnForward() {
 	err = relayer.StartRelayer(ctx, s.GetRelayerExecReporter())
 	s.Require().NoError(err)
 
-	bToCMetadata = &pfmtypes.PacketMetadata{
-		Forward: &pfmtypes.ForwardMetadata{
+	bToCMetadata = pfmtypes.PacketMetadata{
+		Forward: pfmtypes.ForwardMetadata{
 			Receiver: userC.FormattedAddress(),
 			Channel:  chanBC.ChannelID,
 			Port:     chanBC.PortID,
 		},
 	}
 
-	memo, err = json.Marshal(bToCMetadata)
+	memo, err = bToCMetadata.ToMemo()
 	s.Require().NoError(err)
 
 	opts = ibc.TransferOptions{
-		Memo: string(memo),
+		Memo: memo,
 	}
 
 	aHeightBeforeTransfer, err := chainA.Height(ctx)

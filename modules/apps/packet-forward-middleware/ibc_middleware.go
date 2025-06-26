@@ -1,7 +1,6 @@
 package packetforward
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -164,22 +163,18 @@ func (im *IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pa
 		"memo", data.Memo,
 	)
 
-	d := make(map[string]any)
-	err = json.Unmarshal([]byte(data.Memo), &d)
-	logger.Debug("packetForwardMiddleware json", "memo", data.Memo)
-	if err != nil || d["forward"] == nil {
+	packetMetadata, isPFM, err := types.GetPacketMetadataFromPacketdata(data)
+	if err != nil && !isPFM {
 		// not a packet that should be forwarded
 		logger.Debug("packetForwardMiddleware OnRecvPacket forward metadata does not exist")
 		return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	}
-	m := &types.PacketMetadata{}
-	err = json.Unmarshal([]byte(data.Memo), m)
-	if err != nil {
+	if err != nil && isPFM {
 		logger.Error("packetForwardMiddleware OnRecvPacket error parsing forward metadata", "error", err)
 		return newErrorAcknowledgement(fmt.Errorf("error parsing forward metadata: %w", err))
 	}
 
-	metadata := m.Forward
+	metadata := packetMetadata.Forward
 
 	goCtx := ctx.Context()
 	nonrefundable := getBoolFromAny(goCtx.Value(types.NonrefundableKey{}))
@@ -213,7 +208,7 @@ func (im *IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pa
 
 	token := sdk.NewCoin(denomOnThisChain, amountInt)
 
-	timeout := time.Duration(metadata.Timeout)
+	timeout := metadata.Timeout
 
 	if timeout.Nanoseconds() <= 0 {
 		timeout = im.forwardTimeout
