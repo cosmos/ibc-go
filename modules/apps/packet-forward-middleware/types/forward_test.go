@@ -310,6 +310,23 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 	require.True(t, hasForward)
 	require.Contains(t, err.Error(), "retries must be between 0 and 255")
 
+	// Test invalid retries type (not a number)
+	mockProviderInvalidRetriesType := &MockPacketDataProvider{
+		customData: map[string]any{
+			"forward": map[string]any{
+				"receiver": "test-receiver",
+				"port":     "test-port",
+				"channel":  "test-channel",
+				"retries":  "not-a-number", // Invalid type
+			},
+		},
+	}
+
+	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderInvalidRetriesType)
+	require.Error(t, err)
+	require.True(t, hasForward)
+	require.Contains(t, err.Error(), "key retries has invalid type, expected number")
+
 	// Test invalid next JSON string
 	mockProviderBadNext := &MockPacketDataProvider{
 		customData: map[string]any{

@@ -136,7 +136,7 @@ func getForwardMetadata(forwardData map[string]any) (ForwardMetadata, error) {
 	if ok {
 		retriesFloat, ok := retriesData.(float64)
 		if !ok {
-			return ForwardMetadata{}, errorsmod.Wrapf(ErrMetadataKeyNotFound, "key %s not found in packet data", ForwardRetriesKey)
+			return ForwardMetadata{}, errorsmod.Wrapf(ErrInvalidForwardMetadata, "key %s has invalid type, expected number", ForwardRetriesKey)
 		}
 		if retriesFloat < 0 || retriesFloat > 255 {
 			return ForwardMetadata{}, errors.New("retries must be between 0 and 255")
