@@ -86,8 +86,6 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 	var isAsync bool
 	isSuccess := true
 	for _, pd := range msg.Packet.Payloads {
-		// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
-		cacheCtx, writeFn = ctx.CacheContext()
 		cb := k.Router.Route(pd.DestinationPort)
 		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, pd, signer)
 
@@ -106,8 +104,6 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 		if bytes.Equal(res.GetAcknowledgement(), types.ErrorAcknowledgement[:]) {
 			return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "application acknowledgement cannot be sentinel error acknowledgement")
 		}
-		// write application state changes for asynchronous and successful acknowledgements
-		writeFn()
 		// append app acknowledgement to the overall acknowledgement
 		ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
 
@@ -122,18 +118,19 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 		}
 	}
 
+	// write application state changes for asynchronous and successful acknowledgements
+	// if any application returns a failure, then we discard all state changes
+	// to ensure an atomic execution of all payloads
+	if isSuccess {
+		writeFn()
+	}
+
 	if !isAsync {
-		// If the application callback was successful, the acknowledgement must have the same number of app acknowledgements as the packet payloads.
-		if isSuccess {
-			if len(ack.AppAcknowledgements) != len(msg.Packet.Payloads) {
-				return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(msg.Packet.Payloads))
-			}
+		// sanity check to ensure returned acknowledgement and calculated isSuccess boolean matches
+		if ack.Success() != isSuccess {
+			panic("acknowledgement success does not match isSuccess")
 		}
 
-		// Validate ack before forwarding to WriteAcknowledgement.
-		if err := ack.Validate(); err != nil {
-			return nil, err
-		}
 		// Set packet acknowledgement only if the acknowledgement is not async.
 		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 		// acknowledgement is async.

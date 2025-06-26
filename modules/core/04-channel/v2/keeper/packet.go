@@ -180,6 +180,19 @@ func (k *Keeper) writeAcknowledgement(
 	packet types.Packet,
 	ack types.Acknowledgement,
 ) error {
+	// Validate the acknowledgement
+	if err := ack.Validate(); err != nil {
+		ctx.Logger().Error("write acknowledgement failed", "error", errorsmod.Wrap(err, "invalid acknowledgement"))
+		return errorsmod.Wrap(err, "invalid acknowledgement")
+	}
+
+	// Validate the acknowledgement against the payload length
+	if ack.Success() {
+		if len(ack.AppAcknowledgements) != len(packet.Payloads) {
+			return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(packet.Payloads))
+		}
+	}
+
 	// lookup counterparty from packet identifiers
 	// note this will be either the client identifier for IBC V2 paths
 	// or an aliased channel identifier for IBC V1 paths
@@ -219,12 +232,7 @@ func (k *Keeper) writeAcknowledgement(
 // WriteAcknowledgement writes the acknowledgement and emits events for asynchronous acknowledgements
 // this is the method to be called by external apps when they want to write an acknowledgement asyncrhonously
 func (k *Keeper) WriteAcknowledgement(ctx sdk.Context, clientID string, sequence uint64, ack types.Acknowledgement) error {
-	// Validate the acknowledgement
-	if err := ack.Validate(); err != nil {
-		ctx.Logger().Error("write acknowledgement failed", "error", errorsmod.Wrap(err, "invalid acknowledgement"))
-		return errorsmod.Wrap(err, "invalid acknowledgement")
-	}
-
+	// get saved async packet from store
 	packet, ok := k.GetAsyncPacket(ctx, clientID, sequence)
 	if !ok {
 		return errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "packet with clientID (%s) and sequence (%d) not found for async acknowledgement", clientID, sequence)

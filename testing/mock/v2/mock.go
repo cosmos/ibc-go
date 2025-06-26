@@ -34,3 +34,13 @@ func NewErrorMockPayload(sourcePort, destPort string) channeltypesv2.Payload {
 		Version:         mockv1.Version,
 	}
 }
+
+func NewAsyncMockPayload(sourcePort, destPort string) channeltypesv2.Payload {
+	return channeltypesv2.Payload{
+		SourcePort:      sourcePort,
+		DestinationPort: destPort,
+		Encoding:        transfertypes.EncodingProtobuf,
+		Value:           mockv1.MockAsyncPacketData,
+		Version:         mockv1.Version,
+	}
+}
