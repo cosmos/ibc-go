@@ -121,7 +121,7 @@ func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *error
 // AssertTxSuccess verifies that an sdk.TxResponse has succeeded.
 func (s *E2ETestSuite) AssertTxSuccess(resp sdk.TxResponse) {
 	errorMsg := addDebuggingInformation(fmt.Sprintf("%+v", resp))
-	s.Require().Equal(resp.Code, uint32(0), errorMsg)
+	s.Require().Equal(uint32(0), resp.Code, errorMsg)
 	s.Require().NotEmpty(resp.TxHash, errorMsg)
 	s.Require().NotEqual(int64(0), resp.GasUsed, errorMsg)
 	s.Require().NotEqual(int64(0), resp.GasWanted, errorMsg)

@@ -58,7 +58,7 @@ type E2ETestSuite struct {
 	relayerWallets relayer.Map
 	logger         *zap.Logger
 	DockerClient   *dockerclient.Client
-	network        string
+	Network        string
 
 	// pathNameIndex is the latest index to be used for generating chains
 	pathNameIndex int64
@@ -103,7 +103,7 @@ func (s *E2ETestSuite) initDockerClient() {
 	client, network := interchaintest.DockerSetup(s.T())
 	s.logger = zap.NewExample()
 	s.DockerClient = client
-	s.network = network
+	s.Network = network
 }
 
 // configureGenesisDebugExport sets, if needed, env variables to enable exporting of Genesis debug files.
@@ -152,7 +152,7 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 func (s *E2ETestSuite) initializeRelayerPool(n int) []ibc.Relayer {
 	var relayers []ibc.Relayer
 	for range n {
-		relayers = append(relayers, relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.network))
+		relayers = append(relayers, relayer.New(s.T(), *LoadConfig().GetActiveRelayerConfig(), s.logger, s.DockerClient, s.Network))
 	}
 	return relayers
 }
@@ -188,7 +188,7 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, chainCount int, channelO
 	buildOpts := interchaintest.InterchainBuildOptions{
 		TestName:  s.T().Name(),
 		Client:    s.DockerClient,
-		NetworkID: s.network,
+		NetworkID: s.Network,
 		// we skip path creation because we are just creating the chains and not connections/channels
 		SkipPathCreation: true,
 	}
