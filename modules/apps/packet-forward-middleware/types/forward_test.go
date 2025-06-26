@@ -277,196 +277,175 @@ func TestGetPacketMetadataRetriesParsing(t *testing.T) {
 }
 
 func TestGetPacketMetadataErrorCases(t *testing.T) {
-	// Test invalid timeout string
-	mockProvider := &MockPacketDataProvider{
-		customData: map[string]any{
-			"forward": map[string]any{
-				"receiver": "test-receiver",
-				"port":     "test-port",
-				"channel":  "test-channel",
-				"timeout":  "invalid-duration",
-			},
-		},
-	}
-
-	_, hasForward, err := types.GetPacketMetadataFromPacketdata(mockProvider)
-	require.Error(t, err)
-	require.True(t, hasForward) // Error during parsing, but forward key was found
-
-	// Test invalid retries value (too high)
-	mockProviderBadRetries := &MockPacketDataProvider{
-		customData: map[string]any{
-			"forward": map[string]any{
-				"receiver": "test-receiver",
-				"port":     "test-port",
-				"channel":  "test-channel",
-				"retries":  float64(300), // > 255
-			},
-		},
-	}
-
-	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderBadRetries)
-	require.Error(t, err)
-	require.True(t, hasForward)
-	require.Contains(t, err.Error(), "retries must be between 0 and 255")
-
-	// Test invalid retries type (not a number)
-	mockProviderInvalidRetriesType := &MockPacketDataProvider{
-		customData: map[string]any{
-			"forward": map[string]any{
-				"receiver": "test-receiver",
-				"port":     "test-port",
-				"channel":  "test-channel",
-				"retries":  "not-a-number", // Invalid type
-			},
-		},
-	}
-
-	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderInvalidRetriesType)
-	require.Error(t, err)
-	require.True(t, hasForward)
-	require.Contains(t, err.Error(), "key retries has invalid type, expected number")
-
-	// Test invalid next JSON string
-	mockProviderBadNext := &MockPacketDataProvider{
-		customData: map[string]any{
-			"forward": map[string]any{
-				"receiver": "test-receiver",
-				"port":     "test-port",
-				"channel":  "test-channel",
-				"next":     "invalid json",
-			},
-		},
-	}
-
-	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderBadNext)
-	require.Error(t, err)
-	require.True(t, hasForward)
-
-	// Test missing required keys
-	missingKeysTests := []struct {
-		name string
-		data map[string]any
-		err  string
+	tests := []struct {
+		name           string
+		customData     map[string]any
+		expectedError  string
+		expectedHasForward bool
 	}{
 		{
+			name: "invalid timeout string",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"timeout":  "invalid-duration",
+				},
+			},
+			expectedError: "time: invalid duration",
+			expectedHasForward: true,
+		},
+		{
+			name: "retries value too high",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"retries":  float64(300), // > 255
+				},
+			},
+			expectedError: "retries must be between 0 and 255",
+			expectedHasForward: true,
+		},
+		{
+			name: "invalid retries type",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"retries":  "not-a-number", // Invalid type
+				},
+			},
+			expectedError: "key retries has invalid type, expected number",
+			expectedHasForward: true,
+		},
+		{
+			name: "invalid next JSON string",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"next":     "invalid json",
+				},
+			},
+			expectedError: "failed to unmarshal next forward metadata",
+			expectedHasForward: true,
+		},
+		{
 			name: "missing receiver",
-			data: map[string]any{
+			customData: map[string]any{
 				"forward": map[string]any{
 					"port":    "test-port",
 					"channel": "test-channel",
 				},
 			},
-			err: "receiver",
+			expectedError: "receiver",
+			expectedHasForward: true,
 		},
 		{
 			name: "missing port",
-			data: map[string]any{
+			customData: map[string]any{
 				"forward": map[string]any{
 					"receiver": "test-receiver",
 					"channel":  "test-channel",
 				},
 			},
-			err: "port",
+			expectedError: "port",
+			expectedHasForward: true,
 		},
 		{
 			name: "missing channel",
-			data: map[string]any{
+			customData: map[string]any{
 				"forward": map[string]any{
 					"receiver": "test-receiver",
 					"port":     "test-port",
 				},
 			},
-			err: "channel",
+			expectedError: "channel",
+			expectedHasForward: true,
+		},
+		{
+			name: "nested forward metadata error",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"next": map[string]any{
+						"forward": map[string]any{
+							"receiver": "nested-receiver",
+							"port":     "nested-port",
+							// Missing required "channel" key
+						},
+					},
+				},
+			},
+			expectedError: "failed to get next forward metadata from packet data",
+			expectedHasForward: true,
+		},
+		{
+			name: "invalid next type",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"next":     42, // Invalid type (not map or string)
+				},
+			},
+			expectedError: "next forward metadata is not a valid map or string",
+			expectedHasForward: true,
+		},
+		{
+			name: "missing forward key in next metadata",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"next": map[string]any{
+						"other_key": "some_value", // Missing "forward" key
+					},
+				},
+			},
+			expectedError: "key forward not found in next forward metadata",
+			expectedHasForward: true,
+		},
+		{
+			name: "invalid timeout type",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"timeout":  true, // Invalid type (boolean instead of duration)
+				},
+			},
+			expectedError: "invalid duration",
+			expectedHasForward: true,
+		},
+		{
+			name: "missing forward key entirely",
+			customData: map[string]any{},
+			expectedError: "key forward not found in packet data",
+			expectedHasForward: false,
 		},
 	}
 
-	for _, tt := range missingKeysTests {
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockProvider := &MockPacketDataProvider{
-				customData: tt.data,
+				customData: tt.customData,
 			}
 
 			_, hasForward, err := types.GetPacketMetadataFromPacketdata(mockProvider)
 			require.Error(t, err)
-			require.True(t, hasForward)
-			require.Contains(t, err.Error(), tt.err)
+			require.Equal(t, tt.expectedHasForward, hasForward)
+			require.Contains(t, err.Error(), tt.expectedError)
 		})
 	}
-
-	// Test error in nested forward metadata (line 159 coverage)
-	mockProviderNestedError := &MockPacketDataProvider{
-		customData: map[string]any{
-			"forward": map[string]any{
-				"receiver": "test-receiver",
-				"port":     "test-port",
-				"channel":  "test-channel",
-				"next": map[string]any{
-					"forward": map[string]any{
-						"receiver": "nested-receiver",
-						"port":     "nested-port",
-						// Missing required "channel" key in nested forward metadata
-					},
-				},
-			},
-		},
-	}
-
-	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderNestedError)
-	require.Error(t, err)
-	require.True(t, hasForward)
-	require.Contains(t, err.Error(), "failed to get next forward metadata from packet data")
-
-	// Test next data is neither map nor string (invalid type)
-	mockProviderInvalidNextType := &MockPacketDataProvider{
-		customData: map[string]any{
-			"forward": map[string]any{
-				"receiver": "test-receiver",
-				"port":     "test-port",
-				"channel":  "test-channel",
-				"next":     42, // Invalid type (not map or string)
-			},
-		},
-	}
-
-	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderInvalidNextType)
-	require.Error(t, err)
-	require.True(t, hasForward)
-	require.Contains(t, err.Error(), "next forward metadata is not a valid map or string")
-
-	// Test missing "forward" key in next metadata
-	mockProviderMissingForwardInNext := &MockPacketDataProvider{
-		customData: map[string]any{
-			"forward": map[string]any{
-				"receiver": "test-receiver",
-				"port":     "test-port",
-				"channel":  "test-channel",
-				"next": map[string]any{
-					"other_key": "some_value", // Missing "forward" key
-				},
-			},
-		},
-	}
-
-	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderMissingForwardInNext)
-	require.Error(t, err)
-	require.True(t, hasForward)
-	require.Contains(t, err.Error(), "key forward not found in next forward metadata")
-
-	// Test invalid timeout type (not float64 or string)
-	mockProviderInvalidTimeoutType := &MockPacketDataProvider{
-		customData: map[string]any{
-			"forward": map[string]any{
-				"receiver": "test-receiver",
-				"port":     "test-port",
-				"channel":  "test-channel",
-				"timeout":  true, // Invalid type (boolean instead of duration)
-			},
-		},
-	}
-
-	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderInvalidTimeoutType)
-	require.Error(t, err)
-	require.True(t, hasForward)
-	require.Contains(t, err.Error(), "invalid duration")
 }
