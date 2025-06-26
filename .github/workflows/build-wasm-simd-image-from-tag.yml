@@ -22,9 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-24.04
+          - os: depot-ubuntu-24.04-4
             platform: linux/amd64
-          - os: ubuntu-24.04-arm
+          - os: depot-ubuntu-24.04-arm-4
             platform: linux/arm64
     runs-on: ${{ matrix.os }}
     steps:
