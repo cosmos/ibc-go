@@ -8,7 +8,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 )
 
-func (suite *TypesTestSuite) TestValidate() {
+func (s *TypesTestSuite) TestValidate() {
 	testCases := []struct {
 		name        string
 		clientState *types.ClientState
@@ -56,13 +56,13 @@ func (suite *TypesTestSuite) TestValidate() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.clientState.Validate()
 			if tc.expErr == nil {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err, tc.name)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

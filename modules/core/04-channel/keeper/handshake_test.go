@@ -24,7 +24,7 @@ type testCase = struct {
 // TestChanOpenInit tests the OpenInit handshake call for channels. It uses message passing
 // to enter into the appropriate state and then calls ChanOpenInit directly. The channel is
 // being created on chainA.
-func (suite *KeeperTestSuite) TestChanOpenInit() {
+func (s *KeeperTestSuite) TestChanOpenInit() {
 	var (
 		path                 *ibctesting.Path
 		features             []string
@@ -70,19 +70,19 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 				path.SetupConnections()
 
 				// remove client from allowed list
-				params := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+				params := s.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(s.chainA.GetContext())
 				params.AllowedClients = []string{}
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+				s.chainA.App.GetIBCKeeper().ClientKeeper.SetParams(s.chainA.GetContext(), params)
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			// run test for all types of ordering
 			for _, order := range []types.Order{types.UNORDERED, types.ORDERED} {
-				suite.SetupTest() // reset
-				path = ibctesting.NewPath(suite.chainA, suite.chainB)
+				s.SetupTest() // reset
+				path = ibctesting.NewPath(s.chainA, s.chainB)
 				path.EndpointA.ChannelConfig.Order = order
 				path.EndpointB.ChannelConfig.Order = order
 				expErrorMsgSubstring = ""
@@ -91,8 +91,8 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 
 				counterparty := types.NewCounterparty(ibctesting.MockPort, ibctesting.FirstChannelID)
 
-				channelID, err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanOpenInit(
-					suite.chainA.GetContext(), path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID},
+				channelID, err := s.chainA.App.GetIBCKeeper().ChannelKeeper.ChanOpenInit(
+					s.chainA.GetContext(), path.EndpointA.ChannelConfig.Order, []string{path.EndpointA.ConnectionID},
 					path.EndpointA.ChannelConfig.PortID, counterparty, path.EndpointA.ChannelConfig.Version,
 				)
 
@@ -107,12 +107,12 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 				// Testcase must have expectedPass = true AND channel order supported before
 				// asserting the channel handshake initiation succeeded
 				if (tc.expErr == nil) && orderSupported {
-					suite.Require().NoError(err)
-					suite.Require().Equal(types.FormatChannelIdentifier(0), channelID)
+					s.Require().NoError(err)
+					s.Require().Equal(types.FormatChannelIdentifier(0), channelID)
 				} else {
-					suite.Require().Error(err)
-					suite.Require().Contains(err.Error(), expErrorMsgSubstring)
-					suite.Require().Equal("", channelID)
+					s.Require().Error(err)
+					s.Require().Contains(err.Error(), expErrorMsgSubstring)
+					s.Require().Equal("", channelID)
 				}
 			}
 		})
@@ -122,7 +122,7 @@ func (suite *KeeperTestSuite) TestChanOpenInit() {
 // TestChanOpenTry tests the OpenTry handshake call for channels. It uses message passing
 // to enter into the appropriate state and then calls ChanOpenTry directly. The channel
 // is being created on chainB.
-func (suite *KeeperTestSuite) TestChanOpenTry() {
+func (s *KeeperTestSuite) TestChanOpenTry() {
 	var (
 		path       *ibctesting.Path
 		heightDiff uint64
@@ -133,7 +133,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, nil},
 		{"connection doesn't exist", func() {
 			path.EndpointA.ConnectionID = ibctesting.FirstConnectionID
@@ -143,13 +143,13 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			path.SetupClients()
 
 			err := path.EndpointB.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, connectiontypes.ErrInvalidConnectionState},
 		{"consensus state not found", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			heightDiff = 3 // consensus state doesn't exist at this height
 		}, errorsmod.Wrap(ibcerrors.ErrInvalidHeight, "")},
@@ -161,7 +161,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// modify connB versions
 			path.EndpointB.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// modify connB versions to only support UNORDERED channels
 			path.EndpointB.UpdateConnection(func(c *connectiontypes.ConnectionEnd) {
@@ -182,36 +182,36 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-			heightDiff = 0    // must be explicitly changed in malleate
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest()  // reset
+			heightDiff = 0 // must be explicitly changed in malleate
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 
 			tc.malleate()
 
 			if path.EndpointB.ClientID != "" {
 				// ensure client is up to date
 				err := path.EndpointB.UpdateClient()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			}
 
 			counterparty := types.NewCounterparty(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
 
 			channelKey := host.ChannelKey(counterparty.PortId, counterparty.ChannelId)
-			proof, proofHeight := suite.chainA.QueryProof(channelKey)
+			proof, proofHeight := s.chainA.QueryProof(channelKey)
 
-			channelID, err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
-				suite.chainB.GetContext(), types.ORDERED, []string{path.EndpointB.ConnectionID},
+			channelID, err := s.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenTry(
+				s.chainB.GetContext(), types.ORDERED, []string{path.EndpointB.ConnectionID},
 				path.EndpointB.ChannelConfig.PortID, counterparty, path.EndpointA.ChannelConfig.Version,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotEmpty(channelID)
+				s.Require().NoError(err)
+				s.Require().NotEmpty(channelID)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestChanOpenTry() {
 // TestChanOpenAck tests the OpenAck handshake call for channels. It uses message passing
 // to enter into the appropriate state and then calls ChanOpenAck directly. The handshake
 // call is occurring on chainA.
-func (suite *KeeperTestSuite) TestChanOpenAck() {
+func (s *KeeperTestSuite) TestChanOpenAck() {
 	var (
 		path                  *ibctesting.Path
 		counterpartyChannelID string
@@ -232,20 +232,20 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, nil},
 		{"success with empty stored counterparty channel ID", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
 
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// set the channel's counterparty channel identifier to empty string
 			channel := path.EndpointA.GetChannel()
@@ -254,7 +254,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			// use a different channel identifier
 			counterpartyChannelID = path.EndpointB.ChannelID
 
-			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+			s.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 		}, nil},
 		{"channel doesn't exist", func() {}, errorsmod.Wrap(types.ErrChannelNotFound, "")},
 		{"channel state is not INIT", func() {
@@ -265,37 +265,37 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// set the channel's connection hops to wrong connection ID
 			channel := path.EndpointA.GetChannel()
 			channel.ConnectionHops[0] = doesnotexist
-			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+			s.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 		}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, "")},
 		{"connection is not OPEN", func() {
 			path.SetupClients()
 
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// create channel in init
 			path.SetChannelOrdered()
 
 			err = path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, connectiontypes.ErrInvalidConnectionState},
 		{"consensus state not found", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
 
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			heightDiff = 3 // consensus state doesn't exist at this height
 		}, ibcerrors.ErrInvalidHeight},
@@ -304,10 +304,10 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			path.SetChannelOrdered()
 
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			counterpartyChannelID = "otheridentifier"
 		}, commitmenttypes.ErrInvalidProof},
@@ -317,19 +317,19 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			path.SetChannelOrdered()
 
 			err := path.EndpointB.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointA.ChanOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, types.ErrInvalidChannelState},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest()          // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest()              // reset
 			counterpartyChannelID = "" // must be explicitly changed in malleate
 			heightDiff = 0             // must be explicitly changed
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 
 			tc.malleate()
 
@@ -340,22 +340,22 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 			if path.EndpointA.ClientID != "" {
 				// ensure client is up to date
 				err := path.EndpointA.UpdateClient()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			}
 
 			channelKey := host.ChannelKey(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID)
-			proof, proofHeight := suite.chainB.QueryProof(channelKey)
+			proof, proofHeight := s.chainB.QueryProof(channelKey)
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanOpenAck(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.Version, counterpartyChannelID,
+			err := s.chainA.App.GetIBCKeeper().ChannelKeeper.ChanOpenAck(
+				s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.Version, counterpartyChannelID,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -364,7 +364,7 @@ func (suite *KeeperTestSuite) TestChanOpenAck() {
 // TestChanOpenConfirm tests the OpenAck handshake call for channels. It uses message passing
 // to enter into the appropriate state and then calls ChanOpenConfirm directly. The handshake
 // call is occurring on chainB.
-func (suite *KeeperTestSuite) TestChanOpenConfirm() {
+func (s *KeeperTestSuite) TestChanOpenConfirm() {
 	var (
 		path       *ibctesting.Path
 		heightDiff uint64
@@ -375,13 +375,13 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 			path.SetChannelOrdered()
 
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointA.ChanOpenAck()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, nil},
 		{"channel doesn't exist", func() {}, types.ErrChannelNotFound},
 		{"channel state is not TRYOPEN", func() {
@@ -393,37 +393,37 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 			path.SetChannelOrdered()
 
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointA.ChanOpenAck()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// set the channel's connection hops to wrong connection ID
 			channel := path.EndpointB.GetChannel()
 			channel.ConnectionHops[0] = doesnotexist
-			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
+			s.chainB.App.GetIBCKeeper().ChannelKeeper.SetChannel(s.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
 		}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, "")},
 		{"connection is not OPEN", func() {
 			path.SetupClients()
 
 			err := path.EndpointB.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, types.ErrChannelNotFound},
 		{"consensus state not found", func() {
 			path.SetupConnections()
 			path.SetChannelOrdered()
 
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointA.ChanOpenAck()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			heightDiff = 3
 		}, ibcerrors.ErrInvalidHeight},
@@ -433,41 +433,40 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 			path.SetChannelOrdered()
 
 			err := path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ChanOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, commitmenttypes.ErrInvalidProof},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-			heightDiff = 0    // must be explicitly changed
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest()  // reset
+			heightDiff = 0 // must be explicitly changed
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 
 			tc.malleate()
 
 			if path.EndpointB.ClientID != "" {
 				// ensure client is up to date
 				err := path.EndpointB.UpdateClient()
-				suite.Require().NoError(err)
-
+				s.Require().NoError(err)
 			}
 
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proof, proofHeight := suite.chainA.QueryProof(channelKey)
+			proof, proofHeight := s.chainA.QueryProof(channelKey)
 
-			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
-				suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
+			err := s.chainB.App.GetIBCKeeper().ChannelKeeper.ChanOpenConfirm(
+				s.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -475,7 +474,7 @@ func (suite *KeeperTestSuite) TestChanOpenConfirm() {
 
 // TestChanCloseInit tests the initial closing of a handshake on chainA by calling
 // ChanCloseInit. Both chains will use message passing to setup OPEN channels.
-func (suite *KeeperTestSuite) TestChanCloseInit() {
+func (s *KeeperTestSuite) TestChanCloseInit() {
 	var (
 		path                 *ibctesting.Path
 		expErrorMsgSubstring string
@@ -505,18 +504,18 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 			// set the channel's connection hops to wrong connection ID
 			channel := path.EndpointA.GetChannel()
 			channel.ConnectionHops[0] = doesnotexist
-			suite.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
+			s.chainA.App.GetIBCKeeper().ChannelKeeper.SetChannel(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, channel)
 		}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, "")},
 		{"connection is not OPEN", func() {
 			path.SetupClients()
 
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// create channel in init
 			path.SetChannelOrdered()
 			err = path.EndpointA.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, connectiontypes.ErrInvalidConnectionState},
 		{
 			msg:    "unauthorized client",
@@ -525,32 +524,32 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 				path.Setup()
 
 				// remove client from allowed list
-				params := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+				params := s.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(s.chainA.GetContext())
 				params.AllowedClients = []string{}
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+				s.chainA.App.GetIBCKeeper().ClientKeeper.SetParams(s.chainA.GetContext(), params)
 				expErrorMsgSubstring = "status is Unauthorized"
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			expErrorMsgSubstring = ""
 
 			tc.malleate()
 
-			err := suite.chainA.App.GetIBCKeeper().ChannelKeeper.ChanCloseInit(
-				suite.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
+			err := s.chainA.App.GetIBCKeeper().ChannelKeeper.ChanCloseInit(
+				s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Contains(err.Error(), expErrorMsgSubstring)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), expErrorMsgSubstring)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -559,7 +558,7 @@ func (suite *KeeperTestSuite) TestChanCloseInit() {
 // TestChanCloseConfirm tests the confirming closing channel ends by calling ChanCloseConfirm
 // on chainB. Both chains will use message passing to setup OPEN channels. ChanCloseInit is
 // bypassed on chainA by setting the channel state in the ChannelKeeper.
-func (suite *KeeperTestSuite) TestChanCloseConfirm() {
+func (s *KeeperTestSuite) TestChanCloseConfirm() {
 	var (
 		path       *ibctesting.Path
 		heightDiff uint64
@@ -586,18 +585,18 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 			// set the channel's connection hops to wrong connection ID
 			channel := path.EndpointB.GetChannel()
 			channel.ConnectionHops[0] = doesnotexist
-			suite.chainB.App.GetIBCKeeper().ChannelKeeper.SetChannel(suite.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
+			s.chainB.App.GetIBCKeeper().ChannelKeeper.SetChannel(s.chainB.GetContext(), path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, channel)
 		}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, "")},
 		{"connection is not OPEN", func() {
 			path.SetupClients()
 
 			err := path.EndpointB.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// create channel in init
 			path.SetChannelOrdered()
 			err = path.EndpointB.ChanOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, connectiontypes.ErrInvalidConnectionState},
 		{"consensus state not found", func() {
 			path.Setup()
@@ -613,27 +612,27 @@ func (suite *KeeperTestSuite) TestChanCloseConfirm() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-			heightDiff = 0    // must explicitly be changed
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest()  // reset
+			heightDiff = 0 // must explicitly be changed
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 
 			tc.malleate()
 
 			channelKey := host.ChannelKey(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
-			proof, proofHeight := suite.chainA.QueryProof(channelKey)
+			proof, proofHeight := s.chainA.QueryProof(channelKey)
 
-			ctx := suite.chainB.GetContext()
-			err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
+			ctx := s.chainB.GetContext()
+			err := s.chainB.App.GetIBCKeeper().ChannelKeeper.ChanCloseConfirm(
 				ctx, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID,
 				proof, malleateHeight(proofHeight, heightDiff),
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
