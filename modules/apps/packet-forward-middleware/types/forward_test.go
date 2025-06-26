@@ -393,4 +393,27 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 			require.Contains(t, err.Error(), tt.err)
 		})
 	}
+
+	// Test error in nested forward metadata (line 159 coverage)
+	mockProviderNestedError := &MockPacketDataProvider{
+		customData: map[string]any{
+			"forward": map[string]any{
+				"receiver": "test-receiver",
+				"port":     "test-port",
+				"channel":  "test-channel",
+				"next": map[string]any{
+					"forward": map[string]any{
+						"receiver": "nested-receiver",
+						"port":     "nested-port",
+						// Missing required "channel" key in nested forward metadata
+					},
+				},
+			},
+		},
+	}
+
+	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderNestedError)
+	require.Error(t, err)
+	require.True(t, hasForward)
+	require.Contains(t, err.Error(), "failed to get next forward metadata from packet data")
 }
