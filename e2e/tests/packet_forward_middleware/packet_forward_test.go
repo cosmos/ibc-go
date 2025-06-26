@@ -4,11 +4,9 @@ package pfm
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/cosmos/interchaintest/v10/ibc"
-	"github.com/iancoleman/orderedmap"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -77,30 +75,27 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		// From A -> B will be handled by transfer msg.
 		// From B -> C will be handled by firstHopMetadata.
 		// From C -> D will be handled by secondHopMetadata.
-		secondHopMetadata := &pfmtypes.PacketMetadata{
-			Forward: &pfmtypes.ForwardMetadata{
+		secondHopMetadata := pfmtypes.PacketMetadata{
+			Forward: pfmtypes.ForwardMetadata{
 				Receiver: userD.FormattedAddress(),
 				Channel:  chanCD.ChannelID,
 				Port:     chanCD.PortID,
 			},
 		}
-		nextBz, err := json.Marshal(secondHopMetadata)
-		s.Require().NoError(err)
-		next := pfmtypes.NewJSONObject(false, nextBz, *orderedmap.New())
 
-		firstHopMetadata := &pfmtypes.PacketMetadata{
-			Forward: &pfmtypes.ForwardMetadata{
+		firstHopMetadata := pfmtypes.PacketMetadata{
+			Forward: pfmtypes.ForwardMetadata{
 				Receiver: userC.FormattedAddress(),
 				Channel:  chanBC.ChannelID,
 				Port:     chanBC.PortID,
-				Next:     next,
+				Next:     &secondHopMetadata,
 			},
 		}
 
-		memo, err := json.Marshal(firstHopMetadata)
+		memo, err := firstHopMetadata.ToMemo()
 		s.Require().NoError(err)
 
-		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, memo)
 		s.AssertTxSuccess(txResp)
 
 		s.FlushPackets(ctx, relayer, []ibc.Chain{chainA, chainB, chainC, chainD})
@@ -133,30 +128,27 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	})
 
 	t.Run("Packet forwarded [D -> C -> B -> A]", func(_ *testing.T) {
-		secondHopMetadata := &pfmtypes.PacketMetadata{
-			Forward: &pfmtypes.ForwardMetadata{
+		secondHopMetadata := pfmtypes.PacketMetadata{
+			Forward: pfmtypes.ForwardMetadata{
 				Receiver: userA.FormattedAddress(),
 				Channel:  chanAB.Counterparty.ChannelID,
 				Port:     chanAB.Counterparty.PortID,
 			},
 		}
-		nextBz, err := json.Marshal(secondHopMetadata)
-		s.Require().NoError(err)
-		next := pfmtypes.NewJSONObject(false, nextBz, *orderedmap.New())
 
-		firstHopMetadata := &pfmtypes.PacketMetadata{
-			Forward: &pfmtypes.ForwardMetadata{
+		firstHopMetadata := pfmtypes.PacketMetadata{
+			Forward: pfmtypes.ForwardMetadata{
 				Receiver: userB.FormattedAddress(),
 				Channel:  chanBC.Counterparty.ChannelID,
 				Port:     chanBC.Counterparty.PortID,
-				Next:     next,
+				Next:     &secondHopMetadata,
 			},
 		}
 
-		memo, err := json.Marshal(firstHopMetadata)
+		memo, err := firstHopMetadata.ToMemo()
 		s.Require().NoError(err)
 
-		txResp := s.Transfer(ctx, chainD, userD, chanCD.Counterparty.PortID, chanCD.Counterparty.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userD.FormattedAddress(), userC.FormattedAddress(), s.GetTimeoutHeight(ctx, chainD), 0, string(memo))
+		txResp := s.Transfer(ctx, chainD, userD, chanCD.Counterparty.PortID, chanCD.Counterparty.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userD.FormattedAddress(), userC.FormattedAddress(), s.GetTimeoutHeight(ctx, chainD), 0, memo)
 		s.AssertTxSuccess(txResp)
 
 		// Flush the packet all the way back to Chain A and then the acknowledgement back to Chain D
@@ -186,31 +178,27 @@ func (s *PFMTestSuite) TestForwardPacket() {
 	})
 
 	t.Run("Error while forwarding: Refund ok [A -> B -> C ->X D]", func(_ *testing.T) {
-		secondHopMetadata := &pfmtypes.PacketMetadata{
-			Forward: &pfmtypes.ForwardMetadata{
+		secondHopMetadata := pfmtypes.PacketMetadata{
+			Forward: pfmtypes.ForwardMetadata{
 				Receiver: "GurbageAddress",
 				Channel:  chanCD.ChannelID,
 				Port:     chanCD.PortID,
 			},
 		}
-		nextBz, err := json.Marshal(secondHopMetadata)
-		s.Require().NoError(err)
 
-		next := pfmtypes.NewJSONObject(false, nextBz, *orderedmap.New())
-
-		firstHopMetadata := &pfmtypes.PacketMetadata{
-			Forward: &pfmtypes.ForwardMetadata{
+		firstHopMetadata := pfmtypes.PacketMetadata{
+			Forward: pfmtypes.ForwardMetadata{
 				Receiver: userC.FormattedAddress(),
 				Channel:  chanBC.ChannelID,
 				Port:     chanBC.PortID,
-				Next:     next,
+				Next:     &secondHopMetadata,
 			},
 		}
 
-		memo, err := json.Marshal(firstHopMetadata)
+		memo, err := firstHopMetadata.ToMemo()
 		s.Require().NoError(err)
 
-		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcTokenD.IBCDenom()), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, memo)
 		s.AssertTxFailure(txResp, transfertypes.ErrDenomNotFound)
 
 		// Flush the packet all the way back to Chain D and then the acknowledgement back to Chain A
@@ -283,18 +271,18 @@ func (s *PFMTestSuite) TestForwardPacket() {
 		balanceBInt, err := s.GetChainBNativeBalance(ctx, userB)
 		s.Require().NoError(err)
 
-		firstHopMetadata := &pfmtypes.PacketMetadata{
-			Forward: &pfmtypes.ForwardMetadata{
+		firstHopMetadata := pfmtypes.PacketMetadata{
+			Forward: pfmtypes.ForwardMetadata{
 				Receiver: userA.FormattedAddress(),
 				Channel:  chanAB.Counterparty.ChannelID,
 				Port:     chanAB.Counterparty.PortID,
 			},
 		}
 
-		memo, err := json.Marshal(firstHopMetadata)
+		memo, err := firstHopMetadata.ToMemo()
 		s.Require().NoError(err)
 
-		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, memo)
 		s.AssertTxSuccess(txResp)
 
 		s.FlushPackets(ctx, relayer, []ibc.Chain{chainA, chainB})

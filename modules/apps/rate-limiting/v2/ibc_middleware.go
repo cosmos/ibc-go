@@ -89,6 +89,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, sourceClient st
 	return im.app.OnAcknowledgementPacket(ctx, sourceClient, destinationClient, sequence, acknowledgement, payload, relayer)
 }
 
+// TODO: Something looks off about this, please review carefully
 func v2ToV1Packet(payload channeltypesv2.Payload, sourceClient, destinationClient string, sequence uint64) (channeltypes.Packet, error) {
 	transferRepresentation, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {

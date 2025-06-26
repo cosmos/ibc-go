@@ -111,7 +111,7 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 			}
 
 			retries := uint8(2)
-			timeout := pfmtypes.Duration(1010101010)
+			timeout := time.Duration(1010101010)
 
 			initialSender := s.chainA.SenderAccount.GetAddress()
 			// Simulate an "Override Receiver" on destination chain.
@@ -129,7 +129,7 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 
 			fundAcc(ctxB, s.chainB.GetSimApp().BankKeeper, intermediateAcc)
 
-			err := pfmKeeperB.ForwardTransferPacket(ctxB, nil, srcPacket, initialSender.String(), intermediateAcc.String(), &metadata, ibctesting.TestCoin, 2, time.Duration(timeout), nil, tc.nonRefundable)
+			err := pfmKeeperB.ForwardTransferPacket(ctxB, nil, srcPacket, initialSender.String(), intermediateAcc.String(), metadata, ibctesting.TestCoin, 2, timeout, nil, tc.nonRefundable)
 			s.Require().NoError(err)
 
 			inflightPacket, err := pfmKeeperB.GetInflightPacket(ctxB, srcPacket)
@@ -180,7 +180,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	}
 
 	retries := uint8(2)
-	timeout := pfmtypes.Duration(1010101010)
+	timeout := time.Duration(1010101010)
 	nonRefundable := false
 
 	metadata := pfmtypes.ForwardMetadata{
@@ -195,7 +195,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	initialSender := s.chainA.SenderAccount.GetAddress()
 	finalReceiver := s.chainB.SenderAccount.GetAddress()
 
-	err := s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), &metadata, sdk.NewInt64Coin("denom", 1000), 2, time.Duration(timeout), nil, nonRefundable)
+	err := s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
 	s.Require().NoError(err)
 
 	// Get the inflight packer
@@ -205,7 +205,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	s.Require().Equal(inflightPacket.RetriesRemaining, int32(retries))
 
 	// Call the same function again with inflight packet. Num retries should decrease.
-	err = s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender.String(), finalReceiver.String(), &metadata, sdk.NewInt64Coin("denom", 1000), 2, time.Duration(timeout), nil, nonRefundable)
+	err = s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
 	s.Require().NoError(err)
 
 	// Get the inflight packer
@@ -214,6 +214,95 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 
 	s.Require().Equal(inflightPacket.RetriesRemaining, inflightPacket2.RetriesRemaining)
 	s.Require().Equal(int32(retries-1), inflightPacket.RetriesRemaining)
+}
+
+func (s *KeeperTestSuite) TestForwardTransferPacketWithNext() {
+	s.SetupTest()
+	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
+	path.Setup()
+
+	s.chainA.GetSimApp().PFMKeeper.SetTransferKeeper(&transferMock{})
+	ctx := s.chainA.GetContext()
+	srcPacket := channeltypes.Packet{
+		Data:               []byte{1},
+		Sequence:           1,
+		SourcePort:         path.EndpointA.ChannelConfig.PortID,
+		SourceChannel:      path.EndpointA.ChannelID,
+		DestinationPort:    path.EndpointB.ChannelConfig.PortID,
+		DestinationChannel: path.EndpointB.ChannelID,
+		TimeoutHeight: clienttypes.Height{
+			RevisionNumber: 10,
+			RevisionHeight: 100,
+		},
+		TimeoutTimestamp: 10101001,
+	}
+
+	retries := uint8(2)
+	timeout := time.Duration(1010101010)
+	nonRefundable := false
+
+	// Test with valid metadata.Next - it should be a *PacketMetadata
+	nextPacketMetadata := &pfmtypes.PacketMetadata{
+		Forward: pfmtypes.ForwardMetadata{
+			Receiver: "next-receiver",
+			Port:     "port-1",
+			Channel:  "channel-1",
+			Timeout:  timeout,
+			Retries:  &retries,
+			Next:     nil,
+		},
+	}
+
+	metadata := pfmtypes.ForwardMetadata{
+		Receiver: "first-receiver",
+		Port:     path.EndpointA.ChannelConfig.PortID,
+		Channel:  path.EndpointA.ChannelID,
+		Timeout:  timeout,
+		Retries:  &retries,
+		Next:     nextPacketMetadata,
+	}
+
+	initialSender := s.chainA.SenderAccount.GetAddress()
+	finalReceiver := s.chainB.SenderAccount.GetAddress()
+
+	err := s.chainA.GetSimApp().PFMKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
+	s.Require().NoError(err)
+
+	// Verify the inflight packet was created
+	inflightPacket, err := s.chainA.GetSimApp().PFMKeeper.GetInflightPacket(ctx, srcPacket)
+	s.Require().NoError(err)
+	s.Require().NotNil(inflightPacket)
+	s.Require().Equal(inflightPacket.RetriesRemaining, int32(retries))
+}
+
+func (s *KeeperTestSuite) TestRetryTimeoutErrorGettingNext() {
+	s.SetupTest()
+	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
+	path.Setup()
+
+	s.chainA.GetSimApp().PFMKeeper.SetTransferKeeper(&transferMock{})
+	ctx := s.chainA.GetContext()
+
+	// Create a transfer detail with invalid memo that will cause GetPacketMetadataFromPacketdata to fail
+	transferDetail := transfertypes.InternalTransferRepresentation{
+		Token: transfertypes.Token{
+			Denom:  transfertypes.Denom{Base: "denom"},
+			Amount: "1000",
+		},
+		Sender:   "sender",
+		Receiver: "receiver",
+		Memo:     `{"invalid_json": malformed}`, // This will cause JSON parsing to fail
+	}
+
+	inFlightPacket := &pfmtypes.InFlightPacket{
+		RetriesRemaining: 1,
+		Timeout:          1000,
+		Nonrefundable:    false,
+	}
+
+	err := s.chainA.GetSimApp().PFMKeeper.RetryTimeout(ctx, path.EndpointA.ChannelID, path.EndpointA.ChannelConfig.PortID, transferDetail, inFlightPacket)
+	// The function should still succeed since it only logs the error and continues
+	s.Require().NoError(err)
 }
 
 type transferMock struct{}

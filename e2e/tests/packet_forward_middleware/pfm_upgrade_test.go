@@ -4,7 +4,6 @@ package pfm
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -12,7 +11,6 @@ import (
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	test "github.com/cosmos/interchaintest/v10/testutil"
-	"github.com/iancoleman/orderedmap"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
@@ -125,34 +123,31 @@ func (s *PFMUpgradeTestSuite) TestV8ToV10ChainUpgrade_PacketForward() {
 
 	// Send the IBC denom that chain A received from the previous step
 	t.Run("Send from A -> B -> C ->X D", func(_ *testing.T) {
-		secondHopMetadata := &pfmtypes.PacketMetadata{
-			Forward: &pfmtypes.ForwardMetadata{
+		secondHopMetadata := pfmtypes.PacketMetadata{
+			Forward: pfmtypes.ForwardMetadata{
 				Receiver: "cosmos1wgz9ntx6e5vu4npeabcde88d7kfsymag62p6y2",
 				Channel:  chanCD.ChannelID,
 				Port:     chanCD.PortID,
 			},
 		}
-		nextBz, err := json.Marshal(secondHopMetadata)
-		s.Require().NoError(err)
-		next := pfmtypes.NewJSONObject(false, nextBz, *orderedmap.New())
 
-		firstHopMetadata := &pfmtypes.PacketMetadata{
-			Forward: &pfmtypes.ForwardMetadata{
+		firstHopMetadata := pfmtypes.PacketMetadata{
+			Forward: pfmtypes.ForwardMetadata{
 				Receiver: userC.FormattedAddress(),
 				Channel:  chanBC.ChannelID,
 				Port:     chanBC.PortID,
-				Next:     next,
+				Next:     &secondHopMetadata,
 			},
 		}
 
-		memo, err := json.Marshal(firstHopMetadata)
+		memo, err := firstHopMetadata.ToMemo()
 		s.Require().NoError(err)
 
 		bHeight, err := chainB.Height(ctx)
 		s.Require().NoError(err)
 
 		ibcDenomOnA := ibcTokenA.IBCDenom()
-		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcDenomOnA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, string(memo))
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(ibcDenomOnA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, memo)
 		s.AssertTxSuccess(txResp)
 
 		packet, err := ibctesting.ParseV1PacketFromEvents(txResp.Events)

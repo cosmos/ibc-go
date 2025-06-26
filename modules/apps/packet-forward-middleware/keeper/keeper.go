@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -247,17 +246,17 @@ func (k *Keeper) unescrowToken(ctx sdk.Context, token sdk.Coin) {
 	k.transferKeeper.SetTotalEscrowForDenom(ctx, newTotalEscrow)
 }
 
-func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.InFlightPacket, srcPacket channeltypes.Packet, srcPacketSender, receiver string, metadata *types.ForwardMetadata, token sdk.Coin, maxRetries uint8, timeoutDelta time.Duration, labels []metrics.Label, nonrefundable bool) error {
+func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.InFlightPacket, srcPacket channeltypes.Packet, srcPacketSender, receiver string, metadata types.ForwardMetadata, token sdk.Coin, maxRetries uint8, timeoutDelta time.Duration, labels []metrics.Label, nonrefundable bool) error {
 	memo := ""
 
 	// set memo for next transfer with next from this transfer.
 	if metadata.Next != nil {
-		memoBz, err := json.Marshal(metadata.Next)
+		var err error
+		memo, err = metadata.Next.ToMemo()
 		if err != nil {
 			k.Logger(ctx).Error("packetForwardMiddleware error marshaling next as JSON", "error", err)
 			return errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 		}
-		memo = string(memoBz)
 	}
 
 	k.Logger(ctx).Debug("packetForwardMiddleware ForwardTransferPacket",
@@ -353,17 +352,19 @@ func (k *Keeper) TimeoutShouldRetry(ctx sdk.Context, packet channeltypes.Packet)
 
 func (k *Keeper) RetryTimeout(ctx sdk.Context, channel, port string, transferDetail transfertypes.InternalTransferRepresentation, inFlightPacket *types.InFlightPacket) error {
 	// send transfer again
-	metadata := &types.ForwardMetadata{
+	metadata := types.ForwardMetadata{
 		Receiver: transferDetail.Receiver,
 		Channel:  channel,
 		Port:     port,
 	}
 
 	if transferDetail.Memo != "" {
-		metadata.Next = &types.JSONObject{}
-		if err := json.Unmarshal([]byte(transferDetail.Memo), metadata.Next); err != nil {
-			return fmt.Errorf("error unmarshaling memo json: %w", err)
+		next, _, err := types.GetPacketMetadataFromPacketdata(transferDetail)
+		if err != nil {
+			k.Logger(ctx).Error("packetForwardMiddleware error getting next from transfer detail memo", "error", err)
 		}
+
+		metadata.Next = &next
 	}
 
 	amount, ok := sdkmath.NewIntFromString(transferDetail.Token.GetAmount())

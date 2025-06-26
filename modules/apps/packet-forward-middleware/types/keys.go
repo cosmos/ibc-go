@@ -13,6 +13,14 @@ const (
 
 	// QuerierRoute is the querier route for IBC transfer
 	QuerierRoute = ModuleName
+
+	ForwardMetadataKey = "forward"
+	ForwardReceiverKey = "receiver"
+	ForwardPortKey     = "port"
+	ForwardChannelKey  = "channel"
+	ForwardTimeoutKey  = "timeout"
+	ForwardRetriesKey  = "retries"
+	ForwardNextKey     = "next"
 )
 
 type NonrefundableKey struct{}
