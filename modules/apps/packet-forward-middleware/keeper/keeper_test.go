@@ -198,7 +198,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	initialSender := s.chainA.SenderAccount.GetAddress()
 	finalReceiver := s.chainB.SenderAccount.GetAddress()
 
-	err := pfmKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, time.Duration(timeout), nil, nonRefundable)
+	err := pfmKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
 	s.Require().NoError(err)
 
 	// Get the inflight packer
@@ -208,7 +208,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	s.Require().Equal(inflightPacket.RetriesRemaining, int32(retries))
 
 	// Call the same function again with inflight packet. Num retries should decrease.
-	err = pfmKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, time.Duration(timeout), nil, nonRefundable)
+	err = pfmKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
 	s.Require().NoError(err)
 
 	// Get the inflight packer
