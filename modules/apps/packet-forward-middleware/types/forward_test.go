@@ -326,18 +326,54 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 	require.Error(t, err)
 	require.True(t, hasForward)
 
-	// Test missing required fields
-	mockProviderMissingReceiver := &MockPacketDataProvider{
-		customData: map[string]any{
-			"forward": map[string]any{
-				"port":    "test-port",
-				"channel": "test-channel",
+	// Test missing required keys
+	missingKeysTests := []struct {
+		name string
+		data map[string]any
+		err  string
+	}{
+		{
+			name: "missing receiver",
+			data: map[string]any{
+				"forward": map[string]any{
+					"port":    "test-port",
+					"channel": "test-channel",
+				},
 			},
+			err: "receiver",
+		},
+		{
+			name: "missing port",
+			data: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"channel":  "test-channel",
+				},
+			},
+			err: "port",
+		},
+		{
+			name: "missing channel",
+			data: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+				},
+			},
+			err: "channel",
 		},
 	}
 
-	_, hasForward, err = types.GetPacketMetadataFromPacketdata(mockProviderMissingReceiver)
-	require.Error(t, err)
-	require.True(t, hasForward)
-	require.Contains(t, err.Error(), "receiver")
+	for _, tt := range missingKeysTests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockProvider := &MockPacketDataProvider{
+				customData: tt.data,
+			}
+
+			_, hasForward, err := types.GetPacketMetadataFromPacketdata(mockProvider)
+			require.Error(t, err)
+			require.True(t, hasForward)
+			require.Contains(t, err.Error(), tt.err)
+		})
+	}
 }
