@@ -299,7 +299,7 @@ func (s *RateLimV2TestSuite) TestRateLimitV2() {
 			TimeoutTimestamp: timeoutTimestamp,
 			Memo:             "",
 		}
-		transferOnAResp := s.BroadcastMessages(ctx, chainA, userA, msg)
+		transferOnAResp := s.BroadcastMessages(ctx, chainA, richKid, msg)
 		s.AssertTxSuccess(transferOnAResp)
 
 		// Sending even 10denomA fails due to exceeding the quota
@@ -313,7 +313,7 @@ func (s *RateLimV2TestSuite) TestRateLimitV2() {
 			TimeoutTimestamp: timeoutTimestamp,
 			Memo:             "",
 		}
-		transferOnAResp = s.BroadcastMessages(ctx, chainA, userA, msg)
+		transferOnAResp = s.BroadcastMessages(ctx, chainA, richKid, msg)
 		s.AssertTxFailure(transferOnAResp, ratelimitingtypes.ErrQuotaExceeded)
 	})
 
