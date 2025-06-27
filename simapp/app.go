@@ -109,6 +109,7 @@ import (
 	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting"
 	ratelimitkeeper "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
+	ratelimitingv2 "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/v2"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
@@ -433,8 +434,13 @@ func NewSimApp(
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack)
 
+	// Transfer Stack IBC V2
+	// ratelimiting wraps the transfer module in the v2 stack.
+	// ratelimiting -> transfer
+	transferStackV2 := ratelimitingv2.NewIBCMiddleware(app.RateLimitKeeper, transferv2.NewIBCModule(app.TransferKeeper))
+
 	// register the transfer v2 module.
-	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeper))
+	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferStackV2)
 
 	// Set the IBC Routers
 	app.IBCKeeper.SetRouter(ibcRouter)
