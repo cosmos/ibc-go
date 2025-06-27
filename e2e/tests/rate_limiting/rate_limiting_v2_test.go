@@ -10,12 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/tx"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/gogoproto/proto"
 	interchaintest "github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
@@ -26,6 +20,13 @@ import (
 	"github.com/cosmos/solidity-ibc-eureka/packages/go-relayer-api/dockerutil"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
@@ -180,7 +181,6 @@ func (s *RateLimV2TestSuite) TestRateLimitV2() {
 			Sequence: 1,
 		})
 		s.Require().ErrorContains(err, "packet commitment hash not found")
-
 	})
 
 	t.Run("Add outgoing rate limit on ChainA for IBC V2 client", func(_ *testing.T) {
@@ -389,7 +389,6 @@ func (s *RateLimV2TestSuite) TestRateLimitV2() {
 		transferOnAResp := s.BroadcastMessages(ctx, chainA, userA, msg)
 		s.AssertTxSuccess(transferOnAResp)
 	})
-
 }
 
 // TODO: Move or replace with existing stuff, moved over from solidity-ibc-eureka for convenience for now
