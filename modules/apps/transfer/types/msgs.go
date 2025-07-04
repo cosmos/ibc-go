@@ -35,6 +35,10 @@ func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgUpdateParams) ValidateBasic() error {
+	if strings.TrimSpace(msg.Signer) == "" {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing sender address")
+	}
+
 	return nil
 }
 
@@ -115,6 +119,9 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, msg.Token.String())
 	}
 
+	if strings.TrimSpace(msg.Sender) == "" {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing sender address")
+	}
 	if strings.TrimSpace(msg.Receiver) == "" {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing recipient address")
 	}
