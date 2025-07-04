@@ -27,7 +27,7 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types
 		return nil, types.ErrSendDisabled
 	}
 
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	sender, err := k.addressCodec.StringToBytes(msg.Sender)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types
 		return nil, err
 	}
 
-	packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender.String(), msg.Receiver, msg.Memo)
+	packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, msg.Sender, msg.Receiver, msg.Memo)
 
 	if err := packetData.ValidateBasic(); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to validate %s packet data", types.V1)
@@ -79,7 +79,12 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types
 }
 
 func (k *Keeper) transferV1Packet(ctx sdk.Context, sourceChannel string, token types.Token, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData types.FungibleTokenPacketData) (uint64, error) {
-	if err := k.SendTransfer(ctx, types.PortID, sourceChannel, token, sdk.MustAccAddressFromBech32(packetData.Sender)); err != nil {
+	sender, err := k.addressCodec.StringToBytes(packetData.Sender)
+	if err != nil {
+		return 0, err
+	}
+
+	if err := k.SendTransfer(ctx, types.PortID, sourceChannel, token, sender); err != nil {
 		return 0, err
 	}
 

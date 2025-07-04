@@ -91,6 +91,11 @@ func (k *Keeper) GetAuthority() string {
 	return k.authority
 }
 
+// GetAddressCodec returns the address codec used by the keeper.
+func (k *Keeper) GetAddressCodec() address.Codec {
+	return k.addressCodec
+}
+
 // Logger returns a module-specific logger.
 func (*Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
