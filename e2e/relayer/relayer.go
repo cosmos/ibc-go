@@ -63,12 +63,16 @@ func ApplyPacketFilter(ctx context.Context, t *testing.T, r ibc.Relayer, chainID
 	}
 
 	return modifyHermesConfigFile(ctx, h, func(config map[string]any) error {
-		chains, ok := config["chains"].([]map[string]any)
+		chainsIface, ok := config["chains"].([]interface{})
 		if !ok {
 			return errors.New("failed to get chains from hermes config")
 		}
 		var chain map[string]any
-		for _, c := range chains {
+		for _, cIface := range chainsIface {
+			c, ok := cIface.(map[string]any)
+			if !ok {
+				continue
+			}
 			if c["id"] == chainID {
 				chain = c
 				break
