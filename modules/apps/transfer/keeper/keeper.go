@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/core/address"
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
@@ -27,6 +28,7 @@ import (
 type Keeper struct {
 	storeService corestore.KVStoreService
 	cdc          codec.BinaryCodec
+	addressCodec address.Codec
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -42,6 +44,7 @@ type Keeper struct {
 // NewKeeper creates a new IBC transfer Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec,
+	addressCodec address.Codec,
 	storeService corestore.KVStoreService,
 	channelKeeper types.ChannelKeeper,
 	msgRouter types.MessageRouter,
@@ -60,6 +63,7 @@ func NewKeeper(
 
 	return &Keeper{
 		cdc:           cdc,
+		addressCodec:  addressCodec,
 		storeService:  storeService,
 		ics4Wrapper:   channelKeeper, // default ICS4Wrapper is the channel keeper
 		channelKeeper: channelKeeper,
