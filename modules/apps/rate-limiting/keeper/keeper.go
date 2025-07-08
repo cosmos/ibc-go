@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/core/address"
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 
@@ -19,6 +20,7 @@ import (
 type Keeper struct {
 	storeService corestore.KVStoreService
 	cdc          codec.BinaryCodec
+	addressCodec address.Codec
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -29,13 +31,22 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new rate-limiting Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, channelKeeper types.ChannelKeeper, clientKeeper types.ClientKeeper, bankKeeper types.BankKeeper, authority string) *Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	addressCodec address.Codec,
+	storeService corestore.KVStoreService,
+	channelKeeper types.ChannelKeeper,
+	clientKeeper types.ClientKeeper,
+	bankKeeper types.BankKeeper,
+	authority string,
+) *Keeper {
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
 	return &Keeper{
 		cdc:          cdc,
+		addressCodec: addressCodec,
 		storeService: storeService,
 		// Defaults to using the channel keeper as the ICS4Wrapper
 		// This can be overridden later with WithICS4Wrapper (e.g. by the middleware stack wiring)

@@ -70,7 +70,7 @@ func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 				MaxPercentRecv:    sdkmath.NewInt(10),
 				DurationHours:     24,
 			},
-			expPass: false,
+			expPass: true, // Note: validate basic only checks the signer is not empty, not if it's a valid authority
 		},
 		{
 			name: "denom can't be empty",

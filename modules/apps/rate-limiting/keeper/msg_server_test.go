@@ -113,7 +113,7 @@ func (s *KeeperTestSuite) TestMsgServer_AddRateLimit() {
 
 	// Verify that signer == authority required
 	invalidSignerMsg := addRateLimitMsg
-	invalidSignerMsg.Signer = ""
+	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
 	s.addRateLimitWithError(invalidSignerMsg, govtypes.ErrInvalidSigner)
 }
 
@@ -150,7 +150,7 @@ func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
 
 	// Attempt to update a rate limit that has invalid authority
 	invalidSignerMsg := updateRateLimitMsg
-	invalidSignerMsg.Signer = ""
+	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
 	_, err = msgServer.UpdateRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
 	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
 }
@@ -182,7 +182,7 @@ func (s *KeeperTestSuite) TestMsgServer_RemoveRateLimit() {
 
 	// Attempt to Remove a rate limit that has invalid authority
 	invalidSignerMsg := removeRateLimitMsg
-	invalidSignerMsg.Signer = ""
+	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
 	_, err = msgServer.RemoveRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
 	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
 }
@@ -219,7 +219,7 @@ func (s *KeeperTestSuite) TestMsgServer_ResetRateLimit() {
 
 	// Attempt to Remove a rate limit that has invalid authority
 	invalidSignerMsg := resetRateLimitMsg
-	invalidSignerMsg.Signer = ""
+	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
 	_, err = msgServer.ResetRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
 	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
 }

@@ -2,6 +2,7 @@ package types
 
 import (
 	"regexp"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -34,9 +35,8 @@ func NewMsgAddRateLimit(denom, channelOrClientID string, maxPercentSend sdkmath.
 }
 
 func (msg *MsgAddRateLimit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address (%s)", err)
+	if strings.TrimSpace(msg.Signer) == "" {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
 	}
 
 	if msg.Denom == "" {
@@ -89,9 +89,8 @@ func NewMsgUpdateRateLimit(denom, channelOrClientID string, maxPercentSend sdkma
 }
 
 func (msg *MsgUpdateRateLimit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address (%s)", err)
+	if strings.TrimSpace(msg.Signer) == "" {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
 	}
 
 	if msg.Denom == "" {
@@ -141,9 +140,8 @@ func NewMsgRemoveRateLimit(denom, channelOrClientID string) *MsgRemoveRateLimit 
 }
 
 func (msg *MsgRemoveRateLimit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address (%s)", err)
+	if strings.TrimSpace(msg.Signer) == "" {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
 	}
 
 	if msg.Denom == "" {
@@ -174,9 +172,8 @@ func NewMsgResetRateLimit(denom, channelOrClientID string) *MsgResetRateLimit {
 }
 
 func (msg *MsgResetRateLimit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address (%s)", err)
+	if strings.TrimSpace(msg.Signer) == "" {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
 	}
 
 	if msg.Denom == "" {
