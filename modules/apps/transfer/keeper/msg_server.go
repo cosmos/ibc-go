@@ -65,7 +65,7 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types
 		sequence, err = k.transferV2Packet(ctx, msg.Encoding, msg.SourceChannel, msg.TimeoutTimestamp, packetData)
 	} else {
 		// if a V1 channel exists for the source channel, then use IBC V1 protocol
-		sequence, err = k.transferV1Packet(ctx, msg.SourceChannel, token, msg.TimeoutHeight, msg.TimeoutTimestamp, packetData)
+		sequence, err = k.transferV1Packet(ctx, msg.SourceChannel, token, msg.TimeoutHeight, msg.TimeoutTimestamp, sender, packetData)
 		// telemetry for transfer occurs here, in IBC V2 this is done in the onSendPacket callback
 		telemetry.ReportTransfer(msg.SourcePort, msg.SourceChannel, channel.Counterparty.PortId, channel.Counterparty.ChannelId, token)
 	}
@@ -78,12 +78,7 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types
 	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }
 
-func (k *Keeper) transferV1Packet(ctx sdk.Context, sourceChannel string, token types.Token, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData types.FungibleTokenPacketData) (uint64, error) {
-	sender, err := k.addressCodec.StringToBytes(packetData.Sender)
-	if err != nil {
-		return 0, err
-	}
-
+func (k *Keeper) transferV1Packet(ctx sdk.Context, sourceChannel string, token types.Token, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, sender sdk.AccAddress, packetData types.FungibleTokenPacketData) (uint64, error) {
 	if err := k.SendTransfer(ctx, types.PortID, sourceChannel, token, sender); err != nil {
 		return 0, err
 	}
