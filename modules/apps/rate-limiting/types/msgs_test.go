@@ -37,7 +37,7 @@ func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 		expPass bool
 	}{
 		{
-			name: "valid add msg with channel id",
+			name: "success: valid add msg with channel id",
 			msg: &types.MsgAddRateLimit{
 				Signer:            s.authority,
 				Denom:             "uatom",
@@ -49,7 +49,7 @@ func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 			expPass: true,
 		},
 		{
-			name: "valid add msg with client id",
+			name: "success: valid add msg with client id",
 			msg: &types.MsgAddRateLimit{
 				Signer:            s.authority,
 				Denom:             "uatom",
@@ -61,7 +61,7 @@ func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 			expPass: true,
 		},
 		{
-			name: "invalid authority",
+			name: "success: invalid authority",
 			msg: &types.MsgAddRateLimit{
 				Signer:            "invalid",
 				Denom:             "uatom",
@@ -73,7 +73,19 @@ func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 			expPass: true, // Note: validate basic only checks the signer is not empty, not if it's a valid authority
 		},
 		{
-			name: "denom can't be empty",
+			name: "success: empty authority",
+			msg: &types.MsgAddRateLimit{
+				Signer:            "",
+				Denom:             "uatom",
+				ChannelOrClientId: s.validChannelID,
+				MaxPercentSend:    sdkmath.NewInt(10),
+				MaxPercentRecv:    sdkmath.NewInt(10),
+				DurationHours:     24,
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: denom can't be empty",
 			msg: &types.MsgAddRateLimit{
 				Signer:            s.authority,
 				Denom:             "",
@@ -85,7 +97,7 @@ func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 			expPass: false,
 		},
 		{
-			name: "invalid client ID",
+			name: "failure: invalid client ID",
 			msg: &types.MsgAddRateLimit{
 				Signer:            s.authority,
 				Denom:             "uatom",
@@ -97,7 +109,7 @@ func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 			expPass: false,
 		},
 		{
-			name: "invalid channel ID",
+			name: "failure: invalid channel ID",
 			msg: &types.MsgAddRateLimit{
 				Signer:            s.authority,
 				Denom:             "uatom",
@@ -109,7 +121,7 @@ func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 			expPass: false,
 		},
 		{
-			name: "max percent send > 100",
+			name: "failure: max percent send > 100",
 			msg: &types.MsgAddRateLimit{
 				Signer:            s.authority,
 				Denom:             "uatom",
@@ -121,7 +133,7 @@ func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 			expPass: false,
 		},
 		{
-			name: "max percent recv > 100",
+			name: "failure: max percent recv > 100",
 			msg: &types.MsgAddRateLimit{
 				Signer:            s.authority,
 				Denom:             "uatom",
@@ -133,7 +145,7 @@ func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 			expPass: false,
 		},
 		{
-			name: "send and recv both zero",
+			name: "failure: send and recv both zero",
 			msg: &types.MsgAddRateLimit{
 				Signer:            s.authority,
 				Denom:             "uatom",
@@ -145,8 +157,158 @@ func (s *MsgsTestSuite) TestMsgAddRateLimit() {
 			expPass: false,
 		},
 		{
-			name: "duration is zero hours",
+			name: "failure: duration is zero hours",
 			msg: &types.MsgAddRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: s.validChannelID,
+				MaxPercentSend:    sdkmath.NewInt(10),
+				MaxPercentRecv:    sdkmath.NewInt(10),
+				DurationHours:     0,
+			},
+			expPass: false,
+		},
+	}
+
+	for i, tc := range testCases {
+		err := tc.msg.ValidateBasic()
+		if tc.expPass {
+			s.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+		} else {
+			s.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
+		}
+	}
+}
+
+func (s *MsgsTestSuite) TestMsgUpdateRateLimit() {
+	testCases := []struct {
+		name    string
+		msg     *types.MsgUpdateRateLimit
+		expPass bool
+	}{
+		{
+			name: "success: valid add msg with channel id",
+			msg: &types.MsgUpdateRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: s.validChannelID,
+				MaxPercentSend:    sdkmath.NewInt(10),
+				MaxPercentRecv:    sdkmath.NewInt(10),
+				DurationHours:     24,
+			},
+			expPass: true,
+		},
+		{
+			name: "success: valid add msg with client id",
+			msg: &types.MsgUpdateRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: s.validClientID,
+				MaxPercentSend:    sdkmath.NewInt(10),
+				MaxPercentRecv:    sdkmath.NewInt(10),
+				DurationHours:     24,
+			},
+			expPass: true,
+		},
+		{
+			name: "success: invalid authority",
+			msg: &types.MsgUpdateRateLimit{
+				Signer:            "invalid",
+				Denom:             "uatom",
+				ChannelOrClientId: s.validChannelID,
+				MaxPercentSend:    sdkmath.NewInt(10),
+				MaxPercentRecv:    sdkmath.NewInt(10),
+				DurationHours:     24,
+			},
+			expPass: true, // Note: validate basic only checks the signer is not empty, not if it's a valid authority
+		},
+		{
+			name: "success: empty authority",
+			msg: &types.MsgUpdateRateLimit{
+				Signer:            "",
+				Denom:             "uatom",
+				ChannelOrClientId: s.validChannelID,
+				MaxPercentSend:    sdkmath.NewInt(10),
+				MaxPercentRecv:    sdkmath.NewInt(10),
+				DurationHours:     24,
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: denom can't be empty",
+			msg: &types.MsgUpdateRateLimit{
+				Signer:            s.authority,
+				Denom:             "",
+				ChannelOrClientId: s.validChannelID,
+				MaxPercentSend:    sdkmath.NewInt(10),
+				MaxPercentRecv:    sdkmath.NewInt(10),
+				DurationHours:     24,
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: invalid client ID",
+			msg: &types.MsgUpdateRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: "invalid-client-id",
+				MaxPercentSend:    sdkmath.NewInt(10),
+				MaxPercentRecv:    sdkmath.NewInt(10),
+				DurationHours:     24,
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: invalid channel ID",
+			msg: &types.MsgUpdateRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: "channel",
+				MaxPercentSend:    sdkmath.NewInt(10),
+				MaxPercentRecv:    sdkmath.NewInt(10),
+				DurationHours:     24,
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: max percent send > 100",
+			msg: &types.MsgUpdateRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: s.validChannelID,
+				MaxPercentSend:    sdkmath.NewInt(101),
+				MaxPercentRecv:    sdkmath.NewInt(10),
+				DurationHours:     24,
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: max percent recv > 100",
+			msg: &types.MsgUpdateRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: s.validChannelID,
+				MaxPercentSend:    sdkmath.NewInt(10),
+				MaxPercentRecv:    sdkmath.NewInt(101),
+				DurationHours:     24,
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: send and recv both zero",
+			msg: &types.MsgUpdateRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: s.validChannelID,
+				MaxPercentSend:    sdkmath.ZeroInt(),
+				MaxPercentRecv:    sdkmath.ZeroInt(),
+				DurationHours:     24,
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: duration is zero hours",
+			msg: &types.MsgUpdateRateLimit{
 				Signer:            s.authority,
 				Denom:             "uatom",
 				ChannelOrClientId: s.validChannelID,
