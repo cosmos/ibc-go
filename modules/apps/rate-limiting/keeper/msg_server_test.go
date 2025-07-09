@@ -5,6 +5,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -13,6 +14,7 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 var (
@@ -115,6 +117,10 @@ func (s *KeeperTestSuite) TestMsgServer_AddRateLimit() {
 	invalidSignerMsg := addRateLimitMsg
 	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
 	s.addRateLimitWithError(invalidSignerMsg, govtypes.ErrInvalidSigner)
+
+	// Verify that valid signer required
+	invalidSignerMsg.Signer = ibctesting.InvalidID
+	s.addRateLimitWithError(invalidSignerMsg, sdkerrors.ErrInvalidAddress)
 }
 
 func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
@@ -153,6 +159,11 @@ func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
 	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
 	_, err = msgServer.UpdateRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
 	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
+
+	// Verify that valid signer required
+	invalidSignerMsg.Signer = ibctesting.InvalidID
+	_, err = msgServer.UpdateRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
+	s.Require().ErrorIs(err, sdkerrors.ErrInvalidAddress)
 }
 
 func (s *KeeperTestSuite) TestMsgServer_RemoveRateLimit() {
@@ -185,6 +196,11 @@ func (s *KeeperTestSuite) TestMsgServer_RemoveRateLimit() {
 	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
 	_, err = msgServer.RemoveRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
 	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
+
+	// Verify that valid signer required
+	invalidSignerMsg.Signer = ibctesting.InvalidID
+	_, err = msgServer.RemoveRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
+	s.Require().ErrorIs(err, sdkerrors.ErrInvalidAddress)
 }
 
 func (s *KeeperTestSuite) TestMsgServer_ResetRateLimit() {
@@ -222,4 +238,9 @@ func (s *KeeperTestSuite) TestMsgServer_ResetRateLimit() {
 	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
 	_, err = msgServer.ResetRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
 	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
+
+	// Verify that valid signer required
+	invalidSignerMsg.Signer = ibctesting.InvalidID
+	_, err = msgServer.ResetRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
+	s.Require().ErrorIs(err, sdkerrors.ErrInvalidAddress)
 }

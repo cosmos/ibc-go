@@ -410,3 +410,84 @@ func (s *MsgsTestSuite) TestMsgRemoveRateLimit() {
 		}
 	}
 }
+
+func (s *MsgsTestSuite) TestMsgResetRateLimit() {
+	testCases := []struct {
+		name    string
+		msg     *types.MsgResetRateLimit
+		expPass bool
+	}{
+		{
+			name: "success: valid add msg with channel id",
+			msg: &types.MsgResetRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: s.validChannelID,
+			},
+			expPass: true,
+		},
+		{
+			name: "success: valid add msg with client id",
+			msg: &types.MsgResetRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: s.validClientID,
+			},
+			expPass: true,
+		},
+		{
+			name: "success: invalid authority",
+			msg: &types.MsgResetRateLimit{
+				Signer:            "invalid",
+				Denom:             "uatom",
+				ChannelOrClientId: s.validChannelID,
+			},
+			expPass: true, // Note: validate basic only checks the signer is not empty, not if it's a valid authority
+		},
+		{
+			name: "success: empty authority",
+			msg: &types.MsgResetRateLimit{
+				Signer:            "",
+				Denom:             "uatom",
+				ChannelOrClientId: s.validChannelID,
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: denom can't be empty",
+			msg: &types.MsgResetRateLimit{
+				Signer:            s.authority,
+				Denom:             "",
+				ChannelOrClientId: s.validChannelID,
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: invalid client ID",
+			msg: &types.MsgResetRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: "invalid-client-id",
+			},
+			expPass: false,
+		},
+		{
+			name: "failure: invalid channel ID",
+			msg: &types.MsgResetRateLimit{
+				Signer:            s.authority,
+				Denom:             "uatom",
+				ChannelOrClientId: "channel",
+			},
+			expPass: false,
+		},
+	}
+
+	for i, tc := range testCases {
+		err := tc.msg.ValidateBasic()
+		if tc.expPass {
+			s.Require().NoError(err, "valid test case %d failed: %s", i, tc.name)
+		} else {
+			s.Require().Error(err, "invalid test case %d passed: %s", i, tc.name)
+		}
+	}
+}
