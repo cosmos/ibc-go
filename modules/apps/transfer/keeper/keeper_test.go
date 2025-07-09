@@ -57,6 +57,7 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 		{"success", func() {
 			keeper.NewKeeper(
 				s.chainA.GetSimApp().AppCodec(),
+				s.chainA.GetSimApp().AccountKeeper.AddressCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),
@@ -68,6 +69,7 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 		{"failure: transfer module account does not exist", func() {
 			keeper.NewKeeper(
 				s.chainA.GetSimApp().AppCodec(),
+				s.chainA.GetSimApp().AccountKeeper.AddressCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),
@@ -79,6 +81,7 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 		{"failure: empty authority", func() {
 			keeper.NewKeeper(
 				s.chainA.GetSimApp().AppCodec(),
+				s.chainA.GetSimApp().AccountKeeper.AddressCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),
