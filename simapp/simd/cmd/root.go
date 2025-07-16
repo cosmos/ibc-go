@@ -354,9 +354,7 @@ func appExport(
 var tempDir = func() string {
 	dir, err := os.MkdirTemp("", "simapp")
 	if err != nil {
-		dir = simapp.DefaultNodeHome
+		return simapp.DefaultNodeHome
 	}
-	defer os.RemoveAll(dir)
-
 	return dir
 }
