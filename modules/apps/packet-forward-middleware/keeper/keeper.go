@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -52,26 +51,28 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new forward Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, transferKeeper types.TransferKeeper, channelKeeper types.ChannelKeeper, bankKeeper types.BankKeeper, ics4Wrapper porttypes.ICS4Wrapper, authority string) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, transferKeeper types.TransferKeeper, channelKeeper types.ChannelKeeper, bankKeeper types.BankKeeper, authority string) *Keeper {
 	return &Keeper{
 		cdc:            cdc,
 		storeService:   storeService,
 		transferKeeper: transferKeeper,
-		channelKeeper:  channelKeeper,
-		bankKeeper:     bankKeeper,
-		ics4Wrapper:    ics4Wrapper,
-		authority:      authority,
+		// Defaults to using the channel keeper as the ICS4Wrapper
+		// This can be overridden later with WithICS4Wrapper (e.g. by the middleware stack wiring)
+		ics4Wrapper:   channelKeeper,
+		channelKeeper: channelKeeper,
+		bankKeeper:    bankKeeper,
+		authority:     authority,
 	}
+}
+
+// WithICS4Wrapper sets the ICS4Wrapper for the keeper.
+func (k *Keeper) WithICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
+	k.ics4Wrapper = ics4Wrapper
 }
 
 // GetAuthority returns the module's authority.
 func (k *Keeper) GetAuthority() string {
 	return k.authority
-}
-
-// SetTransferKeeper sets the transferKeeper
-func (k *Keeper) SetTransferKeeper(transferKeeper types.TransferKeeper) {
-	k.transferKeeper = transferKeeper
 }
 
 // SetICS4Wrapper sets the ICS4 wrapper.
@@ -247,17 +248,17 @@ func (k *Keeper) unescrowToken(ctx sdk.Context, token sdk.Coin) {
 	k.transferKeeper.SetTotalEscrowForDenom(ctx, newTotalEscrow)
 }
 
-func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.InFlightPacket, srcPacket channeltypes.Packet, srcPacketSender, receiver string, metadata *types.ForwardMetadata, token sdk.Coin, maxRetries uint8, timeoutDelta time.Duration, labels []metrics.Label, nonrefundable bool) error {
+func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.InFlightPacket, srcPacket channeltypes.Packet, srcPacketSender, receiver string, metadata types.ForwardMetadata, token sdk.Coin, maxRetries uint8, timeoutDelta time.Duration, labels []metrics.Label, nonrefundable bool) error {
 	memo := ""
 
 	// set memo for next transfer with next from this transfer.
 	if metadata.Next != nil {
-		memoBz, err := json.Marshal(metadata.Next)
+		var err error
+		memo, err = metadata.Next.ToMemo()
 		if err != nil {
 			k.Logger(ctx).Error("packetForwardMiddleware error marshaling next as JSON", "error", err)
 			return errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 		}
-		memo = string(memoBz)
 	}
 
 	k.Logger(ctx).Debug("packetForwardMiddleware ForwardTransferPacket",
@@ -282,6 +283,7 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 			"denom", token.Denom,
 			"error", err,
 		)
+		// TODO: Should probably have custom errors!
 		return errorsmod.Wrap(sdkerrors.ErrInsufficientFunds, err.Error())
 	}
 
@@ -353,17 +355,19 @@ func (k *Keeper) TimeoutShouldRetry(ctx sdk.Context, packet channeltypes.Packet)
 
 func (k *Keeper) RetryTimeout(ctx sdk.Context, channel, port string, transferDetail transfertypes.InternalTransferRepresentation, inFlightPacket *types.InFlightPacket) error {
 	// send transfer again
-	metadata := &types.ForwardMetadata{
+	metadata := types.ForwardMetadata{
 		Receiver: transferDetail.Receiver,
 		Channel:  channel,
 		Port:     port,
 	}
 
 	if transferDetail.Memo != "" {
-		metadata.Next = &types.JSONObject{}
-		if err := json.Unmarshal([]byte(transferDetail.Memo), metadata.Next); err != nil {
-			return fmt.Errorf("error unmarshaling memo json: %w", err)
+		next, _, err := types.GetPacketMetadataFromPacketdata(transferDetail)
+		if err != nil {
+			k.Logger(ctx).Error("packetForwardMiddleware error getting next from transfer detail memo", "error", err)
 		}
+
+		metadata.Next = &next
 	}
 
 	amount, ok := sdkmath.NewIntFromString(transferDetail.Token.GetAmount())

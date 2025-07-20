@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
@@ -16,6 +17,7 @@ type BankKeeper interface {
 
 // ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
+	porttypes.ICS4Wrapper
 	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (clientID string, clientState exported.ClientState, err error)
 	GetNextSequenceSend(ctx sdk.Context, sourcePort, sourceChannel string) (uint64, bool)

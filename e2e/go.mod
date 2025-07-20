@@ -2,6 +2,9 @@ module github.com/cosmos/ibc-go/e2e
 
 go 1.24.3
 
+// TODO: Remove when v11 release of interchaintest is available (that is where this one is coming from)
+replace github.com/cosmos/interchain-security/v7 => github.com/cosmos/interchain-security/v7 v7.0.0-20250622154438-73c73cf686e5
+
 replace (
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 => ../modules/light-clients/08-wasm
 	// uncomment to use the local version of ibc-go, you will need to run `go mod tidy` in e2e directory.
@@ -22,7 +25,6 @@ require (
 	github.com/cosmos/ibc-go/v10 v10.3.0
 	github.com/cosmos/interchaintest/v10 v10.0.0
 	github.com/docker/docker v28.0.0+incompatible
-	github.com/iancoleman/orderedmap v0.3.0
 	github.com/moby/moby v27.5.1+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.10.0

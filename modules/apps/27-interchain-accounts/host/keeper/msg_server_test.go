@@ -134,7 +134,7 @@ func (s *KeeperTestSuite) TestModuleQuerySafe() {
 			tc.malleate()
 
 			ctx := s.chainA.GetContext()
-			msgServer := keeper.NewMsgServerImpl(&s.chainA.GetSimApp().ICAHostKeeper)
+			msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().ICAHostKeeper)
 			res, err := msgServer.ModuleQuerySafe(ctx, msg)
 
 			if tc.expErr == nil {
@@ -173,7 +173,7 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 			s.SetupTest()
 
 			ctx := s.chainA.GetContext()
-			msgServer := keeper.NewMsgServerImpl(&s.chainA.GetSimApp().ICAHostKeeper)
+			msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().ICAHostKeeper)
 			res, err := msgServer.UpdateParams(ctx, tc.msg)
 
 			if tc.expErr == nil {

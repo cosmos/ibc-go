@@ -29,7 +29,7 @@ func (s *KeeperTestSuite) TestInitGenesis() {
 		Port: icatypes.HostPortID,
 	}
 
-	keeper.InitGenesis(s.chainA.GetContext(), s.chainA.GetSimApp().ICAHostKeeper, genesisState)
+	keeper.InitGenesis(s.chainA.GetContext(), *s.chainA.GetSimApp().ICAHostKeeper, genesisState)
 
 	channelID, found := s.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(s.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 	s.Require().True(found)
@@ -83,7 +83,7 @@ func (s *KeeperTestSuite) TestGenesisParams() {
 				Params: tc.input,
 			}
 			if tc.expPanicMsg == "" {
-				keeper.InitGenesis(s.chainA.GetContext(), s.chainA.GetSimApp().ICAHostKeeper, genesisState)
+				keeper.InitGenesis(s.chainA.GetContext(), *s.chainA.GetSimApp().ICAHostKeeper, genesisState)
 
 				channelID, found := s.chainA.GetSimApp().ICAHostKeeper.GetActiveChannelID(s.chainA.GetContext(), ibctesting.FirstConnectionID, TestPortID)
 				s.Require().True(found)
@@ -98,7 +98,7 @@ func (s *KeeperTestSuite) TestGenesisParams() {
 				s.Require().Equal(expParams, params)
 			} else {
 				s.PanicsWithError(tc.expPanicMsg, func() {
-					keeper.InitGenesis(s.chainA.GetContext(), s.chainA.GetSimApp().ICAHostKeeper, genesisState)
+					keeper.InitGenesis(s.chainA.GetContext(), *s.chainA.GetSimApp().ICAHostKeeper, genesisState)
 				})
 			}
 		})
@@ -118,7 +118,7 @@ func (s *KeeperTestSuite) TestExportGenesis() {
 		interchainAccAddr, exists := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), path.EndpointB.ConnectionID, path.EndpointA.ChannelConfig.PortID)
 		s.Require().True(exists)
 
-		genesisState := keeper.ExportGenesis(s.chainB.GetContext(), s.chainB.GetSimApp().ICAHostKeeper)
+		genesisState := keeper.ExportGenesis(s.chainB.GetContext(), *s.chainB.GetSimApp().ICAHostKeeper)
 
 		s.Require().Equal(path.EndpointB.ChannelID, genesisState.ActiveChannels[0].ChannelId)
 		s.Require().Equal(path.EndpointA.ChannelConfig.PortID, genesisState.ActiveChannels[0].PortId)

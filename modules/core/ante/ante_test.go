@@ -536,11 +536,11 @@ func (s *AnteTestSuite) TestAnteDecoratorCheckTx() {
 		},
 		{
 			"no success on one new malicious UpdateClient message and three redundant RecvPacket messages",
-			func(suite *AnteTestSuite) []sdk.Msg {
-				msgs := []sdk.Msg{suite.createMaliciousUpdateClientMessage()}
+			func(s *AnteTestSuite) []sdk.Msg {
+				msgs := []sdk.Msg{s.createMaliciousUpdateClientMessage()}
 
 				for i := 1; i <= 3; i++ {
-					msgs = append(msgs, suite.createRecvPacketMessage(true))
+					msgs = append(msgs, s.createRecvPacketMessage(true))
 				}
 
 				return msgs

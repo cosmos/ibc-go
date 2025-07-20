@@ -23,14 +23,14 @@ import (
 var _ api.IBCModule = (*IBCModule)(nil)
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper) IBCModule {
+func NewIBCModule(k *keeper.Keeper) IBCModule {
 	return IBCModule{
 		keeper: k,
 	}
 }
 
 type IBCModule struct {
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 func (im IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {

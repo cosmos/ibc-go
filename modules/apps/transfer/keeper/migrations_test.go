@@ -139,7 +139,7 @@ func (s *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 
 			tc.malleate()
 
-			migrator := transferkeeper.NewMigrator(s.chainA.GetSimApp().TransferKeeper)
+			migrator := transferkeeper.NewMigrator(*s.chainA.GetSimApp().TransferKeeper)
 			err := migrator.MigrateDenomTraceToDenom(s.chainA.GetContext())
 			s.Require().NoError(err)
 
@@ -183,7 +183,7 @@ func (s *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenomCorruptionDetectio
 
 			s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(s.chainA.GetContext(), tc.denomTrace)
 
-			migrator := transferkeeper.NewMigrator(s.chainA.GetSimApp().TransferKeeper)
+			migrator := transferkeeper.NewMigrator(*s.chainA.GetSimApp().TransferKeeper)
 			s.Panics(func() {
 				migrator.MigrateDenomTraceToDenom(s.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
 			})
@@ -256,7 +256,7 @@ func (s *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 
 			tc.malleate() // explicitly fund escrow account
 
-			migrator := transferkeeper.NewMigrator(s.chainA.GetSimApp().TransferKeeper)
+			migrator := transferkeeper.NewMigrator(*s.chainA.GetSimApp().TransferKeeper)
 			s.Require().NoError(migrator.MigrateTotalEscrowForDenom(s.chainA.GetContext()))
 
 			// check that the migration set the expected amount for both native and IBC tokens
@@ -435,7 +435,7 @@ func (s *KeeperTestSuite) TestMigratorMigrateMetadata() {
 			}
 
 			// run migration
-			migrator := transferkeeper.NewMigrator(s.chainA.GetSimApp().TransferKeeper)
+			migrator := transferkeeper.NewMigrator(*s.chainA.GetSimApp().TransferKeeper)
 			err := migrator.MigrateDenomMetadata(ctx)
 			s.Require().NoError(err)
 

@@ -16,7 +16,6 @@ import (
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 
-	packerforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
 	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting"
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
@@ -702,14 +701,9 @@ func (s *KeeperTestSuite) TestSendPacket_Allowed() {
 	packetDataBz, err := json.Marshal(packetData)
 	s.Require().NoError(err)
 
-	// Get the middleware instance (assuming it's accessible via SimApp - needs verification)
-	// We need the transfer keeper's ICS4Wrapper which *is* the packet forward middleware's keeper
-	shouldPFM, ok := s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper().(*packerforwardkeeper.Keeper)
-	s.Require().Truef(ok, "Transfer keeper's ICS4Wrapper should be the PacketForward Middleware. Found %T", shouldPFM)
-
 	// We need the transfer keeper's ICS4Wrapper which *is* the ratelimiting middleware
-	middleware, ok := s.chainA.GetSimApp().PFMKeeper.ICS4Wrapper().(ratelimiting.IBCMiddleware)
-	s.Require().Truef(ok, "PFM keeper's ICS4Wrapper should be the PacketForward Middleware. Found %T", middleware)
+	middleware, ok := s.chainA.GetSimApp().PFMKeeper.ICS4Wrapper().(*ratelimiting.IBCMiddleware)
+	s.Require().Truef(ok, "PFM's ICS4Wrapper should be the Rate Limit Middleware. Found %T", s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper())
 
 	// Directly call the middleware's SendPacket
 	seq, err := middleware.SendPacket(
@@ -767,7 +761,7 @@ func (s *KeeperTestSuite) TestSendPacket_Denied() {
 	s.Require().NoError(err)
 
 	// Get the middleware instance
-	middleware, ok := s.chainA.GetSimApp().PFMKeeper.ICS4Wrapper().(ratelimiting.IBCMiddleware)
+	middleware, ok := s.chainA.GetSimApp().PFMKeeper.ICS4Wrapper().(*ratelimiting.IBCMiddleware)
 	s.Require().Truef(ok, "Packet forward middleware keeper's ICS4Wrapper should be the RateLimit middleware. Found: %T", middleware)
 
 	// Directly call the middleware's SendPacket

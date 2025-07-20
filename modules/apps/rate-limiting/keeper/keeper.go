@@ -29,15 +29,17 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new rate-limiting Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper, clientKeeper types.ClientKeeper, bankKeeper types.BankKeeper, authority string) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, channelKeeper types.ChannelKeeper, clientKeeper types.ClientKeeper, bankKeeper types.BankKeeper, authority string) *Keeper {
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	return Keeper{
-		cdc:           cdc,
-		storeService:  storeService,
-		ics4Wrapper:   ics4Wrapper,
+	return &Keeper{
+		cdc:          cdc,
+		storeService: storeService,
+		// Defaults to using the channel keeper as the ICS4Wrapper
+		// This can be overridden later with WithICS4Wrapper (e.g. by the middleware stack wiring)
+		ics4Wrapper:   channelKeeper,
 		channelKeeper: channelKeeper,
 		clientKeeper:  clientKeeper,
 		bankKeeper:    bankKeeper,

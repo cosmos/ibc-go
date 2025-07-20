@@ -19,6 +19,18 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
+func (s *TransferTestSuite) TestSetICS4Wrapper() {
+	transferModule := transfer.NewIBCModule(s.chainA.GetSimApp().TransferKeeper)
+
+	s.Require().Panics(func() {
+		transferModule.SetICS4Wrapper(nil)
+	}, "ICS4Wrapper cannot be nil")
+
+	s.Require().NotPanics(func() {
+		transferModule.SetICS4Wrapper(s.chainA.App.GetIBCKeeper().ChannelKeeper)
+	}, "ICS4Wrapper can be set to a non-nil value")
+}
+
 func (s *TransferTestSuite) TestOnChanOpenInit() {
 	var (
 		channel      *channeltypes.Channel

@@ -17,7 +17,7 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
+	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -41,7 +41,7 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.chainC = s.coordinator.GetChain(ibctesting.GetChainID(3))
 
 	queryHelper := baseapp.NewQueryServerTestHelper(s.chainA.GetContext(), s.chainA.GetSimApp().InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, &s.chainA.GetSimApp().TransferKeeper)
+	types.RegisterQueryServer(queryHelper, s.chainA.GetSimApp().TransferKeeper)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -59,7 +59,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 				s.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),
 				s.chainA.GetSimApp().AccountKeeper,
 				s.chainA.GetSimApp().BankKeeper,
@@ -71,7 +70,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 				s.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
-				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),
 				authkeeper.AccountKeeper{}, // empty account keeper
 				s.chainA.GetSimApp().BankKeeper,
@@ -82,7 +80,6 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 			keeper.NewKeeper(
 				s.chainA.GetSimApp().AppCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
-				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),
 				s.chainA.GetSimApp().AccountKeeper,
@@ -337,9 +334,9 @@ func (s *KeeperTestSuite) TestWithICS4Wrapper() {
 	// test if the ics4 wrapper is the pfm keeper initially
 	ics4Wrapper := s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
 
-	_, isPFMKeeper := ics4Wrapper.(*packetforwardkeeper.Keeper)
+	_, isPFMKeeper := ics4Wrapper.(*packetforward.IBCMiddleware)
 	s.Require().True(isPFMKeeper)
-	s.Require().IsType((*packetforwardkeeper.Keeper)(nil), ics4Wrapper)
+	s.Require().IsType((*packetforward.IBCMiddleware)(nil), ics4Wrapper)
 
 	// set the ics4 wrapper to the channel keeper
 	s.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(nil)
