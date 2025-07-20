@@ -44,6 +44,7 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 			instantiateFn: func() {
 				keeper.NewKeeper(
 					s.chainA.GetSimApp().AppCodec(),
+					s.chainA.GetSimApp().AccountKeeper.AddressCodec(),
 					runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
 					s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 					s.chainA.GetSimApp().IBCKeeper.ClientKeeper, // Add clientKeeper
@@ -58,6 +59,7 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 			instantiateFn: func() {
 				keeper.NewKeeper(
 					s.chainA.GetSimApp().AppCodec(),
+					s.chainA.GetSimApp().AccountKeeper.AddressCodec(),
 					runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
 					s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 					s.chainA.GetSimApp().IBCKeeper.ClientKeeper, // clientKeeper
