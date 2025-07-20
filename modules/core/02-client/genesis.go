@@ -15,7 +15,7 @@ import (
 // state.
 func InitGenesis(ctx sdk.Context, k *keeper.Keeper, gs types.GenesisState) {
 	if err := gs.Params.Validate(); err != nil {
-		panic(fmt.Errorf("invalid ibc client genesis state parameters: %v", err))
+		panic(fmt.Errorf("invalid ibc client genesis state parameters: %w", err))
 	}
 	k.SetParams(ctx, gs.Params)
 

@@ -77,7 +77,6 @@ func TestFindSupportedVersion(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-
 		version, found := types.FindSupportedVersion(tc.version, tc.supportedVersions)
 		if tc.expFound {
 			require.Equal(t, tc.expVersion.GetIdentifier(), version.GetIdentifier(), "test case %d: %s", i, tc.name)

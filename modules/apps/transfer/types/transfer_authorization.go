@@ -31,12 +31,12 @@ func NewTransferAuthorization(allocations ...Allocation) *TransferAuthorization 
 }
 
 // MsgTypeURL implements Authorization.MsgTypeURL.
-func (TransferAuthorization) MsgTypeURL() string {
+func (*TransferAuthorization) MsgTypeURL() string {
 	return sdk.MsgTypeURL(&MsgTransfer{})
 }
 
 // Accept implements Authorization.Accept.
-func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) (authz.AcceptResponse, error) {
+func (a *TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) (authz.AcceptResponse, error) {
 	msgTransfer, ok := msg.(*MsgTransfer)
 	if !ok {
 		return authz.AcceptResponse{}, errorsmod.Wrap(ibcerrors.ErrInvalidType, "type mismatch")
@@ -96,7 +96,7 @@ func (a TransferAuthorization) Accept(goCtx context.Context, msg proto.Message) 
 }
 
 // ValidateBasic implements Authorization.ValidateBasic.
-func (a TransferAuthorization) ValidateBasic() error {
+func (a *TransferAuthorization) ValidateBasic() error {
 	if len(a.Allocations) == 0 {
 		return errorsmod.Wrap(ErrInvalidAuthorization, "allocations cannot be empty")
 	}

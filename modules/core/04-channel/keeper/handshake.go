@@ -239,6 +239,22 @@ func (k *Keeper) WriteOpenAckChannel(
 	channel.Counterparty.ChannelId = counterpartyChannelID
 	k.SetChannel(ctx, portID, channelID, channel)
 
+	if channel.Ordering == types.UNORDERED {
+		// get the counterparty and set it in the client keeper v2 to support IBC v2 on this
+		// channel ID through aliasing
+		// NOTE: This should never error as the channel is set in the line above
+		counterparty, ok := k.GetV2Counterparty(ctx, portID, channelID)
+		if !ok {
+			panic("could not convert channel to v2 counterparty")
+		}
+		k.clientKeeperV2.SetClientCounterparty(ctx, channelID, counterparty)
+		connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+		if !ok {
+			panic("connection not set")
+		}
+		k.channelKeeperV2.SetClientForAlias(ctx, channelID, connection.ClientId)
+	}
+
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.INIT, "new-state", types.OPEN)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-ack")
@@ -307,6 +323,22 @@ func (k *Keeper) WriteOpenConfirmChannel(
 	channel.State = types.OPEN
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.TRYOPEN, "new-state", types.OPEN)
+
+	if channel.Ordering == types.UNORDERED {
+		// get the counterparty and set it in the client keeper v2 to support IBC v2 on this
+		// channel ID through aliasing
+		// NOTE: This should never error as the channel is set in the line above
+		counterparty, ok := k.GetV2Counterparty(ctx, portID, channelID)
+		if !ok {
+			panic("could not convert channel to v2 counterparty")
+		}
+		k.clientKeeperV2.SetClientCounterparty(ctx, channelID, counterparty)
+		connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+		if !ok {
+			panic("connection not set")
+		}
+		k.channelKeeperV2.SetClientForAlias(ctx, channelID, connection.ClientId)
+	}
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
 

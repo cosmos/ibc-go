@@ -70,7 +70,7 @@ func TestJailProposerValidator(t *testing.T) {
 	require.NoError(t, err)
 
 	// check that the jailing has taken effect in chain A
-	require.Equal(t, valsetLen-1, len(chainA.Vals.Validators))
+	require.Len(t, chainA.Vals.Validators, valsetLen-1)
 
 	// check that the valset in chain A has a new proposer
 	require.False(t, propAddr.Equals(sdk.ConsAddress(chainA.Vals.Proposer.Address)))

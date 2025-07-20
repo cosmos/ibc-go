@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
 )
 
-func (suite *MerkleTestSuite) TestCodecTypeRegistration() {
+func (s *MerkleTestSuite) TestCodecTypeRegistration() {
 	testCases := []struct {
 		name    string
 		typeURL string
@@ -40,16 +40,16 @@ func (suite *MerkleTestSuite) TestCodecTypeRegistration() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(ibc.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
 			if tc.expErr == nil {
-				suite.NotNil(msg)
-				suite.Require().NoError(err)
+				s.Require().NotNil(msg)
+				s.Require().NoError(err)
 			} else {
-				suite.Nil(msg)
-				suite.Require().ErrorContains(err, tc.expErr.Error())
+				s.Nil(msg)
+				s.Require().ErrorContains(err, tc.expErr.Error())
 			}
 		})
 	}

@@ -15,7 +15,7 @@ import (
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 )
 
-func (suite *KeeperTestSuite) TestQueryCode() {
+func (s *KeeperTestSuite) TestQueryCode() {
 	var req *types.QueryCodeRequest
 
 	testCases := []struct {
@@ -29,8 +29,8 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 				msg := types.NewMsgStoreCode(signer, wasmtesting.Code)
 
-				res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
-				suite.Require().NoError(err)
+				res, err := GetSimApp(s.chainA).WasmClientKeeper.StoreCode(s.chainA.GetContext(), msg)
+				s.Require().NoError(err)
 
 				req = &types.QueryCodeRequest{Checksum: hex.EncodeToString(res.Checksum)}
 			},
@@ -59,26 +59,26 @@ func (suite *KeeperTestSuite) TestQueryCode() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
+		s.Run(tc.name, func() {
+			s.SetupWasmWithMockVM()
 
 			tc.malleate()
 
-			res, err := GetSimApp(suite.chainA).WasmClientKeeper.Code(suite.chainA.GetContext(), req)
+			res, err := GetSimApp(s.chainA).WasmClientKeeper.Code(s.chainA.GetContext(), req)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().NotEmpty(res.Data)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().NotEmpty(res.Data)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryChecksums() {
+func (s *KeeperTestSuite) TestQueryChecksums() {
 	var expChecksums []string
 
 	testCases := []struct {
@@ -99,8 +99,8 @@ func (suite *KeeperTestSuite) TestQueryChecksums() {
 				signer := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 				msg := types.NewMsgStoreCode(signer, wasmtesting.Code)
 
-				res, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(suite.chainA.GetContext(), msg)
-				suite.Require().NoError(err)
+				res, err := GetSimApp(s.chainA).WasmClientKeeper.StoreCode(s.chainA.GetContext(), msg)
+				s.Require().NoError(err)
 
 				expChecksums = append(expChecksums, hex.EncodeToString(res.Checksum))
 			},
@@ -109,21 +109,21 @@ func (suite *KeeperTestSuite) TestQueryChecksums() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupWasmWithMockVM()
+		s.Run(tc.name, func() {
+			s.SetupWasmWithMockVM()
 
 			tc.malleate()
 
 			req := &types.QueryChecksumsRequest{}
-			res, err := GetSimApp(suite.chainA).WasmClientKeeper.Checksums(suite.chainA.GetContext(), req)
+			res, err := GetSimApp(s.chainA).WasmClientKeeper.Checksums(s.chainA.GetContext(), req)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(len(expChecksums), len(res.Checksums))
-				suite.Require().ElementsMatch(expChecksums, res.Checksums)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Equal(len(expChecksums), len(res.Checksums))
+				s.Require().ElementsMatch(expChecksums, res.Checksums)
 			} else {
-				suite.Require().Error(err)
+				s.Require().Error(err)
 			}
 		})
 	}

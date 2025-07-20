@@ -36,9 +36,9 @@ func TestWasmTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(TypesTestSuite))
 }
 
-func (suite *TypesTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCustomAppCoordinator(suite.T(), 1, setupTestingApp)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+func (s *TypesTestSuite) SetupTest() {
+	s.coordinator = ibctesting.NewCustomAppCoordinator(s.T(), 1, setupTestingApp)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
 }
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
@@ -59,8 +59,8 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 }
 
 // TestClientRecoveryStoreGetStore tests the GetStore method of the ClientRecoveryStore.
-func (suite *TypesTestSuite) TestClientRecoveryStoreGetStore() {
-	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
+func (s *TypesTestSuite) TestClientRecoveryStoreGetStore() {
+	subjectStore, substituteStore := s.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
 		name     string
@@ -90,26 +90,25 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreGetStore() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
 			store, found := wrappedStore.GetStore(tc.prefix)
 
 			storeFound := tc.expStore != nil
 			if storeFound {
-				suite.Require().Equal(tc.expStore, store)
-				suite.Require().True(found)
+				s.Require().Equal(tc.expStore, store)
+				s.Require().True(found)
 			} else {
-				suite.Require().Nil(store)
-				suite.Require().False(found)
+				s.Require().Nil(store)
+				s.Require().False(found)
 			}
 		})
 	}
 }
 
 // TestSplitPrefix tests the SplitPrefix function.
-func (suite *TypesTestSuite) TestSplitPrefix() {
+func (s *TypesTestSuite) TestSplitPrefix() {
 	clientStateKey := host.ClientStateKey()
 
 	testCases := []struct {
@@ -140,19 +139,18 @@ func (suite *TypesTestSuite) TestSplitPrefix() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			keyPrefix, key := internaltypes.SplitPrefix(tc.prefix)
 
-			suite.Require().Equal(tc.expValues[0], keyPrefix)
-			suite.Require().Equal(tc.expValues[1], key)
+			s.Require().Equal(tc.expValues[0], keyPrefix)
+			s.Require().Equal(tc.expValues[1], key)
 		})
 	}
 }
 
 // TestClientRecoveryStoreGet tests the Get method of the ClientRecoveryStore.
-func (suite *TypesTestSuite) TestClientRecoveryStoreGet() {
-	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
+func (s *TypesTestSuite) TestClientRecoveryStoreGet() {
+	subjectStore, substituteStore := s.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
 		name     string
@@ -181,8 +179,7 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreGet() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
@@ -192,17 +189,17 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreGet() {
 			if storeFound {
 				expValue := tc.expStore.Get(tc.key)
 
-				suite.Require().Equal(expValue, wrappedStore.Get(prefixedKey))
+				s.Require().Equal(expValue, wrappedStore.Get(prefixedKey))
 			} else {
 				// expected value when types is not found is an empty byte slice
-				suite.Require().Equal([]byte(nil), wrappedStore.Get(prefixedKey))
+				s.Require().Equal([]byte(nil), wrappedStore.Get(prefixedKey))
 			}
 		})
 	}
 }
 
 // TestClientRecoveryStoreSet tests the Set method of the ClientRecoveryStore.
-func (suite *TypesTestSuite) TestClientRecoveryStoreSet() {
+func (s *TypesTestSuite) TestClientRecoveryStoreSet() {
 	testCases := []struct {
 		name   string
 		prefix []byte
@@ -224,9 +221,8 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreSet() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
+		s.Run(tc.name, func() {
+			subjectStore, substituteStore := s.GetSubjectAndSubstituteStore()
 			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
 			prefixedKey := tc.prefix
@@ -236,23 +232,23 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreSet() {
 
 			if tc.expSet {
 				store, found := wrappedStore.GetStore(tc.prefix)
-				suite.Require().True(found)
-				suite.Require().Equal(subjectStore, store)
+				s.Require().True(found)
+				s.Require().Equal(subjectStore, store)
 
 				value := store.Get(tc.key)
 
-				suite.Require().Equal(wasmtesting.MockClientStateBz, value)
+				s.Require().Equal(wasmtesting.MockClientStateBz, value)
 			} else {
 				// Assert that no writes happened to subject or substitute types
-				suite.Require().NotEqual(wasmtesting.MockClientStateBz, subjectStore.Get(tc.key))
-				suite.Require().NotEqual(wasmtesting.MockClientStateBz, substituteStore.Get(tc.key))
+				s.Require().NotEqual(wasmtesting.MockClientStateBz, subjectStore.Get(tc.key))
+				s.Require().NotEqual(wasmtesting.MockClientStateBz, substituteStore.Get(tc.key))
 			}
 		})
 	}
 }
 
 // TestClientRecoveryStoreDelete tests the Delete method of the ClientRecoveryStore.
-func (suite *TypesTestSuite) TestClientRecoveryStoreDelete() {
+func (s *TypesTestSuite) TestClientRecoveryStoreDelete() {
 	var (
 		mockStoreKey   = []byte("mock-key")
 		mockStoreValue = []byte("mock-value")
@@ -279,9 +275,8 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreDelete() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
+		s.Run(tc.name, func() {
+			subjectStore, substituteStore := s.GetSubjectAndSubstituteStore()
 
 			// Set values under the mock key:
 			subjectStore.Set(mockStoreKey, mockStoreValue)
@@ -296,22 +291,22 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreDelete() {
 
 			if tc.expDelete {
 				store, found := wrappedStore.GetStore(tc.prefix)
-				suite.Require().True(found)
-				suite.Require().Equal(subjectStore, store)
+				s.Require().True(found)
+				s.Require().Equal(subjectStore, store)
 
-				suite.Require().False(store.Has(tc.key))
+				s.Require().False(store.Has(tc.key))
 			} else {
 				// Assert that no deletions happened to subject or substitute types
-				suite.Require().True(subjectStore.Has(tc.key))
-				suite.Require().True(substituteStore.Has(tc.key))
+				s.Require().True(subjectStore.Has(tc.key))
+				s.Require().True(substituteStore.Has(tc.key))
 			}
 		})
 	}
 }
 
 // TestClientRecoveryStoreIterators tests the Iterator/ReverseIterator methods of the ClientRecoveryStore.
-func (suite *TypesTestSuite) TestClientRecoveryStoreIterators() {
-	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
+func (s *TypesTestSuite) TestClientRecoveryStoreIterators() {
+	subjectStore, substituteStore := s.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
 		name        string
@@ -356,8 +351,7 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreIterators() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			wrappedStore := internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 
 			prefixedKeyStart := tc.prefixStart
@@ -366,19 +360,19 @@ func (suite *TypesTestSuite) TestClientRecoveryStoreIterators() {
 			prefixedKeyEnd = append(prefixedKeyEnd, tc.end...)
 
 			if tc.expValid {
-				suite.Require().NotNil(wrappedStore.Iterator(prefixedKeyStart, prefixedKeyEnd))
-				suite.Require().NotNil(wrappedStore.ReverseIterator(prefixedKeyStart, prefixedKeyEnd))
+				s.Require().NotNil(wrappedStore.Iterator(prefixedKeyStart, prefixedKeyEnd))
+				s.Require().NotNil(wrappedStore.ReverseIterator(prefixedKeyStart, prefixedKeyEnd))
 			} else {
 				// Iterator returned should be Closed, calling `Valid` should return false
-				suite.Require().False(wrappedStore.Iterator(prefixedKeyStart, prefixedKeyEnd).Valid())
-				suite.Require().False(wrappedStore.ReverseIterator(prefixedKeyStart, prefixedKeyEnd).Valid())
+				s.Require().False(wrappedStore.Iterator(prefixedKeyStart, prefixedKeyEnd).Valid())
+				s.Require().False(wrappedStore.ReverseIterator(prefixedKeyStart, prefixedKeyEnd).Valid())
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestNewClientRecoveryStore() {
-	subjectStore, substituteStore := suite.GetSubjectAndSubstituteStore()
+func (s *TypesTestSuite) TestNewClientRecoveryStore() {
+	subjectStore, substituteStore := s.GetSubjectAndSubstituteStore()
 
 	testCases := []struct {
 		name     string
@@ -407,16 +401,15 @@ func (suite *TypesTestSuite) TestNewClientRecoveryStore() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			tc.malleate()
 
 			if !tc.expPanic {
-				suite.Require().NotPanics(func() {
+				s.Require().NotPanics(func() {
 					internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 				})
 			} else {
-				suite.Require().Panics(func() {
+				s.Require().Panics(func() {
 					internaltypes.NewClientRecoveryStore(subjectStore, substituteStore)
 				})
 			}
@@ -425,11 +418,11 @@ func (suite *TypesTestSuite) TestNewClientRecoveryStore() {
 }
 
 // GetSubjectAndSubstituteStore returns two KVStores for testing the migrate client wrapping types.
-func (suite *TypesTestSuite) GetSubjectAndSubstituteStore() (storetypes.KVStore, storetypes.KVStore) {
-	suite.SetupTest()
+func (s *TypesTestSuite) GetSubjectAndSubstituteStore() (storetypes.KVStore, storetypes.KVStore) {
+	s.SetupTest()
 
-	ctx := suite.chainA.GetContext()
-	storeKey := GetSimApp(suite.chainA).GetKey(ibcexported.StoreKey)
+	ctx := s.chainA.GetContext()
+	storeKey := GetSimApp(s.chainA).GetKey(ibcexported.StoreKey)
 
 	subjectClientStore := prefix.NewStore(ctx.KVStore(storeKey), []byte(clienttypes.FormatClientIdentifier(types.Wasm, 0)))
 	substituteClientStore := prefix.NewStore(ctx.KVStore(storeKey), []byte(clienttypes.FormatClientIdentifier(types.Wasm, 1)))

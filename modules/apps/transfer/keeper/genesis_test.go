@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
-func (suite *KeeperTestSuite) TestGenesis() {
+func (s *KeeperTestSuite) TestGenesis() {
 	getHop := func(index uint) types.Hop {
 		return types.NewHop("transfer", fmt.Sprintf("channelToChain%d", index))
 	}
@@ -33,27 +33,27 @@ func (suite *KeeperTestSuite) TestGenesis() {
 	for _, traceAndEscrowAmount := range traceAndEscrowAmounts {
 		denom := types.NewDenom("uatom", traceAndEscrowAmount.trace...)
 		denoms = append(denoms, denom)
-		suite.chainA.GetSimApp().TransferKeeper.SetDenom(suite.chainA.GetContext(), denom)
+		s.chainA.GetSimApp().TransferKeeper.SetDenom(s.chainA.GetContext(), denom)
 
 		amount, ok := sdkmath.NewIntFromString(traceAndEscrowAmount.escrow)
-		suite.Require().True(ok)
+		s.Require().True(ok)
 		escrow := sdk.NewCoin(denom.IBCDenom(), amount)
 		escrows = append(escrows, escrow)
-		suite.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(suite.chainA.GetContext(), escrow)
+		s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), escrow)
 	}
 
-	genesis := suite.chainA.GetSimApp().TransferKeeper.ExportGenesis(suite.chainA.GetContext())
+	genesis := s.chainA.GetSimApp().TransferKeeper.ExportGenesis(s.chainA.GetContext())
 
-	suite.Require().Equal(types.PortID, genesis.PortId)
-	suite.Require().Equal(denoms.Sort(), genesis.Denoms)
-	suite.Require().Equal(escrows.Sort(), genesis.TotalEscrowed)
+	s.Require().Equal(types.PortID, genesis.PortId)
+	s.Require().Equal(denoms.Sort(), genesis.Denoms)
+	s.Require().Equal(escrows.Sort(), genesis.TotalEscrowed)
 
-	suite.Require().NotPanics(func() {
-		suite.chainA.GetSimApp().TransferKeeper.InitGenesis(suite.chainA.GetContext(), *genesis)
+	s.Require().NotPanics(func() {
+		s.chainA.GetSimApp().TransferKeeper.InitGenesis(s.chainA.GetContext(), *genesis)
 	})
 
 	for _, denom := range denoms {
-		_, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainA.GetContext(), denom.IBCDenom())
-		suite.Require().True(found)
+		_, found := s.chainA.GetSimApp().BankKeeper.GetDenomMetaData(s.chainA.GetContext(), denom.IBCDenom())
+		s.Require().True(found)
 	}
 }

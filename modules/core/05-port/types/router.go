@@ -31,7 +31,7 @@ func (rtr *Router) Seal() {
 }
 
 // Sealed returns a boolean signifying if the Router is sealed or not.
-func (rtr Router) Sealed() bool {
+func (rtr *Router) Sealed() bool {
 	return rtr.sealed
 }
 

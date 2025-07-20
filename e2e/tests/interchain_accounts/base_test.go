@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	test "github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -70,7 +70,8 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 	ctx := context.TODO()
 
 	testName := t.Name()
-	relayer := s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -102,7 +103,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulTransfer(order chan
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Len(channels, 2)
 		icaChannel := channels[0]
 
 		s.Require().Contains(orderMapping[order], icaChannel.Ordering)
@@ -169,7 +170,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 	ctx := context.TODO()
 
 	testName := t.Name()
-	relayer := s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -201,7 +203,7 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_FailedTransfer_InsufficientF
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Len(channels, 2)
 	})
 
 	t.Run("fail to execute bank transfer over ICA", func(t *testing.T) {
@@ -259,7 +261,8 @@ func (s *InterchainAccountsTestSuite) TestMsgSendTx_SuccessfulTransfer_AfterReop
 	ctx := context.TODO()
 
 	testName := t.Name()
-	relayer := s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -449,7 +452,8 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 	ctx := context.TODO()
 
 	testName := t.Name()
-	relayer := s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -480,7 +484,7 @@ func (s *InterchainAccountsTestSuite) testMsgSendTxSuccessfulGovProposal(order c
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Len(channels, 2)
 		icaChannel := channels[0]
 
 		s.Require().Contains(orderMapping[order], icaChannel.Ordering)

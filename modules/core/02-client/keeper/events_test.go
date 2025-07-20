@@ -9,17 +9,17 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *KeeperTestSuite) TestMsgCreateClientEvents() {
-	suite.SetupTest()
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+func (s *KeeperTestSuite) TestMsgCreateClientEvents() {
+	s.SetupTest()
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 
 	path.EndpointA.Counterparty.Chain.NextBlock()
 
 	tmConfig, ok := path.EndpointA.ClientConfig.(*ibctesting.TendermintConfig)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 
 	height, ok := path.EndpointA.Counterparty.Chain.LatestCommittedHeader.GetHeight().(clienttypes.Height)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 
 	clientState := ibctm.NewClientState(
 		path.EndpointA.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
@@ -29,11 +29,11 @@ func (suite *KeeperTestSuite) TestMsgCreateClientEvents() {
 	msg, err := clienttypes.NewMsgCreateClient(
 		clientState, consensusState, path.EndpointA.Chain.SenderAccount.GetAddress().String(),
 	)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	res, err := suite.chainA.SendMsgs(msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res)
+	res, err := s.chainA.SendMsgs(msg)
+	s.Require().NoError(err)
+	s.Require().NotNil(res)
 
 	events := res.Events
 	expectedEvents := sdk.Events{
@@ -47,35 +47,35 @@ func (suite *KeeperTestSuite) TestMsgCreateClientEvents() {
 
 	var indexSet map[string]struct{}
 	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
-	ibctesting.AssertEvents(&suite.Suite, expectedEvents, events)
+	ibctesting.AssertEvents(&s.Suite, expectedEvents, events)
 }
 
-func (suite *KeeperTestSuite) TestMsgUpdateClientEvents() {
-	suite.SetupTest()
-	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+func (s *KeeperTestSuite) TestMsgUpdateClientEvents() {
+	s.SetupTest()
+	path := ibctesting.NewPath(s.chainA, s.chainB)
 
-	suite.Require().NoError(path.EndpointA.CreateClient())
+	s.Require().NoError(path.EndpointA.CreateClient())
 
-	suite.chainB.Coordinator.CommitBlock(suite.chainB)
+	s.chainB.Coordinator.CommitBlock(s.chainB)
 
 	clientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 
 	trustedHeight := clientState.LatestHeight
-	header, err := suite.chainB.IBCClientHeader(suite.chainB.LatestCommittedHeader, trustedHeight)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(header)
+	header, err := s.chainB.IBCClientHeader(s.chainB.LatestCommittedHeader, trustedHeight)
+	s.Require().NoError(err)
+	s.Require().NotNil(header)
 
 	msg, err := clienttypes.NewMsgUpdateClient(
 		ibctesting.FirstClientID, header,
 		path.EndpointA.Chain.SenderAccount.GetAddress().String(),
 	)
 
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	res, err := suite.chainA.SendMsgs(msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(res)
+	res, err := s.chainA.SendMsgs(msg)
+	s.Require().NoError(err)
+	s.Require().NotNil(res)
 
 	events := res.Events
 	expectedEvents := sdk.Events{
@@ -90,5 +90,5 @@ func (suite *KeeperTestSuite) TestMsgUpdateClientEvents() {
 
 	var indexSet map[string]struct{}
 	expectedEvents = sdk.MarkEventsToIndex(expectedEvents, indexSet)
-	ibctesting.AssertEvents(&suite.Suite, expectedEvents, events)
+	ibctesting.AssertEvents(&s.Suite, expectedEvents, events)
 }
