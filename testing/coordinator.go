@@ -83,37 +83,6 @@ func (c *Coordinator) UpdateTimeForChain(chain *TestChain) {
 	chain.ProposedHeader.Time = c.CurrentTime.UTC()
 }
 
-// Setup constructs a TM client, connection, and channel on both chains provided. It will
-// fail if any error occurs.
-// Deprecated: please use path.Setup(), this function will be removed in v10
-func (*Coordinator) Setup(path *Path) {
-	path.Setup()
-}
-
-// SetupClients is a helper function to create clients on both chains. It assumes the
-// caller does not anticipate any errors.
-// Deprecated: please use path.SetupClients(), this function will be removed in v10
-func (*Coordinator) SetupClients(path *Path) {
-	path.SetupClients()
-}
-
-// SetupConnections is a helper function to create clients and the appropriate
-// connections on both the source and counterparty chain. It assumes the caller does not
-// anticipate any errors.
-// Deprecated: please use path.SetupConnections(), this function will be removed in v10
-func (*Coordinator) SetupConnections(path *Path) {
-	path.SetupConnections()
-}
-
-// CreateConnections constructs and executes connection handshake messages in order to create
-// OPEN channels on chainA and chainB. The connection information of for chainA and chainB
-// are returned within a TestConnection struct. The function expects the connections to be
-// successfully opened otherwise testing will fail.
-// Deprecated: please use path.CreateConnections(), this function will be removed in v10
-func (*Coordinator) CreateConnections(path *Path) {
-	path.CreateConnections()
-}
-
 // CreateMockChannels constructs and executes channel handshake messages to create OPEN
 // channels that use a mock application module that returns nil on all callbacks. This
 // function is expects the channels to be successfully opened otherwise testing will
