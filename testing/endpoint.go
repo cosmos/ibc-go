@@ -595,19 +595,6 @@ func (ep *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
 	return ep.Chain.sendMsgs(timeoutOnCloseMsg)
 }
 
-// Deprecated: usage of this function should be replaced by `UpdateChannel`
-// SetChannelState sets a channel state
-func (ep *Endpoint) SetChannelState(state channeltypes.State) error {
-	channel := ep.GetChannel()
-
-	channel.State = state
-	ep.Chain.App.GetIBCKeeper().ChannelKeeper.SetChannel(ep.Chain.GetContext(), ep.ChannelConfig.PortID, ep.ChannelID, channel)
-
-	ep.Chain.Coordinator.CommitBlock(ep.Chain)
-
-	return ep.Counterparty.UpdateClient()
-}
-
 // UpdateChannel updates the channel associated with the given ep. It accepts a
 // closure which takes a channel allowing the caller to modify its fields.
 func (ep *Endpoint) UpdateChannel(updater func(channel *channeltypes.Channel)) {
