@@ -182,13 +182,12 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *types.MsgAcknowledg
 	for i, pd := range msg.Packet.Payloads {
 		cbs := k.Router.Route(pd.SourcePort)
 		var ack []byte
-		// if recv was successful, each payload should have its own acknowledgement so we send each individual acknowledgment to the application
-		// otherwise, the acknowledgement only contains the sentinel error acknowledgement which we send to the application. The application is responsible
-		// for knowing that this is an error acknowledgement and executing the appropriate logic.
+		// if recv was successful, check that there are enough acknowledgements for all payloads
 		if recvSuccess {
-			ack = msg.Acknowledgement.AppAcknowledgements[i]
-		} else {
-			ack = types.ErrorAcknowledgement[:]
+		    if i >= len(msg.Acknowledgement.AppAcknowledgements) {
+			return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "not enough acknowledgements for payloads: got %d, want at least %d", len(msg.Acknowledgement.AppAcknowledgements), i+1)
+		    }
+		    ack = types.ErrorAcknowledgement[:]
 		}
 		err := cbs.OnAcknowledgementPacket(ctx, msg.Packet.SourceClient, msg.Packet.DestinationClient,
 			msg.Packet.Sequence, ack, pd, relayer)
