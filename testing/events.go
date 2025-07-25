@@ -150,7 +150,7 @@ func ParseIBCV1Packets(eventType string, events []abci.Event) ([]channeltypes.Pa
 	return packets, nil
 }
 
-// ParseV1PacketFromEvents parses events emitted from a v2 send packet
+// ParseV2PacketFromEvents parses events emitted from a v2 send packet
 // and returns the first EventTypeSendPacket packet found.
 // Returns an error if no packet is found.
 func ParseV2PacketFromEvents(events []abci.Event) (channeltypesv2.Packet, error) {
