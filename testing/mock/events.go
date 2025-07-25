@@ -30,7 +30,7 @@ func NewMockTimeoutPacketEvent() sdk.Event {
 	return newMockEvent(MockEventTypeTimeoutPacket)
 }
 
-// emitMockEvent returns a mock event with the given event type
+// newMockEvent returns a mock event with the given event type
 func newMockEvent(eventType string) sdk.Event {
 	return sdk.NewEvent(
 		eventType,
