@@ -111,8 +111,8 @@ func SetupICAPath(path *ibctesting.Path, owner string) error {
 
 func (s *InterchainAccountsTestSuite) TestSetUnderlyingApplication() {
 	var (
-		app porttypes.IBCModule
-		mw  porttypes.Middleware
+		app porttypes.StackIBCModule
+		mw  porttypes.StackMiddleware
 	)
 	testCases := []struct {
 		name     string

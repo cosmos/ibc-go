@@ -23,6 +23,7 @@ import (
 
 var (
 	_ porttypes.IBCModule             = (*IBCModule)(nil)
+	_ porttypes.StackIBCModule        = (*IBCModule)(nil)
 	_ porttypes.PacketDataUnmarshaler = (*IBCModule)(nil)
 )
 

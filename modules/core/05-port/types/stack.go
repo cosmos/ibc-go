@@ -1,23 +1,65 @@
 package types
 
+// IBCStackBuilder is a builder for creating an IBC application stack.
+// It allows for the creation of an IBC stack with with a set of middlewares on top of a base IBC application.
+// The stack is built by adding, from bottom to top, the IBC application and all subsequent middlewares to the stack.
+// For instance, to create a stack like the following:
+// * RecvPacket: IBC core -> RateLimit -> PFM -> Callbacks -> Transfer (AddRoute)
+// * SendPacket: Transfer -> Callbacks -> PFM -> RateLimit -> IBC core (ICS4Wrapper)
+// porttypes.NewIBCStackBuilder(app.IBCKeeper.ChannelKeeper).
+// .Base(app.TransferKeeper).
+// .Next(callbacks.NewIBCMiddleware(..)).
+// .Next(packetforward.NewIBCMiddleware(..)).
+// .Next(ratelimiting.NewIBCMiddleware(..)).
+// .Build()
+//
+// ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack.Build())
 type IBCStackBuilder struct {
-	middlewares   []Middleware
-	baseModule    IBCModule
+	middlewares   []StackMiddleware
+	baseModule    StackIBCModule
 	channelKeeper ICS4Wrapper
 }
 
+// StackIBCModule is an interface for IBC applications and middlewares to support
+// the IBCStackBuilder.
+type StackIBCModule interface {
+	IBCModule
+
+	// SetICS4Wrapper sets the ICS4Wrapper. This function may be used after
+	// the module's initialization to set the middleware which is above this
+	// module in the IBC application stack.
+	// The ICS4Wrapper **must** be used for sending packets and writing acknowledgements
+	// to ensure that the middleware can intercept and process these calls.
+	// Do not use the channel keeper directly to send packets or write acknowledgements
+	// as this will bypass the middleware.
+	SetICS4Wrapper(wrapper ICS4Wrapper)
+}
+
+// StackMiddleware is an interface for middlewares to support the IBCStackBuilder.
+type StackMiddleware interface {
+	Middleware
+	StackIBCModule
+
+	// SetUnderlyingModule sets the underlying IBC module. This function may be used after
+	// the middleware's initialization to set the ibc module which is below this middleware.
+	SetUnderlyingApplication(IBCModule)
+}
+
+// NewIBCStackBuilder creates a new IBCStackBuilder
 func NewIBCStackBuilder(chanKeeper ICS4Wrapper) *IBCStackBuilder {
 	return &IBCStackBuilder{
 		channelKeeper: chanKeeper,
 	}
 }
 
-func (b *IBCStackBuilder) Next(middleware Middleware) *IBCStackBuilder {
+// Next adds a middleware to the stack, bottom to top.
+func (b *IBCStackBuilder) Next(middleware StackMiddleware) *IBCStackBuilder {
 	b.middlewares = append(b.middlewares, middleware)
 	return b
 }
 
-func (b *IBCStackBuilder) Base(baseModule IBCModule) *IBCStackBuilder {
+// Base sets the base IBC module for the stack.
+func (b *IBCStackBuilder) Base(baseModule StackIBCModule) *IBCStackBuilder {
 	if baseModule == nil {
 		panic("base module cannot be nil")
 	}
@@ -28,6 +70,8 @@ func (b *IBCStackBuilder) Base(baseModule IBCModule) *IBCStackBuilder {
 	return b
 }
 
+// Build creates the IBC stack in the order of the middlewares, from bottom to top.
+// The stack is returned as an IBCModule.
 func (b *IBCStackBuilder) Build() IBCModule {
 	if b.baseModule == nil {
 		panic("base module cannot be nil")
