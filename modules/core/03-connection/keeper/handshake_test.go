@@ -14,7 +14,7 @@ import (
 
 // TestConnOpenInit - chainA initializes (INIT state) a connection with
 // chainB which is yet UNINITIALIZED
-func (suite *KeeperTestSuite) TestConnOpenInit() {
+func (s *KeeperTestSuite) TestConnOpenInit() {
 	var (
 		path                 *ibctesting.Path
 		version              *types.Version
@@ -53,20 +53,20 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			malleate: func() {
 				expErrorMsgSubstring = "status is Unauthorized"
 				// remove client from allowed list
-				params := suite.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(suite.chainA.GetContext())
+				params := s.chainA.App.GetIBCKeeper().ClientKeeper.GetParams(s.chainA.GetContext())
 				params.AllowedClients = []string{}
-				suite.chainA.App.GetIBCKeeper().ClientKeeper.SetParams(suite.chainA.GetContext(), params)
+				s.chainA.App.GetIBCKeeper().ClientKeeper.SetParams(s.chainA.GetContext(), params)
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.msg, func() {
-			suite.SetupTest()    // reset
+		s.Run(tc.msg, func() {
+			s.SetupTest()        // reset
 			emptyConnBID = false // must be explicitly changed
 			version = nil        // must be explicitly changed
 			expErrorMsgSubstring = ""
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupClients()
 
 			tc.malleate()
@@ -74,18 +74,18 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 			if emptyConnBID {
 				path.EndpointB.ConnectionID = ""
 			}
-			counterparty := types.NewCounterparty(path.EndpointB.ClientID, path.EndpointB.ConnectionID, suite.chainB.GetPrefix())
+			counterparty := types.NewCounterparty(path.EndpointB.ClientID, path.EndpointB.ConnectionID, s.chainB.GetPrefix())
 
-			connectionID, err := suite.chainA.App.GetIBCKeeper().ConnectionKeeper.ConnOpenInit(suite.chainA.GetContext(), path.EndpointA.ClientID, counterparty, version, delayPeriod)
+			connectionID, err := s.chainA.App.GetIBCKeeper().ConnectionKeeper.ConnOpenInit(s.chainA.GetContext(), path.EndpointA.ClientID, counterparty, version, delayPeriod)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().Equal(types.FormatConnectionIdentifier(0), connectionID)
+				s.Require().NoError(err)
+				s.Require().Equal(types.FormatConnectionIdentifier(0), connectionID)
 			} else {
-				suite.Require().Error(err)
-				suite.Contains(err.Error(), expErrorMsgSubstring)
-				suite.Require().Equal("", connectionID)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Contains(err.Error(), expErrorMsgSubstring)
+				s.Require().Equal("", connectionID)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) TestConnOpenInit() {
 
 // TestConnOpenTry - chainB calls ConnOpenTry to verify the state of
 // connection on chainA is INIT
-func (suite *KeeperTestSuite) TestConnOpenTry() {
+func (s *KeeperTestSuite) TestConnOpenTry() {
 	var (
 		path        *ibctesting.Path
 		delayPeriod uint64
@@ -107,11 +107,11 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 	}{
 		{"success", func() {
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, nil},
 		{"success with delay period", func() {
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			delayPeriod = uint64(time.Hour.Nanoseconds())
 
@@ -119,19 +119,19 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 			path.EndpointA.UpdateConnection(func(connection *types.ConnectionEnd) { connection.DelayPeriod = delayPeriod })
 
 			// commit in order for proof to return correct value
-			suite.coordinator.CommitBlock(suite.chainA)
+			s.coordinator.CommitBlock(s.chainA)
 			err = path.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, nil},
 		{"counterparty versions is empty", func() {
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			versions = nil
 		}, errorsmod.Wrap(types.ErrVersionNegotiationFailed, "failed to find a matching counterparty version ([]) from the supported version list ([identifier:\"1\" features:\"ORDER_ORDERED\" features:\"ORDER_UNORDERED\" ])")},
 		{"counterparty versions don't have a match", func() {
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			version := types.NewVersion("0.0", nil)
 			versions = []*types.Version{version}
@@ -142,36 +142,36 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.msg, func() {
-			suite.SetupTest()                        // reset
+		s.Run(tc.msg, func() {
+			s.SetupTest()                            // reset
 			versions = types.GetCompatibleVersions() // may be changed in malleate
 			delayPeriod = 0                          // may be changed in malleate
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupClients()
 
 			tc.malleate()
 
-			counterparty := types.NewCounterparty(path.EndpointA.ClientID, path.EndpointA.ConnectionID, suite.chainA.GetPrefix())
+			counterparty := types.NewCounterparty(path.EndpointA.ClientID, path.EndpointA.ConnectionID, s.chainA.GetPrefix())
 
 			// ensure client is up to date to receive proof
 			err := path.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			connectionKey := host.ConnectionKey(path.EndpointA.ConnectionID)
-			initProof, proofHeight := suite.chainA.QueryProof(connectionKey)
+			initProof, proofHeight := s.chainA.QueryProof(connectionKey)
 
-			connectionID, err := suite.chainB.App.GetIBCKeeper().ConnectionKeeper.ConnOpenTry(
-				suite.chainB.GetContext(), counterparty, delayPeriod, path.EndpointB.ClientID,
+			connectionID, err := s.chainB.App.GetIBCKeeper().ConnectionKeeper.ConnOpenTry(
+				s.chainB.GetContext(), counterparty, delayPeriod, path.EndpointB.ClientID,
 				versions, initProof, proofHeight,
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().Equal(types.FormatConnectionIdentifier(0), connectionID)
+				s.Require().NoError(err)
+				s.Require().Equal(types.FormatConnectionIdentifier(0), connectionID)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal("", connectionID)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().Equal("", connectionID)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -179,7 +179,7 @@ func (suite *KeeperTestSuite) TestConnOpenTry() {
 
 // TestConnOpenAck - Chain A (ID #1) calls TestConnOpenAck to acknowledge (ACK state)
 // the initialization (TRYINIT) of the connection on  Chain B (ID #2).
-func (suite *KeeperTestSuite) TestConnOpenAck() {
+func (s *KeeperTestSuite) TestConnOpenAck() {
 	var (
 		path    *ibctesting.Path
 		version *types.Version
@@ -192,113 +192,113 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 	}{
 		{"success", func() {
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, nil},
 		{"connection not found", func() {
 			// connections are never created
 		}, errorsmod.Wrap(types.ErrConnectionNotFound, "")},
 		{"invalid counterparty connection ID", func() {
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// modify connB to set counterparty connection identifier to wrong identifier
 			path.EndpointA.UpdateConnection(func(c *types.ConnectionEnd) { c.Counterparty.ConnectionId = ibctesting.InvalidID })
 			path.EndpointB.ConnectionID = ibctesting.InvalidID
 
 			err = path.EndpointA.UpdateClient()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed connection state verification for client (07-tendermint-0): commitment proof must be existence proof. got: int at index &{1374412614704}")},
 		{"connection state is not INIT", func() {
 			// connection state is already OPEN on chainA
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointA.ConnOpenAck()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, errorsmod.Wrap(types.ErrInvalidConnectionState, "connection state is not INIT (got STATE_OPEN)")},
 		{"connection is in INIT but the proposed version is invalid", func() {
 			// chainA is in INIT, chainB is in TRYOPEN
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			version = types.NewVersion("2.0", nil)
 		}, errorsmod.Wrap(types.ErrInvalidConnectionState, "the counterparty selected version identifier:\"2.0\"  is not supported by versions selected on INIT")},
 		{"incompatible IBC versions", func() {
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// set version to a non-compatible version
 			version = types.NewVersion("2.0", nil)
 		}, errorsmod.Wrap(types.ErrInvalidConnectionState, "the counterparty selected version identifier:\"2.0\"  is not supported by versions selected on INIT")},
 		{"empty version", func() {
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			version = &types.Version{}
 		}, errorsmod.Wrap(types.ErrInvalidConnectionState, "the counterparty selected version  is not supported by versions selected on INIT")},
 		{"feature set verification failed - unsupported feature", func() {
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			version = types.NewVersion(types.DefaultIBCVersionIdentifier, []string{"ORDER_ORDERED", "ORDER_UNORDERED", "ORDER_DAG"})
 		}, errorsmod.Wrap(types.ErrInvalidConnectionState, "the counterparty selected version identifier:\"1\" features:\"ORDER_ORDERED\" features:\"ORDER_UNORDERED\" features:\"ORDER_DAG\"  is not supported by versions selected on INIT")},
 		{"connection state verification failed", func() {
 			// chainB connection is not in INIT
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed connection state verification for client (07-tendermint-0): commitment proof must be existence proof. got: int at index &{1374414228888}")},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.msg, func() {
-			suite.SetupTest()                          // reset
+		s.Run(tc.msg, func() {
+			s.SetupTest()                              // reset
 			version = types.GetCompatibleVersions()[0] // must be explicitly changed in malleate
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupClients()
 
 			tc.malleate()
 
 			// ensure client is up to date to receive proof
 			err := path.EndpointA.UpdateClient()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			connectionKey := host.ConnectionKey(path.EndpointB.ConnectionID)
-			tryProof, proofHeight := suite.chainB.QueryProof(connectionKey)
+			tryProof, proofHeight := s.chainB.QueryProof(connectionKey)
 
-			err = suite.chainA.App.GetIBCKeeper().ConnectionKeeper.ConnOpenAck(
-				suite.chainA.GetContext(), path.EndpointA.ConnectionID, version,
+			err = s.chainA.App.GetIBCKeeper().ConnectionKeeper.ConnOpenAck(
+				s.chainA.GetContext(), path.EndpointA.ConnectionID, version,
 				path.EndpointB.ConnectionID, tryProof, proofHeight,
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
@@ -306,7 +306,7 @@ func (suite *KeeperTestSuite) TestConnOpenAck() {
 
 // TestConnOpenConfirm - chainB calls ConnOpenConfirm to confirm that
 // chainA state is now OPEN.
-func (suite *KeeperTestSuite) TestConnOpenConfirm() {
+func (s *KeeperTestSuite) TestConnOpenConfirm() {
 	var path *ibctesting.Path
 	testCases := []struct {
 		msg      string
@@ -315,13 +315,13 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 	}{
 		{"success", func() {
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointA.ConnOpenAck()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, nil},
 		{"connection not found", func() {
 			// connections are never created
@@ -333,37 +333,37 @@ func (suite *KeeperTestSuite) TestConnOpenConfirm() {
 		{"connection state verification failed", func() {
 			// chainA is in INIT
 			err := path.EndpointA.ConnOpenInit()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			err = path.EndpointB.ConnOpenTry()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		}, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed connection state verification for client (07-tendermint-0): failed to verify membership proof at index 0: provided value doesn't match proof")},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.msg, func() {
-			suite.SetupTest() // reset
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		s.Run(tc.msg, func() {
+			s.SetupTest() // reset
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupClients()
 
 			tc.malleate()
 
 			// ensure client is up to date to receive proof
 			err := path.EndpointB.UpdateClient()
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			connectionKey := host.ConnectionKey(path.EndpointA.ConnectionID)
-			ackProof, proofHeight := suite.chainA.QueryProof(connectionKey)
+			ackProof, proofHeight := s.chainA.QueryProof(connectionKey)
 
-			err = suite.chainB.App.GetIBCKeeper().ConnectionKeeper.ConnOpenConfirm(
-				suite.chainB.GetContext(), path.EndpointB.ConnectionID, ackProof, proofHeight,
+			err = s.chainB.App.GetIBCKeeper().ConnectionKeeper.ConnOpenConfirm(
+				s.chainB.GetContext(), path.EndpointB.ConnectionID, ackProof, proofHeight,
 			)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

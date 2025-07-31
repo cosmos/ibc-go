@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 
-	proto "github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -23,13 +23,23 @@ func NewAcknowledgement(appAcknowledgements ...[]byte) Acknowledgement {
 
 // Validate performs a basic validation of the acknowledgement
 func (ack Acknowledgement) Validate() error {
-	if len(ack.AppAcknowledgements) != 1 {
-		return errorsmod.Wrap(ErrInvalidAcknowledgement, "app acknowledgements must be of length one")
+	// acknowledgement list should be non-empty
+	if len(ack.AppAcknowledgements) == 0 {
+		return errorsmod.Wrap(ErrInvalidAcknowledgement, "app acknowledgements must be non-empty")
 	}
 
-	for _, ack := range ack.AppAcknowledgements {
-		if len(ack) == 0 {
+	for _, a := range ack.AppAcknowledgements {
+		// Each app acknowledgement should be non-empty
+		if len(a) == 0 {
 			return errorsmod.Wrap(ErrInvalidAcknowledgement, "app acknowledgement cannot be empty")
+		}
+
+		// Ensure that the app acknowledgement contains ErrorAcknowledgement
+		// **if and only if** the app acknowledgement list has a single element
+		if len(ack.AppAcknowledgements) > 1 {
+			if bytes.Equal(a, ErrorAcknowledgement[:]) {
+				return errorsmod.Wrap(ErrInvalidAcknowledgement, "cannot have the error acknowledgement in multi acknowledgement list")
+			}
 		}
 	}
 

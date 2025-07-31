@@ -2,7 +2,7 @@ package v10
 
 import (
 	"errors"
-	fmt "fmt"
+	"fmt"
 
 	corestore "cosmossdk.io/core/store"
 	storetypes "cosmossdk.io/store/types"
@@ -28,23 +28,19 @@ const (
 
 // PruningSequenceStartKey returns the store key for the pruning sequence start of a particular channel
 func PruningSequenceStartKey(portID, channelID string) []byte {
-	return fmt.Appendf(nil, "%s/%s", KeyPruningSequenceStart, channelPath(portID, channelID))
+	return fmt.Appendf(nil, "%s/%s", KeyPruningSequenceStart, host.ChannelPath(portID, channelID))
 }
 
 func ChannelUpgradeKey(portID, channelID string) []byte {
-	return fmt.Appendf(nil, "%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradePrefix, channelPath(portID, channelID))
+	return fmt.Appendf(nil, "%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradePrefix, host.ChannelPath(portID, channelID))
 }
 
 func ChannelUpgradeErrorKey(portID, channelID string) []byte {
-	return fmt.Appendf(nil, "%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeErrorPrefix, channelPath(portID, channelID))
+	return fmt.Appendf(nil, "%s/%s/%s", KeyChannelUpgradePrefix, KeyUpgradeErrorPrefix, host.ChannelPath(portID, channelID))
 }
 
 func ChannelCounterpartyUpgradeKey(portID, channelID string) []byte {
-	return fmt.Appendf(nil, "%s/%s/%s", KeyChannelUpgradePrefix, KeyCounterpartyUpgrade, channelPath(portID, channelID))
-}
-
-func channelPath(portID, channelID string) string {
-	return fmt.Sprintf("%s/%s/%s/%s", host.KeyPortPrefix, portID, host.KeyChannelPrefix, channelID)
+	return fmt.Appendf(nil, "%s/%s/%s", KeyChannelUpgradePrefix, KeyCounterpartyUpgrade, host.ChannelPath(portID, channelID))
 }
 
 // MigrateStore migrates the channel store to the ibc-go v10 store by:

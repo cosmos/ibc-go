@@ -10,7 +10,7 @@ import (
 
 // InitGenesis initializes the 08-wasm module's state from a provided genesis
 // state.
-func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
+func (k *Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 	storeFn := func(code wasmvm.WasmCode, _ uint64) (wasmvm.Checksum, uint64, error) {
 		checksum, err := k.GetVM().StoreCodeUnchecked(code)
 		return checksum, 0, err
@@ -27,7 +27,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, gs types.GenesisState) error {
 
 // ExportGenesis returns the 08-wasm module's exported genesis. This includes the code
 // for all contracts previously stored.
-func (k Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
+func (k *Keeper) ExportGenesis(ctx sdk.Context) types.GenesisState {
 	checksums, err := k.GetAllChecksums(ctx)
 	if err != nil {
 		panic(err)

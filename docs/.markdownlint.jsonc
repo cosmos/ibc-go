@@ -23,5 +23,6 @@
     }, // https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md#md049---emphasis-style-should-be-consistent
     "MD050": {
         "style": "asterisk"
-    } // https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md#md050---strong-style-should-be-consistent
+    }, // https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md#md050---strong-style-should-be-consistent
+    "MD059": false, //https://github.com/DavidAnson/markdownlint/blob/main/doc/md059.md---undescriptive link names
 }

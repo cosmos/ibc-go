@@ -12,7 +12,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
-	v2 "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
+	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channelkeeperv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
@@ -49,7 +49,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 			func() {
 				_ = v2.NewIBCMiddleware(nil, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
-			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
+			fmt.Errorf("underlying application does not implement %T", (*api.PacketUnmarshalerModuleV2)(nil)),
 		},
 		{
 			"panics with nil contract keeper",
@@ -132,7 +132,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			},
 			"none", // improperly formatted callback data should result in no callback execution
 			false,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: callback execution fails",
@@ -274,7 +274,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			noExecution,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -338,18 +338,14 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				return cbs.OnAcknowledgementPacket(ctx, s.path.EndpointA.ClientID, s.path.EndpointB.ClientID, 1, ack, payload, s.chainA.SenderAccount.GetAddress())
 			}
 
-			switch tc.expError {
-			case nil:
+			switch {
+			case tc.expError == nil:
 				err := onAcknowledgementPacket()
 				s.Require().Nil(err)
-
-			case panicError:
-				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
-					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit),
-				}, func() {
+			case errors.Is(tc.expError, panicError):
+				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit)}, func() {
 					_ = onAcknowledgementPacket()
 				})
-
 			default:
 				err := onAcknowledgementPacket()
 				s.Require().ErrorIs(err, tc.expError)
@@ -433,7 +429,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				packetData.Memo = `{"src_callback": {"address": ""}}`
 			},
 			noExecution,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -758,7 +754,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				packetData.Memo = `{"dest_callback": {"address": ""}}`
 			},
 			"none", // improperly formatted callback data should result in no callback execution
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: ics4Wrapper WriteAcknowledgement call fails",
@@ -839,7 +835,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				if exists {
 					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
 				}
-
 			} else {
 				s.Require().ErrorIs(err, tc.expError)
 			}

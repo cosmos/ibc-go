@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
       - name: Install compiler for arm64.
         if: matrix.go-arch == 'arm64'
         run: |
@@ -71,7 +71,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
           cache-dependency-path: '${{ matrix.module.path }}/go.sum'
 
       - name: test & coverage report creation
@@ -80,7 +80,7 @@ jobs:
 
       - uses: codecov/codecov-action@v5
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           files: ${{ matrix.module.path }}/profile.out
           flags: ${{ matrix.module.name }}
           token: ${{ secrets.CODECOV_TOKEN }}
