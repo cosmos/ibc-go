@@ -165,7 +165,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 	path.Setup()
 
-	pfmKeeper := keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
+	pfmKeeper := keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), s.chainA.GetSimApp().AccountKeeper.AddressCodec(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
 
 	ctx := s.chainA.GetContext()
 	srcPacket := channeltypes.Packet{
@@ -224,7 +224,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacketWithNext() {
 	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 	path.Setup()
 
-	pfmKeeper := keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
+	pfmKeeper := keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), s.chainA.GetSimApp().AccountKeeper.AddressCodec(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
 	ctx := s.chainA.GetContext()
 	srcPacket := channeltypes.Packet{
 		Data:               []byte{1},
@@ -283,7 +283,7 @@ func (s *KeeperTestSuite) TestRetryTimeoutErrorGettingNext() {
 	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 	path.Setup()
 
-	pfmKeeper := keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
+	pfmKeeper := keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), s.chainA.GetSimApp().AccountKeeper.AddressCodec(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
 	ctx := s.chainA.GetContext()
 
 	// Create a transfer detail with invalid memo that will cause GetPacketMetadataFromPacketdata to fail
