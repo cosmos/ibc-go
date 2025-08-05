@@ -16,7 +16,7 @@ A user now wants to send this IBC denomination of token A, originating from chai
 
 However, this problem is prevalent within the ecosystem and there are cases of IBC denominations on chains with >2 hops in the path. 
 
-Regarding forwarding, if a user wants to transfer tokens between chains, then perform an action with those tokens, without forwarding, a user would have to sign each transaction on every chain and wait for the tokens to arrive at the destination before performing the next action. This is time consuming and a provides a poor user experience, a user also cannot just specify the desired outcome of their workflow in a trivial way.   
+Regarding forwarding, if a user wants to transfer tokens between chains, then perform an action with those tokens, without forwarding, a user would have to sign each transaction on every chain and wait for the tokens to arrive at the destination before performing the next action. This is time consuming and provides a poor user experience, a user also cannot just specify the desired outcome of their workflow in a trivial way.   
 
 ## Objectives
 
@@ -43,7 +43,7 @@ For example, ATOM is native to the Cosmos Hub, a user could transfer ATOM to Osm
 
 Liquid staking derivatives are minted on liquid staking zones and represent a staked asset. There is a common misconception from users that these derivatives originate on the chain of the original staked token. This results in users sending derivatives back to the chain of the natively staked token and then onto the next destination. 
 
-For examples, a user has stATOM on Osmosis, they want to move the stATOM to Evmos, instead of going from Osmosis --> Stride --> Evmos, a user tries to unwind themself and routes the tokens Osmosis --> Cosmos Hub --> Evmos. 
+For example, a user has stATOM on Osmosis, they want to move the stATOM to Evmos, instead of going from Osmosis --> Stride --> Evmos, a user tries to unwind themself and routes the tokens Osmosis --> Cosmos Hub --> Evmos. 
 
 ### 3. Moving a token that originated from an interoperability zone or chain, or asset issuer
 
