@@ -25,7 +25,7 @@ Packet Forward Middleware enables multi-hop token transfers by forwarding IBC pa
 The middleware can be configured to retry forwarding in the case that there was a timeout.
 - **Forwarding across multiple chains with nested memos:**
 Instructions on which route to take to forward a packet across more than one chain can be set within a nested JSON with the memo field
-- **Configurable Fee Deduction on Recieve:**
+- **Configurable Fee Deduction on Receive:**
 Integrators of PFM can choose to deduct a percentage of tokens forwarded through their chain and distribute these tokens to the community pool.
 
 ## How it works?
@@ -36,4 +36,4 @@ Integrators of PFM can choose to deduct a percentage of tokens forwarded through
 
 3. Acknowledgements are passed back step-by-step to the origin chain after the final hop succeeds or fails, along the same path used for forwarding.
 
-In practise, it can be challenging to correctly format the memo for the desired route. It is recommended to use the Skip API to correctly format the memo needed in `MsgTransfer` to make this easy. 
+In practice, it can be challenging to correctly format the memo for the desired route. It is recommended to use the Skip API to correctly format the memo needed in `MsgTransfer` to make this easy. 
