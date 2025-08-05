@@ -19,4 +19,4 @@ Rate limits are set through a governance-gated authority on a per denom, and per
 
 - If rate limits were set to be too low or high for a given channel/client, they can be updated with [`MsgUpdateRateLimit`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/rate-limiting/types/msgs.go#L81-L89). 
 - If rate limits are no longer needed, they can be removed with [`MsgRemoveRateLimit`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/rate-limiting/types/msgs.go#L136-L141).
-- If the flow counter needs to be resent for a given rate limit, it is possible to do so with [`MsgResetRateLimit`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/rate-limiting/types/msgs.go#L169-L174).
+- If the flow counter needs to be reset for a given rate limit, it is possible to do so with [`MsgResetRateLimit`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/rate-limiting/types/msgs.go#L169-L174).
