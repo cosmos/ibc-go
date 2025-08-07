@@ -12,7 +12,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
 	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
+	callbacksv2 "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channelkeeperv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
@@ -33,42 +33,42 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"success",
 			func() {
-				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
+				_ = callbacksv2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
 			nil,
 		},
 		{
 			"panics with nil ics4wrapper",
 			func() {
-				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, nil, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
+				_ = callbacksv2.NewIBCMiddleware(ibcmockv2.IBCModule{}, nil, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
 			errors.New("write acknowledgement wrapper cannot be nil"),
 		},
 		{
 			"panics with nil underlying app",
 			func() {
-				_ = v2.NewIBCMiddleware(nil, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
+				_ = callbacksv2.NewIBCMiddleware(nil, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
 			fmt.Errorf("underlying application does not implement %T", (*api.PacketUnmarshalerModuleV2)(nil)),
 		},
 		{
 			"panics with nil contract keeper",
 			func() {
-				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, nil, &channelkeeperv2.Keeper{}, maxCallbackGas)
+				_ = callbacksv2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, nil, &channelkeeperv2.Keeper{}, maxCallbackGas)
 			},
 			errors.New("contract keeper cannot be nil"),
 		},
 		{
 			"panics with nil channel v2 keeper",
 			func() {
-				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, nil, maxCallbackGas)
+				_ = callbacksv2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, nil, maxCallbackGas)
 			},
 			errors.New("channel keeper v2 cannot be nil"),
 		},
 		{
 			"panics with zero maxCallbackGas",
 			func() {
-				_ = v2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, uint64(0))
+				_ = callbacksv2.NewIBCMiddleware(ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, simapp.ContractKeeper{}, &channelkeeperv2.Keeper{}, uint64(0))
 			},
 			errors.New("maxCallbackGas cannot be zero"),
 		},
@@ -88,7 +88,7 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 func (s *CallbacksTestSuite) TestWithWriteAckWrapper() {
 	s.setupChains()
 
-	cbsMiddleware := v2.IBCMiddleware{}
+	cbsMiddleware := callbacksv2.IBCMiddleware{}
 	s.Require().Nil(cbsMiddleware.GetWriteAckWrapper())
 
 	cbsMiddleware.WithWriteAckWrapper(s.chainA.App.GetIBCKeeper().ChannelKeeperV2)
@@ -375,6 +375,9 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				)
 				s.Require().True(exists)
 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+
+			default:
+				s.T().Fatalf("unexpected expResult: %v", tc.expResult)
 			}
 		})
 	}
@@ -541,6 +544,9 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				)
 				s.Require().True(exists)
 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+
+			default:
+				s.T().Fatalf("unexpected expResult: %v", tc.expResult)
 			}
 		})
 	}
@@ -709,6 +715,9 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				)
 				s.Require().True(exists)
 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+
+			default:
+				s.T().Fatalf("unexpected expResult: %v", tc.expResult)
 			}
 		})
 	}

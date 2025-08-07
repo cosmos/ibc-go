@@ -375,6 +375,8 @@ func (s *AnteTestSuite) TestAnteDecoratorCheckTx() {
 						msgs = append(msgs, s.createTimeoutMessage(false))
 					case i >= 7 && i <= 9:
 						msgs = append(msgs, s.createTimeoutOnCloseMessage(false))
+					default:
+						// This should never be reached as the loop covers all cases
 					}
 				}
 				return msgs
@@ -405,6 +407,8 @@ func (s *AnteTestSuite) TestAnteDecoratorCheckTx() {
 						msgs = append(msgs, s.createTimeoutMessage(false))
 					case i >= 5 && i <= 7:
 						msgs = append(msgs, s.createTimeoutOnCloseMessage(true))
+					default:
+						// This should never be reached as the loop covers all cases
 					}
 				}
 				return msgs
@@ -435,6 +439,8 @@ func (s *AnteTestSuite) TestAnteDecoratorCheckTx() {
 						msgs = append(msgs, s.createTimeoutMessage(i != 5))
 					case i >= 7 && i <= 9:
 						msgs = append(msgs, s.createTimeoutOnCloseMessage(i != 8))
+					default:
+						// This should never be reached as the loop covers all cases
 					}
 				}
 				return msgs
@@ -515,6 +521,8 @@ func (s *AnteTestSuite) TestAnteDecoratorCheckTx() {
 						msgs = append(msgs, s.createTimeoutMessage(true))
 					case i >= 7 && i <= 9:
 						msgs = append(msgs, s.createTimeoutOnCloseMessage(true))
+					default:
+						// This should never be reached as the loop covers all cases
 					}
 				}
 				return msgs
@@ -599,6 +607,8 @@ func (s *AnteTestSuite) TestAnteDecoratorCheckTx() {
 						msgs = append(msgs, s.createTimeoutMessage(true))
 					case i >= 7 && i <= 9:
 						msgs = append(msgs, s.createTimeoutOnCloseMessage(true))
+					default:
+						// This should never be reached as the loop covers all cases
 					}
 				}
 				return msgs

@@ -207,6 +207,9 @@ func validateIBCDenom(denom string) error {
 		if _, err := ParseHexHash(denomSplit[1]); err != nil {
 			return errorsmod.Wrapf(err, "invalid denom trace hash %s", denomSplit[1])
 		}
+
+	default:
+		// Valid base denomination or other valid format
 	}
 
 	return nil
