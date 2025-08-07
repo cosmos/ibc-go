@@ -130,15 +130,6 @@ jobs:
       test-file: "e2e/tests/interchain_accounts/gov_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
-  ica-groups-test:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/interchain_accounts/groups_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-
   ica-localhost-test:
     needs:
       - build-release-images
