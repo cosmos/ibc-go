@@ -243,6 +243,9 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 		// incrementing nextSequenceRecv and storing under this chain's channelEnd identifiers
 		// Since this is the receiving chain, our channelEnd is packet's destination port and channel
 		k.SetNextSequenceRecv(ctx, packet.GetDestPort(), packet.GetDestChannel(), nextSequenceRecv)
+
+	default:
+		return errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "invalid channel ordering: %s", channel.Ordering)
 	}
 
 	return nil

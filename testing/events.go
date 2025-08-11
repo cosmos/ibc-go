@@ -205,6 +205,9 @@ func ParseIBCV2Packets(eventType string, events []abci.Event) ([]channeltypesv2.
 
 			case channeltypesv2.AttributeKeySrcClient:
 				packet.SourceClient = attr.Value
+
+			default:
+				// Ignore unknown attributes
 			}
 		}
 		packets = append(packets, packet)

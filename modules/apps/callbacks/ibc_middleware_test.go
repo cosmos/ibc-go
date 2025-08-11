@@ -438,6 +438,9 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				)
 				s.Require().True(exists)
 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+
+			default:
+				s.T().Fatalf("unexpected expResult: %v", tc.expResult)
 			}
 		})
 	}
@@ -609,6 +612,9 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				)
 				s.Require().True(exists)
 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+
+			default:
+				s.T().Fatalf("unexpected expResult: %v", tc.expResult)
 			}
 		})
 	}
@@ -782,6 +788,9 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				)
 				s.Require().True(exists)
 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+
+			default:
+				s.T().Fatalf("unexpected expResult: %v", tc.expResult)
 			}
 		})
 	}
