@@ -21,7 +21,7 @@ jobs:
       test-matrix: ${{ steps.set-test-matrix.outputs.test-matrix }}
     runs-on: depot-ubuntu-22.04-4
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
@@ -44,7 +44,7 @@ jobs:
       matrix: ${{ fromJSON(needs.load-test-matrix.outputs.test-matrix) }}
     steps:
       - name: Checkout the ibc-go repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v5
