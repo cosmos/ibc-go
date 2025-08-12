@@ -43,6 +43,8 @@ func TestCompareHeights(t *testing.T) {
 			case 1:
 				require.Equal(t, tc.compareSign, compare, "case %d: %s should return positive value on comparison, got: %d",
 					i, tc.name, compare)
+			default:
+				t.Fatalf("unexpected compareSign: %d", tc.compareSign)
 			}
 		})
 	}

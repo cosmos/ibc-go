@@ -29,7 +29,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, suite
 	if !debugModeEnabled {
 		// when we are not forcing log collection, we only upload upon test failing.
 		if !t.Failed() {
-			t.Logf("test passed, not uploading logs")
+			t.Log("test passed, not uploading logs")
 			return
 		}
 	}
@@ -95,7 +95,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, suite
 		if err := fetchAndWriteDockerInspectOutput(ctx, dc, container.ID, localFilePath); err != nil {
 			continue
 		}
-		t.Logf("successfully wrote docker inspect output")
+		t.Log("successfully wrote docker inspect output")
 	}
 }
 
