@@ -15,6 +15,8 @@ const (
 	V8_1 = "v8.1"
 	// V10 defines the upgrade name for the ibc-go/v10 upgrade handler.
 	V10 = "v10"
+	// V11 defines the upgrade name for the ibc-go/v11 upgrade handler.
+	V11 = "v11"
 )
 
 // CreateDefaultUpgradeHandler creates an upgrade handler which can be used for regular upgrade tests

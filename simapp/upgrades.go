@@ -4,6 +4,8 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	circuittypes "cosmossdk.io/x/circuit/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
+	ratelimitingtypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 
 	"github.com/cosmos/ibc-go/simapp/upgrades"
 )
@@ -48,4 +50,23 @@ func (app *SimApp) registerUpgradeHandlers() {
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
+
+	if upgradeInfo.Name == upgrades.V11 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{
+				packetforwardtypes.ModuleName,
+				ratelimitingtypes.ModuleName,
+			},
+		}
+		app.UpgradeKeeper.SetUpgradeHandler(
+			upgrades.V11,
+			upgrades.CreateDefaultUpgradeHandler(
+				app.ModuleManager,
+				app.configurator,
+			),
+		)
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
 }

@@ -52,6 +52,11 @@ jobs:
             upgrade-plan: v10,
             test: TestV8ToV10ChainUpgrade_Localhost
           },
+          {
+            tag: v10.3.0,
+            upgrade-plan: v11,
+            test: TestV10ToV11ChainUpgrade
+          },
         ]
     steps:
       - uses: actions/checkout@v4
