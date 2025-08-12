@@ -21,7 +21,7 @@ The rate limit middleware enforces rate limits on IBC token transfers coming int
 
 The rate limiting middleware determines whether tokens can flow into or out of a chain. The middleware does this by: 
 
-1. Check transfer limits for an asset (Quota): When tokens are recieved or sent, the middleware determines whether the amount of tokens flowing in or out have exceeded the limit. 
+1. Check transfer limits for an asset (Quota): When tokens are received or sent, the middleware determines whether the amount of tokens flowing in or out have exceeded the limit. 
 
 2. Track in or outflow: When tokens enter or leave the chain, the amount transferred is tracked in state
 

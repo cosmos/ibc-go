@@ -307,7 +307,7 @@ payload := channeltypesv2.NewPayload(
 )
 ```
 
-It is also possible to define your own custom success acknowledgement which will be returned to the sender if the packet is successfully recieved and is returned in the `RecvPacketResult`. Note that if the packet processing fails, it is not possible to define a custom error acknowledgment, a constant ackErr is returned. 
+It is also possible to define your own custom success acknowledgement which will be returned to the sender if the packet is successfully received and is returned in the `RecvPacketResult`. Note that if the packet processing fails, it is not possible to define a custom error acknowledgment, a constant ackErr is returned. 
 
 ## Routing
 

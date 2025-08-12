@@ -81,7 +81,7 @@ The `IBCModule` interface consists of the packet callbacks where cutom logic is 
 
 ### Packet callbacks
 
-The packet callbacks are where the middleware performs most of its custom logic. The middleware may read the packet flow data and perform some additional packet handling, or it may modify the incoming data before it reaches the underlying application. This enables a wide degree of usecases, as a simple base application like token-transfer can be transformed for a variety of usecases by combining it with custom middleware, for example acting as a filter for which tokens can be sent and recieved.
+The packet callbacks are where the middleware performs most of its custom logic. The middleware may read the packet flow data and perform some additional packet handling, or it may modify the incoming data before it reaches the underlying application. This enables a wide degree of usecases, as a simple base application like token-transfer can be transformed for a variety of usecases by combining it with custom middleware, for example acting as a filter for which tokens can be sent and received.
 
 #### `OnRecvPacket`
 
