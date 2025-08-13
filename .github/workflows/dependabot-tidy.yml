@@ -12,10 +12,10 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-24.04-4
     steps:
       - name: Check out PR
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.DEPENDABOT_PUSH_PAT }}
