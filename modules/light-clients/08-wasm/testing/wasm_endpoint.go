@@ -25,28 +25,28 @@ func NewWasmEndpoint(chain *ibctesting.TestChain) *WasmEndpoint {
 // CreateClient creates an wasm client on a mock cometbft chain.
 // The client and consensus states are represented by byte slices
 // and the starting height is 1.
-func (endpoint *WasmEndpoint) CreateClient() error {
+func (ep *WasmEndpoint) CreateClient() error {
 	checksum, err := types.CreateChecksum(Code)
-	require.NoError(endpoint.Chain.TB, err)
+	require.NoError(ep.Chain.TB, err)
 
-	wrappedClientStateBz := clienttypes.MustMarshalClientState(endpoint.Chain.App.AppCodec(), CreateMockTendermintClientState(clienttypes.NewHeight(1, 5)))
-	wrappedClientConsensusStateBz := clienttypes.MustMarshalConsensusState(endpoint.Chain.App.AppCodec(), MockTendermintClientConsensusState)
+	wrappedClientStateBz := clienttypes.MustMarshalClientState(ep.Chain.App.AppCodec(), CreateMockTendermintClientState(clienttypes.NewHeight(1, 5)))
+	wrappedClientConsensusStateBz := clienttypes.MustMarshalConsensusState(ep.Chain.App.AppCodec(), MockTendermintClientConsensusState)
 
 	clientState := types.NewClientState(wrappedClientStateBz, checksum, clienttypes.NewHeight(0, 1))
 	consensusState := types.NewConsensusState(wrappedClientConsensusStateBz)
 
 	msg, err := clienttypes.NewMsgCreateClient(
-		clientState, consensusState, endpoint.Chain.SenderAccount.GetAddress().String(),
+		clientState, consensusState, ep.Chain.SenderAccount.GetAddress().String(),
 	)
-	require.NoError(endpoint.Chain.TB, err)
+	require.NoError(ep.Chain.TB, err)
 
-	res, err := endpoint.Chain.SendMsgs(msg)
+	res, err := ep.Chain.SendMsgs(msg)
 	if err != nil {
 		return err
 	}
 
-	endpoint.ClientID, err = ibctesting.ParseClientIDFromEvents(res.Events)
-	require.NoError(endpoint.Chain.TB, err)
+	ep.ClientID, err = ibctesting.ParseClientIDFromEvents(res.Events)
+	require.NoError(ep.Chain.TB, err)
 
 	return nil
 }

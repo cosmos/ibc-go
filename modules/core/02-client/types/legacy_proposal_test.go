@@ -11,12 +11,12 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *TypesTestSuite) TestValidateBasic() {
-	subjectPath := ibctesting.NewPath(suite.chainA, suite.chainB)
+func (s *TypesTestSuite) TestValidateBasic() {
+	subjectPath := ibctesting.NewPath(s.chainA, s.chainB)
 	subjectPath.SetupClients()
 	subject := subjectPath.EndpointA.ClientID
 
-	substitutePath := ibctesting.NewPath(suite.chainA, suite.chainB)
+	substitutePath := ibctesting.NewPath(s.chainA, s.chainB)
 	substitutePath.SetupClients()
 	substitute := substitutePath.EndpointA.ClientID
 
@@ -53,20 +53,20 @@ func (suite *TypesTestSuite) TestValidateBasic() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.proposal.ValidateBasic()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().ErrorIs(err, tc.expErr, tc.name)
+				s.Require().ErrorIs(err, tc.expErr, tc.name)
 			}
 		})
 	}
 }
 
 // tests a client update proposal can be marshaled and unmarshaled
-func (suite *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
+func (s *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
 	// create proposal
 	proposal := types.NewClientUpdateProposal("update IBC client", "description", "subject", "substitute")
 
@@ -78,12 +78,12 @@ func (suite *TypesTestSuite) TestMarshalClientUpdateProposalProposal() {
 
 	// marshal message
 	content, ok := proposal.(*types.ClientUpdateProposal)
-	suite.Require().True(ok)
+	s.Require().True(ok)
 	bz, err := cdc.MarshalJSON(content)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	// unmarshal proposal
 	newProposal := &types.ClientUpdateProposal{}
 	err = cdc.UnmarshalJSON(bz, newProposal)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 }

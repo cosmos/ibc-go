@@ -71,7 +71,6 @@ func TestValidateGenesis(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := tc.genState.Validate()
 
 		expPass := tc.expError == nil

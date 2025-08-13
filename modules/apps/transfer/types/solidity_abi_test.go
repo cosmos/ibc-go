@@ -4,7 +4,7 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
-func (suite *TypesTestSuite) TestFTPD() {
+func (s *TypesTestSuite) TestFTPD() {
 	packetData := types.FungibleTokenPacketData{
 		Denom:    "uatom",
 		Amount:   "1000000",
@@ -14,10 +14,10 @@ func (suite *TypesTestSuite) TestFTPD() {
 	}
 
 	bz, err := types.EncodeABIFungibleTokenPacketData(&packetData)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	decodedPacketData, err := types.DecodeABIFungibleTokenPacketData(bz)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	suite.Require().Equal(packetData, *decodedPacketData)
+	s.Require().Equal(packetData, *decodedPacketData)
 }

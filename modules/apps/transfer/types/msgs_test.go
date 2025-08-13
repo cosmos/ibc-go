@@ -27,7 +27,7 @@ const (
 	// 195 characters
 	invalidLongPort = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis eros neque, ultricies vel ligula ac, convallis porttitor elit. Maecenas tincidunt turpis elit, vel faucibus nisl pellentesque sodales"
 
-	validChannel        = "testchannel"
+	validChannel        = "channel-5"
 	eurekaClient        = "07-tendermint-0"
 	invalidChannel      = "(invalidchannel1)"
 	invalidShortChannel = "invalid"
@@ -58,11 +58,13 @@ func TestMsgTransferValidation(t *testing.T) {
 		expError error
 	}{
 		{"valid msg with base denom", types.NewMsgTransfer(validPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
+		{"valid aliased channel", types.NewMsgTransferAliased(validPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
+		{"valid aliased channel with encoding", types.NewMsgTransferWithEncoding(validPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, "", "application/json", true), nil},
 		{"valid eureka msg with base denom", types.NewMsgTransfer(validPort, eurekaClient, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
-		{"valid eureka msg with base denom and encoding", types.NewMsgTransferWithEncoding(validPort, eurekaClient, coin, sender, receiver, clienttypes.ZeroHeight(), 100, "", "application/json"), nil},
+		{"valid eureka msg with base denom and encoding", types.NewMsgTransferWithEncoding(validPort, eurekaClient, coin, sender, receiver, clienttypes.ZeroHeight(), 100, "", "application/json", false), nil},
 		{"valid msg with trace hash", types.NewMsgTransfer(validPort, validChannel, ibcCoin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
 		{"valid eureka msg with trace hash", types.NewMsgTransfer(validPort, eurekaClient, ibcCoin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), nil},
-		{"valid eureka msg with trace hash with encoding", types.NewMsgTransferWithEncoding(validPort, eurekaClient, ibcCoin, sender, receiver, clienttypes.ZeroHeight(), 100, "", "application/json"), nil},
+		{"valid eureka msg with trace hash with encoding", types.NewMsgTransferWithEncoding(validPort, eurekaClient, ibcCoin, sender, receiver, clienttypes.ZeroHeight(), 100, "", "application/json", false), nil},
 		{"invalid ibc denom", types.NewMsgTransfer(validPort, validChannel, invalidIBCCoin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), ibcerrors.ErrInvalidCoins},
 		{"too short port id", types.NewMsgTransfer(invalidShortPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), host.ErrInvalidID},
 		{"too long port id", types.NewMsgTransfer(invalidLongPort, validChannel, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), host.ErrInvalidID},
@@ -77,6 +79,7 @@ func TestMsgTransferValidation(t *testing.T) {
 		{"missing recipient address", types.NewMsgTransfer(validPort, validChannel, coin, sender, "", clienttypes.ZeroHeight(), 100, ""), ibcerrors.ErrInvalidAddress},
 		{"too long recipient address", types.NewMsgTransfer(validPort, validChannel, coin, sender, ibctesting.GenerateString(types.MaximumReceiverLength+1), clienttypes.ZeroHeight(), 100, ""), ibcerrors.ErrInvalidAddress},
 		{"empty coin", types.NewMsgTransfer(validPort, validChannel, sdk.Coin{}, sender, receiver, clienttypes.ZeroHeight(), 100, ""), ibcerrors.ErrInvalidCoins},
+		{"invalid aliased channel", types.NewMsgTransferAliased(validPort, eurekaClient, coin, sender, receiver, clienttypes.ZeroHeight(), 100, ""), host.ErrInvalidID},
 	}
 
 	for _, tc := range testCases {

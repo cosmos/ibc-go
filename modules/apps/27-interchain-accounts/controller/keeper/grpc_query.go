@@ -15,7 +15,7 @@ import (
 var _ types.QueryServer = (*Keeper)(nil)
 
 // InterchainAccount implements the Query/InterchainAccount gRPC method
-func (k Keeper) InterchainAccount(goCtx context.Context, req *types.QueryInterchainAccountRequest) (*types.QueryInterchainAccountResponse, error) {
+func (k *Keeper) InterchainAccount(goCtx context.Context, req *types.QueryInterchainAccountRequest) (*types.QueryInterchainAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -38,7 +38,7 @@ func (k Keeper) InterchainAccount(goCtx context.Context, req *types.QueryInterch
 }
 
 // Params implements the Query/Params gRPC method
-func (k Keeper) Params(goCtx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (k *Keeper) Params(goCtx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	params := k.GetParams(ctx)
 
