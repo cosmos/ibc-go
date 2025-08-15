@@ -12,14 +12,14 @@ The Inter-Blockchain Communication Protocol (IBC) is a protocol that allows bloc
 The protocol realizes this interoperability by specifying a set of data structures, abstractions, and semantics that can be implemented by any distributed ledger that satisfies a small set of requirements.
 
 :::note Notice
-Since ibc-go v10, there are two versions of the protocol in the same release: IBC classic and IBC v2. The protocols are seperate - a connection uses either IBC classic or IBC v2
+Since ibc-go v10, there are two versions of the protocol in the same release: IBC classic and IBC v2. The protocols are separate - a connection uses either IBC classic or IBC v2
 :::
 
 ## High-level overview of IBC v2
 
 For a high level overview of IBC v2, please refer to [this blog post.](https://ibcprotocol.dev/blog/ibc-v2-announcement) For a more detailed understanding of the IBC v2 protocol, please refer to the [IBC v2 protocol specification.](https://github.com/cosmos/ibc/tree/main/spec/IBC_V2)
 
-If you are interested in using the cannonical deployment of IBC v2, connecting Cosmos chains and Ethereum, take a look at the [IBC Eureka](https://docs.skip.build/go/eureka/eureka-overview) documentation to get started.
+If you are interested in using the canonical deployment of IBC v2, connecting Cosmos chains and Ethereum, take a look at the [IBC Eureka](https://docs.skip.build/go/eureka/eureka-overview) documentation to get started.
 
 ## High-level overview of IBC Classic
 
