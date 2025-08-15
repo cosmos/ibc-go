@@ -142,7 +142,7 @@ func (chain *TestChain) NextBlock() {
 ```go
 // good
 func (c *TestChain) NextBlock() {
-    // Ommitted
+    // Omitted
 ```
 
 ---
