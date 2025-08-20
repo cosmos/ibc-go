@@ -20,7 +20,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	grouptypes "github.com/cosmos/cosmos-sdk/x/group"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
@@ -83,7 +82,6 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 	govv1.RegisterInterfaces(cfg.InterfaceRegistry)
 	authtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	cryptocodec.RegisterInterfaces(cfg.InterfaceRegistry)
-	grouptypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	proposaltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	authz.RegisterInterfaces(cfg.InterfaceRegistry)
 	txtypes.RegisterInterfaces(cfg.InterfaceRegistry)

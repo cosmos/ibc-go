@@ -32,7 +32,7 @@ env:
 
 jobs:
   determine-image-tag:
-    runs-on: depot-ubuntu-22.04-4
+    runs-on: depot-ubuntu-24.04-4
     outputs:
       release-version: ${{ steps.set-release-version.outputs.release-version }}
     steps:
@@ -46,7 +46,7 @@ jobs:
   # build-release-images builds all docker images that are relevant for the compatibility tests. If a single release
   # branch is specified, only that image will be built, e.g. release-v6.0.x.
   build-release-images:
-    runs-on: depot-ubuntu-22.04-4
+    runs-on: depot-ubuntu-24.04-4
     permissions:
       packages: write
       contents: read
@@ -59,7 +59,7 @@ jobs:
           - release/v10.3.x
           - main
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: env.RELEASE_BRANCH == matrix.release-branch
         with:
           ref: "${{ matrix.release-branch }}"
@@ -128,15 +128,6 @@ jobs:
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file: "e2e/tests/interchain_accounts/gov_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-
-  ica-groups-test:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/interchain_accounts/groups_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
   ica-localhost-test:

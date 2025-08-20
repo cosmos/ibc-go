@@ -61,6 +61,12 @@ linters:
             - fmt.Printf
             - fmt.Print
             - fmt.Println
+        - name: var-naming
+          disabled: false
+          arguments:
+            - []
+            - []
+            - [ skipPackageNameChecks: true ]
         # Disabled rules
         # TODO: Some of these are kinda code smelly, should reconsider some of them
         - name: add-constant

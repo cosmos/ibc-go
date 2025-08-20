@@ -300,6 +300,9 @@ func (s *TransferTestSuite) TestMultiPayloadTransferV2Flow() {
 				s.Require().False(hasReceipt, "packet receipt should not exist after timeout error")
 				// packet acknowledgement should not be written
 				s.Require().False(hasAck, "packet acknowledgement should not exist after timeout error")
+
+			default:
+				s.T().Fatalf("unexpected expRes: %v", tc.expRes)
 			}
 		})
 	}
