@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -161,62 +163,92 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 }
 
 func (s *KeeperTestSuite) TestForwardTransferPacket() {
-	s.SetupTest()
-	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
-	path.Setup()
-
-	pfmKeeper := keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), s.chainA.GetSimApp().AccountKeeper.AddressCodec(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
-
-	ctx := s.chainA.GetContext()
-	srcPacket := channeltypes.Packet{
-		Data:               []byte{1},
-		Sequence:           1,
-		SourcePort:         path.EndpointA.ChannelConfig.PortID,
-		SourceChannel:      path.EndpointA.ChannelID,
-		DestinationPort:    path.EndpointB.ChannelConfig.PortID,
-		DestinationChannel: path.EndpointB.ChannelID,
-		TimeoutHeight: clienttypes.Height{
-			RevisionNumber: 10,
-			RevisionHeight: 100,
+	var (
+		pfmKeeper     *keeper.Keeper
+		initialSender string
+		finalReceiver string
+	)
+	tests := []struct {
+		name     string
+		malleate func()
+	}{
+		{
+			name:     "success: standard cosmos address",
+			malleate: func() {},
 		},
-		TimeoutTimestamp: 10101001,
+		{
+			name: "success: with hex address codec",
+			malleate: func() {
+				pfmKeeper = keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), testAddressCodec{}, runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
+
+				initialSender = hex.EncodeToString(s.chainA.SenderAccount.GetAddress().Bytes())
+				finalReceiver = hex.EncodeToString(s.chainB.SenderAccount.GetAddress().Bytes())
+			},
+		},
 	}
 
-	retries := uint8(2)
-	timeout := time.Duration(1010101010)
-	nonRefundable := false
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+			path := ibctesting.NewTransferPath(s.chainA, s.chainB)
+			path.Setup()
 
-	metadata := pfmtypes.ForwardMetadata{
-		Receiver: "first-receiver",
-		Port:     path.EndpointA.ChannelConfig.PortID,
-		Channel:  path.EndpointA.ChannelID,
-		Timeout:  timeout,
-		Retries:  &retries,
-		Next:     nil,
+			pfmKeeper = keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), s.chainA.GetSimApp().AccountKeeper.AddressCodec(), runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
+
+			ctx := s.chainA.GetContext()
+			srcPacket := channeltypes.Packet{
+				Data:               []byte{1},
+				Sequence:           1,
+				SourcePort:         path.EndpointA.ChannelConfig.PortID,
+				SourceChannel:      path.EndpointA.ChannelID,
+				DestinationPort:    path.EndpointB.ChannelConfig.PortID,
+				DestinationChannel: path.EndpointB.ChannelID,
+				TimeoutHeight: clienttypes.Height{
+					RevisionNumber: 10,
+					RevisionHeight: 100,
+				},
+				TimeoutTimestamp: 10101001,
+			}
+
+			retries := uint8(2)
+			timeout := time.Duration(1010101010)
+			nonRefundable := false
+
+			metadata := pfmtypes.ForwardMetadata{
+				Receiver: "first-receiver",
+				Port:     path.EndpointA.ChannelConfig.PortID,
+				Channel:  path.EndpointA.ChannelID,
+				Timeout:  timeout,
+				Retries:  &retries,
+				Next:     nil,
+			}
+
+			initialSender = s.chainA.SenderAccount.GetAddress().String()
+			finalReceiver = s.chainB.SenderAccount.GetAddress().String()
+
+			tc.malleate()
+
+			err := pfmKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender, finalReceiver, metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
+			s.Require().NoError(err)
+
+			// Get the inflight packer
+			inflightPacket, err := pfmKeeper.GetInflightPacket(ctx, srcPacket)
+			s.Require().NoError(err)
+
+			s.Require().Equal(inflightPacket.RetriesRemaining, int32(retries))
+
+			// Call the same function again with inflight packet. Num retries should decrease.
+			err = pfmKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender, finalReceiver, metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
+			s.Require().NoError(err)
+
+			// Get the inflight packer
+			inflightPacket2, err := pfmKeeper.GetInflightPacket(ctx, srcPacket)
+			s.Require().NoError(err)
+
+			s.Require().Equal(inflightPacket.RetriesRemaining, inflightPacket2.RetriesRemaining)
+			s.Require().Equal(int32(retries-1), inflightPacket.RetriesRemaining)
+		})
 	}
-
-	initialSender := s.chainA.SenderAccount.GetAddress()
-	finalReceiver := s.chainB.SenderAccount.GetAddress()
-
-	err := pfmKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
-	s.Require().NoError(err)
-
-	// Get the inflight packer
-	inflightPacket, err := pfmKeeper.GetInflightPacket(ctx, srcPacket)
-	s.Require().NoError(err)
-
-	s.Require().Equal(inflightPacket.RetriesRemaining, int32(retries))
-
-	// Call the same function again with inflight packet. Num retries should decrease.
-	err = pfmKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
-	s.Require().NoError(err)
-
-	// Get the inflight packer
-	inflightPacket2, err := pfmKeeper.GetInflightPacket(ctx, srcPacket)
-	s.Require().NoError(err)
-
-	s.Require().Equal(inflightPacket.RetriesRemaining, inflightPacket2.RetriesRemaining)
-	s.Require().Equal(int32(retries-1), inflightPacket.RetriesRemaining)
 }
 
 func (s *KeeperTestSuite) TestForwardTransferPacketWithNext() {
@@ -333,4 +365,24 @@ func (*transferMock) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string
 
 func (*transferMock) GetPort(ctx sdk.Context) string {
 	return ""
+}
+
+type testAddressCodec struct{}
+
+func (t testAddressCodec) StringToBytes(text string) ([]byte, error) {
+	hexBytes, err := sdk.AccAddressFromHexUnsafe(text)
+	if err == nil {
+		return hexBytes, nil
+	}
+
+	bech32Bytes, err := sdk.AccAddressFromBech32(text)
+	if err == nil {
+		return bech32Bytes, nil
+	}
+
+	return nil, errors.New("invalid address format")
+}
+
+func (t testAddressCodec) BytesToString(bz []byte) (string, error) {
+	return sdk.AccAddress(bz).String(), nil
 }
