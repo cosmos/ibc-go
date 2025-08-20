@@ -53,14 +53,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new forward Keeper instance
-func NewKeeper(
-	cdc codec.BinaryCodec,
-	addressCodec address.Codec,
-	storeService corestore.KVStoreService,
-	transferKeeper types.TransferKeeper,
-	channelKeeper types.ChannelKeeper,
-	bankKeeper types.BankKeeper,
-	authority string,
+func NewKeeper(cdc codec.BinaryCodec, addressCodec address.Codec, storeService corestore.KVStoreService, transferKeeper types.TransferKeeper, channelKeeper types.ChannelKeeper, bankKeeper types.BankKeeper, authority string,
 ) *Keeper {
 	return &Keeper{
 		cdc:            cdc,

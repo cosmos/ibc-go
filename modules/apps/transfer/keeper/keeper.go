@@ -42,16 +42,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
-func NewKeeper(
-	cdc codec.BinaryCodec,
-	addressCodec address.Codec,
-	storeService corestore.KVStoreService,
-	channelKeeper types.ChannelKeeper,
-	msgRouter types.MessageRouter,
-	authKeeper types.AccountKeeper,
-	bankKeeper types.BankKeeper,
-	authority string,
-) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, addressCodec address.Codec, storeService corestore.KVStoreService, channelKeeper types.ChannelKeeper, msgRouter types.MessageRouter, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper, authority string) *Keeper {
 	// ensure ibc transfer module account is set
 	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(errors.New("the IBC transfer module account has not been set"))

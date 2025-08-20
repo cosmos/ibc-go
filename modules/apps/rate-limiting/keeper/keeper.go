@@ -31,15 +31,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new rate-limiting Keeper instance
-func NewKeeper(
-	cdc codec.BinaryCodec,
-	addressCodec address.Codec,
-	storeService corestore.KVStoreService,
-	channelKeeper types.ChannelKeeper,
-	clientKeeper types.ClientKeeper,
-	bankKeeper types.BankKeeper,
-	authority string,
-) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, addressCodec address.Codec, storeService corestore.KVStoreService, channelKeeper types.ChannelKeeper, clientKeeper types.ClientKeeper, bankKeeper types.BankKeeper, authority string) *Keeper {
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
