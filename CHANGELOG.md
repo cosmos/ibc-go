@@ -37,7 +37,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased]
 
 ### Features
-
+* [\#8573](https://github.com/cosmos/ibc-go/pull/8573) Support custom address codecs in transfer, PFM, and rate limiting.
 * [\#8285](https://github.com/cosmos/ibc-go/pull/8285) Packet forward middleware.
 * [\#8545](https://github.com/cosmos/ibc-go/pull/8545) Support sending multiple payloads in the same packet for atomic payload execution.
 * [\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.

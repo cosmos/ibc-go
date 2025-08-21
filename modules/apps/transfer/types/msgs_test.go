@@ -114,7 +114,6 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 		expError error
 	}{
 		{"success: valid signer and valid params", types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()), nil},
-		{"failure: invalid signer with valid params", types.NewMsgUpdateParams(invalidAddress, types.DefaultParams()), ibcerrors.ErrInvalidAddress},
 		{"failure: empty signer with valid params", types.NewMsgUpdateParams(emptyAddr, types.DefaultParams()), ibcerrors.ErrInvalidAddress},
 	}
 

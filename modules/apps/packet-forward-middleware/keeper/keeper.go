@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-metrics"
 
+	"cosmossdk.io/core/address"
 	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
@@ -39,6 +40,7 @@ var (
 type Keeper struct {
 	storeService corestore.KVStoreService
 	cdc          codec.BinaryCodec
+	addressCodec address.Codec
 
 	transferKeeper types.TransferKeeper
 	channelKeeper  types.ChannelKeeper
@@ -51,9 +53,11 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new forward Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, transferKeeper types.TransferKeeper, channelKeeper types.ChannelKeeper, bankKeeper types.BankKeeper, authority string) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, addressCodec address.Codec, storeService corestore.KVStoreService, transferKeeper types.TransferKeeper, channelKeeper types.ChannelKeeper, bankKeeper types.BankKeeper, authority string,
+) *Keeper {
 	return &Keeper{
 		cdc:            cdc,
+		addressCodec:   addressCodec,
 		storeService:   storeService,
 		transferKeeper: transferKeeper,
 		// Defaults to using the channel keeper as the ICS4Wrapper
@@ -102,7 +106,7 @@ func (k *Keeper) moveFundsToUserRecoverableAccount(ctx sdk.Context, packet chann
 	denom := token.GetDenom()
 	coin := sdk.NewCoin(denom.IBCDenom(), amount)
 
-	userAccount, err := userRecoverableAccount(inFlightPacket)
+	userAccount, err := k.userRecoverableAccount(inFlightPacket)
 	if err != nil {
 		return fmt.Errorf("failed to get user recoverable account: %w", err)
 	}
@@ -135,11 +139,11 @@ func (k *Keeper) moveFundsToUserRecoverableAccount(ctx sdk.Context, packet chann
 // If the destination receiver of the original packet is a valid bech32 address for this chain, we use that address.
 // Otherwise, if the sender of the original packet is a valid bech32 address for another chain, we translate that address to this chain.
 // Note that for the fallback, the coin type of the source chain sender account must be compatible with this chain.
-func userRecoverableAccount(inFlightPacket *types.InFlightPacket) (sdk.AccAddress, error) {
+func (k *Keeper) userRecoverableAccount(inFlightPacket *types.InFlightPacket) (sdk.AccAddress, error) {
 	var originalData transfertypes.FungibleTokenPacketData
 	err := transfertypes.ModuleCdc.UnmarshalJSON(inFlightPacket.PacketData, &originalData)
 	if err == nil { // if NO error
-		sender, err := sdk.AccAddressFromBech32(originalData.Receiver)
+		sender, err := k.addressCodec.StringToBytes(originalData.Receiver)
 		if err == nil { // if NO error
 			return sender, nil
 		}
