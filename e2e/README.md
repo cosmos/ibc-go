@@ -4,14 +4,17 @@
 2. [Adding a new test](#adding-a-new-test)
 3. [Test design](#test-design)
    - a. [interchaintest](#interchaintest)
-   - b. [CI configuration](#ci-configuration)
-4. [Building images](#building-and-pushing-images)
-5. [Compatibility Tests](#compatibility-tests)
+   - b. [Test Suites](#test-suites)
+   - c. [When to use t.Parallel()](#when-to-use-tparallel)
+   - d. [CI Configuration](#ci-configuration)
+4. [How Tests Are Run](#how-tests-are-run)
+5. [Building and pushing images](#building-and-pushing-images)
+6. [Compatibility Tests](#compatibility-tests)
    - a. [Running Compatibility Tests](#running-compatibility-tests)
    - b. [How Compatibility Tests Work](#how-compatibility-tests-work)
-6. [Troubleshooting](#troubleshooting)
-7. [Importable Workflow](#importable-workflow)
-8. [Future Improvements](#future-improvements)
+7. [Troubleshooting](#troubleshooting)
+   - a. [Accessing Logs](#accessing-logs)
+   - b. [Prerequisites](#prerequisites)
 
 # Running tests
 
