@@ -37,7 +37,6 @@ func TestValidateGenesis(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := tc.genState.Validate()
 		if tc.expErr == nil {
 			require.NoError(t, err, tc.name)

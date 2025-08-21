@@ -13,9 +13,9 @@ on:
 
 jobs:
   push:
-    runs-on: depot-ubuntu-22.04-4
+    runs-on: depot-ubuntu-24.04-4
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: bufbuild/buf-action@v1
         with:
           token: ${{ secrets.BUF_TOKEN }}

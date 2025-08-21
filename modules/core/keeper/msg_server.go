@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -119,24 +120,6 @@ func (k *Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrad
 	}
 
 	return &clienttypes.MsgUpgradeClientResponse{}, nil
-}
-
-// SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
-// Warning: DEPRECATED
-// This handler is redundant as `MsgUpdateClient` is now capable of handling both a Header and a Misbehaviour
-func (k *Keeper) SubmitMisbehaviour(goCtx context.Context, msg *clienttypes.MsgSubmitMisbehaviour) (*clienttypes.MsgSubmitMisbehaviourResponse, error) { //nolint:staticcheck // for now, we're using msgsubmitmisbehaviour.
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	misbehaviour, err := clienttypes.UnpackClientMessage(msg.Misbehaviour)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = k.ClientKeeper.UpdateClient(ctx, msg.ClientId, misbehaviour); err != nil {
-		return nil, err
-	}
-
-	return &clienttypes.MsgSubmitMisbehaviourResponse{}, nil
 }
 
 // RecoverClient defines a rpc handler method for MsgRecoverClient.
@@ -448,11 +431,10 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *channeltypes.MsgRecvPack
 	cacheCtx, writeFn := ctx.CacheContext()
 	channelVersion, err := k.ChannelKeeper.RecvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case channeltypes.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
+	case errors.Is(err, channeltypes.ErrNoOpMsg):
 		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
 		return &channeltypes.MsgRecvPacketResponse{Result: channeltypes.NOOP}, nil
 	default:
@@ -513,11 +495,10 @@ func (k *Keeper) Timeout(goCtx context.Context, msg *channeltypes.MsgTimeout) (*
 	cacheCtx, writeFn := ctx.CacheContext()
 	channelVersion, err := k.ChannelKeeper.TimeoutPacket(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofHeight, msg.NextSequenceRecv)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case channeltypes.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
+	case errors.Is(err, channeltypes.ErrNoOpMsg):
 		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
 		return &channeltypes.MsgTimeoutResponse{Result: channeltypes.NOOP}, nil
 	default:
@@ -562,11 +543,10 @@ func (k *Keeper) TimeoutOnClose(goCtx context.Context, msg *channeltypes.MsgTime
 	cacheCtx, writeFn := ctx.CacheContext()
 	channelVersion, err := k.ChannelKeeper.TimeoutOnClose(cacheCtx, msg.Packet, msg.ProofUnreceived, msg.ProofClose, msg.ProofHeight, msg.NextSequenceRecv)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case channeltypes.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
+	case errors.Is(err, channeltypes.ErrNoOpMsg):
 		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
 		return &channeltypes.MsgTimeoutOnCloseResponse{Result: channeltypes.NOOP}, nil
 	default:
@@ -615,11 +595,10 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 	cacheCtx, writeFn := ctx.CacheContext()
 	channelVersion, err := k.ChannelKeeper.AcknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case channeltypes.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
+	case errors.Is(err, channeltypes.ErrNoOpMsg):
 		ctx.Logger().Debug("no-op on redundant relay", "port-id", msg.Packet.SourcePort, "channel-id", msg.Packet.SourceChannel)
 		return &channeltypes.MsgAcknowledgementResponse{Result: channeltypes.NOOP}, nil
 	default:

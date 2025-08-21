@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/hex"
+	"errors"
 	"io"
 
 	errorsmod "cosmossdk.io/errors"
@@ -131,7 +132,7 @@ func (ws *WasmSnapshotter) processAllItems(
 	ctx := sdk.NewContext(ws.cms, cmtproto.Header{Height: int64(height)}, false, nil)
 	for {
 		payload, err := payloadReader()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		} else if err != nil {
 			return err

@@ -79,7 +79,7 @@ func TestProposalMsgs(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// execute ProposalMsgs function
 			weightedProposalMsgs := simulation.ProposalMsgs(tc.controller, tc.host)
-			require.Equal(t, len(tc.expMsgs), len(weightedProposalMsgs))
+			require.Len(t, weightedProposalMsgs, len(tc.expMsgs))
 
 			for idx, weightedMsg := range weightedProposalMsgs {
 				// tests weighted interface:

@@ -43,13 +43,13 @@ func NewVersion(identifier string, features []string) *Version {
 }
 
 // GetIdentifier implements the VersionI interface
-func (version Version) GetIdentifier() string {
-	return version.Identifier
+func (v Version) GetIdentifier() string {
+	return v.Identifier
 }
 
 // GetFeatures implements the VersionI interface
-func (version Version) GetFeatures() []string {
-	return version.Features
+func (v Version) GetFeatures() []string {
+	return v.Features
 }
 
 // ValidateVersion does basic validation of the version identifier and
@@ -77,11 +77,11 @@ func ValidateVersion(version *Version) error {
 // proposed version is supported by this chain. If the feature set is
 // empty it verifies that this is allowed for the specified version
 // identifier.
-func (version Version) VerifyProposedVersion(proposedVersion *Version) error {
-	if proposedVersion.GetIdentifier() != version.GetIdentifier() {
+func (v Version) VerifyProposedVersion(proposedVersion *Version) error {
+	if proposedVersion.GetIdentifier() != v.GetIdentifier() {
 		return errorsmod.Wrapf(
 			ErrVersionNegotiationFailed,
-			"proposed version identifier does not equal supported version identifier (%s != %s)", proposedVersion.GetIdentifier(), version.GetIdentifier(),
+			"proposed version identifier does not equal supported version identifier (%s != %s)", proposedVersion.GetIdentifier(), v.GetIdentifier(),
 		)
 	}
 
@@ -93,10 +93,10 @@ func (version Version) VerifyProposedVersion(proposedVersion *Version) error {
 	}
 
 	for _, proposedFeature := range proposedVersion.GetFeatures() {
-		if !slices.Contains(version.GetFeatures(), proposedFeature) {
+		if !slices.Contains(v.GetFeatures(), proposedFeature) {
 			return errorsmod.Wrapf(
 				ErrVersionNegotiationFailed,
-				"proposed feature (%s) is not a supported feature set (%s)", proposedFeature, version.GetFeatures(),
+				"proposed feature (%s) is not a supported feature set (%s)", proposedFeature, v.GetFeatures(),
 			)
 		}
 	}
@@ -181,7 +181,8 @@ func PickVersion(supportedVersions, counterpartyVersions []*Version) (*Version, 
 // and the counterparty feature set. This is done by iterating over all the
 // features in the source version and seeing if they exist in the feature
 // set for the counterparty version.
-func GetFeatureSetIntersection(sourceFeatureSet, counterpartyFeatureSet []string) (featureSet []string) {
+func GetFeatureSetIntersection(sourceFeatureSet, counterpartyFeatureSet []string) []string {
+	var featureSet []string
 	for _, feature := range sourceFeatureSet {
 		if slices.Contains(counterpartyFeatureSet, feature) {
 			featureSet = append(featureSet, feature)
