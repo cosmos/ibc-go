@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -23,6 +22,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
 type KeeperTestSuite struct {
@@ -179,7 +179,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 		{
 			name: "success: with hex address codec",
 			malleate: func() {
-				pfmKeeper = keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), testAddressCodec{}, runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
+				pfmKeeper = keeper.NewKeeper(s.chainA.GetSimApp().AppCodec(), ibcmock.TestAddressCodec{}, runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey)), &transferMock{}, s.chainA.GetSimApp().IBCKeeper.ChannelKeeper, s.chainA.GetSimApp().BankKeeper, "authority")
 
 				initialSender = hex.EncodeToString(s.chainA.SenderAccount.GetAddress().Bytes())
 				finalReceiver = hex.EncodeToString(s.chainB.SenderAccount.GetAddress().Bytes())
@@ -365,24 +365,4 @@ func (*transferMock) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string
 
 func (*transferMock) GetPort(ctx sdk.Context) string {
 	return ""
-}
-
-type testAddressCodec struct{}
-
-func (t testAddressCodec) StringToBytes(text string) ([]byte, error) {
-	hexBytes, err := sdk.AccAddressFromHexUnsafe(text)
-	if err == nil {
-		return hexBytes, nil
-	}
-
-	bech32Bytes, err := sdk.AccAddressFromBech32(text)
-	if err == nil {
-		return bech32Bytes, nil
-	}
-
-	return nil, errors.New("invalid address format")
-}
-
-func (t testAddressCodec) BytesToString(bz []byte) (string, error) {
-	return sdk.AccAddress(bz).String(), nil
 }

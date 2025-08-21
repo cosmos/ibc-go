@@ -1,17 +1,16 @@
 package keeper_test
 
 import (
-	"errors"
 	"testing"
 
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
 	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
 type KeeperTestSuite struct {
@@ -61,7 +60,7 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 			instantiateFn: func() {
 				keeper.NewKeeper(
 					s.chainA.GetSimApp().AppCodec(),
-					testAddressCodec{},
+					ibcmock.TestAddressCodec{},
 					runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey)),
 					s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
 					s.chainA.GetSimApp().IBCKeeper.ClientKeeper, // Add clientKeeper
@@ -99,24 +98,4 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 			}
 		})
 	}
-}
-
-type testAddressCodec struct{}
-
-func (t testAddressCodec) StringToBytes(text string) ([]byte, error) {
-	hexBytes, err := sdk.AccAddressFromHexUnsafe(text)
-	if err == nil {
-		return hexBytes, nil
-	}
-
-	bech32Bytes, err := sdk.AccAddressFromBech32(text)
-	if err == nil {
-		return bech32Bytes, nil
-	}
-
-	return nil, errors.New("invalid address format")
-}
-
-func (t testAddressCodec) BytesToString(bz []byte) (string, error) {
-	return sdk.AccAddress(bz).String(), nil
 }

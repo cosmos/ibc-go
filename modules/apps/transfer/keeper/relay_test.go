@@ -31,26 +31,6 @@ var (
 	defaultAmount = ibctesting.DefaultCoinAmount
 )
 
-type TestAddressCodec struct{}
-
-func (t TestAddressCodec) StringToBytes(text string) ([]byte, error) {
-	hexBytes, err := sdk.AccAddressFromHexUnsafe(text)
-	if err == nil {
-		return hexBytes, nil
-	}
-
-	bech32Bytes, err := sdk.AccAddressFromBech32(text)
-	if err == nil {
-		return bech32Bytes, nil
-	}
-
-	return nil, errors.New("invalid address format")
-}
-
-func (t TestAddressCodec) BytesToString(bz []byte) (string, error) {
-	return sdk.AccAddress(bz).String(), nil
-}
-
 // TestSendTransfer tests sending from chainA to chainB using both coin
 // that originate on chainA and coin that originate on chainB.
 func (s *KeeperTestSuite) TestSendTransfer() {
@@ -360,7 +340,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 		{
 			"success: receive with hex receiver address",
 			func() {
-				s.chainB.GetSimApp().TransferKeeper.SetAddressCodec(TestAddressCodec{})
+				s.chainB.GetSimApp().TransferKeeper.SetAddressCodec(ibcmock.TestAddressCodec{})
 
 				receiver := sdk.MustAccAddressFromBech32(packetData.Receiver)
 				packetData.Receiver = hex.EncodeToString(receiver.Bytes())
