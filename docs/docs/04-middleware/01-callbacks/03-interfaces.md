@@ -32,7 +32,7 @@ If the underlying application is a middleware itself, then it can implement this
 ### `PacketDataProvider`
 
 ```go
-// PacketDataProvider defines an optional interfaces for retrieving custom packet data stored on behalf of another application.
+// PacketDataProvider defines an optional interface for retrieving custom packet data stored on behalf of another application.
 // An existing problem in the IBC middleware design is the inability for a middleware to define its own packet data type and insert packet sender provided information.
 // A short term solution was introduced into several application's packet data to utilize a memo field to carry this information on behalf of another application.
 // This interfaces standardizes that behaviour. Upon realization of the ability for middleware's to define their own packet data types, this interface will be deprecated and removed with time.
@@ -59,7 +59,7 @@ type PacketData interface {
 }
 ```
 
-[`PacketData`](https://github.com/cosmos/ibc-go/blob/v7.3.0/modules/core/exported/packet.go#L36-L41) is an optional interface that can be implemented by the underlying ibc application's packet data type. It is used to retrieve the packet sender address from the packet data. The callbacks middleware uses this interface to retrieve the packet sender address and pass it to the callback function during a source callback. If this interface is not implemented, then the callbacks middleware passes and empty string as the sender address. For example, see its implementation in the [`transfer`](https://github.com/cosmos/ibc-go/blob/v7.3.0/modules/apps/transfer/types/packet.go#L74-L83) and [`ica`](https://github.com/cosmos/ibc-go/blob/v7.3.0/modules/apps/27-interchain-accounts/types/packet.go#L78-L92) module.
+[`PacketData`](https://github.com/cosmos/ibc-go/blob/v7.3.0/modules/core/exported/packet.go#L36-L41) is an optional interface that can be implemented by the underlying ibc application's packet data type. It is used to retrieve the packet sender address from the packet data. The callbacks middleware uses this interface to retrieve the packet sender address and pass it to the callback function during a source callback. If this interface is not implemented, then the callbacks middleware passes an empty string as the sender address. For example, see its implementation in the [`transfer`](https://github.com/cosmos/ibc-go/blob/v7.3.0/modules/apps/transfer/types/packet.go#L74-L83) and [`ica`](https://github.com/cosmos/ibc-go/blob/v7.3.0/modules/apps/27-interchain-accounts/types/packet.go#L78-L92) module.
 
 This interface was added so that secondary applications can retrieve the packet sender address to perform custom authorization logic if needed.
 
@@ -166,5 +166,5 @@ type ContractKeeper interface {
 These are the callback entry points exposed to the secondary application. The secondary application is expected to execute its custom logic within these entry points. The callbacks middleware will handle the execution of these callbacks and revert the state if needed.
 
 :::tip
-Note that the source callback entry points are provided with the `packetSenderAddress` and MAY choose to use this to perform validation on the origin of a given packet. It is recommended to perform the same validation on all source chain callbacks (SendPacket, AcknowledgePacket, TimeoutPacket). This defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
+Note that the source callback entry points are provided with the `packetSenderAddress` and MAY choose to use this to perform validation on the origin of a given packet. It is recommended to perform the same validation on all source chain callbacks (SendPacket, AcknowledgementPacket, TimeoutPacket). This defensively guards against exploits due to incorrectly wired SendPacket ordering in IBC stacks.
 :::
