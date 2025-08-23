@@ -220,7 +220,7 @@ func (k *Keeper) SendRateLimitedPacket(ctx sdk.Context, sourcePort, sourceChanne
 func (k *Keeper) ReceiveRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packet) error {
 	packetInfo, err := ParsePacketInfo(packet, types.PACKET_RECV)
 	if err != nil {
-		// If the packet data is unparseable, we can't apply rate limiting.
+		// If the packet data is unparsable, we can't apply rate limiting.
 		// Log the error and allow the packet to proceed to the underlying app
 		// which is responsible for handling invalid packet data.
 		k.Logger(ctx).Error("Unable to parse packet data for rate limiting", "error", err)
