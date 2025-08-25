@@ -62,6 +62,14 @@ pull_request_rules:
       backport:
         branches:
           - release/v8.7.x
+  - name: backport patches to v8.8.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v8.8.x
+    actions:
+      backport:
+        branches:
+          - release/v8.8.x
   - name: backport patches to v10.2.x branch
     conditions:
       - base=main
@@ -70,6 +78,14 @@ pull_request_rules:
       backport:
         branches:
           - release/v10.2.x
+  - name: backport patches to v10.3.x branch
+    conditions:
+      - base=main
+      - label=backport-to-v10.3.x
+    actions:
+      backport:
+        branches:
+          - release/v10.3.x
   - name: automerge to main with label automerge and branch protection passing
     conditions: []
     actions:

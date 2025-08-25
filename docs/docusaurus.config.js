@@ -98,6 +98,10 @@ const config = {
     ],
   ],
 
+  markdown: {
+  mermaid: true,
+},
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -194,7 +198,7 @@ const config = {
               },
               {
                 label: "interchaintest",
-                href: "https://github.com/strangelove-ventures/interchaintest",
+                href: "https://github.com/cosmos/interchaintest",
               },
               {
                 label: "CosmWasm",
@@ -215,7 +219,7 @@ const config = {
               },
               {
                 label: "Privacy Policy",
-                href: "https://v1.cosmos.network/privacy",
+                href: "https://cosmos.network/privacy/",
               },
             ],
           },
@@ -252,7 +256,10 @@ const config = {
         ],
       },
     }),
-  themes: ["docusaurus-theme-github-codeblock"],
+  themes: [
+    "docusaurus-theme-github-codeblock",
+    "@docusaurus/theme-mermaid"
+  ],
   plugins: [
     [
       'docusaurus-pushfeedback', {

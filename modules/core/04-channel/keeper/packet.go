@@ -243,6 +243,9 @@ func (k *Keeper) applyReplayProtection(ctx sdk.Context, packet types.Packet, cha
 		// incrementing nextSequenceRecv and storing under this chain's channelEnd identifiers
 		// Since this is the receiving chain, our channelEnd is packet's destination port and channel
 		k.SetNextSequenceRecv(ctx, packet.GetDestPort(), packet.GetDestChannel(), nextSequenceRecv)
+
+	default:
+		return errorsmod.Wrapf(types.ErrInvalidChannelOrdering, "invalid channel ordering: %s", channel.Ordering)
 	}
 
 	return nil
@@ -426,7 +429,6 @@ func (k *Keeper) AcknowledgePacket(
 		// incrementing NextSequenceAck and storing under this chain's channelEnd identifiers
 		// Since this is the original sending chain, our channelEnd is packet's source port and channel
 		k.SetNextSequenceAck(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), nextSequenceAck)
-
 	}
 
 	// Delete packet commitment, since the packet has been acknowledged, the commitement is no longer necessary

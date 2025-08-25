@@ -83,7 +83,7 @@ func GenerateKeys(t *testing.T, n uint64) ([]cryptotypes.PrivKey, []cryptotypes.
 
 	privKeys := make([]cryptotypes.PrivKey, n)
 	pubKeys := make([]cryptotypes.PubKey, n)
-	for i := uint64(0); i < n; i++ {
+	for i := range n {
 		privKeys[i] = secp256k1.GenPrivKey()
 		pubKeys[i] = privKeys[i].PubKey()
 	}
@@ -374,7 +374,7 @@ func (solo *Solomachine) SendTransfer(chain *TestChain, portID, channelID string
 	res, err := chain.SendMsgs(msgTransfer)
 	require.NoError(solo.t, err)
 
-	packet, err := ParsePacketFromEvents(res.Events)
+	packet, err := ParseV1PacketFromEvents(res.Events)
 	require.NoError(solo.t, err)
 
 	return packet

@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	test "github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -61,6 +61,11 @@ func (s *ClientTestSuite) QueryAllowedClients(ctx context.Context, chain ibc.Cha
 	return res.Params.AllowedClients
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *ClientTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 // TestScheduleIBCUpgrade_Succeeds tests that a governance proposal to schedule an IBC software upgrade is successful.
 // compatibility:TestScheduleIBCUpgrade_Succeeds:from_versions: v8.7.0,v10.0.0
 func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
@@ -68,7 +73,7 @@ func (s *ClientTestSuite) TestScheduleIBCUpgrade_Succeeds() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 
 	chainA, chainB := s.GetChains()
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -177,7 +182,8 @@ func (s *ClientTestSuite) TestRecoverClient_Succeeds() {
 	)
 
 	testName := t.Name()
-	relayer := s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
 
 	t.Run("create substitute client with correct trusting period", func(t *testing.T) {
 		// TODO: update when client identifier created is accessible
@@ -263,7 +269,8 @@ func (s *ClientTestSuite) TestClient_Update_Misbehaviour() {
 	)
 
 	testName := t.Name()
-	relayer := s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
 
 	chainA, chainB := s.GetChains()
 
@@ -369,7 +376,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 
 	chainA, chainB := s.GetChains()
 	chainAVersion := chainA.Config().Images[0].Version

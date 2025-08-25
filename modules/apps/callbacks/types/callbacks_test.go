@@ -229,6 +229,79 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			nil,
 		},
 		{
+			"success: source callback with calldata",
+			func() {
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "calldata": "%x"}}`, sender, []byte("calldata")),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
+				Calldata:           []byte("calldata"),
+			},
+			true,
+			nil,
+		},
+		{
+			"success: source callback with empty calldata",
+			func() {
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "calldata": ""}}`, sender),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:    sender,
+				SenderAddress:      sender,
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
+				Calldata:           nil,
+			},
+			true,
+			nil,
+		},
+		{
+			"success: dest callback with calldata",
+			func() {
+				callbackKey = types.DestinationCallbackKey
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"dest_callback": {"address": "%s", "calldata": "%x"}}`, sender, []byte("calldata")),
+				}
+			},
+			types.CallbackData{
+				CallbackAddress:    sender,
+				SenderAddress:      "",
+				ExecutionGasLimit:  1_000_000,
+				CommitGasLimit:     1_000_000,
+				ApplicationVersion: transfertypes.V1,
+				Calldata:           []byte("calldata"),
+			},
+			true,
+			nil,
+		},
+		{
 			"failure: packet data does not implement PacketDataProvider",
 			func() {
 				packetData = ibcmock.MockPacketData
@@ -267,7 +340,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			},
 			types.CallbackData{},
 			true,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: space address",
@@ -283,7 +356,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			},
 			types.CallbackData{},
 			true,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 
 		{
@@ -343,6 +416,57 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 			false,
 			types.ErrNotPacketDataProvider,
 		},
+		{
+			"failure: invalid gasLimit",
+			func() {
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "gas_limit": "invalid"}}`, sender),
+				}
+			},
+			types.CallbackData{},
+			true,
+			types.ErrInvalidCallbackData,
+		},
+		{
+			"failure: invalid calldata",
+			func() {
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "calldata": "invalid"}}`, sender),
+				}
+			},
+			types.CallbackData{},
+			true,
+			types.ErrInvalidCallbackData,
+		},
+		{
+			"failure: invalid calldata is number",
+			func() {
+				remainingGas = 2_000_000
+				version = transfertypes.V1
+				packetData = transfertypes.FungibleTokenPacketData{
+					Denom:    ibctesting.TestCoin.Denom,
+					Amount:   ibctesting.TestCoin.Amount.String(),
+					Sender:   sender,
+					Receiver: receiver,
+					Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s", "calldata": 10}}`, sender),
+				}
+			},
+			types.CallbackData{},
+			true,
+			types.ErrInvalidCallbackData,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -365,6 +489,11 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackData() {
 
 				expAllowRetry := tc.expCallbackData.ExecutionGasLimit < tc.expCallbackData.CommitGasLimit
 				s.Require().Equal(expAllowRetry, callbackData.AllowRetry(), tc.name)
+
+				// check if the callback calldata is correctly unmarshalled
+				if len(tc.expCallbackData.Calldata) > 0 {
+					s.Require().Equal([]byte("calldata"), callbackData.Calldata, tc.name)
+				}
 			} else {
 				s.Require().ErrorIs(err, tc.expError, tc.name)
 			}
@@ -465,7 +594,7 @@ func (s *CallbacksTypesTestSuite) TestGetDestSourceCallbackDataTransfer() {
 			transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 			s.Require().True(ok)
 
-			packetUnmarshaler, ok := transferStack.(types.CallbacksCompatibleModule)
+			packetUnmarshaler, ok := transferStack.(porttypes.PacketUnmarshalerModule)
 			s.Require().True(ok)
 
 			s.path.Setup()
@@ -496,6 +625,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 		name       string
 		packetData ibcexported.PacketDataProvider
 		expAddress string
+		expError   error
 	}{
 		{
 			"success: memo has callbacks in json struct and properly formatted src_callback_address which does not match packet sender",
@@ -507,6 +637,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, receiver),
 			},
 			receiver,
+			nil,
 		},
 		{
 			"success: valid src_callback address specified in memo that matches sender",
@@ -518,6 +649,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 				Memo:     fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, sender),
 			},
 			sender,
+			nil,
 		},
 		{
 			"failure: memo is empty",
@@ -529,6 +661,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 				Memo:     "",
 			},
 			"",
+			nil,
 		},
 		{
 			"failure: memo is not json string",
@@ -540,6 +673,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 				Memo:     "memo",
 			},
 			"",
+			nil,
 		},
 		{
 			"failure: memo has empty src_callback object",
@@ -551,6 +685,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 				Memo:     `{"src_callback": {}}`,
 			},
 			"",
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: memo does not have callbacks in json struct",
@@ -562,6 +697,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 				Memo:     `{"Key": 10}`,
 			},
 			"",
+			nil,
 		},
 		{
 			"failure:  memo has src_callback in json struct but does not have address key",
@@ -573,6 +709,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 				Memo:     `{"src_callback": {"Key": 10}}`,
 			},
 			"",
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: memo has src_callback in json struct but does not have string value for address key",
@@ -584,6 +721,7 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 				Memo:     `{"src_callback": {"address": 10}}`,
 			},
 			"",
+			types.ErrInvalidCallbackData,
 		},
 	}
 
@@ -591,7 +729,15 @@ func (s *CallbacksTypesTestSuite) TestGetCallbackAddress() {
 		s.Run(tc.name, func() {
 			callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackKey).(map[string]any)
 			s.Require().Equal(ok, callbackData != nil)
-			s.Require().Equal(tc.expAddress, types.GetCallbackAddress(callbackData), tc.name)
+			if ok {
+				address, err := types.GetCallbackAddress(callbackData)
+				if tc.expError != nil {
+					s.Require().ErrorIs(err, tc.expError, tc.name)
+				} else {
+					s.Require().NoError(err, tc.name)
+					s.Require().Equal(tc.expAddress, address, tc.name)
+				}
+			}
 		})
 	}
 }
@@ -606,6 +752,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		name       string
 		packetData ibcexported.PacketDataProvider
 		expUserGas uint64
+		expError   error
 	}{
 		{
 			"success: memo is empty",
@@ -617,6 +764,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 				Memo:     "",
 			},
 			0,
+			nil,
 		},
 		{
 			"success: memo has user defined gas limit",
@@ -628,6 +776,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 				Memo:     `{"src_callback": {"gas_limit": "100"}}`,
 			},
 			100,
+			nil,
 		},
 		{
 			"success: user defined gas limit is zero",
@@ -639,6 +788,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 				Memo:     `{"src_callback": {"gas_limit": "0"}}`,
 			},
 			0,
+			nil,
 		},
 		{
 			"failure: memo has empty src_callback object",
@@ -650,6 +800,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 				Memo:     `{"src_callback": {}}`,
 			},
 			0,
+			nil,
 		},
 		{
 			"failure: memo has user defined gas limit as json number",
@@ -661,6 +812,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 				Memo:     `{"src_callback": {"gas_limit": 100}}`,
 			},
 			0,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: memo has user defined gas limit as negative",
@@ -672,6 +824,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 				Memo:     `{"src_callback": {"gas_limit": "-100"}}`,
 			},
 			0,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: memo has user defined gas limit as string",
@@ -683,6 +836,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 				Memo:     `{"src_callback": {"gas_limit": "invalid"}}`,
 			},
 			0,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: memo has user defined gas limit as empty string",
@@ -694,6 +848,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 				Memo:     `{"src_callback": {"gas_limit": ""}}`,
 			},
 			0,
+			nil,
 		},
 		{
 			"failure: malformed memo",
@@ -705,6 +860,7 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 				Memo:     `invalid`,
 			},
 			0,
+			nil,
 		},
 	}
 
@@ -712,7 +868,13 @@ func (s *CallbacksTypesTestSuite) TestUserDefinedGasLimit() {
 		s.Run(tc.name, func() {
 			callbackData, ok := tc.packetData.GetCustomPacketData(types.SourceCallbackKey).(map[string]any)
 			s.Require().Equal(ok, callbackData != nil)
-			s.Require().Equal(tc.expUserGas, types.GetUserDefinedGasLimit(callbackData), tc.name)
+			userGas, err := types.GetUserDefinedGasLimit(callbackData)
+			if tc.expError != nil {
+				s.Require().ErrorIs(err, tc.expError, tc.name)
+			} else {
+				s.Require().NoError(err, tc.name)
+				s.Require().Equal(tc.expUserGas, userGas, tc.name)
+			}
 		})
 	}
 }

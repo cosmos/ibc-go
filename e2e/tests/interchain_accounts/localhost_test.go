@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	test "github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -39,15 +39,21 @@ type LocalhostInterchainAccountsTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *LocalhostInterchainAccountsTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 1, nil)
+}
+
 // compatibility:TestInterchainAccounts_Localhost:from_versions: v7.10.0,v8.7.0,v10.0.0
 func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 
-	chainA, _ := s.GetChains()
+	chains := s.GetAllChains()
+	chainA := chains[0]
 
 	chainADenom := chainA.Config().Denom
 
@@ -164,7 +170,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_Localhost(
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendTx)
 		s.AssertTxSuccess(txResp)
 
-		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
+		packet, err = ibctesting.ParseV1PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})
@@ -201,9 +207,10 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 	ctx := context.TODO()
 
 	testName := t.Name()
-	s.CreateDefaultPaths(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 
-	chainA, _ := s.GetChains()
+	chains := s.GetAllChains()
+	chainA := chains[0]
 
 	chainADenom := chainA.Config().Denom
 
@@ -320,7 +327,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendTx)
 		s.AssertTxSuccess(txResp)
 
-		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
+		packet, err = ibctesting.ParseV1PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})
@@ -448,7 +455,7 @@ func (s *LocalhostInterchainAccountsTestSuite) TestInterchainAccounts_ReopenChan
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendTx)
 		s.AssertTxSuccess(txResp)
 
-		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
+		packet, err = ibctesting.ParseV1PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})

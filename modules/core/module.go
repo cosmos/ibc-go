@@ -62,8 +62,10 @@ func (AppModule) IsOnePerModuleType() {}
 // IsAppModule implements the appmodule.AppModule interface.
 func (AppModule) IsAppModule() {}
 
-// RegisterLegacyAminoCodec does nothing. IBC does not support amino.
-func (AppModuleBasic) RegisterLegacyAminoCodec(*codec.LegacyAmino) {}
+// RegisterLegacyAminoCodec implements AppModuleBasic interface.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	clienttypes.RegisterLegacyAminoCodec(cdc)
+}
 
 // DefaultGenesis returns default genesis state as raw bytes for the ibc
 // module.
@@ -148,26 +150,6 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	channeltypes.RegisterQueryServer(cfg.QueryServer(), channelkeeper.NewQueryServer(am.keeper.ChannelKeeper))
 	channeltypesv2.RegisterQueryServer(cfg.QueryServer(), channelkeeperv2.NewQueryServer(am.keeper.ChannelKeeperV2))
 
-	clientMigrator := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
-	if err := cfg.RegisterMigration(exported.ModuleName, 2, clientMigrator.Migrate2to3); err != nil {
-		panic(err)
-	}
-
-	connectionMigrator := connectionkeeper.NewMigrator(am.keeper.ConnectionKeeper)
-	if err := cfg.RegisterMigration(exported.ModuleName, 3, connectionMigrator.Migrate3to4); err != nil {
-		panic(err)
-	}
-
-	if err := cfg.RegisterMigration(exported.ModuleName, 4, func(ctx sdk.Context) error {
-		if err := clientMigrator.MigrateParams(ctx); err != nil {
-			return err
-		}
-
-		return connectionMigrator.MigrateParams(ctx)
-	}); err != nil {
-		panic(err)
-	}
-
 	// This upgrade used to just add default params, since we have deleted it (in consensus version 8 - ibc-go v10),
 	// we just return directly to increment the ConsensusVersion as expected
 	if err := cfg.RegisterMigration(exported.ModuleName, 5, func(_ sdk.Context) error {
@@ -176,6 +158,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 		panic(err)
 	}
 
+	clientMigrator := clientkeeper.NewMigrator(am.keeper.ClientKeeper)
 	if err := cfg.RegisterMigration(exported.ModuleName, 6, clientMigrator.MigrateToStatelessLocalhost); err != nil {
 		panic(err)
 	}
@@ -192,7 +175,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.Ra
 	var gs types.GenesisState
 	err := cdc.UnmarshalJSON(bz, &gs)
 	if err != nil {
-		panic(fmt.Errorf("failed to unmarshal %s genesis state: %s", exported.ModuleName, err))
+		panic(fmt.Errorf("failed to unmarshal %s genesis state: %w", exported.ModuleName, err))
 	}
 	InitGenesis(ctx, *am.keeper, &gs)
 }

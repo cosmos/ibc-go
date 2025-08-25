@@ -15,7 +15,8 @@ on:
         options:
           - release/v7.10.x
           - release/v8.7.x
-          - release/v10.2.x
+          - release/v8.8.x
+          - release/v10.3.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -31,7 +32,7 @@ env:
 
 jobs:
   determine-image-tag:
-    runs-on: depot-ubuntu-22.04-4
+    runs-on: depot-ubuntu-24.04-4
     outputs:
       release-version: ${{ steps.set-release-version.outputs.release-version }}
     steps:
@@ -45,23 +46,27 @@ jobs:
   # build-release-images builds all docker images that are relevant for the compatibility tests. If a single release
   # branch is specified, only that image will be built, e.g. release-v6.0.x.
   build-release-images:
-    runs-on: depot-ubuntu-22.04-4
+    runs-on: depot-ubuntu-24.04-4
+    permissions:
+      packages: write
+      contents: read
     strategy:
       matrix:
         release-branch:
           - release/v7.10.x
           - release/v8.7.x
-          - release/v10.2.x
+          - release/v8.8.x
+          - release/v10.3.x
           - main
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: env.RELEASE_BRANCH == matrix.release-branch
         with:
           ref: "${{ matrix.release-branch }}"
           fetch-depth: 0
       - name: Log in to the Container registry
         if: env.RELEASE_BRANCH == matrix.release-branch
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -123,15 +128,6 @@ jobs:
     uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
     with:
       test-file: "e2e/tests/interchain_accounts/gov_test.go"
-      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
-
-  ica-groups-test:
-    needs:
-      - build-release-images
-      - determine-image-tag
-    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
-    with:
-      test-file: "e2e/tests/interchain_accounts/groups_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
   ica-localhost-test:

@@ -8,12 +8,11 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/chain/cosmos"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	test "github.com/cosmos/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/suite"
-	"go.uber.org/zap"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -38,6 +37,11 @@ type GenesisTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *GenesisTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 // TODO: this configuration was originally being applied to `GetChains` in the test body, but it is not
 // actually being propagated correctly. If we want to apply the configuration, we can uncomment this code
 // however the test actually fails when this is done.
@@ -57,20 +61,17 @@ type GenesisTestSuite struct {
 func (s *GenesisTestSuite) TestIBCGenesis() {
 	t := s.T()
 
-	haltHeight := int64(100)
-
 	chainA, chainB := s.GetChains()
 
 	ctx := context.Background()
 	testName := t.Name()
 
-	relayer := s.CreateDefaultPaths(testName)
-	channelA := s.GetChainAChannelForTest(testName)
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
-	var (
-		chainADenom    = chainA.Config().Denom
-		chainBIBCToken = testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
-	)
+	chainADenom := chainA.Config().Denom
+	chainBIBCToken := testsuite.GetIBCToken(chainADenom, channelA.Counterparty.PortID, channelA.Counterparty.ChannelID) // IBC token sent to chainB
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainAAddress := chainAWallet.FormattedAddress()
@@ -78,7 +79,7 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
 	chainBAddress := chainBWallet.FormattedAddress()
 
-	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
 		transferTxResp := s.Transfer(ctx, chainA, chainAWallet, channelA.PortID, channelA.ChannelID, testvalues.DefaultTransferAmount(chainADenom), chainAAddress, chainBAddress, s.GetTimeoutHeight(ctx, chainB), 0, "")
@@ -132,20 +133,20 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 			ConnectionId: ibctesting.FirstConnectionID,
 		})
 		s.Require().NoError(err)
-		s.Require().NotZero(len(res.Address))
+		s.Require().NotEmpty(res.Address)
 
 		hostAccount = res.Address
 		s.Require().NotEmpty(hostAccount)
 
 		channels, err := relayer.GetChannels(ctx, s.GetRelayerExecReporter(), chainA.Config().ChainID)
 		s.Require().NoError(err)
-		s.Require().Equal(len(channels), 2)
+		s.Require().Len(channels, 2)
 	})
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 10, chainA, chainB), "failed to wait for blocks")
 
 	t.Run("Halt chain and export genesis", func(t *testing.T) {
-		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain), haltHeight)
+		s.HaltChainAndExportGenesis(ctx, chainA.(*cosmos.CosmosChain))
 	})
 
 	t.Run("ics20: native IBC token transfer from chainA to chainB, sender is source of tokens", func(t *testing.T) {
@@ -208,38 +209,24 @@ func (s *GenesisTestSuite) TestIBCGenesis() {
 	s.Require().NoError(test.WaitForBlocks(ctx, 5, chainA, chainB), "failed to wait for blocks")
 }
 
-func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain *cosmos.CosmosChain, haltHeight int64) {
+func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain *cosmos.CosmosChain) {
 	timeoutCtx, timeoutCtxCancel := context.WithTimeout(ctx, time.Minute*2)
 	defer timeoutCtxCancel()
 
-	err := test.WaitForBlocks(timeoutCtx, int(haltHeight), chain)
-	s.Require().Error(err, "chain did not halt at halt height")
+	beforeHaltHeight, err := chain.Height(timeoutCtx)
+	s.Require().NoError(err, "error fetching height before halt")
+
+	err = test.WaitForBlocks(timeoutCtx, 1, chain)
+	s.Require().NoError(err, "failed to wait for blocks")
 
 	err = chain.StopAllNodes(ctx)
 	s.Require().NoError(err, "error stopping node(s)")
 
-	state, err := chain.ExportState(ctx, haltHeight)
+	state, err := chain.ExportState(ctx, beforeHaltHeight)
 	s.Require().NoError(err)
-
-	appTomlOverrides := make(test.Toml)
-
-	appTomlOverrides["halt-height"] = 0
 
 	for _, node := range chain.Nodes() {
 		err := node.OverwriteGenesisFile(ctx, []byte(state))
-		s.Require().NoError(err)
-	}
-
-	for _, node := range chain.Nodes() {
-		err := test.ModifyTomlConfigFile(
-			ctx,
-			zap.NewExample(),
-			node.DockerClient,
-			node.TestName,
-			node.VolumeName,
-			"config/app.toml",
-			appTomlOverrides,
-		)
 		s.Require().NoError(err)
 
 		_, _, err = node.ExecBin(ctx, "comet", "unsafe-reset-all")
@@ -258,5 +245,5 @@ func (s *GenesisTestSuite) HaltChainAndExportGenesis(ctx context.Context, chain 
 	height, err := chain.Height(ctx)
 	s.Require().NoError(err, "error fetching height after halt")
 
-	s.Require().Greater(height, haltHeight, "height did not increment after halt")
+	s.Require().Greater(height, beforeHaltHeight+1, "height did not increment after halt")
 }

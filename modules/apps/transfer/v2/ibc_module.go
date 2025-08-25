@@ -23,17 +23,17 @@ import (
 var _ api.IBCModule = (*IBCModule)(nil)
 
 // NewIBCModule creates a new IBCModule given the keeper
-func NewIBCModule(k keeper.Keeper) *IBCModule {
-	return &IBCModule{
+func NewIBCModule(k *keeper.Keeper) IBCModule {
+	return IBCModule{
 		keeper: k,
 	}
 }
 
 type IBCModule struct {
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
-func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
+func (im IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
 	// Enforce that the source and destination portIDs are the same and equal to the transfer portID
 	// Enforce that the source and destination clientIDs are also in the clientID format that transfer expects: {clientid}-{sequence}
 	// This is necessary for IBC v2 since the portIDs (and thus the application-application connection) is not prenegotiated
@@ -52,12 +52,12 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 		return err
 	}
 
-	sender, err := sdk.AccAddressFromBech32(data.Sender)
+	sender, err := im.keeper.GetAddressCodec().StringToBytes(data.Sender)
 	if err != nil {
 		return err
 	}
 
-	if !signer.Equals(sender) {
+	if !bytes.Equal(sender, signer) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "sender %s is different from signer %s", sender, signer)
 	}
 
@@ -76,14 +76,14 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 		return err
 	}
 
-	events.EmitTransferEvent(ctx, sender.String(), data.Receiver, data.Token, data.Memo)
+	events.EmitTransferEvent(ctx, data.Sender, data.Receiver, data.Token, data.Memo)
 
 	telemetry.ReportTransfer(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Token)
 
 	return nil
 }
 
-func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+func (im IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
 	// Enforce that the source and destination portIDs are the same and equal to the transfer portID
 	// Enforce that the source and destination clientIDs are also in the clientID format that transfer expects: {clientid}-{sequence}
 	// This is necessary for IBC v2 since the portIDs (and thus the application-application connection) is not prenegotiated
@@ -147,7 +147,7 @@ func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destina
 	return recvResult
 }
 
-func (im *IBCModule) OnTimeoutPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
+func (im IBCModule) OnTimeoutPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
 	data, err := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {
 		return err
@@ -163,7 +163,7 @@ func (im *IBCModule) OnTimeoutPacket(ctx sdk.Context, sourceChannel string, dest
 	return nil
 }
 
-func (im *IBCModule) OnAcknowledgementPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
+func (im IBCModule) OnAcknowledgementPacket(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, acknowledgement []byte, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
 	var ack channeltypes.Acknowledgement
 	// construct an error acknowledgement if the acknowledgement bytes are the sentinel error acknowledgement so we can use the shared transfer logic
 	if bytes.Equal(acknowledgement, channeltypesv2.ErrorAcknowledgement[:]) {
@@ -194,6 +194,6 @@ func (im *IBCModule) OnAcknowledgementPacket(ctx sdk.Context, sourceChannel stri
 
 // UnmarshalPacketData unmarshals the ICS20 packet data based on the version and encoding
 // it implements the PacketDataUnmarshaler interface
-func (*IBCModule) UnmarshalPacketData(payload channeltypesv2.Payload) (any, error) {
+func (IBCModule) UnmarshalPacketData(payload channeltypesv2.Payload) (any, error) {
 	return types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 }

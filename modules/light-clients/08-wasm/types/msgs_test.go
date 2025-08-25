@@ -47,8 +47,6 @@ func TestMsgStoreCodeValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		err := tc.msg.ValidateBasic()
 		if tc.expErr == nil {
 			require.NoError(t, err)
@@ -58,7 +56,7 @@ func TestMsgStoreCodeValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
+func (s *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 	testCases := []struct {
 		name    string
 		address sdk.AccAddress
@@ -69,20 +67,19 @@ func (suite *TypesTestSuite) TestMsgStoreCodeGetSigners() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
 			address := tc.address
 			msg := types.NewMsgStoreCode(address.String(), wasmtesting.Code)
 
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			signers, _, err := GetSimApp(s.chainA).AppCodec().GetMsgV1Signers(msg)
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().Equal(address.Bytes(), signers[0])
+				s.Require().NoError(err)
+				s.Require().Equal(address.Bytes(), signers[0])
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
@@ -147,8 +144,6 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		err := tc.msg.ValidateBasic()
 		if tc.expErr == nil {
 			require.NoError(t, err)
@@ -158,9 +153,9 @@ func TestMsgMigrateContractValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
+func (s *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 	checksum, err := types.CreateChecksum(wasmtesting.Code)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	testCases := []struct {
 		name    string
@@ -172,20 +167,19 @@ func (suite *TypesTestSuite) TestMsgMigrateContractGetSigners() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
 			address := tc.address
 			msg := types.NewMsgMigrateContract(address.String(), defaultWasmClientID, checksum, []byte("{}"))
 
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			signers, _, err := GetSimApp(s.chainA).AppCodec().GetMsgV1Signers(msg)
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().Equal(address.Bytes(), signers[0])
+				s.Require().NoError(err)
+				s.Require().Equal(address.Bytes(), signers[0])
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expErr.Error())
 			}
 		})
 	}
@@ -224,8 +218,6 @@ func TestMsgRemoveChecksumValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		err := tc.msg.ValidateBasic()
 
 		if tc.expErr == nil {
@@ -236,9 +228,9 @@ func TestMsgRemoveChecksumValidateBasic(t *testing.T) {
 	}
 }
 
-func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
+func (s *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 	checksum, err := types.CreateChecksum(wasmtesting.Code)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	testCases := []struct {
 		name     string
@@ -250,20 +242,19 @@ func (suite *TypesTestSuite) TestMsgRemoveChecksumGetSigners() {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
 			address := tc.address
 			msg := types.NewMsgRemoveChecksum(address.String(), checksum)
 
-			signers, _, err := GetSimApp(suite.chainA).AppCodec().GetMsgV1Signers(msg)
+			signers, _, err := GetSimApp(s.chainA).AppCodec().GetMsgV1Signers(msg)
 			if tc.expError == nil {
-				suite.Require().NoError(err)
-				suite.Require().Equal(address.Bytes(), signers[0])
+				s.Require().NoError(err)
+				s.Require().Equal(address.Bytes(), signers[0])
 			} else {
-				suite.Require().Error(err)
-				suite.Require().Equal(err.Error(), tc.expError.Error())
+				s.Require().Error(err)
+				s.Require().Equal(err.Error(), tc.expError.Error())
 			}
 		})
 	}

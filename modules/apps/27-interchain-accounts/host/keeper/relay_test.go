@@ -25,7 +25,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *KeeperTestSuite) TestOnRecvPacket() {
+func (s *KeeperTestSuite) TestOnRecvPacket() {
 	testedOrderings := []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED}
 	testedEncodings := []string{icatypes.EncodingProtobuf, icatypes.EncodingProto3JSON}
 
@@ -42,16 +42,16 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"interchain account successfully executes an arbitrary message type using the * (allow all message types) param",
 			func(encoding string) {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
 				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
-				suite.Require().NoError(err)
-				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
-				suite.Require().NoError(err)
+				err = s.chainB.GetSimApp().GovKeeper.SetProposal(s.chainB.GetContext(), proposal)
+				s.Require().NoError(err)
+				err = s.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(s.chainB.GetContext(), proposal)
+				s.Require().NoError(err)
 
 				msg := &govtypesv1.MsgVote{
 					ProposalId: govtypesv1.DefaultStartingProposalID,
@@ -59,8 +59,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Option:     govtypesv1.OptionYes,
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -70,24 +70,24 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{"*"})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"interchain account successfully executes banktypes.MsgSend",
 			func(encoding string) {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
 				msg := &banktypes.MsgSend{
 					FromAddress: interchainAccountAddr,
-					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+					ToAddress:   s.chainB.SenderAccount.GetAddress().String(),
 					Amount:      sdk.NewCoins(ibctesting.TestCoin),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -97,25 +97,25 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"interchain account successfully executes stakingtypes.MsgDelegate",
 			func(encoding string) {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
-				validatorAddr := (sdk.ValAddress)(suite.chainB.Vals.Validators[0].Address)
+				validatorAddr := (sdk.ValAddress)(s.chainB.Vals.Validators[0].Address)
 				msg := &stakingtypes.MsgDelegate{
 					DelegatorAddress: interchainAccountAddr,
 					ValidatorAddress: validatorAddr.String(),
 					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000)),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -125,17 +125,17 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"interchain account successfully executes stakingtypes.MsgDelegate and stakingtypes.MsgUndelegate sequentially",
 			func(encoding string) {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
-				validatorAddr := (sdk.ValAddress)(suite.chainB.Vals.Validators[0].Address)
+				validatorAddr := (sdk.ValAddress)(s.chainB.Vals.Validators[0].Address)
 				msgDelegate := &stakingtypes.MsgDelegate{
 					DelegatorAddress: interchainAccountAddr,
 					ValidatorAddress: validatorAddr.String(),
@@ -148,8 +148,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000)),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate, msgUndelegate}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msgDelegate, msgUndelegate}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -159,21 +159,21 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msgDelegate), sdk.MsgTypeURL(msgUndelegate)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"interchain account successfully executes govtypesv1.MsgSubmitProposal",
 			func(encoding string) {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
 				msg, err := govtypesv1.NewMsgSubmitProposal([]sdk.Msg{}, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000))), interchainAccountAddr, "metadata", "title", "summary", false)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -183,23 +183,23 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"interchain account successfully executes govtypesv1.MsgVote",
 			func(encoding string) {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
 				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, time.Now(), time.Now().Add(time.Hour), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
-				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
-				suite.Require().NoError(err)
-				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
-				suite.Require().NoError(err)
+				err = s.chainB.GetSimApp().GovKeeper.SetProposal(s.chainB.GetContext(), proposal)
+				s.Require().NoError(err)
+				err = s.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(s.chainB.GetContext(), proposal)
+				s.Require().NoError(err)
 
 				msg := &govtypesv1.MsgVote{
 					ProposalId: govtypesv1.DefaultStartingProposalID,
@@ -207,8 +207,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					Option:     govtypesv1.OptionYes,
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -218,23 +218,23 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"interchain account successfully executes disttypes.MsgFundCommunityPool",
 			func(encoding string) {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
 				msg := &disttypes.MsgFundCommunityPool{
 					Amount:    sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000))),
 					Depositor: interchainAccountAddr,
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -244,19 +244,19 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"interchain account successfully executes icahosttypes.MsgModuleQuerySafe",
 			func(encoding string) {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
-				balanceQuery := banktypes.NewQueryBalanceRequest(suite.chainB.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+				balanceQuery := banktypes.NewQueryBalanceRequest(s.chainB.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 				queryBz, err := balanceQuery.Marshal()
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				msg := types.NewMsgModuleQuerySafe(interchainAccountAddr, []types.QueryRequest{
 					{
@@ -265,8 +265,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					},
 				})
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -276,23 +276,23 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"interchain account successfully executes disttypes.MsgSetWithdrawAddress",
 			func(encoding string) {
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
 				msg := &disttypes.MsgSetWithdrawAddress{
 					DelegatorAddress: interchainAccountAddr,
-					WithdrawAddress:  suite.chainB.SenderAccount.GetAddress().String(),
+					WithdrawAddress:  s.chainB.SenderAccount.GetAddress().String(),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -302,33 +302,33 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"interchain account successfully executes transfertypes.MsgTransfer",
 			func(encoding string) {
-				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+				transferPath := ibctesting.NewTransferPath(s.chainB, s.chainC)
 
 				transferPath.Setup()
 
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
 				msg := transfertypes.NewMsgTransfer(
 					transferPath.EndpointA.ChannelConfig.PortID,
 					transferPath.EndpointA.ChannelID,
 					ibctesting.TestCoin,
 					interchainAccountAddr,
-					suite.chainA.SenderAccount.GetAddress().String(),
-					suite.chainB.GetTimeoutHeight(),
+					s.chainA.SenderAccount.GetAddress().String(),
+					s.chainB.GetTimeoutHeight(),
 					0,
 					"",
 				)
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -338,18 +338,18 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"Msg fails its ValidateBasic: MsgTransfer has an empty receiver",
 			func(encoding string) {
-				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+				transferPath := ibctesting.NewTransferPath(s.chainB, s.chainC)
 				transferPath.Setup()
 
-				interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
-				suite.Require().True(found)
+				interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, path.EndpointA.ChannelConfig.PortID)
+				s.Require().True(found)
 
 				msg := transfertypes.NewMsgTransfer(
 					transferPath.EndpointA.ChannelConfig.PortID,
@@ -357,13 +357,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 					ibctesting.TestCoin,
 					interchainAccountAddr,
 					"",
-					suite.chainB.GetTimeoutHeight(),
+					s.chainB.GetTimeoutHeight(),
 					0,
 					"",
 				)
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -373,7 +373,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -382,8 +382,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			func(encoding string) {
 				msg := &banktypes.MsgSendResponse{}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -393,7 +393,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{"/" + proto.MessageName(msg)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			ibcerrors.ErrInvalidType,
 		},
@@ -421,8 +421,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"invalid packet type - UNSPECIFIED",
 			func(encoding string) {
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{&banktypes.MsgSend{}}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{&banktypes.MsgSend{}}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.UNSPECIFIED,
@@ -436,10 +436,10 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 		{
 			"unauthorised: interchain account not found for controller port ID",
 			func(encoding string) {
-				path.EndpointA.ChannelConfig.PortID = "invalid-port-id"
+				path.EndpointA.ChannelConfig.PortID = "invalid-port-id" //nolint:goconst
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{&banktypes.MsgSend{}}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{&banktypes.MsgSend{}}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -454,13 +454,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"unauthorised: message type not allowed", // NOTE: do not update params to explicitly force the error
 			func(encoding string) {
 				msg := &banktypes.MsgSend{
-					FromAddress: suite.chainB.SenderAccount.GetAddress().String(),
-					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+					FromAddress: s.chainB.SenderAccount.GetAddress().String(),
+					ToAddress:   s.chainB.SenderAccount.GetAddress().String(),
 					Amount:      sdk.NewCoins(ibctesting.TestCoin),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -475,13 +475,13 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			"unauthorised: signer address is not the interchain account associated with the controller portID",
 			func(encoding string) {
 				msg := &banktypes.MsgSend{
-					FromAddress: suite.chainB.SenderAccount.GetAddress().String(), // unexpected signer
-					ToAddress:   suite.chainB.SenderAccount.GetAddress().String(),
+					FromAddress: s.chainB.SenderAccount.GetAddress().String(), // unexpected signer
+					ToAddress:   s.chainB.SenderAccount.GetAddress().String(),
 					Amount:      sdk.NewCoins(ibctesting.TestCoin),
 				}
 
-				data, err := icatypes.SerializeCosmosTx(suite.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
-				suite.Require().NoError(err)
+				data, err := icatypes.SerializeCosmosTx(s.chainA.GetSimApp().AppCodec(), []proto.Message{msg}, encoding)
+				s.Require().NoError(err)
 
 				icaPacketData := icatypes.InterchainAccountPacketData{
 					Type: icatypes.EXECUTE_TX,
@@ -491,7 +491,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				packetData = icaPacketData.GetBytes()
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL(msg)})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -500,52 +500,52 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	for _, ordering := range testedOrderings {
 		for _, encoding := range testedEncodings {
 			for _, tc := range testCases {
-				suite.Run(tc.msg, func() {
-					suite.SetupTest() // reset
+				s.Run(tc.msg, func() {
+					s.SetupTest() // reset
 
-					path = NewICAPath(suite.chainA, suite.chainB, encoding, ordering)
+					path = NewICAPath(s.chainA, s.chainB, encoding, ordering)
 					path.SetupConnections()
 
 					err := SetupICAPath(path, TestOwnerAddress)
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 
 					portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 
 					// Get the address of the interchain account stored in state during handshake step
-					storedAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, portID)
-					suite.Require().True(found)
+					storedAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, portID)
+					s.Require().True(found)
 
 					icaAddr, err := sdk.AccAddressFromBech32(storedAddr)
-					suite.Require().NoError(err)
+					s.Require().NoError(err)
 
 					// Check if account is created
-					interchainAccount := suite.chainB.GetSimApp().AccountKeeper.GetAccount(suite.chainB.GetContext(), icaAddr)
-					suite.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
+					interchainAccount := s.chainB.GetSimApp().AccountKeeper.GetAccount(s.chainB.GetContext(), icaAddr)
+					s.Require().Equal(interchainAccount.GetAddress().String(), storedAddr)
 
-					suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000000))))
+					s.fundICAWallet(s.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1000000))))
 
 					tc.malleate(encoding) // malleate mutates test data
 
 					packet := channeltypes.NewPacket(
 						packetData,
-						suite.chainA.SenderAccount.GetSequence(),
+						s.chainA.SenderAccount.GetSequence(),
 						path.EndpointA.ChannelConfig.PortID,
 						path.EndpointA.ChannelID,
 						path.EndpointB.ChannelConfig.PortID,
 						path.EndpointB.ChannelID,
-						suite.chainB.GetTimeoutHeight(),
+						s.chainB.GetTimeoutHeight(),
 						0,
 					)
 
-					txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
+					txResponse, err := s.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(s.chainB.GetContext(), packet)
 
 					if tc.expErr == nil {
-						suite.Require().NoError(err)
-						suite.Require().NotNil(txResponse)
+						s.Require().NoError(err)
+						s.Require().NotNil(txResponse)
 					} else {
-						suite.Require().ErrorIs(err, tc.expErr)
-						suite.Require().Nil(txResponse)
+						s.Require().ErrorIs(err, tc.expErr)
+						s.Require().Nil(txResponse)
 					}
 				})
 			}
@@ -553,7 +553,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
+func (s *KeeperTestSuite) TestJSONOnRecvPacket() {
 	var (
 		path       *ibctesting.Path
 		packetData []byte
@@ -568,13 +568,13 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 		{
 			"interchain account successfully executes an arbitrary message type using the * (allow all message types) param",
 			func(icaAddress string) {
-				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
-				suite.Require().NoError(err)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, s.chainA.GetContext().BlockTime(), s.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
+				s.Require().NoError(err)
 
-				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
-				suite.Require().NoError(err)
-				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
-				suite.Require().NoError(err)
+				err = s.chainB.GetSimApp().GovKeeper.SetProposal(s.chainB.GetContext(), proposal)
+				s.Require().NoError(err)
+				err = s.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(s.chainB.GetContext(), proposal)
+				s.Require().NoError(err)
 
 				msgBytes := []byte(`{
 					"messages": [
@@ -596,7 +596,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{"*"})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
@@ -621,7 +621,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*banktypes.MsgSend)(nil))})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
@@ -650,20 +650,20 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypesv1.MsgSubmitProposal)(nil))})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"interchain account successfully executes govtypesv1.MsgVote",
 			func(icaAddress string) {
-				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
-				suite.Require().NoError(err)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, s.chainA.GetContext().BlockTime(), s.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
+				s.Require().NoError(err)
 
-				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
-				suite.Require().NoError(err)
-				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
-				suite.Require().NoError(err)
+				err = s.chainB.GetSimApp().GovKeeper.SetProposal(s.chainB.GetContext(), proposal)
+				s.Require().NoError(err)
+				err = s.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(s.chainB.GetContext(), proposal)
+				s.Require().NoError(err)
 
 				msgBytes := []byte(`{
 					"messages": [
@@ -683,7 +683,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypesv1.MsgVote)(nil))})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
@@ -724,14 +724,14 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypesv1.MsgSubmitProposal)(nil)), sdk.MsgTypeURL((*govtypesv1.MsgDeposit)(nil)), sdk.MsgTypeURL((*govtypesv1.MsgVote)(nil))})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
 		{
 			"interchain account successfully executes transfertypes.MsgTransfer",
 			func(icaAddress string) {
-				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
+				transferPath := ibctesting.NewTransferPath(s.chainB, s.chainC)
 
 				transferPath.Setup()
 
@@ -758,7 +758,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*transfertypes.MsgTransfer)(nil))})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			nil,
 		},
@@ -774,7 +774,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{"*"})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			ibcerrors.ErrInvalidType,
 		},
@@ -799,7 +799,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*transfertypes.MsgTransfer)(nil))})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			ibcerrors.ErrUnauthorized,
 		},
@@ -810,7 +810,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"messages": [
 						{
 							"@type": "/cosmos.bank.v1beta1.MsgSend",
-							"from_address": "` + suite.chainB.SenderAccount.GetAddress().String() + `", // unexpected signer
+							"from_address": "` + s.chainB.SenderAccount.GetAddress().String() + `", // unexpected signer
 							"to_address": "cosmos17dtl0mjt3t77kpuhg2edqzjpszulwhgzuj9ljs",
 							"amount": [{ "denom": "stake", "amount": "100" }]
 						}
@@ -824,7 +824,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*banktypes.MsgSend)(nil))})
-				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
 			},
 			ibcerrors.ErrInvalidType,
 		},
@@ -832,64 +832,64 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 
 	for _, ordering := range []channeltypes.Order{channeltypes.UNORDERED, channeltypes.ORDERED} {
 		for _, tc := range testCases {
-			suite.Run(tc.msg, func() {
-				suite.SetupTest() // reset
+			s.Run(tc.msg, func() {
+				s.SetupTest() // reset
 
-				path = NewICAPath(suite.chainA, suite.chainB, icatypes.EncodingProto3JSON, ordering)
+				path = NewICAPath(s.chainA, s.chainB, icatypes.EncodingProto3JSON, ordering)
 				path.SetupConnections()
 
 				err := SetupICAPath(path, TestOwnerAddress)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				portID, err := icatypes.NewControllerPortID(TestOwnerAddress)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				// Get the address of the interchain account stored in state during handshake step
-				icaAddress, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(suite.chainB.GetContext(), ibctesting.FirstConnectionID, portID)
-				suite.Require().True(found)
+				icaAddress, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(s.chainB.GetContext(), ibctesting.FirstConnectionID, portID)
+				s.Require().True(found)
 
-				suite.fundICAWallet(suite.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000000))))
+				s.fundICAWallet(s.chainB.GetContext(), path.EndpointA.ChannelConfig.PortID, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000000))))
 
 				tc.malleate(icaAddress) // malleate mutates test data
 
 				packet := channeltypes.NewPacket(
 					packetData,
-					suite.chainA.SenderAccount.GetSequence(),
+					s.chainA.SenderAccount.GetSequence(),
 					path.EndpointA.ChannelConfig.PortID,
 					path.EndpointA.ChannelID,
 					path.EndpointB.ChannelConfig.PortID,
 					path.EndpointB.ChannelID,
-					suite.chainB.GetTimeoutHeight(),
+					s.chainB.GetTimeoutHeight(),
 					0,
 				)
 
-				txResponse, err := suite.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(suite.chainB.GetContext(), packet)
+				txResponse, err := s.chainB.GetSimApp().ICAHostKeeper.OnRecvPacket(s.chainB.GetContext(), packet)
 
 				if tc.expErr == nil {
-					suite.Require().NoError(err)
-					suite.Require().NotNil(txResponse)
+					s.Require().NoError(err)
+					s.Require().NotNil(txResponse)
 				} else {
-					suite.Require().ErrorIs(err, tc.expErr)
-					suite.Require().Nil(txResponse)
+					s.Require().ErrorIs(err, tc.expErr)
+					s.Require().Nil(txResponse)
 				}
 			})
 		}
 	}
 }
 
-func (suite *KeeperTestSuite) fundICAWallet(ctx sdk.Context, portID string, amount sdk.Coins) {
-	interchainAccountAddr, found := suite.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(ctx, ibctesting.FirstConnectionID, portID)
-	suite.Require().True(found)
+func (s *KeeperTestSuite) fundICAWallet(ctx sdk.Context, portID string, amount sdk.Coins) {
+	interchainAccountAddr, found := s.chainB.GetSimApp().ICAHostKeeper.GetInterchainAccountAddress(ctx, ibctesting.FirstConnectionID, portID)
+	s.Require().True(found)
 
 	msgBankSend := &banktypes.MsgSend{
-		FromAddress: suite.chainB.SenderAccount.GetAddress().String(),
+		FromAddress: s.chainB.SenderAccount.GetAddress().String(),
 		ToAddress:   interchainAccountAddr,
 		Amount:      amount,
 	}
 
-	res, err := suite.chainB.SendMsgs(msgBankSend)
-	suite.Require().NotEmpty(res)
-	suite.Require().NoError(err)
+	res, err := s.chainB.SendMsgs(msgBankSend)
+	s.Require().NotEmpty(res)
+	s.Require().NoError(err)
 }
 
 func getTestProposalMessage() sdk.Msg {

@@ -1,0 +1,36 @@
+name: Check docs build
+on:
+  merge_group:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '.github/workflows/check-docs.yml'
+
+jobs:
+  build:
+    runs-on: depot-ubuntu-24.04-4
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install dependencies
+        run: cd docs && npm ci
+      - name: Test build website
+        run: cd docs && npm run build
+
+  lint:
+    runs-on: depot-ubuntu-24.04-4
+    steps:
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+    - uses: DavidAnson/markdownlint-cli2-action@v20
+      with:
+        globs: ./docs/docs/**/*.md
+

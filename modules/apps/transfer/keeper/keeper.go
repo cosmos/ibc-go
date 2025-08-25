@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/core/address"
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
@@ -25,9 +26,9 @@ import (
 
 // Keeper defines the IBC fungible transfer keeper
 type Keeper struct {
-	storeService   corestore.KVStoreService
-	cdc            codec.BinaryCodec
-	legacySubspace types.ParamSubspace
+	storeService corestore.KVStoreService
+	cdc          codec.BinaryCodec
+	addressCodec address.Codec
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -41,17 +42,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
-func NewKeeper(
-	cdc codec.BinaryCodec,
-	storeService corestore.KVStoreService,
-	legacySubspace types.ParamSubspace,
-	ics4Wrapper porttypes.ICS4Wrapper,
-	channelKeeper types.ChannelKeeper,
-	msgRouter types.MessageRouter,
-	authKeeper types.AccountKeeper,
-	bankKeeper types.BankKeeper,
-	authority string,
-) Keeper {
+func NewKeeper(cdc codec.BinaryCodec, addressCodec address.Codec, storeService corestore.KVStoreService, channelKeeper types.ChannelKeeper, msgRouter types.MessageRouter, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper, authority string) *Keeper {
 	// ensure ibc transfer module account is set
 	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(errors.New("the IBC transfer module account has not been set"))
@@ -61,16 +52,16 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	return Keeper{
-		cdc:            cdc,
-		storeService:   storeService,
-		legacySubspace: legacySubspace,
-		ics4Wrapper:    ics4Wrapper,
-		channelKeeper:  channelKeeper,
-		msgRouter:      msgRouter,
-		AuthKeeper:     authKeeper,
-		BankKeeper:     bankKeeper,
-		authority:      authority,
+	return &Keeper{
+		cdc:           cdc,
+		addressCodec:  addressCodec,
+		storeService:  storeService,
+		ics4Wrapper:   channelKeeper, // default ICS4Wrapper is the channel keeper
+		channelKeeper: channelKeeper,
+		msgRouter:     msgRouter,
+		AuthKeeper:    authKeeper,
+		BankKeeper:    bankKeeper,
+		authority:     authority,
 	}
 }
 
@@ -82,22 +73,27 @@ func (k *Keeper) WithICS4Wrapper(wrapper porttypes.ICS4Wrapper) {
 }
 
 // GetICS4Wrapper returns the ICS4Wrapper.
-func (k Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
+func (k *Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
 	return k.ics4Wrapper
 }
 
 // GetAuthority returns the transfer module's authority.
-func (k Keeper) GetAuthority() string {
+func (k *Keeper) GetAuthority() string {
 	return k.authority
 }
 
+// GetAddressCodec returns the address codec used by the keeper.
+func (k *Keeper) GetAddressCodec() address.Codec {
+	return k.addressCodec
+}
+
 // Logger returns a module-specific logger.
-func (Keeper) Logger(ctx sdk.Context) log.Logger {
+func (*Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }
 
 // GetPort returns the portID for the transfer module. Used in ExportGenesis
-func (k Keeper) GetPort(ctx sdk.Context) string {
+func (k *Keeper) GetPort(ctx sdk.Context) string {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(types.PortKey)
 	if err != nil {
@@ -107,7 +103,7 @@ func (k Keeper) GetPort(ctx sdk.Context) string {
 }
 
 // SetPort sets the portID for the transfer module. Used in InitGenesis
-func (k Keeper) SetPort(ctx sdk.Context, portID string) {
+func (k *Keeper) SetPort(ctx sdk.Context, portID string) {
 	store := k.storeService.OpenKVStore(ctx)
 	if err := store.Set(types.PortKey, []byte(portID)); err != nil {
 		panic(err)
@@ -115,7 +111,7 @@ func (k Keeper) SetPort(ctx sdk.Context, portID string) {
 }
 
 // GetParams returns the current transfer module parameters.
-func (k Keeper) GetParams(ctx sdk.Context) types.Params {
+func (k *Keeper) GetParams(ctx sdk.Context) types.Params {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get([]byte(types.ParamsKey))
 	if err != nil {
@@ -131,7 +127,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 }
 
 // SetParams sets the transfer module parameters.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+func (k *Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	store := k.storeService.OpenKVStore(ctx)
 	bz := k.cdc.MustMarshal(&params)
 	if err := store.Set([]byte(types.ParamsKey), bz); err != nil {
@@ -140,7 +136,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 }
 
 // GetDenom retrieves the denom from store given the hash of the denom.
-func (k Keeper) GetDenom(ctx sdk.Context, denomHash cmtbytes.HexBytes) (types.Denom, bool) {
+func (k *Keeper) GetDenom(ctx sdk.Context, denomHash cmtbytes.HexBytes) (types.Denom, bool) {
 	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomKey)
 	bz := store.Get(denomHash)
 	if len(bz) == 0 {
@@ -154,21 +150,21 @@ func (k Keeper) GetDenom(ctx sdk.Context, denomHash cmtbytes.HexBytes) (types.De
 }
 
 // HasDenom checks if a the key with the given denomination hash exists on the store.
-func (k Keeper) HasDenom(ctx sdk.Context, denomHash cmtbytes.HexBytes) bool {
+func (k *Keeper) HasDenom(ctx sdk.Context, denomHash cmtbytes.HexBytes) bool {
 	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomKey)
 	return store.Has(denomHash)
 }
 
 // SetDenom sets a new {denom hash -> denom } pair to the store.
 // This allows for reverse lookup of the denom given the hash.
-func (k Keeper) SetDenom(ctx sdk.Context, denom types.Denom) {
+func (k *Keeper) SetDenom(ctx sdk.Context, denom types.Denom) {
 	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomKey)
 	bz := k.cdc.MustMarshal(&denom)
 	store.Set(denom.Hash(), bz)
 }
 
 // GetAllDenoms returns all the denominations.
-func (k Keeper) GetAllDenoms(ctx sdk.Context) types.Denoms {
+func (k *Keeper) GetAllDenoms(ctx sdk.Context) types.Denoms {
 	denoms := types.Denoms{}
 	k.IterateDenoms(ctx, func(denom types.Denom) bool {
 		denoms = append(denoms, denom)
@@ -179,7 +175,7 @@ func (k Keeper) GetAllDenoms(ctx sdk.Context) types.Denoms {
 }
 
 // IterateDenoms iterates over the denominations in the store and performs a callback function.
-func (k Keeper) IterateDenoms(ctx sdk.Context, cb func(denom types.Denom) bool) {
+func (k *Keeper) IterateDenoms(ctx sdk.Context, cb func(denom types.Denom) bool) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, types.DenomKey)
 
@@ -195,7 +191,7 @@ func (k Keeper) IterateDenoms(ctx sdk.Context, cb func(denom types.Denom) bool) 
 }
 
 // SetDenomMetadata sets an IBC token's denomination metadata
-func (k Keeper) SetDenomMetadata(ctx sdk.Context, denom types.Denom) {
+func (k *Keeper) SetDenomMetadata(ctx sdk.Context, denom types.Denom) {
 	metadata := banktypes.Metadata{
 		Description: fmt.Sprintf("IBC token from %s", denom.Path()),
 		DenomUnits: []*banktypes.DenomUnit{
@@ -221,7 +217,7 @@ func (k Keeper) SetDenomMetadata(ctx sdk.Context, denom types.Denom) {
 //
 // NOTE: if there is no value stored in state for the provided denom then a new Coin is returned for the denom with an initial value of zero.
 // This accommodates callers to simply call `Add()` on the returned Coin as an empty Coin literal (e.g. sdk.Coin{}) will trigger a panic due to the absence of a denom.
-func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
+func (k *Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 	store := k.storeService.OpenKVStore(ctx)
 	bz, err := store.Get(types.TotalEscrowForDenomKey(denom))
 	if err != nil {
@@ -240,7 +236,7 @@ func (k Keeper) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin {
 // SetTotalEscrowForDenom stores the total amount of source chain tokens that are in escrow.
 // Amount is stored in state if and only if it is not equal to zero. The function will panic
 // if the amount is negative.
-func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
+func (k *Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 	if coin.Amount.IsNegative() {
 		panic(fmt.Errorf("amount cannot be negative: %s", coin.Amount))
 	}
@@ -262,7 +258,7 @@ func (k Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 }
 
 // GetAllTotalEscrowed returns the escrow information for all the denominations.
-func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
+func (k *Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 	var escrows sdk.Coins
 	k.IterateTokensInEscrow(ctx, []byte(types.KeyTotalEscrowPrefix), func(denomEscrow sdk.Coin) bool {
 		escrows = escrows.Add(denomEscrow)
@@ -275,7 +271,7 @@ func (k Keeper) GetAllTotalEscrowed(ctx sdk.Context) sdk.Coins {
 // IterateTokensInEscrow iterates over the denomination escrows in the store
 // and performs a callback function. Denominations for which an invalid value
 // (i.e. not integer) is stored, will be skipped.
-func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, storeprefix []byte, cb func(denomEscrow sdk.Coin) bool) {
+func (k *Keeper) IterateTokensInEscrow(ctx sdk.Context, storeprefix []byte, cb func(denomEscrow sdk.Coin) bool) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, storeprefix)
 
@@ -300,7 +296,7 @@ func (k Keeper) IterateTokensInEscrow(ctx sdk.Context, storeprefix []byte, cb fu
 
 // IsBlockedAddr checks if the given address is allowed to send or receive tokens.
 // The module account is always allowed to send and receive tokens.
-func (k Keeper) IsBlockedAddr(addr sdk.AccAddress) bool {
+func (k *Keeper) IsBlockedAddr(addr sdk.AccAddress) bool {
 	moduleAddr := k.AuthKeeper.GetModuleAddress(types.ModuleName)
 	if addr.Equals(moduleAddr) {
 		return false

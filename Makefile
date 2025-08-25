@@ -187,6 +187,26 @@ tag-docs-version:
 	@cd docs && npm run docusaurus docs:version $(DOCS_VERSION)
 endif
 
+check-docs-links:
+	@command -v lychee >/dev/null 2>&1 || { echo "ERROR: lychee is not installed (https://lychee.cli.rs/installation/)" >&2; exit 1; }
+	@echo "Checking links in documentation..."
+	@lychee --root-dir $(CURDIR)/docs/docs \
+		--cache \
+		--cache-exclude-status 429 \
+		--max-cache-age 1w \
+		--retry-wait-time 30 \
+		--max-retries 25 \
+		--max-concurrency 25 \
+		--remap '($(CURDIR)/docs)(/docs/)(architecture/|events/)([^#]+?)(#[^#]+)?$$ $$1/$$3/$$4.md' \
+		'./docs/docs'
+
+lint-docs:
+	@command -v markdownlint-cli2 >/dev/null 2>&1 || { \
+	  echo "ERROR: markdownlint-cli2 is not installed" >&2; exit 1; \
+	}
+	@echo "Linting documentation..."
+	@find docs/docs -type f -name '*.md' | xargs markdownlint-cli2
+
 .PHONY: build-docs serve-docs tag-docs-version
 
 ###############################################################################
@@ -317,13 +337,6 @@ benchmark:
 ###                                Linting                                  ###
 ###############################################################################
 
-#? setup-pre-commit: Set pre commit git hook
-setup-pre-commit:
-	@cp .git/hooks/pre-commit .git/hooks/pre-commit.bak 2>/dev/null || true
-	@echo "Installing pre-commit hook..."
-	@ln -sf ../../scripts/hooks/pre-commit.sh .git/hooks/pre-commit
-	@echo "Pre-commit hook was installed at .git/hooks/pre-commit"
-
 #? lint: Run golangci-lint on all modules
 lint:
 	@echo "--> Running linter"
@@ -334,31 +347,18 @@ lint-fix:
 	@echo "--> Running linter"
 	@./scripts/go-lint-all.sh --fix
 
-#? format: Run gofumpt and misspell
+#? format: Run gofumpt
 format:
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs misspell -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
 .PHONY: format
 
-#? docs-lint: Lint markdown documentation files
-docs-lint:
-	markdownlint-cli2 "**.md"
-
-#? docs-lint-fix: Lint markdown documentation files and fix
-docs-lint-fix:
-	markdownlint-cli2 "**.md" --fix
-
-#? docs-link-check: Run markdown-link-check
-docs-link-check:
-	find . -name 'node_modules' -prune -o -name '*.md' -print0 | xargs -0 -n1 markdown-link-check --config ./.github/workflows/link-check-config.json
-
-.PHONY: lint lint-fix docs-lint docs-lint-fix docs-link-check
+.PHONY: lint lint-fix format
 
 ###############################################################################
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.14.0
+protoVer=0.17.1
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 

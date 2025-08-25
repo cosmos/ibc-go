@@ -27,20 +27,10 @@ func NewMigrator(keeper Keeper) Migrator {
 	}
 }
 
-// MigrateParams migrates the transfer module's parameters from the x/params to self store.
-func (m Migrator) MigrateParams(ctx sdk.Context) error {
-	var params types.Params
-	m.keeper.legacySubspace.GetParamSet(ctx, &params)
-
-	m.keeper.SetParams(ctx, params)
-	m.keeper.Logger(ctx).Info("successfully migrated transfer app self-manage params")
-	return nil
-}
-
 // MigrateDenomMetadata sets token metadata for all the IBC denom traces
 func (m Migrator) MigrateDenomMetadata(ctx sdk.Context) error {
 	m.keeper.iterateDenomTraces(ctx,
-		func(dt internaltypes.DenomTrace) (stop bool) {
+		func(dt internaltypes.DenomTrace) bool {
 			// check if the metadata for the given denom trace does not already exist
 			if !m.keeper.BankKeeper.HasDenomMetaData(ctx, dt.IBCDenom()) {
 				m.keeper.setDenomMetadataWithDenomTrace(ctx, dt)
@@ -80,7 +70,7 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 		denomTraces []internaltypes.DenomTrace
 	)
 	m.keeper.iterateDenomTraces(ctx,
-		func(dt internaltypes.DenomTrace) (stop bool) {
+		func(dt internaltypes.DenomTrace) bool {
 			// convert denomTrace to denom
 			denom := types.ExtractDenomFromPath(dt.GetFullDenomPath())
 			err := denom.Validate()
@@ -114,7 +104,7 @@ func (m Migrator) MigrateDenomTraceToDenom(ctx sdk.Context) error {
 }
 
 // setDenomTrace sets a new {trace hash -> denom trace} pair to the store.
-func (k Keeper) setDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
+func (k *Keeper) setDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
 	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomTraceKey)
 	bz := k.cdc.MustMarshal(&denomTrace)
 
@@ -122,14 +112,14 @@ func (k Keeper) setDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTra
 }
 
 // deleteDenomTrace deletes the denom trace
-func (k Keeper) deleteDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
+func (k *Keeper) deleteDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
 	store := prefix.NewStore(runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx)), types.DenomTraceKey)
 	store.Delete(denomTrace.Hash())
 }
 
 // iterateDenomTraces iterates over the denomination traces in the store
 // and performs a callback function.
-func (k Keeper) iterateDenomTraces(ctx sdk.Context, cb func(denomTrace internaltypes.DenomTrace) bool) {
+func (k *Keeper) iterateDenomTraces(ctx sdk.Context, cb func(denomTrace internaltypes.DenomTrace) bool) {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, types.DenomTraceKey)
 
@@ -145,7 +135,7 @@ func (k Keeper) iterateDenomTraces(ctx sdk.Context, cb func(denomTrace internalt
 }
 
 // setDenomMetadataWithDenomTrace sets an IBC token's denomination metadata
-func (k Keeper) setDenomMetadataWithDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
+func (k *Keeper) setDenomMetadataWithDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
 	metadata := banktypes.Metadata{
 		Description: fmt.Sprintf("IBC token from %s", denomTrace.GetFullDenomPath()),
 		DenomUnits: []*banktypes.DenomUnit{

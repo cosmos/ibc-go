@@ -49,8 +49,8 @@ func (msg *MsgSendPacket) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidTimeout, "timeout must not be 0")
 	}
 
-	if len(msg.Payloads) != 1 {
-		return errorsmod.Wrapf(ErrInvalidPayload, "payloads must be of length 1, got %d instead", len(msg.Payloads))
+	if len(msg.Payloads) == 0 {
+		return errorsmod.Wrapf(ErrInvalidPayload, "payload length must be greater than 0")
 	}
 
 	for _, pd := range msg.Payloads {

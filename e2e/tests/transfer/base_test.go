@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	test "github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -30,6 +30,11 @@ type TransferTestSuite struct {
 	transferTester
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *TransferTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 2, nil)
+}
+
 // transferTester defines some helper functions that can be used in various test suites
 // that test transfer functionality.
 type transferTester struct {
@@ -41,14 +46,6 @@ func (s *transferTester) QueryTransferParams(ctx context.Context, chain ibc.Chai
 	res, err := query.GRPCQuery[transfertypes.QueryParamsResponse](ctx, chain, &transfertypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 	return *res.Params
-}
-
-// CreateTransferPath sets up a path between chainA and chainB with a transfer channel and returns the relayer wired
-// up to watch the channel and port IDs created.
-func (s *transferTester) CreateTransferPath(testName string) (ibc.Relayer, ibc.ChannelOutput) {
-	relayer, channel := s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName), s.GetChainAChannelForTest(testName)
-	s.T().Logf("test %s running on portID %s channelID %s", testName, channel.PortID, channel.ChannelID)
-	return relayer, channel
 }
 
 // TestMsgTransfer_Succeeds_Nonincentivized will test sending successful IBC transfers from chainA to chainB.
@@ -65,9 +62,11 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 	// deterministic.
 	t.Parallel()
 
-	relayer, channelA := s.CreateTransferPath(testName)
-
 	chainA, chainB := s.GetChains()
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	chainBVersion := chainB.Config().Images[0].Version
 	chainADenom := chainA.Config().Denom
@@ -173,9 +172,12 @@ func (s *TransferTestSuite) TestMsgTransfer_Fails_InvalidAddress() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 
@@ -220,9 +222,12 @@ func (s *TransferTestSuite) TestMsgTransfer_Timeout_Nonincentivized() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.CreateTransferPath(testName)
 
-	chainA, _ := s.GetChains()
+	chainA, chainB := s.GetChains()
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	chainAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	chainBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
@@ -278,9 +283,12 @@ func (s *TransferTestSuite) TestMsgTransfer_WithMemo() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 
@@ -329,9 +337,12 @@ func (s *TransferTestSuite) TestMsgTransfer_EntireBalance() {
 
 	testName := t.Name()
 	t.Parallel()
-	relayer, channelA := s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	chainADenom := chainA.Config().Denom
 

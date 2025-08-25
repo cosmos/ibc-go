@@ -20,14 +20,14 @@ import (
 var _ types.MsgServer = (*Keeper)(nil)
 
 // Transfer defines an rpc handler method for MsgTransfer.
-func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
+func (k *Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.MsgTransferResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.GetParams(ctx).SendEnabled {
 		return nil, types.ErrSendDisabled
 	}
 
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	sender, err := k.addressCodec.StringToBytes(msg.Sender)
 	if err != nil {
 		return nil, err
 	}
@@ -47,26 +47,27 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender.String(), msg.Receiver, msg.Memo)
+	packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, msg.Sender, msg.Receiver, msg.Memo)
 
 	if err := packetData.ValidateBasic(); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to validate %s packet data", types.V1)
 	}
 
-	// if a channel exists with source channel, then use IBC V1 protocol
-	// otherwise use IBC V2 protocol
-	channel, isIBCV1 := k.channelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel)
+	// if the channel does not exist, or we are using channel aliasing then use IBC V2 protocol
+	// otherwise use IBC V1 protocol
+	channel, hasChannel := k.channelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel)
+	isIBCV2 := !hasChannel || msg.UseAliasing
 
 	var sequence uint64
-	if isIBCV1 {
-		// if a V1 channel exists for the source channel, then use IBC V1 protocol
-		sequence, err = k.transferV1Packet(ctx, msg.SourceChannel, token, msg.TimeoutHeight, msg.TimeoutTimestamp, packetData)
-		// telemetry for transfer occurs here, in IBC V2 this is done in the onSendPacket callback
-		telemetry.ReportTransfer(msg.SourcePort, msg.SourceChannel, channel.Counterparty.PortId, channel.Counterparty.ChannelId, token)
-	} else {
+	if isIBCV2 {
 		// otherwise try to send an IBC V2 packet, if the sourceChannel is not a IBC V2 client
 		// then core IBC will return a CounterpartyNotFound error
 		sequence, err = k.transferV2Packet(ctx, msg.Encoding, msg.SourceChannel, msg.TimeoutTimestamp, packetData)
+	} else {
+		// if a V1 channel exists for the source channel, then use IBC V1 protocol
+		sequence, err = k.transferV1Packet(ctx, msg.SourceChannel, token, msg.TimeoutHeight, msg.TimeoutTimestamp, sender, packetData)
+		// telemetry for transfer occurs here, in IBC V2 this is done in the onSendPacket callback
+		telemetry.ReportTransfer(msg.SourcePort, msg.SourceChannel, channel.Counterparty.PortId, channel.Counterparty.ChannelId, token)
 	}
 	if err != nil {
 		return nil, err
@@ -77,8 +78,8 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }
 
-func (k Keeper) transferV1Packet(ctx sdk.Context, sourceChannel string, token types.Token, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData types.FungibleTokenPacketData) (uint64, error) {
-	if err := k.SendTransfer(ctx, types.PortID, sourceChannel, token, sdk.MustAccAddressFromBech32(packetData.Sender)); err != nil {
+func (k *Keeper) transferV1Packet(ctx sdk.Context, sourceChannel string, token types.Token, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, sender sdk.AccAddress, packetData types.FungibleTokenPacketData) (uint64, error) {
+	if err := k.SendTransfer(ctx, types.PortID, sourceChannel, token, sender); err != nil {
 		return 0, err
 	}
 
@@ -93,7 +94,7 @@ func (k Keeper) transferV1Packet(ctx sdk.Context, sourceChannel string, token ty
 	return sequence, nil
 }
 
-func (k Keeper) transferV2Packet(ctx sdk.Context, encoding, sourceChannel string, timeoutTimestamp uint64, packetData types.FungibleTokenPacketData) (uint64, error) {
+func (k *Keeper) transferV2Packet(ctx sdk.Context, encoding, sourceChannel string, timeoutTimestamp uint64, packetData types.FungibleTokenPacketData) (uint64, error) {
 	if encoding == "" {
 		encoding = types.EncodingJSON
 	}
@@ -139,7 +140,7 @@ func (k Keeper) transferV2Packet(ctx sdk.Context, encoding, sourceChannel string
 }
 
 // UpdateParams defines an rpc handler method for MsgUpdateParams. Updates the ibc-transfer module's parameters.
-func (k Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+func (k *Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	if k.GetAuthority() != msg.Signer {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
 	}

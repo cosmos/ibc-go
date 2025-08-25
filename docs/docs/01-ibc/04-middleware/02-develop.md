@@ -31,6 +31,10 @@ The interfaces a middleware must implement are found [here](https://github.com/c
 type Middleware interface {
   IBCModule // middleware has access to an underlying application which may be wrapped by more middleware
   ICS4Wrapper // middleware has access to ICS4Wrapper which may be core IBC Channel Handler or a higher-level middleware that wraps this middleware.
+
+  // SetUnderlyingModule sets the underlying IBC module. This function may be used after
+	// the middleware's initialization to set the ibc module which is below this middleware.
+	SetUnderlyingApplication(IBCModule)
 }
 ```
 
@@ -42,14 +46,12 @@ An `IBCMiddleware` struct implementing the `Middleware` interface, can be define
 // IBCMiddleware implements the ICS26 callbacks and ICS4Wrapper for the fee middleware given the
 // fee keeper and the underlying application.
 type IBCMiddleware struct {
-  app    porttypes.IBCModule
-  keeper keeper.Keeper
+  keeper *keeper.Keeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(k *keeper.Keeper) IBCMiddleware {
   return IBCMiddleware{
-    app:    app,
     keeper: k,
   }
 }
@@ -476,3 +478,26 @@ func GetAppVersion(
 ```
 
 See [here](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/apps/29-fee/keeper/relay.go#L58-L74) an example implementation of this function for the ICS-29 Fee Middleware module.
+
+## Wiring Interface Requirements
+
+Middleware must also implement the following functions so that they can be called in the stack builder in order to correctly wire the application stack together: `SetUnderlyingApplication` and `SetICS4Wrapper`.
+
+```go
+// SetUnderlyingModule sets the underlying IBC module. This function may be used after
+// the middleware's initialization to set the ibc module which is below this middleware.
+SetUnderlyingApplication(IBCModule)
+
+// SetICS4Wrapper sets the ICS4Wrapper. This function may be used after
+// the module's initialization to set the middleware which is above this
+// module in the IBC application stack.
+// The ICS4Wrapper **must** be used for sending packets and writing acknowledgements
+// to ensure that the middleware can intercept and process these calls.
+// Do not use the channel keeper directly to send packets or write acknowledgements
+// as this will bypass the middleware.
+SetICS4Wrapper(wrapper ICS4Wrapper)
+```
+
+The middleware itself should have access to the `underlying app` (note this may be a base app or an application wrapped by layers of lower-level middleware(s)) and access to the higher layer `ICS4wrapper`. The `underlying app` gets called during the relayer initiated actions: `recvPacket`, `acknowledgePacket`, and `timeoutPacket`. The `ics4Wrapper` gets called on user-initiated actions like `sendPacket` and `writeAcknowledgement`.
+
+The functions above are used by the `StackBuilder` during application setup to wire the stack correctly. The stack must be wired first and have all of the wrappers and applications set correctly before transaction execution starts and packet processing begins.

@@ -16,9 +16,5 @@ func (k *Keeper) RecvPacketReCheckTx(ctx sdk.Context, packet types.Packet) error
 		return errorsmod.Wrap(types.ErrChannelNotFound, packet.GetDestChannel())
 	}
 
-	if err := k.applyReplayProtection(ctx, packet, channel); err != nil {
-		return err
-	}
-
-	return nil
+	return k.applyReplayProtection(ctx, packet, channel)
 }

@@ -35,35 +35,21 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 		{
 			"success",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(simapp.ContractKeeper{}, maxCallbackGas)
 			},
 			nil,
 		},
 		{
-			"panics with nil underlying app",
-			func() {
-				_ = ibccallbacks.NewIBCMiddleware(nil, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, maxCallbackGas)
-			},
-			fmt.Errorf("underlying application does not implement %T", (*types.CallbacksCompatibleModule)(nil)),
-		},
-		{
 			"panics with nil contract keeper",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, nil, maxCallbackGas)
+				_ = ibccallbacks.NewIBCMiddleware(nil, maxCallbackGas)
 			},
 			errors.New("contract keeper cannot be nil"),
 		},
 		{
-			"panics with nil ics4Wrapper",
-			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, nil, simapp.ContractKeeper{}, maxCallbackGas)
-			},
-			errors.New("ICS4Wrapper cannot be nil"),
-		},
-		{
 			"panics with zero maxCallbackGas",
 			func() {
-				_ = ibccallbacks.NewIBCMiddleware(ibcmock.IBCModule{}, &channelkeeper.Keeper{}, simapp.ContractKeeper{}, uint64(0))
+				_ = ibccallbacks.NewIBCMiddleware(simapp.ContractKeeper{}, uint64(0))
 			},
 			errors.New("maxCallbackGas cannot be zero"),
 		},
@@ -80,20 +66,41 @@ func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
 	}
 }
 
-func (s *CallbacksTestSuite) TestWithICS4Wrapper() {
+func (s *CallbacksTestSuite) TestSetICS4Wrapper() {
 	s.setupChains()
 
 	cbsMiddleware := ibccallbacks.IBCMiddleware{}
 	s.Require().Nil(cbsMiddleware.GetICS4Wrapper())
 
-	cbsMiddleware.WithICS4Wrapper(s.chainA.App.GetIBCKeeper().ChannelKeeper)
+	s.Require().Panics(func() {
+		cbsMiddleware.SetICS4Wrapper(nil)
+	}, "expected panic when setting nil ICS4Wrapper")
+
+	cbsMiddleware.SetICS4Wrapper(s.chainA.App.GetIBCKeeper().ChannelKeeper)
 	ics4Wrapper := cbsMiddleware.GetICS4Wrapper()
 
 	s.Require().IsType((*channelkeeper.Keeper)(nil), ics4Wrapper)
 }
 
+func (s *CallbacksTestSuite) TestSetUnderlyingApplication() {
+	s.setupChains()
+
+	cbsMiddleware := ibccallbacks.IBCMiddleware{}
+
+	s.Require().Panics(func() {
+		cbsMiddleware.SetUnderlyingApplication(nil)
+	}, "expected panic when setting nil underlying application")
+
+	cbsMiddleware.SetUnderlyingApplication(&ibcmock.IBCModule{})
+
+	s.Require().Panics(func() {
+		cbsMiddleware.SetUnderlyingApplication(&ibcmock.IBCModule{})
+	}, "expected panic when setting underlying application a second time")
+}
+
 func (s *CallbacksTestSuite) TestSendPacket() {
 	var packetData transfertypes.FungibleTokenPacketData
+	var callbackExecuted bool
 
 	testCases := []struct {
 		name         string
@@ -127,7 +134,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			},
 			"none", // improperly formatted callback data should result in no callback execution
 			false,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: ics4Wrapper SendPacket call fails",
@@ -165,6 +172,46 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			false,
 			errorsmod.Wrapf(types.ErrCallbackOutOfGas, "ibc %s callback out of gas", types.CallbackTypeSendPacket),
 		},
+		{
+			"failure: callback address invalid",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":%d}}`, 50)
+				callbackExecuted = false // callback should not be executed
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			types.ErrInvalidCallbackData,
+		},
+		{
+			"failure: callback gas limit invalid",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":%d}}`, simapp.SuccessContract, 50)
+				callbackExecuted = false // callback should not be executed
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			types.ErrInvalidCallbackData,
+		},
+		{
+			"failure: callback calldata invalid",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d", "calldata":%d}}`, simapp.SuccessContract, 50, 50)
+				callbackExecuted = false // callback should not be executed
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			types.ErrInvalidCallbackData,
+		},
+		{
+			"failure: callback calldata hex invalid",
+			func() {
+				packetData.Memo = fmt.Sprintf(`{"src_callback": {"address":"%s", "gas_limit":"%d", "calldata":"%s"}}`, simapp.SuccessContract, 50, "calldata")
+				callbackExecuted = false // callback should not be executed
+			},
+			types.CallbackTypeSendPacket,
+			false,
+			types.ErrInvalidCallbackData,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -180,6 +227,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 				ibctesting.TestAccAddress,
 				fmt.Sprintf(`{"src_callback": {"address": "%s"}}`, simapp.SuccessContract),
 			)
+			callbackExecuted = true
 
 			tc.malleate()
 
@@ -214,11 +262,13 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 
 			default:
 				sendPacket()
-				s.Require().ErrorIs(err, tc.expValue.(error))
+				s.Require().ErrorIs(tc.expValue.(error), err)
 				s.Require().Equal(uint64(0), seq)
 			}
 
-			s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
+			if callbackExecuted {
+				s.AssertHasExecutedExpectedCallback(tc.callbackType, expPass)
+			}
 		})
 	}
 }
@@ -279,7 +329,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -351,18 +401,14 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				return transferStack.OnAcknowledgementPacket(ctx, s.path.EndpointA.GetChannel().Version, packet, ack, s.chainA.SenderAccount.GetAddress())
 			}
 
-			switch tc.expError {
-			case nil:
+			switch {
+			case tc.expError == nil:
 				err := onAcknowledgementPacket()
 				s.Require().Nil(err)
-
-			case panicError:
-				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{
-					Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit),
-				}, func() {
+			case errors.Is(tc.expError, panicError):
+				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit)}, func() {
 					_ = onAcknowledgementPacket()
 				})
-
 			default:
 				err := onAcknowledgementPacket()
 				s.Require().ErrorIs(err, tc.expError)
@@ -392,6 +438,9 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 				)
 				s.Require().True(exists)
 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+
+			default:
+				s.T().Fatalf("unexpected expResult: %v", tc.expResult)
 			}
 		})
 	}
@@ -449,7 +498,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -503,7 +552,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			s.Require().NoError(err)
 			s.Require().NotNil(res)
 
-			packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
+			packet, err = ibctesting.ParseV1PacketFromEvents(res.GetEvents())
 			s.Require().NoError(err)
 			s.Require().NotNil(packet)
 
@@ -563,6 +612,9 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 				)
 				s.Require().True(exists)
 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+
+			default:
+				s.T().Fatalf("unexpected expResult: %v", tc.expResult)
 			}
 		})
 	}
@@ -624,7 +676,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				packet.Data = packetData.GetBytes()
 			},
 			noExecution,
-			channeltypes.NewErrorAcknowledgement(types.ErrCallbackAddressNotFound),
+			channeltypes.NewErrorAcknowledgement(types.ErrInvalidCallbackData),
 		},
 		{
 			"failure: callback execution reach out of gas, but sufficient gas provided by relayer",
@@ -736,6 +788,9 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 				)
 				s.Require().True(exists)
 				s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
+
+			default:
+				s.T().Fatalf("unexpected expResult: %v", tc.expResult)
 			}
 		})
 	}
@@ -782,7 +837,7 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				packet.Data = packetData.GetBytes()
 			},
 			"none", // improperly formatted callback data should result in no callback execution
-			types.ErrCallbackAddressNotFound,
+			types.ErrInvalidCallbackData,
 		},
 		{
 			"failure: ics4Wrapper WriteAcknowledgement call fails",
@@ -841,7 +896,6 @@ func (s *CallbacksTestSuite) TestWriteAcknowledgement() {
 				if exists {
 					s.Require().Contains(ctx.EventManager().Events().ToABCIEvents(), expEvent)
 				}
-
 			} else {
 				s.Require().ErrorIs(err, tc.expError)
 			}
@@ -998,7 +1052,7 @@ func (s *CallbacksTestSuite) TestUnmarshalPacketDataV1() {
 	transferStack, ok := s.chainA.App.GetIBCKeeper().PortKeeper.Route(transfertypes.ModuleName)
 	s.Require().True(ok)
 
-	unmarshalerStack, ok := transferStack.(types.CallbacksCompatibleModule)
+	unmarshalerStack, ok := transferStack.(porttypes.PacketUnmarshalerModule)
 	s.Require().True(ok)
 
 	expPacketDataICS20V1 := transfertypes.FungibleTokenPacketData{

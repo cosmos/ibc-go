@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package ibc.applications.packet_forward_middleware.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types";
+
+// GenesisState defines the packetforward genesis state
+message GenesisState {
+  // key - information about forwarded packet: src_channel
+  // (parsedReceiver.Channel), src_port (parsedReceiver.Port), sequence value -
+  // information about original packet for refunding if necessary: retries,
+  // srcPacketSender, srcPacket.DestinationChannel, srcPacket.DestinationPort
+  map<string, InFlightPacket> in_flight_packets = 2
+      [(gogoproto.moretags) = "yaml:\"in_flight_packets\"", (gogoproto.nullable) = false];
+}
+
+// InFlightPacket contains information about original packet for
+// writing the acknowledgement and refunding if necessary.
+message InFlightPacket {
+  string original_sender_address  = 1;
+  string refund_channel_id        = 2;
+  string refund_port_id           = 3;
+  string packet_src_channel_id    = 4;
+  string packet_src_port_id       = 5;
+  uint64 packet_timeout_timestamp = 6;
+  string packet_timeout_height    = 7;
+  bytes  packet_data              = 8;
+  uint64 refund_sequence          = 9;
+  int32  retries_remaining        = 10;
+  uint64 timeout                  = 11;
+  bool   nonrefundable            = 12;
+}

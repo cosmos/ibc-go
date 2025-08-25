@@ -13,22 +13,22 @@ import (
 )
 
 // TestMustMarshalProtoJSON tests that the memo field is only emitted (marshalled) if it is populated
-func (suite *TypesTestSuite) TestMustMarshalProtoJSON() {
+func (s *TypesTestSuite) TestMustMarshalProtoJSON() {
 	memo := "memo"
-	packetData := types.NewFungibleTokenPacketData(sdk.DefaultBondDenom, "1", suite.chainA.SenderAccount.GetAddress().String(), suite.chainB.SenderAccount.GetAddress().String(), memo)
+	packetData := types.NewFungibleTokenPacketData(sdk.DefaultBondDenom, "1", s.chainA.SenderAccount.GetAddress().String(), s.chainB.SenderAccount.GetAddress().String(), memo)
 
 	bz := packetData.GetBytes()
 	exists := strings.Contains(string(bz), memo)
-	suite.Require().True(exists)
+	s.Require().True(exists)
 
 	packetData.Memo = ""
 
 	bz = packetData.GetBytes()
 	exists = strings.Contains(string(bz), memo)
-	suite.Require().False(exists)
+	s.Require().False(exists)
 }
 
-func (suite *TypesTestSuite) TestCodecTypeRegistration() {
+func (s *TypesTestSuite) TestCodecTypeRegistration() {
 	testCases := []struct {
 		name    string
 		typeURL string
@@ -57,16 +57,16 @@ func (suite *TypesTestSuite) TestCodecTypeRegistration() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			encodingCfg := moduletestutil.MakeTestEncodingConfig(transfer.AppModuleBasic{})
 			msg, err := encodingCfg.Codec.InterfaceRegistry().Resolve(tc.typeURL)
 
 			if tc.expErr == nil {
-				suite.Require().NotNil(msg)
-				suite.Require().NoError(err)
+				s.Require().NotNil(msg)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Nil(msg)
-				ibctesting.RequireErrorIsOrContains(suite.T(), err, tc.expErr)
+				s.Require().Nil(msg)
+				ibctesting.RequireErrorIsOrContains(s.T(), err, tc.expErr)
 			}
 		})
 	}

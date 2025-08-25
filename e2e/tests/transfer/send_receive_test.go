@@ -6,7 +6,8 @@ import (
 	"context"
 	"testing"
 
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	test "github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -29,7 +30,7 @@ type TransferTestSuiteSendReceive struct {
 }
 
 func (s *TransferTestSuiteSendReceive) SetupSuite() {
-	s.SetupChains(context.TODO(), nil, func(options *testsuite.ChainOptions) {
+	s.SetupChains(context.TODO(), 2, nil, func(options *testsuite.ChainOptions) {
 		options.RelayerCount = 1
 	})
 }
@@ -40,13 +41,13 @@ func (s *TransferTestSuiteSendReceive) TestReceiveEnabledParam() {
 	ctx := context.TODO()
 
 	testName := t.Name()
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 	// Note: explicitly not using t.Parallel() in this test as it makes chain wide changes
-	s.CreateTransferPath(testName)
 
 	chainA, chainB := s.GetChains()
 
 	relayer := s.GetRelayerForTest(testName)
-	channelA := s.GetChainAChannelForTest(testName)
+	channelA := s.GetChannelBetweenChains(testName, chainA, chainB)
 
 	chainAVersion := chainA.Config().Images[0].Version
 

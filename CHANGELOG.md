@@ -37,10 +37,20 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased]
 
 ### Features
+* [\#8573](https://github.com/cosmos/ibc-go/pull/8573) Support custom address codecs in transfer, PFM, and rate limiting.
+* [\#8285](https://github.com/cosmos/ibc-go/pull/8285) Packet forward middleware.
+* [\#8545](https://github.com/cosmos/ibc-go/pull/8545) Support sending multiple payloads in the same packet for atomic payload execution.
+* [\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.
 
 ### Dependencies
 
+* [\#8451](https://github.com/cosmos/ibc-go/pull/8451) Bump **go** to **1.24**
+* (light-clients/08-wasm)[\#8500](https://github.com/cosmos/ibc-go/pull/8500) Bump **github.com/prysmaticlabs/prysm/v5** to **github.com/OffchainLabs/prysm/v6@v6.0.4**
+
 ### API Breaking
+* (apps) [\#8476](https://github.com/cosmos/ibc-go/pull/8476) Remove `ParamSubspace` from all `Keeper` constructors
+* (light-clients/08-wasm) [\#8511](https://github.com/cosmos/ibc-go/pull/8511) Remove deprecated `Checksums` type
+* (core/02-client) [\#8516](https://github.com/cosmos/ibc-go/pull/8516) Remove deprecated `SubmitMisbehaviour` message handler
 
 ### State Machine Breaking
 
@@ -50,7 +60,34 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Testing API
 
-## [v10.2.0](https://github.com/cosmos/ibc-go/releases/tag/v10.2.0) - 2022-04-30
+* [\#8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message`.
+
+## [v10.3.0](https://github.com/cosmos/ibc-go/releases/tag/v10.3.0) - 2025-06-06
+
+### Features
+
+### Dependencies
+
+* [\#8369](https://github.com/cosmos/ibc-go/pull/8369) Bump **github.com/CosmWasm/wasmvm** to **2.2.4**
+* [\#8369](https://github.com/cosmos/ibc-go/pull/8369) Bump **github.com/ethereum/go-ethereum** to **1.15.11**
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+* (core/api) [\#8303](https://github.com/cosmos/ibc-go/pull/8303) Prefix-based routing in IBCv2 Router
+- (apps/callbacks) [\#8353](https://github.com/cosmos/ibc-go/pull/8353) Add field in callbacks data for custom calldata
+
+### Bug Fixes
+
+### Testing API
+
+* [\#8371](https://github.com/cosmos/ibc-go/pull/8371) e2e: Create only necessary number of chains for e2e suite.
+* [\#8375](https://github.com/cosmos/ibc-go/pull/8375) feat: parse IBC v2 packets from ABCI events
+
+## [v10.2.0](https://github.com/cosmos/ibc-go/releases/tag/v10.2.0) - 2025-04-30
 
 ### Features
 
@@ -74,7 +111,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#8287](https://github.com/cosmos/ibc-go/pull/8287) rename total_escrow REST query from `denoms` to `total_escrow`
 
-## [v10.1.0](https://github.com/cosmos/ibc-go/releases/tag/v10.1.0) - 2022-03-14
+## [v10.1.0](https://github.com/cosmos/ibc-go/releases/tag/v10.1.0) - 2025-03-14
 
 ### Security Fixes
 
@@ -212,7 +249,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-* (core/03-connection) [\#7129](https://github.com/cosmos/ibc-go/pull/7129) Remove verification of self client and consensus state from connection handshake. 
+* (core/03-connection) [\#7129](https://github.com/cosmos/ibc-go/pull/7129) Remove verification of self client and consensus state from connection handshake.
 
 ## [v8.4.0](https://github.com/cosmos/ibc-go/releases/tag/v8.4.0) - 2024-07-29
 
@@ -241,6 +278,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [v8.3.1](https://github.com/cosmos/ibc-go/releases/tag/v8.3.1) - 2024-05-22
 
 ### Improvements
+
 * (core/ante) [\#6302](https://github.com/cosmos/ibc-go/pull/6302) Performance: Skip app callbacks during RecvPacket execution in checkTx within the redundant relay ante handler.
 * (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
 * (core/ante) [\#6306](https://github.com/cosmos/ibc-go/pull/6306) Performance: Skip misbehaviour checks in UpdateClient flow and skip signature checks in reCheckTx mode.
@@ -374,7 +412,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 * (core/04-channel) [\#3357](https://github.com/cosmos/ibc-go/pull/3357) Handle unordered channels in `NextSequenceReceive` query.
-* (e2e) [\#3402](https://github.com/cosmos/ibc-go/pull/3402 Allow retries for messages signed by relayer.
+* (e2e) [\#3402](https://github.com/cosmos/ibc-go/pull/3402) Allow retries for messages signed by relayer.
 * (core/04-channel) [\#3417](https://github.com/cosmos/ibc-go/pull/3417) Add missing query for next sequence send.
 * (testing) [\#4630](https://github.com/cosmos/ibc-go/pull/4630) Update `testconfig` to use revision formatted chain IDs.
 * (core/04-channel) [\#4706](https://github.com/cosmos/ibc-go/pull/4706) Retrieve correct next send sequence for packets in unordered channels.
@@ -389,7 +427,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Testing
 
-* [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Use `testing.TB` instead of `testing.T` to support benchmarks and fuzz tests. 
+* [\#3138](https://github.com/cosmos/ibc-go/pull/3138) Use `testing.TB` instead of `testing.T` to support benchmarks and fuzz tests.
 * [\#3980](https://github.com/cosmos/ibc-go/pull/3980) Change `sdk.Events` usage to `[]abci.Event` in the testing package.
 * [\#3986](https://github.com/cosmos/ibc-go/pull/3986) Add function `RelayPacketWithResults`.
 * [\#4182](https://github.com/cosmos/ibc-go/pull/4182) Return current validator set when requesting current height in `GetValsAtHeight`.
@@ -419,7 +457,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-* (core/03-connection) [\#7128](https://github.com/cosmos/ibc-go/pull/7128) Remove verification of self client and consensus state from connection handshake. 
+* (core/03-connection) [\#7128](https://github.com/cosmos/ibc-go/pull/7128) Remove verification of self client and consensus state from connection handshake.
 
 ## [v7.7.0](https://github.com/cosmos/ibc-go/releases/tag/v7.7.0) - 2024-07-29
 
@@ -481,7 +519,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* (apps/29-fee) [\#6255](https://github.com/cosmos/ibc-go/pull/6255) Delete already refunded fees from state if some fee(s) cannot be refunded on channel closure. 
+* (apps/29-fee) [\#6255](https://github.com/cosmos/ibc-go/pull/6255) Delete already refunded fees from state if some fee(s) cannot be refunded on channel closure.
 
 ## [v7.4.0](https://github.com/cosmos/ibc-go/releases/tag/v7.4.0) - 2024-04-05
 

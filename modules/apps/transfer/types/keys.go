@@ -52,6 +52,11 @@ var (
 
 	// SupportedVersions defines all versions that are supported by the module
 	SupportedVersions = []string{V1}
+
+	// KeySendEnabled is store's key for SendEnabled Params
+	KeySendEnabled = []byte("SendEnabled")
+	// KeyReceiveEnabled is store's key for ReceiveEnabled Params
+	KeyReceiveEnabled = []byte("ReceiveEnabled")
 )
 
 // GetEscrowAddress returns the escrow address for the specified channel.

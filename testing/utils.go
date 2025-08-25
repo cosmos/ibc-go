@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -65,7 +66,7 @@ func GenerateString(length uint) string {
 }
 
 // UnmarshalMsgResponses parse out msg responses from a transaction result
-func UnmarshalMsgResponses(cdc codec.Codec, data []byte, msgs ...codec.ProtoMarshaler) error {
+func UnmarshalMsgResponses(cdc codec.Codec, data []byte, msgs ...proto.Message) error {
 	var txMsgData sdk.TxMsgData
 	if err := cdc.Unmarshal(data, &txMsgData); err != nil {
 		return err

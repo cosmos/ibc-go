@@ -15,40 +15,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *KeeperTestSuite) TestMigratorMigrateParams() {
-	testCases := []struct {
-		msg            string
-		malleate       func()
-		expectedParams transfertypes.Params
-	}{
-		{
-			"success: default params",
-			func() {
-				params := transfertypes.DefaultParams()
-				subspace := suite.chainA.GetSimApp().GetSubspace(transfertypes.ModuleName)
-				subspace.SetParamSet(suite.chainA.GetContext(), &params) // set params
-			},
-			transfertypes.DefaultParams(),
-		},
-	}
-
-	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-
-			tc.malleate() // explicitly set params
-
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-			err := migrator.MigrateParams(suite.chainA.GetContext())
-			suite.Require().NoError(err)
-
-			params := suite.chainA.GetSimApp().TransferKeeper.GetParams(suite.chainA.GetContext())
-			suite.Require().Equal(tc.expectedParams, params)
-		})
-	}
-}
-
-func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
+func (s *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 	testCases := []struct {
 		msg            string
 		malleate       func()
@@ -57,8 +24,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 		{
 			"success: no trace",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
+				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					s.chainA.GetContext(),
 					internaltransfertypes.DenomTrace{
 						BaseDenom: "uatom",
 					})
@@ -70,8 +37,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 		{
 			"success: single trace",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
+				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					s.chainA.GetContext(),
 					internaltransfertypes.DenomTrace{
 						BaseDenom: "uatom", Path: "transfer/channel-49",
 					})
@@ -83,8 +50,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 		{
 			"success: multiple trace",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
+				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					s.chainA.GetContext(),
 					internaltransfertypes.DenomTrace{
 						BaseDenom: "uatom", Path: "transfer/channel-49/transfer/channel-32/transfer/channel-2",
 					})
@@ -96,23 +63,23 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 		{
 			"success: many denoms",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
+				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					s.chainA.GetContext(),
 					internaltransfertypes.DenomTrace{
 						BaseDenom: "uatom", Path: "transfer/channel-49",
 					})
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
+				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					s.chainA.GetContext(),
 					internaltransfertypes.DenomTrace{
 						BaseDenom: "pineapple", Path: "transfer/channel-0",
 					})
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
+				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					s.chainA.GetContext(),
 					internaltransfertypes.DenomTrace{
 						BaseDenom: "apple", Path: "transfer/channel-0",
 					})
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
+				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					s.chainA.GetContext(),
 					internaltransfertypes.DenomTrace{
 						BaseDenom: "cucumber", Path: "transfer/channel-102/transfer/channel-0",
 					})
@@ -128,8 +95,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 		{
 			"success: two slashes in base denom",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
+				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					s.chainA.GetContext(),
 					internaltransfertypes.DenomTrace{
 						BaseDenom: "gamm/pool/1", Path: "transfer/channel-0",
 					})
@@ -141,8 +108,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 		{
 			"success: one slash in base denom",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
+				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					s.chainA.GetContext(),
 					internaltransfertypes.DenomTrace{
 						BaseDenom: "erc/0x85bcBCd7e79Ec36f4fBBDc54F90C643d921151AA", Path: "transfer/channel-149",
 					})
@@ -154,8 +121,8 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 		{
 			"success: non-standard port",
 			func() {
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
-					suite.chainA.GetContext(),
+				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(
+					s.chainA.GetContext(),
 					internaltransfertypes.DenomTrace{
 						BaseDenom: "uatom", Path: "transfer/channel-0/customport/channel-7",
 					})
@@ -167,22 +134,22 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.msg, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.msg, func() {
+			s.SetupTest() // reset
 
 			tc.malleate()
 
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-			err := migrator.MigrateDenomTraceToDenom(suite.chainA.GetContext())
-			suite.Require().NoError(err)
+			migrator := transferkeeper.NewMigrator(*s.chainA.GetSimApp().TransferKeeper)
+			err := migrator.MigrateDenomTraceToDenom(s.chainA.GetContext())
+			s.Require().NoError(err)
 
-			denoms := suite.chainA.GetSimApp().TransferKeeper.GetAllDenoms(suite.chainA.GetContext())
-			suite.Require().Equal(tc.expectedDenoms, denoms)
+			denoms := s.chainA.GetSimApp().TransferKeeper.GetAllDenoms(s.chainA.GetContext())
+			s.Require().Equal(tc.expectedDenoms, denoms)
 
 			// assert no leftover denom traces
-			suite.chainA.GetSimApp().TransferKeeper.IterateDenomTraces(suite.chainA.GetContext(),
-				func(dt internaltransfertypes.DenomTrace) (stop bool) {
-					suite.FailNow("DenomTrace key still exists", dt)
+			s.chainA.GetSimApp().TransferKeeper.IterateDenomTraces(s.chainA.GetContext(),
+				func(dt internaltransfertypes.DenomTrace) bool {
+					s.FailNow("DenomTrace key still exists", dt)
 					return false
 				},
 			)
@@ -190,7 +157,7 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenomCorruptionDetection() {
+func (s *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenomCorruptionDetection() {
 	testCases := []struct {
 		name       string
 		denomTrace internaltransfertypes.DenomTrace
@@ -211,20 +178,20 @@ func (suite *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenomCorruptionDete
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
-			suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(suite.chainA.GetContext(), tc.denomTrace)
+			s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(s.chainA.GetContext(), tc.denomTrace)
 
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-			suite.Panics(func() {
-				migrator.MigrateDenomTraceToDenom(suite.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
+			migrator := transferkeeper.NewMigrator(*s.chainA.GetSimApp().TransferKeeper)
+			s.Panics(func() {
+				migrator.MigrateDenomTraceToDenom(s.chainA.GetContext()) //nolint:errcheck // we shouldn't check the error here because we want to ensure that a panic occurs.
 			})
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
+func (s *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 	var (
 		path  *ibctesting.Path
 		denom string
@@ -243,7 +210,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 				coin := ibctesting.TestCoin
 
 				// funds the escrow account to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrowAddress, sdk.NewCoins(coin)))
+				s.Require().NoError(banktestutil.FundAccount(s.chainA.GetContext(), s.chainA.GetSimApp().BankKeeper, escrowAddress, sdk.NewCoins(coin)))
 			},
 			sdkmath.NewInt(100),
 		},
@@ -251,7 +218,7 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			"success: one native denom escrowed in two channels",
 			func() {
 				denom = sdk.DefaultBondDenom
-				extraPath := ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+				extraPath := ibctesting.NewTransferPath(s.chainA, s.chainB)
 				extraPath.Setup()
 
 				escrowAddress1 := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -260,8 +227,8 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 				coin2 := ibctesting.TestCoin
 
 				// funds the escrow accounts to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrowAddress1, sdk.NewCoins(coin1)))
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrowAddress2, sdk.NewCoins(coin2)))
+				s.Require().NoError(banktestutil.FundAccount(s.chainA.GetContext(), s.chainA.GetSimApp().BankKeeper, escrowAddress1, sdk.NewCoins(coin1)))
+				s.Require().NoError(banktestutil.FundAccount(s.chainA.GetContext(), s.chainA.GetSimApp().BankKeeper, escrowAddress2, sdk.NewCoins(coin2)))
 			},
 			sdkmath.NewInt(200),
 		},
@@ -274,32 +241,32 @@ func (suite *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 				denom = voucherDenom.IBCDenom()
 
 				// funds the escrow account to have balance
-				suite.Require().NoError(banktestutil.FundAccount(suite.chainA.GetContext(), suite.chainA.GetSimApp().BankKeeper, escrowAddress, sdk.NewCoins(coin)))
+				s.Require().NoError(banktestutil.FundAccount(s.chainA.GetContext(), s.chainA.GetSimApp().BankKeeper, escrowAddress, sdk.NewCoins(coin)))
 			},
 			sdkmath.NewInt(100),
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
 
-			path = ibctesting.NewTransferPath(suite.chainA, suite.chainB)
+			path = ibctesting.NewTransferPath(s.chainA, s.chainB)
 			path.Setup()
 
 			tc.malleate() // explicitly fund escrow account
 
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
-			suite.Require().NoError(migrator.MigrateTotalEscrowForDenom(suite.chainA.GetContext()))
+			migrator := transferkeeper.NewMigrator(*s.chainA.GetSimApp().TransferKeeper)
+			s.Require().NoError(migrator.MigrateTotalEscrowForDenom(s.chainA.GetContext()))
 
 			// check that the migration set the expected amount for both native and IBC tokens
-			amount := suite.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(suite.chainA.GetContext(), denom)
-			suite.Require().Equal(tc.expectedEscrowAmt, amount.Amount)
+			amount := s.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(s.chainA.GetContext(), denom)
+			s.Require().Equal(tc.expectedEscrowAmt, amount.Amount)
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
+func (s *KeeperTestSuite) TestMigratorMigrateMetadata() {
 	var (
 		denomTraces      []internaltransfertypes.DenomTrace
 		expectedMetadata []banktypes.Metadata
@@ -451,31 +418,31 @@ func (suite *KeeperTestSuite) TestMigratorMigrateMetadata() {
 				}
 
 				// set metadata for one of the tokens, so that it exists already in state before doing the migration
-				suite.chainA.GetSimApp().BankKeeper.SetDenomMetaData(suite.chainA.GetContext(), expectedMetadata[1])
+				s.chainA.GetSimApp().BankKeeper.SetDenomMetaData(s.chainA.GetContext(), expectedMetadata[1])
 			},
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
-			ctx := suite.chainA.GetContext()
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
+			ctx := s.chainA.GetContext()
 
 			tc.malleate()
 
 			for _, denomTrace := range denomTraces {
-				suite.chainA.GetSimApp().TransferKeeper.SetDenomTrace(ctx, denomTrace)
+				s.chainA.GetSimApp().TransferKeeper.SetDenomTrace(ctx, denomTrace)
 			}
 
 			// run migration
-			migrator := transferkeeper.NewMigrator(suite.chainA.GetSimApp().TransferKeeper)
+			migrator := transferkeeper.NewMigrator(*s.chainA.GetSimApp().TransferKeeper)
 			err := migrator.MigrateDenomMetadata(ctx)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			for _, expMetadata := range expectedMetadata {
-				denomMetadata, found := suite.chainA.GetSimApp().BankKeeper.GetDenomMetaData(ctx, expMetadata.Base)
-				suite.Require().True(found)
-				suite.Require().Equal(expMetadata, denomMetadata)
+				denomMetadata, found := s.chainA.GetSimApp().BankKeeper.GetDenomMetaData(ctx, expMetadata.Base)
+				s.Require().True(found)
+				s.Require().Equal(expMetadata, denomMetadata)
 			}
 		})
 	}

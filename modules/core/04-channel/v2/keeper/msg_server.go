@@ -3,6 +3,7 @@ package keeper
 import (
 	"bytes"
 	"context"
+	"errors"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -66,11 +67,10 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.recvPacket(cacheCtx, msg.Packet, msg.ProofCommitment, msg.ProofHeight)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case types.ErrNoOpMsg:
-		// no-ops do not need event emission as they will be ignored
+	case errors.Is(err, types.ErrNoOpMsg):
 		ctx.Logger().Debug("no-op on redundant relay", "source-client", msg.Packet.SourceClient)
 		return &types.MsgRecvPacketResponse{Result: types.NOOP}, nil
 	default:
@@ -86,21 +86,10 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 	var isAsync bool
 	isSuccess := true
 	for _, pd := range msg.Packet.Payloads {
-		// Cache context so that we may discard state changes from callback if the acknowledgement is unsuccessful.
-		cacheCtx, writeFn = ctx.CacheContext()
 		cb := k.Router.Route(pd.DestinationPort)
 		res := cb.OnRecvPacket(cacheCtx, msg.Packet.SourceClient, msg.Packet.DestinationClient, msg.Packet.Sequence, pd, signer)
 
-		if res.Status != types.PacketStatus_Failure {
-			// successful app acknowledgement cannot equal sentinel error acknowledgement
-			if bytes.Equal(res.GetAcknowledgement(), types.ErrorAcknowledgement[:]) {
-				return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "application acknowledgement cannot be sentinel error acknowledgement")
-			}
-			// write application state changes for asynchronous and successful acknowledgements
-			writeFn()
-			// append app acknowledgement to the overall acknowledgement
-			ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
-		} else {
+		if res.Status == types.PacketStatus_Failure {
 			isSuccess = false
 			// construct acknowledgement with single app acknowledgement that is the sentinel error acknowledgement
 			ack = types.Acknowledgement{
@@ -110,6 +99,13 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 			ctx.EventManager().EmitEvents(internalerrors.ConvertToErrorEvents(cacheCtx.EventManager().Events()))
 			break
 		}
+
+		// successful app acknowledgement cannot equal sentinel error acknowledgement
+		if bytes.Equal(res.GetAcknowledgement(), types.ErrorAcknowledgement[:]) {
+			return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "application acknowledgement cannot be sentinel error acknowledgement")
+		}
+		// append app acknowledgement to the overall acknowledgement
+		ack.AppAcknowledgements = append(ack.AppAcknowledgements, res.Acknowledgement)
 
 		if res.Status == types.PacketStatus_Async {
 			// Set packet acknowledgement to async if any of the acknowledgements are async.
@@ -122,18 +118,19 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 		}
 	}
 
+	// write application state changes for asynchronous and successful acknowledgements
+	// if any application returns a failure, then we discard all state changes
+	// to ensure an atomic execution of all payloads
+	if isSuccess {
+		writeFn()
+	}
+
 	if !isAsync {
-		// If the application callback was successful, the acknowledgement must have the same number of app acknowledgements as the packet payloads.
-		if isSuccess {
-			if len(ack.AppAcknowledgements) != len(msg.Packet.Payloads) {
-				return nil, errorsmod.Wrapf(types.ErrInvalidAcknowledgement, "length of app acknowledgement %d does not match length of app payload %d", len(ack.AppAcknowledgements), len(msg.Packet.Payloads))
-			}
+		// sanity check to ensure returned acknowledgement and calculated isSuccess boolean matches
+		if ack.Success() != isSuccess {
+			panic("acknowledgement success does not match isSuccess")
 		}
 
-		// Validate ack before forwarding to WriteAcknowledgement.
-		if err := ack.Validate(); err != nil {
-			return nil, err
-		}
 		// Set packet acknowledgement only if the acknowledgement is not async.
 		// NOTE: IBC applications modules may call the WriteAcknowledgement asynchronously if the
 		// acknowledgement is async.
@@ -170,10 +167,10 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *types.MsgAcknowledg
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.acknowledgePacket(cacheCtx, msg.Packet, msg.Acknowledgement, msg.ProofAcked, msg.ProofHeight)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case types.ErrNoOpMsg:
+	case errors.Is(err, types.ErrNoOpMsg):
 		ctx.Logger().Debug("no-op on redundant relay", "source-client", msg.Packet.SourceClient)
 		return &types.MsgAcknowledgementResponse{Result: types.NOOP}, nil
 	default:
@@ -224,10 +221,10 @@ func (k *Keeper) Timeout(goCtx context.Context, timeout *types.MsgTimeout) (*typ
 	cacheCtx, writeFn := ctx.CacheContext()
 	err = k.timeoutPacket(cacheCtx, timeout.Packet, timeout.ProofUnreceived, timeout.ProofHeight)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		writeFn()
-	case types.ErrNoOpMsg:
+	case errors.Is(err, types.ErrNoOpMsg):
 		ctx.Logger().Debug("no-op on redundant relay", "source-client", timeout.Packet.SourceClient)
 		return &types.MsgTimeoutResponse{Result: types.NOOP}, nil
 	default:

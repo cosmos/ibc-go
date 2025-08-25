@@ -3,8 +3,6 @@ package types_test
 import (
 	"fmt"
 
-	"github.com/stretchr/testify/require"
-
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cometbft/cometbft/proto/tendermint/crypto"
@@ -12,13 +10,13 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
 )
 
-func (suite *MerkleTestSuite) TestConvertProofs() {
-	suite.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
-	cid := suite.store.Commit()
+func (s *MerkleTestSuite) TestConvertProofs() {
+	s.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
+	cid := s.store.Commit()
 
 	root := types.NewMerkleRoot(cid.Hash)
-	existsPath := types.NewMerklePath([]byte(suite.storeKey.Name()), []byte("MYKEY"))
-	nonexistPath := types.NewMerklePath([]byte(suite.storeKey.Name()), []byte("NOTMYKEY"))
+	existsPath := types.NewMerklePath([]byte(s.storeKey.Name()), []byte("MYKEY"))
+	nonexistPath := types.NewMerklePath([]byte(s.storeKey.Name()), []byte("NOTMYKEY"))
 	value := []byte("MYVALUE")
 
 	var proofOps *crypto.ProofOps
@@ -31,13 +29,13 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		{
 			"success for ExistenceProof",
 			func() {
-				res, err := suite.store.Query(&storetypes.RequestQuery{
-					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+				res, err := s.store.Query(&storetypes.RequestQuery{
+					Path:  fmt.Sprintf("/%s/key", s.storeKey.Name()), // required path to get key/value+proof
 					Data:  []byte("MYKEY"),
 					Prove: true,
 				})
-				require.NoError(suite.T(), err)
-				require.NotNil(suite.T(), res.ProofOps)
+				s.Require().NoError(err)
+				s.Require().NotNil(res.ProofOps)
 
 				proofOps = res.ProofOps
 			},
@@ -46,13 +44,13 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		{
 			"success for NonexistenceProof",
 			func() {
-				res, err := suite.store.Query(&storetypes.RequestQuery{
-					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()),
+				res, err := s.store.Query(&storetypes.RequestQuery{
+					Path:  fmt.Sprintf("/%s/key", s.storeKey.Name()),
 					Data:  []byte("NOTMYKEY"),
 					Prove: true,
 				})
-				require.NoError(suite.T(), err)
-				require.NotNil(suite.T(), res.ProofOps)
+				s.Require().NoError(err)
+				s.Require().NotNil(res.ProofOps)
 
 				proofOps = res.ProofOps
 			},
@@ -68,13 +66,13 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 		{
 			"proof op data is nil",
 			func() {
-				res, err := suite.store.Query(&storetypes.RequestQuery{
-					Path:  fmt.Sprintf("/%s/key", suite.storeKey.Name()), // required path to get key/value+proof
+				res, err := s.store.Query(&storetypes.RequestQuery{
+					Path:  fmt.Sprintf("/%s/key", s.storeKey.Name()), // required path to get key/value+proof
 					Data:  []byte("MYKEY"),
 					Prove: true,
 				})
-				require.NoError(suite.T(), err)
-				require.NotNil(suite.T(), res.ProofOps)
+				s.Require().NoError(err)
+				s.Require().NotNil(s.T(), res.ProofOps)
 
 				proofOps = res.ProofOps
 				proofOps.Ops[0].Data = nil
@@ -84,22 +82,21 @@ func (suite *MerkleTestSuite) TestConvertProofs() {
 	}
 
 	for _, tc := range testcases {
-
 		tc.malleate()
 
 		proof, err := types.ConvertProofs(proofOps)
 		if tc.expErr == nil {
-			suite.Require().NoError(err, "ConvertProofs unexpectedly returned error for case: %s", tc.name)
+			s.Require().NoError(err, "ConvertProofs unexpectedly returned error for case: %s", tc.name)
 			if tc.keyExists {
 				err := proof.VerifyMembership(types.GetSDKSpecs(), &root, existsPath, value)
-				suite.Require().NoError(err, "converted proof failed to verify membership for case: %s", tc.name)
+				s.Require().NoError(err, "converted proof failed to verify membership for case: %s", tc.name)
 			} else {
 				err := proof.VerifyNonMembership(types.GetSDKSpecs(), &root, nonexistPath)
-				suite.Require().NoError(err, "converted proof failed to verify non-membership for case: %s", tc.name)
+				s.Require().NoError(err, "converted proof failed to verify non-membership for case: %s", tc.name)
 			}
 		} else {
-			suite.Require().Error(err, "ConvertProofs passed on invalid case for case: %s", tc.name)
-			suite.Require().ErrorIs(err, tc.expErr, "unexpected error returned for case: %s", tc.name)
+			s.Require().Error(err, "ConvertProofs passed on invalid case for case: %s", tc.name)
+			s.Require().ErrorIs(err, tc.expErr, "unexpected error returned for case: %s", tc.name)
 		}
 	}
 }

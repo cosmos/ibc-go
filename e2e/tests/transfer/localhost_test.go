@@ -6,7 +6,7 @@ import (
 	"context"
 	"testing"
 
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	test "github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -29,6 +29,11 @@ type LocalhostTransferTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+// SetupSuite sets up chains for the current test suite
+func (s *LocalhostTransferTestSuite) SetupSuite() {
+	s.SetupChains(context.TODO(), 1, nil)
+}
+
 // TestMsgTransfer_Localhost creates two wallets on a single chain and performs MsgTransfers back and forth
 // to ensure ibc functions as expected on localhost. This test is largely the same as TestMsgTransfer_Succeeds_Nonincentivized
 // except that chain B is replaced with an additional wallet on chainA.
@@ -36,7 +41,8 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 	t := s.T()
 	ctx := context.TODO()
 
-	chainA, _ := s.GetChains()
+	chains := s.GetAllChains()
+	chainA := chains[0]
 
 	channelVersion := transfertypes.V1
 
@@ -122,7 +128,7 @@ func (s *LocalhostTransferTestSuite) TestMsgTransfer_Localhost() {
 		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, msgChanOpenInitRes.ChannelId, testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 500), 0, "")
 		s.AssertTxSuccess(txResp)
 
-		packet, err = ibctesting.ParsePacketFromEvents(txResp.Events)
+		packet, err = ibctesting.ParseV1PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})
