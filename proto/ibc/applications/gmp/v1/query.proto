@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package ibc.applications.gmp.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types";
+
+// Query provides defines the gRPC querier service.
+service Query {
+  // AccountAddress queries the interchain account address for a given client_id, sender, and salt.
+  // If the account is not registered, the address is computed deterministically
+  rpc AccountAddress(QueryAccountAddressRequest) returns (QueryAccountAddressResponse) {
+    option (google.api.http).get = "/ibc/apps/gmp/v1/clients/{client_id}/accounts/{sender}/{salt=**}";
+  }
+}
+
+// QueryAccountAddressRequest is the request type for the Query/AccountAddress RPC method.
+message QueryAccountAddressRequest {
+  // The (local) client identifier
+  string client_id = 1;
+  // The sender of the packet
+  string sender = 2;
+  // The salt of the packet (in hex format)
+  string salt = 3;
+}
+
+// QueryAccountAddressResponse is the response type for the Query/AccountAddress RPC method.
+message QueryAccountAddressResponse {
+  // The interchain account address
+  string account_address = 1;
+}
