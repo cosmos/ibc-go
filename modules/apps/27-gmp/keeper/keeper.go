@@ -39,7 +39,7 @@ func NewKeeper(
 	cdc codec.Codec, storeService storetypes.KVStoreService,
 	accountKeeper types.AccountKeeper, msgRouter types.MessageRouter,
 	authority string,
-) Keeper {
+) *Keeper {
 	if strings.TrimSpace(authority) == "" {
 		panic(errors.New("authority must be non-empty"))
 	}
@@ -60,7 +60,7 @@ func NewKeeper(
 
 	k.Schema = schema
 
-	return k
+	return &k
 }
 
 // GetAuthority returns the module's authority.
