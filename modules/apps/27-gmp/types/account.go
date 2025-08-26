@@ -68,10 +68,19 @@ func uint64LengthPrefix(bz []byte) []byte {
 // DeserializeCosmosTx unmarshals and unpacks a slice of transaction bytes into a slice of sdk.Msg's.
 // The transaction bytes are unmarshaled depending on the encoding type passed in. The sdk.Msg's are
 // unpacked from Any's and returned.
-func DeserializeCosmosTx(cdc codec.BinaryCodec, data []byte) ([]sdk.Msg, error) {
+func DeserializeCosmosTx(cdc codec.Codec, data []byte) ([]sdk.Msg, error) {
+	// this is a defensive check to ensure only the ProtoCodec is used for message deserialization
+	if _, ok := cdc.(*codec.ProtoCodec); !ok {
+		return nil, errorsmod.Wrap(ErrInvalidCodec, "only the ProtoCodec may be used for receiving messages on the host chain")
+	}
+
 	var cosmosTx CosmosTx
-	if err := cdc.Unmarshal(data, &cosmosTx); err != nil {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal CosmosTx with protobuf: %v", err)
+	err := cdc.Unmarshal(data, &cosmosTx)
+	if err != nil {
+		// TODO: clean up after the demo
+		if err := cdc.UnmarshalJSON(data, &cosmosTx); err != nil {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot unmarshal CosmosTx with protobuf or protojson: %v", err)
+		}
 	}
 
 	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
