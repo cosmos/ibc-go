@@ -34,9 +34,8 @@ func NewMsgUpdateParams(signer string, params Params) *MsgUpdateParams {
 
 // ValidateBasic implements sdk.Msg
 func (msg MsgUpdateParams) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	if strings.TrimSpace(msg.Signer) == "" {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing sender address")
 	}
 
 	return nil
@@ -96,9 +95,8 @@ func (msg MsgTransfer) ValidateBasic() error {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidCoins, msg.Token.String())
 	}
 
-	_, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	if strings.TrimSpace(msg.Sender) == "" {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing sender address")
 	}
 	if strings.TrimSpace(msg.Receiver) == "" {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing recipient address")

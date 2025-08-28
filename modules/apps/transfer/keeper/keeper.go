@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/core/address"
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
@@ -28,6 +29,7 @@ type Keeper struct {
 	storeService   corestore.KVStoreService
 	cdc            codec.BinaryCodec
 	legacySubspace types.ParamSubspace
+	addressCodec   address.Codec
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -89,6 +91,16 @@ func (k Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
 // GetAuthority returns the transfer module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
+}
+
+// SetAddressCodec sets the address codec used by the keeper.
+func (k *Keeper) SetAddressCodec(addressCodec address.Codec) {
+	k.addressCodec = addressCodec
+}
+
+// GetAddressCodec returns the address codec used by the keeper.
+func (k *Keeper) GetAddressCodec() address.Codec {
+	return k.addressCodec
 }
 
 // Logger returns a module-specific logger.
