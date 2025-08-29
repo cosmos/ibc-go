@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v3"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
@@ -61,7 +62,7 @@ func (s *KeeperTestSuite) TestMsgStoreCode() {
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
 			},
-			errors.New("Wasm bytes do not start with Wasm magic number"),
+			errors.New("wasm bytes do not start with Wasm magic number"),
 		},
 		{
 			"fails with wasm code too large",
@@ -125,6 +126,8 @@ func (s *KeeperTestSuite) TestMsgStoreCode() {
 					s.Require().Contains(events, evt)
 				}
 			} else {
+				fmt.Println("Error:", err)
+				fmt.Println("Expected Error:", tc.expError)
 				s.Require().Contains(err.Error(), tc.expError.Error())
 				s.Require().Nil(res)
 				s.Require().Empty(events)
