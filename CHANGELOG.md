@@ -44,6 +44,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#8617](https://github.com/cosmos/ibc-go/pull/8617) Bump **wasmvm** to **3.0.2**
 * [\#8451](https://github.com/cosmos/ibc-go/pull/8451) Bump **go** to **1.24**
 * (light-clients/08-wasm)[\#8500](https://github.com/cosmos/ibc-go/pull/8500) Bump **github.com/prysmaticlabs/prysm/v5** to **github.com/OffchainLabs/prysm/v6@v6.0.4**
 
