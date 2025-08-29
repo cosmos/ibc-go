@@ -53,12 +53,7 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 	}
 
 	addressCodec := im.keeper.GetAddressCodec()
-	var sender sdk.AccAddress
-	if addressCodec != nil {
-		sender, err = addressCodec.StringToBytes(data.Sender)
-	} else {
-		sender, err = sdk.AccAddressFromBech32(data.Sender)
-	}
+	sender, err := addressCodec.StringToBytes(data.Sender)
 	if err != nil {
 		return err
 	}
