@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
@@ -63,10 +64,13 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
+	addressCodec := authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+
 	return Keeper{
 		cdc:            cdc,
 		storeService:   storeService,
 		legacySubspace: legacySubspace,
+		addressCodec:   addressCodec,
 		ics4Wrapper:    ics4Wrapper,
 		channelKeeper:  channelKeeper,
 		msgRouter:      msgRouter,

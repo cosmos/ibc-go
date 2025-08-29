@@ -27,13 +27,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, types.ErrSendDisabled
 	}
 
-	var sender sdk.AccAddress
-	var err error
-	if k.addressCodec != nil {
-		sender, err = k.addressCodec.StringToBytes(msg.Sender)
-	} else {
-		sender, err = sdk.AccAddressFromBech32(msg.Sender)
-	}
+	sender, err := k.addressCodec.StringToBytes(msg.Sender)
 	if err != nil {
 		return nil, err
 	}
