@@ -340,7 +340,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 		{
 			"success: receive with hex receiver address",
 			func() {
-				s.chainB.GetSimApp().TransferKeeper.SetAddressCodec(ibcmock.TestAddressCodec{})
+				suite.chainB.GetSimApp().TransferKeeper.SetAddressCodec(ibcmock.TestAddressCodec{})
 
 				receiver := sdk.MustAccAddressFromBech32(packetData.Receiver)
 				packetData.Receiver = hex.EncodeToString(receiver.Bytes())
