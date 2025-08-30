@@ -32,8 +32,6 @@ const (
 	invalidChannel      = "(invalidchannel1)"
 	invalidShortChannel = "invalid"
 	invalidLongChannel  = "invalidlongchannelinvalidlongchannelinvalidlongchannelinvalidlongchannel"
-
-	invalidAddress = "invalid"
 )
 
 var (
