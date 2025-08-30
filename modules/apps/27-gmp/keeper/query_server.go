@@ -10,7 +10,7 @@ import (
 var _ types.QueryServer = (*Keeper)(nil)
 
 // AccountAddress defines the handler for the Query/AccountAddress RPC method.
-func (k Keeper) AccountAddress(ctx context.Context, req *types.QueryAccountAddressRequest) (*types.QueryAccountAddressResponse, error) {
+func (k *Keeper) AccountAddress(ctx context.Context, req *types.QueryAccountAddressRequest) (*types.QueryAccountAddressResponse, error) {
 	salt, err := hex.DecodeString(req.Salt)
 	if err != nil {
 		return nil, err

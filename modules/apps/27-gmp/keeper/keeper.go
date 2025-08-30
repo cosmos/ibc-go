@@ -64,11 +64,11 @@ func NewKeeper(
 }
 
 // GetAuthority returns the module's authority.
-func (k Keeper) GetAuthority() string {
+func (k *Keeper) GetAuthority() string {
 	return k.authority
 }
 
 // Logger returns a module-specific logger.
-func (Keeper) Logger(goCtx context.Context) log.Logger {
+func (*Keeper) Logger(goCtx context.Context) log.Logger {
 	return sdk.UnwrapSDKContext(goCtx).Logger().With("module", "x/"+exported.ModuleName+"-"+types.ModuleName)
 }

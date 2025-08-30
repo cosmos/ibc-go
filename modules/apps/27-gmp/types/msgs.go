@@ -62,11 +62,7 @@ func (msg MsgSendCall) ValidateBasic() error {
 	if msg.TimeoutTimestamp == 0 {
 		return errorsmod.Wrap(ErrInvalidTimeoutTimestamp, "timeout timestamp must be greater than 0")
 	}
-	if err := validateEncoding(msg.Encoding); err != nil {
-		return err
-	}
-
-	return nil
+	return validateEncoding(msg.Encoding)
 }
 
 // validateIdentifiers checks if the IBC identifiers are valid

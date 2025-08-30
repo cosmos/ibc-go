@@ -16,7 +16,7 @@ import (
 
 // OnRecvPacket processes a GMP packet.
 // Returns the data result of the execution if successful.
-func (k Keeper) OnRecvPacket(
+func (k *Keeper) OnRecvPacket(
 	ctx sdk.Context,
 	data *types.GMPPacketData,
 	sourcePort,
@@ -53,7 +53,7 @@ func (k Keeper) OnRecvPacket(
 // If authentication succeeds, it does basic validation of the messages before attempting to deliver each message
 // into state. The state changes will only be committed if all messages in the transaction succeed. Thus the
 // execution of the transaction is atomic, all state changes are reverted if a single message fails.
-func (k Keeper) executeTx(ctx sdk.Context, account sdk.AccountI, payload []byte) ([]byte, error) {
+func (k *Keeper) executeTx(ctx sdk.Context, account sdk.AccountI, payload []byte) ([]byte, error) {
 	msgs, err := types.DeserializeCosmosTx(k.cdc, payload)
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to deserialize ICS27 CosmosTx")
@@ -99,7 +99,7 @@ func (k Keeper) executeTx(ctx sdk.Context, account sdk.AccountI, payload []byte)
 }
 
 // authenticateTx checks that the transaction is signed by the expected signer.
-func (k Keeper) authenticateTx(_ sdk.Context, account sdk.AccountI, msgs []sdk.Msg) error {
+func (k *Keeper) authenticateTx(_ sdk.Context, account sdk.AccountI, msgs []sdk.Msg) error {
 	if len(msgs) == 0 {
 		return errorsmod.Wrapf(types.ErrInvalidPayload, "empty message list")
 	}
@@ -128,7 +128,7 @@ func (k Keeper) authenticateTx(_ sdk.Context, account sdk.AccountI, msgs []sdk.M
 
 // Attempts to get the message handler from the router and if found will then execute the message.
 // If the message execution is successful, the proto marshaled message response will be returned.
-func (k Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) {
+func (k *Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) {
 	handler := k.msgRouter.Handler(msg)
 	if handler == nil {
 		return nil, types.ErrInvalidMsgRoute

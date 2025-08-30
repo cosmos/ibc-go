@@ -10,7 +10,7 @@ import (
 )
 
 // getOrCreateICS27Account retrieves an existing ICS27 account or creates a new one if it doesn't exist.
-func (k Keeper) getOrCreateICS27Account(ctx context.Context, accountID *types.AccountIdentifier) (*types.ICS27Account, error) {
+func (k *Keeper) getOrCreateICS27Account(ctx context.Context, accountID *types.AccountIdentifier) (*types.ICS27Account, error) {
 	existingIcs27Account, err := k.Accounts.Get(ctx, collections.Join3(accountID.ClientId, accountID.Sender, accountID.Salt))
 	if err == nil {
 		return &existingIcs27Account, nil
@@ -48,7 +48,7 @@ func (k Keeper) getOrCreateICS27Account(ctx context.Context, accountID *types.Ac
 }
 
 // getOrComputeICS27Adderss retrieves an existing ICS27 account address or computes it if it doesn't exist. This doesn't modify the store.
-func (k Keeper) getOrComputeICS27Address(ctx context.Context, accountID *types.AccountIdentifier) (string, error) {
+func (k *Keeper) getOrComputeICS27Address(ctx context.Context, accountID *types.AccountIdentifier) (string, error) {
 	existingIcs27Account, err := k.Accounts.Get(ctx, collections.Join3(accountID.ClientId, accountID.Sender, accountID.Salt))
 	if err == nil {
 		return existingIcs27Account.Address, nil

@@ -17,7 +17,7 @@ import (
 var _ types.MsgServer = (*Keeper)(nil)
 
 // SendCall defines the handler for the MsgSendCall message.
-func (k Keeper) SendCall(goCtx context.Context, msg *types.MsgSendCall) (*types.MsgSendCallResponse, error) {
+func (k *Keeper) SendCall(goCtx context.Context, msg *types.MsgSendCall) (*types.MsgSendCallResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
@@ -40,7 +40,7 @@ func (k Keeper) SendCall(goCtx context.Context, msg *types.MsgSendCall) (*types.
 	return &types.MsgSendCallResponse{Sequence: sequence}, nil
 }
 
-func (k Keeper) sendPacket(ctx sdk.Context, encoding, sourceClient string, timeoutTimestamp uint64, packetData types.GMPPacketData) (uint64, error) {
+func (k *Keeper) sendPacket(ctx sdk.Context, encoding, sourceClient string, timeoutTimestamp uint64, packetData types.GMPPacketData) (uint64, error) {
 	if encoding == "" {
 		encoding = types.EncodingABI
 	}
