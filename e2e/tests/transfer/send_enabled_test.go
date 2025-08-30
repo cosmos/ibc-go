@@ -30,7 +30,7 @@ type TransferTestSuiteSendEnabled struct {
 }
 
 func (s *TransferTestSuiteSendEnabled) SetupSuite() {
-	s.SetupChains(context.TODO(), 2, nil, func(options *testsuite.ChainOptions) {
+	s.SetupChains(context.Background(), 2, nil, func(options *testsuite.ChainOptions) {
 		options.RelayerCount = 1
 	})
 }
@@ -38,7 +38,7 @@ func (s *TransferTestSuiteSendEnabled) SetupSuite() {
 // TestSendEnabledParam tests changing ics20 SendEnabled parameter
 func (s *TransferTestSuiteSendEnabled) TestSendEnabledParam() {
 	t := s.T()
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	testName := t.Name()
 	// Note: explicitly not using t.Parallel() in this test as it makes chain wide changes
