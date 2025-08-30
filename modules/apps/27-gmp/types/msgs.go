@@ -21,6 +21,20 @@ var (
 	_ sdk.HasValidateBasic = (*MsgSendCall)(nil)
 )
 
+// NewMsgSendCall creates a new MsgSendCall instance
+func NewMsgSendCall(sourceClient, sender, receiver string, payload, salt []byte, timeoutTimestamp uint64, encoding, memo string) *MsgSendCall {
+	return &MsgSendCall{
+		SourceClient:     sourceClient,
+		Sender:           sender,
+		Receiver:         receiver,
+		Payload:          payload,
+		Salt:             salt,
+		Memo:             memo,
+		TimeoutTimestamp: timeoutTimestamp,
+		Encoding:         encoding,
+	}
+}
+
 // ValidateBasic performs a basic check of the MsgSendCall fields.
 // NOTE: The recipient addresses format is not validated as the format defined by
 // the chain is not known to IBC.
