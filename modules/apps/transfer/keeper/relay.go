@@ -127,7 +127,7 @@ func (k Keeper) OnRecvPacket(
 		return types.ErrReceiveDisabled
 	}
 
-	receiver, err := sdk.AccAddressFromBech32(data.Receiver)
+	receiver, err := k.addressCodec.StringToBytes(data.Receiver)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "failed to decode receiver address: %s", data.Receiver)
 	}
@@ -195,7 +195,7 @@ func (k Keeper) OnRecvPacket(
 		if err := k.BankKeeper.SendCoins(
 			ctx, moduleAddr, receiver, sdk.NewCoins(voucher),
 		); err != nil {
-			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", receiver.String())
+			return errorsmod.Wrapf(err, "failed to send coins to receiver %s", data.Receiver)
 		}
 
 	}
@@ -253,7 +253,7 @@ func (k Keeper) refundPacketTokens(
 ) error {
 	// NOTE: packet data type already checked in handler.go
 
-	sender, err := sdk.AccAddressFromBech32(data.Sender)
+	sender, err := k.addressCodec.StringToBytes(data.Sender)
 	if err != nil {
 		return err
 	}

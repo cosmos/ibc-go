@@ -27,7 +27,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, types.ErrSendDisabled
 	}
 
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	sender, err := k.addressCodec.StringToBytes(msg.Sender)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return nil, err
 	}
 
-	packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, sender.String(), msg.Receiver, msg.Memo)
+	packetData := types.NewFungibleTokenPacketData(token.Denom.Path(), token.Amount, msg.Sender, msg.Receiver, msg.Memo)
 
 	if err := packetData.ValidateBasic(); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to validate %s packet data", types.V1)
@@ -60,7 +60,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	var sequence uint64
 	if isIBCV1 {
 		// if a V1 channel exists for the source channel, then use IBC V1 protocol
-		sequence, err = k.transferV1Packet(ctx, msg.SourceChannel, token, msg.TimeoutHeight, msg.TimeoutTimestamp, packetData)
+		sequence, err = k.transferV1Packet(ctx, msg.SourceChannel, token, msg.TimeoutHeight, msg.TimeoutTimestamp, sender, packetData)
 		// telemetry for transfer occurs here, in IBC V2 this is done in the onSendPacket callback
 		telemetry.ReportTransfer(msg.SourcePort, msg.SourceChannel, channel.Counterparty.PortId, channel.Counterparty.ChannelId, token)
 	} else {
@@ -77,8 +77,8 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	return &types.MsgTransferResponse{Sequence: sequence}, nil
 }
 
-func (k Keeper) transferV1Packet(ctx sdk.Context, sourceChannel string, token types.Token, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, packetData types.FungibleTokenPacketData) (uint64, error) {
-	if err := k.SendTransfer(ctx, types.PortID, sourceChannel, token, sdk.MustAccAddressFromBech32(packetData.Sender)); err != nil {
+func (k *Keeper) transferV1Packet(ctx sdk.Context, sourceChannel string, token types.Token, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, sender sdk.AccAddress, packetData types.FungibleTokenPacketData) (uint64, error) {
+	if err := k.SendTransfer(ctx, types.PortID, sourceChannel, token, sender); err != nil {
 		return 0, err
 	}
 

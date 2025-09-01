@@ -52,12 +52,13 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 		return err
 	}
 
-	sender, err := sdk.AccAddressFromBech32(data.Sender)
+	addressCodec := im.keeper.GetAddressCodec()
+	sender, err := addressCodec.StringToBytes(data.Sender)
 	if err != nil {
 		return err
 	}
 
-	if !signer.Equals(sender) {
+	if !bytes.Equal(sender, signer) {
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "sender %s is different from signer %s", sender, signer)
 	}
 
@@ -76,7 +77,7 @@ func (im *IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destina
 		return err
 	}
 
-	events.EmitTransferEvent(ctx, sender.String(), data.Receiver, data.Token, data.Memo)
+	events.EmitTransferEvent(ctx, data.Sender, data.Receiver, data.Token, data.Memo)
 
 	telemetry.ReportTransfer(payload.SourcePort, sourceChannel, payload.DestinationPort, destinationChannel, data.Token)
 

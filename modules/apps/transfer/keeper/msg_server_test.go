@@ -62,6 +62,13 @@ func (suite *KeeperTestSuite) TestMsgTransfer() {
 			types.ErrSendDisabled,
 		},
 		{
+			"failure: zero amount",
+			func() {
+				msg.Token = sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)
+			},
+			types.ErrInvalidAmount,
+		},
+		{
 			"failure: invalid sender",
 			func() {
 				msg.Sender = "address"

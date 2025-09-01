@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/core/address"
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
@@ -14,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
@@ -28,6 +30,7 @@ type Keeper struct {
 	storeService   corestore.KVStoreService
 	cdc            codec.BinaryCodec
 	legacySubspace types.ParamSubspace
+	addressCodec   address.Codec
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -61,10 +64,13 @@ func NewKeeper(
 		panic(errors.New("authority must be non-empty"))
 	}
 
+	addressCodec := authcodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix())
+
 	return Keeper{
 		cdc:            cdc,
 		storeService:   storeService,
 		legacySubspace: legacySubspace,
+		addressCodec:   addressCodec,
 		ics4Wrapper:    ics4Wrapper,
 		channelKeeper:  channelKeeper,
 		msgRouter:      msgRouter,
@@ -89,6 +95,16 @@ func (k Keeper) GetICS4Wrapper() porttypes.ICS4Wrapper {
 // GetAuthority returns the transfer module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority
+}
+
+// SetAddressCodec sets the address codec used by the keeper.
+func (k *Keeper) SetAddressCodec(addressCodec address.Codec) {
+	k.addressCodec = addressCodec
+}
+
+// GetAddressCodec returns the address codec used by the keeper.
+func (k *Keeper) GetAddressCodec() address.Codec {
+	return k.addressCodec
 }
 
 // Logger returns a module-specific logger.
