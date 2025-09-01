@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	wasmvm "github.com/CosmWasm/wasmvm/v3"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
@@ -126,8 +125,6 @@ func (s *KeeperTestSuite) TestMsgStoreCode() {
 					s.Require().Contains(events, evt)
 				}
 			} else {
-				fmt.Println("Error:", err)
-				fmt.Println("Expected Error:", tc.expError)
 				s.Require().Contains(err.Error(), tc.expError.Error())
 				s.Require().Nil(res)
 				s.Require().Empty(events)
