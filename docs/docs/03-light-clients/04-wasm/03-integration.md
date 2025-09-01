@@ -158,7 +158,7 @@ import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
 
-  wasmvm "github.com/CosmWasm/wasmvm/v2"
+  wasmvm "github.com/CosmWasm/wasmvm/v3"
   wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
   wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 

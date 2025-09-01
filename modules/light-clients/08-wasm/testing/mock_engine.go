@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"reflect"
 
-	wasmvm "github.com/CosmWasm/wasmvm/v2"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v3"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 )
