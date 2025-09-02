@@ -21,6 +21,7 @@
     "@docusaurus/plugin-google-gtag": "^3.4.0",
     "@docusaurus/plugin-sitemap": "^3.4.0",
     "@docusaurus/preset-classic": "^3.4.0",
+    "@docusaurus/theme-mermaid": "^3.4.0",
     "@easyops-cn/docusaurus-search-local": "^0.40.1",
     "@gracefullight/docusaurus-plugin-microsoft-clarity": "^1.0.0",
     "@mdx-js/react": "^3.0.0",

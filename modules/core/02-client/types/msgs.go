@@ -15,7 +15,6 @@ import (
 var (
 	_ sdk.Msg = (*MsgCreateClient)(nil)
 	_ sdk.Msg = (*MsgUpdateClient)(nil)
-	_ sdk.Msg = (*MsgSubmitMisbehaviour)(nil)
 	_ sdk.Msg = (*MsgUpgradeClient)(nil)
 	_ sdk.Msg = (*MsgUpdateParams)(nil)
 	_ sdk.Msg = (*MsgIBCSoftwareUpgrade)(nil)
@@ -24,7 +23,6 @@ var (
 
 	_ sdk.HasValidateBasic = (*MsgCreateClient)(nil)
 	_ sdk.HasValidateBasic = (*MsgUpdateClient)(nil)
-	_ sdk.HasValidateBasic = (*MsgSubmitMisbehaviour)(nil)
 	_ sdk.HasValidateBasic = (*MsgUpgradeClient)(nil)
 	_ sdk.HasValidateBasic = (*MsgUpdateParams)(nil)
 	_ sdk.HasValidateBasic = (*MsgIBCSoftwareUpgrade)(nil)
@@ -33,7 +31,6 @@ var (
 
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateClient)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateClient)(nil)
-	_ codectypes.UnpackInterfacesMessage = (*MsgSubmitMisbehaviour)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpgradeClient)(nil)
 	_ codectypes.UnpackInterfacesMessage = (*MsgIBCSoftwareUpgrade)(nil)
 )
@@ -198,43 +195,6 @@ func (msg MsgUpgradeClient) UnpackInterfaces(unpacker codectypes.AnyUnpacker) er
 		return err
 	}
 	return unpacker.UnpackAny(msg.ConsensusState, &consState)
-}
-
-// NewMsgSubmitMisbehaviour creates a new MsgSubmitMisbehaviour instance.
-func NewMsgSubmitMisbehaviour(clientID string, misbehaviour exported.ClientMessage, signer string) (*MsgSubmitMisbehaviour, error) {
-	anyMisbehaviour, err := PackClientMessage(misbehaviour)
-	if err != nil {
-		return nil, err
-	}
-
-	return &MsgSubmitMisbehaviour{
-		ClientId:     clientID,
-		Misbehaviour: anyMisbehaviour,
-		Signer:       signer,
-	}, nil
-}
-
-// ValidateBasic performs basic (non-state-dependant) validation on a MsgSubmitMisbehaviour.
-func (msg MsgSubmitMisbehaviour) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Signer)
-	if err != nil {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-	}
-	misbehaviour, err := UnpackClientMessage(msg.Misbehaviour)
-	if err != nil {
-		return err
-	}
-	if err := misbehaviour.ValidateBasic(); err != nil {
-		return err
-	}
-
-	return host.ClientIdentifierValidator(msg.ClientId)
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgSubmitMisbehaviour) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var misbehaviour exported.ClientMessage
-	return unpacker.UnpackAny(msg.Misbehaviour, &misbehaviour)
 }
 
 // NewMsgRecoverClient creates a new MsgRecoverClient instance
