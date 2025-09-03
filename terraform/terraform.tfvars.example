@@ -1,0 +1,5 @@
+# Example terraform variables file
+# Copy this file to terraform.tfvars and fill in your actual values
+
+# GitHub personal access token with repo and admin:org permissions
+# github_token = "ghp_your_token_here"
