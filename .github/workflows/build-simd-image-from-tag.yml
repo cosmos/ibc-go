@@ -19,12 +19,12 @@ env:
 
 jobs:
     build-image-at-tag:
-      runs-on: depot-ubuntu-22.04-4
+      runs-on: depot-ubuntu-24.04-4
       permissions:
         packages: write
         contents: read
       steps:
-         - uses: actions/checkout@v4
+         - uses: actions/checkout@v5
            with:
             ref: "${{ env.GIT_TAG }}"
             fetch-depth: 0

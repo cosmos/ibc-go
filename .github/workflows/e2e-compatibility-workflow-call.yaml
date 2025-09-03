@@ -19,9 +19,9 @@ jobs:
   load-test-matrix:
     outputs:
       test-matrix: ${{ steps.set-test-matrix.outputs.test-matrix }}
-    runs-on: depot-ubuntu-22.04-4
+    runs-on: depot-ubuntu-24.04-4
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
@@ -34,7 +34,7 @@ jobs:
         id: set-test-matrix
 
   e2e:
-    runs-on: depot-ubuntu-22.04-4
+    runs-on: depot-ubuntu-24.04-4
     needs: load-test-matrix
     # this job is skipped if the test-matrix generated is empty. i.e. if the file was not present.
     # this allows us to not have to handle special case versions which may not have certain tests run against them.
@@ -44,7 +44,7 @@ jobs:
       matrix: ${{ fromJSON(needs.load-test-matrix.outputs.test-matrix) }}
     steps:
       - name: Checkout the ibc-go repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v5
