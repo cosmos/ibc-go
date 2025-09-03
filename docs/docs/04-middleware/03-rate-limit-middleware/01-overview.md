@@ -14,14 +14,14 @@ Learn about rate limit middleware, a middleware that can be used in combination 
 The rate limit middleware enforces rate limits on IBC token transfers coming into and out of a chain. It supports: 
 
 - **Risk Mitigation:** In case of a bug exploit, attack or economic failure of a connected chain, it limits the impact to the in/outflow specified for a given time period. 
-- **Token Filtering:** Through the use of a blacklist, the middleware can completely block tokens entering or leaving a domain, relevant for complicance or giving asset issuers greater control over the domains token can be sent to. 
-- **Uninterupted Packet Flow:** When desired, rate limits can be bypassed by using the whitelist, to avoid any restriction on asset in or outflows. 
+- **Token Filtering:** Through the use of a blacklist, the middleware can completely block tokens entering or leaving a domain, relevant for compliance or giving asset issuers greater control over the domains token can be sent to. 
+- **Uninterrupted Packet Flow:** When desired, rate limits can be bypassed by using the whitelist, to avoid any restriction on asset in or outflows. 
 
 ## How it works
 
 The rate limiting middleware determines whether tokens can flow into or out of a chain. The middleware does this by: 
 
-1. Check transfer limits for an asset (Quota): When tokens are recieved or sent, the middleware determines whether the amount of tokens flowing in or out have exceeded the limit. 
+1. Check transfer limits for an asset (Quota): When tokens are received or sent, the middleware determines whether the amount of tokens flowing in or out have exceeded the limit. 
 
 2. Track in or outflow: When tokens enter or leave the chain, the amount transferred is tracked in state
 

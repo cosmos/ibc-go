@@ -32,7 +32,7 @@ it becomes a proper solution to port the code for ibc-go to interpret without re
 
 ## Objectives
 
-The objective of this module is to have allow two chains with heterogeneous consensus algorithms being connected through light clients that are not necessarily written in Go, but compiled to Wasm instead.
+The objective of this module is to allow two chains with heterogeneous consensus algorithms being connected through light clients that are not necessarily written in Go, but compiled to Wasm instead.
 
 ## Scope
 
@@ -70,7 +70,7 @@ The first use case that this module will enable is the connection between GRANDP
 | 1.03 | A chain shall have the ability to initialize the Wasm client module genesis state. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/genesis.go#L12). | `Verified` | v0.1.0 |
 | 1.04 | A chain shall have the ability to export the Wasm client module genesis state.	| See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/genesis.go#L24). | `Verified` | v0.1.0 |
 | 1.05 | Chains that integrate the wasmd module may have the option to use the same wasm VM instance for both wasmd and the 08-wasm module. | A [keeper constructor function](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/keeper.go#L39) is provided that accepts a wasm VM pointer. | `Verified` | v0.1.0 |
-| 1.06 | Chains that do not integrate the wasmd module may have the option to delegate to the 08-wasm module the instantiation of the necessary wasm VM. | A [keeper constructor function](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/keeper.go#L88) is provided that accepts parameters to configure the wasm VM that would instantiated by the module. | `Verified` | v0.1.0 |
+| 1.06 | Chains that do not integrate the wasmd module may have the option to delegate to the 08-wasm module the instantiation of the necessary wasm VM. | A [keeper constructor function](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/keeper.go#L88) is provided that accepts parameters to configure the wasm VM that would be instantiated by the module. | `Verified` | v0.1.0 |
 | 1.07 | It may be possible to register custom query plugins for the 08-wasm module. | See [parameter in keeper constructor function](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/keeper.go#L45). | `Verified` | v0.1.0 |
 
 ### 2 - Initiation
@@ -119,6 +119,6 @@ The first use case that this module will enable is the connection between GRANDP
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
-| 6.01 | There shall be a CLI command available to query the bytecode of a light client Wasm contract by checksum. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/grpc_query.go#L23). | `Verified` | v0.1.0 |
+| 7.01 | There shall be a CLI command available to query the bytecode of a light client Wasm contract by checksum. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/grpc_query.go#L23). | `Verified` | v0.1.0 |
 | 7.02 | There shall be a CLI command available to query the checksums for all deployed light client Wasm contracts. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/keeper/grpc_query.go#L49). | `Verified` | v0.1.0 |
 <!-- markdown-link-check-enable-->
