@@ -104,7 +104,7 @@ Modules may return to the IBC handler an acknowledgement which implements the `A
 The IBC handler will then commit this acknowledgement of the packet so that a relayer may relay the
 acknowledgement back to the sender module.
 
-The state changes that occurr during this callback could be:
+The state changes that occur during this callback could be:
 
 - the packet processing was successful as indicated by the `PacketStatus_Success` and an `Acknowledgement()` will be written
 - if the packet processing was unsuccessful as indicated by the `PacketStatus_Failure` and an `ackErr` will be written
