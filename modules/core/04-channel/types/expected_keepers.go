@@ -77,3 +77,8 @@ type ClientKeeperV2 interface {
 type ChannelKeeperV2 interface {
 	SetClientForAlias(ctx sdk.Context, channelID, clientID string)
 }
+
+// PortKeeper expected port keeper interface
+type PortKeeper interface {
+	GetMiddlewareStack(portID string) []string
+}
