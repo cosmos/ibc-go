@@ -619,3 +619,28 @@ func (q *queryServer) NextSequenceSend(goCtx context.Context, req *types.QueryNe
 	selfHeight := clienttypes.GetSelfHeight(ctx)
 	return types.NewQueryNextSequenceSendResponse(sequence, nil, selfHeight), nil
 }
+
+// MiddlewareStack implements the Query/MiddlewareStack gRPC method
+// TODO: Uncomment when protobuf types are generated
+/*
+func (q *queryServer) MiddlewareStack(goCtx context.Context, req *types.QueryMiddlewareStackRequest) (*types.QueryMiddlewareStackResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	if err := validate.GRPCRequest(req.PortId); err != nil {
+		return nil, err
+	}
+
+	// Get middleware stack from port keeper
+	middlewareStack := q.portKeeper.GetMiddlewareStack(req.PortId)
+	if middlewareStack == nil {
+		return nil, status.Error(codes.NotFound, "port not found or no middleware stack")
+	}
+
+	return &types.QueryMiddlewareStackResponse{
+		PortId:          req.PortId,
+		MiddlewareStack: middlewareStack,
+	}, nil
+}
+*/

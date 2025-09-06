@@ -104,6 +104,11 @@ service Query {
     option (google.api.http).get = "/ibc/core/channel/v1/channels/{channel_id}/"
                                    "ports/{port_id}/next_sequence_send";
   }
+
+  // MiddlewareStack returns the middleware stack for a given port.
+  rpc MiddlewareStack(QueryMiddlewareStackRequest) returns (QueryMiddlewareStackResponse) {
+    option (google.api.http).get = "/ibc/core/channel/v1/ports/{port_id}/middleware_stack";
+  }
 }
 
 // QueryChannelRequest is the request type for the Query/Channel RPC method
@@ -399,4 +404,18 @@ message QueryNextSequenceSendResponse {
   bytes proof = 2;
   // height at which the proof was retrieved
   ibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryMiddlewareStackRequest is the request type for the Query/MiddlewareStack RPC method
+message QueryMiddlewareStackRequest {
+  // port unique identifier
+  string port_id = 1;
+}
+
+// QueryMiddlewareStackResponse is the response type for the Query/MiddlewareStack RPC method
+message QueryMiddlewareStackResponse {
+  // port unique identifier
+  string port_id = 1;
+  // middleware stack from bottom (base application) to top (last middleware)
+  repeated string middleware_stack = 2;
 }
