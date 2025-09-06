@@ -621,14 +621,12 @@ func (q *queryServer) NextSequenceSend(goCtx context.Context, req *types.QueryNe
 }
 
 // MiddlewareStack implements the Query/MiddlewareStack gRPC method
-// TODO: Uncomment when protobuf types are generated
-/*
 func (q *queryServer) MiddlewareStack(goCtx context.Context, req *types.QueryMiddlewareStackRequest) (*types.QueryMiddlewareStackResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := validate.GRPCRequest(req.PortId); err != nil {
+	if err := validate.GRPCRequest(req.PortId, ""); err != nil {
 		return nil, err
 	}
 
@@ -643,4 +641,3 @@ func (q *queryServer) MiddlewareStack(goCtx context.Context, req *types.QueryMid
 		MiddlewareStack: middlewareStack,
 	}, nil
 }
-*/
