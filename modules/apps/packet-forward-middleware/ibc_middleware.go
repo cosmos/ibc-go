@@ -47,6 +47,11 @@ func NewIBCMiddleware(k *keeper.Keeper, retriesOnTimeout uint8, forwardTimeout t
 	}
 }
 
+// ModuleName returns the name of the middleware for identification purposes.
+func (im *IBCMiddleware) ModuleName() string {
+	return types.ModuleName
+}
+
 // OnChanOpenInit implements the IBCModule interface.
 func (im *IBCMiddleware) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, counterparty channeltypes.Counterparty, version string) (string, error) {
 	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)

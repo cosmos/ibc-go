@@ -33,6 +33,11 @@ func NewIBCModule(k *keeper.Keeper) *IBCModule {
 	}
 }
 
+// ModuleName returns the name of the module for identification purposes.
+func (im *IBCModule) ModuleName() string {
+	return types.SubModuleName
+}
+
 // OnChanOpenInit implements the IBCModule interface
 func (*IBCModule) OnChanOpenInit(
 	_ sdk.Context,

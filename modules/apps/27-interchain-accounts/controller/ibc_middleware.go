@@ -47,6 +47,11 @@ func NewIBCMiddlewareWithAuth(app porttypes.IBCModule, k *keeper.Keeper) *IBCMid
 	}
 }
 
+// ModuleName returns the name of the middleware for identification purposes.
+func (im *IBCMiddleware) ModuleName() string {
+	return types.SubModuleName
+}
+
 // SetUnderlyingApplication sets the underlying application for the middleware.
 func (im *IBCMiddleware) SetUnderlyingApplication(app porttypes.IBCModule) {
 	if app == nil {

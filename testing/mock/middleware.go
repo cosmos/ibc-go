@@ -33,6 +33,11 @@ func NewBlockUpgradeMiddleware(appModule *AppModule, app *IBCApp) BlockUpgradeMi
 	}
 }
 
+// ModuleName returns the name of the middleware for identification purposes.
+func (im BlockUpgradeMiddleware) ModuleName() string {
+	return MockBlockUpgrade
+}
+
 // OnChanOpenInit implements the IBCModule interface.
 func (im BlockUpgradeMiddleware) OnChanOpenInit(
 	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,

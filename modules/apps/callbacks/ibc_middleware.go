@@ -53,6 +53,11 @@ func NewIBCMiddleware(
 	}
 }
 
+// ModuleName returns the name of the middleware for identification purposes.
+func (im *IBCMiddleware) ModuleName() string {
+	return types.ModuleName
+}
+
 // SetICS4Wrapper sets the ICS4Wrapper. This function may be used after the
 // middleware's creation to set the middleware which is above this module in
 // the IBC application stack.
