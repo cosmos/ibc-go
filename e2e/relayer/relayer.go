@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"testing"
 
-	mobycli "github.com/moby/moby/client"
-	"github.com/pelletier/go-toml"
 	"github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	"github.com/cosmos/interchaintest/v10/relayer"
 	"github.com/cosmos/interchaintest/v10/relayer/hermes"
+	mobycli "github.com/moby/moby/client"
+	"github.com/pelletier/go-toml"
 	"go.uber.org/zap"
 )
 

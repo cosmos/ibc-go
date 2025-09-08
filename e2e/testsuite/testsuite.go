@@ -10,12 +10,12 @@ import (
 	"strings"
 	"sync"
 
-	mobycli "github.com/moby/moby/client"
 	interchaintest "github.com/cosmos/interchaintest/v10"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	"github.com/cosmos/interchaintest/v10/testreporter"
 	test "github.com/cosmos/interchaintest/v10/testutil"
+	mobycli "github.com/moby/moby/client"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
@@ -142,7 +142,7 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 
 // initializeRelayerPool pre-loads the relayer pool with n relayers.
 // this is a workaround due to the restriction on relayer creation during the test
-	// If/when interchaintest supports relayer creation during tests, this can be made lazy per-test.
+// If/when interchaintest supports relayer creation during tests, this can be made lazy per-test.
 func (s *E2ETestSuite) initializeRelayerPool(n int) []ibc.Relayer {
 	var relayers []ibc.Relayer
 	for range n {
