@@ -8,7 +8,7 @@ import (
 
 type TestAddressCodec struct{}
 
-func (t TestAddressCodec) StringToBytes(text string) ([]byte, error) {
+func (TestAddressCodec) StringToBytes(text string) ([]byte, error) {
 	hexBytes, err := sdk.AccAddressFromHexUnsafe(text)
 	if err == nil {
 		return hexBytes, nil
@@ -22,6 +22,6 @@ func (t TestAddressCodec) StringToBytes(text string) ([]byte, error) {
 	return nil, errors.New("invalid address format")
 }
 
-func (t TestAddressCodec) BytesToString(bz []byte) (string, error) {
+func (TestAddressCodec) BytesToString(bz []byte) (string, error) {
 	return sdk.AccAddress(bz).String(), nil
 }
