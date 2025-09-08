@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"testing"
 
-	dockerclient "github.com/docker/docker/client"
+	mobycli "github.com/moby/moby/client"
 	"github.com/pelletier/go-toml"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/relayer"
-	"github.com/strangelove-ventures/interchaintest/v8/relayer/hermes"
+	"github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	"github.com/cosmos/interchaintest/v10/relayer"
+	"github.com/cosmos/interchaintest/v10/relayer/hermes"
 	"go.uber.org/zap"
 )
 
@@ -39,7 +39,7 @@ type Config struct {
 }
 
 // New returns an implementation of ibc.Relayer depending on the provided RelayerType.
-func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *dockerclient.Client, network string) ibc.Relayer {
+func New(t *testing.T, cfg Config, logger *zap.Logger, dockerClient *mobycli.Client, network string) ibc.Relayer {
 	t.Helper()
 	switch cfg.ID {
 	case Rly:
@@ -134,7 +134,7 @@ func modifyHermesConfigFile(ctx context.Context, h *hermes.Relayer, modification
 
 // newCosmosRelayer returns an instance of the go relayer.
 // Options are used to allow for relayer version selection and specifying the default processing option.
-func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *dockerclient.Client, network, relayerImage string) ibc.Relayer {
+func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *mobycli.Client, network, relayerImage string) ibc.Relayer {
 	t.Helper()
 
 	customImageOption := relayer.CustomDockerImage(relayerImage, tag, rlyRelayerUser)
@@ -148,7 +148,7 @@ func newCosmosRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient
 }
 
 // newHermesRelayer returns an instance of the hermes relayer.
-func newHermesRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *dockerclient.Client, network, relayerImage string) ibc.Relayer {
+func newHermesRelayer(t *testing.T, tag string, logger *zap.Logger, dockerClient *mobycli.Client, network, relayerImage string) ibc.Relayer {
 	t.Helper()
 
 	customImageOption := relayer.CustomDockerImage(relayerImage, tag, hermesRelayerUser)
