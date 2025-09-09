@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - release/v*
     paths:
       - '.github/workflows/docker.yml'
       - '**.go'
@@ -30,13 +31,22 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
 
+    - name: Compute release branch tag
+      id: reltag
+      if: startsWith(github.ref_name, 'release/v')
+      shell: bash
+      run: |
+        RAW="${GITHUB_REF_NAME}"
+        SANITIZED="${RAW//\//-}"
+        echo "full_tag=${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}:branch-${SANITIZED}" >> "$GITHUB_OUTPUT"
+
     - name: Build Docker image
       uses: docker/build-push-action@v6
       with:
         context: .
         tags: ${{ steps.meta.outputs.tags }}
         build-args: |
-          IBC_GO_VERSION=main
+          IBC_GO_VERSION=${{ github.ref_name }}
 
     - name: Test simd is runnable
       run: |
@@ -53,6 +63,8 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ steps.meta.outputs.tags }}
+        tags: |
+          ${{ steps.meta.outputs.tags }}
+          ${{ steps.reltag.outputs.full_tag }}
         build-args: |
-          IBC_GO_VERSION=main
+          IBC_GO_VERSION=${{ github.ref_name }}

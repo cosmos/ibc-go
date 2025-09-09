@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	interchaintestutil "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	interchaintestutil "github.com/cosmos/interchaintest/v10/testutil"
 	"gopkg.in/yaml.v2"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -730,8 +730,8 @@ func DefaultChainOptions(chainCount int) (ChainOptions, error) {
 	// if running a single test, only one relayer is needed.
 	numRelayers := 1
 	if IsRunSuite() {
-		// arbitrary number that will not be required if https://github.com/strangelove-ventures/interchaintest/issues/1153 is resolved.
-		// It can be overridden in individual test suites in SetupSuite if required.
+		// Arbitrary number; if interchaintest supports dynamic relayer creation during tests,
+		// this can be reduced or simplified.
 		numRelayers = 10
 	}
 
@@ -757,7 +757,7 @@ func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCf
 			{
 				Repository: cc.Image,
 				Version:    cc.Tag,
-				UidGid:     "1000:1000",
+				UIDGID:     "1000:1000",
 			},
 		},
 		Bin:                 cc.Binary,

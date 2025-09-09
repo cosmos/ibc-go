@@ -10,12 +10,12 @@ import (
 	"strings"
 	"sync"
 
-	dockerclient "github.com/docker/docker/client"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
-	test "github.com/strangelove-ventures/interchaintest/v8/testutil"
+	interchaintest "github.com/cosmos/interchaintest/v10"
+	"github.com/cosmos/interchaintest/v10/chain/cosmos"
+	"github.com/cosmos/interchaintest/v10/ibc"
+	"github.com/cosmos/interchaintest/v10/testreporter"
+	test "github.com/cosmos/interchaintest/v10/testutil"
+	mobycli "github.com/moby/moby/client"
 	testifysuite "github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
 
@@ -55,7 +55,7 @@ type E2ETestSuite struct {
 	chains         []ibc.Chain
 	relayerWallets relayer.Map
 	logger         *zap.Logger
-	DockerClient   *dockerclient.Client
+	DockerClient   *mobycli.Client
 	network        string
 
 	// pathNameIndex is the latest index to be used for generating chains
@@ -127,24 +127,22 @@ func (s *E2ETestSuite) configureGenesisDebugExport() {
 		exportPath = path.Join(wd, exportPath)
 	}
 
-	// This env variables are set by the interchain test code:
-	// https://github.com/strangelove-ventures/interchaintest/blob/7aa0fd6487f76238ab44231fdaebc34627bc5990/chain/cosmos/cosmos_chain.go#L1007-L1008
+	// These environment variables are set by interchaintest at runtime.
+	// Reference: https://github.com/cosmos/interchaintest/blob/main/chain/cosmos/cosmos_chain.go
 	t.Setenv("EXPORT_GENESIS_FILE_PATH", exportPath)
 
 	chainName := tc.GetGenesisChainName()
 	chainIdx, err := tc.GetChainIndex(chainName)
 	s.Require().NoError(err)
 
-	// Interchaintest adds a suffix (https://github.com/strangelove-ventures/interchaintest/blob/a3f4c7bcccf1925ffa6dc793a298f15497919a38/chainspec.go#L125)
-	// to the chain name, so we need to do the same.
+	// interchaintest adds a numeric suffix to the chain name, so we do the same.
 	genesisChainName := fmt.Sprintf("%s-%d", chainName, chainIdx+1)
 	t.Setenv("EXPORT_GENESIS_CHAIN", genesisChainName)
 }
 
 // initializeRelayerPool pre-loads the relayer pool with n relayers.
 // this is a workaround due to the restriction on relayer creation during the test
-// ref: https://github.com/strangelove-ventures/interchaintest/issues/1153
-// if the above issue is resolved, it should be possible to lazily create relayers in each test.
+// If/when interchaintest supports relayer creation during tests, this can be made lazy per-test.
 func (s *E2ETestSuite) initializeRelayerPool(n int) []ibc.Relayer {
 	var relayers []ibc.Relayer
 	for range n {

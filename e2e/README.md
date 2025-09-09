@@ -89,11 +89,11 @@ selection.
 make e2e-test test=TestMsgSubmitTx_SuccessfulTransfer
 ```
 
-> Note: sometimes it can be useful to make changes to [interchaintest](https://github.com/strangelove-ventures/interchaintest)
+> Note: sometimes it can be useful to make changes to [interchaintest](https://github.com/cosmos/interchaintest)
 > when running tests locally. In order to do this, add the following line to
 > e2e/go.mod
 
-`replace github.com/strangelove-ventures/interchaintest => ../../interchaintest`
+`replace github.com/cosmos/interchaintest/v10 => ../../interchaintest`
 
 Or point it to any local checkout you have.
 
@@ -122,7 +122,7 @@ This should be set to the path of a valid config file you want to use, setting t
 
 ### interchaintest
 
-These E2E tests use the [interchaintest framework](https://github.com/strangelove-ventures/interchaintest). This framework creates chains and relayers in containers and allows for arbitrary commands to be executed in the chain containers,
+These E2E tests use the [interchaintest framework](https://github.com/cosmos/interchaintest). This framework creates chains and relayers in containers and allows for arbitrary commands to be executed in the chain containers,
 as well as allowing us to broadcast arbitrary messages which are signed on behalf of a user created in the test.
 
 ### Test Suites

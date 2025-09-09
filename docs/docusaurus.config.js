@@ -192,10 +192,10 @@ const config = {
                 label: "ibc-rs",
                 href: "https://github.com/cosmos/ibc-rs",
               },
-              {
-                label: "interchaintest",
-                href: "https://github.com/strangelove-ventures/interchaintest",
-              },
+            {
+              label: "interchaintest",
+              href: "https://github.com/cosmos/interchaintest",
+            },
               {
                 label: "CosmWasm",
                 href: "https://cosmwasm.com/",

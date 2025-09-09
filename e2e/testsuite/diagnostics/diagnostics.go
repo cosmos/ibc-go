@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	dockertypes "github.com/docker/docker/api/types"
-	dockerclient "github.com/docker/docker/client"
+	mobycli "github.com/moby/moby/client"
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/internal/directories"
@@ -23,7 +23,7 @@ const (
 
 // Collect can be used in `t.Cleanup` and will copy all the of the container logs and relevant files
 // into e2e/<test-suite>/<test-name>.log. These log files will be uploaded to GH upon test failure.
-func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, suiteName string, chainNames ...string) {
+func Collect(t *testing.T, dc *mobycli.Client, debugModeEnabled bool, suiteName string, chainNames ...string) {
 	t.Helper()
 
 	if !debugModeEnabled {
@@ -119,7 +119,7 @@ func getContainerName(t *testing.T, container dockertypes.Container) string {
 
 // fetchAndWriteDiagnosticsFile fetches the contents of a single file from the given container id and writes
 // the contents of the file to a local path provided.
-func fetchAndWriteDiagnosticsFile(ctx context.Context, dc *dockerclient.Client, containerID, localPath, absoluteFilePathInContainer string) error {
+func fetchAndWriteDiagnosticsFile(ctx context.Context, dc *mobycli.Client, containerID, localPath, absoluteFilePathInContainer string) error {
 	fileBz, err := dockerutil.GetFileContentsFromContainer(ctx, dc, containerID, absoluteFilePathInContainer)
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func fetchAndWriteDiagnosticsFile(ctx context.Context, dc *dockerclient.Client, 
 }
 
 // fetchAndWriteDockerInspectOutput writes the contents of docker inspect to the specified file.
-func fetchAndWriteDockerInspectOutput(ctx context.Context, dc *dockerclient.Client, containerID, localPath string) error {
+func fetchAndWriteDockerInspectOutput(ctx context.Context, dc *mobycli.Client, containerID, localPath string) error {
 	containerJSON, err := dc.ContainerInspect(ctx, containerID)
 	if err != nil {
 		return err
