@@ -1,4 +1,4 @@
-package host
+package host_test
 
 import (
 	"errors"
@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 )
 
 // 195 characters
@@ -35,11 +37,10 @@ func TestDefaultIdentifierValidator(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
-		err := ClientIdentifierValidator(tc.id)
-		err1 := ConnectionIdentifierValidator(tc.id)
-		err2 := ChannelIdentifierValidator(tc.id)
-		err3 := PortIdentifierValidator(tc.id)
+		err := host.ClientIdentifierValidator(tc.id)
+		err1 := host.ConnectionIdentifierValidator(tc.id)
+		err2 := host.ChannelIdentifierValidator(tc.id)
+		err3 := host.PortIdentifierValidator(tc.id)
 		if tc.expErr == nil {
 			require.NoError(t, err, tc.msg)
 			require.NoError(t, err1, tc.msg)
@@ -71,8 +72,7 @@ func TestPortIdentifierValidator(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
-		err := PortIdentifierValidator(tc.id)
+		err := host.PortIdentifierValidator(tc.id)
 		if tc.expErr == nil {
 			require.NoError(t, err, tc.msg)
 		} else {
@@ -104,8 +104,7 @@ func TestPathValidator(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
-		f := NewPathValidator(func(path string) error {
+		f := host.NewPathValidator(func(path string) error {
 			return nil
 		})
 
@@ -122,7 +121,7 @@ func TestPathValidator(t *testing.T) {
 }
 
 func TestCustomPathValidator(t *testing.T) {
-	validateFn := NewPathValidator(func(path string) error {
+	validateFn := host.NewPathValidator(func(path string) error {
 		if !strings.HasPrefix(path, "id_") {
 			return fmt.Errorf("identifier %s must start with 'id_", path)
 		}
@@ -141,7 +140,6 @@ func TestCustomPathValidator(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := validateFn(tc.id)
 		if tc.expErr == nil {
 			require.NoError(t, err, tc.msg)

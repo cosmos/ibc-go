@@ -11,4 +11,5 @@ var (
 	ErrCallbackAddressNotFound   = errorsmod.Register(ModuleName, 5, "callback address not found in packet data")
 	ErrCallbackOutOfGas          = errorsmod.Register(ModuleName, 6, "callback out of gas")
 	ErrCallbackPanic             = errorsmod.Register(ModuleName, 7, "callback panic")
+	ErrInvalidCallbackData       = errorsmod.Register(ModuleName, 8, "invalid callback data")
 )

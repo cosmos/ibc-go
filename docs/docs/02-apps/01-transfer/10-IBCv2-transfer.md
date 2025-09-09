@@ -63,3 +63,27 @@ Because IBC v2 no longer uses channels, it is no longer possible to rely on a fi
 ## Changes to the application module interface
 
 Instead of implementing token transfer for `port.IBCModule`, IBC v2 uses the new application interface `api.IBCModule`. More information on the interface differences can be found in the [application section](../../01-ibc/03-apps/00-ibcv2apps.md). 
+
+## MsgTransfer Entrypoint
+
+The `MsgTransfer` entrypoint has been retained in order to retain support for the common entrypoint integrated in most existing frontends.
+
+If `MsgTransfer` is used with a clientID as the `msg.SourceChannel` then the handler will automatically use the IBC v2 protocol. It will internally call the `MsgSendPacket` endpoint so that the execution flow is the same in the state machine for all IBC v2 packets while still presenting the same endpoint for users.
+
+Of course, we want to still retain support for sending v2 packets on existing channels. The denominations of tokens once they leave the origin chain are prefixed by the port and channel ID in IBC v1. Moreover, the transfer escrow accounts holding the original tokens are generated from the channel IDs. Thus, if we wish to interact these remote tokens using IBC v2, we must still use the v1 channel identifiers that they were originally sent with.
+
+Thus, `MsgTransfer` has an additional `UseAliasing` boolean field to indicate that we wish to use IBC v2 protocol while still using the old v1 channel identifiers. This enables users to interact with the same tokens, DEX pools, and cross-chain DEFI protocols using the same denominations that they had previously with the IBC v2 protocol. To use the `MsgTransfer` with aliasing we can submit the message like so:
+
+```go
+MsgTransfer{
+	SourcePort:       "transfer",
+	SourceChannel:    "channel-4", //note: we are using an existing v1 channel identiifer
+	Token:            "uatom",
+	Sender:           {senderAddr},
+	Receiver:         {receiverAddr},
+	TimeoutHeight:    ZeroHeight, // note: IBC v2 does not use timeout height
+	TimeoutTimestamp: 100_000_000,
+	Memo:             "",
+	UseAliasing:      true, // set aliasing to true so the handler uses IBC v2 instead of IBC v1
+}
+```

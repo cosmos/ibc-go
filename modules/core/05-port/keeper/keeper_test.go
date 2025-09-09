@@ -18,12 +18,12 @@ type KeeperTestSuite struct {
 	keeper *keeper.Keeper
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
+func (s *KeeperTestSuite) SetupTest() {
 	isCheckTx := false
-	app := simapp.Setup(suite.T(), isCheckTx)
+	app := simapp.Setup(s.T(), isCheckTx)
 
-	suite.ctx = app.NewContext(isCheckTx)
-	suite.keeper = app.IBCKeeper.PortKeeper
+	s.ctx = app.NewContext(isCheckTx)
+	s.keeper = app.IBCKeeper.PortKeeper
 }
 
 func TestKeeperTestSuite(t *testing.T) {
