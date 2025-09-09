@@ -77,3 +77,18 @@ func (rtr *Router) Keys() []string {
 	sort.Strings(keys)
 	return keys
 }
+
+// GetMiddlewareStack returns the middleware stack for a given port.
+// It returns the stack from bottom (base application) to top (last middleware).
+// Note: This is a simplified implementation that returns the top-level module name.
+// A complete implementation would require architecture changes to track the full stack.
+func (rtr *Router) GetMiddlewareStack(portID string) []string {
+	module, found := rtr.Route(portID)
+	if !found {
+		return nil
+	}
+
+	// For now, just return the top-level module name
+	// This is a starting point that can be enhanced later
+	return []string{module.ModuleName()}
+}

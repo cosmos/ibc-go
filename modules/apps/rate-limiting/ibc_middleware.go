@@ -30,6 +30,11 @@ func NewIBCMiddleware(k *keeper.Keeper) *IBCMiddleware {
 	}
 }
 
+// ModuleName returns the name of the middleware for identification purposes.
+func (im *IBCMiddleware) ModuleName() string {
+	return "ratelimiting" // types.ModuleName from this package
+}
+
 // OnChanOpenInit implements the IBCMiddleware interface. Call underlying app's OnChanOpenInit.
 func (im *IBCMiddleware) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, counterparty channeltypes.Counterparty, version string) (string, error) {
 	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, counterparty, version)

@@ -39,6 +39,11 @@ func NewIBCModule(appModule *AppModule, app *IBCApp) *IBCModule {
 	}
 }
 
+// ModuleName returns the name of the module for identification purposes.
+func (im IBCModule) ModuleName() string {
+	return "mock"
+}
+
 // OnChanOpenInit implements the IBCModule interface.
 func (im IBCModule) OnChanOpenInit(
 	ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string,
