@@ -25,7 +25,7 @@ require (
 	github.com/cosmos/ibc-go/v10 v10.3.0
 	github.com/cosmos/interchaintest/v10 v10.0.0
 	github.com/docker/docker v28.0.0+incompatible
-	github.com/moby/moby v27.5.1+incompatible
+	github.com/moby/moby v28.4.0+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/zap v1.27.0
