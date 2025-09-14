@@ -16,7 +16,7 @@ on:
           - release/v7.10.x
           - release/v8.7.x
           - release/v8.8.x
-          - release/v10.3.x
+          - release/v10.4.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -54,9 +54,8 @@ jobs:
       matrix:
         release-branch:
           - release/v7.10.x
-          - release/v8.7.x
           - release/v8.8.x
-          - release/v10.3.x
+          - release/v10.4.x
           - main
     steps:
       - uses: actions/checkout@v5
