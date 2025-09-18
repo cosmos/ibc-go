@@ -92,7 +92,7 @@ jobs:
           cache-dependency-path: 'e2e/go.sum'
 
       - name: Download image from docker build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: simd-image
       - run: docker load -i simd-image.tar.gz
