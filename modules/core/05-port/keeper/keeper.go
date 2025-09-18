@@ -45,3 +45,11 @@ func (k *Keeper) Route(module string) (types.IBCModule, bool) {
 
 	return nil, false
 }
+
+// GetMiddlewareStack returns the middleware stack for a given port
+func (k *Keeper) GetMiddlewareStack(portID string) []string {
+	if k.Router == nil {
+		return nil
+	}
+	return k.Router.GetMiddlewareStack(portID)
+}
