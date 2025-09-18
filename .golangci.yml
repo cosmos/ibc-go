@@ -5,6 +5,7 @@ linters:
   default: none
   enable:
     - errcheck
+    - errorlint
     - goconst
     - gocritic
     - gosec
@@ -18,73 +19,84 @@ linters:
     - unconvert
     - unparam
     - unused
+    - mirror
+    - copyloopvar
+    - iface
+    - importas
+    - intrange
+    - nakedret
+    - nilnesserr
+    - nilnil
+    - nonamedreturns
+    - prealloc
+    - predeclared
+    - reassign
+    - recvcheck
+    - testifylint
+    - testpackage
+    - usestdlibvars
+    - usetesting
+    - wastedassign
   settings:
-    gocritic:
-      disabled-checks:
-        - appendAssign
     gosec:
       excludes:
-        - G101
-        - G107
-        - G115
-        - G404
-      confidence: medium
+        - G107 # Url provided to HTTP request as taint input
+        - G115 # Potential integer overflow when converting between integer types
+        - G404 # Insecure random number source (rand)
+      confidence: low
+    nakedret:
+      max-func-lines: 0
     revive:
       enable-all-rules: true
+      # See the rule descriptions here: https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md
       rules:
-        - name: redundant-import-alias
-          disabled: true
-        - name: use-any
-          disabled: true
-        - name: if-return
-          disabled: true
-        - name: max-public-structs
-          disabled: true
-        - name: cognitive-complexity
+        # Rules with configuration
+        - name: receiver-naming
+          disabled: false
+          arguments:
+            - max-length: 4
+        - name: unhandled-error
+          disabled: false
+          arguments: # Disable for these ones only
+            - fmt.Printf
+            - fmt.Print
+            - fmt.Println
+        - name: var-naming
+          disabled: false
+          arguments:
+            - []
+            - []
+            - [ skipPackageNameChecks: true ]
+        # Disabled rules
+        # TODO: Some of these are kinda code smelly, should reconsider some of them
+        - name: add-constant
           disabled: true
         - name: argument-limit
           disabled: true
+        - name: banned-characters
+          disabled: true
+        - name: cognitive-complexity
+          disabled: true
+        - name: confusing-naming
+          disabled: true
+        - name: confusing-results
+          disabled: true
         - name: cyclomatic
           disabled: true
-        - name: file-header
+        - name: deep-exit
           disabled: true
         - name: function-length
+          disabled: true
+        - name: flag-parameter
           disabled: true
         - name: function-result-limit
           disabled: true
         - name: line-length-limit
           disabled: true
-        - name: flag-parameter
-          disabled: true
-        - name: add-constant
-          disabled: true
-        - name: empty-lines
-          disabled: true
-        - name: banned-characters
-          disabled: true
-        - name: deep-exit
-          disabled: true
-        - name: confusing-results
+        - name: max-public-structs
           disabled: true
         - name: unused-parameter
           disabled: true
-        - name: modifies-value-receiver
-          disabled: true
-        - name: early-return
-          disabled: true
-        - name: confusing-naming
-          disabled: true
-        - name: defer
-          disabled: true
-        - name: unused-parameter
-          disabled: true
-        - name: unhandled-error
-          arguments:
-            - fmt.Printf
-            - fmt.Print
-            - fmt.Println
-            - myFunction
-          disabled: false
   exclusions:
     generated: lax
     presets:
@@ -94,24 +106,23 @@ linters:
       - std-error-handling
     rules:
       - linters:
-          - revive
-        text: differs only by capitalization to method
-      - linters:
-          - gosec
-        text: Use of weak random number generator
-      - linters:
-          - gosec
-        text: 'G115: integer overflow conversion'
-      - linters:
           - staticcheck
-        text: 'SA1019:'
-      - linters:
-          - gosec
-        text: 'G115: integer overflow conversion'
+        text: 'SA1019:' # TODO: This should really be removed!
+      - path: _test\.go
+        linters:
+          - prealloc
+      - path: e2e/*
+        linters:
+          - prealloc
+          - testpackage
+      - path: testing/*
+        linters:
+          - prealloc
     paths:
       - third_party$
       - builtin$
       - examples$
+      - testing/mock/*
 issues:
   max-issues-per-linter: 10000
   max-same-issues: 10000

@@ -56,7 +56,6 @@ func TestConnectionValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-
 		err := tc.connection.ValidateBasic()
 		if tc.expError == nil {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
@@ -79,7 +78,6 @@ func TestCounterpartyValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-
 		err := tc.counterparty.ValidateBasic()
 		if tc.expError == nil {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)
@@ -108,7 +106,6 @@ func TestIdentifiedConnectionValidateBasic(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-
 		err := tc.connection.ValidateBasic()
 		if tc.expError == nil {
 			require.NoError(t, err, "valid test case %d failed: %s", i, tc.name)

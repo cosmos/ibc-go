@@ -10,6 +10,7 @@ const (
 	PacketCommitmentBasePrefix      = byte(1)
 	PacketReceiptBasePrefix         = byte(2)
 	PacketAcknowledgementBasePrefix = byte(3)
+	KeyNextSeqSendPrefix            = "nextSequenceSend/"
 )
 
 // PacketCommitmentPrefixKey returns the store key prefix under which packet commitments for a particular channel are stored.
@@ -50,5 +51,5 @@ func PacketAcknowledgementKey(channelID string, sequence uint64) []byte {
 
 // NextSequenceSendKey returns the store key for the next sequence send of a given channelID.
 func NextSequenceSendKey(channelID string) []byte {
-	return fmt.Appendf(nil, "nextSequenceSend/%s", channelID)
+	return fmt.Appendf(nil, "%s/%s", KeyNextSeqSendPrefix, channelID)
 }

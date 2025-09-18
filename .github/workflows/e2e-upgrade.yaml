@@ -17,8 +17,7 @@ env:
 
 jobs:
   e2e-upgrade-tests:
-    runs-on: depot-ubuntu-22.04-4
-    needs:
+    runs-on: depot-ubuntu-24.04-4
     strategy:
       fail-fast: false
       matrix: 
@@ -55,12 +54,12 @@ jobs:
           },
         ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: cosmos/ibc-go
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.23'
+          go-version: '1.24'
           cache-dependency-path: 'e2e/go.sum'
       - name: Run e2e Test
         id: e2e_test
@@ -68,16 +67,18 @@ jobs:
           CHAIN_IMAGE: '${{ env.DOCKER_IMAGE_NAME }}'
           CHAIN_A_TAG: '${{ matrix.test-config.tag }}'
           CHAIN_B_TAG: '${{ matrix.test-config.tag }}'
+          CHAIN_C_TAG: '${{ matrix.test-config.tag }}'
+          CHAIN_D_TAG: '${{ matrix.test-config.tag }}'
           CHAIN_UPGRADE_PLAN: '${{ matrix.test-config.upgrade-plan }}'
           E2E_CONFIG_PATH: 'ci-e2e-config.yaml'
         run: |
           cd e2e
-          make e2e-test test=${{ matrix.test }}
+          make e2e-test test=${{ matrix.test-config.test }}
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         continue-on-error: true
         with:
-          name: '${{ matrix.entrypoint }}-${{ matrix.test }}'
+          name: '${{ matrix.test-config.entrypoint }}-${{ matrix.test-config.test }}'
           path: e2e/diagnostics
           retention-days: 5
