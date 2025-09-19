@@ -43,9 +43,9 @@ The release lines currently supported are v7, v8, and v10. Please note that v9 h
 
 Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md) for more information on how to understand our release versioning.
 
-## Community-maintained apps and middleware
+## Applications, Middleware, and Tools
 
-Discover community-maintained applications and middleware in the [cosmos/ibc-apps repository](https://github.com/cosmos/ibc-apps#-bonus-content).
+IBC has an extensive list of applications, middleware, and tools, including relayers. View the list on the [IBC technical resource catalogue](https://ibcprotocol.dev/technical-resource-catalog) on our website.
 
 ## Developer Community and Support
 
@@ -77,8 +77,6 @@ The Cosmos Stack is supported by a robust community of open-source contributors.
 ## Contributing to ibc-go
 
 If you're interested in contributing to ibc-go, please take a look at the [contributing guidelines](./CONTRIBUTING.md). We welcome and appreciate community contributions!
-
-This project adheres to ibc-go's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
 To help contributors understand which issues are good to pick up, we have the following two categories:
 
@@ -130,7 +128,7 @@ If you are interested in working on an issue, please comment on it. We will be h
 - [IBC Protocol Specification and Standards](https://github.com/cosmos/ibc)
 - [Documentation](./docs/docs/01-ibc/01-overview.md)
 
-  ### ### Cosmos Stack Libraries
+### Cosmos Stack Libraries
 
 - [Cosmos SDK](http://github.com/cosmos/cosmos-sdk) - A framework for building
   applications in Golang
