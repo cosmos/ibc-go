@@ -125,6 +125,14 @@ If you are interested in working on an issue, please comment on it. We will be h
 
 ## Documentation and Resources
 
+### IBC Information
 - [IBC Website](https://ibcprotocol.dev/)
 - [IBC Protocol Specification and Standards](https://github.com/cosmos/ibc)
 - [Documentation](./docs/docs/01-ibc/01-overview.md)
+
+  ### ### Cosmos Stack Libraries
+
+- [Cosmos SDK](http://github.com/cosmos/cosmos-sdk) - A framework for building
+  applications in Golang
+- [CometBFT](https://github.com/cometbft/cometbft) - High-performance, 10k+ TPS configurable BFT consensus engine.
+- [Cosmos EVM](https://github.com/cosmos/evm) - Native EVM layer for Cosmos SDK chains. 
