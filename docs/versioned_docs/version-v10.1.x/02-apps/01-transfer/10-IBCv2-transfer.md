@@ -7,7 +7,7 @@ slug: /apps/transfer/ics20-v1/ibcv2transfer
 
 # IBC v2 Transfer
 
-Much of the core business logic of sending and recieving tokens between chains is unchanged between IBC Classic and IBC v2. Some of the key differences to pay attention to are detailed below. 
+Much of the core business logic of sending and receiving tokens between chains is unchanged between IBC Classic and IBC v2. Some of the key differences to pay attention to are detailed below. 
 
 ## No Channel Handshakes, New Packet Format and Encoding Support
 
