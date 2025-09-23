@@ -58,7 +58,7 @@ type FungibleTokenPacketData struct {
 
 With the new [`Denom`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/types/token.pb.go#L81-L87) struct, the base denom, i.e. uatom, is seperated from the trace - the path the token has travelled. The trace is presented as an array of [`Hop`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/types/token.pb.go#L136-L140)s. 
 
-Because IBC v2 no longer uses channels, it is no longer possible to rely on a fixed format for an identifier so using a base denom that contains a "/" is dissallowed. 
+Because IBC v2 no longer uses channels, it is no longer possible to rely on a fixed format for an identifier so using a base denom that contains a "/" is disallowed. 
 
 ## Changes to the application module interface
 
