@@ -8,7 +8,7 @@ slug: /ibc/apps/apps
 # IBC Applications
 
 :::warning
-This page is relevant for IBC Classic, naviagate to the IBC v2 applications page for information on v2 apps
+This page is relevant for IBC Classic, navigate to the IBC v2 applications page for information on v2 apps
 :::
 
 Learn how to configure your application to use IBC and send data packets to other chains.
