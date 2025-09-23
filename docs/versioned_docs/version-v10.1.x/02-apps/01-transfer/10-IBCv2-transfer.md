@@ -23,7 +23,7 @@ The code snippet shows the `Payload` struct.
 type Payload struct {
 	// specifies the source port of the packet, e.g. transfer
 	SourcePort string `protobuf:"bytes,1,opt,name=source_port,json=sourcePort,proto3" json:"source_port,omitempty"`
-	// specifies the destination port of the packet, e.g. trasnfer
+	// specifies the destination port of the packet, e.g. transfer
 	DestinationPort string `protobuf:"bytes,2,opt,name=destination_port,json=destinationPort,proto3" json:"destination_port,omitempty"`
 	// version of the specified application
 	Version string `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
