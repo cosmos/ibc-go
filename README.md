@@ -134,3 +134,6 @@ If you are interested in working on an issue, please comment on it. We will be h
   applications in Golang
 - [CometBFT](https://github.com/cometbft/cometbft) - High-performance, 10k+ TPS configurable BFT consensus engine.
 - [Cosmos EVM](https://github.com/cosmos/evm) - Native EVM layer for Cosmos SDK chains. 
+
+
+[Note]: Added CLI usage example for ibc-go.
