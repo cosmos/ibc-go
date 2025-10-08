@@ -14,3 +14,7 @@ Please DO NOT file a public issue in this repository to report a security vulner
 For the most up-to-date version of the policies that govern vulnerability disclosure, please consult the [HackerOne program page](https://hackerone.com/cosmos?type=team&view_policy=true).
 
 The policy hosted on HackerOne is the official Coordinated Vulnerability Disclosure policy and Safe Harbor for the Interchain Stack, and the teams and infrastructure it supports, and it supersedes previous security policies that have been used in the past by individual teams and projects with targets in scope of the program.
+
+### More information
+
+* See [Maintenance and Security](https://github.com/cosmos/security) for detailed policies.
