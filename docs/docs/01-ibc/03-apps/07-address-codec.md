@@ -11,7 +11,7 @@ slug: /ibc/apps/address-codec
 
 Starting in ibc-go `v10.4.0`, the IBC transfer module uses the application's configured address codec to parse sender and receiver addresses. This enables chains to accept multiple address formats in IBC packets—for example, both standard Cosmos bech32 addresses (`cosmos1...`) and Ethereum hex addresses (`0x...`).
 
-## The Address Codec Interface
+## Interface
 
 The Cosmos SDK defines a simple interface for converting between address representations:
 
