@@ -1,4 +1,11 @@
-# Custom Address Codec for IBC Transfers
+---
+title: Address Codec
+sidebar_label: Address Codec
+sidebar_position: 7
+slug: /ibc/apps/address-codec
+---
+
+# Custom Address Codec
 
 ## Overview
 
