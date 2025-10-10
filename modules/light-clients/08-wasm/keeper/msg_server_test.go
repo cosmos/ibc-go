@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	wasmvm "github.com/CosmWasm/wasmvm/v2"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+	wasmvm "github.com/CosmWasm/wasmvm/v3"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -61,7 +61,7 @@ func (s *KeeperTestSuite) TestMsgStoreCode() {
 			func() {
 				msg = types.NewMsgStoreCode(signer, []byte{0, 1, 3, 4})
 			},
-			errors.New("Wasm bytes do not start with Wasm magic number"),
+			errors.New("wasm bytes do not start with Wasm magic number"),
 		},
 		{
 			"fails with wasm code too large",

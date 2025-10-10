@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	wasmvm "github.com/CosmWasm/wasmvm/v2"
+	wasmvm "github.com/CosmWasm/wasmvm/v3"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
