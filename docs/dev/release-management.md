@@ -1,6 +1,8 @@
 # Tagging a release
 
-## New major release branch
+## New release branch setup
+
+### New major release branch
 
 Pre-requisites for creating a release branch for a new major version:
 
@@ -12,15 +14,17 @@ Once the above pre-requisites are satisfied:
 1. Start on `main`.
 2. Create the release branch (`release/vX.XX.X`). For example: `release/v3.0.x`.
 
-## New minor release branch
+### New minor release branch
 
 1. Start on the latest release branch in the same major release line. For example: the latest release branch in the `v3` release line is `v3.2.x`.
 2. Create branch from the release branch. For example: create branch `release/v3.3.x` from `v3.2.x`.
 
+### Post branch creation
 Post-requisites for both new major and minor release branches:
 
 1. Add backport task to [`mergify.yml`](https://github.com/cosmos/ibc-go/blob/main/.github/mergify.yml).
 2. Create label for backport (e.g.`backport-to-v3.0.x`).
+3. Add the branch to `e2e-compatibility.yaml` in the `workflow_dispatch.inputs.release-branch.options` list.
 
 ## General release procedure
 
