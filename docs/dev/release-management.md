@@ -1,7 +1,5 @@
 # Tagging a release
 
-Before tagging a new release, please run the [compatibility e2e test suite](https://github.com/cosmos/ibc-go/actions/workflows/e2e-compatibility.yaml) for the corresponding release line.
-
 ## New major release branch
 
 Pre-requisites for creating a release branch for a new major version:
@@ -21,9 +19,70 @@ Once the above pre-requisites are satisfied:
 
 Post-requisites for both new major and minor release branches:
 
-1. Add branch protection rules to new release branch.
-2. Add backport task to [`mergify.yml`](https://github.com/cosmos/ibc-go/blob/main/.github/mergify.yml).
-3. Create label for backport (e.g.`backport-to-v3.0.x`).
+1. Add backport task to [`mergify.yml`](https://github.com/cosmos/ibc-go/blob/main/.github/mergify.yml).
+2. Create label for backport (e.g.`backport-to-v3.0.x`).
+
+## General release procedure
+
+For specifics around point release procedure, see [the documentation for that below](#point-release-procedure).
+
+NOTE: Since ibc-go v10, we release sub-modules (e.g. `modules/light-clients/08-wasm/v10.3.0`) from the same release branch as `ibc-go`.
+
+### 0: Before release
+
+1. Before tagging a new release, make sure to run the [compatibility e2e test suite](https://github.com/cosmos/ibc-go/actions/workflows/e2e-compatibility.yaml) for the corresponding release line.
+2. Make sure the CHANGELOG.md is updated.
+
+### 1: Release ibc-go
+
+1. Create a new release in [GitHub](https://github.com/cosmos/ibc-go/releases) with "Draft new release".
+2. Select the release branch (e.g. `release/v10.4.x`)
+3. Set the correct tag (e.g. `v10.4.0`)
+4. Write release notes
+5. Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
+
+### 2: Release sub-modules
+
+For each sub-module, from the release branch:
+1. Remove any ibc-go `replace` directives in the sub-module's `go.mod`.
+  ```diff
+  replace (
+-   github.com/cosmos/ibc-go/v10 => ../../../
+  ```
+2. Update the ibc-go version in the sub-modules's `go.mod` to the version release in the previous step.
+  ```diff
+-  github.com/cosmos/ibc-go/v10 v10.3.0
++  github.com/cosmos/ibc-go/v10 v10.4.0
+  ```
+3. Create a PR to the release branch, and after CI finishes, merge it.
+4. Create a new release in [GitHub](https://github.com/cosmos/ibc-go/releases) with "Draft new release".
+5. Select the release branch (e.g. `release/v10.4.x`)
+6. Set the correct tag (e.g. `modules/light-clients/08-wasm/v10.4.0`)
+7. Write release notes
+8. Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
+
+### 3: Post-release procedure
+
+1. Clean up the release branch
+  - Put back the sub-module `replace` directives in the sub-module's `go.mod`.
+  - Put back the `[Unreleased]` section in the release branch (e.g. `release/v1.0.x`) with clean sections for each of the types of changelog entries, so that entries will be added for the PRs that are backported for the next release.
+2. Clean up the main branch
+  - Update [`CHANGELOG.md`](../../CHANGELOG.md) in `main` (remove from the `[Unreleased]` section any items that are part of the release).`
+  - Update [version matrix](../../RELEASES.md#version-matrix) in `RELEASES.md`: add the new release and remove any tags that might not be recommended anymore.
+  - Additionally, for the first point release of a new major or minor release branch:
+    - Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](../../RELEASES.md): add the new release line and remove any release lines that might have become discontinued.
+    - Update the [list of supported release lines in README.md](../../RELEASES.md#releases), if necessary.
+    - Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) test workflow:
+        - Remove any tags that might not be recommended anymore. 
+    - Update docs site:
+        - If the release is occurring on the main branch, on the latest version, then run `npm run docusaurus docs:version vX.Y.Z` in the `docs/` directory. (where `X.Y.Z` is the new version number)
+        - If the release is occurring on an older release branch, then make a PR to the main branch called `docs: new release vX.Y.Z` doing the following:
+            - Update the content of the docs found in `docs/versioned_docs/version-vx.y.z` if needed. (where `x.y.z` is the previous version number)
+            - Update the version number of the older release branch by changing the version number of the older release branch in:
+                - In `docs/versions.json`.
+                - Rename `docs/versioned_sidebars/version-vx.y.z-sidebars.json`
+                - Rename `docs/versioned_docs/version-vx.y.z`
+    - After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
 
 ## Point release procedure
 
@@ -60,27 +119,3 @@ Finally, when a point release is ready to be made:
 - Write release notes.
 - Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
 
-### Post-release procedure
-
-- Update [`CHANGELOG.md`](../../CHANGELOG.md) in `main` (remove from the `[Unreleased]` section any items that are part of the release).`
-- Put back the `[Unreleased]` section in the release branch (e.g. `release/v1.0.x`) with clean sections for each of the types of changelog entries, so that entries will be added for the PRs that are backported for the next release.
-- Update [version matrix](../../RELEASES.md#version-matrix) in `RELEASES.md`: add the new release and remove any tags that might not be recommended anymore.
-
-Additionally, for the first point release of a new major or minor release branch:
-
-- Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](../../RELEASES.md): add the new release line and remove any release lines that might have become discontinued.
-- Update the [list of supported release lines in README.md](../../RELEASES.md#releases), if necessary.
-- Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) test workflow:
-    - Remove any tags that might not be recommended anymore. 
-- Update docs site:
-    - If the release is occurring on the main branch, on the latest version, then run `npm run docusaurus docs:version vX.Y.Z` in the `docs/` directory. (where `X.Y.Z` is the new version number)
-    - If the release is occurring on an older release branch, then make a PR to the main branch called `docs: new release vX.Y.Z` doing the following:
-        - Update the content of the docs found in `docs/versioned_docs/version-vx.y.z` if needed. (where `x.y.z` is the previous version number)
-        - Update the version number of the older release branch by changing the version number of the older release branch in:
-            - In `docs/versions.json`.
-            - Rename `docs/versioned_sidebars/version-vx.y.z-sidebars.json`
-            - Rename `docs/versioned_docs/version-vx.y.z`
-- After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
-- Open issue in [SDK tutorials repo](https://github.com/cosmos/sdk-tutorials) to update tutorials to the released version of ibc-go.
-
-See [this PR](https://github.com/cosmos/ibc-go/pull/2919) for an example of the involved changes.
