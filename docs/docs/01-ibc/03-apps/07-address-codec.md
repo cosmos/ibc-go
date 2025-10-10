@@ -66,7 +66,7 @@ After initializing your transfer keeper, configure the codec using the `SetAddre
 app.TransferKeeper.SetAddressCodec(evmaddress.NewEvmCodec(sdk.GetConfig().GetBech32AccountAddrPrefix()))
 ```
 
-For a complete example showing the transfer keeper initialization and address codec configuration, see [evmd app.go](https://github.com/cosmos/evm/blob/vlad/erc20-address-codec/evmd/app.go#L483-L494).
+For a complete example showing the transfer keeper initialization and address codec configuration, see [evmd app.go](https://github.com/cosmos/evm/blob/720ba9cf908a20a29b7401b19a136caeb8c4092f/evmd/app.go#L483-L494).
 
 ## Usage
 
@@ -89,4 +89,4 @@ Both formats resolve to the same on-chain account when derived from the same pri
 The cosmos/evm repository provides a complete implementation in `utils/address_codec.go` with integration examples in the `evmd` reference chain:
 
 - [**Implementation PR**](https://github.com/cosmos/evm/pull/665)
-- [**Example integration**](https://github.com/cosmos/evm/tree/main/evmd)
+- [**Reference Chain "evmd"**](https://github.com/cosmos/evm/tree/main/evmd)
