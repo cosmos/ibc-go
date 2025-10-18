@@ -113,6 +113,10 @@ type IBCModule interface {
 	// Do not use the channel keeper directly to send packets or write acknowledgements
 	// as this will bypass the middleware.
 	SetICS4Wrapper(wrapper ICS4Wrapper)
+
+	// ModuleName returns the name of the module for identification purposes.
+	// This is used for middleware stack queries and debugging.
+	ModuleName() string
 }
 
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.

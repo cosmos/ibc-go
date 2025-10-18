@@ -38,6 +38,11 @@ func NewIBCModule(k *keeper.Keeper) *IBCModule {
 	}
 }
 
+// ModuleName returns the name of the module for identification purposes.
+func (im *IBCModule) ModuleName() string {
+	return types.ModuleName
+}
+
 // ValidateTransferChannelParams does validation of a newly created transfer channel. A transfer
 // channel must be UNORDERED, use the correct port (by default 'transfer'), and use the current
 // supported version. Only 2^32 channels are allowed to be created.

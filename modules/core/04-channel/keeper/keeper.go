@@ -37,6 +37,7 @@ type Keeper struct {
 	cdc              codec.BinaryCodec
 	clientKeeper     types.ClientKeeper
 	connectionKeeper types.ConnectionKeeper
+	portKeeper       types.PortKeeper
 
 	// V2 Keepers are only used for channel aliasing
 	clientKeeperV2  types.ClientKeeperV2
@@ -49,6 +50,7 @@ func NewKeeper(
 	storeService corestore.KVStoreService,
 	clientKeeper types.ClientKeeper,
 	connectionKeeper types.ConnectionKeeper,
+	portKeeper types.PortKeeper,
 	clientKeeperV2 types.ClientKeeperV2,
 	channelKeeperV2 types.ChannelKeeperV2,
 ) *Keeper {
@@ -57,6 +59,7 @@ func NewKeeper(
 		cdc:              cdc,
 		clientKeeper:     clientKeeper,
 		connectionKeeper: connectionKeeper,
+		portKeeper:       portKeeper,
 		clientKeeperV2:   clientKeeperV2,
 		channelKeeperV2:  channelKeeperV2,
 	}
