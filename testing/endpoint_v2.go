@@ -39,10 +39,6 @@ func (ep *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, payloads []
 		return channeltypesv2.Packet{}, err
 	}
 
-	if err := ep.Counterparty.UpdateClient(); err != nil {
-		return channeltypesv2.Packet{}, err
-	}
-
 	// TODO: parse the packet from events instead of from the response. https://github.com/cosmos/ibc-go/issues/7459
 	// get sequence from msg response
 	var msgData sdk.TxMsgData
