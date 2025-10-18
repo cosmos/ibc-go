@@ -62,6 +62,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message`.
 
+## [v10.4.0](https://github.com/cosmos/ibc-go/releases/tag/v10.4.0) - 2025-10-10
+
+### Improvements
+
+* [\#8615](https://github.com/cosmos/ibc-go/pull/8615) Support custom address codecs in transfer.
+
 ## [v10.3.0](https://github.com/cosmos/ibc-go/releases/tag/v10.3.0) - 2025-06-06
 
 ### Features
