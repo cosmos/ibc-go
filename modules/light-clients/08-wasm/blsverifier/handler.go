@@ -34,14 +34,14 @@ func CustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 		var customQuery CustomQuery
 		err := json.Unmarshal([]byte(request), &customQuery)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse custom query %v", err)
+			return nil, fmt.Errorf("failed to parse custom query %w", err)
 		}
 
 		switch {
 		case customQuery.Aggregate != nil:
 			aggregatedPublicKeys, err := AggregatePublicKeys(customQuery.Aggregate.PublicKeys)
 			if err != nil {
-				return nil, fmt.Errorf("failed to aggregate public keys %v", err)
+				return nil, fmt.Errorf("failed to aggregate public keys %w", err)
 			}
 
 			return json.Marshal(aggregatedPublicKeys.Marshal())
@@ -56,7 +56,7 @@ func CustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 			}
 			result, err := VerifySignature(customQuery.AggregateVerify.Signature, msg, customQuery.AggregateVerify.PublicKeys)
 			if err != nil {
-				return nil, fmt.Errorf("failed to verify signature %v", err)
+				return nil, fmt.Errorf("failed to verify signature %w", err)
 			}
 
 			return json.Marshal(result)

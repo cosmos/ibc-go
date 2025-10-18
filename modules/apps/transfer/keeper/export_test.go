@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"cosmossdk.io/core/address"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	internaltypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/internal/types"
@@ -8,17 +10,22 @@ import (
 )
 
 // SetDenomTrace is a wrapper around setDenomTrace for testing purposes.
-func (k Keeper) SetDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
+func (k *Keeper) SetDenomTrace(ctx sdk.Context, denomTrace internaltypes.DenomTrace) {
 	k.setDenomTrace(ctx, denomTrace)
 }
 
 // IterateDenomTraces is a wrapper around iterateDenomTraces for testing purposes.
-func (k Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace internaltypes.DenomTrace) bool) {
+func (k *Keeper) IterateDenomTraces(ctx sdk.Context, cb func(denomTrace internaltypes.DenomTrace) bool) {
 	k.iterateDenomTraces(ctx, cb)
 }
 
+// SetAddressCodec is a setter for the address codec for testing purposes.
+func (k *Keeper) SetAddressCodec(addressCodec address.Codec) {
+	k.addressCodec = addressCodec
+}
+
 // GetAllDenomTraces returns the trace information for all the denominations.
-func (k Keeper) GetAllDenomTraces(ctx sdk.Context) []internaltypes.DenomTrace {
+func (k *Keeper) GetAllDenomTraces(ctx sdk.Context) []internaltypes.DenomTrace {
 	var traces []internaltypes.DenomTrace
 	k.iterateDenomTraces(ctx, func(denomTrace internaltypes.DenomTrace) bool {
 		traces = append(traces, denomTrace)

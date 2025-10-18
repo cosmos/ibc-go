@@ -19,17 +19,17 @@ env:
 
 jobs:
     build-image-at-tag:
-      runs-on: depot-ubuntu-22.04-4
+      runs-on: depot-ubuntu-24.04-4
       permissions:
         packages: write
         contents: read
       steps:
-         - uses: actions/checkout@v4
+         - uses: actions/checkout@v5
            with:
             ref: "${{ env.GIT_TAG }}"
             fetch-depth: 0
          - name: Log in to the Container registry
-           uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+           uses: docker/login-action@v3
            with:
               registry: ${{ env.REGISTRY }}
               username: ${{ github.actor }}

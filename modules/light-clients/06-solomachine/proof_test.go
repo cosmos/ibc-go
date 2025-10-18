@@ -9,17 +9,17 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
 )
 
-func (suite *SoloMachineTestSuite) TestVerifySignature() {
-	cdc := suite.chainA.App.AppCodec()
+func (s *SoloMachineTestSuite) TestVerifySignature() {
+	cdc := s.chainA.App.AppCodec()
 	signBytes := []byte("sign bytes")
 
-	singleSignature := suite.solomachine.GenerateSignature(signBytes)
+	singleSignature := s.solomachine.GenerateSignature(signBytes)
 	singleSigData, err := solomachine.UnmarshalSignatureData(cdc, singleSignature)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
-	multiSignature := suite.solomachineMulti.GenerateSignature(signBytes)
+	multiSignature := s.solomachineMulti.GenerateSignature(signBytes)
 	multiSigData, err := solomachine.UnmarshalSignatureData(cdc, multiSignature)
-	suite.Require().NoError(err)
+	s.Require().NoError(err)
 
 	testCases := []struct {
 		name      string
@@ -29,39 +29,39 @@ func (suite *SoloMachineTestSuite) TestVerifySignature() {
 	}{
 		{
 			"single signature with regular public key",
-			suite.solomachine.PublicKey,
+			s.solomachine.PublicKey,
 			singleSigData,
 			nil,
 		},
 		{
 			"multi signature with multisig public key",
-			suite.solomachineMulti.PublicKey,
+			s.solomachineMulti.PublicKey,
 			multiSigData,
 			nil,
 		},
 		{
 			"single signature with multisig public key",
-			suite.solomachineMulti.PublicKey,
+			s.solomachineMulti.PublicKey,
 			singleSigData,
 			errors.New("invalid signature data type, expected *signing.MultiSignatureData, got *signing.MultiSignatureData: signature verification failed"),
 		},
 		{
 			"multi signature with regular public key",
-			suite.solomachine.PublicKey,
+			s.solomachine.PublicKey,
 			multiSigData,
 			errors.New("invalid signature data type, expected *signing.SingleSignatureData, got *signing.SingleSignatureData: signature verification failed"),
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := solomachine.VerifySignature(tc.publicKey, signBytes, tc.sigData)
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorContains(err, tc.expErr.Error())
+				s.Require().Error(err)
+				s.Require().ErrorContains(err, tc.expErr.Error())
 			}
 		})
 	}
