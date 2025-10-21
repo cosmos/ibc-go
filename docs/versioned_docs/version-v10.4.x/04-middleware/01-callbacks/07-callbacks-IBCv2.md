@@ -22,7 +22,7 @@ Some of the interface differences are:
 
 The wasmd contract keeper enables cosmwasm developers to use the callbacks middleware. The [cosmwasm documentation](https://cosmwasm.cosmos.network/ibc/extensions/callbacks) provides information for contract developers. The IBC v2 callbacks implementation uses a `Payload` but reconstructs an IBC classic `Packet` to preserve the cosmwasm contract keeper interface. Additionally contracts must now handle the IBC v2 `ErrorAcknowledgement` sentinel value in the case of a failure.
 
-The callbacks middleware can be used for transfer + action workflows, for example a transfer and swap on recieve. These workflows require knowledge of the ibc denom that has been recieved. To assist with parsing the ics20 packet, [helper functions](https://github.com/cosmos/solidity-ibc-eureka/blob/a8870b023e58622fb7b3f733572c684851f8e5ee/packages/cosmwasm/ibc-callbacks-helpers/src/ics20.rs#L7-L41) can be found in the solidity-ibc-eureka repository. 
+The callbacks middleware can be used for transfer + action workflows, for example a transfer and swap on receive. These workflows require knowledge of the ibc denom that has been received. To assist with parsing the ics20 packet, [helper functions](https://github.com/cosmos/solidity-ibc-eureka/blob/a8870b023e58622fb7b3f733572c684851f8e5ee/packages/cosmwasm/ibc-callbacks-helpers/src/ics20.rs#L7-L41) can be found in the solidity-ibc-eureka repository. 
 
 ## Integration
 
