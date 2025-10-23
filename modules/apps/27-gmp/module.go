@@ -72,11 +72,10 @@ func (AppModule) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 }
 
-// ConsensusVersion implements AppModule/ConsensusVersion defining the current version of transfer.
+// ConsensusVersion implements AppModule/ConsensusVersion defining the current version of gmp.
 func (AppModule) ConsensusVersion() uint64 { return 1 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the ibc
-// transfer module.
+// DefaultGenesis returns default genesis state as raw bytes for the gmp module.
 func (AppModule) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
@@ -87,7 +86,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
-// ValidateGenesis performs genesis state validation for the ibc transfer module.
+// ValidateGenesis performs genesis state validation for the ibc gmp module.
 func (AppModule) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var gs types.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
@@ -102,8 +101,7 @@ func (AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return types.AutoCLIOptions()
 }
 
-// InitGenesis performs genesis initialization for the ibc-transfer module. It returns
-// no validator updates.
+// InitGenesis performs genesis initialization for the gmp module. It returns no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
 	var genesisState types.GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
@@ -113,8 +111,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 	}
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the ibc-transfer
-// module.
+// ExportGenesis returns the exported genesis state as raw bytes for the gmp module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs, err := am.keeper.ExportGenesis(ctx)
 	if err != nil {
@@ -127,7 +124,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 /*
 // AppModuleSimulation functions
 
-// GenerateGenesisState creates a randomized GenState of the transfer module.
+// GenerateGenesisState creates a randomized GenState of the gmp module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	simulation.RandomizedGenState(simState)
 }
@@ -137,12 +134,12 @@ func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.Weight
 	return simulation.ProposalMsgs()
 }
 
-// RegisterStoreDecoder registers a decoder for transfer module's types
+// RegisterStoreDecoder registers a decoder for gmp module's types
 func (AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {
 	sdr[types.StoreKey] = simulation.NewDecodeStore()
 }
 
-// WeightedOperations returns the all the transfer module operations with their respective weights.
+// WeightedOperations returns the all the gmp module operations with their respective weights.
 func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
 	return nil
 }
