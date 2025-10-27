@@ -385,7 +385,7 @@ func (s *KeeperTestSuite) TestQueryConsensusStates() {
 			if tc.expErr == nil {
 				s.Require().NoError(err)
 				s.Require().NotNil(res)
-				s.Require().Equal(len(expConsensusStates), len(res.ConsensusStates))
+				s.Require().Len(res.ConsensusStates, len(expConsensusStates))
 				for i := range expConsensusStates {
 					s.Require().NotNil(res.ConsensusStates[i])
 					s.Require().Equal(expConsensusStates[i], res.ConsensusStates[i])
@@ -478,7 +478,7 @@ func (s *KeeperTestSuite) TestQueryConsensusStateHeights() {
 			if tc.expErr == nil {
 				s.Require().NoError(err)
 				s.Require().NotNil(res)
-				s.Require().Equal(len(expConsensusStateHeights), len(res.ConsensusStateHeights))
+				s.Require().Len(res.ConsensusStateHeights, len(expConsensusStateHeights))
 				for i := range expConsensusStateHeights {
 					s.Require().NotNil(res.ConsensusStateHeights[i])
 					s.Require().Equal(expConsensusStateHeights[i], res.ConsensusStateHeights[i])

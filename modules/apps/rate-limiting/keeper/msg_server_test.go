@@ -148,11 +148,11 @@ func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
 	// Check ratelimit quota is updated correctly
 	updatedRateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().True(found)
-	s.Require().Equal(updatedRateLimit.Quota, &types.Quota{
+	s.Require().Equal(&types.Quota{
 		MaxPercentSend: updateRateLimitMsg.MaxPercentSend,
 		MaxPercentRecv: updateRateLimitMsg.MaxPercentRecv,
 		DurationHours:  updateRateLimitMsg.DurationHours,
-	})
+	}, updatedRateLimit.Quota)
 
 	// Attempt to update a rate limit that has invalid authority
 	invalidSignerMsg := updateRateLimitMsg
@@ -227,11 +227,11 @@ func (s *KeeperTestSuite) TestMsgServer_ResetRateLimit() {
 	// Check ratelimit quota is flow correctly
 	resetRateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().True(found)
-	s.Require().Equal(resetRateLimit.Flow, &types.Flow{
+	s.Require().Equal(&types.Flow{
 		Inflow:       sdkmath.ZeroInt(),
 		Outflow:      sdkmath.ZeroInt(),
 		ChannelValue: channelValue,
-	})
+	}, resetRateLimit.Flow)
 
 	// Attempt to Remove a rate limit that has invalid authority
 	invalidSignerMsg := resetRateLimitMsg

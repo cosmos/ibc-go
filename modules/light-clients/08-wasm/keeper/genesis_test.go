@@ -63,7 +63,7 @@ func (s *KeeperTestSuite) TestInitGenesis() {
 				storedHashes = append(storedHashes, hex.EncodeToString(hash))
 			}
 
-			s.Require().Equal(len(expChecksums), len(storedHashes))
+			s.Require().Len(storedHashes, len(expChecksums))
 			s.Require().ElementsMatch(expChecksums, storedHashes)
 		})
 	}
