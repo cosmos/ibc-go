@@ -64,7 +64,7 @@ jobs:
           CHAIN_B_TAG: '${{ matrix.chain-b }}'
           RELAYER_ID: '${{ matrix.relayer-type }}'
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         # we only want to upload logs on test failures.
         if: ${{ failure() }}
         continue-on-error: true
