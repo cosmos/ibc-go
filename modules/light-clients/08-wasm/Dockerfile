@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine AS builder-base
+FROM golang:1.25-alpine AS builder-base
 
 ARG LIBWASM_VERSION
 ARG TARGETARCH

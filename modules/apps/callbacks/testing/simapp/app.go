@@ -517,6 +517,7 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		icatypes.ModuleName,
 		ibcmock.ModuleName,
+		banktypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
