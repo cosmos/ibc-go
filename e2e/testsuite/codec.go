@@ -110,7 +110,7 @@ func MustProtoMarshalJSON(msg proto.Message) []byte {
 	anyResolver := codectypes.NewInterfaceRegistry()
 
 	// EmitDefaults is set to false to prevent marshalling of unpopulated fields (memo)
-	// OrigName and the anyResovler match the fields the original SDK function would expect
+	// OrigName and the anyResolver match the fields the original SDK function would expect
 	// in order to minimize changes.
 
 	// OrigName is true since there is no particular reason to use camel case
