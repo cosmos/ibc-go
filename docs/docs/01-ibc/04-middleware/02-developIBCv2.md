@@ -77,7 +77,7 @@ The middleware must have access to the underlying application, and be called bef
 
 > Middleware **may** choose not to call the underlying application's callback at all. Though these should generally be limited to error cases.
 
-The `IBCModule` interface consists of the packet callbacks where cutom logic is performed. 
+The `IBCModule` interface consists of the packet callbacks where custom logic is performed. 
 
 ### Packet callbacks
 
