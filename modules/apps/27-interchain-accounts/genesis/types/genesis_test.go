@@ -29,7 +29,7 @@ func TestGenesisTypesTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(GenesisTypesTestSuite))
 }
 
-func (suite *GenesisTypesTestSuite) TestValidateGenesisState() {
+func (s *GenesisTypesTestSuite) TestValidateGenesisState() {
 	var genesisState genesistypes.GenesisState
 
 	testCases := []struct {
@@ -66,7 +66,7 @@ func (suite *GenesisTypesTestSuite) TestValidateGenesisState() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			genesisState = *genesistypes.DefaultGenesis()
 
 			tc.malleate() // malleate mutates test data
@@ -74,16 +74,16 @@ func (suite *GenesisTypesTestSuite) TestValidateGenesisState() {
 			err := genesisState.Validate()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err, tc.name)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
+func (s *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 	var genesisState genesistypes.ControllerGenesisState
 
 	testCases := []struct {
@@ -190,7 +190,7 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			genesisState = genesistypes.DefaultControllerGenesis()
 
 			tc.malleate() // malleate mutates test data
@@ -198,16 +198,16 @@ func (suite *GenesisTypesTestSuite) TestValidateControllerGenesisState() {
 			err := genesisState.Validate()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err, tc.name)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
+func (s *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 	var genesisState genesistypes.HostGenesisState
 
 	testCases := []struct {
@@ -314,7 +314,7 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			genesisState = genesistypes.DefaultHostGenesis()
 
 			tc.malleate() // malleate mutates test data
@@ -322,10 +322,10 @@ func (suite *GenesisTypesTestSuite) TestValidateHostGenesisState() {
 			err := genesisState.Validate()
 
 			if tc.expErr == nil {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().Error(err, tc.name)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err, tc.name)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

@@ -40,7 +40,6 @@ func TestMsgUpdateParamsValidateBasic(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := tc.msg.ValidateBasic()
 		if tc.expErr == nil {
 			require.NoError(t, err)
@@ -61,7 +60,6 @@ func TestMsgUpdateParamsGetSigners(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		msg := types.NewMsgUpdateParams(tc.address.String(), types.DefaultParams())
 		encodingCfg := moduletestutil.MakeTestEncodingConfig(ica.AppModuleBasic{})
 		signers, _, err := encodingCfg.Codec.GetMsgV1Signers(msg)

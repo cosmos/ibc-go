@@ -37,6 +37,40 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased]
 
 ### Features
+* [\#8573](https://github.com/cosmos/ibc-go/pull/8573) Support custom address codecs in transfer, PFM, and rate limiting.
+* [\#8285](https://github.com/cosmos/ibc-go/pull/8285) Packet forward middleware.
+* [\#8545](https://github.com/cosmos/ibc-go/pull/8545) Support sending multiple payloads in the same packet for atomic payload execution.
+* [\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.
+
+### Dependencies
+
+* [\#8451](https://github.com/cosmos/ibc-go/pull/8451) Bump **go** to **1.24**
+* (light-clients/08-wasm)[\#8500](https://github.com/cosmos/ibc-go/pull/8500) Bump **github.com/prysmaticlabs/prysm/v5** to **github.com/OffchainLabs/prysm/v6@v6.0.4**
+
+### API Breaking
+* (apps) [\#8476](https://github.com/cosmos/ibc-go/pull/8476) Remove `ParamSubspace` from all `Keeper` constructors
+* (light-clients/08-wasm) [\#8511](https://github.com/cosmos/ibc-go/pull/8511) Remove deprecated `Checksums` type
+* (core/02-client) [\#8516](https://github.com/cosmos/ibc-go/pull/8516) Remove deprecated `SubmitMisbehaviour` message handler
+
+### State Machine Breaking
+
+### Improvements
+
+### Bug Fixes
+
+### Testing API
+
+* [\#8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message`.
+
+## [v10.4.0](https://github.com/cosmos/ibc-go/releases/tag/v10.4.0) - 2025-10-10
+
+### Improvements
+
+* [\#8615](https://github.com/cosmos/ibc-go/pull/8615) Support custom address codecs in transfer.
+
+## [v10.3.0](https://github.com/cosmos/ibc-go/releases/tag/v10.3.0) - 2025-06-06
+
+### Features
 
 ### Dependencies
 
@@ -49,7 +83,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* [\#8303](https://github.com/cosmos/ibc-go/pull/8303) Prefix-based routing in IBCv2 Router
+* (core/api) [\#8303](https://github.com/cosmos/ibc-go/pull/8303) Prefix-based routing in IBCv2 Router
+- (apps/callbacks) [\#8353](https://github.com/cosmos/ibc-go/pull/8353) Add field in callbacks data for custom calldata
 
 ### Bug Fixes
 
@@ -58,7 +93,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#8371](https://github.com/cosmos/ibc-go/pull/8371) e2e: Create only necessary number of chains for e2e suite.
 * [\#8375](https://github.com/cosmos/ibc-go/pull/8375) feat: parse IBC v2 packets from ABCI events
 
-## [v10.2.0](https://github.com/cosmos/ibc-go/releases/tag/v10.2.0) - 2022-04-30
+## [v10.2.0](https://github.com/cosmos/ibc-go/releases/tag/v10.2.0) - 2025-04-30
 
 ### Features
 
@@ -82,7 +117,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#8287](https://github.com/cosmos/ibc-go/pull/8287) rename total_escrow REST query from `denoms` to `total_escrow`
 
-## [v10.1.0](https://github.com/cosmos/ibc-go/releases/tag/v10.1.0) - 2022-03-14
+## [v10.1.0](https://github.com/cosmos/ibc-go/releases/tag/v10.1.0) - 2025-03-14
 
 ### Security Fixes
 

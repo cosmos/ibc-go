@@ -28,4 +28,6 @@ const (
 	// The expected format for ICS20 and ICS27 memo field is as follows:
 	// { "{callbackKey}": { ... , "gas_limit": {stringForCallback} }
 	UserDefinedGasLimitKey = "gas_limit"
+	// CalldataKey is the key used to store the calldata in the callback packet data.
+	CalldataKey = "calldata"
 )

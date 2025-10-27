@@ -43,7 +43,7 @@ func (mockSdkMsg) ValidateBasic() error {
 // expPass set to false means that:
 // - the test case is expected to fail on deserialization for protobuf encoding.
 // - the test case is expected to fail on serialization for proto3 json encoding.
-func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
+func (s *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 	testedEncodings := []string{types.EncodingProtobuf, types.EncodingProto3JSON}
 	// each test case will have a corresponding expected errors in case of failures:
 	expSerializeErrorStrings := make([]string, len(testedEncodings))
@@ -112,7 +112,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					Description: "tokens for all!",
 				}
 				content, err := codectypes.NewAnyWithValue(testProposal)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				msgs = []proto.Message{
 					&govtypes.MsgSubmitProposal{
@@ -133,21 +133,21 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					Amount:      sdk.NewCoins(sdk.NewCoin("bananas", sdkmath.NewInt(100))),
 				}
 				sendAny, err := codectypes.NewAnyWithValue(sendMsg)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				testProposal := &govtypes.TextProposal{
 					Title:       "IBC Gov Proposal",
 					Description: "tokens for all!",
 				}
 				content, err := codectypes.NewAnyWithValue(testProposal)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				legacyPropMsg := &govtypes.MsgSubmitProposal{
 					Content:        content,
 					InitialDeposit: sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000))),
 					Proposer:       TestOwnerAddress,
 				}
 				legacyPropAny, err := codectypes.NewAnyWithValue(legacyPropMsg)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				delegateMsg := &stakingtypes.MsgDelegate{
 					DelegatorAddress: TestOwnerAddress,
@@ -155,7 +155,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 					Amount:           sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(5000)),
 				}
 				delegateAny, err := codectypes.NewAnyWithValue(delegateMsg)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				messages := []*codectypes.Any{sendAny, legacyPropAny, delegateAny}
 
@@ -210,7 +210,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 			func() {
 				mockMsg := &mockSdkMsg{}
 				mockAny, err := codectypes.NewAnyWithValue(mockMsg)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				msgs = []proto.Message{
 					&govtypes.MsgSubmitProposal{
@@ -230,7 +230,7 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 			func() {
 				mockMsg := &mockSdkMsg{}
 				mockAny, err := codectypes.NewAnyWithValue(mockMsg)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				messages := []*codectypes.Any{mockAny, mockAny, mockAny}
 
@@ -254,30 +254,30 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 
 	for i, encoding := range testedEncodings {
 		for _, tc := range testCases {
-			suite.Run(tc.name, func() {
+			s.Run(tc.name, func() {
 				tc.malleate()
 
 				expPass := tc.expErr == nil
-				bz, err := types.SerializeCosmosTx(suite.chainA.Codec, msgs, encoding)
+				bz, err := types.SerializeCosmosTx(s.chainA.Codec, msgs, encoding)
 				if encoding == types.EncodingProto3JSON && !expPass {
-					suite.Require().Error(err, tc.name)
-					suite.Require().Contains(err.Error(), expSerializeErrorStrings[1], tc.name)
+					s.Require().Error(err, tc.name)
+					s.Require().Contains(err.Error(), expSerializeErrorStrings[1], tc.name)
 				} else {
-					suite.Require().NoError(err, tc.name)
+					s.Require().NoError(err, tc.name)
 				}
 
-				deserializedMsgs, err := types.DeserializeCosmosTx(suite.chainA.Codec, bz, encoding)
+				deserializedMsgs, err := types.DeserializeCosmosTx(s.chainA.Codec, bz, encoding)
 				if expPass {
-					suite.Require().NoError(err, tc.name)
+					s.Require().NoError(err, tc.name)
 				} else {
-					suite.Require().Error(err, tc.name)
-					suite.Require().Contains(err.Error(), expDeserializeErrorStrings[i], tc.name)
-					suite.Require().ErrorIs(err, tc.expErr)
+					s.Require().Error(err, tc.name)
+					s.Require().Contains(err.Error(), expDeserializeErrorStrings[i], tc.name)
+					s.Require().ErrorIs(err, tc.expErr)
 				}
 
 				if expPass {
 					for i, msg := range msgs {
-						// We're using proto.CompactTextString() for comparison instead of suite.Require().Equal() or proto.Equal()
+						// We're using proto.CompactTextString() for comparison instead of s.Require().Equal() or proto.Equal()
 						// for two main reasons:
 						//
 						// 1. When deserializing from JSON, the `Any` type has private fields and cached values
@@ -287,32 +287,32 @@ func (suite *TypesTestSuite) TestSerializeAndDeserializeCosmosTx() {
 						//
 						// Using proto.CompactTextString() mitigates these issues by focusing on serialized string representation,
 						// rather than internal details of the types.
-						suite.Require().Equal(proto.CompactTextString(msg), proto.CompactTextString(deserializedMsgs[i]))
+						s.Require().Equal(proto.CompactTextString(msg), proto.CompactTextString(deserializedMsgs[i]))
 					}
 				}
 			})
 		}
 
 		// test serializing non sdk.Msg type
-		bz, err := types.SerializeCosmosTx(suite.chainA.Codec, []proto.Message{&banktypes.MsgSendResponse{}}, encoding)
-		suite.Require().NoError(err)
-		suite.Require().NotEmpty(bz)
+		bz, err := types.SerializeCosmosTx(s.chainA.Codec, []proto.Message{&banktypes.MsgSendResponse{}}, encoding)
+		s.Require().NoError(err)
+		s.Require().NotEmpty(bz)
 
 		// test deserializing unknown bytes
-		msgs, err := types.DeserializeCosmosTx(suite.chainA.Codec, bz, encoding)
-		suite.Require().Error(err) // unregistered type
-		suite.Require().Contains(err.Error(), expDeserializeErrorStrings[i])
-		suite.Require().Empty(msgs)
+		msgs, err := types.DeserializeCosmosTx(s.chainA.Codec, bz, encoding)
+		s.Require().Error(err) // unregistered type
+		s.Require().Contains(err.Error(), expDeserializeErrorStrings[i])
+		s.Require().Empty(msgs)
 
 		// test deserializing unknown bytes
-		msgs, err = types.DeserializeCosmosTx(suite.chainA.Codec, []byte("invalid"), encoding)
-		suite.Require().Error(err)
-		suite.Require().Contains(err.Error(), expDeserializeErrorStrings[i])
-		suite.Require().Empty(msgs)
+		msgs, err = types.DeserializeCosmosTx(s.chainA.Codec, []byte("invalid"), encoding)
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), expDeserializeErrorStrings[i])
+		s.Require().Empty(msgs)
 	}
 }
 
-func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
+func (s *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 	testCases := []struct {
 		name      string
 		jsonBytes []byte
@@ -431,21 +431,21 @@ func (suite *TypesTestSuite) TestJSONDeserializeCosmosTx() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			msgs, errDeserialize := types.DeserializeCosmosTx(suite.chainA.Codec, tc.jsonBytes, types.EncodingProto3JSON)
+		s.Run(tc.name, func() {
+			msgs, errDeserialize := types.DeserializeCosmosTx(s.chainA.Codec, tc.jsonBytes, types.EncodingProto3JSON)
 			if tc.expError == nil {
-				suite.Require().NoError(errDeserialize, tc.name)
+				s.Require().NoError(errDeserialize, tc.name)
 				for i, msg := range msgs {
-					suite.Require().Equal(tc.expMsgs[i], msg)
+					s.Require().Equal(tc.expMsgs[i], msg)
 				}
 			} else {
-				suite.Require().ErrorIs(errDeserialize, tc.expError, tc.name)
+				s.Require().ErrorIs(errDeserialize, tc.expError, tc.name)
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestUnsupportedEncodingType() {
+func (s *TypesTestSuite) TestUnsupportedEncodingType() {
 	msgs := []proto.Message{
 		&banktypes.MsgSend{
 			FromAddress: TestOwnerAddress,
@@ -454,17 +454,17 @@ func (suite *TypesTestSuite) TestUnsupportedEncodingType() {
 		},
 	}
 
-	bz, err := types.SerializeCosmosTx(suite.chainA.Codec, msgs, "unsupported")
-	suite.Require().ErrorIs(err, types.ErrInvalidCodec)
-	suite.Require().Nil(bz)
+	bz, err := types.SerializeCosmosTx(s.chainA.Codec, msgs, "unsupported")
+	s.Require().ErrorIs(err, types.ErrInvalidCodec)
+	s.Require().Nil(bz)
 
-	data, err := types.SerializeCosmosTx(suite.chainA.Codec, msgs, types.EncodingProtobuf)
-	suite.Require().NoError(err)
+	data, err := types.SerializeCosmosTx(s.chainA.Codec, msgs, types.EncodingProtobuf)
+	s.Require().NoError(err)
 
-	_, err = types.DeserializeCosmosTx(suite.chainA.Codec, data, "unsupported")
-	suite.Require().ErrorIs(err, types.ErrInvalidCodec)
+	_, err = types.DeserializeCosmosTx(s.chainA.Codec, data, "unsupported")
+	s.Require().ErrorIs(err, types.ErrInvalidCodec)
 
 	// verify that protobuf encoding still works otherwise:
-	_, err = types.DeserializeCosmosTx(suite.chainA.Codec, data, types.EncodingProtobuf)
-	suite.Require().NoError(err)
+	_, err = types.DeserializeCosmosTx(s.chainA.Codec, data, types.EncodingProtobuf)
+	s.Require().NoError(err)
 }

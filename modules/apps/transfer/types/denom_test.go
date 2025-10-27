@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
-func (suite *TypesTestSuite) TestDenomsValidate() {
+func (s *TypesTestSuite) TestDenomsValidate() {
 	testCases := []struct {
 		name     string
 		denoms   types.Denoms
@@ -46,18 +46,18 @@ func (suite *TypesTestSuite) TestDenomsValidate() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
+		s.Run(tc.name, func() {
 			err := tc.denoms.Validate()
 			if tc.expError == nil {
-				suite.Require().NoError(err, tc.name)
+				s.Require().NoError(err, tc.name)
 			} else {
-				suite.Require().ErrorContains(err, tc.expError.Error())
+				s.Require().ErrorContains(err, tc.expError.Error())
 			}
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestPath() {
+func (s *TypesTestSuite) TestPath() {
 	testCases := []struct {
 		name    string
 		denom   types.Denom
@@ -111,13 +111,13 @@ func (suite *TypesTestSuite) TestPath() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(tc.expPath, tc.denom.Path())
+		s.Run(tc.name, func() {
+			s.Require().Equal(tc.expPath, tc.denom.Path())
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestSort() {
+func (s *TypesTestSuite) TestSort() {
 	testCases := []struct {
 		name      string
 		denoms    types.Denoms
@@ -179,13 +179,13 @@ func (suite *TypesTestSuite) TestSort() {
 		},
 	}
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(tc.expDenoms, tc.denoms.Sort())
+		s.Run(tc.name, func() {
+			s.Require().Equal(tc.expDenoms, tc.denoms.Sort())
 		})
 	}
 }
 
-func (suite *TypesTestSuite) TestDenomChainSource() {
+func (s *TypesTestSuite) TestDenomChainSource() {
 	testCases := []struct {
 		name          string
 		denom         types.Denom
@@ -262,8 +262,8 @@ func (suite *TypesTestSuite) TestDenomChainSource() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.Require().Equal(tc.expHasPrefix, tc.denom.HasPrefix(tc.sourcePort, tc.sourceChannel))
+		s.Run(tc.name, func() {
+			s.Require().Equal(tc.expHasPrefix, tc.denom.HasPrefix(tc.sourcePort, tc.sourceChannel))
 		})
 	}
 }
@@ -287,7 +287,6 @@ func TestValidateIBCDenom(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := types.ValidateIBCDenom(tc.denom)
 		if tc.expError {
 			require.Error(t, err, tc.name)
@@ -326,7 +325,6 @@ func TestExtractDenomFromPath(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		denom := types.ExtractDenomFromPath(tc.fullPath)
 		require.Equal(t, tc.expDenom, denom, tc.name)
 	}

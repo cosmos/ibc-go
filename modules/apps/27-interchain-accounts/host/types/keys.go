@@ -20,6 +20,13 @@ const (
 	AllowAllHostMsgs = "*"
 )
 
+var (
+	// KeyHostEnabled is the store key for HostEnabled Params
+	KeyHostEnabled = []byte("HostEnabled")
+	// KeyAllowMessages is the store key for the AllowMessages Params
+	KeyAllowMessages = []byte("AllowMessages")
+)
+
 // ContainsMsgType returns true if the sdk.Msg TypeURL is present in allowMsgs, otherwise false
 func ContainsMsgType(allowMsgs []string, msg sdk.Msg) bool {
 	// check that wildcard * option for allowing all message types is the only string in the array, if so, return true
