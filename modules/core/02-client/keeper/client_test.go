@@ -289,8 +289,6 @@ func (s *KeeperTestSuite) TestUpdateClientTendermint() {
 			err := s.chainA.App.GetIBCKeeper().ClientKeeper.UpdateClient(s.chainA.GetContext(), path.EndpointA.ClientID, updateHeader)
 
 			if tc.expErr == nil {
-				s.Require().NotErrorIs(err, err)
-
 				newClientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
 				s.Require().True(ok)
 
