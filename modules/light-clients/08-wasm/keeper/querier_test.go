@@ -120,7 +120,7 @@ func (s *KeeperTestSuite) TestCustomQuery() {
 			res, err := wasmClientKeeper.WasmQuery(s.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, types.QueryMsg{Status: &types.StatusMsg{}})
 
 			if tc.expError == nil {
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 				s.Require().NotNil(res)
 			} else {
 				s.Require().Nil(res)

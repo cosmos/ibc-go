@@ -84,7 +84,7 @@ func (s *KeeperTestSuite) TestConnOpenInit() {
 			} else {
 				s.Require().Error(err)
 				s.Contains(err.Error(), expErrorMsgSubstring)
-				s.Require().Equal("", connectionID)
+				s.Require().Empty(connectionID)
 				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
@@ -170,7 +170,7 @@ func (s *KeeperTestSuite) TestConnOpenTry() {
 				s.Require().Equal(types.FormatConnectionIdentifier(0), connectionID)
 			} else {
 				s.Require().Error(err)
-				s.Require().Equal("", connectionID)
+				s.Require().Empty(connectionID)
 				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})

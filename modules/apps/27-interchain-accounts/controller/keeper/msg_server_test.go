@@ -91,7 +91,7 @@ func (s *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {
 					events := ctx.EventManager().Events()
 					s.Require().Len(events, 2)
 					s.Require().Equal(events[0].Type, channeltypes.EventTypeChannelOpenInit)
-					s.Require().Equal(events[1].Type, sdk.EventTypeMessage)
+					s.Require().Equal(sdk.EventTypeMessage, events[1].Type)
 
 					path.EndpointA.ChannelConfig.PortID = res.PortId
 					path.EndpointA.ChannelID = res.ChannelId

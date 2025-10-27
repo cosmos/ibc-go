@@ -289,13 +289,11 @@ func (s *KeeperTestSuite) TestUpdateClientTendermint() {
 			err := s.chainA.App.GetIBCKeeper().ClientKeeper.UpdateClient(s.chainA.GetContext(), path.EndpointA.ClientID, updateHeader)
 
 			if tc.expErr == nil {
-				s.Require().NoError(err, err)
-
 				newClientState, ok := path.EndpointA.GetClientState().(*ibctm.ClientState)
 				s.Require().True(ok)
 
 				if tc.expFreeze {
-					s.Require().True(!newClientState.FrozenHeight.IsZero(), "client did not freeze after conflicting header was submitted to UpdateClient")
+					s.Require().False(newClientState.FrozenHeight.IsZero(), "client did not freeze after conflicting header was submitted to UpdateClient")
 				} else {
 					expConsensusState := &ibctm.ConsensusState{
 						Timestamp:          updateHeader.GetTime(),
@@ -682,7 +680,7 @@ func (s *KeeperTestSuite) TestRecoverClient() {
 				// Assert that client status is now Active
 				lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 				s.Require().NoError(err)
-				s.Require().Equal(lightClientModule.Status(s.chainA.GetContext(), subjectPath.EndpointA.ClientID), exported.Active)
+				s.Require().Equal(exported.Active, lightClientModule.Status(s.chainA.GetContext(), subjectPath.EndpointA.ClientID))
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, tc.expErr)

@@ -1011,7 +1011,7 @@ func (s *TendermintTestSuite) TestRecoverClient() {
 				// assert that status of subject client is now Active
 				lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), subjectClientID)
 				s.Require().NoError(err)
-				s.Require().Equal(lightClientModule.Status(s.chainA.GetContext(), subjectClientID), exported.Active)
+				s.Require().Equal(exported.Active, lightClientModule.Status(s.chainA.GetContext(), subjectClientID))
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, tc.expErr)
@@ -1171,7 +1171,7 @@ func (s *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 				expClientState := path.EndpointA.GetClientState()
 				expClientStateBz := s.chainA.Codec.MustMarshal(expClientState)
-				s.Require().Equal(upgradedClientStateAny.Value, expClientStateBz)
+				s.Require().Equal(expClientStateBz, upgradedClientStateAny.Value)
 
 				expConsensusState := ibctm.NewConsensusState(upgradedConsensusState.Timestamp, commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), upgradedConsensusState.NextValidatorsHash)
 				expConsensusStateBz := s.chainA.Codec.MustMarshal(expConsensusState)

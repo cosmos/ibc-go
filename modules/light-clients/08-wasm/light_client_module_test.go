@@ -255,7 +255,7 @@ func (s *WasmTestSuite) TestInitialize() {
 					err := json.Unmarshal(initMsg, &payload)
 					s.Require().NoError(err)
 
-					s.Require().Equal(env.Contract.Address, wasmClientID)
+					s.Require().Equal(wasmClientID, env.Contract.Address)
 
 					wrappedClientState, ok := clienttypes.MustUnmarshalClientState(s.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
 					s.Require().True(ok)
@@ -693,7 +693,7 @@ func (s *WasmTestSuite) TestVerifyClientMessage() {
 					s.Require().Nil(msg.CheckForMisbehaviour)
 					s.Require().Nil(msg.TimestampAtHeight)
 
-					s.Require().Equal(env.Contract.Address, wasmClientID)
+					s.Require().Equal(wasmClientID, env.Contract.Address)
 
 					resp, err := json.Marshal(types.EmptyResult{})
 					s.Require().NoError(err)
@@ -1100,7 +1100,7 @@ func (s *WasmTestSuite) TestUpdateState() {
 					s.Require().Nil(msg.UpdateStateOnMisbehaviour)
 					s.Require().Nil(msg.VerifyUpgradeAndUpdateState)
 
-					s.Require().Equal(env.Contract.Address, wasmClientID)
+					s.Require().Equal(wasmClientID, env.Contract.Address)
 
 					updateStateResp := types.UpdateStateResult{
 						Heights: []clienttypes.Height{},

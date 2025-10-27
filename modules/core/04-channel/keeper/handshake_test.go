@@ -112,7 +112,7 @@ func (s *KeeperTestSuite) TestChanOpenInit() {
 				} else {
 					s.Require().Error(err)
 					s.Require().Contains(err.Error(), expErrorMsgSubstring)
-					s.Require().Equal("", channelID)
+					s.Require().Empty(channelID)
 				}
 			}
 		})
