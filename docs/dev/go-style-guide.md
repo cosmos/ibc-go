@@ -272,7 +272,7 @@ r := csv.Reader{',', '#', 4, false, false, false, false}
 ---
 **Naming struct fields in tabular tests**
 
-If tabular test struct has more than two fields, consider explicitly naming them. If the test struct has one name and one error field, then we can allow upto three fields. If test struct has more fields, consider naming them when writing test cases.
+If tabular test struct has more than two fields, consider explicitly naming them. If the test struct has one name and one error field, then we can allow up to three fields. If test struct has more fields, consider naming them when writing test cases.
 
 ```go
 // Good
