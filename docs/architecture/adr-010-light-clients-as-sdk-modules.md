@@ -17,7 +17,7 @@ ibc-go has 3 main consumers:
 - relayers
 
 Relayers listen and respond to events emitted by ibc-go while IBC light clients and applications are invoked by core IBC.
-Currently there exists two different approaches to callbacks being invoked by core IBC.
+Currently there exist two different approaches to callbacks being invoked by the core IBC.
 
 IBC light clients currently are invoked by a `ClientState` and `ConsensusState` interface as defined by [core IBC](https://github.com/cosmos/ibc-go/blob/v7.0.0/modules/core/exported/client.go#L36).
 The 02-client submodule will retrieve the `ClientState` or `ConsensusState` from the IBC store in order to perform callbacks to the light client.
@@ -29,7 +29,7 @@ In addition, without increasing the size of the defined `ClientState` interface,
 The other approach used to perform callback logic is via registered SDK modules.
 This approach is used by core IBC to interact with IBC applications.
 IBC applications will register their callbacks on the IBC router at compile time.
-When a packet comes in, core IBC will use the IBC router to lookup the registered callback functions for the provided packet.
+When a packet comes in, core IBC will use the IBC router to look up the registered callback functions for the provided packet.
 The benefit of registered callbacks opposed to interface functions is that additional information may be accessed via external keepers.
 Because the IBC applications are also SDK modules, they additionally get access to a host of functionality provided by the SDK.
 This includes: genesis import/export, migrations, query/transaction CLI commands, type registration, gRPC query registration, and message server registration.
@@ -77,9 +77,9 @@ type ClientState interface {
 }
 ```
 
-For the most part, any functions which require access to the client store should likely not be an interface function of the `ClientState`.
+For the most part, any functions that require access to the client store should likely not be an interface function of the `ClientState`.
 
-`ExportMetadata` should eventually be replaced by a light client's ability to import/export it's own genesis information.
+`ExportMetadata` should eventually be replaced by a light client's ability to import/export its own genesis information.
 
 ### Intermodule communication
 
