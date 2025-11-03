@@ -12,7 +12,7 @@ Accepted
 
 The fee module maintains an escrow account for all fees escrowed to incentivize packet relays.
 It also tracks each packet fee escrowed separately from the escrow account. This is because the escrow account only maintains a total balance. It has no reference for which coins belonged to which packet fee.
-In the presence of a severe bug, it is possible the escrow balance will become out of sync with the packet fees marked as escrowed.
+In the presence of a severe bug, it is possible that the escrow balance will become out of sync with the packet fees marked as escrowed.
 The ICS29 module should be capable of elegantly handling such a scenario.
 
 ## Decision
@@ -24,9 +24,9 @@ Manual intervention will be needed to unlock the fee module.
 
 ### Sending side
 
-Special behaviour will have to be accounted for in `OnAcknowledgementPacket`. Since the counterparty will continue to send incentivized acknowledgements for fee enabled channels, the acknowledgement will still need to be unmarshalled into an incentivized acknowledgement before calling the underlying application `OnAcknowledgePacket` callback.
+Special behaviour will have to be accounted for in `OnAcknowledgementPacket`. Since the counterparty will continue to send incentivized acknowledgements for fee-enabled channels, the acknowledgement will still need to be unmarshalled into an incentivized acknowledgement before calling the underlying application `OnAcknowledgePacket` callback.
 
-When distributing fees, a cached context should be used. If the escrow account balance would become negative, the current state changes should be discarded and the fee module should be locked using the uncached context. This prevents fees from being partially distributed for a given packetID.
+When distributing fees, a cached context should be used. If the escrow account balance becomes negative, the current state changes should be discarded and the fee module should be locked using the uncached context. This prevents fees from being partially distributed for a given packetID.
 
 ### Receiving side
 
