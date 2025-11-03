@@ -12,7 +12,7 @@ In ICS 26, the routing module is defined as a layer above each application modul
 which verifies and routes messages to the destination modules. It is possible to
 implement it as a separate module, however, we already have the functionality to route
 messages upon the destination identifiers in the baseapp. This ADR suggests
-to utilize existing `baseapp.router` to route packets to application modules.
+utilizing the existing `baseapp.router` to route packets to application modules.
 
 Generally, routing module callbacks have two separate steps in them,
 verification and execution. This corresponds to the `AnteHandler`-`Handler`
@@ -20,9 +20,9 @@ model inside the SDK. We can do the verification inside the `AnteHandler`
 in order to increase developer ergonomics by reducing boilerplate
 verification code.
 
-For atomic multi-message transaction, we want to keep the IBC related
+For an atomic multi-message transaction, we want to keep the IBC-related
 state modification to be preserved even the application side state change
-reverts. One of the example might be IBC token sending message following with
+reverts. One of the examples might be IBC token sending message followed by
 stake delegation which uses the tokens received by the previous packet message.
 If the token receiving fails for any reason, we might not want to keep
 executing the transaction, but we also don't want to abort the transaction
@@ -33,7 +33,7 @@ This ADR suggests new `CodeType`, `CodeTxBreak`, to fix this problem.
 
 `PortKeeper` will have the capability key that is able to access only the
 channels bound to the port. Entities that hold a `PortKeeper` will be
-able to call the methods on it which are corresponding with the methods with
+able to call the methods on it which are corresponding to the methods with
 the same names on the `ChannelKeeper`, but only with the
 allowed port. `ChannelKeeper.Port(string, ChannelChecker)` will be defined to
 easily construct a capability-safe `PortKeeper`. This will be addressed in
@@ -121,15 +121,15 @@ are `sdk.Msg` types correspond to `handleUpdateClient`, `handleRecvPacket`,
 respectively.
 
 The side effects of `RecvPacket`, `VerifyAcknowledgement`,
-`VerifyTimeout` will be extracted out into separated functions,
+`VerifyTimeout` will be extracted into separate functions,
 `WriteAcknowledgement`, `DeleteCommitment`, `DeleteCommitmentTimeout`, respectively,
 which will be called by the application handlers after the execution.
 
 `WriteAcknowledgement` writes the acknowledgement to the state that can be
-verified by the counter-party chain and increments the sequence to prevent
+verified by the counterparty chain and increments the sequence to prevent
 double execution. `DeleteCommitment` will delete the commitment stored,
 `DeleteCommitmentTimeout` will delete the commitment and close channel in case
-of ordered channel.
+of the ordered channel.
 
 ```go
 func (keeper ChannelKeeper) WriteAcknowledgement(ctx Context, packet Packet, ack []byte) {
@@ -156,22 +156,22 @@ in order to increase sequence (in case of packet) or remove the commitment
 (in case of acknowledgement and timeout).
 Calling those functions implies that the application logic has successfully executed.
 However, the handlers can return `Result` with `CodeTxBreak` after calling those methods
-which will persist the state changes that has been already done but prevent any further
-messages to be executed in case of semantically invalid packet. This will keep the sequence
+which will persist the state changes that have already been done but prevent any further
+messages to be executed in case of a semantically invalid packet. This will keep the sequence
 increased in the previous IBC packets(thus preventing double execution) without
 proceeding to the following messages.
 In any case the application modules should never return state reverting result,
 which will make the channel unable to proceed.
 
 `ChannelKeeper.CheckOpen` method will be introduced. This will replace `onChanOpen*` defined
-under the routing module specification. Instead of define each channel handshake callback
+under the routing module specification. Instead of defining each channel handshake callback
 functions, application modules can provide `ChannelChecker` function with the `AppModule`
 which will be injected to `ChannelKeeper.Port()` at the top level application.
 `CheckOpen` will find the correct `ChannelChecker` using the
 `PortID` and call it, which will return an error if it is unacceptable by the application.
 
 The `ProofVerificationDecorator` will be inserted to the top level application.
-It is not safe to make each module responsible to call proof verification
+It is not safe to make each module responsible for calling proof verification
 logic, whereas application can misbehave(in terms of IBC protocol) by
 mistake.
 
@@ -259,7 +259,7 @@ func handlePacketDataTransfer(ctx Context, k Keeper, packet Packet, data PacketD
 func handleCustomTimeoutPacket(ctx Context, k Keeper, packet CustomPacket) Result {
   err := k.RecoverTransfer(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetDestinationPort(), packet.GetDestinationChannel(), data)
   if err != nil {
-    // This chain sent invalid packet or cannot recover the funds
+    // This chain sent an invalid packet or cannot recover the funds
     panic(err)
   }
   k.ChannelKeeper.DeleteCommitmentTimeout(ctx, packet)
@@ -291,7 +291,7 @@ Proposed
 ### Neutral
 
 - Introduces new `AnteHandler` decorator.
-- Dynamic ports can be supported using hierarchical port identifier, see #5290 for detail
+- Dynamic ports can be supported using a hierarchical port identifier, see #5290 for details
 
 ## References
 
