@@ -34,19 +34,19 @@ func (k Keeper) UpdateClient(ctx sdk.Context, clientID string, header exported.H
 ```
 
 To add additional light clients, code would need to be added directly to the 02-client submodule.
-Evidently, this would likely become problematic as IBC scaled to many chains using consensus mechanisms beyond the initial supported light clients.
+Evidently, this would likely become problematic as IBC scaled to many chains using consensus mechanisms beyond the initially supported light clients.
 Issue [#6064](https://github.com/cosmos/cosmos-sdk/issues/6064) on the SDK addressed this problem by creating a more modular 02-client submodule.
 The 02-client submodule would now interact with each light client via an interface.
 While, this change was positive in development, increasing the flexibility and adoptability of IBC, it also opened the door to new problems.
 
 The difficulty of generalizing light clients became apparent once changes to those light clients were required.
 Each light client represents a different consensus algorithm which may contain a host of complexity and nuances.
-Here are some examples of issues which arose for light clients that are not applicable to all the light clients supported (06-solomachine, 07-tendermint, 09-localhost):
+Here are some examples of issues that arose for light clients that are not applicable to all the light clients supported (06-solomachine, 07-tendermint, 09-localhost):
 
 ### Tendermint non-zero height upgrades
 
 Before the launch of IBC, it was determined that the golang implementation of [tendermint](https://github.com/tendermint/tendermint) would not be capable of supporting non-zero height upgrades.
-This implies that any upgrade would require changing of the chain ID and resetting the height to 0.
+This implies that any upgrade would require changing the chain ID and resetting the height to 0.
 A chain is uniquely identified by its chain-id and validator set.
 Two different chain ID's can be viewed as different chains and thus a normal update produced by a validator set cannot change the chain ID.
 To work around the lack of support for non-zero height upgrades, an abstract height type was created along with an upgrade mechanism.
@@ -93,7 +93,7 @@ As @seunlanlege [states](https://github.com/cosmos/ibc-go/issues/284#issuecommen
 >
 > - This would allow light clients to handle batch header updates in CheckHeaderAndUpdateState, for the special case of 11-beefy proving the finality for a batch of headers is much more space and time efficient than the space/time complexity of proving each individual headers in that batch, combined.
 >
-> - This also allows for a single light client instance of 11-beefy be used to prove finality for every parachain connected to the relay chain (Polkadot/Kusama). We achieve this by setting the appropriate ConsensusState for individual parachain headers in CheckHeaderAndUpdateState
+> - This also allows for a single light client instance of 11-beefy to be used to prove finality for every parachain connected to the relay chain (Polkadot/Kusama). We achieve this by setting the appropriate ConsensusState for individual parachain headers in CheckHeaderAndUpdateState
 
 ## Decision
 
@@ -103,8 +103,8 @@ The IBC specification states:
 
 > If the provided header was valid, the client MUST also mutate internal state to store now-finalised consensus roots and update any necessary signature authority tracking (e.g. changes to the validator set) for future calls to the validity predicate.
 
-The initial version of the IBC go SDK based module did not fulfill this requirement.
-Instead, the 02-client submodule required each light client to return the client and consensus state which should be updated in the client prefixed store.
+The initial version of the IBC go SDK-based module did not fulfill this requirement.
+Instead, the 02-client submodule required each light client to return the client and consensus state which should be updated in the client-prefixed store.
 This decision lead to the issues "Solomachine doesn't set consensus states" and "New clients may want to do batch updates".
 
 Each light client should be required to set its own client and consensus states on any update necessary.
@@ -115,7 +115,7 @@ This will allow more flexibility for light clients to manage their own internal 
 
 Remove `GetHeight()` from the header interface (as light clients now set the client/consensus states).
 This results in the `Header`/`Misbehaviour` interfaces being the same.
-To reduce complexity of the codebase, the `Header`/`Misbehaviour` interfaces should be merged into `ClientMessage`.
+To reduce the complexity of the codebase, the `Header`/`Misbehaviour` interfaces should be merged into `ClientMessage`.
 `ClientMessage` will provide the client with some authenticated information which may result in regular updates, misbehaviour detection, batch updates, or other custom functionality a light client requires.
 
 ### Split `CheckHeaderAndUpdateState` into 4 functions
@@ -129,7 +129,7 @@ Split `CheckHeaderAndUpdateState` into 4 functions:
 - `UpdateStateOnMisbehaviour`
 - `UpdateState`
 
-`VerifyClientMessage` checks the that the structure of a `ClientMessage` is correct and that all authentication data provided is valid.
+`VerifyClientMessage` checks that the structure of a `ClientMessage` is correct and that all authentication data provided is valid.
 
 `CheckForMisbehaviour` checks to see if a `ClientMessage` is evidence of misbehaviour.
 
@@ -167,7 +167,7 @@ This fixes the issues outlined for the solo machine client.
 
 ### Add generic verification functions
 
-As the complexity and the functionality grows, new verification functions will be required for additional paths.
+As the complexity and functionality grows, new verification functions will be required for additional paths.
 This was explained in [#684](https://github.com/cosmos/ibc/issues/684) on the specification repo.
 These generic verification functions would be immediately useful for the new paths added in connection/channel upgradability as well as for custom paths defined by IBC applications such as Interchain Queries.
 The old verification functions (`VerifyClientState`, `VerifyConnection`, etc) should be removed in favor of the generic verification functions.
@@ -177,7 +177,7 @@ The old verification functions (`VerifyClientState`, `VerifyConnection`, etc) sh
 ### Positive
 
 - Flexibility for light client implementations
-- Well defined interfaces and their required functionality
+- Well-defined interfaces and their required functionality
 - Generic verification functions
 - Applies changes necessary for future client/connection/channel upgrabability features
 - Timeout processing for solo machines
