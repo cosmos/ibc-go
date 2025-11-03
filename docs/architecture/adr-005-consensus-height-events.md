@@ -32,7 +32,7 @@ To complement this flexibility, the `UpdateClient` handler will now support the 
 
 ```go
 // ClientMessage is an interface used to update an IBC client.
-// The update may be done by a single header, a batch of headers, misbehaviour, or any type which when verified produces
+// The update may be done by a single header, a batch of headers, misbehaviour, or any type that when verified produces
 // a change to state of the IBC client
 type ClientMessage interface {
   proto.Message
@@ -60,9 +60,9 @@ The following decisions have been made in order to provide flexibility to consum
 UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) []Height
 ```
 
-2. Maintain the `consensus_height` event attribute emitted from the `02-client` update handler, but mark as deprecated for future removal. For example, with tendermint lightclients this will simply be `consensusHeights[0]` following a successful update using a single *Header*.
+2. Maintain the `consensus_height` event attribute emitted from the `02-client` update handler, but mark it as deprecated for future removal. For example, with tendermint lightclients this will simply be `consensusHeights[0]` following a successful update using a single *Header*.
 
-3. Add an additional `consensus_heights` event attribute, containing a comma separated list of updated heights. This provides flexibility for emitting a single consensus height or multiple consensus heights in the example use-case of batched header updates.
+3. Add an additional `consensus_heights` event attribute, containing a comma-separated list of updated heights. This provides flexibility for emitting a single consensus height or multiple consensus heights in the example use-case of batched header updates.
 
 ## Consequences
 
