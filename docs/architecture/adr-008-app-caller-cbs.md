@@ -13,13 +13,13 @@ Accepted, middleware implemented
 
 ## Context
 
-IBC was designed with callbacks between core IBC and IBC applications. IBC apps would send a packet to core IBC. When the result of the packet lifecycle eventually resolved into either an acknowledgement or a timeout, core IBC called a callback on the IBC application so that the IBC application could take action on the basis of the result (e.g. unescrow tokens for ICS-20).
+IBC was designed with callbacks between core IBC and IBC applications. IBC apps would send a packet to the core IBC. When the result of the packet lifecycle is eventually resolved into either an acknowledgement or a timeout, core IBC called a callback on the IBC application so that the IBC application could take action on the basis of the result (e.g. unescrow tokens for ICS-20).
 
 This setup worked well for off-chain users interacting with IBC applications.
 
 We are now seeing the desire for secondary applications (e.g. smart contracts, modules) to call into IBC apps as part of their state machine logic and then do some actions on the basis of the packet result. Or to receive a packet from IBC and do some logic upon receipt.
 
-Example Usecases:
+Example Use Cases:
 
 - Send an ICS-20 packet, and if it is successful, then send an ICA-packet to swap tokens on LP and return funds to sender
 - Execute some logic upon receipt of token transfer to a smart contract address
@@ -36,7 +36,7 @@ Create a middleware that can interface between IBC applications and smart contra
 
 ## Data structures
 
-The `CallbackPacketData` struct will get constructed from custom callback data in the application packet. The `CallbackAddress` is the IBC Actor address on which the callback should be called on. The `SenderAddress` is also provided to optionally allow a VM to ensure that the sender is the same as the callback address.
+The `CallbackPacketData` struct will get constructed from custom callback data in the application packet. The `CallbackAddress` is the IBC Actor address on which the callback should be called. The `SenderAddress` is also provided to optionally allow a VM to ensure that the sender is the same as the callback address.
 
 The struct also defines a `CommitGasLimit` which is the maximum gas a callback is allowed to use. If the callback exceeds this limit, the callback will panic and the tx will commit without the callback's state changes.
 
@@ -91,7 +91,7 @@ type CallbacksCompatibleModule interface {
 	porttypes.PacketDataUnmarshaler
 }
 
-// PacketDataUnmarshaler defines an optional interface which allows a middleware to
+// PacketDataUnmarshaler defines an optional interface that allows a middleware to
 // request the packet data to be unmarshaled by the base application.
 type PacketDataUnmarshaler interface {
 	// UnmarshalPacketData unmarshals the packet data into a concrete type
@@ -105,7 +105,7 @@ type PacketDataUnmarshaler interface {
 The application's packet data must additionally implement the following interfaces:
 
 ```go
-// PacketData defines an optional interface which an application's packet data structure may implement.
+// PacketData defines an optional interface that an application's packet data structure may implement.
 type PacketData interface {
 	// GetPacketSender returns the sender address of the packet data.
 	// If the packet sender is unknown or undefined, an empty string should be returned.
@@ -124,7 +124,7 @@ type PacketDataProvider interface {
 }
 ```
 
-The callback data can be embedded in an application packet by providing custom packet data for source and destination callback in the custom packet data under the appropriate key.
+The callback data can be embedded in an application packet by providing custom packet data for the source and destination callback in the custom packet data under the appropriate key.
 
 ```jsonc
 // Custom Packet data embedded as a JSON object in the packet data
@@ -176,8 +176,8 @@ It may also disable certain callback methods by simply performing a no-op.
 type ContractKeeper interface {
 	// IBCSendPacketCallback is called in the source chain when a PacketSend is executed. The
 	// packetSenderAddress is determined by the underlying module, and may be empty if the sender is
-	// unknown or undefined. The contract is expected to handle the callback within the user defined
-	// gas limit, and handle any errors, or panics gracefully.
+	// unknown or undefined. The contract is expected to handle the callback within the user-defined
+	// gas limit, and handle any errors or panics gracefully.
 	// This entry point is called with a cached context. If an error is returned, then the changes in
 	// this context will not be persisted, and the error will be propagated to the underlying IBC
 	// application, resulting in a packet send failure.
@@ -409,7 +409,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 // Call the IBCActor acknowledgementPacket callback after processing the packet
 // if the ackPacket callback exists and returns an error
-// DO NOT return the error upstream. The acknowledgement must complete for the packet
+// DO NOT return the error upstream. The acknowledgement must be completed for the packet
 // lifecycle to end, so the custom callback cannot block completion.
 // Instead we emit error events and set the error in state
 // so that users and on-chain logic can handle this appropriately
@@ -494,13 +494,13 @@ func (im IBCModule) OnTimeoutPacket(
 // processCallback executes the callbackExecutor and reverts contract changes if the callbackExecutor fails.
 //
 // Error Precedence and Returns:
-//   - oogErr: Takes the highest precedence. If the callback runs out of gas, an error wrapped with types.ErrCallbackOutOfGas is returned.
+//   - oogErr: Takes the highest precedence. If the callback runs out of gas, an error is wrapped with types.ErrCallbackOutOfGas is returned.
 //   - panicErr: Takes the second-highest precedence. If a panic occurs and it is not propagated, an error wrapped with types.ErrCallbackPanic is returned.
 //   - callbackErr: If the callbackExecutor returns an error, it is returned as-is.
 //
 // panics if
 //   - the contractExecutor panics for any reason, and the callbackType is SendPacket, or
-//   - the contractExecutor runs out of gas and the relayer has not reserved gas grater than or equal to
+//   - the contractExecutor runs out of gas and the relayer has not reserved gas greater than or equal to
 //     CommitGasLimit.
 func (IBCMiddleware) processCallback(
 	ctx sdk.Context, callbackType types.CallbackType,
