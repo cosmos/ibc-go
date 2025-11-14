@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package ibc.lightclients.cosmosevm.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/light-clients/07-cosmosevm;cosmosevm";
+
+import "gogoproto/gogo.proto";
+
+// ClientState tracks the client identifier of the underlying Tendermint client.
+message ClientState {
+  option (gogoproto.goproto_getters) = false;
+
+  // Identifier of the underlying Tendermint client.
+  string tendermint_client_id = 1;
+}
+
+// ConsensusState is required for light clients but is not used in Cosmos EVM clients.
+message ConsensusState { }
