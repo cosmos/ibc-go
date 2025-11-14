@@ -15,4 +15,4 @@ message ClientState {
 }
 
 // ConsensusState is required for light clients but is not used in Cosmos EVM clients.
-message ConsensusState { }
+message ConsensusState {}
