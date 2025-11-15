@@ -49,14 +49,14 @@ const config = {
           // Exclude template markdown files from the docs
           exclude: ["**/*.template.md"],
           // Select the latest version
-          lastVersion: "v10.1.x",
+          lastVersion: "v10.4.x",
           // Assign banners to specific versions
           versions: {
             current: {
               path: "main",
               banner: "unreleased",
             },
-            "v10.1.x": {
+            "v10.4.x": {
               path: "v10",
               banner: "none",
             },
@@ -97,6 +97,10 @@ const config = {
       }),
     ],
   ],
+
+  markdown: {
+  mermaid: true,
+},
 
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
@@ -194,7 +198,7 @@ const config = {
               },
               {
                 label: "interchaintest",
-                href: "https://github.com/strangelove-ventures/interchaintest",
+                href: "https://github.com/cosmos/interchaintest",
               },
               {
                 label: "CosmWasm",
@@ -215,7 +219,7 @@ const config = {
               },
               {
                 label: "Privacy Policy",
-                href: "https://v1.cosmos.network/privacy",
+                href: "https://cosmos.network/privacy/",
               },
             ],
           },
@@ -252,7 +256,10 @@ const config = {
         ],
       },
     }),
-  themes: ["docusaurus-theme-github-codeblock"],
+  themes: [
+    "docusaurus-theme-github-codeblock",
+    "@docusaurus/theme-mermaid"
+  ],
   plugins: [
     [
       'docusaurus-pushfeedback', {

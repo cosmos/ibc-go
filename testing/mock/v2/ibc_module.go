@@ -50,6 +50,9 @@ func (im IBCModule) OnRecvPacket(ctx sdk.Context, sourceChannel string, destinat
 	if bytes.Equal(payload.Value, mockv1.MockPacketData) {
 		return MockRecvPacketResult
 	}
+	if bytes.Equal(payload.Value, mockv1.MockAsyncPacketData) {
+		return channeltypesv2.RecvPacketResult{Status: channeltypesv2.PacketStatus_Async}
+	}
 	return channeltypesv2.RecvPacketResult{Status: channeltypesv2.PacketStatus_Failure}
 }
 

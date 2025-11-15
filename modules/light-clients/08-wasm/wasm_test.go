@@ -36,13 +36,13 @@ type WasmTestSuite struct {
 	checksum types.Checksum
 }
 
-func TestWasmTestSuite(t *testing.T) {
+func TestWasmTests(t *testing.T) {
 	testifysuite.Run(t, new(WasmTestSuite))
 }
 
-func (suite *WasmTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCustomAppCoordinator(suite.T(), 1, setupTestingApp)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+func (s *WasmTestSuite) SetupTest() {
+	s.coordinator = ibctesting.NewCustomAppCoordinator(s.T(), 1, setupTestingApp)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
 }
 
 // GetSimApp returns the duplicated SimApp from within the 08-wasm directory.
@@ -63,56 +63,56 @@ func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 }
 
 // SetupWasmWithMockVM sets up mock cometbft chain with a mock vm.
-func (suite *WasmTestSuite) SetupWasmWithMockVM() {
-	suite.coordinator = ibctesting.NewCustomAppCoordinator(suite.T(), 1, suite.setupWasmWithMockVM)
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
-	suite.checksum = storeWasmCode(suite, wasmtesting.Code)
+func (s *WasmTestSuite) SetupWasmWithMockVM() {
+	s.coordinator = ibctesting.NewCustomAppCoordinator(s.T(), 1, s.setupWasmWithMockVM)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.checksum = storeWasmCode(s, wasmtesting.Code)
 }
 
-func (suite *WasmTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
-	suite.mockVM = wasmtesting.NewMockWasmEngine()
+func (s *WasmTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string]json.RawMessage) {
+	s.mockVM = wasmtesting.NewMockWasmEngine()
 
-	suite.mockVM.InstantiateFn = func(checksum wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
+	s.mockVM.InstantiateFn = func(checksum wasmvm.Checksum, env wasmvmtypes.Env, info wasmvmtypes.MessageInfo, initMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.ContractResult, uint64, error) {
 		var payload types.InstantiateMessage
 		err := json.Unmarshal(initMsg, &payload)
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
-		wrappedClientState, ok := clienttypes.MustUnmarshalClientState(suite.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
-		suite.Require().True(ok)
+		wrappedClientState, ok := clienttypes.MustUnmarshalClientState(s.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
+		s.Require().True(ok)
 
 		clientState := types.NewClientState(payload.ClientState, payload.Checksum, wrappedClientState.LatestHeight)
-		clientStateBz := clienttypes.MustMarshalClientState(suite.chainA.App.AppCodec(), clientState)
+		clientStateBz := clienttypes.MustMarshalClientState(s.chainA.App.AppCodec(), clientState)
 		store.Set(host.ClientStateKey(), clientStateBz)
 
 		consensusState := types.NewConsensusState(payload.ConsensusState)
-		consensusStateBz := clienttypes.MustMarshalConsensusState(suite.chainA.App.AppCodec(), consensusState)
+		consensusStateBz := clienttypes.MustMarshalConsensusState(s.chainA.App.AppCodec(), consensusState)
 		store.Set(host.ConsensusStateKey(clientState.LatestHeight), consensusStateBz)
 
 		resp, err := json.Marshal(types.EmptyResult{})
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 
 		return &wasmvmtypes.ContractResult{Ok: &wasmvmtypes.Response{Data: resp}}, 0, nil
 	}
 
-	suite.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
+	s.mockVM.RegisterQueryCallback(types.StatusMsg{}, func(checksum wasmvm.Checksum, env wasmvmtypes.Env, queryMsg []byte, store wasmvm.KVStore, goapi wasmvm.GoAPI, querier wasmvm.Querier, gasMeter wasmvm.GasMeter, gasLimit uint64, deserCost wasmvmtypes.UFraction) (*wasmvmtypes.QueryResult, uint64, error) {
 		resp, err := json.Marshal(types.StatusResult{Status: exported.Active.String()})
-		suite.Require().NoError(err)
+		s.Require().NoError(err)
 		return &wasmvmtypes.QueryResult{Ok: resp}, wasmtesting.DefaultGasUsed, nil
 	})
 
 	db := dbm.NewMemDB()
-	app := simapp.NewUnitTestSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, suite.mockVM)
+	app := simapp.NewUnitTestSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, s.mockVM)
 
 	return app, app.DefaultGenesis()
 }
 
 // storeWasmCode stores the wasm code on chain and returns the checksum.
-func storeWasmCode(suite *WasmTestSuite, wasmCode []byte) types.Checksum {
-	ctx := suite.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
+func storeWasmCode(s *WasmTestSuite, wasmCode []byte) types.Checksum {
+	ctx := s.chainA.GetContext().WithBlockGasMeter(storetypes.NewInfiniteGasMeter())
 
 	msg := types.NewMsgStoreCode(authtypes.NewModuleAddress(govtypes.ModuleName).String(), wasmCode)
-	response, err := GetSimApp(suite.chainA).WasmClientKeeper.StoreCode(ctx, msg)
-	suite.Require().NoError(err)
-	suite.Require().NotNil(response.Checksum)
+	response, err := GetSimApp(s.chainA).WasmClientKeeper.StoreCode(ctx, msg)
+	s.Require().NoError(err)
+	s.Require().NotNil(response.Checksum)
 	return response.Checksum
 }
