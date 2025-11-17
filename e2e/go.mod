@@ -24,7 +24,7 @@ require (
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10 v10.3.0
 	github.com/cosmos/ibc-go/v10 v10.3.0
 	github.com/cosmos/interchaintest/v10 v10.0.1
-	github.com/docker/docker v28.5.1+incompatible
+	github.com/docker/docker v28.5.2+incompatible
 	github.com/moby/moby v28.5.1+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.11.1
