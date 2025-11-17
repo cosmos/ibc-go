@@ -16,6 +16,9 @@ const (
 	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm.
 	Tendermint string = "07-tendermint"
 
+	// Tendermint is used to indicate that the client uses the Tendermint Consensus Algorithm with cosmos/evm and Solidity IBC
+	CosmosEvm string = "07-cosmosevm"
+
 	// Localhost is the client type for the localhost client.
 	Localhost string = "09-localhost"
 
