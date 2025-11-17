@@ -20,4 +20,6 @@ type ClientKeeper interface {
 	GetClientTimestampAtHeight(ctx sdk.Context, clientID string, height ibcexported.Height) (uint64, error)
 	// GetClientState gets a particular client from the store
 	GetClientState(ctx sdk.Context, clientID string) (ibcexported.ClientState, bool)
+	// Route returns the light client module for the given client identifier.
+	Route(ctx sdk.Context, clientID string) (ibcexported.LightClientModule, error)
 }
