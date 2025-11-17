@@ -27,7 +27,7 @@ jobs:
         run: make build-docs
 
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.7.3
+        uses: JamesIves/github-pages-deploy-action@v4.7.4
         with:
           branch: gh-pages
           folder: docs/build
