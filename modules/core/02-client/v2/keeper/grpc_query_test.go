@@ -11,7 +11,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *KeeperTestSuite) TestQueryCounterPartyInfo() {
+func (s *KeeperTestSuite) TestQueryCounterPartyInfo() {
 	var (
 		req     *types.QueryCounterpartyInfoRequest
 		expInfo = types.CounterpartyInfo{}
@@ -39,7 +39,7 @@ func (suite *KeeperTestSuite) TestQueryCounterPartyInfo() {
 		{
 			"counterparty not found",
 			func() {
-				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path1 := ibctesting.NewPath(s.chainA, s.chainB)
 				path1.SetupClients()
 				// counter party not set up
 
@@ -53,7 +53,7 @@ func (suite *KeeperTestSuite) TestQueryCounterPartyInfo() {
 		{
 			"success",
 			func() {
-				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path1 := ibctesting.NewPath(s.chainA, s.chainB)
 				path1.SetupClients()
 				path1.SetupCounterparties()
 
@@ -67,26 +67,26 @@ func (suite *KeeperTestSuite) TestQueryCounterPartyInfo() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
 			tc.malleate()
 
-			ctx := suite.chainA.GetContext()
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientV2Keeper)
+			ctx := s.chainA.GetContext()
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientV2Keeper)
 			res, err := queryServer.CounterpartyInfo(ctx, req)
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(expInfo, *res.CounterpartyInfo)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Equal(expInfo, *res.CounterpartyInfo)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryConfig() {
+func (s *KeeperTestSuite) TestQueryConfig() {
 	var (
 		req       *types.QueryConfigRequest
 		expConfig = types.Config{}
@@ -114,7 +114,7 @@ func (suite *KeeperTestSuite) TestQueryConfig() {
 		{
 			"success with default config",
 			func() {
-				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path1 := ibctesting.NewPath(s.chainA, s.chainB)
 				path1.SetupClients()
 
 				expConfig = types.DefaultConfig()
@@ -127,11 +127,11 @@ func (suite *KeeperTestSuite) TestQueryConfig() {
 		{
 			"success with custom config",
 			func() {
-				path1 := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path1 := ibctesting.NewPath(s.chainA, s.chainB)
 				path1.SetupClients()
 
 				expConfig = types.NewConfig(ibctesting.TestAccAddress)
-				suite.chainA.App.GetIBCKeeper().ClientV2Keeper.SetConfig(suite.chainA.GetContext(), path1.EndpointA.ClientID, expConfig)
+				s.chainA.App.GetIBCKeeper().ClientV2Keeper.SetConfig(s.chainA.GetContext(), path1.EndpointA.ClientID, expConfig)
 				req = &types.QueryConfigRequest{
 					ClientId: path1.EndpointA.ClientID,
 				}
@@ -141,20 +141,20 @@ func (suite *KeeperTestSuite) TestQueryConfig() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
-			suite.SetupTest() // reset
+		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			s.SetupTest() // reset
 			tc.malleate()
 
-			ctx := suite.chainA.GetContext()
-			queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ClientV2Keeper)
+			ctx := s.chainA.GetContext()
+			queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ClientV2Keeper)
 			res, err := queryServer.Config(ctx, req)
 			if tc.expErr == nil {
-				suite.Require().NoError(err)
-				suite.Require().NotNil(res)
-				suite.Require().Equal(expConfig, *res.Config)
+				s.Require().NoError(err)
+				s.Require().NotNil(res)
+				s.Require().Equal(expConfig, *res.Config)
 			} else {
-				suite.Require().Error(err)
-				suite.Require().ErrorIs(err, tc.expErr)
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
 	}

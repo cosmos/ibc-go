@@ -97,13 +97,13 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule represents the AppModule for this module
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper *keeper.Keeper
 }
 
 // NewAppModule creates a new 08-wasm module
 func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
-		keeper: k,
+		keeper: &k,
 	}
 }
 
@@ -111,11 +111,6 @@ func NewAppModule(k keeper.Keeper) AppModule {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-
-	wasmMigrator := keeper.NewMigrator(am.keeper)
-	if err := cfg.RegisterMigration(types.ModuleName, 1, wasmMigrator.MigrateChecksums); err != nil {
-		panic(fmt.Errorf("failed to migrate 08-wasm module from version 1 to 2 (checksums migration to collections): %v", err))
-	}
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
@@ -130,7 +125,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, bz json.Ra
 	var gs types.GenesisState
 	err := cdc.UnmarshalJSON(bz, &gs)
 	if err != nil {
-		panic(fmt.Errorf("failed to unmarshal %s genesis state: %s", am.Name(), err))
+		panic(fmt.Errorf("failed to unmarshal %s genesis state: %w", am.Name(), err))
 	}
 	err = am.keeper.InitGenesis(ctx, gs)
 	if err != nil {
