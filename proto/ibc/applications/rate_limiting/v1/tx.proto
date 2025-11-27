@@ -1,0 +1,109 @@
+syntax = "proto3";
+package ibc.applications.rate_limiting.v1;
+
+import "amino/amino.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types";
+
+// Msg service for rate limit txs
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // Gov tx to add a new rate limit
+  rpc AddRateLimit(MsgAddRateLimit) returns (MsgAddRateLimitResponse);
+  // Gov tx to update an existing rate limit
+  rpc UpdateRateLimit(MsgUpdateRateLimit) returns (MsgUpdateRateLimitResponse);
+  // Gov tx to remove a rate limit
+  rpc RemoveRateLimit(MsgRemoveRateLimit) returns (MsgRemoveRateLimitResponse);
+  // Gov tx to reset the flow on a rate limit
+  rpc ResetRateLimit(MsgResetRateLimit) returns (MsgResetRateLimitResponse);
+}
+
+// Gov tx to add a new rate limit
+message MsgAddRateLimit {
+  option (cosmos.msg.v1.signer) = "signer";
+  option (amino.name)           = "ratelimit/MsgAddRateLimit";
+
+  // signer defines the x/gov module account address or other authority signing the message
+  string signer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // Denom for the rate limit, as it appears on the rate limited chain
+  // When rate limiting a non-native token, this will be an ibc denom
+  string denom = 2;
+  // ChannelId for the rate limit, on the side of the rate limited chain
+  string channel_or_client_id = 3;
+  // MaxPercentSend defines the threshold for outflows
+  // The threshold is defined as a percentage (e.g. 10 indicates 10%)
+  string max_percent_send = 4 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+  // MaxPercentSend defines the threshold for inflows
+  // The threshold is defined as a percentage (e.g. 10 indicates 10%)
+  string max_percent_recv = 5 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+  // DurationHours specifies the number of hours before the rate limit
+  // is reset (e.g. 24 indicates that the rate limit is reset each day)
+  uint64 duration_hours = 6;
+}
+
+// MsgAddRateLimitResponse is the return type for AddRateLimit function.
+message MsgAddRateLimitResponse {}
+
+// Gov tx to update an existing rate limit
+message MsgUpdateRateLimit {
+  option (cosmos.msg.v1.signer) = "signer";
+  option (amino.name)           = "ratelimit/MsgUpdateRateLimit";
+
+  // signer defines the x/gov module account address or other authority signing the message
+  string signer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // Denom for the rate limit, as it appears on the rate limited chain
+  // When rate limiting a non-native token, this will be an ibc denom
+  string denom = 2;
+  // ChannelId for the rate limit, on the side of the rate limited chain
+  string channel_or_client_id = 3;
+  // MaxPercentSend defines the threshold for outflows
+  // The threshold is defined as a percentage (e.g. 10 indicates 10%)
+  string max_percent_send = 4 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+  // MaxPercentSend defines the threshold for inflows
+  // The threshold is defined as a percentage (e.g. 10 indicates 10%)
+  string max_percent_recv = 5 [(gogoproto.customtype) = "cosmossdk.io/math.Int", (gogoproto.nullable) = false];
+  // DurationHours specifies the number of hours before the rate limit
+  // is reset (e.g. 24 indicates that the rate limit is reset each day)
+  uint64 duration_hours = 6;
+}
+
+// MsgUpdateRateLimitResponse is the return type for UpdateRateLimit.
+message MsgUpdateRateLimitResponse {}
+
+// Gov tx to remove a rate limit
+message MsgRemoveRateLimit {
+  option (cosmos.msg.v1.signer) = "signer";
+  option (amino.name)           = "ratelimit/MsgRemoveRateLimit";
+
+  // signer defines the x/gov module account address or other authority signing the message
+  string signer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // Denom for the rate limit, as it appears on the rate limited chain
+  // When rate limiting a non-native token, this will be an ibc denom
+  string denom = 2;
+  // ChannelId for the rate limit, on the side of the rate limited chain
+  string channel_or_client_id = 3;
+}
+
+// MsgRemoveRateLimitResponse is the response type for RemoveRateLimit
+message MsgRemoveRateLimitResponse {}
+
+// Gov tx to reset the flow on a rate limit
+message MsgResetRateLimit {
+  option (cosmos.msg.v1.signer) = "signer";
+  option (amino.name)           = "ratelimit/MsgResetRateLimit";
+
+  // signer defines the x/gov module account address or other authority signing the message
+  string signer = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // Denom for the rate limit, as it appears on the rate limited chain
+  // When rate limiting a non-native token, this will be an ibc denom
+  string denom = 2;
+  // ChannelId for the rate limit, on the side of the rate limited chain
+  string channel_or_client_id = 3;
+}
+
+// MsgResetRateLimitResponse is the response type for ResetRateLimit.
+message MsgResetRateLimitResponse {}

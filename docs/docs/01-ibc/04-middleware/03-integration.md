@@ -25,10 +25,13 @@ The order of middleware **matters**, function calls from IBC to the application 
 
 // middleware 1 and middleware 3 are stateful middleware, 
 // perhaps implementing separate sdk.Msg and Handlers
-mw1Keeper := mw1.NewKeeper(storeKey1, ..., ics4Wrapper: channelKeeper, ...) // in stack 1 & 3
+// NOTE: NewKeeper returns a pointer so that we can modify
+// the keepers later after initialization
+// They are all initialized to use the channelKeeper directly at the start
+mw1Keeper := mw1.NewKeeper(storeKey1, ..., channelKeeper) // in stack 1 & 3
 // middleware 2 is stateless
-mw3Keeper1 := mw3.NewKeeper(storeKey3,..., ics4Wrapper: mw1Keeper, ...) //  in stack 1
-mw3Keeper2 := mw3.NewKeeper(storeKey3,..., ics4Wrapper: channelKeeper, ...) //  in stack 2
+mw3Keeper1 := mw3.NewKeeper(storeKey3,..., channelKeeper) //  in stack 1
+mw3Keeper2 := mw3.NewKeeper(storeKey3,..., channelKeeper) //  in stack 2
 
 // Only create App Module **once** and register in app module
 // if the module maintains independent state and/or processes sdk.Msgs
@@ -55,13 +58,26 @@ customIBCModule1 := custom.NewIBCModule(customKeeper1, "portCustom1")
 customIBCModule2 := custom.NewIBCModule(customKeeper2, "portCustom2")
 
 // create IBC stacks by combining middleware with base application
+// IBC Stack builders are initialized with the IBC ChannelKeeper which is the top-level ICS4Wrapper
 // NOTE: since middleware2 is stateless it does not require a Keeper
 // stack 1 contains mw1 -> mw3 -> transfer
-stack1 := mw1.NewIBCMiddleware(mw3.NewIBCMiddleware(transferIBCModule, mw3Keeper1), mw1Keeper)
+stack1 := porttypes.NewStackBuilder(ibcChannelKeeper).
+  Base(transferIBCModule).
+  Next(mw3).
+  Next(mw1).
+  Build()
 // stack 2 contains mw3 -> mw2 -> custom1
-stack2 := mw3.NewIBCMiddleware(mw2.NewIBCMiddleware(customIBCModule1), mw3Keeper2)
+stack2 := porttypes.NewStackBuilder(ibcChannelKeeper).
+  Base(customIBCModule1).
+  Next(mw2).
+  Next(mw3).
+  Build()
 // stack 3 contains mw2 -> mw1 -> custom2
-stack3 := mw2.NewIBCMiddleware(mw1.NewIBCMiddleware(customIBCModule2, mw1Keeper))
+stack3 := porttypes.NewStackBuilder(ibcChannelKeeper).
+  Base(customIBCModule2).
+  Next(mw1).
+  Next(mw2).
+  Build()
 
 // associate each stack with the moduleName provided by the underlying Keeper
 ibcRouter := porttypes.NewRouter()

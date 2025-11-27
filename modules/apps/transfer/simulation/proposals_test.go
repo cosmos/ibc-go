@@ -26,7 +26,7 @@ func TestProposalMsgs(t *testing.T) {
 
 	// execute ProposalMsgs function
 	weightedProposalMsgs := simulation.ProposalMsgs()
-	require.Equal(t, len(weightedProposalMsgs), 1)
+	require.Len(t, weightedProposalMsgs, 1)
 
 	w0 := weightedProposalMsgs[0]
 
@@ -39,5 +39,5 @@ func TestProposalMsgs(t *testing.T) {
 	require.True(t, ok)
 
 	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Signer)
-	require.EqualValues(t, msgUpdateParams.Params.SendEnabled, false)
+	require.False(t, msgUpdateParams.Params.SendEnabled)
 }

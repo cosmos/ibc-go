@@ -139,11 +139,12 @@ func handleLocalhostMigration(ctx sdk.Context, store storetypes.KVStore, clientK
 // avoid state corruption as modifying state during iteration is unsafe. A special case
 // for tendermint clients is included as only one tendermint clientID is required for
 // v7 migrations.
-func collectClients(ctx sdk.Context, store storetypes.KVStore, clientType string) (clients []string, err error) {
+func collectClients(ctx sdk.Context, store storetypes.KVStore, clientType string) ([]string, error) {
 	clientPrefix := host.PrefixedClientStoreKey([]byte(clientType))
 	iterator := storetypes.KVStorePrefixIterator(store, clientPrefix)
 
 	defer sdk.LogDeferred(ctx.Logger(), func() error { return iterator.Close() })
+	var clients []string
 	for ; iterator.Valid(); iterator.Next() {
 		path := string(iterator.Key())
 		if !strings.Contains(path, host.KeyClientState) {

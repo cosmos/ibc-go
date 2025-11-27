@@ -104,6 +104,15 @@ type IBCModule interface {
 		packet channeltypes.Packet,
 		relayer sdk.AccAddress,
 	) error
+
+	// SetICS4Wrapper sets the ICS4Wrapper. This function may be used after
+	// the module's initialization to set the middleware which is above this
+	// module in the IBC application stack.
+	// The ICS4Wrapper **must** be used for sending packets and writing acknowledgements
+	// to ensure that the middleware can intercept and process these calls.
+	// Do not use the channel keeper directly to send packets or write acknowledgements
+	// as this will bypass the middleware.
+	SetICS4Wrapper(wrapper ICS4Wrapper)
 }
 
 // ICS4Wrapper implements the ICS4 interfaces that IBC applications use to send packets and acknowledgements.
@@ -135,6 +144,10 @@ type ICS4Wrapper interface {
 type Middleware interface {
 	IBCModule
 	ICS4Wrapper
+
+	// SetUnderlyingModule sets the underlying IBC module. This function may be used after
+	// the middleware's initialization to set the ibc module which is below this middleware.
+	SetUnderlyingApplication(IBCModule)
 }
 
 // PacketDataUnmarshaler defines an optional interface which allows a middleware to
@@ -144,4 +157,9 @@ type PacketDataUnmarshaler interface {
 	// ctx, portID, channelID are provided as arguments, so that (if needed)
 	// the packet data can be unmarshaled based on the channel version.
 	UnmarshalPacketData(ctx sdk.Context, portID string, channelID string, bz []byte) (any, string, error)
+}
+
+type PacketUnmarshalerModule interface {
+	PacketDataUnmarshaler
+	IBCModule
 }

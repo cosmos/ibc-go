@@ -23,7 +23,7 @@ import (
 var _ types.QueryServer = (*Keeper)(nil)
 
 // Denom implements the Query/Denom gRPC method
-func (k Keeper) Denom(goCtx context.Context, req *types.QueryDenomRequest) (*types.QueryDenomResponse, error) {
+func (k *Keeper) Denom(goCtx context.Context, req *types.QueryDenomRequest) (*types.QueryDenomResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -49,7 +49,7 @@ func (k Keeper) Denom(goCtx context.Context, req *types.QueryDenomRequest) (*typ
 }
 
 // Denoms implements the Query/Denoms gRPC method
-func (k Keeper) Denoms(ctx context.Context, req *types.QueryDenomsRequest) (*types.QueryDenomsResponse, error) {
+func (k *Keeper) Denoms(ctx context.Context, req *types.QueryDenomsRequest) (*types.QueryDenomsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -77,7 +77,7 @@ func (k Keeper) Denoms(ctx context.Context, req *types.QueryDenomsRequest) (*typ
 }
 
 // Params implements the Query/Params gRPC method
-func (k Keeper) Params(goCtx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (k *Keeper) Params(goCtx context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	params := k.GetParams(ctx)
 
@@ -87,7 +87,7 @@ func (k Keeper) Params(goCtx context.Context, _ *types.QueryParamsRequest) (*typ
 }
 
 // DenomHash implements the Query/DenomHash gRPC method
-func (k Keeper) DenomHash(goCtx context.Context, req *types.QueryDenomHashRequest) (*types.QueryDenomHashResponse, error) {
+func (k *Keeper) DenomHash(goCtx context.Context, req *types.QueryDenomHashRequest) (*types.QueryDenomHashResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -115,7 +115,7 @@ func (k Keeper) DenomHash(goCtx context.Context, req *types.QueryDenomHashReques
 }
 
 // EscrowAddress implements the EscrowAddress gRPC method
-func (k Keeper) EscrowAddress(goCtx context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
+func (k *Keeper) EscrowAddress(goCtx context.Context, req *types.QueryEscrowAddressRequest) (*types.QueryEscrowAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
@@ -141,7 +141,7 @@ func (k Keeper) EscrowAddress(goCtx context.Context, req *types.QueryEscrowAddre
 }
 
 // TotalEscrowForDenom implements the TotalEscrowForDenom gRPC method.
-func (k Keeper) TotalEscrowForDenom(goCtx context.Context, req *types.QueryTotalEscrowForDenomRequest) (*types.QueryTotalEscrowForDenomResponse, error) {
+func (k *Keeper) TotalEscrowForDenom(goCtx context.Context, req *types.QueryTotalEscrowForDenomRequest) (*types.QueryTotalEscrowForDenomResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}

@@ -26,25 +26,23 @@ import (
 // Keeper represents a type that grants read and write permissions to any client
 // state information
 type Keeper struct {
-	storeService   corestore.KVStoreService
-	cdc            codec.BinaryCodec
-	router         *types.Router
-	legacySubspace types.ParamSubspace
-	upgradeKeeper  types.UpgradeKeeper
+	storeService  corestore.KVStoreService
+	cdc           codec.BinaryCodec
+	router        *types.Router
+	upgradeKeeper types.UpgradeKeeper
 }
 
 // NewKeeper creates a new NewKeeper instance
-func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, legacySubspace types.ParamSubspace, uk types.UpgradeKeeper) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeService corestore.KVStoreService, uk types.UpgradeKeeper) *Keeper {
 	router := types.NewRouter()
 	localhostModule := localhost.NewLightClientModule(cdc, storeService)
 	router.AddRoute(exported.Localhost, localhostModule)
 
 	return &Keeper{
-		storeService:   storeService,
-		cdc:            cdc,
-		router:         router,
-		legacySubspace: legacySubspace,
-		upgradeKeeper:  uk,
+		storeService:  storeService,
+		cdc:           cdc,
+		router:        router,
+		upgradeKeeper: uk,
 	}
 }
 
@@ -54,7 +52,7 @@ func (k *Keeper) Codec() codec.BinaryCodec {
 }
 
 // Logger returns a module-specific logger.
-func (Keeper) Logger(ctx sdk.Context) log.Logger {
+func (*Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+exported.ModuleName+"/"+types.SubModuleName)
 }
 

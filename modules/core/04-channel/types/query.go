@@ -31,8 +31,8 @@ func NewQueryChannelClientStateResponse(identifiedClientState clienttypes.Identi
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (qccsr QueryChannelClientStateResponse) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	return qccsr.IdentifiedClientState.UnpackInterfaces(unpacker)
+func (resp QueryChannelClientStateResponse) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	return resp.IdentifiedClientState.UnpackInterfaces(unpacker)
 }
 
 // NewQueryChannelConsensusStateResponse creates a newQueryChannelConsensusStateResponse instance
@@ -46,8 +46,8 @@ func NewQueryChannelConsensusStateResponse(clientID string, anyConsensusState *c
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (qccsr QueryChannelConsensusStateResponse) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	return unpacker.UnpackAny(qccsr.ConsensusState, new(exported.ConsensusState))
+func (resp QueryChannelConsensusStateResponse) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	return unpacker.UnpackAny(resp.ConsensusState, new(exported.ConsensusState))
 }
 
 // NewQueryPacketCommitmentResponse creates a new QueryPacketCommitmentResponse instance

@@ -167,6 +167,7 @@ func ExtractDenomFromPath(fullPath string) Denom {
 		// will be incorrectly parsed, but the token will continue to be treated correctly
 		// as an IBC denomination. The hash used to store the token internally on our chain
 		// will be the same value as the base denomination being correctly parsed.
+		// nolint:revive // Early return possible, but not needed here
 		if i < length-1 && length > 2 && (channeltypes.IsValidChannelID(denomSplit[i+1]) || clienttypes.IsValidClientID(denomSplit[i+1])) {
 			trace = append(trace, NewHop(denomSplit[i], denomSplit[i+1]))
 		} else {
@@ -206,6 +207,9 @@ func validateIBCDenom(denom string) error {
 		if _, err := ParseHexHash(denomSplit[1]); err != nil {
 			return errorsmod.Wrapf(err, "invalid denom trace hash %s", denomSplit[1])
 		}
+
+	default:
+		// Valid base denomination or other valid format
 	}
 
 	return nil

@@ -19,10 +19,10 @@ jobs:
   load-test-matrix:
     outputs:
       test-matrix: ${{ steps.set-test-matrix.outputs.test-matrix }}
-    runs-on: depot-ubuntu-22.04-4
+    runs-on: depot-ubuntu-24.04-4
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - run: pip install -r requirements.txt
@@ -34,7 +34,7 @@ jobs:
         id: set-test-matrix
 
   e2e:
-    runs-on: depot-ubuntu-22.04-4
+    runs-on: depot-ubuntu-24.04-4
     needs: load-test-matrix
     # this job is skipped if the test-matrix generated is empty. i.e. if the file was not present.
     # this allows us to not have to handle special case versions which may not have certain tests run against them.
@@ -44,12 +44,12 @@ jobs:
       matrix: ${{ fromJSON(needs.load-test-matrix.outputs.test-matrix) }}
     steps:
       - name: Checkout the ibc-go repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: cosmos/ibc-go
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.23'
+          go-version: '1.25'
           cache-dependency-path: 'e2e/go.sum'
       - name: Run e2e Test
         run: |
@@ -64,7 +64,7 @@ jobs:
           CHAIN_B_TAG: '${{ matrix.chain-b }}'
           RELAYER_ID: '${{ matrix.relayer-type }}'
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         # we only want to upload logs on test failures.
         if: ${{ failure() }}
         continue-on-error: true

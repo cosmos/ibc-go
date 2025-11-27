@@ -10,7 +10,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
+func (s *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
 	var cswh types.ConsensusStateWithHeight
 
 	testCases := []struct {
@@ -19,19 +19,19 @@ func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
 	}{
 		{
 			"solo machine client", func() {
-				soloMachine := ibctesting.NewSolomachine(suite.T(), suite.chainA.Codec, "solomachine", "", 1)
+				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 1)
 				cswh = types.NewConsensusStateWithHeight(types.NewHeight(0, soloMachine.Sequence), soloMachine.ConsensusState())
 			},
 		},
 		{
 			"tendermint client", func() {
-				path := ibctesting.NewPath(suite.chainA, suite.chainB)
+				path := ibctesting.NewPath(s.chainA, s.chainB)
 				path.SetupClients()
 
 				latestHeight, ok := path.EndpointA.GetClientLatestHeight().(types.Height)
-				suite.Require().True(ok)
-				consensusState, ok := suite.chainA.GetConsensusState(path.EndpointA.ClientID, latestHeight)
-				suite.Require().True(ok)
+				s.Require().True(ok)
+				consensusState, ok := s.chainA.GetConsensusState(path.EndpointA.ClientID, latestHeight)
+				s.Require().True(ok)
 
 				cswh = types.NewConsensusStateWithHeight(latestHeight, consensusState)
 			},
@@ -39,21 +39,21 @@ func (suite *TypesTestSuite) TestMarshalConsensusStateWithHeight() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest()
+		s.Run(tc.name, func() {
+			s.SetupTest()
 
 			tc.malleate()
 
-			cdc := suite.chainA.App.AppCodec()
+			cdc := s.chainA.App.AppCodec()
 
 			// marshal message
 			bz, err := cdc.MarshalJSON(&cswh)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 
 			// unmarshal message
 			newCswh := &types.ConsensusStateWithHeight{}
 			err = cdc.UnmarshalJSON(bz, newCswh)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 		})
 	}
 }
@@ -74,7 +74,6 @@ func TestValidateClientType(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-
 		err := types.ValidateClientType(tc.clientType)
 
 		if tc.expError == nil {
