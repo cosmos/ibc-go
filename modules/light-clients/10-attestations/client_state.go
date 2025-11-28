@@ -12,7 +12,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
@@ -73,22 +72,15 @@ func (cs ClientState) Validate() error {
 
 // verifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the specified height.
 func (cs *ClientState) verifyMembership(
-	ctx sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
-	delayTimePeriod uint64,
-	delayBlockPeriod uint64,
 	proof []byte,
 	path exported.Path,
 	value []byte,
 ) error {
 	if cs.IsFrozen {
 		return ErrClientFrozen
-	}
-
-	if err := verifyDelayPeriodPassed(ctx, clientStore, height, delayTimePeriod, delayBlockPeriod); err != nil {
-		return err
 	}
 
 	if path == nil || path.Empty() {
@@ -178,40 +170,4 @@ func normalizePathBytes(raw []byte) []byte {
 func setClientState(store storetypes.KVStore, cdc codec.BinaryCodec, clientState exported.ClientState) {
 	bz := clienttypes.MustMarshalClientState(cdc, clientState)
 	store.Set(host.ClientStateKey(), bz)
-}
-
-// verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
-// since consensus state was submitted before allowing verification to continue.
-func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
-	if delayTimePeriod != 0 {
-		processedTime, ok := getProcessedTime(store, proofHeight)
-		if !ok {
-			return errorsmod.Wrapf(ErrProcessedTimeNotFound, "processed time not found for height: %s", proofHeight)
-		}
-
-		currentTimestamp := uint64(ctx.BlockTime().UnixNano())
-		validTime := processedTime + delayTimePeriod
-
-		if currentTimestamp < validTime {
-			return errorsmod.Wrapf(ErrDelayPeriodNotPassed, "cannot verify packet until time: %d, current time: %d",
-				validTime, currentTimestamp)
-		}
-	}
-
-	if delayBlockPeriod != 0 {
-		processedHeight, ok := getProcessedHeight(store, proofHeight)
-		if !ok {
-			return errorsmod.Wrapf(ErrProcessedHeightNotFound, "processed height not found for height: %s", proofHeight)
-		}
-
-		currentHeight := clienttypes.GetSelfHeight(ctx)
-		validHeight := clienttypes.NewHeight(processedHeight.GetRevisionNumber(), processedHeight.GetRevisionHeight()+delayBlockPeriod)
-
-		if currentHeight.LT(validHeight) {
-			return errorsmod.Wrapf(ErrDelayPeriodNotPassed, "cannot verify packet until height: %s, current height: %s",
-				validHeight, currentHeight)
-		}
-	}
-
-	return nil
 }

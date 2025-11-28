@@ -122,7 +122,7 @@ func (l LightClientModule) VerifyMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.verifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
+	return clientState.verifyMembership(clientStore, l.cdc, height, proof, path, value)
 }
 
 // VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
