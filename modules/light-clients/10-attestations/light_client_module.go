@@ -71,27 +71,14 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 	return clientState.VerifyClientMessage(ctx, l.cdc, clientStore, clientMsg)
 }
 
-// CheckForMisbehaviour obtains the client state associated with the client identifier and calls into the clientState.CheckForMisbehaviour method.
-func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	clientState, found := getClientState(clientStore, l.cdc)
-	if !found {
-		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
-	}
-
-	return clientState.CheckForMisbehaviour(ctx, l.cdc, clientStore, clientMsg)
+// CheckForMisbehaviour is not supported in this version.
+func (LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+	panic(errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "checkForMisbehaviour is not supported"))
 }
 
-// UpdateStateOnMisbehaviour updates state upon misbehaviour, freezing the ClientState.
-func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
-	clientStore := l.storeProvider.ClientStore(ctx, clientID)
-	clientState, found := getClientState(clientStore, l.cdc)
-	if !found {
-		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
-	}
-
-	clientState.IsFrozen = true
-	setClientState(clientStore, l.cdc, clientState)
+// UpdateStateOnMisbehaviour is not supported in this version.
+func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
+	panic(errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "updateStateOnMisbehaviour is not supported"))
 }
 
 // UpdateState obtains the client state associated with the client identifier and calls into the clientState.UpdateState method.

@@ -73,7 +73,7 @@ var xxx_messageInfo_ClientState proto.InternalMessageInfo
 // ConsensusState defines an attestor consensus state. The timestamp of a
 // consensus state is stored per height.
 type ConsensusState struct {
-	// trusted UNIX timestamp (seconds) for the height
+	// trusted UNIX timestamp (nanoseconds) for the height
 	Timestamp uint64 `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 }
 
@@ -156,7 +156,7 @@ var xxx_messageInfo_AttestationProof proto.InternalMessageInfo
 type StateAttestation struct {
 	// height of the consensus state
 	Height uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
-	// timestamp of the consensus state
+	// timestamp of the consensus state in nanoseconds
 	Timestamp uint64 `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 }
 
