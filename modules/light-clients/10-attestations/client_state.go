@@ -15,11 +15,12 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
+
+var zeroCommitment = make([]byte, 32)
 
 // NewClientState creates a new ClientState instance.
 func NewClientState(attestorAddresses []string, minRequiredSigs uint32, latestHeight uint64) *ClientState {
@@ -131,14 +132,63 @@ func (cs *ClientState) verifyMembership(
 	return ErrNotMember
 }
 
-// verifyNonMembership is not supported in this version.
+// verifyNonMembership verifies a proof of the absence of a value at a given CommitmentPath at the specified height.
 func (cs *ClientState) verifyNonMembership(
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
+	height exported.Height,
 	proof []byte,
 	path exported.Path,
 ) error {
-	return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "verifyNonMembership is not supported")
+	if cs.IsFrozen {
+		return ErrClientFrozen
+	}
+
+	if path == nil || path.Empty() {
+		return errorsmod.Wrap(ErrInvalidPath, "path cannot be empty")
+	}
+
+	if _, found := getConsensusState(clientStore, cdc, height); !found {
+		return errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state not found for height %s", height)
+	}
+
+	var attestationProof AttestationProof
+	if err := cdc.Unmarshal(proof, &attestationProof); err != nil {
+		return errorsmod.Wrapf(ErrInvalidAttestationProof, "failed to unmarshal proof: %v", err)
+	}
+
+	if err := cs.verifySignatures(&attestationProof); err != nil {
+		return err
+	}
+
+	var packetAttestation PacketAttestation
+	if err := cdc.Unmarshal(attestationProof.AttestationData, &packetAttestation); err != nil {
+		return errorsmod.Wrapf(ErrInvalidAttestationData, "failed to unmarshal attestation data: %v", err)
+	}
+
+	if packetAttestation.Height != height.GetRevisionHeight() {
+		return errorsmod.Wrapf(ErrInvalidHeight, "height mismatch: expected %d, got %d", height.GetRevisionHeight(), packetAttestation.Height)
+	}
+
+	if len(packetAttestation.Packets) == 0 {
+		return errorsmod.Wrap(ErrInvalidAttestationData, "packets cannot be empty")
+	}
+
+	commitmentPath, err := canonicalizePath(path)
+	if err != nil {
+		return err
+	}
+
+	for _, packet := range packetAttestation.Packets {
+		if bytes.Equal(packet.Path, commitmentPath) {
+			if len(packet.Commitment) == 32 && bytes.Equal(packet.Commitment, zeroCommitment) {
+				return nil
+			}
+			return ErrNonMembershipFailed
+		}
+	}
+
+	return ErrNotMember
 }
 
 func canonicalizePath(path exported.Path) ([]byte, error) {

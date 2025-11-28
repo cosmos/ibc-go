@@ -19,4 +19,5 @@ var (
 	ErrProcessedTimeNotFound   = errorsmod.Register(ModuleName, 13, "processed time not found")
 	ErrProcessedHeightNotFound = errorsmod.Register(ModuleName, 14, "processed height not found")
 	ErrDelayPeriodNotPassed    = errorsmod.Register(ModuleName, 15, "delay period has not been reached")
+	ErrNonMembershipFailed     = errorsmod.Register(ModuleName, 16, "non-membership verification failed: commitment is not zero")
 )

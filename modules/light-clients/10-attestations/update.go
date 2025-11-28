@@ -94,7 +94,7 @@ func (cs *ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clien
 		Timestamp: stateAttestation.Timestamp,
 	}
 
-	setConsensusState(ctx, clientStore, cdc, consensusState, height)
+	setConsensusState(clientStore, cdc, consensusState, height)
 
 	if stateAttestation.Height > cs.LatestHeight {
 		cs.LatestHeight = stateAttestation.Height

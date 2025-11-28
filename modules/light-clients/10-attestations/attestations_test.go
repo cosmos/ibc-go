@@ -92,6 +92,7 @@ func (s *AttestationsTestSuite) createStateAttestation(height, timestamp uint64)
 	return data
 }
 
+// nolint:unparam
 func (s *AttestationsTestSuite) createPacketAttestation(height uint64, packets []attestations.PacketCompact) []byte {
 	packetAttestation := attestations.PacketAttestation{
 		Height:  height,
@@ -118,7 +119,7 @@ func (s *AttestationsTestSuite) createClientState(initialHeight uint64) *attesta
 	)
 }
 
-func (s *AttestationsTestSuite) createConsensusState(timestamp uint64) *attestations.ConsensusState {
+func (*AttestationsTestSuite) createConsensusState(timestamp uint64) *attestations.ConsensusState {
 	return &attestations.ConsensusState{
 		Timestamp: timestamp,
 	}
@@ -814,7 +815,7 @@ func (s *AttestationsTestSuite) TestUpdateStateOnMisbehaviourFreezesClient() {
 	s.Require().Equal(exported.Frozen, status)
 }
 
-func (s *AttestationsTestSuite) TestVerifyNonMembershipNotSupported() {
+func (s *AttestationsTestSuite) TestVerifyNonMembershipSuccess() {
 	initialHeight := uint64(100)
 	initialTimestamp := uint64(time.Second.Nanoseconds())
 
@@ -833,10 +834,154 @@ func (s *AttestationsTestSuite) TestVerifyNonMembershipNotSupported() {
 	err = s.lightClientModule.Initialize(ctx, clientID, clientStateBz, consensusStateBz)
 	s.Require().NoError(err)
 
-	proofHeight := clienttypes.NewHeight(0, initialHeight)
-	err = s.lightClientModule.VerifyNonMembership(ctx, clientID, proofHeight, 0, 0, []byte{}, bytePath([]byte("test")))
-	s.Require().Error(err)
-	s.Require().ErrorContains(err, "verifyNonMembership is not supported")
+	newHeight := uint64(200)
+	newTimestamp := uint64(2 * time.Second.Nanoseconds())
+	stateAttestation := s.createStateAttestation(newHeight, newTimestamp)
+	signers := []int{0, 1, 2}
+	updateProof := s.createAttestationProof(stateAttestation, signers)
+
+	err = s.lightClientModule.VerifyClientMessage(ctx, clientID, updateProof)
+	s.Require().NoError(err)
+	_ = s.lightClientModule.UpdateState(ctx, clientID, updateProof)
+
+	pathBytes := bytes.Repeat([]byte{0x01}, 32)
+	zeroCommitment := make([]byte, 32)
+	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: pathBytes, Commitment: zeroCommitment}})
+	nonMembershipProof := s.createAttestationProof(packetAttestation, signers)
+	nonMembershipProofBz := s.marshalProof(nonMembershipProof)
+
+	proofHeight := clienttypes.NewHeight(0, newHeight)
+	err = s.lightClientModule.VerifyNonMembership(ctx, clientID, proofHeight, 0, 0, nonMembershipProofBz, bytePath(pathBytes))
+	s.Require().NoError(err)
+}
+
+func (s *AttestationsTestSuite) TestVerifyNonMembershipFailsNonZeroCommitment() {
+	initialHeight := uint64(100)
+	initialTimestamp := uint64(time.Second.Nanoseconds())
+
+	clientState := s.createClientState(initialHeight)
+	consensusState := s.createConsensusState(initialTimestamp)
+
+	clientStateBz, err := s.chainA.App.AppCodec().Marshal(clientState)
+	s.Require().NoError(err)
+
+	consensusStateBz, err := s.chainA.App.AppCodec().Marshal(consensusState)
+	s.Require().NoError(err)
+
+	clientID := testClientID
+	ctx := s.chainA.GetContext()
+
+	err = s.lightClientModule.Initialize(ctx, clientID, clientStateBz, consensusStateBz)
+	s.Require().NoError(err)
+
+	newHeight := uint64(200)
+	newTimestamp := uint64(2 * time.Second.Nanoseconds())
+	stateAttestation := s.createStateAttestation(newHeight, newTimestamp)
+	signers := []int{0, 1, 2}
+	updateProof := s.createAttestationProof(stateAttestation, signers)
+
+	err = s.lightClientModule.VerifyClientMessage(ctx, clientID, updateProof)
+	s.Require().NoError(err)
+	_ = s.lightClientModule.UpdateState(ctx, clientID, updateProof)
+
+	pathBytes := bytes.Repeat([]byte{0x01}, 32)
+	nonZeroCommitment := bytes.Repeat([]byte{0x01}, 32)
+	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: pathBytes, Commitment: nonZeroCommitment}})
+	nonMembershipProof := s.createAttestationProof(packetAttestation, signers)
+	nonMembershipProofBz := s.marshalProof(nonMembershipProof)
+
+	proofHeight := clienttypes.NewHeight(0, newHeight)
+	err = s.lightClientModule.VerifyNonMembership(ctx, clientID, proofHeight, 0, 0, nonMembershipProofBz, bytePath(pathBytes))
+	s.Require().ErrorIs(err, attestations.ErrNonMembershipFailed)
+}
+
+func (s *AttestationsTestSuite) TestVerifyNonMembershipFailsPathNotFound() {
+	initialHeight := uint64(100)
+	initialTimestamp := uint64(time.Second.Nanoseconds())
+
+	clientState := s.createClientState(initialHeight)
+	consensusState := s.createConsensusState(initialTimestamp)
+
+	clientStateBz, err := s.chainA.App.AppCodec().Marshal(clientState)
+	s.Require().NoError(err)
+
+	consensusStateBz, err := s.chainA.App.AppCodec().Marshal(consensusState)
+	s.Require().NoError(err)
+
+	clientID := testClientID
+	ctx := s.chainA.GetContext()
+
+	err = s.lightClientModule.Initialize(ctx, clientID, clientStateBz, consensusStateBz)
+	s.Require().NoError(err)
+
+	newHeight := uint64(200)
+	newTimestamp := uint64(2 * time.Second.Nanoseconds())
+	stateAttestation := s.createStateAttestation(newHeight, newTimestamp)
+	signers := []int{0, 1, 2}
+	updateProof := s.createAttestationProof(stateAttestation, signers)
+
+	err = s.lightClientModule.VerifyClientMessage(ctx, clientID, updateProof)
+	s.Require().NoError(err)
+	_ = s.lightClientModule.UpdateState(ctx, clientID, updateProof)
+
+	pathBytes := bytes.Repeat([]byte{0x01}, 32)
+	zeroCommitment := make([]byte, 32)
+	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: pathBytes, Commitment: zeroCommitment}})
+	nonMembershipProof := s.createAttestationProof(packetAttestation, signers)
+	nonMembershipProofBz := s.marshalProof(nonMembershipProof)
+
+	proofHeight := clienttypes.NewHeight(0, newHeight)
+	// Verify for a different path than the one in the proof
+	otherPath := bytePath(bytes.Repeat([]byte{0x02}, 32))
+	err = s.lightClientModule.VerifyNonMembership(ctx, clientID, proofHeight, 0, 0, nonMembershipProofBz, otherPath)
+	s.Require().ErrorIs(err, attestations.ErrNotMember)
+}
+
+func (s *AttestationsTestSuite) TestVerifyNonMembershipFailsFrozenClient() {
+	initialHeight := uint64(100)
+	initialTimestamp := uint64(time.Second.Nanoseconds())
+
+	clientState := s.createClientState(initialHeight)
+	consensusState := s.createConsensusState(initialTimestamp)
+
+	clientStateBz, err := s.chainA.App.AppCodec().Marshal(clientState)
+	s.Require().NoError(err)
+
+	consensusStateBz, err := s.chainA.App.AppCodec().Marshal(consensusState)
+	s.Require().NoError(err)
+
+	clientID := testClientID
+	ctx := s.chainA.GetContext()
+
+	err = s.lightClientModule.Initialize(ctx, clientID, clientStateBz, consensusStateBz)
+	s.Require().NoError(err)
+
+	newHeight := uint64(200)
+	newTimestamp := uint64(2 * time.Second.Nanoseconds())
+	stateAttestation := s.createStateAttestation(newHeight, newTimestamp)
+	signers := []int{0, 1, 2}
+	updateProof := s.createAttestationProof(stateAttestation, signers)
+
+	err = s.lightClientModule.VerifyClientMessage(ctx, clientID, updateProof)
+	s.Require().NoError(err)
+	_ = s.lightClientModule.UpdateState(ctx, clientID, updateProof)
+
+	// Freeze the client
+	conflictingTimestamp := uint64(3 * time.Second.Nanoseconds())
+	conflictingData := s.createStateAttestation(newHeight, conflictingTimestamp)
+	conflictingProof := s.createAttestationProof(conflictingData, signers)
+
+	s.lightClientModule.UpdateStateOnMisbehaviour(ctx, clientID, conflictingProof)
+
+	pathBytes := bytes.Repeat([]byte{0x01}, 32)
+	zeroCommitment := make([]byte, 32)
+	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: pathBytes, Commitment: zeroCommitment}})
+	nonMembershipProof := s.createAttestationProof(packetAttestation, signers)
+	nonMembershipProofBz := s.marshalProof(nonMembershipProof)
+
+	proofHeight := clienttypes.NewHeight(0, newHeight)
+	err = s.lightClientModule.VerifyNonMembership(ctx, clientID, proofHeight, 0, 0, nonMembershipProofBz, bytePath(pathBytes))
+	s.Require().ErrorIs(err, attestations.ErrClientFrozen)
 }
 
 func (s *AttestationsTestSuite) TestRecoverClientNotSupported() {

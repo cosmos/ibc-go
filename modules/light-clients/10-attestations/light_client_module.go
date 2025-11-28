@@ -54,7 +54,7 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 	}
 
 	initialHeight := clienttypes.NewHeight(0, clientState.LatestHeight)
-	setConsensusState(ctx, clientStore, l.cdc, &consensusState, initialHeight)
+	setConsensusState(clientStore, l.cdc, &consensusState, initialHeight)
 	setClientState(clientStore, l.cdc, &clientState)
 
 	return nil
@@ -126,7 +126,7 @@ func (l LightClientModule) VerifyMembership(
 }
 
 // VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
-func (LightClientModule) VerifyNonMembership(
+func (l LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height,
@@ -135,7 +135,13 @@ func (LightClientModule) VerifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "verifyNonMembership is not supported")
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	clientState, found := getClientState(clientStore, l.cdc)
+	if !found {
+		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
+	}
+
+	return clientState.verifyNonMembership(clientStore, l.cdc, height, proof, path)
 }
 
 // Status returns the status of the attestations client.
