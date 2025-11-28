@@ -2,12 +2,11 @@ package attestations
 
 import (
 	"crypto/sha256"
-
-	errorsmod "cosmossdk.io/errors"
-
-	"github.com/cosmos/cosmos-sdk/codec"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/crypto"
+
+	errorsmod "cosmossdk.io/errors"
 )
 
 const (
@@ -17,9 +16,14 @@ const (
 
 // verifySignatures verifies that the attestation proof has valid signatures from unique attestors
 // meeting the quorum threshold. Signatures cover sha256(attestationData).
-func (cs *ClientState) verifySignatures(cdc codec.BinaryCodec, proof *AttestationProof) error {
+func (cs *ClientState) verifySignatures(proof *AttestationProof) error {
 	if len(proof.Signatures) == 0 {
 		return errorsmod.Wrap(ErrInvalidSignature, "signatures cannot be empty")
+	}
+
+	attestorSet := make(map[string]bool)
+	for _, addr := range cs.AttestorAddresses {
+		attestorSet[strings.ToLower(addr)] = true
 	}
 
 	hash := sha256.Sum256(proof.AttestationData)
@@ -37,22 +41,14 @@ func (cs *ClientState) verifySignatures(cdc codec.BinaryCodec, proof *Attestatio
 		}
 
 		recoveredAddr := crypto.PubkeyToAddress(*recoveredPubKey)
-		addrStr := recoveredAddr.Hex()
+		addrStr := strings.ToLower(recoveredAddr.Hex())
 
 		if seenSigners[addrStr] {
 			return errorsmod.Wrapf(ErrDuplicateSigner, "duplicate signer: %s", addrStr)
 		}
 		seenSigners[addrStr] = true
 
-		isAttestor := false
-		for _, attestorAddr := range cs.AttestorAddresses {
-			if attestorAddr == addrStr {
-				isAttestor = true
-				break
-			}
-		}
-
-		if !isAttestor {
+		if !attestorSet[addrStr] {
 			return errorsmod.Wrapf(ErrUnknownSigner, "signer %s is not in attestor set", addrStr)
 		}
 
@@ -65,4 +61,3 @@ func (cs *ClientState) verifySignatures(cdc codec.BinaryCodec, proof *Attestatio
 
 	return nil
 }
-

@@ -20,4 +20,3 @@ var (
 	ErrProcessedHeightNotFound = errorsmod.Register(ModuleName, 14, "processed height not found")
 	ErrDelayPeriodNotPassed    = errorsmod.Register(ModuleName, 15, "delay period has not been reached")
 )
-

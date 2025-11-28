@@ -7,5 +7,3 @@ Note that client identifiers are expected to be in the form: 10-attestations-{N}
 Client identifiers are generated and validated by core IBC, unexpected client identifiers will result in errors.
 */
 package attestations
-
-

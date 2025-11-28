@@ -85,5 +85,3 @@ func NewAppModule(lightClientModule LightClientModule) AppModule {
 		lightClientModule: lightClientModule,
 	}
 }
-
-

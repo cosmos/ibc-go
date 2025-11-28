@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"strings"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -51,10 +54,14 @@ func (cs ClientState) Validate() error {
 		if addr == "" {
 			return errorsmod.Wrap(clienttypes.ErrInvalidClient, "attestor address cannot be empty")
 		}
-		if seen[addr] {
+		if !common.IsHexAddress(addr) {
+			return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "invalid attestor address format: %s", addr)
+		}
+		normalizedAddr := strings.ToLower(addr)
+		if seen[normalizedAddr] {
 			return errorsmod.Wrap(clienttypes.ErrInvalidClient, "duplicate attestor address")
 		}
-		seen[addr] = true
+		seen[normalizedAddr] = true
 	}
 
 	if cs.LatestHeight == 0 {
@@ -70,12 +77,18 @@ func (cs *ClientState) verifyMembership(
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	height exported.Height,
+	delayTimePeriod uint64,
+	delayBlockPeriod uint64,
 	proof []byte,
 	path exported.Path,
 	value []byte,
 ) error {
 	if cs.IsFrozen {
 		return ErrClientFrozen
+	}
+
+	if err := verifyDelayPeriodPassed(ctx, clientStore, height, delayTimePeriod, delayBlockPeriod); err != nil {
+		return err
 	}
 
 	if path == nil || path.Empty() {
@@ -95,7 +108,7 @@ func (cs *ClientState) verifyMembership(
 		return errorsmod.Wrapf(ErrInvalidAttestationProof, "failed to unmarshal proof: %v", err)
 	}
 
-	if err := cs.verifySignatures(cdc, &attestationProof); err != nil {
+	if err := cs.verifySignatures(&attestationProof); err != nil {
 		return err
 	}
 
@@ -165,4 +178,40 @@ func normalizePathBytes(raw []byte) []byte {
 func setClientState(store storetypes.KVStore, cdc codec.BinaryCodec, clientState exported.ClientState) {
 	bz := clienttypes.MustMarshalClientState(cdc, clientState)
 	store.Set(host.ClientStateKey(), bz)
+}
+
+// verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
+// since consensus state was submitted before allowing verification to continue.
+func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHeight exported.Height, delayTimePeriod, delayBlockPeriod uint64) error {
+	if delayTimePeriod != 0 {
+		processedTime, ok := getProcessedTime(store, proofHeight)
+		if !ok {
+			return errorsmod.Wrapf(ErrProcessedTimeNotFound, "processed time not found for height: %s", proofHeight)
+		}
+
+		currentTimestamp := uint64(ctx.BlockTime().UnixNano())
+		validTime := processedTime + delayTimePeriod
+
+		if currentTimestamp < validTime {
+			return errorsmod.Wrapf(ErrDelayPeriodNotPassed, "cannot verify packet until time: %d, current time: %d",
+				validTime, currentTimestamp)
+		}
+	}
+
+	if delayBlockPeriod != 0 {
+		processedHeight, ok := getProcessedHeight(store, proofHeight)
+		if !ok {
+			return errorsmod.Wrapf(ErrProcessedHeightNotFound, "processed height not found for height: %s", proofHeight)
+		}
+
+		currentHeight := clienttypes.GetSelfHeight(ctx)
+		validHeight := clienttypes.NewHeight(processedHeight.GetRevisionNumber(), processedHeight.GetRevisionHeight()+delayBlockPeriod)
+
+		if currentHeight.LT(validHeight) {
+			return errorsmod.Wrapf(ErrDelayPeriodNotPassed, "cannot verify packet until height: %s, current height: %s",
+				validHeight, currentHeight)
+		}
+	}
+
+	return nil
 }

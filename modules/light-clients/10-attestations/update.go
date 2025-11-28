@@ -23,7 +23,7 @@ func (cs *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCode
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got type %T", (*AttestationProof)(nil), clientMsg)
 	}
 
-	return cs.verifySignatures(cdc, attestationProof)
+	return cs.verifySignatures(attestationProof)
 }
 
 // CheckForMisbehaviour checks for evidence of misbehaviour.

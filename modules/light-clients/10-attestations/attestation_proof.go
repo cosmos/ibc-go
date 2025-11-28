@@ -32,5 +32,3 @@ func (ap AttestationProof) ValidateBasic() error {
 
 	return nil
 }
-
-

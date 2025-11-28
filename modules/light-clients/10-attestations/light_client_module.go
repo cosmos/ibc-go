@@ -122,11 +122,11 @@ func (l LightClientModule) VerifyMembership(
 		return errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID)
 	}
 
-	return clientState.verifyMembership(ctx, clientStore, l.cdc, height, proof, path, value)
+	return clientState.verifyMembership(ctx, clientStore, l.cdc, height, delayTimePeriod, delayBlockPeriod, proof, path, value)
 }
 
 // VerifyNonMembership obtains the client state associated with the client identifier and calls into the clientState.verifyNonMembership method.
-func (l LightClientModule) VerifyNonMembership(
+func (LightClientModule) VerifyNonMembership(
 	ctx sdk.Context,
 	clientID string,
 	height exported.Height,
@@ -183,7 +183,7 @@ func (l LightClientModule) TimestampAtHeight(ctx sdk.Context, clientID string, h
 }
 
 // RecoverClient is not supported in this version.
-func (l LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
+func (LightClientModule) RecoverClient(ctx sdk.Context, clientID, substituteClientID string) error {
 	return errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "recoverClient is not supported")
 }
 

@@ -21,5 +21,3 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&AttestationProof{},
 	)
 }
-
-

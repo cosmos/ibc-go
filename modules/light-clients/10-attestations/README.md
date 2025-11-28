@@ -39,7 +39,7 @@ This document defines a minimal attestor‑based IBC light client suitable for i
 - `isFrozen: bool` — when true, all verification and updates MUST fail.
 
 #### Consensus State (per height)
-- `timestamp: uint64` — trusted UNIX timestamp (nanoseconds) for the height.
+- `timestamp: uint64` — trusted UNIX timestamp in nanoseconds for the height.
 - Stored in a map keyed by `height`; at least one initial `(height, timestamp)` pair MUST be present at instantiation.
 
 ### 3. Proof payloads
