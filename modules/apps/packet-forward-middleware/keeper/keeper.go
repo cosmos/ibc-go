@@ -287,8 +287,7 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 			"denom", token.Denom,
 			"error", err,
 		)
-		// TODO: Should probably have custom errors!
-		return errorsmod.Wrap(sdkerrors.ErrInsufficientFunds, err.Error())
+		return errorsmod.Wrap(types.ErrForwardTransferFailed, err.Error())
 	}
 
 	// Store the following information in keeper:
