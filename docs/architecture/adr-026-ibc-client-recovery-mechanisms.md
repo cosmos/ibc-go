@@ -18,16 +18,16 @@
 
 ### Summary
 
-At launch, IBC will be a novel protocol, without an experienced user-base. At the protocol layer, it is not possible to distinguish between client expiry or misbehaviour due to genuine faults (Byzantine behaviour) and client expiry or misbehaviour due to user mistakes (failing to update a client, or accidentally double-signing). In the base IBC protocol and ICS 20 fungible token transfer implementation, if a client can no longer be updated, funds in that channel will be permanently locked and can no longer be transferred. To the degree that it is safe to do so, it would be preferable to provide users with a recovery mechanism which can be utilised in these exceptional cases.
+At launch, IBC will be a novel protocol, without an experienced user-base. At the protocol layer, it is not possible to distinguish between client expiry or misbehaviour due to genuine faults (Byzantine behaviour) and client expiry or misbehaviour due to user mistakes (failing to update a client, or accidentally double-signing). In the base IBC protocol and ICS 20 fungible token transfer implementation, if a client can no longer be updated, funds in that channel will be permanently locked and can no longer be transferred. To the degree that it is safe to do so, it would be preferable to provide users with a recovery mechanism that can be utilised in these exceptional cases.
 
 ### Exceptional cases
 
 The state of concern is where a client associated with connection(s) and channel(s) can no longer be updated. This can happen for several reasons:
 
-1. The chain which the client is following has halted and is no longer producing blocks/headers, so no updates can be made to the client
-1. The chain which the client is following has continued to operate, but no relayer has submitted a new header within the unbonding period, and the client has expired
+1. The chain that the client is following has halted and is no longer producing blocks/headers, so no updates can be made to the client
+1. The chain that the client is following has continued to operate, but no relayer has submitted a new header within the unbonding period, and the client has expired
     1. This could be due to real misbehaviour (intentional Byzantine behaviour) or merely a mistake by validators, but the client cannot distinguish these two cases
-1. The chain which the client is following has experienced a misbehaviour event, and the client has been frozen & thus can no longer be updated
+1. The chain that the client is following has experienced a misbehaviour event, and the client has been frozen & thus can no longer be updated
 
 ### Security model
 
@@ -35,7 +35,7 @@ Two-thirds of the validator set (the quorum for governance, module participation
 
 ## Decision
 
-We elect not to deal with chains which have actually halted, which is necessarily Byzantine behaviour and in which case token recovery is not likely possible anyways (in-flight packets cannot be timed-out, but the relative impact of that is minor).
+We elect not to deal with chains that have actually halted, which is necessarily Byzantine behaviour and in which case token recovery is not likely possible anyway (in-flight packets cannot be timed out, but the relative impact of that is minor).
 
 1. Require Tendermint light clients (ICS 07) to be created with the following additional flags
     1. `allow_update_after_expiry` (boolean, default true). Note that this flag has been deprecated, it remains to signal intent but checks against this value will not be enforced.
@@ -70,7 +70,7 @@ This ADR does not address planned upgrades, which are handled separately as per 
 
 - Establishes a mechanism for client recovery in the case of expiry
 - Establishes a mechanism for client recovery in the case of misbehaviour
-- Constructing an ClientUpdate Proposal is as difficult as creating a new client
+- Constructing a ClientUpdate Proposal is as difficult as creating a new client
 
 ### Negative
 
