@@ -35,6 +35,7 @@ import (
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	attestationstypes "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
@@ -71,6 +72,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 	connectiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	ibctmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	attestationstypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	channeltypesv2.RegisterInterfaces(cfg.InterfaceRegistry)
 	packetforwardtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	ratelimitingtypes.RegisterInterfaces(cfg.InterfaceRegistry)

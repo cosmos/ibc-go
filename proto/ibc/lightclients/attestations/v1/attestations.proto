@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package ibc.lightclients.attestations.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations;attestations";
+
+import "gogoproto/gogo.proto";
+import "ibc/core/client/v1/client.proto";
+
+// ClientState defines an attestor-based light client that tracks the current
+// consensus state and if the client is frozen.
+message ClientState {
+  option (gogoproto.goproto_getters) = false;
+  // trusted attestor set (EOA addresses)
+  repeated string attestor_addresses = 1;
+  // quorum threshold (minimum number of unique attestor signatures required)
+  uint32 min_required_sigs = 2;
+  // highest height that has been trusted
+  uint64 latest_height = 3;
+  // when true, all verification and updates MUST fail
+  bool is_frozen = 4;
+}
+
+// ConsensusState defines an attestor consensus state. The timestamp of a
+// consensus state is stored per height.
+message ConsensusState {
+  option (gogoproto.goproto_getters) = false;
+  // trusted UNIX timestamp (nanoseconds) for the height
+  uint64 timestamp = 1;
+}
+
+// AttestationProof is used for client updates and membership verification.
+// All attestor signatures cover sha256(attestationData).
+message AttestationProof {
+  option (gogoproto.goproto_getters) = false;
+  // the attestation data that was signed
+  bytes attestation_data = 1;
+  // array of 65-byte ECDSA signatures (r||s||v)
+  repeated bytes signatures = 2;
+}
+
+// StateAttestation is used by client updates.
+message StateAttestation {
+  option (gogoproto.goproto_getters) = false;
+  // height of the consensus state
+  uint64 height = 1;
+  // timestamp of the consensus state in nanoseconds
+  uint64 timestamp = 2;
+}
+
+// PacketAttestation is used by membership queries.
+message PacketAttestation {
+  option (gogoproto.goproto_getters) = false;
+  // height of the consensus state
+  uint64 height = 1;
+  // list of packet commitments
+  repeated PacketCompact packets = 2 [(gogoproto.nullable) = false];
+}
+
+// PacketCompact represents a packet commitment.
+message PacketCompact {
+  option (gogoproto.goproto_getters) = false;
+  // path (32 bytes)
+  bytes path = 1;
+  // commitment (32 bytes)
+  bytes commitment = 2;
+}
