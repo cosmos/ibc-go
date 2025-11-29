@@ -252,3 +252,23 @@ func (s *AttestationsTestSuite) TestVerifyUpgradeAndUpdateStateNotSupported() {
 	s.Require().Error(err)
 	s.Require().ErrorContains(err, "cannot upgrade attestations client")
 }
+
+func (s *AttestationsTestSuite) TestMisbehaviourNotSupported() {
+	initialHeight := uint64(100)
+	initialTimestamp := uint64(time.Second.Nanoseconds())
+
+	ctx := s.chainA.GetContext()
+	s.initializeClient(ctx, testClientID, initialHeight, initialTimestamp)
+
+	stateAttestation := s.createStateAttestation(initialHeight+1, initialTimestamp+uint64(time.Second.Nanoseconds()))
+	signers := []int{0, 1, 2}
+	proof := s.createAttestationProof(stateAttestation, signers)
+
+	s.Require().Panics(func() {
+		_ = s.lightClientModule.CheckForMisbehaviour(ctx, testClientID, proof)
+	}, "CheckForMisbehaviour should panic")
+
+	s.Require().Panics(func() {
+		s.lightClientModule.UpdateStateOnMisbehaviour(ctx, testClientID, proof)
+	}, "UpdateStateOnMisbehaviour should panic")
+}

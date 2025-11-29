@@ -71,9 +71,9 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 	return clientState.VerifyClientMessage(ctx, l.cdc, clientStore, clientMsg)
 }
 
-// CheckForMisbehaviour returns false as misbehaviour detection is not supported.
+// CheckForMisbehaviour is not supported in this version.
 func (LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
-	return false
+	panic(errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "checkForMisbehaviour is not supported"))
 }
 
 // UpdateStateOnMisbehaviour is not supported in this version.
