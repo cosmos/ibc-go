@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
@@ -123,8 +124,17 @@ func (cs *ClientState) verifyMembership(
 		return err
 	}
 
+	// Normalize the value to 32 bytes (hash if necessary)
+	// This supports both packet commitments (already 32 bytes) and
+	// connection/channel state (serialized proto, needs hashing)
+	normalizedValue := value
+	if len(value) != 32 {
+		hash := sha256.Sum256(value)
+		normalizedValue = hash[:]
+	}
+
 	for _, packet := range packetAttestation.Packets {
-		if len(packet.Commitment) == 32 && len(value) == 32 && bytes.Equal(packet.Commitment, value) && bytes.Equal(packet.Path, commitmentPath) {
+		if len(packet.Commitment) == 32 && bytes.Equal(packet.Commitment, normalizedValue) && bytes.Equal(packet.Path, commitmentPath) {
 			return nil
 		}
 	}
@@ -179,13 +189,18 @@ func (cs *ClientState) verifyNonMembership(
 		return err
 	}
 
+	foundMatchingPath := false
 	for _, packet := range packetAttestation.Packets {
 		if bytes.Equal(packet.Path, commitmentPath) {
+			foundMatchingPath = true
 			if len(packet.Commitment) == 32 && bytes.Equal(packet.Commitment, zeroCommitment) {
 				return nil
 			}
-			return ErrNonMembershipFailed
 		}
+	}
+
+	if foundMatchingPath {
+		return ErrNonMembershipFailed
 	}
 
 	return ErrNotMember
@@ -193,6 +208,12 @@ func (cs *ClientState) verifyNonMembership(
 
 func canonicalizePath(path exported.Path) ([]byte, error) {
 	switch p := path.(type) {
+	case commitmenttypesv2.MerklePath:
+		flattened := bytes.Join(p.GetKeyPath(), []byte("/"))
+		return normalizePathBytes(flattened), nil
+	case *commitmenttypesv2.MerklePath:
+		flattened := bytes.Join(p.GetKeyPath(), []byte("/"))
+		return normalizePathBytes(flattened), nil
 	case interface{ GetKeyPath() [][]byte }:
 		flattened := bytes.Join(p.GetKeyPath(), []byte("/"))
 		return normalizePathBytes(flattened), nil

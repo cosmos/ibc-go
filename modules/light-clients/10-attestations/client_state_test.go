@@ -249,41 +249,56 @@ func (s *AttestationsTestSuite) TestVerifyNonMembership() {
 		name         string
 		freezeClient bool
 		pathToVerify []byte
-		attestedPath []byte
-		commitment   []byte
+		packets      []attestations.PacketCompact
 		expErr       error
 	}{
 		{
 			"success: zero commitment proves non-membership",
 			false,
 			bytes.Repeat([]byte{0x01}, 32),
-			bytes.Repeat([]byte{0x01}, 32),
-			make([]byte, 32),
+			[]attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)}},
 			nil,
 		},
 		{
 			"failure: non-zero commitment",
 			false,
 			bytes.Repeat([]byte{0x01}, 32),
-			bytes.Repeat([]byte{0x01}, 32),
-			bytes.Repeat([]byte{0x01}, 32),
+			[]attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)}},
 			attestations.ErrNonMembershipFailed,
 		},
 		{
 			"failure: path not found in attestation",
 			false,
 			bytes.Repeat([]byte{0x02}, 32),
-			bytes.Repeat([]byte{0x01}, 32),
-			make([]byte, 32),
+			[]attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)}},
 			attestations.ErrNotMember,
 		},
 		{
 			"failure: frozen client",
 			true,
 			bytes.Repeat([]byte{0x01}, 32),
-			bytes.Repeat([]byte{0x01}, 32),
-			make([]byte, 32),
+			[]attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)}},
 			attestations.ErrClientFrozen,
+		},
+		{
+			"success: multiple packets with same path, later has zero commitment",
+			false,
+			bytes.Repeat([]byte{0x01}, 32),
+			[]attestations.PacketCompact{
+				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)},
+				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)},
+			},
+			nil,
+		},
+		{
+			"failure: multiple packets with same path, all have non-zero commitments",
+			false,
+			bytes.Repeat([]byte{0x01}, 32),
+			[]attestations.PacketCompact{
+				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)},
+				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x02}, 32)},
+			},
+			attestations.ErrNonMembershipFailed,
 		},
 	}
 
@@ -312,7 +327,7 @@ func (s *AttestationsTestSuite) TestVerifyNonMembership() {
 				s.freezeClient(ctx, clientID)
 			}
 
-			packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: tc.attestedPath, Commitment: tc.commitment}})
+			packetAttestation := s.createPacketAttestation(newHeight, tc.packets)
 			nonMembershipProof := s.createAttestationProof(packetAttestation, signers)
 			nonMembershipProofBz := s.marshalProof(nonMembershipProof)
 
