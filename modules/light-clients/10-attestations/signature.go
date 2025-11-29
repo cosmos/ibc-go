@@ -40,6 +40,10 @@ func (cs *ClientState) verifySignatures(proof *AttestationProof) error {
 			return errorsmod.Wrapf(ErrInvalidSignature, "failed to recover public key from signature %d: %v", i, err)
 		}
 
+		if recoveredPubKey == nil {
+			return errorsmod.Wrapf(ErrInvalidSignature, "recovered public key is nil for signature %d", i)
+		}
+
 		recoveredAddr := crypto.PubkeyToAddress(*recoveredPubKey)
 		addrStr := strings.ToLower(recoveredAddr.Hex())
 

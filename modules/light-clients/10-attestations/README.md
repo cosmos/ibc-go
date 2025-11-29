@@ -2,30 +2,107 @@
 
 An attestor-based IBC light client that verifies state using quorum-signed ECDSA attestations from a fixed set of trusted signers.
 
+## Overview
+
+The attestations light client provides a trust model based on a quorum of trusted attestors rather than cryptographic verification of block headers. This design suits scenarios where a set of known, trusted parties can attest to the state of a counterparty chain.
+
 ## Trust Model
 
-- A fixed set of ECDSA attestors (EOA addresses) is configured at client creation
-- Updates require `minRequiredSigs` unique signatures from the attestor set
+- A fixed set of ECDSA attestors (Ethereum-style EOA addresses) is configured at client creation
+- Updates and proofs require `minRequiredSigs` unique valid signatures from the attestor set
+- Signatures are standard 65-byte ECDSA signatures (`r || s || v`) over `sha256(attestationData)`
+- Each signer can only sign once per proof (duplicates are rejected)
+- Only addresses in the attestor set are accepted (unknown signers are rejected)
 
 ## State
 
-**Client State**
-- `attestorAddresses` — trusted attestor set
-- `minRequiredSigs` — quorum threshold
-- `latestHeight` — highest trusted height
-- `isFrozen` — halts all operations when true
+### Client State
 
-**Consensus State** (per height)
-- `timestamp` — trusted UNIX timestamp in nanoseconds
+| Field               | Type       | Description                                       |
+|---------------------|------------|---------------------------------------------------|
+| `attestorAddresses` | `[]string` | Fixed set of trusted attestor EOA addresses       |
+| `minRequiredSigs`   | `uint32`   | Minimum unique signatures required (quorum)       |
+| `latestHeight`      | `uint64`   | Highest trusted height (revision number is 0)     |
+| `isFrozen`          | `bool`     | When true, all operations are halted              |
 
-## Proofs
+### Consensus State
 
-All proofs contain an `AttestationProof` with:
-- `attestationData` — the attested payload (encoded `StateAttestation` or `PacketAttestation`)
-- `signatures` — 65-byte ECDSA signatures over `sha256(attestationData)`
+Stored per height with the following field:
+
+| Field       | Type     | Description                          |
+|-------------|----------|--------------------------------------|
+| `timestamp` | `uint64` | Trusted UNIX timestamp (nanoseconds) |
+
+## Client Updates
+
+Client updates use `AttestationProof` as the client message, containing a signed `StateAttestation`:
+
+```protobuf
+message StateAttestation {
+  uint64 height = 1;    // consensus state height
+  uint64 timestamp = 2; // timestamp in nanoseconds
+}
+```
+
+When a valid update is received:
+1. Signatures are verified against the attestor set
+2. A new consensus state is created at the specified height
+3. `latestHeight` is updated if the new height exceeds it
+
+Updates can set consensus states for heights lower than or equal to `latestHeight`, enabling flexible state attestation.
+
+## Proof Verification
+
+Both membership and non-membership proofs use `AttestationProof` containing a signed `PacketAttestation`:
+
+```protobuf
+message PacketAttestation {
+  uint64 height = 1;
+  repeated PacketCompact packets = 2;
+}
+
+message PacketCompact {
+  bytes path = 1;       // sha256-hashed path (32 bytes)
+  bytes commitment = 2; // commitment value (32 bytes)
+}
+```
+
+### Membership Verification
+
+Verifies that a value exists at a given path:
+1. Validates the proof has sufficient valid signatures
+2. Confirms a consensus state exists for the claimed height
+3. Matches the path and commitment in the attested packets
+4. Values longer than 32 bytes are sha256-hashed before comparison
+
+### Non-Membership Verification
+
+Verifies that a path has no value (was deleted or never existed):
+1. Validates the proof has sufficient valid signatures
+2. Confirms a consensus state exists for the claimed height
+3. Finds the path in attested packets with a zero commitment (32 zero bytes)
+
+## Signature Verification
+
+The signature verification process:
+1. Computes `sha256(attestationData)` as the message hash
+2. Recovers the signer address from each 65-byte ECDSA signature
+3. Verifies each signer is in the attestor set
+4. Ensures no duplicate signers
+5. Confirms the quorum threshold (`minRequiredSigs`) is met
+
+## Client Status
+
+| Status    | Condition                         |
+|-----------|-----------------------------------|
+| `Active`  | `isFrozen` is false               |
+| `Frozen`  | `isFrozen` is true                |
+| `Unknown` | Client state not found            |
 
 ## Limitations
 
-- No client recovery supported
-- No client upgrades supported
-- No attestor updates or rotation supported
+- **No client recovery**: `RecoverClient` is not supported
+- **No client upgrades**: `VerifyUpgradeAndUpdateState` returns an error
+- **No attestor rotation**: The attestor set is fixed at client creation
+- **No misbehaviour handling**: `CheckForMisbehaviour` and `UpdateStateOnMisbehaviour` are not implemented
+- **Revision number is always 0**: Heights use only the revision height component

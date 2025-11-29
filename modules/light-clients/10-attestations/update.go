@@ -1,6 +1,8 @@
 package attestations
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 
@@ -26,70 +28,21 @@ func (cs *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCode
 	return cs.verifySignatures(attestationProof)
 }
 
-// CheckForMisbehaviour checks for evidence of misbehaviour.
-// For attestations client, misbehaviour is detected when a consensus state already exists
-// for a height but with a different timestamp.
-func (cs *ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) bool {
-	if cs.IsFrozen {
-		return false
-	}
-
-	attestationProof, ok := clientMsg.(*AttestationProof)
-	if !ok {
-		return false
-	}
-
-	var stateAttestation StateAttestation
-	if err := cdc.Unmarshal(attestationProof.AttestationData, &stateAttestation); err != nil {
-		return false
-	}
-
-	if stateAttestation.Height == 0 || stateAttestation.Timestamp == 0 {
-		return false
-	}
-
-	height := clienttypes.NewHeight(0, stateAttestation.Height)
-	existingConsensusState, found := getConsensusState(clientStore, cdc, height)
-	if found && existingConsensusState.Timestamp != stateAttestation.Timestamp {
-		return true
-	}
-
-	return false
-}
-
 // UpdateState updates the consensus state to a new height and timestamp.
 // A list containing the updated consensus height is returned.
+// Since client message is validated in VerifyClientMessage, we don't validate much here, and panics on anything unexpected.
 func (cs *ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clientStore storetypes.KVStore, clientMsg exported.ClientMessage) []exported.Height {
-	if cs.IsFrozen {
-		return []exported.Height{}
-	}
-
 	attestationProof, ok := clientMsg.(*AttestationProof)
 	if !ok {
-		return []exported.Height{}
+		panic(fmt.Sprintf("expected type %T, got type %T", (*AttestationProof)(nil), clientMsg))
 	}
 
 	var stateAttestation StateAttestation
 	if err := cdc.Unmarshal(attestationProof.AttestationData, &stateAttestation); err != nil {
-		return []exported.Height{}
-	}
-
-	if stateAttestation.Height == 0 || stateAttestation.Timestamp == 0 {
-		return []exported.Height{}
+		panic(fmt.Sprintf("failed to unmarshal attestation data: %v", err))
 	}
 
 	height := clienttypes.NewHeight(0, stateAttestation.Height)
-
-	existingConsensusState, found := getConsensusState(clientStore, cdc, height)
-	if found {
-		if existingConsensusState.Timestamp != stateAttestation.Timestamp {
-			cs.IsFrozen = true
-			setClientState(clientStore, cdc, cs)
-			return []exported.Height{}
-		}
-		return []exported.Height{height}
-	}
-
 	consensusState := &ConsensusState{
 		Timestamp: stateAttestation.Timestamp,
 	}

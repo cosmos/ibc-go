@@ -92,49 +92,6 @@ func (s *AttestationsTestSuite) TestUpdateStateIdempotency() {
 	s.Require().Equal(exported.Active, status)
 }
 
-func (s *AttestationsTestSuite) TestUpdateStateFreezesOnConflict() {
-	initialHeight := uint64(100)
-	initialTimestamp := uint64(time.Second.Nanoseconds())
-	clientID := testClientID
-	ctx := s.chainA.GetContext()
-
-	s.initializeClient(ctx, clientID, initialHeight, initialTimestamp)
-
-	newHeight := uint64(200)
-	newTimestamp := uint64(2 * time.Second.Nanoseconds())
-	attestationData := s.createStateAttestation(newHeight, newTimestamp)
-	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(attestationData, signers)
-
-	err := s.lightClientModule.VerifyClientMessage(ctx, clientID, proof)
-	s.Require().NoError(err)
-
-	heights := s.lightClientModule.UpdateState(ctx, clientID, proof)
-	s.Require().Len(heights, 1)
-	s.Require().Equal(newHeight, heights[0].GetRevisionHeight())
-
-	conflictingTimestamp := uint64(3 * time.Second.Nanoseconds())
-	conflictingData := s.createStateAttestation(newHeight, conflictingTimestamp)
-	conflictingProof := s.createAttestationProof(conflictingData, signers)
-
-	err = s.lightClientModule.VerifyClientMessage(ctx, clientID, conflictingProof)
-	s.Require().NoError(err)
-
-	heights = s.lightClientModule.UpdateState(ctx, clientID, conflictingProof)
-	s.Require().Empty(heights)
-
-	status := s.lightClientModule.Status(ctx, clientID)
-	s.Require().Equal(exported.Frozen, status)
-
-	newerHeight := uint64(300)
-	newerTimestamp := uint64(4 * time.Second.Nanoseconds())
-	newerData := s.createStateAttestation(newerHeight, newerTimestamp)
-	newerProof := s.createAttestationProof(newerData, signers)
-
-	err = s.lightClientModule.VerifyClientMessage(ctx, clientID, newerProof)
-	s.Require().ErrorIs(err, attestations.ErrClientFrozen)
-}
-
 func (s *AttestationsTestSuite) TestVerifyClientMessageFrozenClient() {
 	initialHeight := uint64(100)
 	initialTimestamp := uint64(time.Second.Nanoseconds())

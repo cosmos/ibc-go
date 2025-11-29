@@ -253,7 +253,7 @@ func (s *AttestationsTestSuite) TestVerifyUpgradeAndUpdateStateNotSupported() {
 	s.Require().ErrorContains(err, "cannot upgrade attestations client")
 }
 
-func (s *AttestationsTestSuite) TestMisbehaviourNotSupported() {
+func (s *AttestationsTestSuite) TestCheckForMisbehaviourReturnsFalse() {
 	initialHeight := uint64(100)
 	initialTimestamp := uint64(time.Second.Nanoseconds())
 
@@ -264,11 +264,6 @@ func (s *AttestationsTestSuite) TestMisbehaviourNotSupported() {
 	signers := []int{0, 1, 2}
 	proof := s.createAttestationProof(stateAttestation, signers)
 
-	s.Require().Panics(func() {
-		_ = s.lightClientModule.CheckForMisbehaviour(ctx, testClientID, proof)
-	}, "CheckForMisbehaviour should panic")
-
-	s.Require().Panics(func() {
-		s.lightClientModule.UpdateStateOnMisbehaviour(ctx, testClientID, proof)
-	}, "UpdateStateOnMisbehaviour should panic")
+	foundMisbehaviour := s.lightClientModule.CheckForMisbehaviour(ctx, testClientID, proof)
+	s.Require().False(foundMisbehaviour, "CheckForMisbehaviour should return false")
 }
