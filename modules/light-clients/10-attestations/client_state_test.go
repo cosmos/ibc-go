@@ -281,11 +281,11 @@ func (s *AttestationsTestSuite) TestVerifyNonMembership() {
 			attestations.ErrClientFrozen,
 		},
 		{
-			"success: multiple packets with same path, later has zero commitment",
+			"success: multiple packets with same path, all have zero commitments",
 			false,
 			bytes.Repeat([]byte{0x01}, 32),
 			[]attestations.PacketCompact{
-				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)},
+				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)},
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)},
 			},
 			nil,
@@ -297,6 +297,26 @@ func (s *AttestationsTestSuite) TestVerifyNonMembership() {
 			[]attestations.PacketCompact{
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)},
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x02}, 32)},
+			},
+			attestations.ErrNonMembershipFailed,
+		},
+		{
+			"failure: multiple packets with same path, zero commitment first but non-zero later",
+			false,
+			bytes.Repeat([]byte{0x01}, 32),
+			[]attestations.PacketCompact{
+				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)},
+				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)},
+			},
+			attestations.ErrNonMembershipFailed,
+		},
+		{
+			"failure: multiple packets with same path, non-zero commitment first then zero",
+			false,
+			bytes.Repeat([]byte{0x01}, 32),
+			[]attestations.PacketCompact{
+				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)},
+				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)},
 			},
 			attestations.ErrNonMembershipFailed,
 		},

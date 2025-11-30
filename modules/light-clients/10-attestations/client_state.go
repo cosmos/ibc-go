@@ -190,20 +190,25 @@ func (cs *ClientState) verifyNonMembership(
 	}
 
 	foundMatchingPath := false
+	allZeroCommitments := true
 	for _, packet := range packetAttestation.Packets {
 		if bytes.Equal(packet.Path, commitmentPath) {
 			foundMatchingPath = true
-			if len(packet.Commitment) == 32 && bytes.Equal(packet.Commitment, zeroCommitment) {
-				return nil
+			if len(packet.Commitment) != 32 || !bytes.Equal(packet.Commitment, zeroCommitment) {
+				allZeroCommitments = false
 			}
 		}
 	}
 
-	if foundMatchingPath {
+	if !foundMatchingPath {
+		return ErrNotMember
+	}
+
+	if !allZeroCommitments {
 		return ErrNonMembershipFailed
 	}
 
-	return ErrNotMember
+	return nil
 }
 
 func canonicalizePath(path exported.Path) ([]byte, error) {
