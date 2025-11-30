@@ -89,7 +89,7 @@ All paths and values are normalized to 32 bytes using `keccak256` hashing:
 
 This ensures consistent verification across implementations (ibc-go, Solidity, CosmWasm).
 
-**Note**: The `keccak256` function is used (matching the Solidity implementation) for cross-platform compatibility.
+**Note**: The `keccak256` function is used for compatibility with EVM-based light clients and the `ibc-attestor` infrastructure, which use keccak256 for path hashing.
 
 ### Membership Verification
 
