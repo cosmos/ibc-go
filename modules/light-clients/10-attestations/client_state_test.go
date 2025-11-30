@@ -2,10 +2,11 @@ package attestations_test
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/hex"
 	"strings"
 	"time"
+
+	"github.com/ethereum/go-ethereum/crypto"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations"
@@ -225,8 +226,7 @@ func (s *AttestationsTestSuite) TestVerifyMembershipWithKeyPath() {
 
 	path := mockPath{}
 	pathBytes := []byte("key/path")
-	hashedPathArr := sha256.Sum256(pathBytes)
-	hashedPath := hashedPathArr[:]
+	hashedPath := crypto.Keccak256(pathBytes)
 
 	value32 := make([]byte, 32)
 	copy(value32, []byte("value"))
@@ -391,17 +391,17 @@ func (s *AttestationsTestSuite) TestPathHashingTestVectors() {
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			pathBytes := []byte(tc.path)
-			computedHash := sha256.Sum256(pathBytes)
-			computedHashHex := hex.EncodeToString(computedHash[:])
+			computedHash := crypto.Keccak256(pathBytes)
+			computedHashHex := hex.EncodeToString(computedHash)
 
-			s.T().Logf("Path: %q -> SHA256: %s", tc.path, computedHashHex)
+			s.T().Logf("Path: %q -> Keccak256: %s", tc.path, computedHashHex)
 
-			s.Require().Len(computedHash[:], 32, "SHA256 hash should be 32 bytes")
+			s.Require().Len(computedHash, 32, "Keccak256 hash should be 32 bytes")
 		})
 	}
 }
 
-func (s *AttestationsTestSuite) TestVerifyMembershipWithSHA256HashedPath() {
+func (s *AttestationsTestSuite) TestVerifyMembershipWithKeccak256HashedPath() {
 	initialHeight := uint64(100)
 	initialTimestamp := uint64(time.Second.Nanoseconds())
 	clientID := testClientID
@@ -411,12 +411,10 @@ func (s *AttestationsTestSuite) TestVerifyMembershipWithSHA256HashedPath() {
 
 	pathStr := "ibc/channel-0/packets/1"
 	pathBytes := []byte(pathStr)
-	hashedPathArr := sha256.Sum256(pathBytes)
-	hashedPath := hashedPathArr[:]
+	hashedPath := crypto.Keccak256(pathBytes)
 
 	commitment := []byte("test-commitment-value")
-	hashedCommitmentArr := sha256.Sum256(commitment)
-	hashedCommitment := hashedCommitmentArr[:]
+	hashedCommitment := crypto.Keccak256(commitment)
 
 	newHeight := uint64(200)
 	newTimestamp := uint64(2 * time.Second.Nanoseconds())

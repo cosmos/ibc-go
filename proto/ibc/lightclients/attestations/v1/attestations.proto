@@ -33,35 +33,8 @@ message ConsensusState {
 // All attestor signatures cover sha256(attestationData).
 message AttestationProof {
   option (gogoproto.goproto_getters) = false;
-  // the attestation data that was signed
+  // the attestation data that was signed (ABI-encoded StateAttestation or PacketAttestation)
   bytes attestation_data = 1;
   // array of 65-byte ECDSA signatures (r||s||v)
   repeated bytes signatures = 2;
-}
-
-// StateAttestation is used by client updates.
-message StateAttestation {
-  option (gogoproto.goproto_getters) = false;
-  // height of the consensus state
-  uint64 height = 1;
-  // timestamp of the consensus state in nanoseconds
-  uint64 timestamp = 2;
-}
-
-// PacketAttestation is used by membership queries.
-message PacketAttestation {
-  option (gogoproto.goproto_getters) = false;
-  // height of the consensus state
-  uint64 height = 1;
-  // list of packet commitments
-  repeated PacketCompact packets = 2 [(gogoproto.nullable) = false];
-}
-
-// PacketCompact represents a packet commitment.
-message PacketCompact {
-  option (gogoproto.goproto_getters) = false;
-  // path (32 bytes)
-  bytes path = 1;
-  // commitment (32 bytes)
-  bytes commitment = 2;
 }

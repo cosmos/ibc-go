@@ -70,7 +70,7 @@ Both membership and non-membership proofs use `AttestationProof` containing an A
 ```solidity
 // ABI-encoded PacketAttestation
 struct PacketCompact {
-    bytes32 path;       // sha256-hashed path
+    bytes32 path;       // keccak256-hashed path
     bytes32 commitment; // commitment value
 }
 
@@ -83,13 +83,13 @@ struct PacketAttestation {
 
 ### Path and Value Normalization
 
-All paths and values are normalized to 32 bytes using `sha256` hashing:
+All paths and values are normalized to 32 bytes using `keccak256` hashing:
 - If already 32 bytes: used as-is (assumed pre-hashed)
-- Otherwise: `sha256(data)` is computed
+- Otherwise: `keccak256(data)` is computed
 
 This ensures consistent verification across implementations (ibc-go, Solidity, CosmWasm).
 
-**Note**: The `sha256` function is used (not `keccak256`) for cross-platform compatibility and consistency with signature verification.
+**Note**: The `keccak256` function is used (matching the Solidity implementation) for cross-platform compatibility.
 
 ### Membership Verification
 
@@ -97,8 +97,8 @@ Verifies that a value exists at a given path:
 1. Validates the proof has sufficient valid signatures
 2. Confirms a consensus state exists for the claimed height
 3. Matches the path and commitment in the attested packets
-4. Paths are sha256-hashed if not already 32 bytes
-5. Values longer than 32 bytes are sha256-hashed before comparison
+4. Paths are keccak256-hashed if not already 32 bytes
+5. Values longer than 32 bytes are keccak256-hashed before comparison
 
 ### Non-Membership Verification
 

@@ -38,9 +38,31 @@ var (
 	}
 )
 
+// ABIPacketCompact is the ABI-compatible representation with fixed-size arrays.
 type ABIPacketCompact struct {
 	Path       [32]byte
 	Commitment [32]byte
+}
+
+// StateAttestation is used by client updates.
+// This type uses ABI encoding (not Protobuf) for cross-platform compatibility.
+type StateAttestation struct {
+	Height    uint64
+	Timestamp uint64
+}
+
+// PacketAttestation is used by membership queries.
+// This type uses ABI encoding (not Protobuf) for cross-platform compatibility.
+type PacketAttestation struct {
+	Height  uint64
+	Packets []PacketCompact
+}
+
+// PacketCompact represents a packet commitment.
+// This type uses ABI encoding (not Protobuf) for cross-platform compatibility.
+type PacketCompact struct {
+	Path       []byte
+	Commitment []byte
 }
 
 func ABIEncodeStateAttestation(sa *StateAttestation) ([]byte, error) {
