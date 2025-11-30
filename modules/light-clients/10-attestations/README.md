@@ -59,7 +59,7 @@ When a valid update is received:
 2. A new consensus state is created at the specified height
 3. `latestHeight` is updated if the new height exceeds it
 
-Updates can set consensus states for heights lower than or equal to `latestHeight`, enabling flexible state attestation.
+Updates can also set consensus states for heights lower than or equal to `latestHeight`, enabling flexible state attestation.
 
 **Note**: Timestamps in ABI encoding use seconds for compatibility with Solidity. They are converted to nanoseconds internally.
 
