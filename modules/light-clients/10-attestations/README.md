@@ -6,11 +6,19 @@ An attestor-based IBC light client that verifies state using quorum-signed ECDSA
 
 The attestations light client provides a trust model based on a quorum of trusted attestors rather than cryptographic verification of block headers. This design suits scenarios where a set of known, trusted parties can attest to the state of a counterparty chain.
 
+## Wire Compatibility
+
+The attestation data format is ABI-encoded for wire compatibility with:
+- Solidity attestor light client (`solidity-ibc-eureka`)
+- CosmWasm attestor light client (`cw-ics08-wasm-attestor`)
+
+This allows the same attestor infrastructure to generate proofs that work across all three platforms (Cosmos SDK, EVM, CosmWasm).
+
 ## Trust Model
 
 - A fixed set of ECDSA attestors (Ethereum-style EOA addresses) is configured at client creation
 - Updates and proofs require `minRequiredSigs` unique valid signatures from the attestor set
-- Signatures are standard 65-byte ECDSA signatures (`r || s || v`) over `sha256(attestationData)`
+- Signatures are standard 65-byte ECDSA signatures (`r || s || v`) over `sha256(abiEncodedAttestationData)`
 - Each signer can only sign once per proof (duplicates are rejected)
 - Only addresses in the attestor set are accepted (unknown signers are rejected)
 
@@ -29,19 +37,21 @@ The attestations light client provides a trust model based on a quorum of truste
 
 Stored per height with the following field:
 
-| Field       | Type     | Description                          |
-|-------------|----------|--------------------------------------|
-| `timestamp` | `uint64` | Trusted UNIX timestamp (nanoseconds) |
+| Field       | Type     | Description                                                   |
+|-------------|----------|---------------------------------------------------------------|
+| `timestamp` | `uint64` | Trusted UNIX timestamp (stored in nanoseconds internally)     |
 
 ## Client Updates
 
-Client updates use `AttestationProof` as the client message, containing a signed `StateAttestation`:
+Client updates use `AttestationProof` as the client message, containing an ABI-encoded `StateAttestation`:
 
-```protobuf
-message StateAttestation {
-  uint64 height = 1;    // consensus state height
-  uint64 timestamp = 2; // timestamp in nanoseconds
+```solidity
+// ABI-encoded StateAttestation
+struct StateAttestation {
+    uint64 height;     // consensus state height
+    uint64 timestamp;  // timestamp in seconds
 }
+// Encoding: abi.encode(height, timestamp) = 64 bytes (two padded uint64s)
 ```
 
 When a valid update is received:
@@ -51,20 +61,24 @@ When a valid update is received:
 
 Updates can set consensus states for heights lower than or equal to `latestHeight`, enabling flexible state attestation.
 
+**Note**: Timestamps in ABI encoding use seconds for compatibility with Solidity. They are converted to nanoseconds internally.
+
 ## Proof Verification
 
-Both membership and non-membership proofs use `AttestationProof` containing a signed `PacketAttestation`:
+Both membership and non-membership proofs use `AttestationProof` containing an ABI-encoded `PacketAttestation`:
 
-```protobuf
-message PacketAttestation {
-  uint64 height = 1;
-  repeated PacketCompact packets = 2;
+```solidity
+// ABI-encoded PacketAttestation
+struct PacketCompact {
+    bytes32 path;       // keccak256-hashed path
+    bytes32 commitment; // commitment value
 }
 
-message PacketCompact {
-  bytes path = 1;       // sha256-hashed path (32 bytes)
-  bytes commitment = 2; // commitment value (32 bytes)
+struct PacketAttestation {
+    uint64 height;
+    PacketCompact[] packets;
 }
+// Encoding: abi.encode(height, packets) with dynamic array
 ```
 
 ### Membership Verification
@@ -73,7 +87,8 @@ Verifies that a value exists at a given path:
 1. Validates the proof has sufficient valid signatures
 2. Confirms a consensus state exists for the claimed height
 3. Matches the path and commitment in the attested packets
-4. Values longer than 32 bytes are sha256-hashed before comparison
+4. Paths are keccak256-hashed if not already 32 bytes
+5. Values longer than 32 bytes are keccak256-hashed before comparison
 
 ### Non-Membership Verification
 
@@ -85,7 +100,7 @@ Verifies that a path has no value (was deleted or never existed):
 ## Signature Verification
 
 The signature verification process:
-1. Computes `sha256(attestationData)` as the message hash
+1. Computes `sha256(abiEncodedAttestationData)` as the message hash
 2. Recovers the signer address from each 65-byte ECDSA signature
 3. Verifies each signer is in the attestor set
 4. Ensures no duplicate signers
@@ -106,3 +121,4 @@ The signature verification process:
 - **No attestor rotation**: The attestor set is fixed at client creation
 - **No misbehaviour handling**: `CheckForMisbehaviour` and `UpdateStateOnMisbehaviour` are not implemented
 - **Revision number is always 0**: Heights use only the revision height component
+- **ABI encoding required**: Attestation data must be ABI-encoded (not Protobuf)

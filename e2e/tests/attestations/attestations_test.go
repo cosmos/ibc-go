@@ -81,7 +81,7 @@ func (s *AttestationsTestSuite) createPacketAttestationProof(height uint64, path
 			},
 		},
 	}
-	attestationData, err := proto.Marshal(packetAttestation)
+	attestationData, err := attestations.ABIEncodePacketAttestation(packetAttestation)
 	s.Require().NoError(err)
 
 	signatures := s.signAttestationData(attestationData)
@@ -105,7 +105,7 @@ func (s *AttestationsTestSuite) createNonMembershipProof(height uint64, path []b
 			},
 		},
 	}
-	attestationData, err := proto.Marshal(packetAttestation)
+	attestationData, err := attestations.ABIEncodePacketAttestation(packetAttestation)
 	s.Require().NoError(err)
 
 	signatures := s.signAttestationData(attestationData)
@@ -119,8 +119,7 @@ func (s *AttestationsTestSuite) createNonMembershipProof(height uint64, path []b
 }
 
 func (*AttestationsTestSuite) hashPath(path []byte) []byte {
-	hash := sha256.Sum256(path)
-	return hash[:]
+	return crypto.Keccak256(path)
 }
 
 func (s *AttestationsTestSuite) prefixedPath(key []byte) []byte {
@@ -232,9 +231,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 		)
 		connEndBz, err := cfg.Codec.Marshal(&connEnd)
 		s.Require().NoError(err)
-		connHash := sha256.Sum256(connEndBz)
+		connHash := crypto.Keccak256(connEndBz)
 
-		proofInit := s.createPacketAttestationProof(proofHeight, connPath, connHash[:])
+		proofInit := s.createPacketAttestationProof(proofHeight, connPath, connHash)
 
 		msgConnOpenTry := connectiontypes.NewMsgConnectionOpenTry(
 			clientIDB,
@@ -268,9 +267,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 		)
 		connEndBz, err := cfg.Codec.Marshal(&connEnd)
 		s.Require().NoError(err)
-		connHash := sha256.Sum256(connEndBz)
+		connHash := crypto.Keccak256(connEndBz)
 
-		proofTry := s.createPacketAttestationProof(proofHeight, connPath, connHash[:])
+		proofTry := s.createPacketAttestationProof(proofHeight, connPath, connHash)
 
 		msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
 			connectionIDA,
@@ -298,9 +297,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 		)
 		connEndBz, err := cfg.Codec.Marshal(&connEnd)
 		s.Require().NoError(err)
-		connHash := sha256.Sum256(connEndBz)
+		connHash := crypto.Keccak256(connEndBz)
 
-		proofAck := s.createPacketAttestationProof(proofHeight, connPath, connHash[:])
+		proofAck := s.createPacketAttestationProof(proofHeight, connPath, connHash)
 
 		msgConnOpenConfirm := connectiontypes.NewMsgConnectionOpenConfirm(
 			connectionIDB,
@@ -343,9 +342,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 		)
 		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
 		s.Require().NoError(err)
-		chanHash := sha256.Sum256(chanEndBz)
+		chanHash := crypto.Keccak256(chanEndBz)
 
-		proofInit := s.createPacketAttestationProof(proofHeight, chanPath, chanHash[:])
+		proofInit := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
 
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			transfertypes.PortID, channelVersion,
@@ -374,9 +373,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 		)
 		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
 		s.Require().NoError(err)
-		chanHash := sha256.Sum256(chanEndBz)
+		chanHash := crypto.Keccak256(chanEndBz)
 
-		proofTry := s.createPacketAttestationProof(proofHeight, chanPath, chanHash[:])
+		proofTry := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
 
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			transfertypes.PortID, channelIDA,
@@ -401,9 +400,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 		)
 		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
 		s.Require().NoError(err)
-		chanHash := sha256.Sum256(chanEndBz)
+		chanHash := crypto.Keccak256(chanEndBz)
 
-		proofAck := s.createPacketAttestationProof(proofHeight, chanPath, chanHash[:])
+		proofAck := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
 
 		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
 			transfertypes.PortID, channelIDB,
@@ -639,9 +638,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 		)
 		connEndBz, err := cfg.Codec.Marshal(&connEnd)
 		s.Require().NoError(err)
-		connHash := sha256.Sum256(connEndBz)
+		connHash := crypto.Keccak256(connEndBz)
 
-		proofInit := s.createPacketAttestationProof(proofHeight, connPath, connHash[:])
+		proofInit := s.createPacketAttestationProof(proofHeight, connPath, connHash)
 
 		msgConnOpenTry := connectiontypes.NewMsgConnectionOpenTry(
 			clientIDB,
@@ -674,9 +673,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 		)
 		connEndBz, err := cfg.Codec.Marshal(&connEnd)
 		s.Require().NoError(err)
-		connHash := sha256.Sum256(connEndBz)
+		connHash := crypto.Keccak256(connEndBz)
 
-		proofTry := s.createPacketAttestationProof(proofHeight, connPath, connHash[:])
+		proofTry := s.createPacketAttestationProof(proofHeight, connPath, connHash)
 
 		msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
 			connectionIDA,
@@ -703,9 +702,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 		)
 		connEndBz, err := cfg.Codec.Marshal(&connEnd)
 		s.Require().NoError(err)
-		connHash := sha256.Sum256(connEndBz)
+		connHash := crypto.Keccak256(connEndBz)
 
-		proofAck := s.createPacketAttestationProof(proofHeight, connPath, connHash[:])
+		proofAck := s.createPacketAttestationProof(proofHeight, connPath, connHash)
 
 		msgConnOpenConfirm := connectiontypes.NewMsgConnectionOpenConfirm(
 			connectionIDB,
@@ -746,9 +745,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 		)
 		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
 		s.Require().NoError(err)
-		chanHash := sha256.Sum256(chanEndBz)
+		chanHash := crypto.Keccak256(chanEndBz)
 
-		proofInit := s.createPacketAttestationProof(proofHeight, chanPath, chanHash[:])
+		proofInit := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
 
 		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
 			transfertypes.PortID, channelVersion,
@@ -776,9 +775,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 		)
 		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
 		s.Require().NoError(err)
-		chanHash := sha256.Sum256(chanEndBz)
+		chanHash := crypto.Keccak256(chanEndBz)
 
-		proofTry := s.createPacketAttestationProof(proofHeight, chanPath, chanHash[:])
+		proofTry := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
 
 		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
 			transfertypes.PortID, channelIDA,
@@ -802,9 +801,9 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 		)
 		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
 		s.Require().NoError(err)
-		chanHash := sha256.Sum256(chanEndBz)
+		chanHash := crypto.Keccak256(chanEndBz)
 
-		proofAck := s.createPacketAttestationProof(proofHeight, chanPath, chanHash[:])
+		proofAck := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
 
 		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
 			transfertypes.PortID, channelIDB,
@@ -841,13 +840,14 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 
 	t.Run("timeout packet with attestation proof (non-membership)", func(t *testing.T) {
 		// Update client with timestamp after packet timeout
+		// Note: ABI encoding uses seconds, but we store nanoseconds internally
 		newTimestamp := uint64(time.Now().UnixNano())
 		proofHeight++
 		stateAttestation := &attestations.StateAttestation{
 			Height:    proofHeight,
 			Timestamp: newTimestamp,
 		}
-		stateAttestationData, err := proto.Marshal(stateAttestation)
+		stateAttestationData, err := attestations.ABIEncodeStateAttestation(stateAttestation)
 		s.Require().NoError(err)
 
 		signatures := s.signAttestationData(stateAttestationData)

@@ -86,8 +86,7 @@ func (s *AttestationsTestSuite) createStateAttestation(height, timestamp uint64)
 		Height:    height,
 		Timestamp: timestamp,
 	}
-	cdc := s.chainA.App.AppCodec()
-	data, err := cdc.Marshal(&stateAttestation)
+	data, err := attestations.ABIEncodeStateAttestation(&stateAttestation)
 	s.Require().NoError(err)
 	return data
 }
@@ -98,8 +97,7 @@ func (s *AttestationsTestSuite) createPacketAttestation(height uint64, packets [
 		Height:  height,
 		Packets: packets,
 	}
-	cdc := s.chainA.App.AppCodec()
-	data, err := cdc.Marshal(&packetAttestation)
+	data, err := attestations.ABIEncodePacketAttestation(&packetAttestation)
 	s.Require().NoError(err)
 	return data
 }

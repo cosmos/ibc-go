@@ -37,9 +37,9 @@ func (cs *ClientState) UpdateState(ctx sdk.Context, cdc codec.BinaryCodec, clien
 		panic(fmt.Sprintf("expected type %T, got type %T", (*AttestationProof)(nil), clientMsg))
 	}
 
-	var stateAttestation StateAttestation
-	if err := cdc.Unmarshal(attestationProof.AttestationData, &stateAttestation); err != nil {
-		panic(fmt.Sprintf("failed to unmarshal attestation data: %v", err))
+	stateAttestation, err := ABIDecodeStateAttestation(attestationProof.AttestationData)
+	if err != nil {
+		panic(fmt.Sprintf("failed to ABI decode attestation data: %v", err))
 	}
 
 	height := clienttypes.NewHeight(0, stateAttestation.Height)

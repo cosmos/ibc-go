@@ -2,11 +2,11 @@ package attestations
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"fmt"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -106,9 +106,9 @@ func (cs *ClientState) verifyMembership(
 		return err
 	}
 
-	var packetAttestation PacketAttestation
-	if err := cdc.Unmarshal(attestationProof.AttestationData, &packetAttestation); err != nil {
-		return errorsmod.Wrapf(ErrInvalidAttestationData, "failed to unmarshal attestation data: %v", err)
+	packetAttestation, err := ABIDecodePacketAttestation(attestationProof.AttestationData)
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidAttestationData, "failed to ABI decode attestation data: %v", err)
 	}
 
 	if packetAttestation.Height != height.GetRevisionHeight() {
@@ -124,14 +124,7 @@ func (cs *ClientState) verifyMembership(
 		return err
 	}
 
-	// Normalize the value to 32 bytes (hash if necessary)
-	// This supports both packet commitments (already 32 bytes) and
-	// connection/channel state (serialized proto, needs hashing)
-	normalizedValue := value
-	if len(value) != 32 {
-		hash := sha256.Sum256(value)
-		normalizedValue = hash[:]
-	}
+	normalizedValue := normalizeValueBytes(value)
 
 	for _, packet := range packetAttestation.Packets {
 		if len(packet.Commitment) == 32 && len(packet.Path) == 32 && bytes.Equal(packet.Commitment, normalizedValue) && bytes.Equal(packet.Path, commitmentPath) {
@@ -171,9 +164,9 @@ func (cs *ClientState) verifyNonMembership(
 		return err
 	}
 
-	var packetAttestation PacketAttestation
-	if err := cdc.Unmarshal(attestationProof.AttestationData, &packetAttestation); err != nil {
-		return errorsmod.Wrapf(ErrInvalidAttestationData, "failed to unmarshal attestation data: %v", err)
+	packetAttestation, err := ABIDecodePacketAttestation(attestationProof.AttestationData)
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidAttestationData, "failed to ABI decode attestation data: %v", err)
 	}
 
 	if packetAttestation.Height != height.GetRevisionHeight() {
@@ -237,9 +230,14 @@ func normalizePathBytes(raw []byte) []byte {
 	if len(raw) == 32 {
 		return raw
 	}
+	return crypto.Keccak256(raw)
+}
 
-	sum := sha256.Sum256(raw)
-	return sum[:]
+func normalizeValueBytes(raw []byte) []byte {
+	if len(raw) == 32 {
+		return raw
+	}
+	return crypto.Keccak256(raw)
 }
 
 // sets the client state to the store

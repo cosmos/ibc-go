@@ -2,9 +2,10 @@ package attestations_test
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"strings"
 	"time"
+
+	"github.com/ethereum/go-ethereum/crypto"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations"
@@ -211,7 +212,7 @@ func (s *AttestationsTestSuite) TestVerifyMembershipMalformedProof() {
 
 	err = s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, proofBz, path, value)
 	s.Require().Error(err)
-	s.Require().ErrorContains(err, "failed to unmarshal attestation data")
+	s.Require().ErrorContains(err, "failed to ABI decode attestation data")
 }
 
 func (s *AttestationsTestSuite) TestVerifyMembershipWithKeyPath() {
@@ -224,7 +225,7 @@ func (s *AttestationsTestSuite) TestVerifyMembershipWithKeyPath() {
 
 	path := mockPath{}
 	pathBytes := []byte("key/path")
-	hashedPath := sha256.Sum256(pathBytes)
+	hashedPath := crypto.Keccak256(pathBytes)
 
 	value32 := make([]byte, 32)
 	copy(value32, []byte("value"))
@@ -232,7 +233,7 @@ func (s *AttestationsTestSuite) TestVerifyMembershipWithKeyPath() {
 	newHeight := uint64(200)
 	newTimestamp := uint64(2 * time.Second.Nanoseconds())
 
-	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath[:], Commitment: value32}})
+	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: value32}})
 	signers := []int{0, 1, 2}
 	proof := s.createAttestationProof(packetAttestation, signers)
 	proofBz := s.marshalProof(proof)
