@@ -134,7 +134,7 @@ func (cs *ClientState) verifyMembership(
 	}
 
 	for _, packet := range packetAttestation.Packets {
-		if len(packet.Commitment) == 32 && bytes.Equal(packet.Commitment, normalizedValue) && bytes.Equal(packet.Path, commitmentPath) {
+		if len(packet.Commitment) == 32 && len(packet.Path) == 32 && bytes.Equal(packet.Commitment, normalizedValue) && bytes.Equal(packet.Path, commitmentPath) {
 			return nil
 		}
 	}
