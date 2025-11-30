@@ -2,7 +2,6 @@ package attestations
 
 import (
 	"math/big"
-	"reflect"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -122,28 +121,19 @@ func ABIDecodePacketAttestation(data []byte) (*PacketAttestation, error) {
 		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid height type")
 	}
 
-	packetsVal := reflect.ValueOf(unpacked[1])
-	if packetsVal.Kind() != reflect.Slice {
-		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid packets type: not a slice")
+	abiPackets, ok := unpacked[1].([]struct {
+		Path       [32]byte `json:"path"`
+		Commitment [32]byte `json:"commitment"`
+	})
+	if !ok {
+		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid packets type")
 	}
 
-	packets := make([]PacketCompact, packetsVal.Len())
-	for i := range packetsVal.Len() {
-		elem := packetsVal.Index(i)
-		pathField := elem.FieldByName("Path")
-		commitmentField := elem.FieldByName("Commitment")
-
-		if !pathField.IsValid() || !commitmentField.IsValid() {
-			return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid packet structure")
-		}
-
-		var path, commitment [32]byte
-		reflect.Copy(reflect.ValueOf(path[:]), pathField)
-		reflect.Copy(reflect.ValueOf(commitment[:]), commitmentField)
-
+	packets := make([]PacketCompact, len(abiPackets))
+	for i, p := range abiPackets {
 		packets[i] = PacketCompact{
-			Path:       path[:],
-			Commitment: commitment[:],
+			Path:       p.Path[:],
+			Commitment: p.Commitment[:],
 		}
 	}
 
