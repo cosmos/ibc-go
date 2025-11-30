@@ -2,11 +2,11 @@ package attestations
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"fmt"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
@@ -230,14 +230,16 @@ func normalizePathBytes(raw []byte) []byte {
 	if len(raw) == 32 {
 		return raw
 	}
-	return crypto.Keccak256(raw)
+	hash := sha256.Sum256(raw)
+	return hash[:]
 }
 
 func normalizeValueBytes(raw []byte) []byte {
 	if len(raw) == 32 {
 		return raw
 	}
-	return crypto.Keccak256(raw)
+	hash := sha256.Sum256(raw)
+	return hash[:]
 }
 
 // sets the client state to the store

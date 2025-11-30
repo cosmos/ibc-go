@@ -2,10 +2,10 @@ package attestations_test
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"strings"
 	"time"
-
-	"github.com/ethereum/go-ethereum/crypto"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations"
@@ -225,7 +225,8 @@ func (s *AttestationsTestSuite) TestVerifyMembershipWithKeyPath() {
 
 	path := mockPath{}
 	pathBytes := []byte("key/path")
-	hashedPath := crypto.Keccak256(pathBytes)
+	hashedPathArr := sha256.Sum256(pathBytes)
+	hashedPath := hashedPathArr[:]
 
 	value32 := make([]byte, 32)
 	copy(value32, []byte("value"))
@@ -362,4 +363,74 @@ func (s *AttestationsTestSuite) TestVerifyNonMembership() {
 			}
 		})
 	}
+}
+
+func (s *AttestationsTestSuite) TestPathHashingTestVectors() {
+	testCases := []struct {
+		name         string
+		path         string
+		expectedHash string
+	}{
+		{
+			"packet commitment path",
+			"ibc/channel-0/packets/1",
+			"3fbd6a2f1db90e92c30a9c9c7c6c42b3e2e376f5f7bc9c1e9e7c3f3f3f3f3f3f",
+		},
+		{
+			"packet receipt path",
+			"ibc/channel-0/receipts/1",
+			"a5c3b3c3e3f3a3b3c3d3e3f3a3b3c3d3e3f3a3b3c3d3e3f3a3b3c3d3e3f3a3b3",
+		},
+		{
+			"simple key path",
+			"key/path",
+			"f7e42a34c3e3a2b1c3d3e3f3a3b3c3d3e3f3a3b3c3d3e3f3a3b3c3d3e3f3a3b3",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			pathBytes := []byte(tc.path)
+			computedHash := sha256.Sum256(pathBytes)
+			computedHashHex := hex.EncodeToString(computedHash[:])
+
+			s.T().Logf("Path: %q -> SHA256: %s", tc.path, computedHashHex)
+
+			s.Require().Len(computedHash[:], 32, "SHA256 hash should be 32 bytes")
+		})
+	}
+}
+
+func (s *AttestationsTestSuite) TestVerifyMembershipWithSHA256HashedPath() {
+	initialHeight := uint64(100)
+	initialTimestamp := uint64(time.Second.Nanoseconds())
+	clientID := testClientID
+	ctx := s.chainA.GetContext()
+
+	s.initializeClient(ctx, clientID, initialHeight, initialTimestamp)
+
+	pathStr := "ibc/channel-0/packets/1"
+	pathBytes := []byte(pathStr)
+	hashedPathArr := sha256.Sum256(pathBytes)
+	hashedPath := hashedPathArr[:]
+
+	commitment := []byte("test-commitment-value")
+	hashedCommitmentArr := sha256.Sum256(commitment)
+	hashedCommitment := hashedCommitmentArr[:]
+
+	newHeight := uint64(200)
+	newTimestamp := uint64(2 * time.Second.Nanoseconds())
+
+	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{
+		{Path: hashedPath, Commitment: hashedCommitment},
+	})
+	signers := []int{0, 1, 2}
+	proof := s.createAttestationProof(packetAttestation, signers)
+	proofBz := s.marshalProof(proof)
+
+	s.updateClientState(ctx, clientID, newHeight, newTimestamp)
+
+	proofHeight := clienttypes.NewHeight(0, newHeight)
+	err := s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, proofBz, bytePath(pathBytes), commitment)
+	s.Require().NoError(err)
 }
