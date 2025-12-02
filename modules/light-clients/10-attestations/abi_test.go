@@ -17,10 +17,10 @@ func TestABIEncodeDecodeStateAttestation(t *testing.T) {
 		height    uint64
 		timestamp uint64
 	}{
-		{"zero values", 0, 0},
-		{"typical values", 100, 1234567890 * nanosPerSecond},
-		{"max uint64 height", ^uint64(0), 1000 * nanosPerSecond},
-		{"large timestamp", 500, ^uint64(0)},
+		{name: "zero values", height: 0, timestamp: 0},
+		{name: "typical values", height: 100, timestamp: 1234567890 * nanosPerSecond},
+		{name: "max uint64 height", height: ^uint64(0), timestamp: 1000 * nanosPerSecond},
+		{name: "large timestamp", height: 500, timestamp: ^uint64(0)},
 	}
 
 	for _, tc := range testCases {
@@ -30,7 +30,7 @@ func TestABIEncodeDecodeStateAttestation(t *testing.T) {
 				Timestamp: tc.timestamp,
 			}
 
-			encoded, err := attestations.ABIEncodeStateAttestation(original)
+			encoded, err := original.ABIEncode()
 			require.NoError(t, err)
 			require.Len(t, encoded, 64, "ABI encoding should produce 64 bytes (2x32-byte words)")
 
@@ -51,30 +51,30 @@ func TestABIEncodeDecodePacketAttestation(t *testing.T) {
 		packets []attestations.PacketCompact
 	}{
 		{
-			"single packet",
-			100,
-			[]attestations.PacketCompact{
+			name:   "single packet",
+			height: 100,
+			packets: []attestations.PacketCompact{
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x02}, 32)},
 			},
 		},
 		{
-			"multiple packets",
-			200,
-			[]attestations.PacketCompact{
+			name:   "multiple packets",
+			height: 200,
+			packets: []attestations.PacketCompact{
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x02}, 32)},
 				{Path: bytes.Repeat([]byte{0x03}, 32), Commitment: bytes.Repeat([]byte{0x04}, 32)},
 				{Path: bytes.Repeat([]byte{0x05}, 32), Commitment: bytes.Repeat([]byte{0x06}, 32)},
 			},
 		},
 		{
-			"empty packets",
-			300,
-			[]attestations.PacketCompact{},
+			name:    "empty packets",
+			height:  300,
+			packets: []attestations.PacketCompact{},
 		},
 		{
-			"zero commitment (non-membership)",
-			400,
-			[]attestations.PacketCompact{
+			name:   "zero commitment (non-membership)",
+			height: 400,
+			packets: []attestations.PacketCompact{
 				{Path: bytes.Repeat([]byte{0xAB}, 32), Commitment: make([]byte, 32)},
 			},
 		},
@@ -87,7 +87,7 @@ func TestABIEncodeDecodePacketAttestation(t *testing.T) {
 				Packets: tc.packets,
 			}
 
-			encoded, err := attestations.ABIEncodePacketAttestation(original)
+			encoded, err := original.ABIEncode()
 			require.NoError(t, err)
 			require.GreaterOrEqual(t, len(encoded), 64, "ABI encoding should be at least 64 bytes")
 
@@ -116,7 +116,7 @@ func TestABISolidityCompatibility(t *testing.T) {
 			Timestamp: timestampNanos,
 		}
 
-		encoded, err := attestations.ABIEncodeStateAttestation(original)
+		encoded, err := original.ABIEncode()
 		require.NoError(t, err)
 		require.Len(t, encoded, 64, "StateAttestation should encode to 64 bytes")
 
@@ -142,7 +142,7 @@ func TestABISolidityCompatibility(t *testing.T) {
 			},
 		}
 
-		encoded, err := attestations.ABIEncodePacketAttestation(pa)
+		encoded, err := pa.ABIEncode()
 		require.NoError(t, err)
 
 		decoded, err := attestations.ABIDecodePacketAttestation(encoded)
@@ -188,7 +188,7 @@ func TestABIEncodePacketCompact(t *testing.T) {
 		Commitment: commitment,
 	}
 
-	encoded, err := attestations.ABIEncodePacketCompact(pc)
+	encoded, err := pc.ABIEncode()
 	require.NoError(t, err)
 	require.Len(t, encoded, 64, "PacketCompact should encode to 64 bytes")
 	require.Equal(t, path, encoded[:32])
@@ -202,24 +202,24 @@ func TestUint64ToPaddedBytes(t *testing.T) {
 		expected []byte
 	}{
 		{
-			"zero",
-			0,
-			bytes.Repeat([]byte{0x00}, 32),
+			name:     "zero",
+			input:    0,
+			expected: bytes.Repeat([]byte{0x00}, 32),
 		},
 		{
-			"one",
-			1,
-			append(bytes.Repeat([]byte{0x00}, 31), 0x01),
+			name:     "one",
+			input:    1,
+			expected: append(bytes.Repeat([]byte{0x00}, 31), 0x01),
 		},
 		{
-			"100",
-			100,
-			append(bytes.Repeat([]byte{0x00}, 31), 0x64),
+			name:     "100",
+			input:    100,
+			expected: append(bytes.Repeat([]byte{0x00}, 31), 0x64),
 		},
 		{
-			"max uint64",
-			^uint64(0),
-			append(bytes.Repeat([]byte{0x00}, 24), 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF),
+			name:     "max uint64",
+			input:    ^uint64(0),
+			expected: append(bytes.Repeat([]byte{0x00}, 24), 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF),
 		},
 	}
 

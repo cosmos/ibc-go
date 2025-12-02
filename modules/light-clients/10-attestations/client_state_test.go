@@ -2,13 +2,13 @@ package attestations_test
 
 import (
 	"bytes"
-	"encoding/hex"
 	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
 	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations"
 )
 
@@ -19,39 +19,39 @@ func (s *AttestationsTestSuite) TestClientStateValidate() {
 		expErr      bool
 	}{
 		{
-			"valid client state",
-			s.createClientState(1),
-			false,
+			name:        "valid client state",
+			clientState: s.createClientState(1),
+			expErr:      false,
 		},
 		{
-			"zero latest height",
-			attestations.NewClientState(s.attestorAddrs, s.minRequiredSigs, 0),
-			true,
+			name:        "zero latest height",
+			clientState: attestations.NewClientState(s.attestorAddrs, s.minRequiredSigs, 0),
+			expErr:      true,
 		},
 		{
-			"empty attestor addresses",
-			attestations.NewClientState([]string{}, 1, 1),
-			true,
+			name:        "empty attestor addresses",
+			clientState: attestations.NewClientState([]string{}, 1, 1),
+			expErr:      true,
 		},
 		{
-			"zero min required sigs",
-			attestations.NewClientState(s.attestorAddrs, 0, 1),
-			true,
+			name:        "zero min required sigs",
+			clientState: attestations.NewClientState(s.attestorAddrs, 0, 1),
+			expErr:      true,
 		},
 		{
-			"min required sigs exceeds attestor count",
-			attestations.NewClientState(s.attestorAddrs, 10, 1),
-			true,
+			name:        "min required sigs exceeds attestor count",
+			clientState: attestations.NewClientState(s.attestorAddrs, 10, 1),
+			expErr:      true,
 		},
 		{
-			"duplicate attestor address",
-			attestations.NewClientState([]string{s.attestorAddrs[0], s.attestorAddrs[0]}, 1, 1),
-			true,
+			name:        "duplicate attestor address",
+			clientState: attestations.NewClientState([]string{s.attestorAddrs[0], s.attestorAddrs[0]}, 1, 1),
+			expErr:      true,
 		},
 		{
-			"empty attestor address",
-			attestations.NewClientState([]string{""}, 1, 1),
-			true,
+			name:        "empty attestor address",
+			clientState: attestations.NewClientState([]string{""}, 1, 1),
+			expErr:      true,
 		},
 	}
 
@@ -74,29 +74,29 @@ func (s *AttestationsTestSuite) TestClientStateValidateInvalidAddressFormat() {
 		expErr      string
 	}{
 		{
-			"invalid address format - not hex",
-			attestations.NewClientState([]string{"not-a-valid-address"}, 1, 1),
-			"invalid attestor address format",
+			name:        "invalid address format - not hex",
+			clientState: attestations.NewClientState([]string{"not-a-valid-address"}, 1, 1),
+			expErr:      "invalid attestor address format",
 		},
 		{
-			"invalid address format - too short",
-			attestations.NewClientState([]string{"0x1234"}, 1, 1),
-			"invalid attestor address format",
+			name:        "invalid address format - too short",
+			clientState: attestations.NewClientState([]string{"0x1234"}, 1, 1),
+			expErr:      "invalid attestor address format",
 		},
 		{
-			"valid checksummed address",
-			attestations.NewClientState([]string{s.attestorAddrs[0]}, 1, 1),
-			"",
+			name:        "valid checksummed address",
+			clientState: attestations.NewClientState([]string{s.attestorAddrs[0]}, 1, 1),
+			expErr:      "",
 		},
 		{
-			"valid lowercase address",
-			attestations.NewClientState([]string{strings.ToLower(s.attestorAddrs[0])}, 1, 1),
-			"",
+			name:        "valid lowercase address",
+			clientState: attestations.NewClientState([]string{strings.ToLower(s.attestorAddrs[0])}, 1, 1),
+			expErr:      "",
 		},
 		{
-			"duplicate addresses with different case",
-			attestations.NewClientState([]string{s.attestorAddrs[0], strings.ToLower(s.attestorAddrs[0])}, 1, 1),
-			"duplicate attestor address",
+			name:        "duplicate addresses with different case",
+			clientState: attestations.NewClientState([]string{s.attestorAddrs[0], strings.ToLower(s.attestorAddrs[0])}, 1, 1),
+			expErr:      "duplicate attestor address",
 		},
 	}
 
@@ -118,32 +118,32 @@ func (s *AttestationsTestSuite) TestVerifyMembership() {
 		freezeClient bool
 		pathToVerify []byte
 		attestedPath []byte
-		commitment   []byte
+		value        []byte
 		expErr       error
 	}{
 		{
-			"success: matching path and commitment",
-			false,
-			bytes.Repeat([]byte{0x01}, 32),
-			bytes.Repeat([]byte{0x01}, 32),
-			bytes.Repeat([]byte{0xAB}, 32),
-			nil,
+			name:         "success: matching path and commitment",
+			freezeClient: false,
+			pathToVerify: bytes.Repeat([]byte{0x01}, 32),
+			attestedPath: bytes.Repeat([]byte{0x01}, 32),
+			value:        bytes.Repeat([]byte{0xAB}, 32),
+			expErr:       nil,
 		},
 		{
-			"failure: mismatched path",
-			false,
-			bytes.Repeat([]byte{0x02}, 32),
-			bytes.Repeat([]byte{0x01}, 32),
-			bytes.Repeat([]byte{0xCD}, 32),
-			attestations.ErrNotMember,
+			name:         "failure: mismatched path",
+			freezeClient: false,
+			pathToVerify: bytes.Repeat([]byte{0x02}, 32),
+			attestedPath: bytes.Repeat([]byte{0x01}, 32),
+			value:        bytes.Repeat([]byte{0xCD}, 32),
+			expErr:       attestations.ErrNotMember,
 		},
 		{
-			"failure: frozen client",
-			true,
-			bytes.Repeat([]byte{0x01}, 32),
-			bytes.Repeat([]byte{0x01}, 32),
-			bytes.Repeat([]byte{0xAB}, 32),
-			attestations.ErrClientFrozen,
+			name:         "failure: frozen client",
+			freezeClient: true,
+			pathToVerify: bytes.Repeat([]byte{0x01}, 32),
+			attestedPath: bytes.Repeat([]byte{0x01}, 32),
+			value:        bytes.Repeat([]byte{0xAB}, 32),
+			expErr:       attestations.ErrClientFrozen,
 		},
 	}
 
@@ -174,12 +174,14 @@ func (s *AttestationsTestSuite) TestVerifyMembership() {
 				s.freezeClient(ctx, clientID)
 			}
 
-			packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: tc.attestedPath, Commitment: tc.commitment}})
+			commitment := crypto.Keccak256(tc.value)
+			hashedPath := crypto.Keccak256(tc.attestedPath)
+			packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: commitment}})
 			membershipProof := s.createAttestationProof(packetAttestation, signers)
 			membershipProofBz := s.marshalProof(membershipProof)
 
 			proofHeight := clienttypes.NewHeight(0, newHeight)
-			err = s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, membershipProofBz, bytePath(tc.pathToVerify), tc.commitment)
+			err = s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, membershipProofBz, commitmenttypesv2.NewMerklePath(tc.pathToVerify), tc.value)
 
 			if tc.expErr != nil {
 				s.Require().ErrorIs(err, tc.expErr)
@@ -199,8 +201,8 @@ func (s *AttestationsTestSuite) TestVerifyMembershipMalformedProof() {
 	s.initializeClient(ctx, clientID, initialHeight, initialTimestamp)
 
 	proofHeight := clienttypes.NewHeight(0, initialHeight)
-	path := bytePath([]byte("key"))
-	value := []byte("value")
+	path := commitmenttypesv2.NewMerklePath(bytes.Repeat([]byte{0x01}, 32))
+	value := bytes.Repeat([]byte{0xAB}, 32)
 
 	malformedProof := []byte("invalid-protobuf-data")
 	err := s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, malformedProof, path, value)
@@ -216,7 +218,7 @@ func (s *AttestationsTestSuite) TestVerifyMembershipMalformedProof() {
 	s.Require().ErrorContains(err, "failed to ABI decode attestation data")
 }
 
-func (s *AttestationsTestSuite) TestVerifyMembershipWithKeyPath() {
+func (s *AttestationsTestSuite) TestVerifyMembershipInvalidPathLength() {
 	initialHeight := uint64(100)
 	initialTimestamp := uint64(time.Second.Nanoseconds())
 	clientID := testClientID
@@ -224,26 +226,87 @@ func (s *AttestationsTestSuite) TestVerifyMembershipWithKeyPath() {
 
 	s.initializeClient(ctx, clientID, initialHeight, initialTimestamp)
 
-	path := mockPath{}
-	pathBytes := []byte("key/path")
-	hashedPath := crypto.Keccak256(pathBytes)
-
-	value32 := make([]byte, 32)
-	copy(value32, []byte("value"))
-
 	newHeight := uint64(200)
 	newTimestamp := uint64(2 * time.Second.Nanoseconds())
+	s.updateClientState(ctx, clientID, newHeight, newTimestamp)
 
-	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: value32}})
+	shortPath := []byte("key/path")
+	path := commitmenttypesv2.NewMerklePath(shortPath)
+	value32 := bytes.Repeat([]byte{0xAB}, 32)
+
+	commitment := crypto.Keccak256(value32)
+	hashedPath := crypto.Keccak256(bytes.Repeat([]byte{0x01}, 32))
+	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: commitment}})
 	signers := []int{0, 1, 2}
 	proof := s.createAttestationProof(packetAttestation, signers)
 	proofBz := s.marshalProof(proof)
 
-	s.updateClientState(ctx, clientID, newHeight, newTimestamp)
-
 	proofHeight := clienttypes.NewHeight(0, newHeight)
 	err := s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, proofBz, path, value32)
-	s.Require().NoError(err)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "path must be 32 bytes")
+}
+
+func (s *AttestationsTestSuite) TestVerifyMembershipInvalidKeyPathLength() {
+	initialHeight := uint64(100)
+	initialTimestamp := uint64(time.Second.Nanoseconds())
+	clientID := testClientID
+	ctx := s.chainA.GetContext()
+
+	s.initializeClient(ctx, clientID, initialHeight, initialTimestamp)
+
+	newHeight := uint64(200)
+	newTimestamp := uint64(2 * time.Second.Nanoseconds())
+	s.updateClientState(ctx, clientID, newHeight, newTimestamp)
+
+	value32 := bytes.Repeat([]byte{0xAB}, 32)
+	commitment := crypto.Keccak256(value32)
+	hashedPath := crypto.Keccak256(bytes.Repeat([]byte{0x01}, 32))
+	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: commitment}})
+	signers := []int{0, 1, 2}
+	proof := s.createAttestationProof(packetAttestation, signers)
+	proofBz := s.marshalProof(proof)
+	proofHeight := clienttypes.NewHeight(0, newHeight)
+
+	emptyPath := commitmenttypesv2.MerklePath{KeyPath: [][]byte{}}
+	err := s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, proofBz, emptyPath, value32)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "path cannot be empty")
+
+	multiKeyPath := commitmenttypesv2.NewMerklePath(bytes.Repeat([]byte{0x01}, 32), bytes.Repeat([]byte{0x02}, 32))
+	err = s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, proofBz, multiKeyPath, value32)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "key path must have exactly 1 element, got 2")
+}
+
+func (s *AttestationsTestSuite) TestVerifyNonMembershipInvalidKeyPathLength() {
+	initialHeight := uint64(100)
+	initialTimestamp := uint64(time.Second.Nanoseconds())
+	clientID := testClientID
+	ctx := s.chainA.GetContext()
+
+	s.initializeClient(ctx, clientID, initialHeight, initialTimestamp)
+
+	newHeight := uint64(200)
+	newTimestamp := uint64(2 * time.Second.Nanoseconds())
+	s.updateClientState(ctx, clientID, newHeight, newTimestamp)
+
+	hashedPath := crypto.Keccak256(bytes.Repeat([]byte{0x01}, 32))
+	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: make([]byte, 32)}})
+	signers := []int{0, 1, 2}
+	proof := s.createAttestationProof(packetAttestation, signers)
+	proofBz := s.marshalProof(proof)
+	proofHeight := clienttypes.NewHeight(0, newHeight)
+
+	emptyPath := commitmenttypesv2.MerklePath{KeyPath: [][]byte{}}
+	err := s.lightClientModule.VerifyNonMembership(ctx, clientID, proofHeight, 0, 0, proofBz, emptyPath)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "path cannot be empty")
+
+	multiKeyPath := commitmenttypesv2.NewMerklePath(bytes.Repeat([]byte{0x01}, 32), bytes.Repeat([]byte{0x02}, 32))
+	err = s.lightClientModule.VerifyNonMembership(ctx, clientID, proofHeight, 0, 0, proofBz, multiKeyPath)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "key path must have exactly 1 element, got 2")
 }
 
 func (s *AttestationsTestSuite) TestVerifyNonMembership() {
@@ -255,72 +318,72 @@ func (s *AttestationsTestSuite) TestVerifyNonMembership() {
 		expErr       error
 	}{
 		{
-			"success: zero commitment proves non-membership",
-			false,
-			bytes.Repeat([]byte{0x01}, 32),
-			[]attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)}},
-			nil,
+			name:         "success: zero commitment proves non-membership",
+			freezeClient: false,
+			pathToVerify: bytes.Repeat([]byte{0x01}, 32),
+			packets:      []attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)}},
+			expErr:       nil,
 		},
 		{
-			"failure: non-zero commitment",
-			false,
-			bytes.Repeat([]byte{0x01}, 32),
-			[]attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)}},
-			attestations.ErrNonMembershipFailed,
+			name:         "failure: non-zero commitment",
+			freezeClient: false,
+			pathToVerify: bytes.Repeat([]byte{0x01}, 32),
+			packets:      []attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)}},
+			expErr:       attestations.ErrNonMembershipFailed,
 		},
 		{
-			"failure: path not found in attestation",
-			false,
-			bytes.Repeat([]byte{0x02}, 32),
-			[]attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)}},
-			attestations.ErrNotMember,
+			name:         "failure: path not found in attestation",
+			freezeClient: false,
+			pathToVerify: bytes.Repeat([]byte{0x02}, 32),
+			packets:      []attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)}},
+			expErr:       attestations.ErrNotMember,
 		},
 		{
-			"failure: frozen client",
-			true,
-			bytes.Repeat([]byte{0x01}, 32),
-			[]attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)}},
-			attestations.ErrClientFrozen,
+			name:         "failure: frozen client",
+			freezeClient: true,
+			pathToVerify: bytes.Repeat([]byte{0x01}, 32),
+			packets:      []attestations.PacketCompact{{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)}},
+			expErr:       attestations.ErrClientFrozen,
 		},
 		{
-			"success: multiple packets with same path, all have zero commitments",
-			false,
-			bytes.Repeat([]byte{0x01}, 32),
-			[]attestations.PacketCompact{
+			name:         "success: multiple packets with same path, all have zero commitments",
+			freezeClient: false,
+			pathToVerify: bytes.Repeat([]byte{0x01}, 32),
+			packets: []attestations.PacketCompact{
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)},
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)},
 			},
-			nil,
+			expErr: nil,
 		},
 		{
-			"failure: multiple packets with same path, all have non-zero commitments",
-			false,
-			bytes.Repeat([]byte{0x01}, 32),
-			[]attestations.PacketCompact{
+			name:         "failure: multiple packets with same path, all have non-zero commitments",
+			freezeClient: false,
+			pathToVerify: bytes.Repeat([]byte{0x01}, 32),
+			packets: []attestations.PacketCompact{
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)},
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x02}, 32)},
 			},
-			attestations.ErrNonMembershipFailed,
+			expErr: attestations.ErrNonMembershipFailed,
 		},
 		{
-			"failure: multiple packets with same path, zero commitment first but non-zero later",
-			false,
-			bytes.Repeat([]byte{0x01}, 32),
-			[]attestations.PacketCompact{
+			name:         "failure: multiple packets with same path, zero commitment first but non-zero later",
+			freezeClient: false,
+			pathToVerify: bytes.Repeat([]byte{0x01}, 32),
+			packets: []attestations.PacketCompact{
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)},
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)},
 			},
-			attestations.ErrNonMembershipFailed,
+			expErr: attestations.ErrNonMembershipFailed,
 		},
 		{
-			"failure: multiple packets with same path, non-zero commitment first then zero",
-			false,
-			bytes.Repeat([]byte{0x01}, 32),
-			[]attestations.PacketCompact{
+			name:         "failure: multiple packets with same path, non-zero commitment first then zero",
+			freezeClient: false,
+			pathToVerify: bytes.Repeat([]byte{0x01}, 32),
+			packets: []attestations.PacketCompact{
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: bytes.Repeat([]byte{0x01}, 32)},
 				{Path: bytes.Repeat([]byte{0x01}, 32), Commitment: make([]byte, 32)},
 			},
-			attestations.ErrNonMembershipFailed,
+			expErr: attestations.ErrNonMembershipFailed,
 		},
 	}
 
@@ -349,12 +412,19 @@ func (s *AttestationsTestSuite) TestVerifyNonMembership() {
 				s.freezeClient(ctx, clientID)
 			}
 
-			packetAttestation := s.createPacketAttestation(newHeight, tc.packets)
+			hashedPackets := make([]attestations.PacketCompact, len(tc.packets))
+			for i, p := range tc.packets {
+				hashedPackets[i] = attestations.PacketCompact{
+					Path:       crypto.Keccak256(p.Path),
+					Commitment: p.Commitment,
+				}
+			}
+			packetAttestation := s.createPacketAttestation(newHeight, hashedPackets)
 			nonMembershipProof := s.createAttestationProof(packetAttestation, signers)
 			nonMembershipProofBz := s.marshalProof(nonMembershipProof)
 
 			proofHeight := clienttypes.NewHeight(0, newHeight)
-			err = s.lightClientModule.VerifyNonMembership(ctx, clientID, proofHeight, 0, 0, nonMembershipProofBz, bytePath(tc.pathToVerify))
+			err = s.lightClientModule.VerifyNonMembership(ctx, clientID, proofHeight, 0, 0, nonMembershipProofBz, commitmenttypesv2.NewMerklePath(tc.pathToVerify))
 
 			if tc.expErr != nil {
 				s.Require().ErrorIs(err, tc.expErr)
@@ -363,72 +433,4 @@ func (s *AttestationsTestSuite) TestVerifyNonMembership() {
 			}
 		})
 	}
-}
-
-func (s *AttestationsTestSuite) TestPathHashingTestVectors() {
-	testCases := []struct {
-		name         string
-		path         string
-		expectedHash string
-	}{
-		{
-			"packet commitment path",
-			"ibc/channel-0/packets/1",
-			"3fbd6a2f1db90e92c30a9c9c7c6c42b3e2e376f5f7bc9c1e9e7c3f3f3f3f3f3f",
-		},
-		{
-			"packet receipt path",
-			"ibc/channel-0/receipts/1",
-			"a5c3b3c3e3f3a3b3c3d3e3f3a3b3c3d3e3f3a3b3c3d3e3f3a3b3c3d3e3f3a3b3",
-		},
-		{
-			"simple key path",
-			"key/path",
-			"f7e42a34c3e3a2b1c3d3e3f3a3b3c3d3e3f3a3b3c3d3e3f3a3b3c3d3e3f3a3b3",
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			pathBytes := []byte(tc.path)
-			computedHash := crypto.Keccak256(pathBytes)
-			computedHashHex := hex.EncodeToString(computedHash)
-
-			s.T().Logf("Path: %q -> Keccak256: %s", tc.path, computedHashHex)
-
-			s.Require().Len(computedHash, 32, "Keccak256 hash should be 32 bytes")
-		})
-	}
-}
-
-func (s *AttestationsTestSuite) TestVerifyMembershipWithKeccak256HashedPath() {
-	initialHeight := uint64(100)
-	initialTimestamp := uint64(time.Second.Nanoseconds())
-	clientID := testClientID
-	ctx := s.chainA.GetContext()
-
-	s.initializeClient(ctx, clientID, initialHeight, initialTimestamp)
-
-	pathStr := "ibc/channel-0/packets/1"
-	pathBytes := []byte(pathStr)
-	hashedPath := crypto.Keccak256(pathBytes)
-
-	commitment := []byte("test-commitment-value")
-	hashedCommitment := crypto.Keccak256(commitment)
-
-	newHeight := uint64(200)
-	newTimestamp := uint64(2 * time.Second.Nanoseconds())
-
-	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{
-		{Path: hashedPath, Commitment: hashedCommitment},
-	})
-	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(packetAttestation, signers)
-	proofBz := s.marshalProof(proof)
-
-	s.updateClientState(ctx, clientID, newHeight, newTimestamp)
-
-	proofHeight := clienttypes.NewHeight(0, newHeight)
-	err := s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, proofBz, bytePath(pathBytes), commitment)
-	s.Require().NoError(err)
 }

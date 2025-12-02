@@ -14,14 +14,14 @@ func (s *AttestationsTestSuite) TestUpdateState() {
 		expErr  string
 	}{
 		{
-			"success: sufficient signatures",
-			[]int{0, 1, 2},
-			"",
+			name:    "success: sufficient signatures",
+			signers: []int{0, 1, 2},
+			expErr:  "",
 		},
 		{
-			"failure: insufficient signatures",
-			[]int{0, 1},
-			"quorum",
+			name:    "failure: insufficient signatures",
+			signers: []int{0, 1},
+			expErr:  "quorum",
 		},
 	}
 

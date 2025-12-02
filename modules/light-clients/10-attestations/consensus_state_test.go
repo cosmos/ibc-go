@@ -11,18 +11,18 @@ func (s *AttestationsTestSuite) TestConsensusStateValidateBasic() {
 		expErr         bool
 	}{
 		{
-			"valid consensus state",
-			func() interface{ ValidateBasic() error } {
+			name: "valid consensus state",
+			consensusState: func() interface{ ValidateBasic() error } {
 				return s.createConsensusState(uint64(time.Second.Nanoseconds()))
 			},
-			false,
+			expErr: false,
 		},
 		{
-			"zero timestamp",
-			func() interface{ ValidateBasic() error } {
+			name: "zero timestamp",
+			consensusState: func() interface{ ValidateBasic() error } {
 				return s.createConsensusState(0)
 			},
-			true,
+			expErr: true,
 		},
 	}
 

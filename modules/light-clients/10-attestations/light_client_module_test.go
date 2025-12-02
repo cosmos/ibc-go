@@ -86,7 +86,7 @@ func (s *AttestationsTestSuite) createStateAttestation(height, timestamp uint64)
 		Height:    height,
 		Timestamp: timestamp,
 	}
-	data, err := attestations.ABIEncodeStateAttestation(&stateAttestation)
+	data, err := stateAttestation.ABIEncode()
 	s.Require().NoError(err)
 	return data
 }
@@ -97,7 +97,7 @@ func (s *AttestationsTestSuite) createPacketAttestation(height uint64, packets [
 		Height:  height,
 		Packets: packets,
 	}
-	data, err := attestations.ABIEncodePacketAttestation(&packetAttestation)
+	data, err := packetAttestation.ABIEncode()
 	s.Require().NoError(err)
 	return data
 }
@@ -160,25 +160,6 @@ func (s *AttestationsTestSuite) updateClientState(ctx sdk.Context, clientID stri
 	proof := s.createAttestationProof(stateAttestation, signers)
 	_ = s.lightClientModule.UpdateState(ctx, clientID, proof)
 }
-
-type bytePath []byte
-
-func (p bytePath) Empty() bool {
-	return len(p) == 0
-}
-
-func (p bytePath) Bytes() []byte {
-	return p
-}
-
-type mockPath struct{}
-
-func (mockPath) Reset()               {}
-func (mockPath) String() string       { return "" }
-func (mockPath) ProtoMessage()        {}
-func (mockPath) GetKeyPath() [][]byte { return [][]byte{[]byte("key"), []byte("path")} }
-func (mockPath) Bytes() []byte        { return nil }
-func (mockPath) Empty() bool          { return false }
 
 func (s *AttestationsTestSuite) TestInitialize() {
 	initialHeight := uint64(100)

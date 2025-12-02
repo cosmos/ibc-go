@@ -14,9 +14,9 @@ func (ConsensusState) ClientType() string {
 	return exported.Attestations
 }
 
-// GetTimestamp returns the timestamp in nanoseconds.
-func (cs ConsensusState) GetTimestamp() uint64 {
-	return cs.Timestamp
+// GetTimestamp is deprecated and will panic if called.
+func (ConsensusState) GetTimestamp() uint64 {
+	panic("GetTimestamp is deprecated")
 }
 
 // ValidateBasic defines basic validation for the attestations consensus state.

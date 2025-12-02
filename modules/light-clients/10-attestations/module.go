@@ -20,8 +20,6 @@ var (
 )
 
 // AppModuleBasic defines the basic application module used by the attestations light client.
-// Only the RegisterInterfaces function needs to be implemented. All other function perform
-// a no-op.
 type AppModuleBasic struct{}
 
 // IsOnePerModuleType implements the depinject.OnePerModuleType interface.

@@ -3,10 +3,11 @@
 package attestations
 
 import (
-	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"crypto/sha256"
+	"encoding/json"
+	"strconv"
 	"testing"
 	"time"
 
@@ -20,10 +21,9 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testvalues"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
+	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -72,16 +72,17 @@ func (s *AttestationsTestSuite) signAttestationData(data []byte) [][]byte {
 }
 
 func (s *AttestationsTestSuite) createPacketAttestationProof(height uint64, path []byte, commitment []byte) []byte {
+	hashedCommitment := crypto.Keccak256(commitment)
 	packetAttestation := &attestations.PacketAttestation{
 		Height: height,
 		Packets: []attestations.PacketCompact{
 			{
 				Path:       path,
-				Commitment: commitment,
+				Commitment: hashedCommitment,
 			},
 		},
 	}
-	attestationData, err := attestations.ABIEncodePacketAttestation(packetAttestation)
+	attestationData, err := packetAttestation.ABIEncode()
 	s.Require().NoError(err)
 
 	signatures := s.signAttestationData(attestationData)
@@ -105,7 +106,7 @@ func (s *AttestationsTestSuite) createNonMembershipProof(height uint64, path []b
 			},
 		},
 	}
-	attestationData, err := attestations.ABIEncodePacketAttestation(packetAttestation)
+	attestationData, err := packetAttestation.ABIEncode()
 	s.Require().NoError(err)
 
 	signatures := s.signAttestationData(attestationData)
@@ -118,13 +119,11 @@ func (s *AttestationsTestSuite) createNonMembershipProof(height uint64, path []b
 	return proofBz
 }
 
-func (*AttestationsTestSuite) hashPath(path []byte) []byte {
-	return crypto.Keccak256(path)
-}
-
-func (s *AttestationsTestSuite) prefixedPath(key []byte) []byte {
-	prefixedPath := bytes.Join([][]byte{[]byte(ibcexported.StoreKey), key}, []byte("/"))
-	return s.hashPath(prefixedPath)
+// hashPath hashes the key path using keccak256.
+// The attestations client uses counterparty merkle prefix [][]byte{[]byte("")},
+// meaning paths contain only the ICS24 key without any store prefix.
+func (*AttestationsTestSuite) hashPath(key []byte) []byte {
+	return crypto.Keccak256(key)
 }
 
 func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
@@ -134,25 +133,18 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 	chains := s.GetAllChains()
 	chainA := chains[0]
 	chainADenom := chainA.Config().Denom
-	cfg := chainA.Config().EncodingConfig
 
 	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userBWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	var (
-		clientIDA          string
-		clientIDB          string
-		connectionIDA      string
-		connectionIDB      string
-		channelIDA         string
-		channelIDB         string
-		packet             channeltypes.Packet
-		ack                []byte
-		proofHeight        uint64 = 100
-		proofTimestamp     uint64
-		msgChanOpenInitRes channeltypes.MsgChannelOpenInitResponse
-		msgChanOpenTryRes  channeltypes.MsgChannelOpenTryResponse
+		clientIDA      string
+		clientIDB      string
+		packet         channeltypesv2.Packet
+		ack            channeltypesv2.Acknowledgement
+		proofHeight    uint64 = 100
+		proofTimestamp uint64
 	)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
@@ -200,236 +192,61 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 		s.Require().Equal(ibcexported.Active.String(), status)
 	})
 
-	t.Run("connection open init", func(t *testing.T) {
-		msgConnOpenInit := connectiontypes.NewMsgConnectionOpenInit(
+	t.Run("register counterparties for IBC v2", func(t *testing.T) {
+		msgRegisterCounterpartyA := clientv2types.NewMsgRegisterCounterparty(
 			clientIDA,
+			[][]byte{[]byte("")},
 			clientIDB,
-			commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey)),
-			ibctesting.ConnectionVersion,
-			0,
 			rlyWallet.FormattedAddress(),
 		)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgConnOpenInit)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRegisterCounterpartyA)
 		s.AssertTxSuccess(txResp)
 
-		var err error
-		connectionIDA, err = ibctesting.ParseConnectionIDFromEvents(txResp.Events)
-		s.Require().NoError(err)
-		t.Logf("Connection init: %s", connectionIDA)
-	})
-
-	t.Run("connection open try", func(t *testing.T) {
-		connPath := s.prefixedPath(host.ConnectionKey(connectionIDA))
-
-		connEnd := connectiontypes.NewConnectionEnd(
-			connectiontypes.INIT,
-			clientIDA,
-			connectiontypes.NewCounterparty(clientIDB, "", commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey))),
-			[]*connectiontypes.Version{ibctesting.ConnectionVersion},
-			0,
-		)
-		connEndBz, err := cfg.Codec.Marshal(&connEnd)
-		s.Require().NoError(err)
-		connHash := crypto.Keccak256(connEndBz)
-
-		proofInit := s.createPacketAttestationProof(proofHeight, connPath, connHash)
-
-		msgConnOpenTry := connectiontypes.NewMsgConnectionOpenTry(
+		msgRegisterCounterpartyB := clientv2types.NewMsgRegisterCounterparty(
 			clientIDB,
-			connectionIDA,
+			[][]byte{[]byte("")},
 			clientIDA,
-			commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey)),
-			[]*connectiontypes.Version{ibctesting.ConnectionVersion},
-			0,
-			proofInit,
-			clienttypes.NewHeight(0, proofHeight),
 			rlyWallet.FormattedAddress(),
 		)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgConnOpenTry)
+		txResp = s.BroadcastMessages(ctx, chainA, rlyWallet, msgRegisterCounterpartyB)
 		s.AssertTxSuccess(txResp)
 
-		connectionIDB, err = ibctesting.ParseConnectionIDFromEvents(txResp.Events)
-		s.Require().NoError(err)
-		t.Logf("Connection try: %s", connectionIDB)
+		t.Logf("Registered counterparties: %s <-> %s", clientIDA, clientIDB)
 	})
 
-	t.Run("connection open ack", func(t *testing.T) {
-		connPath := s.prefixedPath(host.ConnectionKey(connectionIDB))
-
-		connEnd := connectiontypes.NewConnectionEnd(
-			connectiontypes.TRYOPEN,
-			clientIDB,
-			connectiontypes.NewCounterparty(clientIDA, connectionIDA, commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey))),
-			[]*connectiontypes.Version{ibctesting.ConnectionVersion},
-			0,
+	t.Run("send IBC v2 transfer", func(t *testing.T) {
+		token := transfertypes.Token{
+			Denom:  transfertypes.NewDenom(chainADenom),
+			Amount: strconv.FormatInt(testvalues.IBCTransferAmount, 10),
+		}
+		packetData := transfertypes.NewFungibleTokenPacketData(
+			token.Denom.Path(),
+			token.Amount,
+			userAWallet.FormattedAddress(),
+			userBWallet.FormattedAddress(),
+			"",
 		)
-		connEndBz, err := cfg.Codec.Marshal(&connEnd)
+
+		data, err := json.Marshal(packetData)
 		s.Require().NoError(err)
-		connHash := crypto.Keccak256(connEndBz)
 
-		proofTry := s.createPacketAttestationProof(proofHeight, connPath, connHash)
-
-		msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
-			connectionIDA,
-			connectionIDB,
-			proofTry,
-			clienttypes.NewHeight(0, proofHeight),
-			ibctesting.ConnectionVersion,
-			rlyWallet.FormattedAddress(),
+		payload := channeltypesv2.NewPayload(
+			transfertypes.PortID, transfertypes.PortID,
+			transfertypes.V1, transfertypes.EncodingJSON, data,
 		)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgConnOpenAck)
-		s.AssertTxSuccess(txResp)
-		t.Log("Connection ack completed")
-	})
-
-	t.Run("connection open confirm", func(t *testing.T) {
-		connPath := s.prefixedPath(host.ConnectionKey(connectionIDA))
-
-		connEnd := connectiontypes.NewConnectionEnd(
-			connectiontypes.OPEN,
-			clientIDA,
-			connectiontypes.NewCounterparty(clientIDB, connectionIDB, commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey))),
-			[]*connectiontypes.Version{ibctesting.ConnectionVersion},
-			0,
-		)
-		connEndBz, err := cfg.Codec.Marshal(&connEnd)
-		s.Require().NoError(err)
-		connHash := crypto.Keccak256(connEndBz)
-
-		proofAck := s.createPacketAttestationProof(proofHeight, connPath, connHash)
-
-		msgConnOpenConfirm := connectiontypes.NewMsgConnectionOpenConfirm(
-			connectionIDB,
-			proofAck,
-			clienttypes.NewHeight(0, proofHeight),
-			rlyWallet.FormattedAddress(),
+		timeoutTimestamp := uint64(time.Now().Add(10 * time.Minute).Unix())
+		msgSendPacket := channeltypesv2.NewMsgSendPacket(
+			clientIDA, timeoutTimestamp,
+			userAWallet.FormattedAddress(), payload,
 		)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgConnOpenConfirm)
-		s.AssertTxSuccess(txResp)
-		t.Log("Connection confirm completed")
-	})
-
-	channelVersion := transfertypes.V1
-
-	t.Run("channel open init", func(t *testing.T) {
-		msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
-			transfertypes.PortID, channelVersion,
-			channeltypes.UNORDERED, []string{connectionIDA},
-			transfertypes.PortID, rlyWallet.FormattedAddress(),
-		)
-
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenInit)
+		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendPacket)
 		s.AssertTxSuccess(txResp)
 
-		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenInitRes))
-		channelIDA = msgChanOpenInitRes.ChannelId
-		t.Logf("Channel init: %s", channelIDA)
-	})
-
-	t.Run("channel open try", func(t *testing.T) {
-		chanPath := s.prefixedPath(host.ChannelKey(transfertypes.PortID, channelIDA))
-
-		chanEnd := channeltypes.NewChannel(
-			channeltypes.INIT,
-			channeltypes.UNORDERED,
-			channeltypes.NewCounterparty(transfertypes.PortID, ""),
-			[]string{connectionIDA},
-			channelVersion,
-		)
-		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
-		s.Require().NoError(err)
-		chanHash := crypto.Keccak256(chanEndBz)
-
-		proofInit := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
-
-		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
-			transfertypes.PortID, channelVersion,
-			channeltypes.UNORDERED, []string{connectionIDB},
-			transfertypes.PortID, channelIDA,
-			channelVersion, proofInit, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress(),
-		)
-
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
-		s.AssertTxSuccess(txResp)
-
-		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenTryRes))
-		channelIDB = msgChanOpenTryRes.ChannelId
-		t.Logf("Channel try: %s", channelIDB)
-	})
-
-	t.Run("channel open ack", func(t *testing.T) {
-		chanPath := s.prefixedPath(host.ChannelKey(transfertypes.PortID, channelIDB))
-
-		chanEnd := channeltypes.NewChannel(
-			channeltypes.TRYOPEN,
-			channeltypes.UNORDERED,
-			channeltypes.NewCounterparty(transfertypes.PortID, channelIDA),
-			[]string{connectionIDB},
-			channelVersion,
-		)
-		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
-		s.Require().NoError(err)
-		chanHash := crypto.Keccak256(chanEndBz)
-
-		proofTry := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
-
-		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
-			transfertypes.PortID, channelIDA,
-			channelIDB, channelVersion,
-			proofTry, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress(),
-		)
-
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenAck)
-		s.AssertTxSuccess(txResp)
-		t.Log("Channel ack completed")
-	})
-
-	t.Run("channel open confirm", func(t *testing.T) {
-		chanPath := s.prefixedPath(host.ChannelKey(transfertypes.PortID, channelIDA))
-
-		chanEnd := channeltypes.NewChannel(
-			channeltypes.OPEN,
-			channeltypes.UNORDERED,
-			channeltypes.NewCounterparty(transfertypes.PortID, channelIDB),
-			[]string{connectionIDA},
-			channelVersion,
-		)
-		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
-		s.Require().NoError(err)
-		chanHash := crypto.Keccak256(chanEndBz)
-
-		proofAck := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
-
-		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
-			transfertypes.PortID, channelIDB,
-			proofAck, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress(),
-		)
-
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenConfirm)
-		s.AssertTxSuccess(txResp)
-		t.Log("Channel confirm completed")
-	})
-
-	t.Run("query channels", func(t *testing.T) {
-		channelEndA, err := query.Channel(ctx, chainA, transfertypes.PortID, channelIDA)
-		s.Require().NoError(err)
-		s.Require().Equal(channeltypes.OPEN, channelEndA.State)
-
-		channelEndB, err := query.Channel(ctx, chainA, transfertypes.PortID, channelIDB)
-		s.Require().NoError(err)
-		s.Require().Equal(channeltypes.OPEN, channelEndB.State)
-	})
-
-	t.Run("send IBC transfer", func(t *testing.T) {
-		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, channelIDA, testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.NewHeight(1, 500), 0, "")
-		s.AssertTxSuccess(txResp)
-
-		var err error
-		packet, err = ibctesting.ParseV1PacketFromEvents(txResp.Events)
+		packet, err = ibctesting.ParseV2PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 		t.Logf("Packet sent: seq=%d", packet.Sequence)
@@ -444,30 +261,32 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 	})
 
 	t.Run("recv packet with attestation proof", func(t *testing.T) {
-		packetCommitment := channeltypes.CommitPacket(packet)
-		packetPath := s.prefixedPath(host.PacketCommitmentKey(packet.SourcePort, packet.SourceChannel, packet.Sequence))
+		packetCommitment := channeltypesv2.CommitPacket(packet)
+		packetPath := s.hashPath(hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence))
 
 		proofCommitment := s.createPacketAttestationProof(proofHeight, packetPath, packetCommitment)
 
-		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, proofCommitment, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress())
+		msgRecvPacket := channeltypesv2.NewMsgRecvPacket(packet, proofCommitment, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress())
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
 		s.AssertTxSuccess(txResp)
 
-		var err error
-		ack, err = ibctesting.ParseAckFromEvents(txResp.Events)
+		ackBz, err := ibctesting.ParseAckV2FromEvents(txResp.Events)
 		s.Require().NoError(err)
-		s.Require().NotNil(ack)
+		s.Require().NotNil(ackBz)
+
+		err = proto.Unmarshal(ackBz, &ack)
+		s.Require().NoError(err)
 		t.Log("Packet received")
 	})
 
 	t.Run("acknowledge packet with attestation proof", func(t *testing.T) {
-		ackCommitment := channeltypes.CommitAcknowledgement(ack)
-		ackPath := s.prefixedPath(host.PacketAcknowledgementKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
+		ackCommitment := channeltypesv2.CommitAcknowledgement(ack)
+		ackPath := s.hashPath(hostv2.PacketAcknowledgementKey(packet.DestinationClient, packet.Sequence))
 
 		proofAcked := s.createPacketAttestationProof(proofHeight, ackPath, ackCommitment)
 
-		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(packet, ack, proofAcked, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress())
+		msgAcknowledgement := channeltypesv2.NewMsgAcknowledgement(packet, ack, proofAcked, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress())
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
 		s.AssertTxSuccess(txResp)
@@ -475,9 +294,7 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 	})
 
 	t.Run("verify tokens transferred", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, channelIDA, 1)
-
-		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, channelIDB)
+		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, clientIDB)
 		actualBalance, err := query.Balance(ctx, chainA, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
 		s.Require().NoError(err)
 
@@ -486,44 +303,71 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 		t.Logf("User B received %d of %s", actualBalance.Int64(), ibcToken.IBCDenom())
 	})
 
-	t.Run("send IBC transfer back (unwind)", func(t *testing.T) {
-		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, channelIDB)
+	t.Run("send IBC v2 transfer back (unwind)", func(t *testing.T) {
+		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, clientIDB)
 
-		txResp := s.Transfer(ctx, chainA, userBWallet, transfertypes.PortID, channelIDB, testvalues.DefaultTransferAmount(ibcToken.IBCDenom()), userBWallet.FormattedAddress(), userAWallet.FormattedAddress(), clienttypes.NewHeight(1, 500), 0, "")
+		token := transfertypes.Token{
+			Denom:  transfertypes.ExtractDenomFromPath(ibcToken.Path()),
+			Amount: strconv.FormatInt(testvalues.IBCTransferAmount, 10),
+		}
+		packetData := transfertypes.NewFungibleTokenPacketData(
+			token.Denom.Path(),
+			token.Amount,
+			userBWallet.FormattedAddress(),
+			userAWallet.FormattedAddress(),
+			"",
+		)
+
+		data, err := json.Marshal(packetData)
+		s.Require().NoError(err)
+
+		payload := channeltypesv2.NewPayload(
+			transfertypes.PortID, transfertypes.PortID,
+			transfertypes.V1, transfertypes.EncodingJSON, data,
+		)
+
+		timeoutTimestamp := uint64(time.Now().Add(10 * time.Minute).Unix())
+		msgSendPacket := channeltypesv2.NewMsgSendPacket(
+			clientIDB, timeoutTimestamp,
+			userBWallet.FormattedAddress(), payload,
+		)
+
+		txResp := s.BroadcastMessages(ctx, chainA, userBWallet, msgSendPacket)
 		s.AssertTxSuccess(txResp)
 
-		var err error
-		packet, err = ibctesting.ParseV1PacketFromEvents(txResp.Events)
+		packet, err = ibctesting.ParseV2PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 		t.Logf("Return packet sent: seq=%d", packet.Sequence)
 	})
 
 	t.Run("recv return packet", func(t *testing.T) {
-		packetCommitment := channeltypes.CommitPacket(packet)
-		packetPath := s.prefixedPath(host.PacketCommitmentKey(packet.SourcePort, packet.SourceChannel, packet.Sequence))
+		packetCommitment := channeltypesv2.CommitPacket(packet)
+		packetPath := s.hashPath(hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence))
 
 		proofCommitment := s.createPacketAttestationProof(proofHeight, packetPath, packetCommitment)
 
-		msgRecvPacket := channeltypes.NewMsgRecvPacket(packet, proofCommitment, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress())
+		msgRecvPacket := channeltypesv2.NewMsgRecvPacket(packet, proofCommitment, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress())
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRecvPacket)
 		s.AssertTxSuccess(txResp)
 
-		var err error
-		ack, err = ibctesting.ParseAckFromEvents(txResp.Events)
+		ackBz, err := ibctesting.ParseAckV2FromEvents(txResp.Events)
 		s.Require().NoError(err)
-		s.Require().NotNil(ack)
+		s.Require().NotNil(ackBz)
+
+		err = proto.Unmarshal(ackBz, &ack)
+		s.Require().NoError(err)
 		t.Log("Return packet received")
 	})
 
 	t.Run("acknowledge return packet", func(t *testing.T) {
-		ackCommitment := channeltypes.CommitAcknowledgement(ack)
-		ackPath := s.prefixedPath(host.PacketAcknowledgementKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
+		ackCommitment := channeltypesv2.CommitAcknowledgement(ack)
+		ackPath := s.hashPath(hostv2.PacketAcknowledgementKey(packet.DestinationClient, packet.Sequence))
 
 		proofAcked := s.createPacketAttestationProof(proofHeight, ackPath, ackCommitment)
 
-		msgAcknowledgement := channeltypes.NewMsgAcknowledgement(packet, ack, proofAcked, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress())
+		msgAcknowledgement := channeltypesv2.NewMsgAcknowledgement(packet, ack, proofAcked, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress())
 
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgAcknowledgement)
 		s.AssertTxSuccess(txResp)
@@ -531,8 +375,6 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 	})
 
 	t.Run("verify tokens unwound", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, channelIDB, 1)
-
 		actualBalance, err := s.GetChainANativeBalance(ctx, userAWallet)
 		s.Require().NoError(err)
 
@@ -540,7 +382,7 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 		s.Require().Equal(expected, actualBalance)
 		t.Logf("User A recovered full balance: %d", actualBalance)
 
-		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, channelIDB)
+		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, clientIDB)
 		userBBalance, err := query.Balance(ctx, chainA, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
 		s.Require().NoError(err)
 		s.Require().Zero(userBBalance.Int64())
@@ -555,24 +397,17 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 	chains := s.GetAllChains()
 	chainA := chains[0]
 	chainADenom := chainA.Config().Denom
-	cfg := chainA.Config().EncodingConfig
 
 	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 	userBWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
 
 	var (
-		clientIDA          string
-		clientIDB          string
-		connectionIDA      string
-		connectionIDB      string
-		channelIDA         string
-		channelIDB         string
-		packet             channeltypes.Packet
-		proofHeight        uint64 = 100
-		proofTimestamp     uint64
-		msgChanOpenInitRes channeltypes.MsgChannelOpenInitResponse
-		msgChanOpenTryRes  channeltypes.MsgChannelOpenTryResponse
+		clientIDA      string
+		clientIDB      string
+		packet         channeltypesv2.Packet
+		proofHeight    uint64 = 100
+		proofTimestamp uint64
 	)
 
 	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA), "failed to wait for blocks")
@@ -608,220 +443,60 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 		clientIDB = createClientRes.ClientId
 	})
 
-	t.Run("connection open init", func(t *testing.T) {
-		msgConnOpenInit := connectiontypes.NewMsgConnectionOpenInit(
+	t.Run("register counterparties for IBC v2", func(t *testing.T) {
+		msgRegisterCounterpartyA := clientv2types.NewMsgRegisterCounterparty(
 			clientIDA,
+			[][]byte{[]byte("")},
 			clientIDB,
-			commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey)),
-			ibctesting.ConnectionVersion,
-			0,
 			rlyWallet.FormattedAddress(),
 		)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgConnOpenInit)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgRegisterCounterpartyA)
 		s.AssertTxSuccess(txResp)
 
-		var err error
-		connectionIDA, err = ibctesting.ParseConnectionIDFromEvents(txResp.Events)
-		s.Require().NoError(err)
-	})
-
-	t.Run("connection open try", func(t *testing.T) {
-		connPath := s.prefixedPath(host.ConnectionKey(connectionIDA))
-
-		connEnd := connectiontypes.NewConnectionEnd(
-			connectiontypes.INIT,
-			clientIDA,
-			connectiontypes.NewCounterparty(clientIDB, "", commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey))),
-			[]*connectiontypes.Version{ibctesting.ConnectionVersion},
-			0,
-		)
-		connEndBz, err := cfg.Codec.Marshal(&connEnd)
-		s.Require().NoError(err)
-		connHash := crypto.Keccak256(connEndBz)
-
-		proofInit := s.createPacketAttestationProof(proofHeight, connPath, connHash)
-
-		msgConnOpenTry := connectiontypes.NewMsgConnectionOpenTry(
+		msgRegisterCounterpartyB := clientv2types.NewMsgRegisterCounterparty(
 			clientIDB,
-			connectionIDA,
+			[][]byte{[]byte("")},
 			clientIDA,
-			commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey)),
-			[]*connectiontypes.Version{ibctesting.ConnectionVersion},
-			0,
-			proofInit,
-			clienttypes.NewHeight(0, proofHeight),
 			rlyWallet.FormattedAddress(),
 		)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgConnOpenTry)
+		txResp = s.BroadcastMessages(ctx, chainA, rlyWallet, msgRegisterCounterpartyB)
 		s.AssertTxSuccess(txResp)
+	})
 
-		connectionIDB, err = ibctesting.ParseConnectionIDFromEvents(txResp.Events)
+	t.Run("send IBC v2 transfer with short timeout", func(t *testing.T) {
+		token := transfertypes.Token{
+			Denom:  transfertypes.NewDenom(chainADenom),
+			Amount: strconv.FormatInt(testvalues.IBCTransferAmount, 10),
+		}
+		packetData := transfertypes.NewFungibleTokenPacketData(
+			token.Denom.Path(),
+			token.Amount,
+			userAWallet.FormattedAddress(),
+			userBWallet.FormattedAddress(),
+			"",
+		)
+
+		data, err := json.Marshal(packetData)
 		s.Require().NoError(err)
-	})
 
-	t.Run("connection open ack", func(t *testing.T) {
-		connPath := s.prefixedPath(host.ConnectionKey(connectionIDB))
-
-		connEnd := connectiontypes.NewConnectionEnd(
-			connectiontypes.TRYOPEN,
-			clientIDB,
-			connectiontypes.NewCounterparty(clientIDA, connectionIDA, commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey))),
-			[]*connectiontypes.Version{ibctesting.ConnectionVersion},
-			0,
-		)
-		connEndBz, err := cfg.Codec.Marshal(&connEnd)
-		s.Require().NoError(err)
-		connHash := crypto.Keccak256(connEndBz)
-
-		proofTry := s.createPacketAttestationProof(proofHeight, connPath, connHash)
-
-		msgConnOpenAck := connectiontypes.NewMsgConnectionOpenAck(
-			connectionIDA,
-			connectionIDB,
-			proofTry,
-			clienttypes.NewHeight(0, proofHeight),
-			ibctesting.ConnectionVersion,
-			rlyWallet.FormattedAddress(),
+		payload := channeltypesv2.NewPayload(
+			transfertypes.PortID, transfertypes.PortID,
+			transfertypes.V1, transfertypes.EncodingJSON, data,
 		)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgConnOpenAck)
-		s.AssertTxSuccess(txResp)
-	})
-
-	t.Run("connection open confirm", func(t *testing.T) {
-		connPath := s.prefixedPath(host.ConnectionKey(connectionIDA))
-
-		connEnd := connectiontypes.NewConnectionEnd(
-			connectiontypes.OPEN,
-			clientIDA,
-			connectiontypes.NewCounterparty(clientIDB, connectionIDB, commitmenttypes.NewMerklePrefix([]byte(ibcexported.StoreKey))),
-			[]*connectiontypes.Version{ibctesting.ConnectionVersion},
-			0,
-		)
-		connEndBz, err := cfg.Codec.Marshal(&connEnd)
-		s.Require().NoError(err)
-		connHash := crypto.Keccak256(connEndBz)
-
-		proofAck := s.createPacketAttestationProof(proofHeight, connPath, connHash)
-
-		msgConnOpenConfirm := connectiontypes.NewMsgConnectionOpenConfirm(
-			connectionIDB,
-			proofAck,
-			clienttypes.NewHeight(0, proofHeight),
-			rlyWallet.FormattedAddress(),
+		// Timeout 5 seconds in the future (IBC v2 uses seconds, not nanoseconds)
+		timeoutTimestamp := uint64(time.Now().Add(5 * time.Second).Unix())
+		msgSendPacket := channeltypesv2.NewMsgSendPacket(
+			clientIDA, timeoutTimestamp,
+			userAWallet.FormattedAddress(), payload,
 		)
 
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgConnOpenConfirm)
-		s.AssertTxSuccess(txResp)
-	})
-
-	channelVersion := transfertypes.V1
-
-	t.Run("channel open init", func(t *testing.T) {
-		msgChanOpenInit := channeltypes.NewMsgChannelOpenInit(
-			transfertypes.PortID, channelVersion,
-			channeltypes.UNORDERED, []string{connectionIDA},
-			transfertypes.PortID, rlyWallet.FormattedAddress(),
-		)
-
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenInit)
+		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSendPacket)
 		s.AssertTxSuccess(txResp)
 
-		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenInitRes))
-		channelIDA = msgChanOpenInitRes.ChannelId
-	})
-
-	t.Run("channel open try", func(t *testing.T) {
-		chanPath := s.prefixedPath(host.ChannelKey(transfertypes.PortID, channelIDA))
-
-		chanEnd := channeltypes.NewChannel(
-			channeltypes.INIT,
-			channeltypes.UNORDERED,
-			channeltypes.NewCounterparty(transfertypes.PortID, ""),
-			[]string{connectionIDA},
-			channelVersion,
-		)
-		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
-		s.Require().NoError(err)
-		chanHash := crypto.Keccak256(chanEndBz)
-
-		proofInit := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
-
-		msgChanOpenTry := channeltypes.NewMsgChannelOpenTry(
-			transfertypes.PortID, channelVersion,
-			channeltypes.UNORDERED, []string{connectionIDB},
-			transfertypes.PortID, channelIDA,
-			channelVersion, proofInit, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress(),
-		)
-
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenTry)
-		s.AssertTxSuccess(txResp)
-
-		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &msgChanOpenTryRes))
-		channelIDB = msgChanOpenTryRes.ChannelId
-	})
-
-	t.Run("channel open ack", func(t *testing.T) {
-		chanPath := s.prefixedPath(host.ChannelKey(transfertypes.PortID, channelIDB))
-
-		chanEnd := channeltypes.NewChannel(
-			channeltypes.TRYOPEN,
-			channeltypes.UNORDERED,
-			channeltypes.NewCounterparty(transfertypes.PortID, channelIDA),
-			[]string{connectionIDB},
-			channelVersion,
-		)
-		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
-		s.Require().NoError(err)
-		chanHash := crypto.Keccak256(chanEndBz)
-
-		proofTry := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
-
-		msgChanOpenAck := channeltypes.NewMsgChannelOpenAck(
-			transfertypes.PortID, channelIDA,
-			channelIDB, channelVersion,
-			proofTry, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress(),
-		)
-
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenAck)
-		s.AssertTxSuccess(txResp)
-	})
-
-	t.Run("channel open confirm", func(t *testing.T) {
-		chanPath := s.prefixedPath(host.ChannelKey(transfertypes.PortID, channelIDA))
-
-		chanEnd := channeltypes.NewChannel(
-			channeltypes.OPEN,
-			channeltypes.UNORDERED,
-			channeltypes.NewCounterparty(transfertypes.PortID, channelIDB),
-			[]string{connectionIDA},
-			channelVersion,
-		)
-		chanEndBz, err := cfg.Codec.Marshal(&chanEnd)
-		s.Require().NoError(err)
-		chanHash := crypto.Keccak256(chanEndBz)
-
-		proofAck := s.createPacketAttestationProof(proofHeight, chanPath, chanHash)
-
-		msgChanOpenConfirm := channeltypes.NewMsgChannelOpenConfirm(
-			transfertypes.PortID, channelIDB,
-			proofAck, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress(),
-		)
-
-		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgChanOpenConfirm)
-		s.AssertTxSuccess(txResp)
-	})
-
-	t.Run("send IBC transfer with short timeout", func(t *testing.T) {
-		// Use a timeout 5 seconds in the future
-		timeoutTimestamp := uint64(time.Now().Add(5 * time.Second).UnixNano())
-		txResp := s.Transfer(ctx, chainA, userAWallet, transfertypes.PortID, channelIDA, testvalues.DefaultTransferAmount(chainADenom), userAWallet.FormattedAddress(), userBWallet.FormattedAddress(), clienttypes.ZeroHeight(), timeoutTimestamp, "")
-		s.AssertTxSuccess(txResp)
-
-		var err error
-		packet, err = ibctesting.ParseV1PacketFromEvents(txResp.Events)
+		packet, err = ibctesting.ParseV2PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 		t.Logf("Packet sent with timeout: seq=%d, timeout=%d", packet.Sequence, packet.TimeoutTimestamp)
@@ -840,14 +515,13 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 
 	t.Run("timeout packet with attestation proof (non-membership)", func(t *testing.T) {
 		// Update client with timestamp after packet timeout
-		// Note: ABI encoding uses seconds, but we store nanoseconds internally
 		newTimestamp := uint64(time.Now().UnixNano())
 		proofHeight++
 		stateAttestation := &attestations.StateAttestation{
 			Height:    proofHeight,
 			Timestamp: newTimestamp,
 		}
-		stateAttestationData, err := attestations.ABIEncodeStateAttestation(stateAttestation)
+		stateAttestationData, err := stateAttestation.ABIEncode()
 		s.Require().NoError(err)
 
 		signatures := s.signAttestationData(stateAttestationData)
@@ -861,13 +535,12 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 		txResp := s.BroadcastMessages(ctx, chainA, rlyWallet, msgUpdateClient)
 		s.AssertTxSuccess(txResp)
 
-		receiptPath := s.prefixedPath(host.PacketReceiptKey(packet.DestinationPort, packet.DestinationChannel, packet.Sequence))
+		receiptPath := s.hashPath(hostv2.PacketReceiptKey(packet.DestinationClient, packet.Sequence))
 
 		proofUnreceived := s.createNonMembershipProof(proofHeight, receiptPath)
 
-		msgTimeout := channeltypes.NewMsgTimeout(
+		msgTimeout := channeltypesv2.NewMsgTimeout(
 			packet,
-			1,
 			proofUnreceived,
 			clienttypes.NewHeight(0, proofHeight),
 			rlyWallet.FormattedAddress(),
@@ -879,8 +552,6 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 	})
 
 	t.Run("verify tokens refunded after timeout", func(t *testing.T) {
-		s.AssertPacketRelayed(ctx, chainA, transfertypes.PortID, channelIDA, 1)
-
 		actualBalance, err := s.GetChainANativeBalance(ctx, userAWallet)
 		s.Require().NoError(err)
 

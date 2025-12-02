@@ -22,7 +22,7 @@ func (cs *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCode
 
 	attestationProof, ok := clientMsg.(*AttestationProof)
 	if !ok {
-		return errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "expected type %T, got type %T", (*AttestationProof)(nil), clientMsg)
+		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected type %T, got type %T", (*AttestationProof)(nil), clientMsg)
 	}
 
 	return cs.verifySignatures(attestationProof)

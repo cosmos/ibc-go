@@ -64,38 +64,12 @@ type PacketCompact struct {
 	Commitment []byte
 }
 
-func ABIEncodeStateAttestation(sa *StateAttestation) ([]byte, error) {
+func (sa *StateAttestation) ABIEncode() ([]byte, error) {
 	timestampSeconds := sa.Timestamp / nanosPerSecond
 	return stateAttestationArgs.Pack(sa.Height, timestampSeconds)
 }
 
-func ABIDecodeStateAttestation(data []byte) (*StateAttestation, error) {
-	unpacked, err := stateAttestationArgs.Unpack(data)
-	if err != nil {
-		return nil, errorsmod.Wrapf(ErrInvalidAttestationData, "failed to ABI decode state attestation: %v", err)
-	}
-
-	if len(unpacked) != 2 {
-		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid state attestation: expected 2 fields")
-	}
-
-	height, ok := unpacked[0].(uint64)
-	if !ok {
-		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid height type")
-	}
-
-	timestampSeconds, ok := unpacked[1].(uint64)
-	if !ok {
-		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid timestamp type")
-	}
-
-	return &StateAttestation{
-		Height:    height,
-		Timestamp: timestampSeconds * nanosPerSecond,
-	}, nil
-}
-
-func ABIEncodePacketAttestation(pa *PacketAttestation) ([]byte, error) {
+func (pa *PacketAttestation) ABIEncode() ([]byte, error) {
 	packets := make([]ABIPacketCompact, len(pa.Packets))
 	for i, p := range pa.Packets {
 		packets[i] = ABIPacketCompact{
@@ -143,8 +117,34 @@ func ABIDecodePacketAttestation(data []byte) (*PacketAttestation, error) {
 	}, nil
 }
 
-func ABIEncodePacketCompact(pc *PacketCompact) ([]byte, error) {
+func (pc *PacketCompact) ABIEncode() ([]byte, error) {
 	return tupleArrayType.Pack(bytesToBytes32(pc.Path), bytesToBytes32(pc.Commitment))
+}
+
+func ABIDecodeStateAttestation(data []byte) (*StateAttestation, error) {
+	unpacked, err := stateAttestationArgs.Unpack(data)
+	if err != nil {
+		return nil, errorsmod.Wrapf(ErrInvalidAttestationData, "failed to ABI decode state attestation: %v", err)
+	}
+
+	if len(unpacked) != 2 {
+		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid state attestation: expected 2 fields")
+	}
+
+	height, ok := unpacked[0].(uint64)
+	if !ok {
+		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid height type")
+	}
+
+	timestampSeconds, ok := unpacked[1].(uint64)
+	if !ok {
+		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid timestamp type")
+	}
+
+	return &StateAttestation{
+		Height:    height,
+		Timestamp: timestampSeconds * nanosPerSecond,
+	}, nil
 }
 
 func bytesToBytes32(b []byte) [32]byte {

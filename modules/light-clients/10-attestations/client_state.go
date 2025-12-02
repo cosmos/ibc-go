@@ -2,8 +2,6 @@ package attestations
 
 import (
 	"bytes"
-	"fmt"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -16,12 +14,13 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
 
-var zeroCommitment = make([]byte, 32)
+var nonMembershipCommitment = make([]byte, 32)
 
 // NewClientState creates a new ClientState instance.
 func NewClientState(attestorAddresses []string, minRequiredSigs uint32, latestHeight uint64) *ClientState {
@@ -50,7 +49,7 @@ func (cs ClientState) Validate() error {
 		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "min required sigs cannot exceed number of attestors")
 	}
 
-	seen := make(map[string]bool)
+	seen := make(map[common.Address]bool)
 	for _, addr := range cs.AttestorAddresses {
 		if addr == "" {
 			return errorsmod.Wrap(clienttypes.ErrInvalidClient, "attestor address cannot be empty")
@@ -58,7 +57,7 @@ func (cs ClientState) Validate() error {
 		if !common.IsHexAddress(addr) {
 			return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "invalid attestor address format: %s", addr)
 		}
-		normalizedAddr := strings.ToLower(addr)
+		normalizedAddr := common.HexToAddress(addr)
 		if seen[normalizedAddr] {
 			return errorsmod.Wrap(clienttypes.ErrInvalidClient, "duplicate attestor address")
 		}
@@ -119,15 +118,28 @@ func (cs *ClientState) verifyMembership(
 		return errorsmod.Wrap(ErrInvalidAttestationData, "packets cannot be empty")
 	}
 
-	commitmentPath, err := canonicalizePath(path)
-	if err != nil {
-		return err
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
-	normalizedValue := normalizeValueBytes(value)
+	if len(merklePath.KeyPath) != 1 {
+		return errorsmod.Wrapf(ErrInvalidPath, "key path must have exactly 1 element, got %d", len(merklePath.KeyPath))
+	}
+
+	if len(merklePath.KeyPath[0]) != 32 {
+		return errorsmod.Wrapf(ErrInvalidPath, "path must be 32 bytes, got %d", len(merklePath.KeyPath[0]))
+	}
+
+	commitmentPath := crypto.Keccak256(merklePath.KeyPath[0])
+
+	if len(value) != 32 {
+		return errorsmod.Wrapf(ErrInvalidValue, "value must be 32 bytes, got %d", len(value))
+	}
+	commitment := crypto.Keccak256(value)
 
 	for _, packet := range packetAttestation.Packets {
-		if bytes.Equal(packet.Commitment, normalizedValue) && bytes.Equal(packet.Path, commitmentPath) {
+		if len(packet.Commitment) == 32 && len(packet.Path) == 32 && bytes.Equal(packet.Commitment, commitment) && bytes.Equal(packet.Path, commitmentPath) {
 			return nil
 		}
 	}
@@ -177,17 +189,27 @@ func (cs *ClientState) verifyNonMembership(
 		return errorsmod.Wrap(ErrInvalidAttestationData, "packets cannot be empty")
 	}
 
-	commitmentPath, err := canonicalizePath(path)
-	if err != nil {
-		return err
+	merklePath, ok := path.(commitmenttypesv2.MerklePath)
+	if !ok {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
+
+	if len(merklePath.KeyPath) != 1 {
+		return errorsmod.Wrapf(ErrInvalidPath, "key path must have exactly 1 element, got %d", len(merklePath.KeyPath))
+	}
+
+	if len(merklePath.KeyPath[0]) != 32 {
+		return errorsmod.Wrapf(ErrInvalidPath, "path must be 32 bytes, got %d", len(merklePath.KeyPath[0]))
+	}
+
+	commitmentPath := crypto.Keccak256(merklePath.KeyPath[0])
 
 	foundMatchingPath := false
 	allZeroCommitments := true
 	for _, packet := range packetAttestation.Packets {
 		if bytes.Equal(packet.Path, commitmentPath) {
 			foundMatchingPath = true
-			if len(packet.Commitment) != 32 || !bytes.Equal(packet.Commitment, zeroCommitment) {
+			if len(packet.Commitment) != 32 || !bytes.Equal(packet.Commitment, nonMembershipCommitment) {
 				allZeroCommitments = false
 			}
 		}
@@ -202,42 +224,6 @@ func (cs *ClientState) verifyNonMembership(
 	}
 
 	return nil
-}
-
-func canonicalizePath(path exported.Path) ([]byte, error) {
-	switch p := path.(type) {
-	case commitmenttypesv2.MerklePath:
-		flattened := bytes.Join(p.GetKeyPath(), []byte("/"))
-		return normalizePathBytes(flattened), nil
-	case *commitmenttypesv2.MerklePath:
-		flattened := bytes.Join(p.GetKeyPath(), []byte("/"))
-		return normalizePathBytes(flattened), nil
-	case interface{ GetKeyPath() [][]byte }:
-		flattened := bytes.Join(p.GetKeyPath(), []byte("/"))
-		return normalizePathBytes(flattened), nil
-	case interface{ Bytes() []byte }:
-		return normalizePathBytes(p.Bytes()), nil
-	default:
-		if stringer, ok := path.(fmt.Stringer); ok {
-			return normalizePathBytes([]byte(stringer.String())), nil
-		}
-	}
-
-	return nil, errorsmod.Wrapf(ErrInvalidPath, "unsupported path type %T", path)
-}
-
-func normalizePathBytes(raw []byte) []byte {
-	if len(raw) == 32 {
-		return raw
-	}
-	return crypto.Keccak256(raw)
-}
-
-func normalizeValueBytes(raw []byte) []byte {
-	if len(raw) == 32 {
-		return raw
-	}
-	return crypto.Keccak256(raw)
 }
 
 // sets the client state to the store

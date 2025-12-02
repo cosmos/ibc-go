@@ -1,10 +1,10 @@
 # 10-attestations Light Client
 
-An attestor-based IBC light client that verifies state using quorum-signed ECDSA attestations from a fixed set of trusted signers.
+An attestor-based IBC light client that verifies IBC packets using quorum-signed ECDSA attestations from a fixed set of trusted signers.
 
 ## Overview
 
-The attestations light client provides a trust model based on a quorum of trusted attestors rather than cryptographic verification of block headers. This design suits scenarios where a set of known, trusted parties can attest to the state of a counterparty chain.
+The attestations light client provides a trust model based on a quorum of trusted attestors rather than cryptographic verification of block headers. This design suits scenarios where a set of known, trusted parties can attest to IBC packets on a counterparty chain, rather than attesting to the chain's state root.
 
 ## Wire Compatibility
 
@@ -71,7 +71,7 @@ Both membership and non-membership proofs use `AttestationProof` containing an A
 // ABI-encoded PacketAttestation
 struct PacketCompact {
     bytes32 path;       // keccak256-hashed path
-    bytes32 commitment; // commitment value
+    bytes32 commitment; // keccak256-hashed commitment
 }
 
 struct PacketAttestation {
@@ -81,31 +81,23 @@ struct PacketAttestation {
 // Encoding: abi.encode(height, packets) with dynamic array
 ```
 
-### Path and Value Normalization
-
-All paths and values are normalized to 32 bytes using `keccak256` hashing:
-- If already 32 bytes: used as-is (assumed pre-hashed)
-- Otherwise: `keccak256(data)` is computed
-
-This ensures consistent verification across implementations (ibc-go, Solidity, CosmWasm).
-
-**Note**: The `keccak256` function is used for compatibility with EVM-based light clients and the `ibc-attestor` infrastructure, which use keccak256 for path hashing.
+Both fields in `PacketCompact` are keccak256-hashed:
+- `path` = `keccak256(path_bytes)` where `path_bytes` is the IBC commitment path
+- `commitment` = `keccak256(packet_commitment)` where `packet_commitment` is the 32-byte packet commitment stored on the counterparty chain
 
 ### Membership Verification
 
-Verifies that a value exists at a given path:
+Verifies that a packet commitment exists at a given path:
 1. Validates the proof has sufficient valid signatures
 2. Confirms a consensus state exists for the claimed height
-3. Matches the path and commitment in the attested packets
-4. Paths are keccak256-hashed if not already 32 bytes
-5. Values longer than 32 bytes are keccak256-hashed before comparison
+3. Computes `keccak256(path)` and `keccak256(value)` and finds a matching entry in the attested packets
 
 ### Non-Membership Verification
 
 Verifies that a path has no value (was deleted or never existed):
 1. Validates the proof has sufficient valid signatures
 2. Confirms a consensus state exists for the claimed height
-3. Finds the path in attested packets with a zero commitment (32 zero bytes)
+3. Computes `keccak256(path)` and finds a matching entry in the attested packets with a zero commitment (32 zero bytes)
 
 ## Signature Verification
 

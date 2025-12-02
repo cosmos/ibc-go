@@ -11,36 +11,36 @@ func (s *AttestationsTestSuite) TestAttestationProofValidateBasic() {
 		expErr           string
 	}{
 		{
-			"valid proof",
-			attestations.AttestationProof{
+			name: "valid proof",
+			attestationProof: attestations.AttestationProof{
 				AttestationData: []byte("valid data"),
 				Signatures:      [][]byte{make([]byte, 65)},
 			},
-			"",
+			expErr: "",
 		},
 		{
-			"empty attestation data",
-			attestations.AttestationProof{
+			name: "empty attestation data",
+			attestationProof: attestations.AttestationProof{
 				AttestationData: []byte{},
 				Signatures:      [][]byte{make([]byte, 65)},
 			},
-			"attestation data cannot be empty",
+			expErr: "attestation data cannot be empty",
 		},
 		{
-			"empty signatures",
-			attestations.AttestationProof{
+			name: "empty signatures",
+			attestationProof: attestations.AttestationProof{
 				AttestationData: []byte("valid data"),
 				Signatures:      [][]byte{},
 			},
-			"signatures cannot be empty",
+			expErr: "signatures cannot be empty",
 		},
 		{
-			"invalid signature length",
-			attestations.AttestationProof{
+			name: "invalid signature length",
+			attestationProof: attestations.AttestationProof{
 				AttestationData: []byte("valid data"),
 				Signatures:      [][]byte{make([]byte, 64)},
 			},
-			"signature 0 has invalid length",
+			expErr: "signature 0 has invalid length",
 		},
 	}
 

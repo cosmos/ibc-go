@@ -18,18 +18,18 @@ func (s *AttestationsTestSuite) TestVerifySignatures() {
 		errContains string
 	}{
 		{
-			"failure: invalid signature length",
-			func(attestationData []byte) *attestations.AttestationProof {
+			name: "failure: invalid signature length",
+			setupProof: func(attestationData []byte) *attestations.AttestationProof {
 				return &attestations.AttestationProof{
 					AttestationData: attestationData,
 					Signatures:      [][]byte{bytes.Repeat([]byte{0x01}, 32)},
 				}
 			},
-			"invalid length",
+			errContains: "invalid length",
 		},
 		{
-			"failure: unknown signer",
-			func(attestationData []byte) *attestations.AttestationProof {
+			name: "failure: unknown signer",
+			setupProof: func(attestationData []byte) *attestations.AttestationProof {
 				unknownKey, _ := crypto.GenerateKey()
 				hash := sha256.Sum256(attestationData)
 				unknownSig, _ := crypto.Sign(hash[:], unknownKey)
@@ -38,11 +38,11 @@ func (s *AttestationsTestSuite) TestVerifySignatures() {
 					Signatures:      [][]byte{unknownSig},
 				}
 			},
-			"not in attestor set",
+			errContains: "not in attestor set",
 		},
 		{
-			"failure: duplicate signer",
-			func(attestationData []byte) *attestations.AttestationProof {
+			name: "failure: duplicate signer",
+			setupProof: func(attestationData []byte) *attestations.AttestationProof {
 				hash := sha256.Sum256(attestationData)
 				sig1, _ := crypto.Sign(hash[:], s.attestors[0])
 				sig2, _ := crypto.Sign(hash[:], s.attestors[0])
@@ -51,17 +51,17 @@ func (s *AttestationsTestSuite) TestVerifySignatures() {
 					Signatures:      [][]byte{sig1, sig2},
 				}
 			},
-			"duplicate signer",
+			errContains: "duplicate signer",
 		},
 		{
-			"failure: empty signatures",
-			func(attestationData []byte) *attestations.AttestationProof {
+			name: "failure: empty signatures",
+			setupProof: func(attestationData []byte) *attestations.AttestationProof {
 				return &attestations.AttestationProof{
 					AttestationData: attestationData,
 					Signatures:      [][]byte{},
 				}
 			},
-			"signatures cannot be empty",
+			errContains: "signatures cannot be empty",
 		},
 	}
 
