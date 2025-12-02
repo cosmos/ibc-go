@@ -218,7 +218,7 @@ func (s *AttestationsTestSuite) TestVerifyMembershipMalformedProof() {
 	s.Require().ErrorContains(err, "failed to ABI decode attestation data")
 }
 
-func (s *AttestationsTestSuite) TestVerifyMembershipInvalidPathLength() {
+func (s *AttestationsTestSuite) TestVerifyMembershipVariableLengthPath() {
 	initialHeight := uint64(100)
 	initialTimestamp := uint64(time.Second.Nanoseconds())
 	clientID := testClientID
@@ -230,12 +230,12 @@ func (s *AttestationsTestSuite) TestVerifyMembershipInvalidPathLength() {
 	newTimestamp := uint64(2 * time.Second.Nanoseconds())
 	s.updateClientState(ctx, clientID, newHeight, newTimestamp)
 
-	shortPath := []byte("key/path")
+	shortPath := []byte("10-attestations-0\x01\x00\x00\x00\x00\x00\x00\x00\x01")
 	path := commitmenttypesv2.NewMerklePath(shortPath)
 	value32 := bytes.Repeat([]byte{0xAB}, 32)
 
 	commitment := crypto.Keccak256(value32)
-	hashedPath := crypto.Keccak256(bytes.Repeat([]byte{0x01}, 32))
+	hashedPath := crypto.Keccak256(shortPath)
 	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: commitment}})
 	signers := []int{0, 1, 2}
 	proof := s.createAttestationProof(packetAttestation, signers)
@@ -243,8 +243,7 @@ func (s *AttestationsTestSuite) TestVerifyMembershipInvalidPathLength() {
 
 	proofHeight := clienttypes.NewHeight(0, newHeight)
 	err := s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, proofBz, path, value32)
-	s.Require().Error(err)
-	s.Require().ErrorContains(err, "path must be 32 bytes")
+	s.Require().NoError(err)
 }
 
 func (s *AttestationsTestSuite) TestVerifyMembershipInvalidKeyPathLength() {

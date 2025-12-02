@@ -127,8 +127,8 @@ func (cs *ClientState) verifyMembership(
 		return errorsmod.Wrapf(ErrInvalidPath, "key path must have exactly 1 element, got %d", len(merklePath.KeyPath))
 	}
 
-	if len(merklePath.KeyPath[0]) != 32 {
-		return errorsmod.Wrapf(ErrInvalidPath, "path must be 32 bytes, got %d", len(merklePath.KeyPath[0]))
+	if len(merklePath.KeyPath[0]) == 0 {
+		return errorsmod.Wrap(ErrInvalidPath, "path cannot be empty")
 	}
 
 	commitmentPath := crypto.Keccak256(merklePath.KeyPath[0])
@@ -198,8 +198,8 @@ func (cs *ClientState) verifyNonMembership(
 		return errorsmod.Wrapf(ErrInvalidPath, "key path must have exactly 1 element, got %d", len(merklePath.KeyPath))
 	}
 
-	if len(merklePath.KeyPath[0]) != 32 {
-		return errorsmod.Wrapf(ErrInvalidPath, "path must be 32 bytes, got %d", len(merklePath.KeyPath[0]))
+	if len(merklePath.KeyPath[0]) == 0 {
+		return errorsmod.Wrap(ErrInvalidPath, "path cannot be empty")
 	}
 
 	commitmentPath := crypto.Keccak256(merklePath.KeyPath[0])
