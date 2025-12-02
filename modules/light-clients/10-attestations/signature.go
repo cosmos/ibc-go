@@ -2,8 +2,8 @@ package attestations
 
 import (
 	"crypto/sha256"
-	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
 	errorsmod "cosmossdk.io/errors"
@@ -21,14 +21,13 @@ func (cs *ClientState) verifySignatures(proof *AttestationProof) error {
 		return errorsmod.Wrap(ErrInvalidSignature, "signatures cannot be empty")
 	}
 
-	attestorSet := make(map[string]bool)
+	attestorSet := make(map[common.Address]bool)
 	for _, addr := range cs.AttestorAddresses {
-		attestorSet[strings.ToLower(addr)] = true
+		attestorSet[common.HexToAddress(addr)] = true
 	}
 
 	hash := sha256.Sum256(proof.AttestationData)
-	seenSigners := make(map[string]bool)
-	validSigs := 0
+	seenSigners := make(map[common.Address]bool)
 
 	for i, sig := range proof.Signatures {
 		if len(sig) != SignatureLength {
@@ -45,22 +44,19 @@ func (cs *ClientState) verifySignatures(proof *AttestationProof) error {
 		}
 
 		recoveredAddr := crypto.PubkeyToAddress(*recoveredPubKey)
-		addrStr := strings.ToLower(recoveredAddr.Hex())
 
-		if seenSigners[addrStr] {
-			return errorsmod.Wrapf(ErrDuplicateSigner, "duplicate signer: %s", addrStr)
+		if seenSigners[recoveredAddr] {
+			return errorsmod.Wrapf(ErrDuplicateSigner, "duplicate signer: %s", recoveredAddr.Hex())
 		}
-		seenSigners[addrStr] = true
+		seenSigners[recoveredAddr] = true
 
-		if !attestorSet[addrStr] {
-			return errorsmod.Wrapf(ErrUnknownSigner, "signer %s is not in attestor set", addrStr)
+		if !attestorSet[recoveredAddr] {
+			return errorsmod.Wrapf(ErrUnknownSigner, "signer %s is not in attestor set", recoveredAddr.Hex())
 		}
-
-		validSigs++
 	}
 
-	if validSigs < int(cs.MinRequiredSigs) {
-		return errorsmod.Wrapf(ErrInvalidQuorum, "quorum not met: required %d, got %d", cs.MinRequiredSigs, validSigs)
+	if len(proof.Signatures) < int(cs.MinRequiredSigs) {
+		return errorsmod.Wrapf(ErrInvalidQuorum, "quorum not met: required %d, got %d", cs.MinRequiredSigs, len(proof.Signatures))
 	}
 
 	return nil

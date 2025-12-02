@@ -16,8 +16,13 @@ func (AttestationProof) ClientType() string {
 
 // ValidateBasic ensures that the attestation data and signatures are initialized.
 func (ap AttestationProof) ValidateBasic() error {
-	if len(ap.AttestationData) == 0 {
-		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "attestation data cannot be empty")
+	packetAttestation, err := ABIDecodePacketAttestation(ap.AttestationData)
+	if err != nil {
+		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, err.Error())
+	}
+
+	if len(packetAttestation.Packets) == 0 {
+		return errorsmod.Wrap(clienttypes.ErrInvalidHeader, "packets cannot be empty")
 	}
 
 	if len(ap.Signatures) == 0 {

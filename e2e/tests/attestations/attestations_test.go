@@ -43,89 +43,6 @@ func (s *AttestationsTestSuite) SetupSuite() {
 	s.setupAttestors()
 }
 
-func (s *AttestationsTestSuite) setupAttestors() {
-	for range 3 {
-		privateKey, err := crypto.GenerateKey()
-		s.Require().NoError(err)
-		s.attestorKeys = append(s.attestorKeys, privateKey)
-	}
-}
-
-func (s *AttestationsTestSuite) getAttestorAddresses() []string {
-	var addresses []string
-	for _, key := range s.attestorKeys {
-		address := crypto.PubkeyToAddress(key.PublicKey)
-		addresses = append(addresses, address.Hex())
-	}
-	return addresses
-}
-
-func (s *AttestationsTestSuite) signAttestationData(data []byte) [][]byte {
-	hash := sha256.Sum256(data)
-	var signatures [][]byte
-	for _, key := range s.attestorKeys {
-		sig, err := crypto.Sign(hash[:], key)
-		s.Require().NoError(err)
-		signatures = append(signatures, sig)
-	}
-	return signatures
-}
-
-func (s *AttestationsTestSuite) createPacketAttestationProof(height uint64, path []byte, commitment []byte) []byte {
-	hashedCommitment := crypto.Keccak256(commitment)
-	packetAttestation := &attestations.PacketAttestation{
-		Height: height,
-		Packets: []attestations.PacketCompact{
-			{
-				Path:       path,
-				Commitment: hashedCommitment,
-			},
-		},
-	}
-	attestationData, err := packetAttestation.ABIEncode()
-	s.Require().NoError(err)
-
-	signatures := s.signAttestationData(attestationData)
-	proof := &attestations.AttestationProof{
-		AttestationData: attestationData,
-		Signatures:      signatures,
-	}
-	proofBz, err := proto.Marshal(proof)
-	s.Require().NoError(err)
-	return proofBz
-}
-
-func (s *AttestationsTestSuite) createNonMembershipProof(height uint64, path []byte) []byte {
-	zeroCommitment := make([]byte, 32)
-	packetAttestation := &attestations.PacketAttestation{
-		Height: height,
-		Packets: []attestations.PacketCompact{
-			{
-				Path:       path,
-				Commitment: zeroCommitment,
-			},
-		},
-	}
-	attestationData, err := packetAttestation.ABIEncode()
-	s.Require().NoError(err)
-
-	signatures := s.signAttestationData(attestationData)
-	proof := &attestations.AttestationProof{
-		AttestationData: attestationData,
-		Signatures:      signatures,
-	}
-	proofBz, err := proto.Marshal(proof)
-	s.Require().NoError(err)
-	return proofBz
-}
-
-// hashPath hashes the key path using keccak256.
-// The attestations client uses counterparty merkle prefix [][]byte{[]byte("")},
-// meaning paths contain only the ICS24 key without any store prefix.
-func (*AttestationsTestSuite) hashPath(key []byte) []byte {
-	return crypto.Keccak256(key)
-}
-
 func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 	t := s.T()
 	ctx := context.TODO()
@@ -559,4 +476,87 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 		s.Require().Equal(expected, actualBalance)
 		t.Logf("User A refunded after timeout: %d", actualBalance)
 	})
+}
+
+func (s *AttestationsTestSuite) setupAttestors() {
+	for range 3 {
+		privateKey, err := crypto.GenerateKey()
+		s.Require().NoError(err)
+		s.attestorKeys = append(s.attestorKeys, privateKey)
+	}
+}
+
+func (s *AttestationsTestSuite) getAttestorAddresses() []string {
+	var addresses []string
+	for _, key := range s.attestorKeys {
+		address := crypto.PubkeyToAddress(key.PublicKey)
+		addresses = append(addresses, address.Hex())
+	}
+	return addresses
+}
+
+// hashPath hashes the key path using keccak256.
+// The attestations client uses counterparty merkle prefix [][]byte{[]byte("")},
+// meaning paths contain only the ICS24 key without any store prefix.
+func (*AttestationsTestSuite) hashPath(key []byte) []byte {
+	return crypto.Keccak256(key)
+}
+
+func (s *AttestationsTestSuite) createPacketAttestationProof(height uint64, path []byte, commitment []byte) []byte {
+	hashedCommitment := crypto.Keccak256(commitment)
+	packetAttestation := &attestations.PacketAttestation{
+		Height: height,
+		Packets: []attestations.PacketCompact{
+			{
+				Path:       path,
+				Commitment: hashedCommitment,
+			},
+		},
+	}
+	attestationData, err := packetAttestation.ABIEncode()
+	s.Require().NoError(err)
+
+	signatures := s.signAttestationData(attestationData)
+	proof := &attestations.AttestationProof{
+		AttestationData: attestationData,
+		Signatures:      signatures,
+	}
+	proofBz, err := proto.Marshal(proof)
+	s.Require().NoError(err)
+	return proofBz
+}
+
+func (s *AttestationsTestSuite) signAttestationData(data []byte) [][]byte {
+	hash := sha256.Sum256(data)
+	var signatures [][]byte
+	for _, key := range s.attestorKeys {
+		sig, err := crypto.Sign(hash[:], key)
+		s.Require().NoError(err)
+		signatures = append(signatures, sig)
+	}
+	return signatures
+}
+
+func (s *AttestationsTestSuite) createNonMembershipProof(height uint64, path []byte) []byte {
+	zeroCommitment := make([]byte, 32)
+	packetAttestation := &attestations.PacketAttestation{
+		Height: height,
+		Packets: []attestations.PacketCompact{
+			{
+				Path:       path,
+				Commitment: zeroCommitment,
+			},
+		},
+	}
+	attestationData, err := packetAttestation.ABIEncode()
+	s.Require().NoError(err)
+
+	signatures := s.signAttestationData(attestationData)
+	proof := &attestations.AttestationProof{
+		AttestationData: attestationData,
+		Signatures:      signatures,
+	}
+	proofBz, err := proto.Marshal(proof)
+	s.Require().NoError(err)
+	return proofBz
 }
