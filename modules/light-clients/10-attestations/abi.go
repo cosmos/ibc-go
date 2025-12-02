@@ -1,10 +1,7 @@
 package attestations
 
 import (
-	"math/big"
-
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 
 	errorsmod "cosmossdk.io/errors"
 )
@@ -151,8 +148,4 @@ func bytesToBytes32(b []byte) [32]byte {
 	var result [32]byte
 	copy(result[:], b)
 	return result
-}
-
-func Uint64ToPaddedBytes(v uint64) []byte {
-	return common.LeftPadBytes(new(big.Int).SetUint64(v).Bytes(), 32)
 }
