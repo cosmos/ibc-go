@@ -11,7 +11,14 @@ func (s *AttestationsTestSuite) TestAttestationProofValidateBasic() {
 			{Path: []byte("test-path"), Commitment: []byte("test-commitment")},
 		},
 	}
-	validAttestationData, err := validPacketAttestation.ABIEncode()
+	validPacketAttestationData, err := validPacketAttestation.ABIEncode()
+	s.Require().NoError(err)
+
+	validStateAttestation := &attestations.StateAttestation{
+		Height:    100,
+		Timestamp: 1234567890000000000,
+	}
+	validStateAttestationData, err := validStateAttestation.ABIEncode()
 	s.Require().NoError(err)
 
 	emptyPacketAttestation := &attestations.PacketAttestation{
@@ -27,9 +34,17 @@ func (s *AttestationsTestSuite) TestAttestationProofValidateBasic() {
 		expErr           string
 	}{
 		{
-			name: "valid proof",
+			name: "valid packet attestation proof",
 			attestationProof: attestations.AttestationProof{
-				AttestationData: validAttestationData,
+				AttestationData: validPacketAttestationData,
+				Signatures:      [][]byte{make([]byte, 65)},
+			},
+			expErr: "",
+		},
+		{
+			name: "valid state attestation proof",
+			attestationProof: attestations.AttestationProof{
+				AttestationData: validStateAttestationData,
 				Signatures:      [][]byte{make([]byte, 65)},
 			},
 			expErr: "",
@@ -40,7 +55,7 @@ func (s *AttestationsTestSuite) TestAttestationProofValidateBasic() {
 				AttestationData: []byte{},
 				Signatures:      [][]byte{make([]byte, 65)},
 			},
-			expErr: "failed to ABI decode packet attestation",
+			expErr: "attestation data cannot be empty",
 		},
 		{
 			name: "invalid attestation data",
@@ -48,10 +63,10 @@ func (s *AttestationsTestSuite) TestAttestationProofValidateBasic() {
 				AttestationData: []byte("invalid data"),
 				Signatures:      [][]byte{make([]byte, 65)},
 			},
-			expErr: "failed to ABI decode packet attestation",
+			expErr: "attestation data must be a valid StateAttestation or PacketAttestation",
 		},
 		{
-			name: "empty packets",
+			name: "empty packets in packet attestation",
 			attestationProof: attestations.AttestationProof{
 				AttestationData: emptyPacketsData,
 				Signatures:      [][]byte{make([]byte, 65)},
@@ -61,7 +76,7 @@ func (s *AttestationsTestSuite) TestAttestationProofValidateBasic() {
 		{
 			name: "empty signatures",
 			attestationProof: attestations.AttestationProof{
-				AttestationData: validAttestationData,
+				AttestationData: validPacketAttestationData,
 				Signatures:      [][]byte{},
 			},
 			expErr: "signatures cannot be empty",
@@ -69,7 +84,7 @@ func (s *AttestationsTestSuite) TestAttestationProofValidateBasic() {
 		{
 			name: "invalid signature length",
 			attestationProof: attestations.AttestationProof{
-				AttestationData: validAttestationData,
+				AttestationData: validPacketAttestationData,
 				Signatures:      [][]byte{make([]byte, 64)},
 			},
 			expErr: "signature 0 has invalid length",
