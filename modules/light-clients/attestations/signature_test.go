@@ -8,7 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto"
 
-	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
+	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 )
 
 func (s *AttestationsTestSuite) TestVerifySignatures() {

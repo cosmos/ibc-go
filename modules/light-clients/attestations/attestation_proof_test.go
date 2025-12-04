@@ -1,7 +1,7 @@
 package attestations_test
 
 import (
-	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
+	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 )
 
 func (s *AttestationsTestSuite) TestAttestationProofValidateBasic() {

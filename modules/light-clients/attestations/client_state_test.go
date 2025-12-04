@@ -9,7 +9,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
-	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
+	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 )
 
 func (s *AttestationsTestSuite) TestClientStateValidate() {

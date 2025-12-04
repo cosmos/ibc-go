@@ -15,7 +15,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
-	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
+	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
