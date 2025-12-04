@@ -419,7 +419,7 @@ func (s *KeeperTestSuite) TestMsgRemoveChecksum() {
 				s.Require().ElementsMatch(expChecksums, checksums)
 
 				// Verify events
-				s.Require().Len(events, 0)
+				s.Require().Empty(events)
 			} else {
 				s.Require().ErrorIs(err, tc.expError)
 				s.Require().Nil(res)

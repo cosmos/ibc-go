@@ -75,7 +75,7 @@ func (s *KeeperTestSuite) TestRegisterCounterparty() {
 			_, err := s.chainA.App.GetIBCKeeper().RegisterCounterparty(s.chainA.GetContext(), msg)
 			if tc.expError != nil {
 				s.Require().Error(err)
-				s.Require().True(errors.Is(err, tc.expError))
+				s.Require().ErrorIs(err, tc.expError)
 			} else {
 				s.Require().NoError(err)
 				counterpartyInfo, ok := s.chainA.App.GetIBCKeeper().ClientV2Keeper.GetClientCounterparty(s.chainA.GetContext(), path.EndpointA.ClientID)
@@ -83,7 +83,7 @@ func (s *KeeperTestSuite) TestRegisterCounterparty() {
 				s.Require().Equal(counterpartyInfo, clientv2types.NewCounterpartyInfo(merklePrefix, path.EndpointB.ClientID))
 				nextSeqSend, ok := s.chainA.App.GetIBCKeeper().ChannelKeeperV2.GetNextSequenceSend(s.chainA.GetContext(), path.EndpointA.ClientID)
 				s.Require().True(ok)
-				s.Require().Equal(nextSeqSend, uint64(1))
+				s.Require().Equal(uint64(1), nextSeqSend)
 			}
 		})
 	}
@@ -393,7 +393,7 @@ func (s *KeeperTestSuite) TestRecoverClient() {
 
 				lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), subjectPath.EndpointA.ClientID)
 				s.Require().NoError(err)
-				s.Require().Equal(lightClientModule.Status(s.chainA.GetContext(), subjectPath.EndpointA.ClientID), exported.Active)
+				s.Require().Equal(exported.Active, lightClientModule.Status(s.chainA.GetContext(), subjectPath.EndpointA.ClientID))
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, tc.expErr)
@@ -1085,7 +1085,7 @@ func (s *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 				s.Require().NoError(err)
 				s.Require().Equal(clientState.ZeroCustomFields(), upgradedClientState)
 			} else {
-				s.Require().True(errors.Is(err, tc.expError))
+				s.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}

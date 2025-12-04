@@ -117,6 +117,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 )
 
 const appName = "SimApp"
@@ -439,6 +440,9 @@ func NewSimApp(
 	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
 	clientKeeper.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
+	attestationsLightClientModule := attestations.NewLightClientModule(appCodec, storeProvider)
+	clientKeeper.AddRoute(attestations.ModuleName, &attestationsLightClientModule)
+
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[evidencetypes.StoreKey]), app.StakingKeeper, app.SlashingKeeper, app.AccountKeeper.AddressCodec(), runtime.ProvideCometInfoService(),
@@ -480,6 +484,7 @@ func NewSimApp(
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
+		attestations.NewAppModule(attestationsLightClientModule),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -529,6 +534,7 @@ func NewSimApp(
 		feegrant.ModuleName,
 		icatypes.ModuleName,
 		ratelimittypes.ModuleName,
+		banktypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are

@@ -106,6 +106,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
 )
@@ -479,6 +480,9 @@ func NewSimApp(
 	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
 	clientKeeper.AddRoute(solomachine.ModuleName, &smLightClientModule)
 
+	attestationsLightClientModule := attestations.NewLightClientModule(appCodec, storeProvider)
+	clientKeeper.AddRoute(attestations.ModuleName, &attestationsLightClientModule)
+
 	// ****  Module Options ****
 
 	// NOTE: Any module instantiated in the module manager that is later modified
@@ -512,6 +516,7 @@ func NewSimApp(
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
+		attestations.NewAppModule(attestationsLightClientModule),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -562,6 +567,7 @@ func NewSimApp(
 		icatypes.ModuleName,
 		gmptypes.ModuleName,
 		ibcmock.ModuleName,
+		banktypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are

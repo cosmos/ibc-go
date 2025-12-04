@@ -306,7 +306,7 @@ func (s *KeeperTestSuite) TestOnChanOpenTry() {
 					s.Require().Equal(string(expectedVersionBytes), version)
 				} else {
 					s.Require().ErrorIs(err, tc.expErr)
-					s.Require().Equal("", version)
+					s.Require().Empty(version)
 				}
 			})
 		}

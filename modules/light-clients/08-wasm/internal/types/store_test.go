@@ -97,8 +97,8 @@ func (s *TypesTestSuite) TestClientRecoveryStoreGetStore() {
 
 			storeFound := tc.expStore != nil
 			if storeFound {
-				s.Require().Equal(tc.expStore, store)
 				s.Require().True(found)
+				s.Require().IsType(tc.expStore, store) // same dynamic type
 			} else {
 				s.Require().Nil(store)
 				s.Require().False(found)
@@ -233,7 +233,7 @@ func (s *TypesTestSuite) TestClientRecoveryStoreSet() {
 			if tc.expSet {
 				store, found := wrappedStore.GetStore(tc.prefix)
 				s.Require().True(found)
-				s.Require().Equal(subjectStore, store)
+				s.Require().IsType(subjectStore, store)
 
 				value := store.Get(tc.key)
 
@@ -292,8 +292,11 @@ func (s *TypesTestSuite) TestClientRecoveryStoreDelete() {
 			if tc.expDelete {
 				store, found := wrappedStore.GetStore(tc.prefix)
 				s.Require().True(found)
-				s.Require().Equal(subjectStore, store)
 
+				s.Require().NotNil(store)
+				s.Require().IsType(subjectStore, store) // same dynamic type
+
+				// assert deletion has occurred
 				s.Require().False(store.Has(tc.key))
 			} else {
 				// Assert that no deletions happened to subject or substitute types

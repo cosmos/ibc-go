@@ -54,12 +54,12 @@ jobs:
           },
         ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24'
+          go-version: '1.25'
           cache-dependency-path: 'e2e/go.sum'
       - name: Run e2e Test
         id: e2e_test
@@ -75,7 +75,7 @@ jobs:
           cd e2e
           make e2e-test test=${{ matrix.test-config.test }}
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: ${{ failure() }}
         continue-on-error: true
         with:
