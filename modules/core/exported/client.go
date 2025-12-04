@@ -23,7 +23,7 @@ const (
 	LocalhostClientID string = Localhost
 
 	// Attestations is used to indicate that the light client is an attestor-based client.
-	Attestations string = "10-attestations"
+	Attestations string = "attestations"
 
 	// Active is a status type of a client. An active client is allowed to be used.
 	Active Status = "Active"

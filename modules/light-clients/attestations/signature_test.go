@@ -8,7 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto"
 
-	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations"
+	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 )
 
 func (s *AttestationsTestSuite) TestVerifySignatures() {
@@ -104,7 +104,7 @@ func (s *AttestationsTestSuite) TestAddressCaseInsensitiveComparison() {
 	consensusStateBz, err := s.chainA.App.AppCodec().Marshal(consensusState)
 	s.Require().NoError(err)
 
-	clientID := "10-attestations-case-test"
+	clientID := "attestations-case-test"
 	ctx := s.chainA.GetContext()
 
 	err = s.lightClientModule.Initialize(ctx, clientID, clientStateBz, consensusStateBz)

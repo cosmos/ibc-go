@@ -15,11 +15,11 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
-	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations"
+	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-const testClientID = "10-attestations-0"
+const testClientID = "attestations-0"
 
 type AttestationsTestSuite struct {
 	testifysuite.Suite
@@ -220,7 +220,7 @@ func (s *AttestationsTestSuite) TestStatus() {
 
 func (s *AttestationsTestSuite) TestRecoverClientNotSupported() {
 	ctx := s.chainA.GetContext()
-	err := s.lightClientModule.RecoverClient(ctx, testClientID, "10-attestations-1")
+	err := s.lightClientModule.RecoverClient(ctx, testClientID, "attestations-1")
 	s.Require().Error(err)
 	s.Require().ErrorContains(err, "recoverClient is not supported")
 }

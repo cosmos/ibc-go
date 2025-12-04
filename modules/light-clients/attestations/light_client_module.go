@@ -19,7 +19,7 @@ type LightClientModule struct {
 	storeProvider clienttypes.StoreProvider
 }
 
-// NewLightClientModule creates and returns a new 10-attestations LightClientModule.
+// NewLightClientModule creates and returns a new attestations LightClientModule.
 func NewLightClientModule(cdc codec.BinaryCodec, storeProvider clienttypes.StoreProvider) LightClientModule {
 	return LightClientModule{
 		cdc:           cdc,

@@ -117,7 +117,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
-	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations"
+	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 )
 
 const appName = "SimApp"

@@ -9,7 +9,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
-	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations"
+	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 )
 
 func (s *AttestationsTestSuite) TestClientStateValidate() {
@@ -230,7 +230,7 @@ func (s *AttestationsTestSuite) TestVerifyMembershipVariableLengthPath() {
 	newTimestamp := uint64(2 * time.Second.Nanoseconds())
 	s.updateClientState(ctx, clientID, newHeight, newTimestamp)
 
-	shortPath := []byte("10-attestations-0\x01\x00\x00\x00\x00\x00\x00\x00\x01")
+	shortPath := []byte("attestations-0\x01\x00\x00\x00\x00\x00\x00\x00\x01")
 	path := commitmenttypesv2.NewMerklePath(shortPath)
 	value32 := bytes.Repeat([]byte{0xAB}, 32)
 

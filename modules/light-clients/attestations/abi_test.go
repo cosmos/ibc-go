@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/10-attestations"
+	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 )
 
 const nanosPerSecond = 1_000_000_000
