@@ -1,4 +1,4 @@
-# 10-attestations Light Client
+# Attestations Light Client
 
 An attestor-based IBC light client that verifies IBC packets using quorum-signed ECDSA attestations from a fixed set of trusted signers.
 
