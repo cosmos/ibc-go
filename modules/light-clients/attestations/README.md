@@ -6,6 +6,9 @@ An attestor-based IBC light client that verifies IBC packets using quorum-signed
 
 The attestations light client provides a trust model based on a quorum of trusted attestors rather than cryptographic verification of block headers. This design suits scenarios where a set of known, trusted parties can attest to IBC packets on a counterparty chain, rather than attesting to the chain's state root.
 
+> [!WARNING]  
+> This package is EXPERIMENTAL and is not yet stable. It may change in backwards-incompatible ways without notice.
+
 ## Wire Compatibility
 
 The attestation data format is ABI-encoded for wire compatibility with:
