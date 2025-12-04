@@ -25,7 +25,7 @@ import (
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
-	attestations "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
+	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
