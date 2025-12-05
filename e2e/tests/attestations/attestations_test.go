@@ -503,13 +503,12 @@ func (*AttestationsTestSuite) hashPath(key []byte) []byte {
 }
 
 func (s *AttestationsTestSuite) createPacketAttestationProof(height uint64, path []byte, commitment []byte) []byte {
-	hashedCommitment := crypto.Keccak256(commitment)
 	packetAttestation := &attestations.PacketAttestation{
 		Height: height,
 		Packets: []attestations.PacketCompact{
 			{
 				Path:       path,
-				Commitment: hashedCommitment,
+				Commitment: commitment,
 			},
 		},
 	}
