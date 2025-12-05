@@ -74,7 +74,7 @@ Both membership and non-membership proofs use `AttestationProof` containing an A
 // ABI-encoded PacketAttestation
 struct PacketCompact {
     bytes32 path;       // keccak256-hashed path
-    bytes32 commitment; // keccak256-hashed commitment
+    bytes32 commitment; // raw 32-byte commitment
 }
 
 struct PacketAttestation {
@@ -84,16 +84,16 @@ struct PacketAttestation {
 // Encoding: abi.encode(height, packets) with dynamic array
 ```
 
-Both fields in `PacketCompact` are keccak256-hashed:
+The `path` field is keccak256-hashed, while `commitment` is stored as raw bytes:
 - `path` = `keccak256(path_bytes)` where `path_bytes` is the IBC commitment path
-- `commitment` = `keccak256(packet_commitment)` where `packet_commitment` is the 32-byte packet commitment stored on the counterparty chain
+- `commitment` = raw 32-byte packet commitment as stored on the counterparty chain
 
 ### Membership Verification
 
 Verifies that a packet commitment exists at a given path:
 1. Validates the proof has sufficient valid signatures
 2. Confirms a consensus state exists for the claimed height
-3. Computes `keccak256(path)` and `keccak256(value)` and finds a matching entry in the attested packets
+3. Computes `keccak256(path)` and compares the raw `value` against the attested packets
 
 ### Non-Membership Verification
 
