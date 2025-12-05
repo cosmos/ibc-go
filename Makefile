@@ -201,9 +201,11 @@ check-docs-links:
 		'./docs/docs'
 
 lint-docs:
-	@command -v markdownlint-cli2 >/dev/null 2>&1 || { echo "ERROR: markdownlint-cli2 is not installed (https://github.com/DavidAnson/markdownlint-cli2#install)" >&2; exit 1; }
+	@command -v markdownlint-cli2 >/dev/null 2>&1 || { \
+	  echo "ERROR: markdownlint-cli2 is not installed" >&2; exit 1; \
+	}
 	@echo "Linting documentation..."
-	@markdownlint-cli2 ./docs/docs/**/*.md
+	@find docs/docs -type f -name '*.md' | xargs markdownlint-cli2
 
 .PHONY: build-docs serve-docs tag-docs-version
 
@@ -335,13 +337,6 @@ benchmark:
 ###                                Linting                                  ###
 ###############################################################################
 
-#? setup-pre-commit: Set pre commit git hook
-setup-pre-commit:
-	@cp .git/hooks/pre-commit .git/hooks/pre-commit.bak 2>/dev/null || true
-	@echo "Installing pre-commit hook..."
-	@ln -sf ../../scripts/hooks/pre-commit.sh .git/hooks/pre-commit
-	@echo "Pre-commit hook was installed at .git/hooks/pre-commit"
-
 #? lint: Run golangci-lint on all modules
 lint:
 	@echo "--> Running linter"
@@ -352,10 +347,9 @@ lint-fix:
 	@echo "--> Running linter"
 	@./scripts/go-lint-all.sh --fix
 
-#? format: Run gofumpt and misspell
+#? format: Run gofumpt
 format:
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./docs/client/statik/statik.go" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs misspell -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./tests/mocks/*" -not -name '*.pb.go' -not -name '*.pb.gw.go' | xargs gofumpt -w
 .PHONY: format
 
 .PHONY: lint lint-fix format
@@ -364,9 +358,9 @@ format:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.14.0
+protoVer=0.17.1
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
-protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
+protoImage=$(DOCKER) run --rm -e GOTOOLCHAIN=auto -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
 #? proto-all: Format, lint and generate Protobuf files
 proto-all: proto-format proto-lint proto-gen

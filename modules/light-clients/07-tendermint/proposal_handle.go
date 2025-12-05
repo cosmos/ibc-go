@@ -26,7 +26,7 @@ import (
 //
 // In case 1) before updating the client, the client will be unfrozen by resetting
 // the FrozenHeight to the zero Height.
-func (cs ClientState) CheckSubstituteAndUpdateState(
+func (cs *ClientState) CheckSubstituteAndUpdateState(
 	ctx sdk.Context, cdc codec.BinaryCodec, subjectClientStore,
 	substituteClientStore storetypes.KVStore, substituteClient exported.ClientState,
 ) error {
@@ -35,7 +35,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected type %T, got %T", &ClientState{}, substituteClient)
 	}
 
-	if !IsMatchingClientState(cs, *substituteClientState) {
+	if !IsMatchingClientState(*cs, *substituteClientState) {
 		return errorsmod.Wrap(clienttypes.ErrInvalidSubstitute, "subject client state does not match substitute client state")
 	}
 
@@ -76,7 +76,7 @@ func (cs ClientState) CheckSubstituteAndUpdateState(
 
 	// no validation is necessary since the substitute is verified to be Active
 	// in 02-client.
-	setClientState(subjectClientStore, cdc, &cs)
+	setClientState(subjectClientStore, cdc, cs)
 
 	return nil
 }

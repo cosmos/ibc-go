@@ -18,7 +18,7 @@ Communication Protocol (IBC) applications for custom use cases.
 
 Due to the modular design of the IBC protocol, IBC
 application developers do not need to concern themselves with the low-level details of clients,
-connections, and proof verification, however a brief explaination is given.  Then the document goes into detail on the abstraction layer most relevant for application
+connections, and proof verification, however a brief explanation is given. Then the document goes into detail on the abstraction layer most relevant for application
 developers (channels and ports), and describes how to define your own custom packets, and
 `IBCModule` callbacks.
 
@@ -177,6 +177,23 @@ via string matching or they can use the already implemented versioning system an
 encoded version into each handhshake call as necessary.
 
 ICS20 currently implements basic string matching with a single supported version.
+
+### ICS4Wrapper
+
+The IBC application interacts with core IBC through the `ICS4Wrapper` interface for any application-initiated actions like: `SendPacket` and `WriteAcknowledgement`. This may be directly the IBCChannelKeeper or a middleware that sits between the application and the IBC ChannelKeeper.
+
+If the application is being wired with a custom middleware, the application **must** have its ICS4Wrapper set to the middleware directly above it on the stack through the following call:
+
+```go
+// SetICS4Wrapper sets the ICS4Wrapper. This function may be used after
+// the module's initialization to set the middleware which is above this
+// module in the IBC application stack.
+// The ICS4Wrapper **must** be used for sending packets and writing acknowledgements
+// to ensure that the middleware can intercept and process these calls.
+// Do not use the channel keeper directly to send packets or write acknowledgements
+// as this will bypass the middleware.
+SetICS4Wrapper(wrapper ICS4Wrapper)
+```
 
 ### Custom Packets
 

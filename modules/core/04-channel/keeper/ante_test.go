@@ -5,7 +5,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-func (suite *KeeperTestSuite) TestRecvPacketReCheckTx() {
+func (s *KeeperTestSuite) TestRecvPacketReCheckTx() {
 	var (
 		path   *ibctesting.Path
 		packet types.Packet
@@ -31,31 +31,31 @@ func (suite *KeeperTestSuite) TestRecvPacketReCheckTx() {
 		{
 			"redundant relay",
 			func() {
-				err := suite.chainB.App.GetIBCKeeper().ChannelKeeper.RecvPacketReCheckTx(suite.chainB.GetContext(), packet)
-				suite.Require().NoError(err)
+				err := s.chainB.App.GetIBCKeeper().ChannelKeeper.RecvPacketReCheckTx(s.chainB.GetContext(), packet)
+				s.Require().NoError(err)
 			},
 			types.ErrNoOpMsg,
 		},
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
-			path = ibctesting.NewPath(suite.chainA, suite.chainB)
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
+			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.Setup()
 
 			sequence, err := path.EndpointA.SendPacket(defaultTimeoutHeight, disabledTimeoutTimestamp, ibctesting.MockPacketData)
-			suite.Require().NoError(err)
+			s.Require().NoError(err)
 			packet = types.NewPacket(ibctesting.MockPacketData, sequence, path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, defaultTimeoutHeight, disabledTimeoutTimestamp)
 
 			tc.malleate()
 
-			err = suite.chainB.App.GetIBCKeeper().ChannelKeeper.RecvPacketReCheckTx(suite.chainB.GetContext(), packet)
+			err = s.chainB.App.GetIBCKeeper().ChannelKeeper.RecvPacketReCheckTx(s.chainB.GetContext(), packet)
 
 			if tc.expError == nil {
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 			} else {
-				suite.Require().ErrorIs(err, tc.expError)
+				s.Require().ErrorIs(err, tc.expError)
 			}
 		})
 	}

@@ -17,27 +17,27 @@ func (Misbehaviour) ClientType() string {
 }
 
 // ValidateBasic implements Misbehaviour interface.
-func (misbehaviour Misbehaviour) ValidateBasic() error {
-	if misbehaviour.Sequence == 0 {
+func (m Misbehaviour) ValidateBasic() error {
+	if m.Sequence == 0 {
 		return errorsmod.Wrap(clienttypes.ErrInvalidMisbehaviour, "sequence cannot be 0")
 	}
 
-	if err := misbehaviour.SignatureOne.ValidateBasic(); err != nil {
+	if err := m.SignatureOne.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(err, "signature one failed basic validation")
 	}
 
-	if err := misbehaviour.SignatureTwo.ValidateBasic(); err != nil {
+	if err := m.SignatureTwo.ValidateBasic(); err != nil {
 		return errorsmod.Wrap(err, "signature two failed basic validation")
 	}
 
 	// misbehaviour signatures cannot be identical.
-	if bytes.Equal(misbehaviour.SignatureOne.Signature, misbehaviour.SignatureTwo.Signature) {
+	if bytes.Equal(m.SignatureOne.Signature, m.SignatureTwo.Signature) {
 		return errorsmod.Wrap(clienttypes.ErrInvalidMisbehaviour, "misbehaviour signatures cannot be equal")
 	}
 
 	// message data signed cannot be identical if both paths are the same.
-	if bytes.Equal(misbehaviour.SignatureOne.Path, misbehaviour.SignatureTwo.Path) &&
-		bytes.Equal(misbehaviour.SignatureOne.Data, misbehaviour.SignatureTwo.Data) {
+	if bytes.Equal(m.SignatureOne.Path, m.SignatureTwo.Path) &&
+		bytes.Equal(m.SignatureOne.Data, m.SignatureTwo.Data) {
 		return errorsmod.Wrap(clienttypes.ErrInvalidMisbehaviour, "misbehaviour signature data must be signed over different messages")
 	}
 

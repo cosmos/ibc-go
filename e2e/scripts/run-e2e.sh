@@ -104,8 +104,12 @@ function run_suite() {
 
 # if the dev configs directory is present, enable fzf completion to select a test config file to use.
 if [[ -d "dev-configs"  ]]; then
-  export E2E_CONFIG_PATH="$(pwd)/dev-configs/$(_select_test_config)"
-  echo "Using configuration file at ${E2E_CONFIG_PATH}"
+  if [[ -n "${E2E_CONFIG_PATH:-}" && "${E2E_CONFIG_PATH}" == *.yaml ]]; then
+    echo "Using configuration file at ${E2E_CONFIG_PATH}"
+  else
+    export E2E_CONFIG_PATH="$(pwd)/dev-configs/$(_select_test_config)"
+    echo "Using configuration file at ${E2E_CONFIG_PATH}"
+  fi
 fi
 
 if [ "${RUN_SUITE:-}" = "true" ]; then

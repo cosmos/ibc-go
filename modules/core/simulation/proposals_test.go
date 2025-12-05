@@ -29,7 +29,7 @@ func TestProposalMsgs(t *testing.T) {
 
 	// execute ProposalMsgs function
 	weightedProposalMsgs := simulation.ProposalMsgs()
-	require.Equal(t, 4, len(weightedProposalMsgs))
+	require.Len(t, weightedProposalMsgs, 4)
 
 	// tests w0 interface:
 	w0 := weightedProposalMsgs[0]
@@ -41,7 +41,7 @@ func TestProposalMsgs(t *testing.T) {
 	require.True(t, ok)
 
 	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Signer)
-	require.EqualValues(t, []string{"06-solomachine", "07-tendermint"}, msgUpdateParams.Params.AllowedClients)
+	require.Equal(t, []string{"06-solomachine", "07-tendermint"}, msgUpdateParams.Params.AllowedClients)
 
 	// tests w1 interface:
 	w1 := weightedProposalMsgs[1]
@@ -53,7 +53,7 @@ func TestProposalMsgs(t *testing.T) {
 	require.True(t, ok)
 
 	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgUpdateParams.Signer)
-	require.EqualValues(t, uint64(100), msgUpdateConnectionParams.Params.MaxExpectedTimePerBlock)
+	require.Equal(t, uint64(100), msgUpdateConnectionParams.Params.MaxExpectedTimePerBlock)
 
 	// tests w2 interface:
 	w2 := weightedProposalMsgs[2]
@@ -65,7 +65,7 @@ func TestProposalMsgs(t *testing.T) {
 	require.True(t, ok)
 
 	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgRecoverClient.Signer)
-	require.EqualValues(t, "07-tendermint-1", msgRecoverClient.SubstituteClientId)
+	require.Equal(t, "07-tendermint-1", msgRecoverClient.SubstituteClientId)
 
 	// tests w3 interface:
 	w3 := weightedProposalMsgs[3]
@@ -79,5 +79,5 @@ func TestProposalMsgs(t *testing.T) {
 	require.Equal(t, sdk.AccAddress(address.Module("gov")).String(), msgIBCSoftwareUpgrade.Signer)
 	clientState, err := clienttypes.UnpackClientState(msgIBCSoftwareUpgrade.UpgradedClientState)
 	require.NoError(t, err)
-	require.EqualValues(t, time.Hour*24*7*2, clientState.(*ibctm.ClientState).UnbondingPeriod)
+	require.Equal(t, time.Hour*24*7*2, clientState.(*ibctm.ClientState).UnbondingPeriod)
 }
