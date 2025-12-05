@@ -38,8 +38,8 @@ var (
 
 // ABIPacketCompact is the ABI-compatible representation with fixed-size arrays.
 type ABIPacketCompact struct {
-	Path       [32]byte `json:"path"`
-	Commitment [32]byte `json:"commitment"`
+	Path       [32]byte
+	Commitment [32]byte
 }
 
 // StateAttestation is used by client updates.
@@ -70,8 +70,8 @@ func (sa *StateAttestation) ABIEncode() ([]byte, error) {
 
 // ABIPacketAttestation is the ABI-compatible representation for tuple-wrapped encoding.
 type ABIPacketAttestation struct {
-	Height  uint64             `json:"height"`
-	Packets []ABIPacketCompact `json:"packets"`
+	Height  uint64
+	Packets []ABIPacketCompact
 }
 
 func (pa *PacketAttestation) ABIEncode() ([]byte, error) {
