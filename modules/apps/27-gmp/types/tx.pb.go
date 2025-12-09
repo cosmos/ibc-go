@@ -228,6 +228,7 @@ func _Msg_SendCall_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+var Msg_serviceDesc = _Msg_serviceDesc
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "ibc.applications.gmp.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
