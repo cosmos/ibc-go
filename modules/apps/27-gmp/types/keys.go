@@ -28,5 +28,10 @@ const (
 	AccountAddrLen = 32
 )
 
-// AccountsKey is the key used to store the accounts in the keeper
-var AccountsKey = collections.NewPrefix(0)
+var (
+	// AccountsKey is the key used to store the accounts in the keeper
+	AccountsKey = collections.NewPrefix(0)
+
+	// AccountsByAddressKey is the key used to store the accounts by address in the keeper
+	AccountsByAddressKey = collections.NewPrefix(1)
+)

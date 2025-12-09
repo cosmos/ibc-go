@@ -31,6 +31,9 @@ func (k *Keeper) getOrCreateICS27Account(ctx context.Context, accountID *types.A
 		if err := k.Accounts.Set(ctx, collections.Join3(accountID.ClientId, accountID.Sender, accountID.Salt), ics27Account); err != nil {
 			return nil, errorsmod.Wrapf(err, "failed to set account %s in store", ics27Account)
 		}
+		if err := k.AccountsByAddress.Set(ctx, newAddr, ics27Account); err != nil {
+			return nil, errorsmod.Wrapf(err, "failed to set account by address %s in store", ics27Account)
+		}
 
 		return &ics27Account, nil
 	}
@@ -41,6 +44,9 @@ func (k *Keeper) getOrCreateICS27Account(ctx context.Context, accountID *types.A
 	ics27Account := types.NewICS27Account(newAcc.GetAddress().String(), accountID)
 	if err := k.Accounts.Set(ctx, collections.Join3(accountID.ClientId, accountID.Sender, accountID.Salt), ics27Account); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to set account %s in store", ics27Account)
+	}
+	if err := k.AccountsByAddress.Set(ctx, newAddr, ics27Account); err != nil {
+		return nil, errorsmod.Wrapf(err, "failed to set account by address %s in store", ics27Account)
 	}
 
 	k.Logger(ctx).Info("Created new ICS27 account", "account", ics27Account)

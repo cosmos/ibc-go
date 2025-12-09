@@ -32,6 +32,8 @@ type Keeper struct {
 	Schema collections.Schema
 	// Accounts is a map of  (ClientID, Sender, Salt) to ICS27Account
 	Accounts collections.Map[collections.Triple[string, string, []byte], types.ICS27Account]
+	// AccountsByAddress is a map of sdk.AccAddress to ICS27Account, for reverse lookups
+	AccountsByAddress collections.Map[sdk.AccAddress, types.ICS27Account]
 }
 
 // NewKeeper creates a new Keeper instance
@@ -51,6 +53,7 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		authority:     authority,
 		Accounts:      collections.NewMap(sb, types.AccountsKey, "accounts", collections.TripleKeyCodec(collections.StringKey, collections.StringKey, collections.BytesKey), codec.CollValue[types.ICS27Account](cdc)),
+		AccountsByAddress: collections.NewMap(sb, types.AccountsByAddressKey, "accounts_by_address", sdk.AccAddressKey, codec.CollValue[types.ICS27Account](cdc)),
 	}
 
 	schema, err := sb.Build()
