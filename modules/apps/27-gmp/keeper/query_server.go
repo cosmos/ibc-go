@@ -22,7 +22,7 @@ func (k *Keeper) AccountAddress(ctx context.Context, req *types.QueryAccountAddr
 	}
 
 	accountID := types.NewAccountIdentifier(req.ClientId, req.Sender, salt)
-	address, err := k.getOrComputeICS27Address(ctx, &accountID)
+	address, err := k.GetOrComputeICS27Address(ctx, &accountID)
 	if err != nil {
 		return nil, err
 	}
@@ -34,12 +34,12 @@ func (k *Keeper) AccountAddress(ctx context.Context, req *types.QueryAccountAddr
 
 // AccountIdentifier defines the handler for the Query/AccountIdentifier RPC method.
 func (k *Keeper) AccountIdentifier(ctx context.Context, req *types.QueryAccountIdentifierRequest) (*types.QueryAccountIdentifierResponse, error) {
-	addr, err := sdk.AccAddressFromBech32(req.AccountAddress)
+	address, err := sdk.AccAddressFromBech32(req.AccountAddress)
 	if err != nil {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	ics27Acc, err := k.AccountsByAddress.Get(ctx, addr)
+	ics27Acc, err := k.GetAccount(ctx, address)
 	if err != nil {
 		return nil, err
 	}

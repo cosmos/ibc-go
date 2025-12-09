@@ -6,6 +6,8 @@ import (
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
 )
 
@@ -53,8 +55,8 @@ func (k *Keeper) getOrCreateICS27Account(ctx context.Context, accountID *types.A
 	return &ics27Account, nil
 }
 
-// getOrComputeICS27Adderss retrieves an existing ICS27 account address or computes it if it doesn't exist. This doesn't modify the store.
-func (k *Keeper) getOrComputeICS27Address(ctx context.Context, accountID *types.AccountIdentifier) (string, error) {
+// GetOrComputeICS27Adderss retrieves an existing ICS27 account address or computes it if it doesn't exist. This doesn't modify the store.
+func (k *Keeper) GetOrComputeICS27Address(ctx context.Context, accountID *types.AccountIdentifier) (string, error) {
 	existingIcs27Account, err := k.Accounts.Get(ctx, collections.Join3(accountID.ClientId, accountID.Sender, accountID.Salt))
 	if err == nil {
 		return existingIcs27Account.Address, nil
@@ -69,4 +71,14 @@ func (k *Keeper) getOrComputeICS27Address(ctx context.Context, accountID *types.
 	}
 
 	return newAddr.String(), nil
+}
+
+// GetAccount retrieves an existing ICS27 account based on the account address.
+func (k *Keeper) GetAccount(ctx context.Context, address sdk.AccAddress) (*types.ICS27Account, error) {
+	ics27Acc, err := k.AccountsByAddress.Get(ctx, address)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ics27Acc, nil
 }
