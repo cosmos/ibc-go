@@ -113,7 +113,7 @@ func (s *GMPTestSuite) TestMsgSendCall_BankTransfer() {
 		accountID := gmptypes.NewAccountIdentifier(clientIDB, senderWallet.FormattedAddress(), []byte(testSalt))
 		addr, err := gmptypes.BuildAddressPredictable(&accountID)
 		s.Require().NoError(err)
-		gmpAccountAddr = sdk.AccAddress(addr).String()
+		gmpAccountAddr = addr.String()
 
 		msgSend := &banktypes.MsgSend{
 			FromAddress: rlyWallet.FormattedAddress(),
@@ -236,7 +236,7 @@ func (s *GMPTestSuite) registerCounterparty(ctx context.Context, chain ibc.Chain
 	s.AssertTxSuccess(txResp)
 }
 
-func (s *GMPTestSuite) hashPath(key []byte) []byte {
+func (*GMPTestSuite) hashPath(key []byte) []byte {
 	return crypto.Keccak256(key)
 }
 
