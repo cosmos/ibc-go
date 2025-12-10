@@ -93,6 +93,23 @@ func (s *IBCModuleTestSuite) TestOnSendPacket() {
 			},
 			ibcerrors.ErrUnauthorized,
 		},
+		{
+			"failure: unmarshal packet data error",
+			func() {
+				payload.Value = []byte("invalid")
+			},
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: ValidateBasic error - empty sender",
+			func() {
+				packetData := types.NewGMPPacketData("", "", []byte("salt"), []byte("payload"), "")
+				dataBz, err := types.MarshalPacketData(&packetData, types.Version, types.EncodingProtobuf)
+				s.Require().NoError(err)
+				payload.Value = dataBz
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -242,6 +259,43 @@ func (s *IBCModuleTestSuite) TestOnRecvPacket() {
 			}
 		})
 	}
+}
+
+func (s *IBCModuleTestSuite) TestOnTimeoutPacket() {
+	s.SetupTest()
+
+	module := gmp.NewIBCModule(s.chainA.GetSimApp().GMPKeeper)
+	payload := channeltypesv2.Payload{}
+
+	err := module.OnTimeoutPacket(
+		s.chainA.GetContext(),
+		validClientID,
+		validClientID,
+		1,
+		payload,
+		s.chainA.SenderAccount.GetAddress(),
+	)
+
+	s.Require().NoError(err)
+}
+
+func (s *IBCModuleTestSuite) TestOnAcknowledgementPacket() {
+	s.SetupTest()
+
+	module := gmp.NewIBCModule(s.chainA.GetSimApp().GMPKeeper)
+	payload := channeltypesv2.Payload{}
+
+	err := module.OnAcknowledgementPacket(
+		s.chainA.GetContext(),
+		validClientID,
+		validClientID,
+		1,
+		[]byte("ack"),
+		payload,
+		s.chainA.SenderAccount.GetAddress(),
+	)
+
+	s.Require().NoError(err)
 }
 
 func (s *IBCModuleTestSuite) fundAccount(addr sdk.AccAddress, coins sdk.Coins) {
