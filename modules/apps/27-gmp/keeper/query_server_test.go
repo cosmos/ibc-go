@@ -132,6 +132,84 @@ func (s *KeeperTestSuite) TestQueryAccountIdentifier() {
 	}
 }
 
+func (s *KeeperTestSuite) TestGetOrComputeICS27Address() {
+	testCases := []struct {
+		name      string
+		accountID *types.AccountIdentifier
+		expErr    error
+	}{
+		{
+			"success: existing account",
+			&types.AccountIdentifier{
+				ClientId: ibctesting.FirstClientID,
+				Sender:   "", // will be set in test
+				Salt:     []byte(testSalt),
+			},
+			nil,
+		},
+		{
+			"success: computes new address",
+			&types.AccountIdentifier{
+				ClientId: ibctesting.FirstClientID,
+				Sender:   "", // will be set in test
+				Salt:     []byte("new-salt"),
+			},
+			nil,
+		},
+		{
+			"failure: invalid client ID",
+			&types.AccountIdentifier{
+				ClientId: "invalid",
+				Sender:   "", // will be set in test
+				Salt:     []byte(testSalt),
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: empty sender",
+			&types.AccountIdentifier{
+				ClientId: ibctesting.FirstClientID,
+				Sender:   "",
+				Salt:     []byte(testSalt),
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			sender := s.chainB.SenderAccount.GetAddress().String()
+
+			// Set sender if not testing empty sender case
+			if tc.accountID.Sender == "" && tc.expErr != ibcerrors.ErrInvalidAddress {
+				tc.accountID.Sender = sender
+			}
+
+			// Create existing account for first test case
+			if tc.name == "success: existing account" {
+				accountID := types.NewAccountIdentifier(ibctesting.FirstClientID, sender, []byte(testSalt))
+				addr, err := types.BuildAddressPredictable(&accountID)
+				s.Require().NoError(err)
+				s.createGMPAccount(addr.String())
+			}
+
+			addr, err := s.chainA.GetSimApp().GMPKeeper.GetOrComputeICS27Address(
+				s.chainA.GetContext(),
+				tc.accountID,
+			)
+
+			if tc.expErr == nil {
+				s.Require().NoError(err)
+				s.Require().NotEmpty(addr)
+			} else {
+				s.Require().Error(err)
+			}
+		})
+	}
+}
+
 func (s *KeeperTestSuite) createGMPAccount(gmpAccountAddr string) {
 	sender := s.chainB.SenderAccount.GetAddress().String()
 	recipient := s.chainA.SenderAccount.GetAddress()
