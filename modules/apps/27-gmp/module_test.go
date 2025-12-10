@@ -124,6 +124,17 @@ func TestAppModuleName(t *testing.T) {
 	require.Equal(t, types.ModuleName, module.Name())
 }
 
+func TestNewAppModuleBasic(t *testing.T) {
+	coordinator := ibctesting.NewCoordinator(t, 1)
+	chain := coordinator.GetChain(ibctesting.GetChainID(1))
+
+	module := gmp.NewAppModule(chain.GetSimApp().GMPKeeper)
+	basic := gmp.NewAppModuleBasic(module)
+
+	require.NotNil(t, basic)
+	require.Equal(t, types.ModuleName, basic.Name())
+}
+
 func TestAppModuleConsensusVersion(t *testing.T) {
 	module := gmp.AppModule{}
 	require.Equal(t, uint64(1), module.ConsensusVersion())
