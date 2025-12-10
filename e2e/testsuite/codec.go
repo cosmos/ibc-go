@@ -30,11 +30,13 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	v7migrations "github.com/cosmos/ibc-go/v10/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
 	ibctmtypes "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	attestationstypes "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
@@ -67,10 +69,12 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 	v7migrations.RegisterInterfaces(cfg.InterfaceRegistry)
 	transfertypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	clienttypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	clientv2types.RegisterInterfaces(cfg.InterfaceRegistry)
 	channeltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	connectiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	ibctmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	attestationstypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	channeltypesv2.RegisterInterfaces(cfg.InterfaceRegistry)
 	packetforwardtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	ratelimitingtypes.RegisterInterfaces(cfg.InterfaceRegistry)
