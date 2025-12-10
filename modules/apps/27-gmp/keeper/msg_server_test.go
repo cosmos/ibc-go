@@ -84,3 +84,80 @@ func (s *KeeperTestSuite) TestSendCall() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestSendCallErrors() {
+	var msg *types.MsgSendCall
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"failure: invalid sender address",
+			func() {
+				msg.Sender = "invalid"
+			},
+			nil, // bech32 error not wrapped
+		},
+		{
+			"failure: empty sender address",
+			func() {
+				msg.Sender = ""
+			},
+			nil, // bech32 error not wrapped
+		},
+		{
+			"failure: invalid encoding",
+			func() {
+				msg.Encoding = "invalid-encoding"
+			},
+			types.ErrInvalidEncoding,
+		},
+		{
+			"failure: invalid source client - counterparty not found",
+			func() {
+				msg.SourceClient = "invalid"
+			},
+			nil, // counterparty not found error
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			path := ibctesting.NewPath(s.chainA, s.chainB)
+			path.SetupV2()
+
+			sender := s.chainA.SenderAccount.GetAddress()
+			recipient := s.chainB.SenderAccount.GetAddress()
+			payload := s.serializeMsgs(&banktypes.MsgSend{
+				FromAddress: sender.String(),
+				ToAddress:   recipient.String(),
+				Amount:      sdk.NewCoins(ibctesting.TestCoin),
+			})
+
+			msg = types.NewMsgSendCall(
+				path.EndpointA.ClientID,
+				sender.String(),
+				"",
+				payload,
+				[]byte(testSalt),
+				uint64(s.chainA.GetContext().BlockTime().Add(time.Hour).Unix()),
+				types.EncodingProtobuf,
+				"",
+			)
+
+			tc.malleate()
+
+			resp, err := s.chainA.GetSimApp().GMPKeeper.SendCall(s.chainA.GetContext(), msg)
+
+			s.Require().Error(err)
+			s.Require().Nil(resp)
+			if tc.expErr != nil {
+				s.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
