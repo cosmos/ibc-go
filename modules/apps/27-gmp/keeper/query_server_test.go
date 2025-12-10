@@ -132,6 +132,51 @@ func (s *KeeperTestSuite) TestQueryAccountIdentifier() {
 	}
 }
 
+func (s *KeeperTestSuite) TestGetAccount() {
+	testCases := []struct {
+		name     string
+		malleate func(addr sdk.AccAddress)
+		expErr   error
+	}{
+		{
+			"success",
+			func(addr sdk.AccAddress) {
+				s.createGMPAccount(addr.String())
+			},
+			nil,
+		},
+		{
+			"failure: account not found",
+			func(addr sdk.AccAddress) {},
+			collections.ErrNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			sender := s.chainB.SenderAccount.GetAddress().String()
+			accountID := types.NewAccountIdentifier(ibctesting.FirstClientID, sender, []byte(testSalt))
+			addr, err := types.BuildAddressPredictable(&accountID)
+			s.Require().NoError(err)
+
+			tc.malleate(addr)
+
+			account, err := s.chainA.GetSimApp().GMPKeeper.GetAccount(s.chainA.GetContext(), addr)
+
+			if tc.expErr == nil {
+				s.Require().NoError(err)
+				s.Require().NotNil(account)
+				s.Require().Equal(addr.String(), account.Address)
+			} else {
+				s.Require().ErrorIs(err, tc.expErr)
+				s.Require().Nil(account)
+			}
+		})
+	}
+}
+
 func (s *KeeperTestSuite) TestGetOrComputeICS27Address() {
 	testCases := []struct {
 		name      string

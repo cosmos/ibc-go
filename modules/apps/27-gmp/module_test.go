@@ -71,6 +71,54 @@ func (s *AppModuleTestSuite) TestValidateGenesis() {
 			},
 			true,
 		},
+		{
+			"failure: invalid sender address",
+			&types.GenesisState{
+				Ics27Accounts: []types.RegisteredICS27Account{
+					{
+						AccountAddress: s.chainA.SenderAccount.GetAddress().String(),
+						AccountId: types.AccountIdentifier{
+							ClientId: ibctesting.FirstClientID,
+							Sender:   "invalid",
+							Salt:     []byte("salt"),
+						},
+					},
+				},
+			},
+			true,
+		},
+		{
+			"failure: invalid client ID",
+			&types.GenesisState{
+				Ics27Accounts: []types.RegisteredICS27Account{
+					{
+						AccountAddress: s.chainA.SenderAccount.GetAddress().String(),
+						AccountId: types.AccountIdentifier{
+							ClientId: "x",
+							Sender:   s.chainA.SenderAccount.GetAddress().String(),
+							Salt:     []byte("salt"),
+						},
+					},
+				},
+			},
+			true,
+		},
+		{
+			"failure: salt exceeds max length",
+			&types.GenesisState{
+				Ics27Accounts: []types.RegisteredICS27Account{
+					{
+						AccountAddress: s.chainA.SenderAccount.GetAddress().String(),
+						AccountId: types.AccountIdentifier{
+							ClientId: ibctesting.FirstClientID,
+							Sender:   s.chainA.SenderAccount.GetAddress().String(),
+							Salt:     make([]byte, types.MaximumSaltLength+1),
+						},
+					},
+				},
+			},
+			true,
+		},
 	}
 
 	for _, tc := range testCases {

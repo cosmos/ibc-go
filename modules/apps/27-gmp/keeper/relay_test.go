@@ -9,10 +9,12 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
+	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
@@ -119,6 +121,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket() {
 		gmpAccountAddr sdk.AccAddress
 		sender         string
 		recipient      sdk.AccAddress
+		destClient     string
 	)
 
 	testCases := []struct {
@@ -168,6 +171,25 @@ func (s *KeeperTestSuite) TestOnRecvPacket() {
 			},
 			types.ErrInvalidPayload,
 		},
+		{
+			"failure: msg ValidateBasic error - invalid to address",
+			func() {
+				invalidMsg := &banktypes.MsgSend{
+					FromAddress: gmpAccountAddr.String(),
+					ToAddress:   "invalid",
+					Amount:      sdk.NewCoins(ibctesting.TestCoin),
+				}
+				packetData.Payload = s.serializeMsgs(invalidMsg)
+			},
+			sdkerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: getOrCreateICS27Account error - invalid dest client",
+			func() {
+				destClient = "x" // too short, fails ClientIdentifierValidator
+			},
+			host.ErrInvalidID,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -177,6 +199,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket() {
 			gmpKeeper = s.chainA.GetSimApp().GMPKeeper
 			sender = s.chainB.SenderAccount.GetAddress().String()
 			recipient = s.chainA.SenderAccount.GetAddress()
+			destClient = ibctesting.FirstClientID
 
 			accountID := types.NewAccountIdentifier(ibctesting.FirstClientID, sender, []byte(testSalt))
 			addr, err := types.BuildAddressPredictable(&accountID)
@@ -192,7 +215,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket() {
 				s.chainA.GetContext(),
 				packetData,
 				types.PortID, ibctesting.FirstClientID,
-				types.PortID, ibctesting.FirstClientID,
+				types.PortID, destClient,
 			)
 
 			expPass := tc.expErr == nil

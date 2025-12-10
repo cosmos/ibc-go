@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
@@ -26,6 +27,20 @@ func (s *KeeperTestSuite) TestInitGenesis() {
 				genesisState = types.DefaultGenesisState()
 			},
 			nil,
+		},
+		{
+			"failure: invalid account address",
+			func() {
+				genesisState.Ics27Accounts[0].AccountAddress = "invalid"
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: invalid sender address",
+			func() {
+				genesisState.Ics27Accounts[0].AccountId.Sender = "invalid"
+			},
+			ibcerrors.ErrInvalidAddress,
 		},
 	}
 

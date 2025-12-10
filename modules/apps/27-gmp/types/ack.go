@@ -46,10 +46,10 @@ func UnmarshalAcknowledgement(bz []byte, ics27Version string, encoding string) (
 		panic("unsupported ics27 version")
 	}
 
-	var data *Acknowledgement
+	data := &Acknowledgement{}
 	switch encoding {
 	case EncodingJSON:
-		if err := json.Unmarshal(bz, &data); err != nil {
+		if err := json.Unmarshal(bz, data); err != nil {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "failed to unmarshal json packet data: %s", err)
 		}
 	case EncodingProtobuf:
