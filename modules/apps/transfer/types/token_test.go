@@ -1,4 +1,4 @@
-package types
+package types_test
 
 import (
 	"errors"
@@ -9,133 +9,135 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 )
 
 const (
-	denom  = "atom/pool"
-	amount = "100"
+	tokenDenom  = "atom/pool"
+	tokenAmount = "100"
 )
 
 func TestValidate(t *testing.T) {
 	testCases := []struct {
 		name     string
-		token    Token
+		token    types.Token
 		expError error
 	}{
 		{
 			"success: multiple port channel pair denom",
-			Token{
-				Denom: Denom{
+			types.Token{
+				Denom: types.Denom{
 					Base: "atom",
-					Trace: []Hop{
-						NewHop("transfer", "channel-0"),
-						NewHop("transfer", "channel-1"),
+					Trace: []types.Hop{
+						types.NewHop("transfer", "channel-0"),
+						types.NewHop("transfer", "channel-1"),
 					},
 				},
-				Amount: amount,
+				Amount: tokenAmount,
 			},
 			nil,
 		},
 		{
 			"success: one port channel pair denom",
-			Token{
-				Denom: Denom{
+			types.Token{
+				Denom: types.Denom{
 					Base: "uatom",
-					Trace: []Hop{
-						NewHop("transfer", "channel-1"),
+					Trace: []types.Hop{
+						types.NewHop("transfer", "channel-1"),
 					},
 				},
-				Amount: amount,
+				Amount: tokenAmount,
 			},
 			nil,
 		},
 		{
 			"success: non transfer port trace",
-			Token{
-				Denom: Denom{
+			types.Token{
+				Denom: types.Denom{
 					Base: "uatom",
-					Trace: []Hop{
-						NewHop("transfer", "channel-0"),
-						NewHop("transfer", "channel-1"),
-						NewHop("transfer-custom", "channel-2"),
+					Trace: []types.Hop{
+						types.NewHop("transfer", "channel-0"),
+						types.NewHop("transfer", "channel-1"),
+						types.NewHop("transfer-custom", "channel-2"),
 					},
 				},
-				Amount: amount,
+				Amount: tokenAmount,
 			},
 			nil,
 		},
 		{
 			"failure: empty denom",
-			Token{
-				Denom:  Denom{},
-				Amount: amount,
+			types.Token{
+				Denom:  types.Denom{},
+				Amount: tokenAmount,
 			},
-			ErrInvalidDenomForTransfer,
+			types.ErrInvalidDenomForTransfer,
 		},
 		{
 			"failure: invalid amount string",
-			Token{
-				Denom: Denom{
+			types.Token{
+				Denom: types.Denom{
 					Base: "atom",
-					Trace: []Hop{
-						NewHop("transfer", "channel-0"),
-						NewHop("transfer", "channel-1"),
+					Trace: []types.Hop{
+						types.NewHop("transfer", "channel-0"),
+						types.NewHop("transfer", "channel-1"),
 					},
 				},
 				Amount: "value",
 			},
-			ErrInvalidAmount,
+			types.ErrInvalidAmount,
 		},
 		{
 			"failure: amount is zero",
-			Token{
-				Denom: Denom{
+			types.Token{
+				Denom: types.Denom{
 					Base: "atom",
-					Trace: []Hop{
-						NewHop("transfer", "channel-0"),
-						NewHop("transfer", "channel-1"),
+					Trace: []types.Hop{
+						types.NewHop("transfer", "channel-0"),
+						types.NewHop("transfer", "channel-1"),
 					},
 				},
 				Amount: "0",
 			},
-			ErrInvalidAmount,
+			types.ErrInvalidAmount,
 		},
 		{
 			"failure: amount is negative",
-			Token{
-				Denom: Denom{
+			types.Token{
+				Denom: types.Denom{
 					Base: "atom",
-					Trace: []Hop{
-						NewHop("transfer", "channel-0"),
-						NewHop("transfer", "channel-1"),
+					Trace: []types.Hop{
+						types.NewHop("transfer", "channel-0"),
+						types.NewHop("transfer", "channel-1"),
 					},
 				},
 				Amount: "-1",
 			},
-			ErrInvalidAmount,
+			types.ErrInvalidAmount,
 		},
 		{
 			"failure: invalid identifier in trace",
-			Token{
-				Denom: Denom{
+			types.Token{
+				Denom: types.Denom{
 					Base: "uatom",
-					Trace: []Hop{
-						NewHop("transfer", "channel-1"),
-						NewHop("randomport", ""),
+					Trace: []types.Hop{
+						types.NewHop("transfer", "channel-1"),
+						types.NewHop("randomport", ""),
 					},
 				},
-				Amount: amount,
+				Amount: tokenAmount,
 			},
 			errors.New("invalid token denom: invalid trace: invalid hop source channel ID : identifier cannot be blank: invalid identifier"),
 		},
 		{
 			"failure: empty identifier in trace",
-			Token{
-				Denom: Denom{
+			types.Token{
+				Denom: types.Denom{
 					Base:  "uatom",
-					Trace: []Hop{{}},
+					Trace: []types.Hop{{}},
 				},
-				Amount: amount,
+				Amount: tokenAmount,
 			},
 			errors.New("invalid token denom: invalid trace: invalid hop source port ID : identifier cannot be blank: invalid identifier"),
 		},
@@ -156,33 +158,33 @@ func TestValidate(t *testing.T) {
 func TestToCoin(t *testing.T) {
 	testCases := []struct {
 		name     string
-		token    Token
+		token    types.Token
 		expCoin  sdk.Coin
 		expError error
 	}{
 		{
 			"success: convert token to coin",
-			Token{
-				Denom: Denom{
-					Base:  denom,
-					Trace: []Hop{},
+			types.Token{
+				Denom: types.Denom{
+					Base:  tokenDenom,
+					Trace: []types.Hop{},
 				},
-				Amount: amount,
+				Amount: tokenAmount,
 			},
-			sdk.NewCoin(denom, sdkmath.NewInt(100)),
+			sdk.NewCoin(tokenDenom, sdkmath.NewInt(100)),
 			nil,
 		},
 		{
 			"failure: invalid amount string",
-			Token{
-				Denom: Denom{
-					Base:  denom,
-					Trace: []Hop{},
+			types.Token{
+				Denom: types.Denom{
+					Base:  tokenDenom,
+					Trace: []types.Hop{},
 				},
 				Amount: "value",
 			},
 			sdk.Coin{},
-			ErrInvalidAmount,
+			types.ErrInvalidAmount,
 		},
 	}
 

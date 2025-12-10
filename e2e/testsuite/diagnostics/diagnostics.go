@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	dockertypes "github.com/docker/docker/api/types"
-	dockerclient "github.com/docker/docker/client"
+	dockerclient "github.com/moby/moby/client"
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
 	"github.com/cosmos/ibc-go/e2e/internal/directories"
@@ -29,14 +29,14 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, suite
 	if !debugModeEnabled {
 		// when we are not forcing log collection, we only upload upon test failing.
 		if !t.Failed() {
-			t.Logf("test passed, not uploading logs")
+			t.Log("test passed, not uploading logs")
 			return
 		}
 	}
 
 	t.Logf("writing logs for test: %s", t.Name())
 
-	ctx := context.TODO()
+	ctx := t.Context()
 	e2eDir, err := directories.E2E()
 	if err != nil {
 		t.Logf("failed finding log directory: %s", err)
@@ -95,7 +95,7 @@ func Collect(t *testing.T, dc *dockerclient.Client, debugModeEnabled bool, suite
 		if err := fetchAndWriteDockerInspectOutput(ctx, dc, container.ID, localFilePath); err != nil {
 			continue
 		}
-		t.Logf("successfully wrote docker inspect output")
+		t.Log("successfully wrote docker inspect output")
 	}
 }
 

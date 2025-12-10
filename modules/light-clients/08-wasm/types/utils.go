@@ -46,7 +46,7 @@ type limitedReader struct {
 	r *io.LimitedReader
 }
 
-func (l *limitedReader) Read(p []byte) (n int, err error) {
+func (l *limitedReader) Read(p []byte) (int, error) {
 	if l.r.N <= 0 {
 		return 0, ErrWasmCodeTooLarge
 	}
