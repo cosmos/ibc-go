@@ -70,6 +70,13 @@ func (s *KeeperTestSuite) TestInitGenesis() {
 	}
 }
 
+func (s *KeeperTestSuite) TestGetAuthority() {
+	s.SetupTest()
+
+	authority := s.chainA.GetSimApp().GMPKeeper.GetAuthority()
+	s.Require().NotEmpty(authority)
+}
+
 func (s *KeeperTestSuite) TestExportGenesis() {
 	s.SetupTest()
 
