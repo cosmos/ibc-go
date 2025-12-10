@@ -138,6 +138,8 @@ func (s *IBCModuleTestSuite) TestOnRecvPacket() {
 		module         *gmp.IBCModule
 		payload        channeltypesv2.Payload
 		gmpAccountAddr sdk.AccAddress
+		sender         string
+		msgPayload     []byte
 	)
 
 	testCases := []struct {
@@ -174,9 +176,30 @@ func (s *IBCModuleTestSuite) TestOnRecvPacket() {
 			channeltypesv2.PacketStatus_Failure,
 		},
 		{
-			"failure: invalid packet data",
+			"failure: invalid packet data - unmarshal error",
 			func() {
 				payload.Value = []byte("invalid")
+			},
+			channeltypesv2.PacketStatus_Failure,
+		},
+		{
+			"failure: ValidateBasic error - empty sender",
+			func() {
+				packetData := types.NewGMPPacketData("", "", []byte(testSalt), msgPayload, "")
+				dataBz, err := types.MarshalPacketData(&packetData, types.Version, types.EncodingProtobuf)
+				s.Require().NoError(err)
+				payload.Value = dataBz
+			},
+			channeltypesv2.PacketStatus_Failure,
+		},
+		{
+			"failure: keeper OnRecvPacket error - unauthorized signer",
+			func() {
+				unauthorizedPayload := s.serializeMsgs(s.newMsgSend(s.chainA.SenderAccount.GetAddress(), s.chainB.SenderAccount.GetAddress()))
+				packetData := types.NewGMPPacketData(sender, "", []byte(testSalt), unauthorizedPayload, "")
+				dataBz, err := types.MarshalPacketData(&packetData, types.Version, types.EncodingProtobuf)
+				s.Require().NoError(err)
+				payload.Value = dataBz
 			},
 			channeltypesv2.PacketStatus_Failure,
 		},
@@ -187,7 +210,7 @@ func (s *IBCModuleTestSuite) TestOnRecvPacket() {
 			s.SetupTest()
 
 			module = gmp.NewIBCModule(s.chainA.GetSimApp().GMPKeeper)
-			sender := s.chainB.SenderAccount.GetAddress().String()
+			sender = s.chainB.SenderAccount.GetAddress().String()
 			recipient := s.chainA.SenderAccount.GetAddress()
 
 			accountID := types.NewAccountIdentifier(ibctesting.FirstClientID, sender, []byte(testSalt))
@@ -195,7 +218,7 @@ func (s *IBCModuleTestSuite) TestOnRecvPacket() {
 			s.Require().NoError(err)
 			gmpAccountAddr = addr
 
-			msgPayload := s.serializeMsgs(s.newMsgSend(gmpAccountAddr, recipient))
+			msgPayload = s.serializeMsgs(s.newMsgSend(gmpAccountAddr, recipient))
 			packetData := types.NewGMPPacketData(sender, "", []byte(testSalt), msgPayload, "")
 			dataBz, err := types.MarshalPacketData(&packetData, types.Version, types.EncodingProtobuf)
 			s.Require().NoError(err)
