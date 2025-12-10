@@ -153,6 +153,41 @@ func TestUnmarshalPacketData_InvalidEncoding(t *testing.T) {
 	require.ErrorIs(t, err, types.ErrInvalidEncoding)
 }
 
+func TestUnmarshalPacketData_InvalidData(t *testing.T) {
+	testCases := []struct {
+		name     string
+		data     []byte
+		encoding string
+		expErr   error
+	}{
+		{
+			"failure: invalid JSON data",
+			[]byte("not valid json"),
+			types.EncodingJSON,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: invalid Protobuf data",
+			[]byte("not valid protobuf"),
+			types.EncodingProtobuf,
+			ibcerrors.ErrInvalidType,
+		},
+		{
+			"failure: invalid ABI data",
+			[]byte("not valid abi"),
+			types.EncodingABI,
+			ibcerrors.ErrInvalidType,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := types.UnmarshalPacketData(tc.data, types.Version, tc.encoding)
+			require.ErrorIs(t, err, tc.expErr)
+		})
+	}
+}
+
 func TestMsgSendCall_ValidateBasic(t *testing.T) {
 	validSender := "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du"
 
