@@ -1,0 +1,152 @@
+package keeper_test
+
+import (
+	"encoding/hex"
+
+	"cosmossdk.io/collections"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
+	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+)
+
+func (s *KeeperTestSuite) TestQueryAccountAddress() {
+	var req *types.QueryAccountAddressRequest
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success",
+			func() {},
+			nil,
+		},
+		{
+			"success: empty salt",
+			func() {
+				req.Salt = ""
+			},
+			nil,
+		},
+		{
+			"failure: invalid salt hex",
+			func() {
+				req.Salt = "not-hex"
+			},
+			hex.InvalidByteError('n'),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			req = &types.QueryAccountAddressRequest{
+				ClientId: ibctesting.FirstClientID,
+				Sender:   s.chainA.SenderAccount.GetAddress().String(),
+				Salt:     hex.EncodeToString([]byte(testSalt)),
+			}
+
+			tc.malleate()
+
+			resp, err := s.chainA.GetSimApp().GMPKeeper.AccountAddress(s.chainA.GetContext(), req)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				s.Require().NoError(err)
+				s.Require().NotEmpty(resp.AccountAddress)
+
+				_, err := sdk.AccAddressFromBech32(resp.AccountAddress)
+				s.Require().NoError(err)
+			} else {
+				s.Require().ErrorContains(err, tc.expErr.Error())
+			}
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestQueryAccountIdentifier() {
+	var (
+		req            *types.QueryAccountIdentifierRequest
+		gmpAccountAddr string
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success",
+			func() {
+				s.createGMPAccount(gmpAccountAddr)
+			},
+			nil,
+		},
+		{
+			"failure: invalid address",
+			func() {
+				req.AccountAddress = "invalid"
+			},
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: account not found",
+			func() {},
+			collections.ErrNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			sender := s.chainB.SenderAccount.GetAddress().String()
+			accountID := types.NewAccountIdentifier(ibctesting.FirstClientID, sender, []byte(testSalt))
+			addr, err := types.BuildAddressPredictable(&accountID)
+			s.Require().NoError(err)
+			gmpAccountAddr = sdk.AccAddress(addr).String()
+
+			req = &types.QueryAccountIdentifierRequest{
+				AccountAddress: gmpAccountAddr,
+			}
+
+			tc.malleate()
+
+			resp, err := s.chainA.GetSimApp().GMPKeeper.AccountIdentifier(s.chainA.GetContext(), req)
+
+			expPass := tc.expErr == nil
+			if expPass {
+				s.Require().NoError(err)
+				s.Require().Equal(ibctesting.FirstClientID, resp.AccountId.ClientId)
+				s.Require().Equal(sender, resp.AccountId.Sender)
+				s.Require().Equal([]byte(testSalt), resp.AccountId.Salt)
+			} else {
+				s.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
+
+func (s *KeeperTestSuite) createGMPAccount(gmpAccountAddr string) {
+	sender := s.chainB.SenderAccount.GetAddress().String()
+	recipient := s.chainA.SenderAccount.GetAddress()
+
+	gmpAddr, _ := sdk.AccAddressFromBech32(gmpAccountAddr)
+	s.fundAccount(gmpAddr, sdk.NewCoins(ibctesting.TestCoin))
+
+	data := types.NewGMPPacketData(sender, "", []byte(testSalt), nil, "")
+	data.Payload = s.serializeMsgs(s.newMsgSend(gmpAddr, recipient))
+
+	_, err := s.chainA.GetSimApp().GMPKeeper.OnRecvPacket(
+		s.chainA.GetContext(),
+		&data,
+		types.PortID, ibctesting.FirstClientID,
+		types.PortID, ibctesting.FirstClientID,
+	)
+	s.Require().NoError(err)
+}
