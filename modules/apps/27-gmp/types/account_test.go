@@ -18,6 +18,7 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
 func TestBuildAddressPredictable(t *testing.T) {
@@ -29,7 +30,7 @@ func TestBuildAddressPredictable(t *testing.T) {
 		{
 			"success: valid account identifier",
 			&types.AccountIdentifier{
-				ClientId: "07-tendermint-0",
+				ClientId: ibctesting.FirstClientID,
 				Sender:   "cosmos1sender",
 				Salt:     []byte("randomsalt"),
 			},
@@ -38,7 +39,7 @@ func TestBuildAddressPredictable(t *testing.T) {
 		{
 			"success: empty salt is allowed",
 			&types.AccountIdentifier{
-				ClientId: "07-tendermint-0",
+				ClientId: ibctesting.FirstClientID,
 				Sender:   "cosmos1sender",
 				Salt:     []byte{},
 			},
@@ -47,7 +48,7 @@ func TestBuildAddressPredictable(t *testing.T) {
 		{
 			"success: nil salt is allowed",
 			&types.AccountIdentifier{
-				ClientId: "07-tendermint-0",
+				ClientId: ibctesting.FirstClientID,
 				Sender:   "cosmos1sender",
 				Salt:     nil,
 			},
@@ -74,7 +75,7 @@ func TestBuildAddressPredictable(t *testing.T) {
 		{
 			"failure: empty sender",
 			&types.AccountIdentifier{
-				ClientId: "07-tendermint-0",
+				ClientId: ibctesting.FirstClientID,
 				Sender:   "",
 				Salt:     []byte("salt"),
 			},
@@ -83,7 +84,7 @@ func TestBuildAddressPredictable(t *testing.T) {
 		{
 			"failure: whitespace-only sender",
 			&types.AccountIdentifier{
-				ClientId: "07-tendermint-0",
+				ClientId: ibctesting.FirstClientID,
 				Sender:   "   ",
 				Salt:     []byte("salt"),
 			},
@@ -108,7 +109,7 @@ func TestBuildAddressPredictable(t *testing.T) {
 
 func TestBuildAddressPredictable_Determinism(t *testing.T) {
 	accountID := &types.AccountIdentifier{
-		ClientId: "07-tendermint-0",
+		ClientId: ibctesting.FirstClientID,
 		Sender:   "cosmos1sender",
 		Salt:     []byte("randomsalt"),
 	}
@@ -131,7 +132,7 @@ func TestBuildAddressPredictable_Determinism(t *testing.T) {
 func TestBuildAddressPredictable_Uniqueness(t *testing.T) {
 	// Base account identifier
 	baseAccountID := &types.AccountIdentifier{
-		ClientId: "07-tendermint-0",
+		ClientId: ibctesting.FirstClientID,
 		Sender:   "cosmos1sender",
 		Salt:     []byte("salt1"),
 	}
@@ -141,7 +142,7 @@ func TestBuildAddressPredictable_Uniqueness(t *testing.T) {
 
 	// Different salt should produce different address
 	differentSaltID := &types.AccountIdentifier{
-		ClientId: "07-tendermint-0",
+		ClientId: ibctesting.FirstClientID,
 		Sender:   "cosmos1sender",
 		Salt:     []byte("salt2"),
 	}
@@ -151,7 +152,7 @@ func TestBuildAddressPredictable_Uniqueness(t *testing.T) {
 
 	// Different sender should produce different address
 	differentSenderID := &types.AccountIdentifier{
-		ClientId: "07-tendermint-0",
+		ClientId: ibctesting.FirstClientID,
 		Sender:   "cosmos1different",
 		Salt:     []byte("salt1"),
 	}
@@ -171,7 +172,7 @@ func TestBuildAddressPredictable_Uniqueness(t *testing.T) {
 }
 
 func TestNewAccountIdentifier(t *testing.T) {
-	clientID := "07-tendermint-0"
+	clientID := ibctesting.FirstClientID
 	sender := "cosmos1sender"
 	salt := []byte("salt")
 
@@ -185,7 +186,7 @@ func TestNewAccountIdentifier(t *testing.T) {
 func TestNewICS27Account(t *testing.T) {
 	addr := "cosmos1address"
 	accountID := &types.AccountIdentifier{
-		ClientId: "07-tendermint-0",
+		ClientId: ibctesting.FirstClientID,
 		Sender:   "cosmos1sender",
 		Salt:     []byte("salt"),
 	}
