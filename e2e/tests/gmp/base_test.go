@@ -261,3 +261,117 @@ func (s *GMPTestSuite) createAttestationProof(path, commitment []byte) []byte {
 	s.Require().NoError(err)
 	return proofBz
 }
+
+func (s *GMPTestSuite) TestQueryAccountAddress() {
+	ctx := context.TODO()
+	chain := s.GetAllChains()[0]
+
+	senderWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chain), "failed to wait for blocks")
+
+	req := &gmptypes.QueryAccountAddressRequest{
+		ClientId: ibctesting.FirstClientID,
+		Sender:   senderWallet.FormattedAddress(),
+		Salt:     "",
+	}
+
+	resp, err := query.GRPCQuery[gmptypes.QueryAccountAddressResponse](ctx, chain, req)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(resp.AccountAddress)
+
+	accountID := gmptypes.NewAccountIdentifier(ibctesting.FirstClientID, senderWallet.FormattedAddress(), []byte{})
+	expectedAddr, err := gmptypes.BuildAddressPredictable(&accountID)
+	s.Require().NoError(err)
+	s.Require().Equal(expectedAddr.String(), resp.AccountAddress)
+}
+
+func (s *GMPTestSuite) TestQueryAccountIdentifier() {
+	t := s.T()
+	ctx := context.TODO()
+	chain := s.GetAllChains()[0]
+
+	rlyWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	senderWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	recipientWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+
+	var (
+		clientIDA, clientIDB string
+		gmpAccountAddr       string
+	)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chain), "failed to wait for blocks")
+
+	proofTimestamp := uint64(time.Now().UnixNano())
+
+	t.Run("setup clients and counterparties", func(t *testing.T) {
+		clientIDA = s.createAttestationsClient(ctx, chain, rlyWallet, proofTimestamp)
+		clientIDB = s.createAttestationsClient(ctx, chain, rlyWallet, proofTimestamp)
+		s.registerCounterparty(ctx, chain, rlyWallet, clientIDA, clientIDB)
+		s.registerCounterparty(ctx, chain, rlyWallet, clientIDB, clientIDA)
+	})
+
+	t.Run("create GMP account via packet", func(t *testing.T) {
+		accountID := gmptypes.NewAccountIdentifier(clientIDB, senderWallet.FormattedAddress(), []byte(testSalt))
+		addr, err := gmptypes.BuildAddressPredictable(&accountID)
+		s.Require().NoError(err)
+		gmpAccountAddr = addr.String()
+
+		msgSend := &banktypes.MsgSend{
+			FromAddress: rlyWallet.FormattedAddress(),
+			ToAddress:   gmpAccountAddr,
+			Amount:      sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, sdkmath.NewInt(testvalues.StartingTokenAmount))),
+		}
+		txResp := s.BroadcastMessages(ctx, chain, rlyWallet, msgSend)
+		s.AssertTxSuccess(txResp)
+
+		payload, err := gmptypes.SerializeCosmosTx(testsuite.Codec(), []proto.Message{
+			&banktypes.MsgSend{
+				FromAddress: gmpAccountAddr,
+				ToAddress:   recipientWallet.FormattedAddress(),
+				Amount:      sdk.NewCoins(sdk.NewCoin(chain.Config().Denom, sdkmath.NewInt(testvalues.IBCTransferAmount))),
+			},
+		})
+		s.Require().NoError(err)
+
+		msgSendCall := gmptypes.NewMsgSendCall(
+			clientIDA,
+			senderWallet.FormattedAddress(),
+			"",
+			payload,
+			[]byte(testSalt),
+			uint64(time.Now().Add(10*time.Minute).Unix()),
+			gmptypes.EncodingProtobuf,
+			"",
+		)
+
+		txResp = s.BroadcastMessages(ctx, chain, senderWallet, msgSendCall)
+		s.AssertTxSuccess(txResp)
+
+		packet, err := ibctesting.ParseV2PacketFromEvents(txResp.Events)
+		s.Require().NoError(err)
+
+		commitment := channeltypesv2.CommitPacket(packet)
+		path := s.hashPath(hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence))
+		proof := s.createAttestationProof(path, commitment)
+
+		msgRecvPacket := channeltypesv2.NewMsgRecvPacket(
+			packet, proof, clienttypes.NewHeight(0, proofHeight), rlyWallet.FormattedAddress(),
+		)
+
+		txResp = s.BroadcastMessages(ctx, chain, rlyWallet, msgRecvPacket)
+		s.AssertTxSuccess(txResp)
+	})
+
+	t.Run("query account identifier", func(t *testing.T) {
+		req := &gmptypes.QueryAccountIdentifierRequest{
+			AccountAddress: gmpAccountAddr,
+		}
+
+		resp, err := query.GRPCQuery[gmptypes.QueryAccountIdentifierResponse](ctx, chain, req)
+		s.Require().NoError(err)
+		s.Require().Equal(clientIDB, resp.AccountId.ClientId)
+		s.Require().Equal(senderWallet.FormattedAddress(), resp.AccountId.Sender)
+		s.Require().Equal([]byte(testSalt), resp.AccountId.Salt)
+	})
+}
