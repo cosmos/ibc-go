@@ -121,6 +121,13 @@ func (s *KeeperTestSuite) TestSendCallErrors() {
 			},
 			nil, // counterparty not found error
 		},
+		{
+			"failure: payload too long",
+			func() {
+				msg.Payload = make([]byte, types.MaximumPayloadLength+1)
+			},
+			types.ErrInvalidPayload,
+		},
 	}
 
 	for _, tc := range testCases {
