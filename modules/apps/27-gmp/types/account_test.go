@@ -114,19 +114,14 @@ func TestBuildAddressPredictable_Determinism(t *testing.T) {
 		Salt:     []byte("randomsalt"),
 	}
 
-	// Generate address multiple times
-	addr1, err := types.BuildAddressPredictable(accountID)
+	firstAddr, err := types.BuildAddressPredictable(accountID)
 	require.NoError(t, err)
 
-	addr2, err := types.BuildAddressPredictable(accountID)
-	require.NoError(t, err)
-
-	addr3, err := types.BuildAddressPredictable(accountID)
-	require.NoError(t, err)
-
-	// All addresses should be identical
-	require.Equal(t, addr1, addr2, "addresses should be deterministic")
-	require.Equal(t, addr2, addr3, "addresses should be deterministic")
+	for range 50 {
+		addr, err := types.BuildAddressPredictable(accountID)
+		require.NoError(t, err)
+		require.Equal(t, firstAddr, addr, "addresses should be deterministic")
+	}
 }
 
 func TestBuildAddressPredictable_Uniqueness(t *testing.T) {
