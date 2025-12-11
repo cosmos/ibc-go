@@ -29,3 +29,4 @@ ignore:
 - "scripts"
 - "contrib"
 - "cmd"
+- "e2e"
