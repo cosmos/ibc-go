@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,82 +11,9 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
+var errAny = errors.New("any error")
+
 func (s *KeeperTestSuite) TestSendCall() {
-	var msg *types.MsgSendCall
-
-	testCases := []struct {
-		name        string
-		malleate    func()
-		expEncoding string
-	}{
-		{
-			"success: empty encoding defaults to ABI",
-			func() {
-				msg.Encoding = ""
-			},
-			types.EncodingABI,
-		},
-		{
-			"success: protobuf encoding",
-			func() {
-				msg.Encoding = types.EncodingProtobuf
-			},
-			types.EncodingProtobuf,
-		},
-		{
-			"success: JSON encoding",
-			func() {
-				msg.Encoding = types.EncodingJSON
-			},
-			types.EncodingJSON,
-		},
-		{
-			"success: ABI encoding",
-			func() {
-				msg.Encoding = types.EncodingABI
-			},
-			types.EncodingABI,
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			s.SetupTest()
-
-			path := ibctesting.NewPath(s.chainA, s.chainB)
-			path.SetupV2()
-
-			sender := s.chainA.SenderAccount.GetAddress()
-			recipient := s.chainB.SenderAccount.GetAddress()
-			payload := s.serializeMsgs(&banktypes.MsgSend{
-				FromAddress: sender.String(),
-				ToAddress:   recipient.String(),
-				Amount:      sdk.NewCoins(ibctesting.TestCoin),
-			})
-
-			msg = types.NewMsgSendCall(
-				path.EndpointA.ClientID,
-				sender.String(),
-				"",
-				payload,
-				[]byte(testSalt),
-				uint64(s.chainA.GetContext().BlockTime().Add(time.Hour).Unix()),
-				types.EncodingProtobuf,
-				"",
-			)
-
-			tc.malleate()
-
-			resp, err := s.chainA.GetSimApp().GMPKeeper.SendCall(s.chainA.GetContext(), msg)
-
-			s.Require().NoError(err)
-			s.Require().NotNil(resp)
-			s.Require().Equal(uint64(1), resp.Sequence)
-		})
-	}
-}
-
-func (s *KeeperTestSuite) TestSendCallErrors() {
 	var msg *types.MsgSendCall
 
 	testCases := []struct {
@@ -94,18 +22,46 @@ func (s *KeeperTestSuite) TestSendCallErrors() {
 		expErr   error
 	}{
 		{
+			"success: empty encoding defaults to ABI",
+			func() {
+				msg.Encoding = ""
+			},
+			nil,
+		},
+		{
+			"success: protobuf encoding",
+			func() {
+				msg.Encoding = types.EncodingProtobuf
+			},
+			nil,
+		},
+		{
+			"success: JSON encoding",
+			func() {
+				msg.Encoding = types.EncodingJSON
+			},
+			nil,
+		},
+		{
+			"success: ABI encoding",
+			func() {
+				msg.Encoding = types.EncodingABI
+			},
+			nil,
+		},
+		{
 			"failure: invalid sender address",
 			func() {
 				msg.Sender = "invalid"
 			},
-			nil, // bech32 error not wrapped
+			errAny,
 		},
 		{
 			"failure: empty sender address",
 			func() {
 				msg.Sender = ""
 			},
-			nil, // bech32 error not wrapped
+			errAny,
 		},
 		{
 			"failure: invalid encoding",
@@ -119,7 +75,7 @@ func (s *KeeperTestSuite) TestSendCallErrors() {
 			func() {
 				msg.SourceClient = "invalid"
 			},
-			nil, // counterparty not found error
+			errAny,
 		},
 		{
 			"failure: payload too long",
@@ -160,10 +116,16 @@ func (s *KeeperTestSuite) TestSendCallErrors() {
 
 			resp, err := s.chainA.GetSimApp().GMPKeeper.SendCall(s.chainA.GetContext(), msg)
 
-			s.Require().Error(err)
-			s.Require().Nil(resp)
-			if tc.expErr != nil {
+			if tc.expErr == nil {
+				s.Require().NoError(err)
+				s.Require().NotNil(resp)
+				s.Require().Equal(uint64(1), resp.Sequence)
+			} else if errors.Is(tc.expErr, errAny) {
+				s.Require().Error(err)
+				s.Require().Nil(resp)
+			} else {
 				s.Require().ErrorIs(err, tc.expErr)
+				s.Require().Nil(resp)
 			}
 		})
 	}
