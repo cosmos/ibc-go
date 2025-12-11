@@ -73,6 +73,7 @@ func (s *KeeperTestSuite) TestQueryAccountIdentifier() {
 	var (
 		req            *types.QueryAccountIdentifierRequest
 		gmpAccountAddr string
+		expAccountId   *types.AccountIdentifier
 	)
 
 	testCases := []struct {
@@ -83,6 +84,12 @@ func (s *KeeperTestSuite) TestQueryAccountIdentifier() {
 		{
 			"success",
 			func() {
+				sender := s.chainB.SenderAccount.GetAddress().String()
+				expAccountId = &types.AccountIdentifier{
+					ClientId: ibctesting.FirstClientID,
+					Sender:   sender,
+					Salt:     []byte(testSalt),
+				}
 				s.createGMPAccount(gmpAccountAddr)
 			},
 			nil,
@@ -119,12 +126,11 @@ func (s *KeeperTestSuite) TestQueryAccountIdentifier() {
 
 			resp, err := s.chainA.GetSimApp().GMPKeeper.AccountIdentifier(s.chainA.GetContext(), req)
 
-			expPass := tc.expErr == nil
-			if expPass {
+			if tc.expErr == nil {
 				s.Require().NoError(err)
-				s.Require().Equal(ibctesting.FirstClientID, resp.AccountId.ClientId)
-				s.Require().Equal(sender, resp.AccountId.Sender)
-				s.Require().Equal([]byte(testSalt), resp.AccountId.Salt)
+				s.Require().Equal(expAccountId.ClientId, resp.AccountId.ClientId)
+				s.Require().Equal(expAccountId.Sender, resp.AccountId.Sender)
+				s.Require().Equal(expAccountId.Salt, resp.AccountId.Salt)
 			} else {
 				s.Require().ErrorIs(err, tc.expErr)
 			}
