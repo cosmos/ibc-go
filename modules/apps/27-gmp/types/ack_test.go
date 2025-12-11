@@ -28,35 +28,29 @@ func TestMarshalUnmarshalAcknowledgement(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name     string
-		encoding string
-		expErr   error
+		name        string
+		encoding    string
+		invalidData []byte
+		expErr      error
 	}{
-		{
-			"success: JSON encoding",
-			types.EncodingJSON,
-			nil,
-		},
-		{
-			"success: Protobuf encoding",
-			types.EncodingProtobuf,
-			nil,
-		},
-		{
-			"success: ABI encoding",
-			types.EncodingABI,
-			nil,
-		},
-		{
-			"failure: invalid encoding",
-			"invalid-encoding",
-			types.ErrInvalidEncoding,
-		},
+		{"success: JSON encoding", types.EncodingJSON, nil, nil},
+		{"success: Protobuf encoding", types.EncodingProtobuf, nil, nil},
+		{"success: ABI encoding", types.EncodingABI, nil, nil},
+		{"failure: invalid encoding on marshal", "invalid-encoding", nil, types.ErrInvalidEncoding},
+		{"failure: invalid encoding on unmarshal", "invalid-encoding", []byte("data"), types.ErrInvalidEncoding},
+		{"failure: invalid JSON data", types.EncodingJSON, []byte("not valid json"), ibcerrors.ErrInvalidType},
+		{"failure: invalid Protobuf data", types.EncodingProtobuf, []byte("not valid protobuf"), ibcerrors.ErrInvalidType},
+		{"failure: invalid ABI data", types.EncodingABI, []byte("not valid abi"), ibcerrors.ErrInvalidType},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Marshal
+			if tc.invalidData != nil {
+				_, err := types.UnmarshalAcknowledgement(tc.invalidData, types.Version, tc.encoding)
+				require.ErrorIs(t, err, tc.expErr)
+				return
+			}
+
 			bz, err := types.MarshalAcknowledgement(ack, types.Version, tc.encoding)
 			if tc.expErr != nil {
 				require.ErrorIs(t, err, tc.expErr)
@@ -65,52 +59,9 @@ func TestMarshalUnmarshalAcknowledgement(t *testing.T) {
 			require.NoError(t, err)
 			require.NotEmpty(t, bz)
 
-			// Unmarshal
 			decoded, err := types.UnmarshalAcknowledgement(bz, types.Version, tc.encoding)
 			require.NoError(t, err)
-
-			// Compare
 			require.Equal(t, ack.Result, decoded.Result)
-		})
-	}
-}
-
-func TestUnmarshalAcknowledgement_InvalidEncoding(t *testing.T) {
-	_, err := types.UnmarshalAcknowledgement([]byte("data"), types.Version, "invalid-encoding")
-	require.ErrorIs(t, err, types.ErrInvalidEncoding)
-}
-
-func TestUnmarshalAcknowledgement_InvalidData(t *testing.T) {
-	testCases := []struct {
-		name     string
-		data     []byte
-		encoding string
-		expErr   error
-	}{
-		{
-			"failure: invalid JSON data",
-			[]byte("not valid json"),
-			types.EncodingJSON,
-			ibcerrors.ErrInvalidType,
-		},
-		{
-			"failure: invalid Protobuf data",
-			[]byte("not valid protobuf"),
-			types.EncodingProtobuf,
-			ibcerrors.ErrInvalidType,
-		},
-		{
-			"failure: invalid ABI data",
-			[]byte("not valid abi"),
-			types.EncodingABI,
-			ibcerrors.ErrInvalidType,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			_, err := types.UnmarshalAcknowledgement(tc.data, types.Version, tc.encoding)
-			require.ErrorIs(t, err, tc.expErr)
 		})
 	}
 }

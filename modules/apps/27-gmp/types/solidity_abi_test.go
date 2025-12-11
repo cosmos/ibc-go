@@ -10,8 +10,10 @@ import (
 
 func TestEncodeDecodeABIGMPPacketData(t *testing.T) {
 	testCases := []struct {
-		name       string
-		packetData *types.GMPPacketData
+		name        string
+		packetData  *types.GMPPacketData
+		invalidData []byte
+		expErr      error
 	}{
 		{
 			"success: all fields populated",
@@ -22,6 +24,8 @@ func TestEncodeDecodeABIGMPPacketData(t *testing.T) {
 				Payload:  []byte("some payload data"),
 				Memo:     "test memo",
 			},
+			nil,
+			nil,
 		},
 		{
 			"success: empty salt",
@@ -32,6 +36,8 @@ func TestEncodeDecodeABIGMPPacketData(t *testing.T) {
 				Payload:  []byte("payload"),
 				Memo:     "memo",
 			},
+			nil,
+			nil,
 		},
 		{
 			"success: empty payload",
@@ -42,6 +48,8 @@ func TestEncodeDecodeABIGMPPacketData(t *testing.T) {
 				Payload:  []byte{},
 				Memo:     "memo",
 			},
+			nil,
+			nil,
 		},
 		{
 			"success: empty memo",
@@ -52,6 +60,8 @@ func TestEncodeDecodeABIGMPPacketData(t *testing.T) {
 				Payload:  []byte("payload"),
 				Memo:     "",
 			},
+			nil,
+			nil,
 		},
 		{
 			"success: empty receiver",
@@ -62,6 +72,8 @@ func TestEncodeDecodeABIGMPPacketData(t *testing.T) {
 				Payload:  []byte("payload"),
 				Memo:     "memo",
 			},
+			nil,
+			nil,
 		},
 		{
 			"success: all optional fields empty",
@@ -72,6 +84,8 @@ func TestEncodeDecodeABIGMPPacketData(t *testing.T) {
 				Payload:  []byte{},
 				Memo:     "",
 			},
+			nil,
+			nil,
 		},
 		{
 			"success: large payload",
@@ -82,124 +96,120 @@ func TestEncodeDecodeABIGMPPacketData(t *testing.T) {
 				Payload:  make([]byte, 1024), // 1KB payload
 				Memo:     "memo",
 			},
+			nil,
+			nil,
 		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// Encode
-			encoded, err := types.EncodeABIGMPPacketData(tc.packetData)
-			require.NoError(t, err, "encoding should succeed")
-			require.NotEmpty(t, encoded, "encoded data should not be empty")
-
-			// Decode
-			decoded, err := types.DecodeABIGMPPacketData(encoded)
-			require.NoError(t, err, "decoding should succeed")
-
-			// Compare
-			require.Equal(t, tc.packetData.Sender, decoded.Sender, "sender mismatch")
-			require.Equal(t, tc.packetData.Receiver, decoded.Receiver, "receiver mismatch")
-			require.Equal(t, tc.packetData.Salt, decoded.Salt, "salt mismatch")
-			require.Equal(t, tc.packetData.Payload, decoded.Payload, "payload mismatch")
-			require.Equal(t, tc.packetData.Memo, decoded.Memo, "memo mismatch")
-		})
-	}
-}
-
-func TestDecodeABIGMPPacketData_Invalid(t *testing.T) {
-	testCases := []struct {
-		name string
-		data []byte
-	}{
 		{
-			"empty data",
+			"failure: empty data",
+			nil,
 			[]byte{},
+			types.ErrAbiDecoding,
 		},
 		{
-			"invalid abi data",
+			"failure: invalid abi data",
+			nil,
 			[]byte("not valid abi encoded data"),
+			types.ErrAbiDecoding,
 		},
 		{
-			"truncated data",
+			"failure: truncated data",
+			nil,
 			[]byte{0x00, 0x01, 0x02, 0x03},
+			types.ErrAbiDecoding,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := types.DecodeABIGMPPacketData(tc.data)
-			require.Error(t, err, "decoding invalid data should fail")
-			require.ErrorIs(t, err, types.ErrAbiDecoding)
+			if tc.invalidData != nil {
+				_, err := types.DecodeABIGMPPacketData(tc.invalidData)
+				require.ErrorIs(t, err, tc.expErr)
+				return
+			}
+
+			encoded, err := types.EncodeABIGMPPacketData(tc.packetData)
+			require.NoError(t, err)
+			require.NotEmpty(t, encoded)
+
+			decoded, err := types.DecodeABIGMPPacketData(encoded)
+			require.NoError(t, err)
+
+			require.Equal(t, tc.packetData.Sender, decoded.Sender)
+			require.Equal(t, tc.packetData.Receiver, decoded.Receiver)
+			require.Equal(t, tc.packetData.Salt, decoded.Salt)
+			require.Equal(t, tc.packetData.Payload, decoded.Payload)
+			require.Equal(t, tc.packetData.Memo, decoded.Memo)
 		})
 	}
 }
 
 func TestEncodeDecodeABIAcknowledgement(t *testing.T) {
 	testCases := []struct {
-		name string
-		ack  *types.Acknowledgement
+		name        string
+		ack         *types.Acknowledgement
+		invalidData []byte
+		expErr      error
 	}{
 		{
 			"success: non-empty result",
 			&types.Acknowledgement{
 				Result: []byte("success result data"),
 			},
+			nil,
+			nil,
 		},
 		{
 			"success: empty result",
 			&types.Acknowledgement{
 				Result: []byte{},
 			},
+			nil,
+			nil,
 		},
 		{
 			"success: large result",
 			&types.Acknowledgement{
 				Result: make([]byte, 1024), // 1KB result
 			},
+			nil,
+			nil,
 		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// Encode
-			encoded, err := types.EncodeABIAcknowledgement(tc.ack)
-			require.NoError(t, err, "encoding should succeed")
-			require.NotEmpty(t, encoded, "encoded data should not be empty")
-
-			// Decode
-			decoded, err := types.DecodeABIAcknowledgement(encoded)
-			require.NoError(t, err, "decoding should succeed")
-
-			// Compare
-			require.Equal(t, tc.ack.Result, decoded.Result, "result mismatch")
-		})
-	}
-}
-
-func TestDecodeABIAcknowledgement_Invalid(t *testing.T) {
-	testCases := []struct {
-		name string
-		data []byte
-	}{
 		{
-			"empty data",
+			"failure: empty data",
+			nil,
 			[]byte{},
+			types.ErrAbiDecoding,
 		},
 		{
-			"invalid abi data",
+			"failure: invalid abi data",
+			nil,
 			[]byte("not valid abi encoded data"),
+			types.ErrAbiDecoding,
 		},
 		{
-			"truncated data",
+			"failure: truncated data",
+			nil,
 			[]byte{0x00, 0x01, 0x02, 0x03},
+			types.ErrAbiDecoding,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := types.DecodeABIAcknowledgement(tc.data)
-			require.Error(t, err, "decoding invalid data should fail")
-			require.ErrorIs(t, err, types.ErrAbiDecoding)
+			if tc.invalidData != nil {
+				_, err := types.DecodeABIAcknowledgement(tc.invalidData)
+				require.ErrorIs(t, err, tc.expErr)
+				return
+			}
+
+			encoded, err := types.EncodeABIAcknowledgement(tc.ack)
+			require.NoError(t, err)
+			require.NotEmpty(t, encoded)
+
+			decoded, err := types.DecodeABIAcknowledgement(encoded)
+			require.NoError(t, err)
+
+			require.Equal(t, tc.ack.Result, decoded.Result)
 		})
 	}
 }

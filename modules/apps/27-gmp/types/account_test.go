@@ -105,65 +105,58 @@ func TestBuildAddressPredictable(t *testing.T) {
 			}
 		})
 	}
-}
 
-func TestBuildAddressPredictable_Determinism(t *testing.T) {
-	accountID := &types.AccountIdentifier{
-		ClientId: ibctesting.FirstClientID,
-		Sender:   "cosmos1sender",
-		Salt:     []byte("randomsalt"),
-	}
-
-	firstAddr, err := types.BuildAddressPredictable(accountID)
-	require.NoError(t, err)
-
-	for range 50 {
-		addr, err := types.BuildAddressPredictable(accountID)
+	t.Run("determinism", func(t *testing.T) {
+		accountID := &types.AccountIdentifier{
+			ClientId: ibctesting.FirstClientID,
+			Sender:   "cosmos1sender",
+			Salt:     []byte("randomsalt"),
+		}
+		firstAddr, err := types.BuildAddressPredictable(accountID)
 		require.NoError(t, err)
-		require.Equal(t, firstAddr, addr, "addresses should be deterministic")
-	}
-}
 
-func TestBuildAddressPredictable_Uniqueness(t *testing.T) {
-	// Base account identifier
-	baseAccountID := &types.AccountIdentifier{
-		ClientId: ibctesting.FirstClientID,
-		Sender:   "cosmos1sender",
-		Salt:     []byte("salt1"),
-	}
+		for range 50 {
+			addr, err := types.BuildAddressPredictable(accountID)
+			require.NoError(t, err)
+			require.Equal(t, firstAddr, addr)
+		}
+	})
 
-	baseAddr, err := types.BuildAddressPredictable(baseAccountID)
-	require.NoError(t, err)
+	t.Run("uniqueness: different salt", func(t *testing.T) {
+		addr1, err := types.BuildAddressPredictable(&types.AccountIdentifier{
+			ClientId: ibctesting.FirstClientID, Sender: "cosmos1sender", Salt: []byte("salt1"),
+		})
+		require.NoError(t, err)
+		addr2, err := types.BuildAddressPredictable(&types.AccountIdentifier{
+			ClientId: ibctesting.FirstClientID, Sender: "cosmos1sender", Salt: []byte("salt2"),
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, addr1, addr2)
+	})
 
-	// Different salt should produce different address
-	differentSaltID := &types.AccountIdentifier{
-		ClientId: ibctesting.FirstClientID,
-		Sender:   "cosmos1sender",
-		Salt:     []byte("salt2"),
-	}
-	differentSaltAddr, err := types.BuildAddressPredictable(differentSaltID)
-	require.NoError(t, err)
-	require.NotEqual(t, baseAddr, differentSaltAddr, "different salts should produce different addresses")
+	t.Run("uniqueness: different sender", func(t *testing.T) {
+		addr1, err := types.BuildAddressPredictable(&types.AccountIdentifier{
+			ClientId: ibctesting.FirstClientID, Sender: "cosmos1sender", Salt: []byte("salt"),
+		})
+		require.NoError(t, err)
+		addr2, err := types.BuildAddressPredictable(&types.AccountIdentifier{
+			ClientId: ibctesting.FirstClientID, Sender: "cosmos1different", Salt: []byte("salt"),
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, addr1, addr2)
+	})
 
-	// Different sender should produce different address
-	differentSenderID := &types.AccountIdentifier{
-		ClientId: ibctesting.FirstClientID,
-		Sender:   "cosmos1different",
-		Salt:     []byte("salt1"),
-	}
-	differentSenderAddr, err := types.BuildAddressPredictable(differentSenderID)
-	require.NoError(t, err)
-	require.NotEqual(t, baseAddr, differentSenderAddr, "different senders should produce different addresses")
-
-	// Different client ID should produce different address
-	differentClientID := &types.AccountIdentifier{
-		ClientId: "07-tendermint-1",
-		Sender:   "cosmos1sender",
-		Salt:     []byte("salt1"),
-	}
-	differentClientAddr, err := types.BuildAddressPredictable(differentClientID)
-	require.NoError(t, err)
-	require.NotEqual(t, baseAddr, differentClientAddr, "different client IDs should produce different addresses")
+	t.Run("uniqueness: different client ID", func(t *testing.T) {
+		addr1, err := types.BuildAddressPredictable(&types.AccountIdentifier{
+			ClientId: ibctesting.FirstClientID, Sender: "cosmos1sender", Salt: []byte("salt"),
+		})
+		require.NoError(t, err)
+		addr2, err := types.BuildAddressPredictable(&types.AccountIdentifier{
+			ClientId: "07-tendermint-1", Sender: "cosmos1sender", Salt: []byte("salt"),
+		})
+		require.NoError(t, err)
+		require.NotEqual(t, addr1, addr2)
+	})
 }
 
 func TestNewAccountIdentifier(t *testing.T) {
@@ -262,17 +255,16 @@ func TestDeserializeCosmosTx(t *testing.T) {
 		require.ErrorIs(t, err, ibcerrors.ErrInvalidType)
 		require.Nil(t, msgs)
 	})
+
+	t.Run("failure: invalid codec", func(t *testing.T) {
+		mock := &mockCodec{}
+		msgs, err := types.DeserializeCosmosTx(mock, []byte("data"))
+		require.ErrorIs(t, err, types.ErrInvalidCodec)
+		require.Nil(t, msgs)
+	})
 }
 
 // mockCodec is a mock codec that implements codec.Codec but is not a ProtoCodec
 type mockCodec struct {
 	codec.Codec
-}
-
-func TestDeserializeCosmosTx_InvalidCodec(t *testing.T) {
-	// Test that the function rejects non-ProtoCodec codecs
-	mock := &mockCodec{}
-	msgs, err := types.DeserializeCosmosTx(mock, []byte("data"))
-	require.ErrorIs(t, err, types.ErrInvalidCodec)
-	require.Nil(t, msgs)
 }
