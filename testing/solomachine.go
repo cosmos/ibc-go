@@ -225,7 +225,7 @@ func (solo *Solomachine) CreateMisbehaviour() *solomachine.Misbehaviour {
 		Timestamp: solo.Time,
 	}
 
-	// misbehaviour signaturess can have different timestamps
+	// misbehaviour signatures can have different timestamps
 	solo.Time++
 
 	merklePath = commitmenttypes.NewMerklePath(host.FullConsensusStateKey("counterparty", clienttypes.NewHeight(0, 1)))
