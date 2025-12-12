@@ -46,7 +46,7 @@ All PRs require an approval from at least one CODEOWNER before merge. PRs which 
 
 - `Approval` through the GitHub UI with the following comments:
     - `Concept ACK` means that you agree with the overall proposed concept, but have neither reviewed the code nor tested it.
-    - `LGTM` means the above and besides you have superficially reviewed the code without considering how logic affects other parts the codebase.
+    - `LGTM` means the above and besides you have superficially reviewed the code without considering how logic affects other parts of the codebase.
     - `utACK` (aka. `Untested ACK`) means the above and besides have thoroughly reviewed the code and considered the safety of logic changes, but have not tested it.
     - `Tested ACK` means the above and besides you have tested the code.
 - If you are only making "surface level" reviews, submit any notes as `Comments` without submitting an approval.
