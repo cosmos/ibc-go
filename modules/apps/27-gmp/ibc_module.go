@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	_ api.IBCModule            = (*IBCModule)(nil)
+	_ api.IBCModule             = (*IBCModule)(nil)
 	_ api.PacketDataUnmarshaler = (*IBCModule)(nil)
 )
 

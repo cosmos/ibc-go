@@ -116,27 +116,27 @@ func UnmarshalPacketData(bz []byte, ics27Version string, encoding string) (*GMPP
 //     and this module may not have validated the sender address by a signature check.
 //   - The sender address must only be used by modules on the sending chain.
 //   - sourcePortID is not used in this implementation.
-func (gpd GMPPacketData) GetPacketSender(sourcePortID string) string {
-	return gpd.Sender
+func (p GMPPacketData) GetPacketSender(sourcePortID string) string {
+	return p.Sender
 }
 
 // GetCustomPacketData returns callback data for the callbacks middleware.
 // For source callbacks ("src_callback"), it automatically returns the sender as the callback address,
 // enabling automatic callback registration for all GMP packets without requiring memo configuration.
 // For other keys, it parses the memo field as JSON and returns the value for the given key.
-func (gpd GMPPacketData) GetCustomPacketData(key string) any {
+func (p GMPPacketData) GetCustomPacketData(key string) any {
 	if key == "src_callback" {
 		return map[string]any{
-			"address": gpd.Sender,
+			"address": p.Sender,
 		}
 	}
 
-	if len(gpd.Memo) == 0 {
+	if len(p.Memo) == 0 {
 		return nil
 	}
 
 	jsonObject := make(map[string]any)
-	if err := json.Unmarshal([]byte(gpd.Memo), &jsonObject); err != nil {
+	if err := json.Unmarshal([]byte(p.Memo), &jsonObject); err != nil {
 		return nil
 	}
 
