@@ -121,9 +121,8 @@ func (p GMPPacketData) GetPacketSender(sourcePortID string) string {
 }
 
 // GetCustomPacketData returns callback data for the callbacks middleware.
-// For source callbacks ("src_callback"), it automatically returns the sender as the callback address,
-// enabling automatic callback registration for all GMP packets without requiring memo configuration.
-// For other keys, it parses the memo field as JSON and returns the value for the given key.
+// For "src_callback", returns sender as callback address (auto-registration).
+// For other keys, parses memo as JSON and returns the value for the given key.
 func (p GMPPacketData) GetCustomPacketData(key string) any {
 	if key == "src_callback" {
 		return map[string]any{
