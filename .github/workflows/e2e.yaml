@@ -65,7 +65,7 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.25'
+          go-version: '1.25.5'
           cache-dependency-path: 'go.sum'
       - id: set-matrix
         run: |
@@ -88,7 +88,7 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.25'
+          go-version: '1.25.5'
           cache-dependency-path: 'e2e/go.sum'
 
       - name: Download image from docker build
