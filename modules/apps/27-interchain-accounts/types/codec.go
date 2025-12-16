@@ -123,8 +123,12 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 }
 
 func equalJSON(a, b []byte) (bool, error) {
-  var x, y any
-  if err := json.Unmarshal(a, &x); err != nil { return false, err }
-  if err := json.Unmarshal(b, &y); err != nil { return false, err }
-  return reflect.DeepEqual(x, y), nil
+	var x, y any
+	if err := json.Unmarshal(a, &x); err != nil {
+		return false, err
+	}
+	if err := json.Unmarshal(b, &y); err != nil {
+		return false, err
+	}
+	return reflect.DeepEqual(x, y), nil
 }
