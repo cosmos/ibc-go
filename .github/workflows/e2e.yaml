@@ -50,7 +50,7 @@ jobs:
       # To avoid having to push to the registry, making it possible for external contributors to run this
       - name: Save Docker image as artifact
         run: docker save $(echo ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.get-tag.outputs.simd-tag }} | cut -d',' -f1) | gzip > simd-image.tar.gz
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: simd-image
           path: simd-image.tar.gz
@@ -111,7 +111,7 @@ jobs:
           make e2e-test test=${{ matrix.test }}
 
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: ${{ failure() }}
         continue-on-error: true
         with:
