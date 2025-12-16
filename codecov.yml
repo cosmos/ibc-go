@@ -24,7 +24,6 @@ ignore:
 - "**/*.pb.gw.go"
 - "docs"
 - "simapp"
-- "testing"
 - "**/testing/**"
 - "scripts"
 - "contrib"
