@@ -12,6 +12,7 @@ import (
 
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+	callbackstypes "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 )
 
 var (
@@ -124,9 +125,9 @@ func (p GMPPacketData) GetPacketSender(sourcePortID string) string {
 // For "src_callback", returns sender as callback address (auto-registration).
 // For other keys, parses memo as JSON and returns the value for the given key.
 func (p GMPPacketData) GetCustomPacketData(key string) any {
-	if key == "src_callback" {
+	if key == callbackstypes.SourceCallbackKey {
 		return map[string]any{
-			"address": p.Sender,
+			callbackstypes.CallbackAddressKey: p.Sender,
 		}
 	}
 
