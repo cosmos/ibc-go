@@ -322,7 +322,9 @@ func NewSimApp(
 	*/
 	govKeeper := govkeeper.NewKeeper(
 		appCodec,
-		runtime.NewKVStoreService(keys[govtypes.StoreKey]), app.AccountKeeper, app.BankKeeper,
+		runtime.NewKVStoreService(keys[govtypes.StoreKey]),
+		app.AccountKeeper,
+		app.BankKeeper,
 		app.DistrKeeper,
 		app.MsgServiceRouter(),
 		govConfig,
