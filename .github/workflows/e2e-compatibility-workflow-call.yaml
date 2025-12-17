@@ -49,7 +49,7 @@ jobs:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.25'
+          go-version: '1.25.5'
           cache-dependency-path: 'e2e/go.sum'
       - name: Run e2e Test
         run: |
@@ -64,7 +64,7 @@ jobs:
           CHAIN_B_TAG: '${{ matrix.chain-b }}'
           RELAYER_ID: '${{ matrix.relayer-type }}'
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         # we only want to upload logs on test failures.
         if: ${{ failure() }}
         continue-on-error: true
