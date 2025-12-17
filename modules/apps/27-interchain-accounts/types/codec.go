@@ -1,6 +1,9 @@
 package types
 
 import (
+	"encoding/json"
+	"reflect"
+
 	"github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
@@ -90,6 +93,15 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 		if err := cdc.UnmarshalJSON(data, &cosmosTx); err != nil {
 			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot unmarshal CosmosTx with proto3 json")
 		}
+		reconstructedData, err := cdc.MarshalJSON(&cosmosTx)
+		if err != nil {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot remarshal CosmosTx with proto3 json: %v", err)
+		}
+		if isEqual, err := equalJSON(data, reconstructedData); err != nil {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot compare original and reconstructed JSON: %v", err)
+		} else if !isEqual {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "original and reconstructed JSON objects do not match, original: %s, reconstructed: %s", string(data), string(reconstructedData))
+		}
 	default:
 		return nil, errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", encoding)
 	}
@@ -106,4 +118,15 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 	}
 
 	return msgs, nil
+}
+
+func equalJSON(a, b []byte) (bool, error) {
+	var x, y any
+	if err := json.Unmarshal(a, &x); err != nil {
+		return false, err
+	}
+	if err := json.Unmarshal(b, &y); err != nil {
+		return false, err
+	}
+	return reflect.DeepEqual(x, y), nil
 }
