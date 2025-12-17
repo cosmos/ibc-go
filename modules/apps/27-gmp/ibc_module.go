@@ -15,7 +15,10 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
 
-var _ api.IBCModule = (*IBCModule)(nil)
+var (
+	_ api.IBCModule             = (*IBCModule)(nil)
+	_ api.PacketDataUnmarshaler = (*IBCModule)(nil)
+)
 
 // IBCModule implements the ICS26 interface for transfer given the transfer keeper.
 type IBCModule struct {
@@ -127,4 +130,14 @@ func (*IBCModule) OnTimeoutPacket(_ sdk.Context, _, _ string, _ uint64, _ channe
 
 func (*IBCModule) OnAcknowledgementPacket(_ sdk.Context, _, _ string, _ uint64, _ []byte, _ channeltypesv2.Payload, _ sdk.AccAddress) error {
 	return nil
+}
+
+// UnmarshalPacketData unmarshals GMP packet data from the payload.
+// This method implements the PacketDataUnmarshaler interface required for callbacks middleware support.
+func (*IBCModule) UnmarshalPacketData(payload channeltypesv2.Payload) (any, error) {
+	data, err := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

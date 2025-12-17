@@ -10,7 +10,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec/unknownproto"
 
+	callbacktypes "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+)
+
+var (
+	_ ibcexported.PacketData         = (*GMPPacketData)(nil)
+	_ ibcexported.PacketDataProvider = (*GMPPacketData)(nil)
 )
 
 const (
@@ -102,4 +109,36 @@ func UnmarshalPacketData(bz []byte, ics27Version string, encoding string) (*GMPP
 	}
 
 	return data, nil
+}
+
+// GetPacketSender returns the sender address of the packet data.
+// NOTE:
+//   - The sender address is set by the module which requested the packet to be sent,
+//     and this module may not have validated the sender address by a signature check.
+//   - The sender address must only be used by modules on the sending chain.
+//   - sourcePortID is not used in this implementation.
+func (p GMPPacketData) GetPacketSender(sourcePortID string) string {
+	return p.Sender
+}
+
+// GetCustomPacketData returns callback data for the callbacks middleware.
+// For "src_callback", returns sender as callback address (auto-registration).
+// For other keys, parses memo as JSON and returns the value for the given key.
+func (p GMPPacketData) GetCustomPacketData(key string) any {
+	if key == callbacktypes.SourceCallbackKey {
+		return map[string]any{
+			callbacktypes.CallbackAddressKey: p.Sender,
+		}
+	}
+
+	if len(p.Memo) == 0 {
+		return nil
+	}
+
+	jsonObject := make(map[string]any)
+	if err := json.Unmarshal([]byte(p.Memo), &jsonObject); err != nil {
+		return nil
+	}
+
+	return jsonObject[key]
 }

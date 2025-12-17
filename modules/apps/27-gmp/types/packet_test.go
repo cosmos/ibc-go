@@ -318,3 +318,89 @@ func TestMsgSendCall_ValidateBasic(t *testing.T) {
 		})
 	}
 }
+
+func TestGMPPacketData_GetPacketSender(t *testing.T) {
+	testCases := []struct {
+		name       string
+		packetData types.GMPPacketData
+		expSender  string
+	}{
+		{
+			"success: returns sender",
+			types.NewGMPPacketData("cosmos1sender", "cosmos1receiver", []byte("salt"), []byte("payload"), "memo"),
+			"cosmos1sender",
+		},
+		{
+			"success: empty sender returns empty string",
+			types.GMPPacketData{Receiver: "cosmos1receiver"},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.expSender, tc.packetData.GetPacketSender(types.PortID))
+		})
+	}
+}
+
+func TestGMPPacketData_GetCustomPacketData(t *testing.T) {
+	sender := "cosmos1sender"
+
+	testCases := []struct {
+		name          string
+		packetData    types.GMPPacketData
+		key           string
+		expCustomData any
+	}{
+		{
+			"success: src_callback always returns sender as address (auto-registration)",
+			types.NewGMPPacketData(sender, "receiver", nil, nil, ""),
+			"src_callback",
+			map[string]any{"address": sender},
+		},
+		{
+			"success: src_callback ignores memo and returns sender",
+			types.NewGMPPacketData(sender, "receiver", nil, nil, `{"src_callback": {"address": "other"}}`),
+			"src_callback",
+			map[string]any{"address": sender},
+		},
+		{
+			"success: dest_callback from memo",
+			types.NewGMPPacketData(sender, "receiver", nil, nil, `{"dest_callback": {"address": "destaddr"}}`),
+			"dest_callback",
+			map[string]any{"address": "destaddr"},
+		},
+		{
+			"success: other key from memo",
+			types.NewGMPPacketData(sender, "receiver", nil, nil, `{"custom_key": "custom_value"}`),
+			"custom_key",
+			"custom_value",
+		},
+		{
+			"failure: empty memo returns nil for non-src_callback",
+			types.NewGMPPacketData(sender, "receiver", nil, nil, ""),
+			"dest_callback",
+			nil,
+		},
+		{
+			"failure: invalid JSON memo returns nil for non-src_callback",
+			types.NewGMPPacketData(sender, "receiver", nil, nil, "not json"),
+			"dest_callback",
+			nil,
+		},
+		{
+			"failure: key not found in memo",
+			types.NewGMPPacketData(sender, "receiver", nil, nil, `{"other": "value"}`),
+			"dest_callback",
+			nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			customData := tc.packetData.GetCustomPacketData(tc.key)
+			require.Equal(t, tc.expCustomData, customData)
+		})
+	}
+}

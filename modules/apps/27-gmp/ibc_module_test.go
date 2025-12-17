@@ -298,6 +298,72 @@ func (s *IBCModuleTestSuite) TestOnAcknowledgementPacket() {
 	s.Require().NoError(err)
 }
 
+func (s *IBCModuleTestSuite) TestUnmarshalPacketData() {
+	var (
+		module  *gmp.IBCModule
+		payload channeltypesv2.Payload
+	)
+
+	testCases := []struct {
+		name     string
+		malleate func()
+		expErr   error
+	}{
+		{
+			"success: valid protobuf payload",
+			func() {},
+			nil,
+		},
+		{
+			"success: valid JSON payload",
+			func() {
+				packetData := types.NewGMPPacketData("cosmos1sender", "cosmos1receiver", []byte("salt"), []byte("payload"), "memo")
+				dataBz, err := types.MarshalPacketData(&packetData, types.Version, types.EncodingJSON)
+				s.Require().NoError(err)
+				payload = channeltypesv2.NewPayload(types.PortID, types.PortID, types.Version, types.EncodingJSON, dataBz)
+			},
+			nil,
+		},
+		{
+			"failure: invalid payload data",
+			func() {
+				payload.Value = []byte("invalid")
+			},
+			ibcerrors.ErrInvalidType,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			module = gmp.NewIBCModule(s.chainA.GetSimApp().GMPKeeper)
+
+			// Default: valid protobuf payload
+			packetData := types.NewGMPPacketData("cosmos1sender", "cosmos1receiver", []byte("salt"), []byte("payload"), "memo")
+			dataBz, err := types.MarshalPacketData(&packetData, types.Version, types.EncodingProtobuf)
+			s.Require().NoError(err)
+			payload = channeltypesv2.NewPayload(types.PortID, types.PortID, types.Version, types.EncodingProtobuf, dataBz)
+
+			tc.malleate()
+
+			data, err := module.UnmarshalPacketData(payload)
+
+			if tc.expErr == nil {
+				s.Require().NoError(err)
+				s.Require().NotNil(data)
+
+				gmpData, ok := data.(*types.GMPPacketData)
+				s.Require().True(ok)
+				s.Require().Equal("cosmos1sender", gmpData.Sender)
+				s.Require().Equal("cosmos1receiver", gmpData.Receiver)
+			} else {
+				s.Require().ErrorIs(err, tc.expErr)
+			}
+		})
+	}
+}
+
 func (s *IBCModuleTestSuite) fundAccount(addr sdk.AccAddress, coins sdk.Coins) {
 	err := s.chainA.GetSimApp().BankKeeper.SendCoins(
 		s.chainA.GetContext(),
