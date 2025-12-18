@@ -582,8 +582,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"@type": "/cosmos.gov.v1beta1.MsgVote",
 							"voter": "` + icaAddress + `",
 							"proposal_id": "1",
-							"option": "VOTE_OPTION_YES",
-							"metadata": ""
+							"option": "VOTE_OPTION_YES"
 						}
 					]
 				}`)
@@ -681,8 +680,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"@type": "/cosmos.gov.v1beta1.MsgVote",
 							"voter": "` + icaAddress + `",
 							"proposal_id": "1",
-							"option": "VOTE_OPTION_YES",
-							"metadata": ""
+							"option": "VOTE_OPTION_YES"
 						}
 					]
 				}`)
@@ -723,8 +721,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"@type": "/cosmos.gov.v1beta1.MsgVote",
 							"voter": "` + icaAddress + `",
 							"proposal_id": "1",
-							"option": "VOTE_OPTION_YES",
-							"metadata": ""
+							"option": "VOTE_OPTION_YES"
 						}
 					]
 				}`)
@@ -735,7 +732,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"data":` + byteArrayString + `
 				}`)
 
-				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil)), sdk.MsgTypeURL((*govtypes.MsgDeposit)(nil)), sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
+				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil)), sdk.MsgTypeURL((*govv1.MsgDeposit)(nil)), sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
@@ -758,8 +755,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"receiver": "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk",
 							"timeout_height": { "revision_number": "1", "revision_height": "100" },
 							"timeout_timestamp": "0",
-							"memo": "",
-							"encoding": ""
+							"memo": ""
 						}
 					]
 				}`)
