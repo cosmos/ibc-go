@@ -750,8 +750,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"timeout_height": { "revision_number": "1", "revision_height": "100" },
 							"timeout_timestamp": "0",
 							"memo": "",
-							"encoding": "",
-							"use_aliasing": false
+							"encoding": ""
 							
 						}
 					]
