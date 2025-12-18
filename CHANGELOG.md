@@ -34,6 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v8.8.0](https://github.com/cosmos/ibc-go/releases/tag/v8.7.0) - 2025-12-18
+
+### Improvements
+
+* [\#8734](https://github.com/cosmos/ibc-go/pull/8734) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA.
+
 ## [v8.7.0](https://github.com/cosmos/ibc-go/releases/tag/v8.7.0) - 2025-03-12
 
 - [ISA-2025-001](https://github.com/cosmos/ibc-go/security/advisories/GHSA-4wf3-5qj9-368v) Fix ISA-2025-001
