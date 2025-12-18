@@ -30,10 +30,10 @@ pull_request_rules:
       backport:
         branches:
           - release/v8.8.x
-  - name: backport patches to v10.4.x branch
+  - name: backport patches to v10.5.x branch
     conditions:
       - base=main
-      - label=backport-to-v10.4.x
+      - label=backport-to-v10.5.x
     actions:
       backport:
         branches:
