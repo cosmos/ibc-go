@@ -75,6 +75,9 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	gmp "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp"
+	gmpkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/keeper"
+	gmptypes "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
 	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"
@@ -151,6 +154,7 @@ type SimApp struct {
 	ICAControllerKeeper   *icacontrollerkeeper.Keeper
 	ICAHostKeeper         *icahostkeeper.Keeper
 	TransferKeeper        *ibctransferkeeper.Keeper
+	GMPKeeper             *gmpkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
 	// mock contract keeper used for testing
@@ -244,7 +248,7 @@ func NewSimApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
-		consensusparamtypes.StoreKey,
+		consensusparamtypes.StoreKey, gmptypes.StoreKey,
 	)
 
 	// register streaming services
@@ -354,6 +358,15 @@ func NewSimApp(
 		app.GRPCQueryRouter(), authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	// GMP Keeper
+	app.GMPKeeper = gmpkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[gmptypes.StoreKey]),
+		app.AccountKeeper,
+		app.MsgServiceRouter(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
 	ibcRouterV2 := ibcapi.NewRouter()
@@ -439,6 +452,10 @@ func NewSimApp(
 	cbTransferModulev2 := ibccallbacksv2.NewIBCMiddleware(transferv2.NewIBCModule(app.TransferKeeper), app.IBCKeeper.ChannelKeeperV2, app.MockContractKeeper, app.IBCKeeper.ChannelKeeperV2, maxCallbackGas)
 	ibcRouterV2.AddRoute(ibctransfertypes.PortID, cbTransferModulev2)
 
+	// add GMP module wrapped by callbacks v2 middleware
+	cbGMPModule := ibccallbacksv2.NewIBCMiddleware(gmp.NewIBCModule(app.GMPKeeper), app.IBCKeeper.ChannelKeeperV2, app.MockContractKeeper, app.IBCKeeper.ChannelKeeperV2, maxCallbackGas)
+	ibcRouterV2.AddRoute(gmptypes.PortID, cbGMPModule)
+
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
 	app.IBCKeeper.SetRouterV2(ibcRouterV2)
@@ -479,6 +496,7 @@ func NewSimApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(app.ICAControllerKeeper, app.ICAHostKeeper),
+		gmp.NewAppModule(app.GMPKeeper),
 		mockModule,
 
 		// IBC light clients
@@ -519,6 +537,7 @@ func NewSimApp(
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		icatypes.ModuleName,
+		gmptypes.ModuleName,
 		ibcmock.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
@@ -528,6 +547,7 @@ func NewSimApp(
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		icatypes.ModuleName,
+		gmptypes.ModuleName,
 		ibcmock.ModuleName,
 		banktypes.ModuleName,
 	)
@@ -540,7 +560,7 @@ func NewSimApp(
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName,
-		icatypes.ModuleName, ibcmock.ModuleName, upgradetypes.ModuleName,
+		icatypes.ModuleName, gmptypes.ModuleName, ibcmock.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, consensusparamtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
