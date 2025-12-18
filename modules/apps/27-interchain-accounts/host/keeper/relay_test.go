@@ -837,13 +837,13 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 		{
 			"failure: missing optional metadata field",
 			func(icaAddress string) {
-				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, s.chainA.GetContext().BlockTime(), s.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
-				s.Require().NoError(err)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
+				suite.Require().NoError(err)
 
-				err = s.chainB.GetSimApp().GovKeeper.SetProposal(s.chainB.GetContext(), proposal)
-				s.Require().NoError(err)
-				err = s.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(s.chainB.GetContext(), proposal)
-				s.Require().NoError(err)
+				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
+				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
 
 				msgBytes := []byte(`{
 					"messages": [
@@ -865,20 +865,20 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{"*"})
-				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: alternative int representation of enum field",
 			func(icaAddress string) {
-				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, s.chainA.GetContext().BlockTime(), s.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
-				s.Require().NoError(err)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
+				suite.Require().NoError(err)
 
-				err = s.chainB.GetSimApp().GovKeeper.SetProposal(s.chainB.GetContext(), proposal)
-				s.Require().NoError(err)
-				err = s.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(s.chainB.GetContext(), proposal)
-				s.Require().NoError(err)
+				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
+				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
 
 				msgBytes := []byte(`{
 					"messages": [
@@ -901,20 +901,20 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{"*"})
-				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			ibcerrors.ErrInvalidType,
 		},
 		{
 			"failure: alternative integer field representation",
 			func(icaAddress string) {
-				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, s.chainA.GetContext().BlockTime(), s.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
-				s.Require().NoError(err)
+				proposal, err := govtypesv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govtypesv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
+				suite.Require().NoError(err)
 
-				err = s.chainB.GetSimApp().GovKeeper.SetProposal(s.chainB.GetContext(), proposal)
-				s.Require().NoError(err)
-				err = s.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(s.chainB.GetContext(), proposal)
-				s.Require().NoError(err)
+				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
+				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
 
 				msgBytes := []byte(`{
 					"messages": [
@@ -937,7 +937,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{"*"})
-				s.chainB.GetSimApp().ICAHostKeeper.SetParams(s.chainB.GetContext(), params)
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			ibcerrors.ErrInvalidType,
 		},
