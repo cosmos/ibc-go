@@ -9,7 +9,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -555,7 +557,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 		expPass  bool
 	}{
 		{
-			"interchain account successfully executes an arbitrary message type using the * (allow all message types) param",
+			"success: interchain account successfully executes an arbitrary message type using the * (allow all message types) param",
 			func(icaAddress string) {
 				// Populate the gov keeper in advance with an active proposal
 				testProposal := &govtypes.TextProposal{
@@ -579,8 +581,8 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						{
 							"@type": "/cosmos.gov.v1beta1.MsgVote",
 							"voter": "` + icaAddress + `",
-							"proposal_id": 1,
-							"option": 1
+							"proposal_id": "1",
+							"option": "VOTE_OPTION_YES"
 						}
 					]
 				}`)
@@ -599,7 +601,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			true,
 		},
 		{
-			"interchain account successfully executes banktypes.MsgSend",
+			"success: interchain account successfully executes banktypes.MsgSend",
 			func(icaAddress string) {
 				msgBytes := []byte(`{
 					"messages": [
@@ -624,7 +626,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			true,
 		},
 		{
-			"interchain account successfully executes govtypes.MsgSubmitProposal",
+			"success: interchain account successfully executes govtypesv1.MsgSubmitProposal",
 			func(icaAddress string) {
 				msgBytes := []byte(`{
 					"messages": [
@@ -653,7 +655,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			true,
 		},
 		{
-			"interchain account successfully executes govtypes.MsgVote",
+			"success: interchain account successfully executes govtypesv1.MsgVote",
 			func(icaAddress string) {
 				// Populate the gov keeper in advance with an active proposal
 				testProposal := &govtypes.TextProposal{
@@ -677,8 +679,8 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 						{
 							"@type": "/cosmos.gov.v1beta1.MsgVote",
 							"voter": "` + icaAddress + `",
-							"proposal_id": 1,
-							"option": 1
+							"proposal_id": "1",
+							"option": "VOTE_OPTION_YES"
 						}
 					]
 				}`)
@@ -695,7 +697,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			true,
 		},
 		{
-			"interchain account successfully executes govtypes.MsgSubmitProposal, govtypes.MsgDeposit, and then govtypes.MsgVote sequentially",
+			"success: interchain account successfully executes govtypesv1.MsgSubmitProposal, govtypesv1.MsgDeposit, and then govtypesv1.MsgVote sequentially",
 			func(icaAddress string) {
 				msgBytes := []byte(`{
 					"messages": [
@@ -710,16 +712,16 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"proposer": "` + icaAddress + `"
 						},
 						{
-							"@type": "/cosmos.gov.v1beta1.MsgDeposit",
-							"proposal_id": 1,
+							"@type": "/cosmos.gov.v1.MsgDeposit",
+							"proposal_id": "1",
 							"depositor": "` + icaAddress + `",
 							"amount": [{ "denom": "stake", "amount": "10000000" }]
 						},
 						{
 							"@type": "/cosmos.gov.v1beta1.MsgVote",
 							"voter": "` + icaAddress + `",
-							"proposal_id": 1,
-							"option": 1
+							"proposal_id": "1",
+							"option": "VOTE_OPTION_YES"
 						}
 					]
 				}`)
@@ -730,13 +732,13 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 					"data":` + byteArrayString + `
 				}`)
 
-				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil)), sdk.MsgTypeURL((*govtypes.MsgDeposit)(nil)), sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
+				params := types.NewParams(true, []string{sdk.MsgTypeURL((*govtypes.MsgSubmitProposal)(nil)), sdk.MsgTypeURL((*govv1.MsgDeposit)(nil)), sdk.MsgTypeURL((*govtypes.MsgVote)(nil))})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			true,
 		},
 		{
-			"interchain account successfully executes transfertypes.MsgTransfer",
+			"success: interchain account successfully executes transfertypes.MsgTransfer",
 			func(icaAddress string) {
 				transferPath := ibctesting.NewTransferPath(suite.chainB, suite.chainC)
 
@@ -751,8 +753,9 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"token": { "denom": "stake", "amount": "100" },
 							"sender": "` + icaAddress + `",
 							"receiver": "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk",
-							"timeout_height": { "revision_number": 1, "revision_height": 100 },
-							"timeout_timestamp": 0
+							"timeout_height": { "revision_number": "1", "revision_height": "100" },
+							"timeout_timestamp": "0",
+							"memo": ""
 						}
 					]
 				}`)
@@ -769,7 +772,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			true,
 		},
 		{
-			"unregistered sdk.Msg",
+			"failure: unregistered sdk.Msg",
 			func(icaAddress string) {
 				msgBytes := []byte(`{"messages":[{}]}`)
 				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",")
@@ -785,7 +788,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			false,
 		},
 		{
-			"message type not allowed banktypes.MsgSend",
+			"failure: message type not allowed banktypes.MsgSend",
 			func(icaAddress string) {
 				msgBytes := []byte(`{
 					"messages": [
@@ -810,7 +813,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			false,
 		},
 		{
-			"unauthorised: signer address is not the interchain account associated with the controller portID",
+			"failure: signer address is not the interchain account associated with the controller portID",
 			func(icaAddress string) {
 				msgBytes := []byte(`{
 					"messages": [
@@ -830,6 +833,113 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 				}`)
 
 				params := types.NewParams(true, []string{sdk.MsgTypeURL((*banktypes.MsgSend)(nil))})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+			},
+			false,
+		},
+		{
+			"failure: missing optional metadata field",
+			func(icaAddress string) {
+				proposal, err := govv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
+				suite.Require().NoError(err)
+
+				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
+				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
+
+				msgBytes := []byte(`{
+					"messages": [
+						{
+							"@type": "/cosmos.gov.v1.MsgVote",
+							"voter": "` + icaAddress + `",
+							"proposal_id": "1",
+							"option": "VOTE_OPTION_YES"
+						}
+					]
+				}`)
+				// this is the way cosmwasm encodes byte arrays by default
+				// golang doesn't use this encoding by default, but it can still deserialize:
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
+
+				packetData = []byte(`{
+					"type": 1,
+					"data":` + byteArrayString + `
+				}`)
+
+				params := types.NewParams(true, []string{"*"})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+			},
+			false,
+		},
+		{
+			"failure: alternative int representation of enum field",
+			func(icaAddress string) {
+				proposal, err := govv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
+				suite.Require().NoError(err)
+
+				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
+				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
+
+				msgBytes := []byte(`{
+					"messages": [
+						{
+							"@type": "/cosmos.gov.v1.MsgVote",
+							"voter": "` + icaAddress + `",
+							"proposal_id": "1",
+							"option": 1,
+							"metadata": ""
+						}
+					]
+				}`)
+				// this is the way cosmwasm encodes byte arrays by default
+				// golang doesn't use this encoding by default, but it can still deserialize:
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
+
+				packetData = []byte(`{
+					"type": 1,
+					"data":` + byteArrayString + `
+				}`)
+
+				params := types.NewParams(true, []string{"*"})
+				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
+			},
+			false,
+		},
+		{
+			"failure: alternative integer field representation",
+			func(icaAddress string) {
+				proposal, err := govv1.NewProposal([]sdk.Msg{getTestProposalMessage()}, govv1.DefaultStartingProposalID, suite.chainA.GetContext().BlockTime(), suite.chainA.GetContext().BlockTime(), "test proposal", "title", "Description", sdk.AccAddress(interchainAccountAddr), false)
+				suite.Require().NoError(err)
+
+				err = suite.chainB.GetSimApp().GovKeeper.SetProposal(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
+				err = suite.chainB.GetSimApp().GovKeeper.ActivateVotingPeriod(suite.chainB.GetContext(), proposal)
+				suite.Require().NoError(err)
+
+				msgBytes := []byte(`{
+					"messages": [
+						{
+							"@type": "/cosmos.gov.v1.MsgVote",
+							"voter": "` + icaAddress + `",
+							"proposal_id": 1,
+							"option": "VOTE_OPTION_YES",
+							"metadata": ""
+						}
+					]
+				}`)
+				// this is the way cosmwasm encodes byte arrays by default
+				// golang doesn't use this encoding by default, but it can still deserialize:
+				byteArrayString := strings.Join(strings.Fields(fmt.Sprint(msgBytes)), ",") //nolint:staticcheck
+
+				packetData = []byte(`{
+					"type": 1,
+					"data":` + byteArrayString + `
+				}`)
+
+				params := types.NewParams(true, []string{"*"})
 				suite.chainB.GetSimApp().ICAHostKeeper.SetParams(suite.chainB.GetContext(), params)
 			},
 			false,
@@ -896,4 +1006,9 @@ func (suite *KeeperTestSuite) fundICAWallet(ctx sdk.Context, portID string, amou
 	res, err := suite.chainB.SendMsgs(msgBankSend)
 	suite.Require().NotEmpty(res)
 	suite.Require().NoError(err)
+}
+
+func getTestProposalMessage() sdk.Msg {
+	_, _, addr := testdata.KeyTestPubAddr()
+	return banktypes.NewMsgSend(authtypes.NewModuleAddress("gov"), addr, sdk.NewCoins(sdk.NewCoin("stake", sdkmath.NewInt(1000))))
 }
