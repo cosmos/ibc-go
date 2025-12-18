@@ -4,7 +4,7 @@
 
 We use [Go 1.16 Modules](https://go.dev/wiki/Modules) to manage dependency versions.
 
-The main branch of every Cosmos repository should just build with `go get`, which means they should be kept up-to-date with their dependencies, so we can get away with telling  people they can just `go get` our software.
+The main branch of every Cosmos repository should just build with `go get`, which means they should be kept up-to-date with their dependencies, so we can get away with telling people they can just `go get` our software.
 
 Since some dependencies are not under our control, a third party may break our build, in which case we can fall back on `go mod tidy -v`.
 
@@ -44,7 +44,7 @@ It reads protobuf service definitions and generates a reverse-proxy server which
 - Before submitting a pull request, begin `git rebase` on top of `main`.
 - Ensure you are using the pre-commit hooks by running `make setup-pre-commit`.
 
-All Go tests in ibc-go can be ran by running `make test`.
+All Go tests in ibc-go can be run by running `make test`.
 
 Please make sure to run `make format` before every commit - the easiest way to do this is have your editor run it for you upon saving a file. Additionally please ensure that your code is lint compliant by running `make lint-fix` (requires `golangci-lint`).
 

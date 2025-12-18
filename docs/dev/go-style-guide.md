@@ -26,7 +26,7 @@ Perhaps more key for code readability than good commenting is having the right s
 
 ## Comments
 
-- Use a space after the comment deliminter (ex. `// your comment`).
+- Use a space after the comment delimiter (ex. `// your comment`).
 - Many comments are not sentences. These should begin with a lower case letter and end without a period.
 - Conversely, sentences in comments should be sentenced-cased and end with a period.
 - Comments should explain *why* something is being done rather than *what* the code is doing. For example:
@@ -272,7 +272,7 @@ r := csv.Reader{',', '#', 4, false, false, false, false}
 ---
 **Naming struct fields in tabular tests**
 
-If tabular test struct has more than two fields, consider explicitly naming them. If the test struct has one name and one error field, then we can allow upto three fields. If test struct has more fields, consider naming them when writing test cases.
+If tabular test struct has more than two fields, consider explicitly naming them. If the test struct has one name and one error field, then we can allow up to three fields. If test struct has more fields, consider naming them when writing test cases.
 
 ```go
 // Good
@@ -342,7 +342,7 @@ testCases := []struct {
 
 ## Known Anti Patterns
 
-It's strongly recommended [not to create a custom context](https://google.github.io/styleguide/go/decisions#custom-contexts). The Cosmos SDK has it's own context that is passed around, and we should not try to work against that pattern to avoid confusion.
+It's strongly recommended [not to create a custom context](https://google.github.io/styleguide/go/decisions#custom-contexts). The Cosmos SDK has its own context that is passed around, and we should not try to work against that pattern to avoid confusion.
 
 ---
 Test outputs should include the actual value that the function returned before printing the value that was expected. A standard format for printing test outputs is YourFunc(%v) = %v, want %v. Where you would write “actual” and “expected”, prefer using the words “got” and “want”, respectively. [Reference](https://google.github.io/styleguide/go/decisions#got-before-want)

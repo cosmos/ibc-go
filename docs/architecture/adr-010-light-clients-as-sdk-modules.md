@@ -79,7 +79,7 @@ type ClientState interface {
 
 For the most part, any functions which require access to the client store should likely not be an interface function of the `ClientState`.
 
-`ExportMetadata` should eventually be replaced by a light client's ability to import/export it's own genesis information.
+`ExportMetadata` should eventually be replaced by a light client's ability to import/export its own genesis information.
 
 ### Intermodule communication
 
