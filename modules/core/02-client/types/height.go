@@ -113,7 +113,11 @@ func (h Height) Decrement() (exported.Height, bool) {
 // Increment will return a height with the same revision number but an
 // incremented revision height
 func (h Height) Increment() exported.Height {
-	return NewHeight(h.RevisionNumber, h.RevisionHeight+1)
+    if h.IsZero() {
+        panic("cannot increment zero IBC height")
+    }
+
+    return NewHeight(h.RevisionNumber, h.RevisionHeight+1)
 }
 
 // IsZero returns true if height revision and revision-height are both 0
