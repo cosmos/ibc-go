@@ -95,12 +95,12 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 		}
 		reconstructedData, err := cdc.MarshalJSON(&cosmosTx)
 		if err != nil {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot remarshal CosmosTx with proto3 json: %v", err)
+			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot remarshal CosmosTx with proto3 json: %v", err)
 		}
 		if isEqual, err := equalJSON(data, reconstructedData); err != nil {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot compare original and reconstructed JSON: %v", err)
+			return nil, errorsmod.Wrapf(ErrUnknownDataType, "cannot compare original and reconstructed JSON: %v", err)
 		} else if !isEqual {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "original and reconstructed JSON objects do not match, original: %s, reconstructed: %s", string(data), string(reconstructedData))
+			return nil, errorsmod.Wrapf(ErrUnknownDataType, "original and reconstructed JSON objects do not match, original: %s, reconstructed: %s", string(data), string(reconstructedData))
 		}
 	default:
 		return nil, errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", encoding)
