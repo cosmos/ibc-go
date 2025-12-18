@@ -625,11 +625,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			true,
 		},
 		{
-<<<<<<< HEAD
-			"interchain account successfully executes govtypes.MsgSubmitProposal",
-=======
 			"success: interchain account successfully executes govtypesv1.MsgSubmitProposal",
->>>>>>> 7574333c (imp: add extra validation to ica msgs (#8734))
 			func(icaAddress string) {
 				msgBytes := []byte(`{
 					"messages": [
@@ -658,11 +654,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			true,
 		},
 		{
-<<<<<<< HEAD
-			"interchain account successfully executes govtypes.MsgVote",
-=======
 			"success: interchain account successfully executes govtypesv1.MsgVote",
->>>>>>> 7574333c (imp: add extra validation to ica msgs (#8734))
 			func(icaAddress string) {
 				// Populate the gov keeper in advance with an active proposal
 				testProposal := &govtypes.TextProposal{
@@ -705,11 +697,7 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 			true,
 		},
 		{
-<<<<<<< HEAD
-			"interchain account successfully executes govtypes.MsgSubmitProposal, govtypes.MsgDeposit, and then govtypes.MsgVote sequentially",
-=======
 			"success: interchain account successfully executes govtypesv1.MsgSubmitProposal, govtypesv1.MsgDeposit, and then govtypesv1.MsgVote sequentially",
->>>>>>> 7574333c (imp: add extra validation to ica msgs (#8734))
 			func(icaAddress string) {
 				msgBytes := []byte(`{
 					"messages": [
@@ -724,13 +712,8 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"proposer": "` + icaAddress + `"
 						},
 						{
-<<<<<<< HEAD
-							"@type": "/cosmos.gov.v1beta1.MsgDeposit",
-							"proposal_id": 1,
-=======
 							"@type": "/cosmos.gov.v1.MsgDeposit",
 							"proposal_id": "1",
->>>>>>> 7574333c (imp: add extra validation to ica msgs (#8734))
 							"depositor": "` + icaAddress + `",
 							"amount": [{ "denom": "stake", "amount": "10000000" }]
 						},
@@ -771,17 +754,10 @@ func (suite *KeeperTestSuite) TestJSONOnRecvPacket() {
 							"token": { "denom": "stake", "amount": "100" },
 							"sender": "` + icaAddress + `",
 							"receiver": "cosmos15ulrf36d4wdtrtqzkgaan9ylwuhs7k7qz753uk",
-<<<<<<< HEAD
-							"timeout_height": { "revision_number": 1, "revision_height": 100 },
-							"timeout_timestamp": 0
-=======
 							"timeout_height": { "revision_number": "1", "revision_height": "100" },
 							"timeout_timestamp": "0",
 							"memo": "",
-							"encoding": "",
-							"use_aliasing": false
-							
->>>>>>> 7574333c (imp: add extra validation to ica msgs (#8734))
+							"encoding": ""
 						}
 					]
 				}`)
