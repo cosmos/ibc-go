@@ -11,11 +11,11 @@ Accepted
 ## Context
 
 Upon receiving an IBC packet, an IBC application can optionally return an acknowledgement.
-This acknowledgement will be hashed and written into state. Thus any changes to the information included in an acknowledgement are state machine breaking.
+This acknowledgement will be hashed and written into state. Thus any changes to the information included in an acknowledgement are state machine-breaking.
 
 ICS27 executes transactions on behalf of a controller chain. Information such as the message result or message error may be returned from other SDK modules outside the control of the ICS27 module.
 It might be very valuable to return message execution information inside the ICS27 acknowledgement so that controller chain interchain account auth modules can act upon this information.
-Only deterministic information returned from the message execution is allowed to be returned in the packet acknowledgement otherwise the network will halt due to a fork in the expected app hash.
+Only deterministic information returned from the message execution is allowed to be returned in the packet acknowledgement otherwise, the network will halt due to a fork in the expected app hash.
 
 ## Decision
 
@@ -72,7 +72,7 @@ Where `msgResponses` is a slice of the `MsgResponse`s packed into `Any`s.
 
 #### Forwards compatible approach
 
-A forwards compatible approach was deemed infeasible.
+A forward-compatible approach was deemed infeasible.
 The `handler` provided by the `MsgServiceRouter` will only include the `*sdk.Result` and an error (if one occurred).
 In v0.45 of the SDK, the `*sdk.Result.Data` will contain the MsgResponse marshaled data.
 However, the MsgResponse is not packed and marshaled as a `*codectypes.Any`, thus making it impossible from a generalized point of view to unmarshal the bytes.
@@ -81,7 +81,7 @@ If the bytes could be unmarshaled, then they could be packed into an `*codectype
 Intercepting the MsgResponse before it becomes marshaled requires replicating this [code](https://github.com/cosmos/cosmos-sdk/blob/dfd47f5b449f558a855da284a9a7eabbfbad435d/baseapp/msg_service_router.go#L109-#L128).
 It may not even be possible to replicate the linked code. The method handler would need to be accessed somehow.
 
-For these reasons it is deemed infeasible to attempt a forwards compatible approach.
+For these reasons it is deemed infeasible to attempt a forward-compatible approach.
 
 ICA auth developers can interpret which format was used when constructing the transaction response by checking if the `sdk.TxMsgData.Data` field is non-empty.
 If the `sdk.TxMsgData.Data` field is not empty then the format for v0.45 was used, otherwise ICA auth developers can assume the transaction response uses the newer format.
@@ -103,7 +103,7 @@ A test has been [written](https://github.com/cosmos/ibc-go/blob/v3.0.0/modules/a
 
 ## Consequences
 
-> This section describes the consequences, after applying the decision. All consequences should be summarized here, not just the "positive" ones.
+> This section describes the consequences of applying the decision. All consequences should be summarized here, not just the "positive" ones.
 
 ### Positive
 
