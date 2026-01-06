@@ -136,10 +136,9 @@ func (cs *ClientState) verifyMembership(
 	if len(value) != 32 {
 		return errorsmod.Wrapf(ErrInvalidValue, "value must be 32 bytes, got %d", len(value))
 	}
-	commitment := crypto.Keccak256(value)
 
 	for _, packet := range packetAttestation.Packets {
-		if len(packet.Commitment) == 32 && len(packet.Path) == 32 && bytes.Equal(packet.Commitment, commitment) && bytes.Equal(packet.Path, commitmentPath) {
+		if len(packet.Commitment) == 32 && len(packet.Path) == 32 && bytes.Equal(packet.Commitment, value) && bytes.Equal(packet.Path, commitmentPath) {
 			return nil
 		}
 	}

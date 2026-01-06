@@ -174,9 +174,9 @@ func (s *AttestationsTestSuite) TestVerifyMembership() {
 				s.freezeClient(ctx, clientID)
 			}
 
-			commitment := crypto.Keccak256(tc.value)
+			// Commitment is stored as raw value (not hashed)
 			hashedPath := crypto.Keccak256(tc.attestedPath)
-			packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: commitment}})
+			packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: tc.value}})
 			membershipProof := s.createAttestationProof(packetAttestation, signers)
 			membershipProofBz := s.marshalProof(membershipProof)
 
@@ -234,9 +234,8 @@ func (s *AttestationsTestSuite) TestVerifyMembershipVariableLengthPath() {
 	path := commitmenttypesv2.NewMerklePath(shortPath)
 	value32 := bytes.Repeat([]byte{0xAB}, 32)
 
-	commitment := crypto.Keccak256(value32)
 	hashedPath := crypto.Keccak256(shortPath)
-	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: commitment}})
+	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: value32}})
 	signers := []int{0, 1, 2}
 	proof := s.createAttestationProof(packetAttestation, signers)
 	proofBz := s.marshalProof(proof)
@@ -259,9 +258,8 @@ func (s *AttestationsTestSuite) TestVerifyMembershipInvalidKeyPathLength() {
 	s.updateClientState(ctx, clientID, newHeight, newTimestamp)
 
 	value32 := bytes.Repeat([]byte{0xAB}, 32)
-	commitment := crypto.Keccak256(value32)
 	hashedPath := crypto.Keccak256(bytes.Repeat([]byte{0x01}, 32))
-	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: commitment}})
+	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: value32}})
 	signers := []int{0, 1, 2}
 	proof := s.createAttestationProof(packetAttestation, signers)
 	proofBz := s.marshalProof(proof)

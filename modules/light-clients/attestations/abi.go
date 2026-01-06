@@ -23,14 +23,16 @@ var (
 		{Name: "timestamp", Type: uint64Type},
 	}
 
-	packetCompactTupleType, _ = abi.NewType("tuple[]", "", []abi.ArgumentMarshaling{
-		{Name: "path", Type: "bytes32"},
-		{Name: "commitment", Type: "bytes32"},
+	packetAttestationType, _ = abi.NewType("tuple", "PacketAttestation", []abi.ArgumentMarshaling{
+		{Name: "height", Type: "uint64"},
+		{Name: "packets", Type: "tuple[]", Components: []abi.ArgumentMarshaling{
+			{Name: "path", Type: "bytes32"},
+			{Name: "commitment", Type: "bytes32"},
+		}},
 	})
 
 	packetAttestationArgs = abi.Arguments{
-		{Name: "height", Type: uint64Type},
-		{Name: "packets", Type: packetCompactTupleType},
+		{Name: "attestation", Type: packetAttestationType},
 	}
 )
 
@@ -66,6 +68,12 @@ func (sa *StateAttestation) ABIEncode() ([]byte, error) {
 	return stateAttestationArgs.Pack(sa.Height, timestampSeconds)
 }
 
+// ABIPacketAttestation is the ABI-compatible representation for tuple-wrapped encoding.
+type ABIPacketAttestation struct {
+	Height  uint64
+	Packets []ABIPacketCompact
+}
+
 func (pa *PacketAttestation) ABIEncode() ([]byte, error) {
 	packets := make([]ABIPacketCompact, len(pa.Packets))
 	for i, p := range pa.Packets {
@@ -74,7 +82,12 @@ func (pa *PacketAttestation) ABIEncode() ([]byte, error) {
 			Commitment: bytesToBytes32(p.Commitment),
 		}
 	}
-	return packetAttestationArgs.Pack(pa.Height, packets)
+	// Pack as tuple-wrapped struct to match Solidity's abi.encode(PacketAttestation)
+	abiAttestation := ABIPacketAttestation{
+		Height:  pa.Height,
+		Packets: packets,
+	}
+	return packetAttestationArgs.Pack(abiAttestation)
 }
 
 func ABIDecodePacketAttestation(data []byte) (*PacketAttestation, error) {
@@ -83,25 +96,25 @@ func ABIDecodePacketAttestation(data []byte) (*PacketAttestation, error) {
 		return nil, errorsmod.Wrapf(ErrInvalidAttestationData, "failed to ABI decode packet attestation: %v", err)
 	}
 
-	if len(unpacked) != 2 {
-		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid packet attestation: expected 2 fields")
+	// Tuple-wrapped format: single element containing the struct
+	if len(unpacked) != 1 {
+		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid packet attestation: expected 1 tuple element")
 	}
 
-	height, ok := unpacked[0].(uint64)
-	if !ok {
-		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid height type")
-	}
-
-	abiPackets, ok := unpacked[1].([]struct {
-		Path       [32]byte `json:"path"`
-		Commitment [32]byte `json:"commitment"`
+	//nolint:revive // go-ethereum returns anonymous struct, cannot use named type
+	abiAttestation, ok := unpacked[0].(struct {
+		Height  uint64 `json:"height"`
+		Packets []struct {
+			Path       [32]byte `json:"path"`
+			Commitment [32]byte `json:"commitment"`
+		} `json:"packets"`
 	})
 	if !ok {
-		return nil, errorsmod.Wrap(ErrInvalidAttestationData, "invalid packets type")
+		return nil, errorsmod.Wrapf(ErrInvalidAttestationData, "invalid packet attestation type, got %T", unpacked[0])
 	}
 
-	packets := make([]PacketCompact, len(abiPackets))
-	for i, p := range abiPackets {
+	packets := make([]PacketCompact, len(abiAttestation.Packets))
+	for i, p := range abiAttestation.Packets {
 		packets[i] = PacketCompact{
 			Path:       p.Path[:],
 			Commitment: p.Commitment[:],
@@ -109,7 +122,7 @@ func ABIDecodePacketAttestation(data []byte) (*PacketAttestation, error) {
 	}
 
 	return &PacketAttestation{
-		Height:  height,
+		Height:  abiAttestation.Height,
 		Packets: packets,
 	}, nil
 }
