@@ -28,7 +28,6 @@ func (k *Keeper) getOrCreateICS27Account(ctx context.Context, accountID *types.A
 
 	existingAcc := k.accountKeeper.GetAccount(ctx, newAddr)
 	if existingAcc != nil {
-		// TODO: ensure this cannot be abused (refactor after this is resolved)
 		ics27Account := types.NewICS27Account(existingAcc.GetAddress().String(), accountID)
 		if err := k.Accounts.Set(ctx, collections.Join3(accountID.ClientId, accountID.Sender, accountID.Salt), ics27Account); err != nil {
 			return nil, errorsmod.Wrapf(err, "failed to set account %s in store", ics27Account)
