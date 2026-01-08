@@ -63,7 +63,7 @@ func (p GMPPacketData) ValidateBasic() error {
 // MarshalPacketData attempts to marshal the provided GMPPacketData into bytes with the provided encoding.
 func MarshalPacketData(data *GMPPacketData, ics27Version string, encoding string) ([]byte, error) {
 	if ics27Version != Version {
-		panic("unsupported ics27 version")
+		return nil, errorsmod.Wrapf(ErrInvalidVersion, "unsupported ics27 version: %s", ics27Version)
 	}
 
 	switch encoding {
@@ -81,7 +81,7 @@ func MarshalPacketData(data *GMPPacketData, ics27Version string, encoding string
 // UnmarshalPacketData attempts to unmarshal the provided bytes into a GMPPacketData with the provided encoding.
 func UnmarshalPacketData(bz []byte, ics27Version string, encoding string) (*GMPPacketData, error) {
 	if ics27Version != Version {
-		panic("unsupported ics27 version")
+		return nil, errorsmod.Wrapf(ErrInvalidVersion, "unsupported ics27 version: %s", ics27Version)
 	}
 
 	data := &GMPPacketData{}

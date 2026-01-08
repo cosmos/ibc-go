@@ -14,4 +14,5 @@ var (
 	ErrAccountAlreadyExists    = errorsmod.Register(ModuleName, 9, "account already exists")
 	ErrAccountNotFound         = errorsmod.Register(ModuleName, 10, "account not found")
 	ErrInvalidMsgRoute         = errorsmod.Register(ModuleName, 11, "invalid msg route")
+	ErrInvalidVersion          = errorsmod.Register(ModuleName, 12, "invalid version")
 )
