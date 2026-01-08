@@ -20,6 +20,14 @@ func AutoCLIOptions() *autocliv1.ModuleOptions {
 						{ProtoField: "salt"},
 					},
 				},
+				{
+					RpcMethod: "AccountIdentifier",
+					Use:       "get-account-id [account_address]",
+					Short:     "Get the ICS27 GMP account identifier associated with an address",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
+						{ProtoField: "account_address"},
+					},
+				},
 			},
 		},
 		Tx: &autocliv1.ServiceCommandDescriptor{
