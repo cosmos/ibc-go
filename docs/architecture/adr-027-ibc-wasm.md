@@ -1,4 +1,4 @@
-# ADR 27: Add support for Wasm based light client
+# ADR 27: Add support for Wasm-based light client
 
 ## Changelog
 
@@ -13,7 +13,7 @@
 ## Abstract
 
 In the Cosmos SDK light clients are currently hardcoded in Go. This makes upgrading existing IBC light clients or
-adding support for new light client a multi step process involving on-chain governance which is time-consuming.
+adding support for new light client a multi-step process involving on-chain governance which is time-consuming.
 
 To remedy this, we are proposing a Wasm VM to host light client bytecode, which allows easier upgrading of
 existing IBC light clients as well as adding support for new IBC light clients without requiring a code release and 
@@ -23,7 +23,7 @@ corresponding hard-fork event.
 
 Currently in ibc-go light clients are defined as part of the codebase and are implemented as modules under
 `modules/light-clients`. Adding support for new light clients or updating an existing light client in the event
-of a security issue or consensus update is a multi-step process which is both time-consuming and error-prone. 
+of a security issue or consensus update is a multi-step process that is both time-consuming and error-prone. 
 In order to enable new IBC light client implementations it is necessary to modify the codebase of ibc-go (if the light
 client is part of its codebase), re-build chains' binaries, pass a governance proposal and validators upgrade their nodes.
 
@@ -37,7 +37,7 @@ new light clients a simple governance-gated transaction. The light client byteco
 runs inside a Wasm VM. The Wasm light client submodule exposes a proxy light client interface that routes incoming 
 messages to the appropriate handler function, inside the Wasm VM for execution.
 
-With the Wasm light client module, anybody can add new IBC light client in the form of Wasm bytecode (provided they are 
+With the Wasm light client module, anybody can add a new IBC light client in the form of Wasm bytecode (provided they are 
 able to submit the governance proposal transaction and that it passes) as well as instantiate clients using any created 
 client type. This allows any chain to update its own light client in other chains without going through the steps outlined above.
 
@@ -103,7 +103,7 @@ returned to the caller.
 
 Consider the example of the `VerifyClientMessage` function of `ClientState` interface. Incoming arguments are
 packaged inside a payload object that is then JSON serialized and passed to `queryContract`, which executes `WasmVm.Query` 
-and returns the slice of bytes returned by the smart contract. This data is deserialized and passed as return argument.
+and returns the slice of bytes returned by the smart contract. This data is deserialized and passed as a return argument.
 
 ```go
 type QueryMsg struct {
@@ -157,11 +157,11 @@ the `ClientState` functions.
 
 ### Positive
 
-- Adding support for new light client or upgrading existing light client is way easier than before and only requires single transaction instead of a hard-fork.
+- Adding support for a new light client or upgrading existing light client is way easier than before and only requires single transaction instead of a hard-fork.
 - Improves maintainability of ibc-go, since no change in codebase is required to support new client or upgrade it.
 - The existence of support for Rust dependencies in light clients which may not exist in Go.
 
 ### Negative
 
-- Light clients written in Rust need to be written in a subset of Rust which could compile in Wasm.
+- Light clients written in Rust need to be written in a subset of Rust that could compile in Wasm.
 - Introspecting light client code is difficult as only compiled bytecode exists in the blockchain.
