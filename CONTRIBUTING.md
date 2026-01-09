@@ -25,7 +25,7 @@ New features or improvements should be written in an issue using the [new featur
 - discarding the suggestion if deemed not aligned with the objectives of ibc-go;
 - or proposing (in the case of applications or light clients) to be developed and maintained in a separate repository.
 
-Unless the change is a minor bug fix with minor code changes, and you want to submit a pull request, please make sure to write a Github issue for it before opening the pull request.
+Unless the change is a minor bug fix with minor code changes, and you want to submit a pull request, please make sure to write a GitHub issue for it before opening the pull request.
 
 ### Architecture Decision Records (ADR)
 
