@@ -113,13 +113,12 @@ func (k *Keeper) authenticateTx(_ sdk.Context, account sdk.AccountI, msgs []sdk.
 		if len(signers) != 1 {
 			return errorsmod.Wrapf(types.ErrInvalidPayload, "expected exactly one signer for gmp message %s, got %d", sdk.MsgTypeURL(msg), len(signers))
 		}
-		for _, signer := range signers {
-			// the interchain account address is stored as the string value of the sdk.AccAddress type
-			// thus we must cast the signer to a sdk.AccAddress to obtain the comparison value
-			// the stored interchain account address must match the signer for every message to be executed
-			if !bytes.Equal(signer, accountAddr.Bytes()) {
-				return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", accountAddr, sdk.AccAddress(signer))
-			}
+
+		// the interchain account address is stored as the string value of the sdk.AccAddress type
+		// thus we must cast the signer to a sdk.AccAddress to obtain the comparison value
+		// the stored interchain account address must match the signer for every message to be executed
+		if !bytes.Equal(signers[0], accountAddr.Bytes()) {
+			return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "unexpected signer address: expected %s, got %s", accountAddr, sdk.AccAddress(signers[0]))
 		}
 	}
 
