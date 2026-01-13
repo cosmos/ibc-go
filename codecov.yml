@@ -25,6 +25,7 @@ ignore:
 - "docs"
 - "simapp"
 - "**/testing/**"
+- "testing"
 - "scripts"
 - "contrib"
 - "cmd"
