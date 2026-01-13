@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/hex"
+	"errors"
 
 	"cosmossdk.io/collections"
 
@@ -234,7 +235,7 @@ func (s *KeeperTestSuite) TestGetOrComputeICS27Address() {
 			sender := s.chainB.SenderAccount.GetAddress().String()
 
 			// Set sender if not testing empty sender case
-			if tc.accountID.Sender == "" && tc.expErr != ibcerrors.ErrInvalidAddress {
+			if tc.accountID.Sender == "" && !errors.Is(tc.expErr, ibcerrors.ErrInvalidAddress) {
 				tc.accountID.Sender = sender
 			}
 

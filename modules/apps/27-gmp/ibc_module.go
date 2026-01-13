@@ -1,12 +1,11 @@
 package gmp
 
 import (
-	"fmt"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/internal/events"
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/keeper"
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
@@ -58,60 +57,98 @@ func (*IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destinatio
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "sender %s is different from signer %s", sender, signer)
 	}
 
-	// TODO: emit event and telemetry
+	events.EmitSendCall(
+		ctx,
+		*data,
+		sourceChannel,
+		destinationChannel,
+		payload.SourcePort,
+		payload.DestinationPort,
+		sequence,
+	)
 
 	return nil
 }
 
 func (im *IBCModule) OnRecvPacket(ctx sdk.Context, sourceClient, destinationClient string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) channeltypesv2.RecvPacketResult {
+	var (
+		ackErr error
+		data   types.GMPPacketData
+	)
+
+	// we are explicitly wrapping this emit event call in an anonymous function so that
+	// the packet data is evaluated after it has been assigned a value.
+	defer func() {
+		events.EmitOnRecvPacketEvent(
+			ctx,
+			data,
+			sourceClient,
+			destinationClient,
+			payload.SourcePort,
+			payload.DestinationPort,
+			sequence,
+			ackErr,
+		)
+	}()
+
 	if payload.SourcePort != types.PortID || payload.DestinationPort != types.PortID {
+		ackErr = errorsmod.Wrapf(types.ErrInvalidPayload, "payload port ID is invalid: expected %s, got sourcePort: %s destPort: %s", types.PortID, payload.SourcePort, payload.DestinationPort)
+		im.keeper.Logger(ctx).Error("recv packet failed", "error", ackErr, "sequence", sequence, "destination_client", destinationClient)
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 	if payload.Version != types.Version {
+		ackErr = errorsmod.Wrapf(types.ErrInvalidVersion, "payload version is invalid: expected %s, got %s", types.Version, payload.Version)
+		im.keeper.Logger(ctx).Error("recv packet failed", "error", ackErr, "sequence", sequence, "destination_client", destinationClient)
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 
-	packetData, ackErr := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
-	if ackErr != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+	packetData, err := types.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
+	if err != nil {
+		ackErr = err
+		im.keeper.Logger(ctx).Error("recv packet failed", "error", err, "sequence", sequence, "destination_client", destinationClient)
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 
-	if ackErr := packetData.ValidateBasic(); ackErr != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+	data = *packetData
+
+	if err := packetData.ValidateBasic(); err != nil {
+		ackErr = err
+		im.keeper.Logger(ctx).Error("recv packet failed", "error", ackErr, "sequence", sequence, "destination_client", destinationClient)
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 
-	result, ackErr := im.keeper.OnRecvPacket(
+	result, err := im.keeper.OnRecvPacket(
 		ctx,
 		packetData,
 		destinationClient,
 	)
-	if ackErr != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+	if err != nil {
+		ackErr = err
+		im.keeper.Logger(ctx).Error("recv packet failed", "error", err, "sequence", sequence, "destination_client", destinationClient)
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 
 	ack := types.NewAcknowledgement(result)
-	ackBz, ackErr := types.MarshalAcknowledgement(&ack, types.Version, payload.Encoding)
-	if ackErr != nil {
-		im.keeper.Logger(ctx).Error(fmt.Sprintf("%s sequence %d", ackErr.Error(), sequence))
+	ackBz, err := types.MarshalAcknowledgement(&ack, types.Version, payload.Encoding)
+	if err != nil {
+		ackErr = err
+		im.keeper.Logger(ctx).Error("recv packet failed", "error", ackErr, "sequence", sequence, "destination_client", destinationClient)
 		return channeltypesv2.RecvPacketResult{
 			Status: channeltypesv2.PacketStatus_Failure,
 		}
 	}
 
-	im.keeper.Logger(ctx).Info("successfully handled ICS-27 GMP packet", "sequence", sequence)
+	im.keeper.Logger(ctx).Info("successfully handled ICS-27 GMP packet", "destination_client", destinationClient, "sequence", sequence)
 
 	// TODO: implement telemetry
 
