@@ -19,9 +19,6 @@ import (
 func (k *Keeper) OnRecvPacket(
 	ctx sdk.Context,
 	data *types.GMPPacketData,
-	sourcePort,
-	sourceClient,
-	destPort,
 	destClient string,
 ) ([]byte, error) {
 	accountID := types.NewAccountIdentifier(destClient, data.Sender, data.Salt)

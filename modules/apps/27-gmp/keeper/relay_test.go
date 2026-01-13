@@ -214,8 +214,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket() {
 			result, err := gmpKeeper.OnRecvPacket(
 				s.chainA.GetContext(),
 				packetData,
-				types.PortID, ibctesting.FirstClientID,
-				types.PortID, destClient,
+				destClient,
 			)
 
 			expPass := tc.expErr == nil

@@ -274,8 +274,7 @@ func (s *KeeperTestSuite) createGMPAccount(gmpAccountAddr string) {
 	_, err := s.chainA.GetSimApp().GMPKeeper.OnRecvPacket(
 		s.chainA.GetContext(),
 		&data,
-		types.PortID, ibctesting.FirstClientID,
-		types.PortID, ibctesting.FirstClientID,
+		ibctesting.FirstClientID,
 	)
 	s.Require().NoError(err)
 }
