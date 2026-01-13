@@ -110,6 +110,9 @@ func (k *Keeper) authenticateTx(_ sdk.Context, account sdk.AccountI, msgs []sdk.
 			return errorsmod.Wrapf(err, "failed to obtain message signers for message type %s", sdk.MsgTypeURL(msg))
 		}
 
+		if len(signers) != 1 {
+			return errorsmod.Wrapf(types.ErrInvalidPayload, "expected exactly one signer for gmp message %s, got %d", sdk.MsgTypeURL(msg), len(signers))
+		}
 		for _, signer := range signers {
 			// the interchain account address is stored as the string value of the sdk.AccAddress type
 			// thus we must cast the signer to a sdk.AccAddress to obtain the comparison value
@@ -128,7 +131,7 @@ func (k *Keeper) authenticateTx(_ sdk.Context, account sdk.AccountI, msgs []sdk.
 func (k *Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, error) {
 	handler := k.msgRouter.Handler(msg)
 	if handler == nil {
-		return nil, types.ErrInvalidMsgRoute
+		return nil, errorsmod.Wrapf(types.ErrInvalidMsgRoute, "no handler found for message type %s", sdk.MsgTypeURL(msg))
 	}
 
 	res, err := handler(ctx, msg)
@@ -140,6 +143,9 @@ func (k *Keeper) executeMsg(ctx sdk.Context, msg sdk.Msg) (*codectypes.Any, erro
 	ctx.EventManager().EmitEvents(res.GetEvents())
 
 	// Each individual sdk.Result has exactly one Msg response. We aggregate here.
+	if len(res.MsgResponses) != 1 {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrLogic, "expected exactly one Msg response for msg %s, got %d", sdk.MsgTypeURL(msg), len(res.MsgResponses))
+	}
 	msgResponse := res.MsgResponses[0]
 	if msgResponse == nil {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrLogic, "got nil Msg response for msg %s", sdk.MsgTypeURL(msg))
