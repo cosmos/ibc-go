@@ -85,7 +85,7 @@ func (k *Keeper) executeTx(ctx sdk.Context, account sdk.AccountI, payload []byte
 
 	writeCache()
 
-	ctx.Logger().Info("executed 27-gmp transaction", "account", account.GetAddress(), "msgs", msgs)
+	ctx.Logger().Info("executed 27-gmp transaction", "account", account.GetAddress().String(), "msgs", msgs)
 
 	txResponse, err := proto.Marshal(txMsgData)
 	if err != nil {
