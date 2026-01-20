@@ -71,7 +71,10 @@ func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID s
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 
-	iterator := storetypes.KVStorePrefixIterator(store, []byte(channelID))
+	channelIDBz := make([]byte, types.PendingSendPacketChannelLength)
+	copy(channelIDBz, channelID)
+
+	iterator := storetypes.KVStorePrefixIterator(store, channelIDBz)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
