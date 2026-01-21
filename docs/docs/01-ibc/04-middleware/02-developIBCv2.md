@@ -77,11 +77,11 @@ The middleware must have access to the underlying application, and be called bef
 
 > Middleware **may** choose not to call the underlying application's callback at all. Though these should generally be limited to error cases.
 
-The `IBCModule` interface consists of the packet callbacks where cutom logic is performed. 
+The `IBCModule` interface consists of the packet callbacks where custom logic is performed. 
 
 ### Packet callbacks
 
-The packet callbacks are where the middleware performs most of its custom logic. The middleware may read the packet flow data and perform some additional packet handling, or it may modify the incoming data before it reaches the underlying application. This enables a wide degree of usecases, as a simple base application like token-transfer can be transformed for a variety of usecases by combining it with custom middleware, for example acting as a filter for which tokens can be sent and recieved.
+The packet callbacks are where the middleware performs most of its custom logic. The middleware may read the packet flow data and perform some additional packet handling, or it may modify the incoming data before it reaches the underlying application. This enables a wide degree of usecases, as a simple base application like token-transfer can be transformed for a variety of usecases by combining it with custom middleware, for example acting as a filter for which tokens can be sent and received.
 
 #### `OnRecvPacket`
 
@@ -257,4 +257,4 @@ The least intrusive middleware is stateless. They simply read the ICS26 callback
 
 Middleware that directly interfere with the payload or acknowledgement before passing control to the underlying app are way more intrusive to the underlying app processing. This makes such middleware more error-prone when implementing as incorrect handling can cause the underlying app to break or worse execute unexpected behavior. Moreover, such middleware typically needs to be built for a specific underlying app rather than being generic. An example of this is the packet-forwarding middleware which modifies the payload and is specifically built for transfer.
 
-Middleware that modifies the payload or acknowledgement such that it is no longer readable by the underlying application is the most complicated middleware. Since it is not readable by the underlying apps, if these middleware write additional state into payloads and acknowledgements that get committed to IBC core provable state, there MUST be an equivalent counterparty middleware that is able to parse and intepret this additional state while also converting the payload and acknowledgment back to a readable form for the underlying application on its side. Thus, such middleware requires deployment on both sides of an IBC connection or the packet processing will break. This is the hardest type of middleware to implement, integrate and deploy. Thus, it is not recommended unless absolutely necessary to fulfill the given use case.
+Middleware that modifies the payload or acknowledgement such that it is no longer readable by the underlying application is the most complicated middleware. Since it is not readable by the underlying apps, if these middleware write additional state into payloads and acknowledgements that get committed to IBC core provable state, there MUST be an equivalent counterparty middleware that is able to parse and interpret this additional state while also converting the payload and acknowledgment back to a readable form for the underlying application on its side. Thus, such middleware requires deployment on both sides of an IBC connection or the packet processing will break. This is the hardest type of middleware to implement, integrate and deploy. Thus, it is not recommended unless absolutely necessary to fulfill the given use case.
