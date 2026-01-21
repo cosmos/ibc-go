@@ -102,10 +102,10 @@ specification.
 ## Decision
 
 The issues outlined above, are applicable only to SDK-based chains, and thus the proposed solution
-are do not require specification changes that would result in modification to other implementations
+are not required specification changes that would result in modifications to other implementations
 of the ICS20 spec.
 
-Instead of adding the identifiers on the coin denomination directly, the proposed solution hashes
+Instead of adding the identifiers to the coin denomination directly, the proposed solution hashes
 the denomination prefix in order to get a consistent length for all the cross-chain fungible tokens.
 
 This will be used for internal storage only, and when transferred via IBC to a different chain, the
@@ -154,7 +154,7 @@ func (dt DenomTrace) IBCDenom() string {
 ### `x/ibc-transfer` Changes
 
 In order to retrieve the trace information from an IBC denomination, a lookup table needs to be
-added to the `ibc-transfer` module. These values need to also be persisted between upgrades, meaning
+added to the `ibc-transfer` module. These values also need to be persisted between upgrades, meaning
 that a new `[]DenomTrace` `GenesisState` field state needs to be added to the module:
 
 ```go
@@ -171,7 +171,7 @@ func (k Keeper) GetDenomTrace(ctx Context, denomTraceHash []byte) (DenomTrace, b
   return denomTrace, true
 }
 
-// HasDenomTrace checks if a the key with the given trace hash exists on the store.
+// HasDenomTrace checks if the key with the given trace hash exists on the store.
 func (k Keeper) HasDenomTrace(ctx Context, denomTraceHash []byte)  bool {
   store := ctx.KVStore(k.storeKey)
   return store.Has(types.KeyTrace(denomTraceHash))
@@ -274,7 +274,7 @@ func (k Keeper) DenomPathFromHash(ctx sdk.Context, denom string) (string, error)
 // receiving chain.
 //
 // NOTE: We use SourcePort and SourceChannel here, because the counterparty
-// chain would have prefixed with DestPort and DestChannel when originally
+// chain would have been prefixed with DestPort and DestChannel when originally
 // receiving this coin as seen in the "sender chain is the source" condition.
 if ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
   // sender chain is not the source, unescrow tokens
@@ -346,7 +346,7 @@ function will now:
 - Bump the maximum character length to 128, as the hex representation used by Tendermint's
   `HexBytes` type contains 64 characters.
 
-Additional validation logic, such as verifying the length of the hash, the  may be added to the bank module in the future if the [custom base denomination validation](https://github.com/cosmos/cosmos-sdk/pull/6755) is integrated into the SDK.
+Additional validation logic, such as verifying the length of the hash, may be added to the bank module in the future if the [custom base denomination validation](https://github.com/cosmos/cosmos-sdk/pull/6755) is integrated into the SDK.
 
 ### Positive
 
