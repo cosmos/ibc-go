@@ -81,6 +81,12 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 	s.path.Setup()
 }
 
+// SetupGMPTest sets up a GMP test using IBC v2
+func (s *CallbacksTestSuite) SetupGMPTest() {
+	s.setupChains()
+	s.path.SetupV2()
+}
+
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).
 // It funds and returns the interchain account address owned by chainA's SenderAccount.
 func (s *CallbacksTestSuite) SetupICATest() string {
