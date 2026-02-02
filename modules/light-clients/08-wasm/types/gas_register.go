@@ -198,7 +198,7 @@ func (g WasmGasRegister) ReplyCosts(discount bool, reply wasmvmtypes.Reply) stor
 	msgLen := len(reply.Result.Err)
 	if reply.Result.Ok != nil {
 		msgLen += len(reply.Result.Ok.Data)
-		var attrs []wasmvmtypes.EventAttribute
+		attrs := make([]wasmvmtypes.EventAttribute, 0, msgLen)
 		for _, e := range reply.Result.Ok.Events {
 			eventGas += storetypes.Gas(len(e.Type)) * g.c.EventAttributeDataCost
 			attrs = append(attrs, e.Attributes...)

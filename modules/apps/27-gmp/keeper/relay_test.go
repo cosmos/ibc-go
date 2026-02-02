@@ -244,6 +244,8 @@ func (s *KeeperTestSuite) newMsgSend(from, to sdk.AccAddress) *banktypes.MsgSend
 }
 
 func (s *KeeperTestSuite) newMsgSendWithAmount(from, to sdk.AccAddress, amount sdk.Coin) *banktypes.MsgSend {
+	s.T().Helper()
+
 	return &banktypes.MsgSend{
 		FromAddress: from.String(),
 		ToAddress:   to.String(),

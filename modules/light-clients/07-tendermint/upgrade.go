@@ -136,7 +136,7 @@ func (cs ClientState) VerifyUpgradeAndUpdateState(
 // construct MerklePath for the committed client from upgradePath
 func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypesv2.MerklePath {
 	// copy all elements from upgradePath except final element
-	clientPath := make([]string, len(upgradePath)-1)
+	clientPath := make([]string, len(upgradePath)-1) // nolint:prealloc
 	copy(clientPath, upgradePath)
 
 	// append lastHeight and `upgradedClient` to last key of upgradePath and use as lastKey of clientPath
@@ -156,7 +156,7 @@ func constructUpgradeClientMerklePath(upgradePath []string, lastHeight exported.
 // construct MerklePath for the committed consensus state from upgradePath
 func constructUpgradeConsStateMerklePath(upgradePath []string, lastHeight exported.Height) commitmenttypesv2.MerklePath {
 	// copy all elements from upgradePath except final element
-	consPath := make([]string, len(upgradePath)-1)
+	consPath := make([]string, len(upgradePath)-1) // nolint:prealloc
 	copy(consPath, upgradePath)
 
 	// append lastHeight and `upgradedClient` to last key of upgradePath and use as lastKey of clientPath

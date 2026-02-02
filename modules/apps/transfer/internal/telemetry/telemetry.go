@@ -14,7 +14,7 @@ import (
 )
 
 func ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel string, token types.Token) {
-	labels := []metrics.Label{
+	labels := []metrics.Label{ // nolint:prealloc
 		telemetry.NewLabel(coremetrics.LabelDestinationPort, destinationPort),
 		telemetry.NewLabel(coremetrics.LabelDestinationChannel, destinationChannel),
 	}
@@ -38,7 +38,7 @@ func ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChann
 }
 
 func ReportOnRecvPacket(sourcePort, sourceChannel, destinationPort, destinationChannel string, token types.Token) {
-	labels := []metrics.Label{
+	labels := []metrics.Label{ // nolint:prealloc
 		telemetry.NewLabel(coremetrics.LabelSourcePort, sourcePort),
 		telemetry.NewLabel(coremetrics.LabelSourceChannel, sourceChannel),
 	}
