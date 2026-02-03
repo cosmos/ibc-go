@@ -42,6 +42,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#8545](https://github.com/cosmos/ibc-go/pull/8545) Support sending multiple payloads in the same packet for atomic payload execution.
 * [\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.
 
+### Improvements
+* [\#8734](https://github.com/cosmos/ibc-go/pull/8734) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA.
+
 ### Dependencies
 
 * [\#8451](https://github.com/cosmos/ibc-go/pull/8451) Bump **go** to **1.24**

@@ -23,6 +23,7 @@ import (
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	gmptypes "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
@@ -63,6 +64,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 	cfg := testutil.MakeTestEncodingConfig()
 
 	// ibc types
+	gmptypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	icacontrollertypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	icahosttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	solomachine.RegisterInterfaces(cfg.InterfaceRegistry)
