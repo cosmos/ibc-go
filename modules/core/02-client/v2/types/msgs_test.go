@@ -100,16 +100,6 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 			types.ErrInvalidCounterparty,
 		},
 		{
-			"failure: empty merkle prefix part",
-			types.NewMsgRegisterCounterparty(
-				"testclientid-1",
-				[][]byte{[]byte("ibc"), []byte{}},
-				"testclientid-3",
-				signer,
-			),
-			types.ErrInvalidCounterparty,
-		},
-		{
 			"failure: too many merkle prefix parts",
 			types.NewMsgRegisterCounterparty(
 				"testclientid-1",

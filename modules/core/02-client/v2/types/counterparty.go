@@ -28,9 +28,6 @@ func ValidateCounterpartyMerklePrefix(prefix [][]byte) error {
 
 	total := 0
 	for i, part := range prefix {
-		if len(part) == 0 {
-			return errorsmod.Wrapf(ErrInvalidCounterparty, "counterparty merkle prefix part %d cannot be empty", i)
-		}
 		if len(part) > MaxCounterpartyMerklePrefixPartLength {
 			return errorsmod.Wrapf(
 				ErrInvalidCounterparty,

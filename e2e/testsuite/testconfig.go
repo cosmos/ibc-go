@@ -406,11 +406,13 @@ func getConfig() TestConfig {
 	testCfg := applyEnvironmentVariableOverrides(fileTc)
 
 	// If tags for chain C and D are not present in the file, also not set in the CI, fallback to A
-	if testCfg.ChainConfigs[2].Tag == "" {
-		testCfg.ChainConfigs[2].Tag = testCfg.ChainConfigs[0].Tag
-	}
-	if testCfg.ChainConfigs[3].Tag == "" {
-		testCfg.ChainConfigs[3].Tag = testCfg.ChainConfigs[0].Tag
+	if len(testCfg.ChainConfigs) > 0 {
+		if len(testCfg.ChainConfigs) > 2 && testCfg.ChainConfigs[2].Tag == "" {
+			testCfg.ChainConfigs[2].Tag = testCfg.ChainConfigs[0].Tag
+		}
+		if len(testCfg.ChainConfigs) > 3 && testCfg.ChainConfigs[3].Tag == "" {
+			testCfg.ChainConfigs[3].Tag = testCfg.ChainConfigs[0].Tag
+		}
 	}
 	return testCfg
 }
