@@ -62,7 +62,7 @@ func (c Counterparty) ValidateBasic() error {
 	if c.Prefix.Empty() {
 		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty prefix cannot be empty")
 	}
-	if c.Prefix.Bytes() > MaxPrefixLength {
+	if len(c.Prefix.Bytes()) > MaxPrefixLength {
 		return errorsmod.Wrapf(ErrInvalidCounterparty, "counterparty prefix length exceeds maximum length of %d bytes", MaxPrefixLength)
 	}
 	return nil
