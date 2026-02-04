@@ -8,6 +8,9 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
 
+// MaxPrefixLength defines the maximum length of the counterparty prefix in bytes.
+const MaxPrefixLength = 128
+
 // NewConnectionEnd creates a new ConnectionEnd instance.
 func NewConnectionEnd(state State, clientID string, counterparty Counterparty, versions []*Version, delayPeriod uint64) ConnectionEnd {
 	return ConnectionEnd{
@@ -58,6 +61,9 @@ func (c Counterparty) ValidateBasic() error {
 	}
 	if c.Prefix.Empty() {
 		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty prefix cannot be empty")
+	}
+	if c.Prefix.Bytes() > MaxPrefixLength {
+		return errorsmod.Wrapf(ErrInvalidCounterparty, "counterparty prefix length exceeds maximum length of %d bytes", MaxPrefixLength)
 	}
 	return nil
 }
