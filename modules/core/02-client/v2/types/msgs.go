@@ -6,9 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	conntypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
+
+const MaxCounterpartyMerklePrefixElements = 8
 
 var (
 	_ sdk.Msg = (*MsgRegisterCounterparty)(nil)
@@ -35,6 +38,17 @@ func (msg *MsgRegisterCounterparty) ValidateBasic() error {
 	}
 	if len(msg.CounterpartyMerklePrefix) == 0 {
 		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty messaging key cannot be empty")
+	}
+	if len(msg.CounterpartyMerklePrefix) > MaxCounterpartyMerklePrefixElements {
+		return errorsmod.Wrapf(ErrInvalidCounterparty, "counterparty merkle prefix length cannot exceed %d elements", MaxCounterpartyMerklePrefixElements)
+	}
+	for i, key := range msg.CounterpartyMerklePrefix {
+		if len(key) == 0 {
+			return errorsmod.Wrapf(ErrInvalidCounterparty, "counterparty merkle prefix key at index %d cannot be empty", i)
+		}
+		if len(key) > conntypes.MaxMerklePrefixLength {
+			return errorsmod.Wrapf(ErrInvalidCounterparty, "counterparty merkle prefix key at index %d exceeds max length of %d bytes", i, conntypes.MaxMerklePrefixLength)
+		}
 	}
 	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
 		return err
