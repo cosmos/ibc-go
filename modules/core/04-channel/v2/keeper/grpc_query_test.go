@@ -207,6 +207,101 @@ func (s *KeeperTestSuite) TestQueryPacketCommitments() {
 	}
 }
 
+// TestQueryPacketCommitmentsWithSlashByteSequences verifies that the
+// PacketCommitments pagination query correctly handles sequence numbers whose
+// big-endian encoding contains the byte 0x2F (ASCII "/"). Before the fix, the
+// query handler used strings.Split(string(key), "/") to parse the binary store
+// key, which corrupted any sequence containing 0x2F, causing ErrInvalidPacket.
+//
+// Regression test for: https://github.com/cosmos/ibc-go/pull/8778
+func (s *KeeperTestSuite) TestQueryPacketCommitmentsWithSlashByteSequences() {
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	path.SetupV2()
+
+	// Sequences whose big-endian encoding contains the byte 0x2F ("/"):
+	//   47        = 0x000000000000002F  (last byte is 0x2F)
+	//   12079     = 0x0000000000002F2F  (two 0x2F bytes)
+	//   3_091_247 = 0x00000000002F2F2F  (three 0x2F bytes)
+	//   256       = 0x0000000000000100  (control: no 0x2F byte)
+	sequences := []uint64{1, 47, 100, 256, 12079, 3_091_247}
+	expCommitments := make([]*types.PacketState, 0, len(sequences))
+
+	for _, seq := range sequences {
+		commitment := types.NewPacketState(path.EndpointA.ClientID, seq, fmt.Appendf(nil, "hash_%d", seq))
+		s.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(s.chainA.GetContext(), commitment.ClientId, commitment.Sequence, commitment.Data)
+		expCommitments = append(expCommitments, &commitment)
+	}
+
+	req := &types.QueryPacketCommitmentsRequest{
+		ClientId: path.EndpointA.ClientID,
+		Pagination: &query.PageRequest{
+			Limit:      100,
+			CountTotal: true,
+		},
+	}
+
+	queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2)
+	res, err := queryServer.PacketCommitments(s.chainA.GetContext(), req)
+
+	s.Require().NoError(err, "PacketCommitments query must not fail for sequences containing 0x2F bytes")
+	s.Require().NotNil(res)
+	s.Require().Len(res.Commitments, len(sequences))
+
+	// Verify each sequence was returned with correct data.
+	returnedSeqs := make(map[uint64][]byte)
+	for _, c := range res.Commitments {
+		returnedSeqs[c.Sequence] = c.Data
+	}
+	for _, seq := range sequences {
+		data, ok := returnedSeqs[seq]
+		s.Require().True(ok, "sequence %d must be present in results", seq)
+		s.Require().Equal(fmt.Appendf(nil, "hash_%d", seq), data, "sequence %d must have correct data", seq)
+	}
+}
+
+// TestQueryPacketAcknowledgementsWithSlashByteSequences verifies the same fix
+// for the PacketAcknowledgements pagination query.
+//
+// Regression test for: https://github.com/cosmos/ibc-go/pull/8778
+func (s *KeeperTestSuite) TestQueryPacketAcknowledgementsWithSlashByteSequences() {
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	path.SetupV2()
+
+	sequences := []uint64{1, 47, 100, 256, 12079, 3_091_247}
+	expAcks := make([]*types.PacketState, 0, len(sequences))
+
+	for _, seq := range sequences {
+		ack := types.NewPacketState(path.EndpointA.ClientID, seq, fmt.Appendf(nil, "ack_%d", seq))
+		s.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(s.chainA.GetContext(), ack.ClientId, ack.Sequence, ack.Data)
+		expAcks = append(expAcks, &ack)
+	}
+
+	req := &types.QueryPacketAcknowledgementsRequest{
+		ClientId: path.EndpointA.ClientID,
+		Pagination: &query.PageRequest{
+			Limit:      100,
+			CountTotal: true,
+		},
+	}
+
+	queryServer := keeper.NewQueryServer(s.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2)
+	res, err := queryServer.PacketAcknowledgements(s.chainA.GetContext(), req)
+
+	s.Require().NoError(err, "PacketAcknowledgements query must not fail for sequences containing 0x2F bytes")
+	s.Require().NotNil(res)
+	s.Require().Len(res.Acknowledgements, len(sequences))
+
+	returnedSeqs := make(map[uint64][]byte)
+	for _, a := range res.Acknowledgements {
+		returnedSeqs[a.Sequence] = a.Data
+	}
+	for _, seq := range sequences {
+		data, ok := returnedSeqs[seq]
+		s.Require().True(ok, "sequence %d must be present in results", seq)
+		s.Require().Equal(fmt.Appendf(nil, "ack_%d", seq), data, "sequence %d must have correct data", seq)
+	}
+}
+
 func (s *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 	var (
 		expAcknowledgement []byte
