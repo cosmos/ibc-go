@@ -61,7 +61,7 @@ Please make sure to check out our [Pull request guidelines](./docs/dev/pull-requ
 
 #### Unwanted pull requests
 
-To ensure the core maintainers time are spent well, we have certain pull requests we want to avoid:
+To ensure the core maintainers' time is spent well, we have certain pull requests we want to avoid:
 
 - Any non-minor pull requests without an **assigned** issue
 - Any non-minor bug fixes without an issue (ideally, also assigned, but we are less strict on this)

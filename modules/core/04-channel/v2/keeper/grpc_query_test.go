@@ -838,7 +838,7 @@ func (s *KeeperTestSuite) TestQueryUnreceivedAcks() {
 					packetAcks = append(packetAcks, seq)
 
 					if seq%2 == 0 {
-						s.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(s.chainA.GetContext(), path.EndpointA.ClientID, seq, []byte("commitement"))
+						s.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(s.chainA.GetContext(), path.EndpointA.ClientID, seq, []byte("commitment"))
 						expSeq = append(expSeq, seq)
 					}
 				}
