@@ -247,15 +247,12 @@ func (s *KeeperTestSuite) TestQueryPacketCommitmentsWithSlashByteSequences() {
 	s.Require().NotNil(res)
 	s.Require().Len(res.Commitments, len(sequences))
 
-	// Verify each sequence was returned with correct data.
-	returnedSeqs := make(map[uint64][]byte)
-	for _, c := range res.Commitments {
-		returnedSeqs[c.Sequence] = c.Data
-	}
-	for _, seq := range sequences {
-		data, ok := returnedSeqs[seq]
-		s.Require().True(ok, "sequence %d must be present in results", seq)
-		s.Require().Equal(fmt.Appendf(nil, "hash_%d", seq), data, "sequence %d must have correct data", seq)
+	for i, ps := range res.Commitments {
+		s.Require().Equal(sequences[i], ps.Sequence, "sequence %d must be correct", ps.Sequence)
+		expCommitment := expCommitments[i]
+		s.Require().Equal(expCommitment.Sequence, ps.Sequence, "sequence %d must have correct sequence", ps.Sequence)
+		s.Require().Equal(expCommitment.ClientId, ps.ClientId, "sequence %d must have correct client ID", ps.Sequence)
+		s.Require().Equal(expCommitment.Data, ps.Data, "sequence %d must have correct data", ps.Sequence)
 	}
 }
 
@@ -291,14 +288,11 @@ func (s *KeeperTestSuite) TestQueryPacketAcknowledgementsWithSlashByteSequences(
 	s.Require().NotNil(res)
 	s.Require().Len(res.Acknowledgements, len(sequences))
 
-	returnedSeqs := make(map[uint64][]byte)
-	for _, a := range res.Acknowledgements {
-		returnedSeqs[a.Sequence] = a.Data
-	}
-	for _, seq := range sequences {
-		data, ok := returnedSeqs[seq]
-		s.Require().True(ok, "sequence %d must be present in results", seq)
-		s.Require().Equal(fmt.Appendf(nil, "ack_%d", seq), data, "sequence %d must have correct data", seq)
+	for i, ps := range res.Acknowledgements {
+		expAck := expAcks[i]
+		s.Require().Equal(expAck.Sequence, ps.Sequence, "sequence %d must have correct sequence", ps.Sequence)
+		s.Require().Equal(expAck.ClientId, ps.ClientId, "sequence %d must have correct client ID", ps.Sequence)
+		s.Require().Equal(expAck.Data, ps.Data, "sequence %d must have correct data", ps.Sequence)
 	}
 }
 
