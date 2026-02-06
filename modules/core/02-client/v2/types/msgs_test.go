@@ -24,6 +24,16 @@ var (
 
 func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 	signer := ibctesting.TestAccAddress
+	tooManyParts := make([][]byte, types.MaxCounterpartyMerklePrefixParts+1)
+	for i := range tooManyParts {
+		tooManyParts[i] = []byte("ibc")
+	}
+	tooLargePart := [][]byte{make([]byte, types.MaxCounterpartyMerklePrefixPartLength+1)}
+	partsForTotal := (types.MaxCounterpartyMerklePrefixTotalLength / types.MaxCounterpartyMerklePrefixPartLength) + 1
+	tooLargeTotal := make([][]byte, partsForTotal)
+	for i := range tooLargeTotal {
+		tooLargeTotal[i] = make([]byte, types.MaxCounterpartyMerklePrefixPartLength)
+	}
 	testCases := []struct {
 		name     string
 		msg      *types.MsgRegisterCounterparty
@@ -84,6 +94,36 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 			types.NewMsgRegisterCounterparty(
 				"testclientid-1",
 				[][]byte{},
+				"testclientid-3",
+				signer,
+			),
+			types.ErrInvalidCounterparty,
+		},
+		{
+			"failure: too many merkle prefix parts",
+			types.NewMsgRegisterCounterparty(
+				"testclientid-1",
+				tooManyParts,
+				"testclientid-3",
+				signer,
+			),
+			types.ErrInvalidCounterparty,
+		},
+		{
+			"failure: merkle prefix part too large",
+			types.NewMsgRegisterCounterparty(
+				"testclientid-1",
+				tooLargePart,
+				"testclientid-3",
+				signer,
+			),
+			types.ErrInvalidCounterparty,
+		},
+		{
+			"failure: merkle prefix total bytes too large",
+			types.NewMsgRegisterCounterparty(
+				"testclientid-1",
+				tooLargeTotal,
 				"testclientid-3",
 				signer,
 			),

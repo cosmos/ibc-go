@@ -7,6 +7,7 @@ import (
 )
 
 func TestGenesisState_Validate(t *testing.T) {
+	tooLargePart := [][]byte{make([]byte, types.MaxCounterpartyMerklePrefixPartLength+1)}
 	tests := []struct {
 		name     string
 		genState types.GenesisState
@@ -92,6 +93,18 @@ func TestGenesisState_Validate(t *testing.T) {
 					{
 						ClientId:         "test-0",
 						CounterpartyInfo: types.NewCounterpartyInfo([][]byte{{0o1}}, "test-1"),
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid - merkle prefix part too large",
+			genState: types.GenesisState{
+				CounterpartyInfos: []types.GenesisCounterpartyInfo{
+					{
+						ClientId:         "test-1",
+						CounterpartyInfo: types.NewCounterpartyInfo(tooLargePart, "test-0"),
 					},
 				},
 			},

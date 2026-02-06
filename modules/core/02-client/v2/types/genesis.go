@@ -1,6 +1,9 @@
 package types
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // DefaultGenesisState returns the ibc client submodule's default genesis state.
 func DefaultGenesisState() GenesisState {
@@ -25,9 +28,12 @@ func (gs GenesisState) Validate() error {
 		if len(genInfo.CounterpartyInfo.MerklePrefix) == 0 {
 			return errors.New("counterparty merkle prefix cannot be empty")
 		}
+		if err := ValidateCounterpartyMerklePrefix(genInfo.CounterpartyInfo.MerklePrefix); err != nil {
+			return err
+		}
 
 		if _, ok := seenIDs[genInfo.ClientId]; ok {
-			return errors.New("duplicate counterparty client id %s found")
+			return fmt.Errorf("duplicate counterparty client id %s found", genInfo.ClientId)
 		}
 		seenIDs[genInfo.ClientId] = struct{}{}
 	}
