@@ -199,8 +199,8 @@ Technically, there are four docs being maintained in this repo:
 
 1. Found in `docs/docs/` (this is the one displayed on the website in the "Documentation" tab)
 2. Found in `docs/architecture/` (this is the one displayed on the website in the "Architecture Decision Records" tab)
-3. Found in `docs/events/` (depreciated, this is not displayed on the website, but is hosted under `/events/` url)
-4. Found in `docs/params/` (depreciated, this is not displayed on the website, but is hosted under `/params/` url)
+3. Found in `docs/events/` (deprecated, this is not displayed on the website, but is hosted under `/events/` url)
+4. Found in `docs/params/` (deprecated, this is not displayed on the website, but is hosted under `/params/` url)
 
 When referencing a markdown file, you should use relative file paths if they are in the same docs directory from above. For example, if you are in `docs/docs/01-ibc` and want to link to `docs/docs/02-apps/01-transfer/01-overview.md`, you should use the relative link `../02-apps/01-transfer/01-overview.md`.
 
