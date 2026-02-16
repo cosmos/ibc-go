@@ -217,6 +217,10 @@ func (s *AttestationsTestSuite) TestStatus() {
 	status := s.lightClientModule.Status(ctx, clientID)
 	s.Require().Equal(exported.Active, status)
 
+	expiredCtx := ctx.WithBlockTime(time.Unix(0, int64(initialTimestamp)+(int64(testTrustingPeriod)*int64(time.Second))+1))
+	status = s.lightClientModule.Status(expiredCtx, clientID)
+	s.Require().Equal(exported.Expired, status)
+
 	s.freezeClient(ctx, clientID)
 	status = s.lightClientModule.Status(ctx, clientID)
 	s.Require().Equal(exported.Frozen, status)
