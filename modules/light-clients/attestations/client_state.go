@@ -239,7 +239,7 @@ func (cs *ClientState) IsExpired(consensusState *ConsensusState, now time.Time) 
 
 	trustingPeriodNanos := uint64(cs.TrustingPeriod) * 1e9
 	consensusStateTimeNanos := consensusState.Timestamp
-	expirationTimeNanos := trustingPeriodNanos+consensusStateTimeNanos
+	expirationTimeNanos := trustingPeriodNanos + consensusStateTimeNanos
 	return uint64(nowNanos) > expirationTimeNanos
 }
 

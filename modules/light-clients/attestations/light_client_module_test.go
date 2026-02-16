@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	testClientID = "attestations-0"
+	testClientID       = "attestations-0"
 	testTrustingPeriod = uint32(60 * 60 * 24 * 7) // 1 week in seconds
 )
 
