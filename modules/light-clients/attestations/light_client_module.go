@@ -147,6 +147,14 @@ func (l LightClientModule) Status(ctx sdk.Context, clientID string) exported.Sta
 		return exported.Frozen
 	}
 
+	consState, found := getConsensusState(clientStore, l.cdc, clienttypes.NewHeight(0, clientState.LatestHeight))
+	if !found {
+		return exported.Unknown
+	}
+	if clientState.IsExpired(consState, ctx.BlockTime()) {
+		return exported.Expired
+	}
+
 	return exported.Active
 }
 

@@ -2,6 +2,7 @@ package attestations
 
 import (
 	"bytes"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -223,6 +224,19 @@ func (cs *ClientState) verifyNonMembership(
 	}
 
 	return nil
+}
+
+// IsExpired checks if the client state is expired based on the trusting period and the timestamp of the provided consensus state.
+func (cs *ClientState) IsExpired(consensusState *ConsensusState, now time.Time) bool {
+	nowNanos := now.UnixNano()
+	if nowNanos < 0 {
+		panic("current time is before Unix epoch, unreachable")
+	}
+
+	trustingPeriodNanos := uint64(cs.TrustingPeriod) * 1e9
+	consensusStateTimeNanos := consensusState.Timestamp
+	expirationTimeNanos := trustingPeriodNanos+consensusStateTimeNanos
+	return uint64(nowNanos) > expirationTimeNanos
 }
 
 // sets the client state to the store
