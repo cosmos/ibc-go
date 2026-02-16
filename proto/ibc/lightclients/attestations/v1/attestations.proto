@@ -18,6 +18,8 @@ message ClientState {
   uint64 latest_height = 3;
   // when true, all verification and updates MUST fail
   bool is_frozen = 4;
+  //  duration of the period since the LatestTimestamp during which the submitted headers are valid for upgrade (in seconds)
+  uint32 trusting_period = 5;
 }
 
 // ConsensusState defines an attestor consensus state. The timestamp of a
