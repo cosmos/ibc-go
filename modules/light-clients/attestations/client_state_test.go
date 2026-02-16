@@ -25,32 +25,37 @@ func (s *AttestationsTestSuite) TestClientStateValidate() {
 		},
 		{
 			name:        "zero latest height",
-			clientState: attestations.NewClientState(s.attestorAddrs, s.minRequiredSigs, 0),
+			clientState: attestations.NewClientState(s.attestorAddrs, s.minRequiredSigs, 0, testTrustingPeriod),
 			expErr:      true,
 		},
 		{
 			name:        "empty attestor addresses",
-			clientState: attestations.NewClientState([]string{}, 1, 1),
+			clientState: attestations.NewClientState([]string{}, 1, 1, testTrustingPeriod),
 			expErr:      true,
 		},
 		{
 			name:        "zero min required sigs",
-			clientState: attestations.NewClientState(s.attestorAddrs, 0, 1),
+			clientState: attestations.NewClientState(s.attestorAddrs, 0, 1, testTrustingPeriod),
 			expErr:      true,
 		},
 		{
 			name:        "min required sigs exceeds attestor count",
-			clientState: attestations.NewClientState(s.attestorAddrs, 10, 1),
+			clientState: attestations.NewClientState(s.attestorAddrs, 10, 1, testTrustingPeriod),
 			expErr:      true,
 		},
 		{
 			name:        "duplicate attestor address",
-			clientState: attestations.NewClientState([]string{s.attestorAddrs[0], s.attestorAddrs[0]}, 1, 1),
+			clientState: attestations.NewClientState([]string{s.attestorAddrs[0], s.attestorAddrs[0]}, 1, 1, testTrustingPeriod),
 			expErr:      true,
 		},
 		{
 			name:        "empty attestor address",
-			clientState: attestations.NewClientState([]string{""}, 1, 1),
+			clientState: attestations.NewClientState([]string{""}, 1, 1, testTrustingPeriod),
+			expErr:      true,
+		},
+		{
+			name:        "zero trusting period",
+			clientState: attestations.NewClientState(s.attestorAddrs, s.minRequiredSigs, 1, 0),
 			expErr:      true,
 		},
 	}
@@ -75,27 +80,27 @@ func (s *AttestationsTestSuite) TestClientStateValidateInvalidAddressFormat() {
 	}{
 		{
 			name:        "invalid address format - not hex",
-			clientState: attestations.NewClientState([]string{"not-a-valid-address"}, 1, 1),
+			clientState: attestations.NewClientState([]string{"not-a-valid-address"}, 1, 1, testTrustingPeriod),
 			expErr:      "invalid attestor address format",
 		},
 		{
 			name:        "invalid address format - too short",
-			clientState: attestations.NewClientState([]string{"0x1234"}, 1, 1),
+			clientState: attestations.NewClientState([]string{"0x1234"}, 1, 1, testTrustingPeriod),
 			expErr:      "invalid attestor address format",
 		},
 		{
 			name:        "valid checksummed address",
-			clientState: attestations.NewClientState([]string{s.attestorAddrs[0]}, 1, 1),
+			clientState: attestations.NewClientState([]string{s.attestorAddrs[0]}, 1, 1, testTrustingPeriod),
 			expErr:      "",
 		},
 		{
 			name:        "valid lowercase address",
-			clientState: attestations.NewClientState([]string{strings.ToLower(s.attestorAddrs[0])}, 1, 1),
+			clientState: attestations.NewClientState([]string{strings.ToLower(s.attestorAddrs[0])}, 1, 1, testTrustingPeriod),
 			expErr:      "",
 		},
 		{
 			name:        "duplicate addresses with different case",
-			clientState: attestations.NewClientState([]string{s.attestorAddrs[0], strings.ToLower(s.attestorAddrs[0])}, 1, 1),
+			clientState: attestations.NewClientState([]string{s.attestorAddrs[0], strings.ToLower(s.attestorAddrs[0])}, 1, 1, testTrustingPeriod),
 			expErr:      "duplicate attestor address",
 		},
 	}

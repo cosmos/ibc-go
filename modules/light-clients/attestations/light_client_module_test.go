@@ -19,7 +19,10 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
 
-const testClientID = "attestations-0"
+const (
+	testClientID = "attestations-0"
+	testTrustingPeriod = uint32(60 * 60 * 24 * 7) // 1 week in seconds
+)
 
 type AttestationsTestSuite struct {
 	testifysuite.Suite
@@ -114,6 +117,7 @@ func (s *AttestationsTestSuite) createClientState(initialHeight uint64) *attesta
 		s.attestorAddrs,
 		s.minRequiredSigs,
 		initialHeight,
+		testTrustingPeriod,
 	)
 }
 

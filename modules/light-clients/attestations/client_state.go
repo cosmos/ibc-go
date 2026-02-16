@@ -24,12 +24,13 @@ var _ exported.ClientState = (*ClientState)(nil)
 var nonMembershipCommitment = make([]byte, 32)
 
 // NewClientState creates a new ClientState instance.
-func NewClientState(attestorAddresses []string, minRequiredSigs uint32, latestHeight uint64) *ClientState {
+func NewClientState(attestorAddresses []string, minRequiredSigs uint32, latestHeight uint64, trustingPeriod uint32) *ClientState {
 	return &ClientState{
 		AttestorAddresses: attestorAddresses,
 		MinRequiredSigs:   minRequiredSigs,
 		LatestHeight:      latestHeight,
 		IsFrozen:          false,
+		TrustingPeriod:    trustingPeriod,
 	}
 }
 
@@ -48,6 +49,9 @@ func (cs ClientState) Validate() error {
 	}
 	if cs.MinRequiredSigs > uint32(len(cs.AttestorAddresses)) {
 		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "min required sigs cannot exceed number of attestors")
+	}
+	if cs.TrustingPeriod == 0 {
+		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "trusting period cannot be 0")
 	}
 
 	seen := make(map[common.Address]bool)

@@ -95,7 +95,7 @@ func (s *AttestationsTestSuite) TestAddressCaseInsensitiveComparison() {
 	addr := crypto.PubkeyToAddress(privKey.PublicKey).Hex()
 
 	lowercaseAddrs := []string{strings.ToLower(addr)}
-	clientState := attestations.NewClientState(lowercaseAddrs, 1, 100)
+	clientState := attestations.NewClientState(lowercaseAddrs, 1, 100, testTrustingPeriod)
 	consensusState := s.createConsensusState(uint64(time.Second.Nanoseconds()))
 
 	clientStateBz, err := s.chainA.App.AppCodec().Marshal(clientState)
