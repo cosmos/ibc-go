@@ -202,7 +202,7 @@ func (s *E2ETestSuite) SetupChains(ctx context.Context, chainCount int, channelO
 }
 
 // CreatePaths creates paths between the chains using the provided client and channel options.
-// The paths are created such that ChainA is connected to ChainB, ChainB is connected to ChainC etc.
+// The paths are created such that ChainA is connected to ChainB, which is connected to ChainC, etc.
 func (s *E2ETestSuite) CreatePaths(clientOpts ibc.CreateClientOptions, channelOpts ibc.CreateChannelOptions, testName string) {
 	s.T().Logf("Setting up path for: %s", testName)
 
