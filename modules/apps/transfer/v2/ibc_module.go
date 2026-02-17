@@ -58,7 +58,7 @@ func (im IBCModule) OnSendPacket(ctx sdk.Context, sourceChannel string, destinat
 	}
 
 	if !bytes.Equal(sender, signer) {
-		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "sender %s is different from signer %s", sender, signer)
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "sender %s is different from signer %s", data.Sender, signer)
 	}
 
 	// Enforce that the base denom does not contain any slashes
