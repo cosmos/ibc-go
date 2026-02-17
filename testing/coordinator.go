@@ -17,7 +17,7 @@ var (
 )
 
 // Coordinator is a testing struct which contains N TestChain's. It handles keeping all chains
-// in sync with regards to time.
+// in sync with regard to time.
 type Coordinator struct {
 	*testing.T
 
