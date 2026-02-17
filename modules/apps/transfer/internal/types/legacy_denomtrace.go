@@ -17,7 +17,7 @@ func (dt DenomTrace) Hash() cmtbytes.HexBytes {
 	return hash[:]
 }
 
-// GetPrefix returns the receiving denomination prefix composed by the trace info and a separator.
+// GetPrefix returns the receiving denomination prefix composed of the trace info and a separator.
 func (dt DenomTrace) GetPrefix() string {
 	return dt.Path + "/"
 }
