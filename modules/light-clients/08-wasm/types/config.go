@@ -18,7 +18,7 @@ const (
 	defaultContractDebugMode            = false
 )
 
-// WasmConfig defines configuration parameters for the 08-wasm wasm virtual machine instance.
+// WasmConfig defines configuration parameters for the 08-wasm virtual machine instance.
 // It includes the `dataDir` intended to be used for wasm blobs and internal caches, as well as a comma separated list
 // of features or capabilities the user wishes to enable. A boolean flag is provided to enable debug mode.
 type WasmConfig struct {
