@@ -12,11 +12,11 @@ In addition to unwinding, when a user receives their token on a destination chai
 
 A fungible token A transferred from chain A to chain B is an IBC denomination at chain B, where the IBC denom trace records the path the token has travelled to reach its destination chain. 
 
-A user now wants to send this IBC denomination of token A, originating from chain A, onto another chain, chain C. If a user transfers token A on chain B directly to chain C, it will not be fungible with token A sent directly from chain A to chain C. This is because the IBC denomination of token A on chain C is different in both cases due to token A travelling along different paths to reach the same destination. This is the most simple case of the problem involving only 3 chains.
+A user now wants to send this IBC denomination of token A, originating from chain A, onto chain C. If a user transfers token A on chain B directly to chain C, it will not be fungible with token A sent directly from chain A to chain C. This is because the IBC denomination of token A on chain C is different in both cases due to token A travelling along different paths to reach the same destination. This is the most simple case of the problem involving only 3 chains.
 
 However, this problem is prevalent within the ecosystem and there are cases of IBC denominations on chains with >2 hops in the path. 
 
-Regarding forwarding, if a user wants to transfer tokens between chains, then perform an action with those tokens, without forwarding, a user would have to sign each transaction on every chain and wait for the tokens to arrive at the destination before performing the next action. This is time consuming and a provides a poor user experience, a user also cannot just specify the desired outcome of their workflow in a trivial way.   
+Regarding forwarding, if a user wants to transfer tokens between chains, then perform an action with those tokens, without forwarding, a user would have to sign each transaction on every chain and wait for the tokens to arrive at the destination before performing the next action. This is time consuming and provides a poor user experience, a user also cannot just specify the desired outcome of their workflow in a trivial way.   
 
 ## Objectives
 
