@@ -213,7 +213,7 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (c *TestChain) GetContext() sdk.Context {
-	return c.App.GetBaseApp().NewUncachedContext(false, c.ProposedHeader)
+	return c.App.GetBaseApp().NewCachedContext(false, c.ProposedHeader)
 }
 
 // GetSimApp returns the SimApp to allow usage ofnon-interface fields.

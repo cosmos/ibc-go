@@ -125,7 +125,7 @@ func NewSimApp(
   if loadLatest {
     ...
 
-    ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
+    ctx := app.BaseApp.NewCachedContext(true, cmtproto.Header{})
 
     // Initialize pinned codes in wasmvm as they are not persisted there
     if err := app.WasmClientKeeper.InitializePinnedCodes(ctx); err != nil {

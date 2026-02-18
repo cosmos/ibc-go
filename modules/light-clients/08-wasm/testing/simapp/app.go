@@ -388,7 +388,7 @@ func newSimApp(
 
 	app.GovKeeper = *govKeeper.SetHooks(
 		govtypes.NewMultiGovHooks(
-			// register the governance hooks
+		// register the governance hooks
 		),
 	)
 
@@ -768,7 +768,7 @@ func newSimApp(
 			panic(fmt.Errorf("error loading last version: %w", err))
 		}
 
-		ctx := app.NewUncachedContext(true, cmtproto.Header{})
+		ctx := app.NewCachedContext(true, cmtproto.Header{})
 
 		// Initialize pinned codes in wasmvm as they are not persisted there
 		if err := app.WasmClientKeeper.InitializePinnedCodes(ctx); err != nil {
