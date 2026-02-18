@@ -39,7 +39,7 @@ The IBC implementation in Golang `ibc-go` has been used in production by the maj
 
 ## Releases
 
-The release lines currently supported are v7, v8, and v10. Please note that v9 has been retracted and has been replaced by v10.
+The release lines currently supported are v8, and v10. Please note that v9 has been retracted and has been replaced by v10.
 
 Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md) for more information on how to understand our release versioning.
 

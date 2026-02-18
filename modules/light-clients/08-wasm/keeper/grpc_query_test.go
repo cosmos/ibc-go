@@ -120,7 +120,7 @@ func (s *KeeperTestSuite) TestQueryChecksums() {
 			if tc.expErr == nil {
 				s.Require().NoError(err)
 				s.Require().NotNil(res)
-				s.Require().Equal(len(expChecksums), len(res.Checksums))
+				s.Require().Len(res.Checksums, len(expChecksums))
 				s.Require().ElementsMatch(expChecksums, res.Checksums)
 			} else {
 				s.Require().Error(err)

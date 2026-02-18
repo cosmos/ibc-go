@@ -513,7 +513,7 @@ func (s *KeeperTestSuite) TestRecvPacket() {
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, tc.expError)
-				s.Require().Equal("", channelVersion)
+				s.Require().Empty(channelVersion)
 			}
 		})
 	}
@@ -625,7 +625,7 @@ func (s *KeeperTestSuite) TestAcknowledgePacket() {
 			s.Require().Error(err)
 			s.Require().ErrorIs(err, errType)
 			s.Require().NotNil(commitment)
-			s.Require().Equal("", channelVersion)
+			s.Require().Empty(channelVersion)
 		}
 	}
 
@@ -633,7 +633,7 @@ func (s *KeeperTestSuite) TestAcknowledgePacket() {
 		s.Require().Error(err)
 		s.Require().ErrorIs(err, types.ErrNoOpMsg)
 		s.Require().Nil(commitment)
-		s.Require().Equal("", channelVersion)
+		s.Require().Empty(channelVersion)
 	}
 
 	assertSuccess := func(seq func() uint64, msg string) func(commitment []byte, channelVersion string, err error) {
@@ -759,7 +759,7 @@ func (s *KeeperTestSuite) TestAcknowledgePacket() {
 			expResult: func(commitment []byte, channelVersion string, err error) {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, types.ErrInvalidAcknowledgement)
-				s.Require().Equal("", channelVersion)
+				s.Require().Empty(channelVersion)
 				s.Require().NotNil(commitment)
 			},
 		},

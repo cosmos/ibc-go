@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -226,10 +225,10 @@ func (s *KeeperTestSuite) TestTimeoutPacket() {
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, tc.expErr)
-				s.Require().Equal("", channelVersion)
+				s.Require().Empty(channelVersion)
 				// only check if expError is set, since not all error codes can be known
 				if expError != nil {
-					s.Require().True(errors.Is(err, expError))
+					s.Require().ErrorIs(err, expError)
 				}
 			}
 		})
@@ -271,7 +270,7 @@ func (s *KeeperTestSuite) TestTimeoutExecuted() {
 
 				// Check channel has been closed
 				channel := path.EndpointA.GetChannel()
-				s.Require().Equal(channel.State, types.CLOSED)
+				s.Require().Equal(types.CLOSED, channel.State)
 			},
 			nil,
 		},
@@ -473,7 +472,7 @@ func (s *KeeperTestSuite) TestTimeoutOnClose() {
 				s.Require().Equal(path.EndpointA.GetChannel().Version, channelVersion)
 			} else {
 				s.Require().Error(err)
-				s.Require().Equal("", channelVersion)
+				s.Require().Empty(channelVersion)
 				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})

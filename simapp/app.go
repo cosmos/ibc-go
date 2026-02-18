@@ -100,6 +100,9 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
+	gmp "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp"
+	gmpkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/keeper"
+	gmptypes "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
 	packetforward "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware"
 	packetforwardkeeper "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
@@ -117,6 +120,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 )
 
 const appName = "SimApp"
@@ -175,6 +179,7 @@ type SimApp struct {
 	CircuitKeeper         circuitkeeper.Keeper
 	PFMKeeper             *packetforwardkeeper.Keeper
 	RateLimitKeeper       *ratelimitkeeper.Keeper
+	GMPKeeper             *gmpkeeper.Keeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -261,7 +266,7 @@ func NewSimApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
-		authzkeeper.StoreKey, consensusparamtypes.StoreKey, circuittypes.StoreKey, packetforwardtypes.StoreKey, ratelimittypes.StoreKey,
+		authzkeeper.StoreKey, consensusparamtypes.StoreKey, circuittypes.StoreKey, packetforwardtypes.StoreKey, ratelimittypes.StoreKey, gmptypes.StoreKey,
 	)
 
 	// register streaming services
@@ -338,8 +343,15 @@ func NewSimApp(
 		govConfig.MaxMetadataLen = 10000
 	*/
 	govKeeper := govkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[govtypes.StoreKey]), app.AccountKeeper, app.BankKeeper,
-		app.StakingKeeper, app.DistrKeeper, app.MsgServiceRouter(), govConfig, govAuthority,
+		appCodec,
+		runtime.NewKVStoreService(keys[govtypes.StoreKey]),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.DistrKeeper,
+		app.MsgServiceRouter(),
+		govConfig,
+		govAuthority,
+		govkeeper.NewDefaultCalculateVoteResultsAndVotingPower(app.StakingKeeper),
 	)
 
 	app.GovKeeper = *govKeeper.SetHooks(
@@ -362,6 +374,15 @@ func NewSimApp(
 		appCodec, runtime.NewKVStoreService(keys[icahosttypes.StoreKey]),
 		app.IBCKeeper.ChannelKeeper, app.AccountKeeper,
 		app.MsgServiceRouter(), app.GRPCQueryRouter(),
+		govAuthority,
+	)
+
+	// GMP Keeper
+	app.GMPKeeper = gmpkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[gmptypes.StoreKey]),
+		app.AccountKeeper,
+		app.MsgServiceRouter(),
 		govAuthority,
 	)
 
@@ -426,6 +447,9 @@ func NewSimApp(
 	// register the transfer v2 module.
 	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeper))
 
+	// register the gmp module.
+	ibcRouterV2.AddRoute(gmptypes.PortID, gmp.NewIBCModule(app.GMPKeeper))
+
 	// Set the IBC Routers
 	app.IBCKeeper.SetRouter(ibcRouter)
 	app.IBCKeeper.SetRouterV2(ibcRouterV2)
@@ -438,6 +462,9 @@ func NewSimApp(
 
 	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
 	clientKeeper.AddRoute(solomachine.ModuleName, &smLightClientModule)
+
+	attestationsLightClientModule := attestations.NewLightClientModule(appCodec, storeProvider)
+	clientKeeper.AddRoute(attestations.ModuleName, &attestationsLightClientModule)
 
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
@@ -474,12 +501,14 @@ func NewSimApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(app.ICAControllerKeeper, app.ICAHostKeeper),
+		gmp.NewAppModule(app.GMPKeeper),
 		packetforward.NewAppModule(app.PFMKeeper),
 		ratelimiting.NewAppModule(app.RateLimitKeeper),
 
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
+		attestations.NewAppModule(attestationsLightClientModule),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -529,6 +558,7 @@ func NewSimApp(
 		feegrant.ModuleName,
 		icatypes.ModuleName,
 		ratelimittypes.ModuleName,
+		banktypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -539,7 +569,7 @@ func NewSimApp(
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
-		packetforwardtypes.ModuleName, icatypes.ModuleName, feegrant.ModuleName, upgradetypes.ModuleName,
+		packetforwardtypes.ModuleName, icatypes.ModuleName, gmptypes.ModuleName, feegrant.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, consensusparamtypes.ModuleName, circuittypes.ModuleName, ratelimittypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)

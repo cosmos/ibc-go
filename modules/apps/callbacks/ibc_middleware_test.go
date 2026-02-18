@@ -246,7 +246,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			switch {
 			case expPass:
 				sendPacket()
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 				s.Require().Equal(uint64(1), seq)
 
 				expEvent, exists := GetExpectedEvent(
@@ -404,7 +404,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			switch {
 			case tc.expError == nil:
 				err := onAcknowledgementPacket()
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 			case errors.Is(tc.expError, panicError):
 				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit)}, func() {
 					_ = onAcknowledgementPacket()
@@ -419,7 +419,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 
 			switch tc.expResult {
 			case noExecution:
-				s.Require().Len(sourceCounters, 0)
+				s.Require().Empty(sourceCounters)
 				s.Require().Equal(uint8(0), sourceStatefulCounter)
 
 			case callbackFailed:
@@ -575,7 +575,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			switch expValue := tc.expValue.(type) {
 			case nil:
 				err := onTimeoutPacket()
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 			case error:
 				err := onTimeoutPacket()
 				s.Require().ErrorIs(err, expValue)
@@ -769,7 +769,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 
 			switch tc.expResult {
 			case noExecution:
-				s.Require().Len(destCounters, 0)
+				s.Require().Empty(destCounters)
 				s.Require().Equal(uint8(0), destStatefulCounter)
 
 			case callbackFailed:

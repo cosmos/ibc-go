@@ -51,6 +51,8 @@ linters:
       # See the rule descriptions here: https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md
       rules:
         # Rules with configuration
+        - name: package-directory-mismatch
+          disabled : true
         - name: receiver-naming
           disabled: false
           arguments:

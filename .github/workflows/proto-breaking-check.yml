@@ -11,6 +11,6 @@ jobs:
   proto-breaking-check:
     runs-on: depot-ubuntu-24.04-4
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Run proto-breaking check
         run: make proto-check-breaking

@@ -637,7 +637,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_Denied() {
 	senderIntermedBal := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), sender, sdk.DefaultBondDenom)
 	s.Require().Equal(senderInitialBal.Sub(sendCoin), senderIntermedBal)
 
-	// Manully commit block on Chain A
+	// Manually commit block on Chain A
 	s.coordinator.CommitBlock(s.chainA)
 
 	packet := channeltypes.Packet{

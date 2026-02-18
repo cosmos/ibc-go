@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package ibc.lightclients.attestations.v1;
+
+option go_package = "github.com/cosmos/ibc-go/v10/modules/light-clients/attestations;attestations";
+
+import "gogoproto/gogo.proto";
+
+// ClientState defines an attestor-based light client that tracks the current
+// consensus state and if the client is frozen.
+message ClientState {
+  option (gogoproto.goproto_getters) = false;
+  // trusted attestor set (EOA addresses)
+  repeated string attestor_addresses = 1;
+  // quorum threshold (minimum number of unique attestor signatures required)
+  uint32 min_required_sigs = 2;
+  // highest height that has been trusted
+  uint64 latest_height = 3;
+  // when true, all verification and updates MUST fail
+  bool is_frozen = 4;
+}
+
+// ConsensusState defines an attestor consensus state. The timestamp of a
+// consensus state is stored per height.
+message ConsensusState {
+  option (gogoproto.goproto_getters) = false;
+  // trusted UNIX timestamp (nanoseconds) for the height
+  uint64 timestamp = 1;
+}
+
+// AttestationProof is used for client updates and membership verification.
+// All attestor signatures cover sha256(attestationData).
+message AttestationProof {
+  option (gogoproto.goproto_getters) = false;
+  // the attestation data that was signed (ABI-encoded StateAttestation or PacketAttestation)
+  bytes attestation_data = 1;
+  // array of 65-byte ECDSA signatures (r||s||v)
+  repeated bytes signatures = 2;
+}

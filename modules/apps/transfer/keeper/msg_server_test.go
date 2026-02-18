@@ -156,12 +156,12 @@ func (s *KeeperTestSuite) TestMsgTransfer() {
 			if tc.expError == nil {
 				s.Require().NoError(err)
 				s.Require().NotNil(res)
-				s.Require().NotEqual(res.Sequence, uint64(0))
+				s.Require().NotEqual(uint64(0), res.Sequence)
 				ibctesting.AssertEvents(&s.Suite, expEvents, events)
 			} else {
 				s.Require().Nil(res)
 				s.Require().True(errors.Is(err, tc.expError) || strings.Contains(err.Error(), tc.expError.Error()), err.Error())
-				s.Require().Len(events, 0)
+				s.Require().Empty(events)
 			}
 		})
 	}
@@ -300,7 +300,7 @@ func (s *KeeperTestSuite) TestMsgTransferIBCV2() {
 			if tc.expError == nil {
 				s.Require().NoError(err)
 				s.Require().NotNil(res)
-				s.Require().NotEqual(res.Sequence, uint64(0))
+				s.Require().NotEqual(uint64(0), res.Sequence)
 				ibctesting.AssertEvents(&s.Suite, expEvents, events)
 			} else {
 				s.Require().Nil(res)
