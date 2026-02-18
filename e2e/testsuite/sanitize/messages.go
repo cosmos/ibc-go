@@ -1,6 +1,8 @@
 package sanitize
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
@@ -57,6 +59,9 @@ func removeUnknownFields(tag string, msg sdk.Msg) sdk.Msg {
 		if !icaUnorderedChannelFeatureReleases.IsSupported(tag) {
 			msg.Ordering = channeltypes.NONE
 		}
+
+	default:
+		panic(fmt.Errorf("unrecognized message type: %T", msg))
 	}
 	return msg
 }
