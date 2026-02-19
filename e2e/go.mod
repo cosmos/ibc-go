@@ -12,7 +12,7 @@ replace (
 
 require (
 	cosmossdk.io/api v0.9.2
-	cosmossdk.io/errors v1.0.2
+	cosmossdk.io/errors v1.1.0
 	cosmossdk.io/math v1.5.3
 	cosmossdk.io/x/upgrade v0.2.0
 	github.com/cometbft/cometbft v0.39.0-beta.2
