@@ -27,6 +27,7 @@ type IBCModuleTestSuite struct {
 const (
 	validClientID   = ibctesting.FirstClientID
 	invalidClientID = "invalid"
+	invalidPort     = "invalid-port"
 )
 
 func TestIBCModuleTestSuite(t *testing.T) {
@@ -61,14 +62,14 @@ func (s *IBCModuleTestSuite) TestOnSendPacket() {
 		{
 			"failure: invalid source port",
 			func() {
-				payload.SourcePort = "invalid-port"
+				payload.SourcePort = invalidPort
 			},
 			channeltypesv2.ErrInvalidPacket,
 		},
 		{
 			"failure: invalid destination port",
 			func() {
-				payload.DestinationPort = "invalid-port"
+				payload.DestinationPort = invalidPort
 			},
 			channeltypesv2.ErrInvalidPacket,
 		},
@@ -174,7 +175,7 @@ func (s *IBCModuleTestSuite) TestOnRecvPacket() {
 		{
 			"failure: invalid source port",
 			func() {
-				payload.SourcePort = "invalid-port"
+				payload.SourcePort = invalidPort
 			},
 			channeltypesv2.PacketStatus_Failure,
 		},
@@ -375,6 +376,8 @@ func (s *IBCModuleTestSuite) fundAccount(addr sdk.AccAddress, coins sdk.Coins) {
 }
 
 func (s *IBCModuleTestSuite) newMsgSend(from, to sdk.AccAddress) *banktypes.MsgSend {
+	s.T().Helper()
+
 	return &banktypes.MsgSend{
 		FromAddress: from.String(),
 		ToAddress:   to.String(),

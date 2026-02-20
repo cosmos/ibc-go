@@ -316,6 +316,8 @@ func (s *CallbacksTestSuite) fundGMPAccount(addr sdk.AccAddress) {
 }
 
 func (s *CallbacksTestSuite) newGMPMsgSend(from, to sdk.AccAddress) *banktypes.MsgSend {
+	s.T().Helper()
+
 	return &banktypes.MsgSend{
 		FromAddress: from.String(),
 		ToAddress:   to.String(),
