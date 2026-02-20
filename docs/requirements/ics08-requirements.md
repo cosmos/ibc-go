@@ -108,7 +108,7 @@ The first use case that this module will enable is the connection between GRANDP
 
 | ID | Description | Verification | Status | Release |
 | -- | ----------- | ------------ | ------ | ------- |
-| 6.01 | The 08-wasm module must ensure that the contracts do not remove or corrupt the stored client state state. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/types/vm.go#L227). | `Verified` | v0.1.0 | 
+| 6.01 | The 08-wasm module must ensure that the contracts do not remove or corrupt the stored client state. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/types/vm.go#L227). | `Verified` | v0.1.0 |
 | 6.02 | The 08-wasm module must ensure that the contracts do not include in the response to sudo, instantiate or migrate calls messages, events or attributes. | See [here](https://github.com/cosmos/ibc-go/blob/modules/light-clients/08-wasm/v0.1.0%2Bibc-go-v8.0-wasmvm-v1.5/modules/light-clients/08-wasm/types/vm.go#L300). |  `Verified` | v0.1.0 | 
 
 # External interface requirements

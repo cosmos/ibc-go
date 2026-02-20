@@ -60,7 +60,7 @@ func (a *TransferAuthorization) Accept(goCtx context.Context, msg proto.Message)
 	// bool flag to see if we have updated any of the allocations
 	allocationModified := false
 
-	// update spend limit the token token in the MsgTransfer
+	// Update the spend limit for the token in the MsgTransfer.
 	// If the spend limit is set to the MaxUint256 sentinel value, do not subtract the amount from the spend limit.
 	// if there is no unlimited spend, then we need to subtract the amount from the spend limit to get the limit left
 	if !a.Allocations[index].SpendLimit.AmountOf(msgTransfer.Token.Denom).Equal(UnboundedSpendLimit()) {
