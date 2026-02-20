@@ -52,7 +52,7 @@ func (s *KeeperTestSuite) TestSendCall() {
 		{
 			"failure: invalid sender address",
 			func() {
-				msg.Sender = "invalid"
+				msg.Sender = invalid
 			},
 			errAny,
 		},
@@ -73,7 +73,7 @@ func (s *KeeperTestSuite) TestSendCall() {
 		{
 			"failure: invalid source client - counterparty not found",
 			func() {
-				msg.SourceClient = "invalid"
+				msg.SourceClient = invalid
 			},
 			errAny,
 		},
@@ -116,14 +116,17 @@ func (s *KeeperTestSuite) TestSendCall() {
 
 			resp, err := s.chainA.GetSimApp().GMPKeeper.SendCall(s.chainA.GetContext(), msg)
 
-			if tc.expErr == nil {
+			switch {
+			case tc.expErr == nil:
 				s.Require().NoError(err)
 				s.Require().NotNil(resp)
 				s.Require().Equal(uint64(1), resp.Sequence)
-			} else if errors.Is(tc.expErr, errAny) {
+
+			case errors.Is(tc.expErr, errAny):
 				s.Require().Error(err)
 				s.Require().Nil(resp)
-			} else {
+
+			default:
 				s.Require().ErrorIs(err, tc.expErr)
 				s.Require().Nil(resp)
 			}

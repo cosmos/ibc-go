@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"errors"
 	"strings"
 	"testing"
 
@@ -12,8 +11,6 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
-
-var errAny = errors.New("any error")
 
 func TestGMPPacketData_ValidateBasic(t *testing.T) {
 	testCases := []struct {

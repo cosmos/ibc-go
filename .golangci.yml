@@ -28,7 +28,6 @@ linters:
     - nilnesserr
     - nilnil
     - nonamedreturns
-    - prealloc
     - predeclared
     - reassign
     - recvcheck
