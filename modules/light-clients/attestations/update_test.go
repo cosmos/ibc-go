@@ -39,7 +39,7 @@ func (s *AttestationsTestSuite) TestUpdateState() {
 			newHeight := uint64(200)
 			newTimestamp := uint64(2 * time.Second.Nanoseconds())
 			attestationData := s.createStateAttestation(newHeight, newTimestamp)
-			proof := s.createAttestationProof(attestationData, tc.signers)
+			proof := s.createAttestationProof(attestationData, tc.signers, attestations.AttestationTypeState)
 
 			err := s.lightClientModule.VerifyClientMessage(ctx, clientID, proof)
 			if tc.expErr != "" {
@@ -75,7 +75,7 @@ func (s *AttestationsTestSuite) TestUpdateStateIdempotency() {
 	newTimestamp := uint64(2 * time.Second.Nanoseconds())
 	attestationData := s.createStateAttestation(newHeight, newTimestamp)
 	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(attestationData, signers)
+	proof := s.createAttestationProof(attestationData, signers, attestations.AttestationTypeState)
 
 	err := s.lightClientModule.VerifyClientMessage(ctx, clientID, proof)
 	s.Require().NoError(err)
@@ -104,7 +104,7 @@ func (s *AttestationsTestSuite) TestVerifyClientMessageFrozenClient() {
 	newTimestamp := uint64(2 * time.Second.Nanoseconds())
 	attestationData := s.createStateAttestation(newHeight, newTimestamp)
 	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(attestationData, signers)
+	proof := s.createAttestationProof(attestationData, signers, attestations.AttestationTypeState)
 
 	err := s.lightClientModule.VerifyClientMessage(ctx, clientID, proof)
 	s.Require().NoError(err)
@@ -116,7 +116,7 @@ func (s *AttestationsTestSuite) TestVerifyClientMessageFrozenClient() {
 	s.Require().Equal(exported.Frozen, status)
 
 	newProofData := s.createStateAttestation(uint64(300), uint64(4*time.Second.Nanoseconds()))
-	newProof := s.createAttestationProof(newProofData, signers)
+	newProof := s.createAttestationProof(newProofData, signers, attestations.AttestationTypeState)
 
 	err = s.lightClientModule.VerifyClientMessage(ctx, clientID, newProof)
 	s.Require().ErrorIs(err, attestations.ErrClientFrozen)
@@ -137,7 +137,7 @@ func (s *AttestationsTestSuite) TestUpdateStateOnMisbehaviourPanics() {
 	newTimestamp := uint64(2 * time.Second.Nanoseconds())
 	attestationData := s.createStateAttestation(newHeight, newTimestamp)
 	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(attestationData, signers)
+	proof := s.createAttestationProof(attestationData, signers, attestations.AttestationTypeState)
 
 	err := s.lightClientModule.VerifyClientMessage(ctx, clientID, proof)
 	s.Require().NoError(err)
@@ -145,7 +145,7 @@ func (s *AttestationsTestSuite) TestUpdateStateOnMisbehaviourPanics() {
 
 	conflictingTimestamp := uint64(3 * time.Second.Nanoseconds())
 	conflictingAttestationData := s.createStateAttestation(newHeight, conflictingTimestamp)
-	conflictingProof := s.createAttestationProof(conflictingAttestationData, signers)
+	conflictingProof := s.createAttestationProof(conflictingAttestationData, signers, attestations.AttestationTypeState)
 
 	updateStateOnMisbehaviourFunc := func() {
 		s.lightClientModule.UpdateStateOnMisbehaviour(ctx, clientID, conflictingProof)

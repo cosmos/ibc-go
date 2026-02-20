@@ -2,7 +2,6 @@ package attestations_test
 
 import (
 	"crypto/ecdsa"
-	"crypto/sha256"
 	"testing"
 	"time"
 
@@ -62,8 +61,8 @@ func (s *AttestationsTestSuite) SetupTest() {
 	s.lightClientModule = attestations.NewLightClientModule(cdc, storeProvider)
 }
 
-func (s *AttestationsTestSuite) createAttestationProof(attestationData []byte, signers []int) *attestations.AttestationProof {
-	hash := sha256.Sum256(attestationData)
+func (s *AttestationsTestSuite) createAttestationProof(attestationData []byte, signers []int, attestationType attestations.AttestationType) *attestations.AttestationProof {
+	hash := attestations.TaggedSigningInput(attestationData, attestationType)
 	signatures := make([][]byte, 0, len(signers))
 
 	for _, idx := range signers {
@@ -157,7 +156,7 @@ func (s *AttestationsTestSuite) freezeClient(ctx sdk.Context, clientID string) {
 func (s *AttestationsTestSuite) updateClientState(ctx sdk.Context, clientID string, height, timestamp uint64) {
 	stateAttestation := s.createStateAttestation(height, timestamp)
 	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(stateAttestation, signers)
+	proof := s.createAttestationProof(stateAttestation, signers, attestations.AttestationTypeState)
 	_ = s.lightClientModule.UpdateState(ctx, clientID, proof)
 }
 
@@ -241,7 +240,7 @@ func (s *AttestationsTestSuite) TestCheckForMisbehaviourReturnsFalse() {
 
 	stateAttestation := s.createStateAttestation(initialHeight+1, initialTimestamp+uint64(time.Second.Nanoseconds()))
 	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(stateAttestation, signers)
+	proof := s.createAttestationProof(stateAttestation, signers, attestations.AttestationTypeState)
 
 	foundMisbehaviour := s.lightClientModule.CheckForMisbehaviour(ctx, testClientID, proof)
 	s.Require().False(foundMisbehaviour, "CheckForMisbehaviour should return false")
