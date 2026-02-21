@@ -35,6 +35,8 @@ var (
 	_ codectypes.UnpackInterfacesMessage = (*MsgIBCSoftwareUpgrade)(nil)
 )
 
+const MaxClientStateSize = 1024 // 1KB
+
 // NewMsgCreateClient creates a new MsgCreateClient instance
 func NewMsgCreateClient(
 	clientState exported.ClientState, consensusState exported.ConsensusState, signer string,
@@ -61,6 +63,10 @@ func (msg MsgCreateClient) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+	}
+	// validate the total size of client state
+	if len(msg.ClientState.Value) > MaxClientStateSize {
+		return errorsmod.Wrapf(ibcerrors.ErrTooLarge, "client state size %d exceeds max size %d", len(msg.ClientState.Value), MaxClientStateSize)
 	}
 	clientState, err := UnpackClientState(msg.ClientState)
 	if err != nil {
