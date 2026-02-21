@@ -35,7 +35,7 @@ To achieve this, as stated by [@damiannolan](https://github.com/cosmos/ibc-go/is
 > - `SendTx`
 
 This will enable any SDK (authentication) module to register interchain accounts and send transactions on their behalf.
-Examples of existing SDK modules which would benefit from this change include:
+Examples of existing SDK modules that would benefit from this change include:
 
 - x/auth
 - x/gov
@@ -61,7 +61,7 @@ Underlying applications will be passed a `nil` capability in `OnChanOpenInit`.
 Channel capability migrations will be added in two steps:
 
 - Upgrade handler migration which modifies the channel capability owner from the underlying app to the controller module
-- ICS 27 module automatic migration which asserts the upgrade handler channel capability migration has been performed successfully
+- ICS 27 module automatic migration which asserts that the upgrade handler channel capability migration has been performed successfully
 
 See issue [#2033](https://github.com/cosmos/ibc-go/issues/2033)
 
@@ -77,8 +77,8 @@ See issue [#2145](https://github.com/cosmos/ibc-go/issues/2145)
 
 ### Future considerations
 
-[ADR 008](https://github.com/cosmos/ibc-go/pull/1976) proposes the creation of a middleware which enables callers of an IBC packet send to perform application logic in conjunction with the IBC application.
-The underlying application can be removed at the availability of such a middleware as that will be the preferred method for executing application logic upon a ICS 27 packet send.
+[ADR 008](https://github.com/cosmos/ibc-go/pull/1976) proposes the creation of a middleware that enables callers of an IBC packet send to perform application logic in conjunction with the IBC application.
+The underlying application can be removed at the availability of such a middleware as that will be the preferred method for executing application logic upon an ICS 27 packet send.
 
 ### Miscellaneous
 
@@ -101,12 +101,12 @@ See issue [#2165](https://github.com/cosmos/ibc-go/issues/2165)
 - minimized disruption to existing development around ICS 27 controller module
 - underlying applications no longer have to handle capabilities
 - removal of the underlying application upon the creation of ADR 008 may be done in a minimally disruptive fashion
-- only underlying applications which registered the interchain account will perform application logic for that account (underlying applications do not need to be aware of accounts they did not register)
+- only underlying applications that registered the interchain account will perform application logic for that account (underlying applications do not need to be aware of accounts they did not register)
 
 ### Negative
 
 - the security model has been reduced to that of the SDK. SDK modules may send packets for any interchain account.
-- additional maintenance of the messages added and the middleware enabled flag
+- additional maintenance of the messages added and the middleware-enabled flag
 - underlying applications which will become ADR 008 modules are not required to be aware of accounts they did not register
 - calling legacy API vs the new API results in different behaviour for ICS 27 application stacks which have an underlying application
 
