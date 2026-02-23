@@ -5,7 +5,6 @@ package gmp
 import (
 	"context"
 	"crypto/ecdsa"
-	"crypto/sha256"
 	"testing"
 	"time"
 
@@ -248,7 +247,7 @@ func (s *GMPTestSuite) createAttestationProof(path, commitment []byte) []byte {
 	data, err := attestation.ABIEncode()
 	s.Require().NoError(err)
 
-	hash := sha256.Sum256(data)
+	hash := attestations.TaggedSigningInput(data, attestations.AttestationTypePacket)
 	signatures := make([][]byte, len(s.attestorKeys))
 	for i, key := range s.attestorKeys {
 		sig, err := crypto.Sign(hash[:], key)
