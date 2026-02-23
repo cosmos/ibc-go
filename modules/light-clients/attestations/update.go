@@ -25,7 +25,7 @@ func (cs *ClientState) VerifyClientMessage(ctx sdk.Context, cdc codec.BinaryCode
 		return errorsmod.Wrapf(clienttypes.ErrInvalidClient, "expected type %T, got type %T", (*AttestationProof)(nil), clientMsg)
 	}
 
-	return cs.verifySignatures(attestationProof)
+	return cs.verifySignatures(attestationProof, AttestationTypeState)
 }
 
 // UpdateState updates the consensus state to a new height and timestamp.
