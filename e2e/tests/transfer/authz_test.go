@@ -55,7 +55,6 @@ func (s *AuthzTransferTestSuite) TestAuthz_MsgTransfer_Succeeds() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	t.Parallel()
 
 	chainA, chainB := s.GetChains()
 	chainADenom := chainA.Config().Denom
@@ -219,7 +218,6 @@ func (s *AuthzTransferTestSuite) TestAuthz_InvalidTransferAuthorizations() {
 	ctx := context.TODO()
 
 	testName := t.Name()
-	t.Parallel()
 
 	chainA, chainB := s.GetChains()
 
