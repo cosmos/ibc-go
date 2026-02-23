@@ -91,7 +91,6 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte) ([]sdk.Msg, error) {
 		} else if !isEqual {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "original and reconstructed JSON objects do not match, original: %s, reconstructed: %s", string(data), string(reconstructedData))
 		}
-
 	}
 
 	msgs := make([]sdk.Msg, len(cosmosTx.Messages))
