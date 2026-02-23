@@ -5,7 +5,6 @@ package attestations
 import (
 	"context"
 	"crypto/ecdsa"
-	"crypto/sha256"
 	"encoding/json"
 	"strconv"
 	"testing"
@@ -441,7 +440,7 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 		stateAttestationData, err := stateAttestation.ABIEncode()
 		s.Require().NoError(err)
 
-		signatures := s.signAttestationData(stateAttestationData)
+		signatures := s.signAttestationData(stateAttestationData, attestations.AttestationTypeState)
 		updateProof := &attestations.AttestationProof{
 			AttestationData: stateAttestationData,
 			Signatures:      signatures,
@@ -515,7 +514,7 @@ func (s *AttestationsTestSuite) createPacketAttestationProof(height uint64, path
 	attestationData, err := packetAttestation.ABIEncode()
 	s.Require().NoError(err)
 
-	signatures := s.signAttestationData(attestationData)
+	signatures := s.signAttestationData(attestationData, attestations.AttestationTypePacket)
 	proof := &attestations.AttestationProof{
 		AttestationData: attestationData,
 		Signatures:      signatures,
@@ -525,8 +524,8 @@ func (s *AttestationsTestSuite) createPacketAttestationProof(height uint64, path
 	return proofBz
 }
 
-func (s *AttestationsTestSuite) signAttestationData(data []byte) [][]byte {
-	hash := sha256.Sum256(data)
+func (s *AttestationsTestSuite) signAttestationData(data []byte, attestationType attestations.AttestationType) [][]byte {
+	hash := attestations.TaggedSigningInput(data, attestationType)
 	var signatures [][]byte
 	for _, key := range s.attestorKeys {
 		sig, err := crypto.Sign(hash[:], key)
@@ -550,7 +549,7 @@ func (s *AttestationsTestSuite) createNonMembershipProof(height uint64, path []b
 	attestationData, err := packetAttestation.ABIEncode()
 	s.Require().NoError(err)
 
-	signatures := s.signAttestationData(attestationData)
+	signatures := s.signAttestationData(attestationData, attestations.AttestationTypePacket)
 	proof := &attestations.AttestationProof{
 		AttestationData: attestationData,
 		Signatures:      signatures,

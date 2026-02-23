@@ -2,12 +2,13 @@ package attestations_test
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
 
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
 	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 )
 
@@ -31,7 +32,7 @@ func (s *AttestationsTestSuite) TestVerifySignatures() {
 			name: "failure: unknown signer",
 			setupProof: func(attestationData []byte) *attestations.AttestationProof {
 				unknownKey, _ := crypto.GenerateKey()
-				hash := sha256.Sum256(attestationData)
+				hash := attestations.TaggedSigningInput(attestationData, attestations.AttestationTypeState)
 				unknownSig, _ := crypto.Sign(hash[:], unknownKey)
 				return &attestations.AttestationProof{
 					AttestationData: attestationData,
@@ -43,7 +44,7 @@ func (s *AttestationsTestSuite) TestVerifySignatures() {
 		{
 			name: "failure: duplicate signer",
 			setupProof: func(attestationData []byte) *attestations.AttestationProof {
-				hash := sha256.Sum256(attestationData)
+				hash := attestations.TaggedSigningInput(attestationData, attestations.AttestationTypeState)
 				sig1, _ := crypto.Sign(hash[:], s.attestors[0])
 				sig2, _ := crypto.Sign(hash[:], s.attestors[0])
 				return &attestations.AttestationProof{
@@ -114,7 +115,7 @@ func (s *AttestationsTestSuite) TestAddressCaseInsensitiveComparison() {
 	newTimestamp := uint64(2 * time.Second.Nanoseconds())
 	attestationData := s.createStateAttestation(newHeight, newTimestamp)
 
-	hash := sha256.Sum256(attestationData)
+	hash := attestations.TaggedSigningInput(attestationData, attestations.AttestationTypeState)
 	sig, err := crypto.Sign(hash[:], privKey)
 	s.Require().NoError(err)
 
@@ -125,4 +126,48 @@ func (s *AttestationsTestSuite) TestAddressCaseInsensitiveComparison() {
 
 	err = s.lightClientModule.VerifyClientMessage(ctx, clientID, proof)
 	s.Require().NoError(err)
+}
+
+func (s *AttestationsTestSuite) TestCrossDomainReplay() {
+	initialHeight := uint64(100)
+	initialTimestamp := uint64(time.Second.Nanoseconds())
+	clientID := testClientID
+	ctx := s.chainA.GetContext()
+
+	s.initializeClient(ctx, clientID, initialHeight, initialTimestamp)
+
+	newHeight := uint64(200)
+	newTimestamp := uint64(2 * time.Second.Nanoseconds())
+	attestationData := s.createStateAttestation(newHeight, newTimestamp)
+
+	// Sign as Packet, verify as State — must fail
+	packetProof := s.createAttestationProof(attestationData, []int{0, 1, 2}, attestations.AttestationTypePacket)
+	err := s.lightClientModule.VerifyClientMessage(ctx, clientID, packetProof)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "not in attestor set")
+
+	// Sign as State, verify as Packet (via membership) — must fail
+	hashedPath := crypto.Keccak256(bytes.Repeat([]byte{0x01}, 32))
+	value := bytes.Repeat([]byte{0xAB}, 32)
+	packetAttestation := s.createPacketAttestation(initialHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: value}})
+	stateSignedProof := s.createAttestationProof(packetAttestation, []int{0, 1, 2}, attestations.AttestationTypeState)
+	proofBz := s.marshalProof(stateSignedProof)
+
+	proofHeight := clienttypes.NewHeight(0, initialHeight)
+	path := commitmenttypesv2.NewMerklePath(bytes.Repeat([]byte{0x01}, 32))
+	err = s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, proofBz, path, value)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "not in attestor set")
+
+	// Sign as State, verify as Packet (via non-membership) — must fail
+	zeroCommitment := make([]byte, 32)
+	nonMemPath := bytes.Repeat([]byte{0x02}, 32)
+	hashedNonMemPath := crypto.Keccak256(nonMemPath)
+	nonMemPacketAttestation := s.createPacketAttestation(initialHeight, []attestations.PacketCompact{{Path: hashedNonMemPath, Commitment: zeroCommitment}})
+	stateSignedNonMemProof := s.createAttestationProof(nonMemPacketAttestation, []int{0, 1, 2}, attestations.AttestationTypeState)
+	nonMemProofBz := s.marshalProof(stateSignedNonMemProof)
+
+	err = s.lightClientModule.VerifyNonMembership(ctx, clientID, proofHeight, 0, 0, nonMemProofBz, commitmenttypesv2.NewMerklePath(nonMemPath))
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "not in attestor set")
 }

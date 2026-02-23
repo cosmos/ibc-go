@@ -9,16 +9,38 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
+// AttestationType distinguishes attestation types to prevent cross-protocol signature replay.
+type AttestationType byte
+
+const (
+	// AttestationTypeState is used for client update (state) attestations.
+	AttestationTypeState AttestationType = 0x01
+	// AttestationTypePacket is used for packet membership/non-membership attestations.
+	AttestationTypePacket AttestationType = 0x02
+)
+
 const (
 	// SignatureLength is the expected length of an ECDSA signature (r||s||v)
 	SignatureLength = 65
 	// recoveryIDIndex is the byte position of the recovery ID (v) in the signature
 	recoveryIDIndex = 64
+	// domainSeparatedPreimageLen is the length of the domain-separated signing preimage:
+	// 1-byte type tag + 32-byte SHA-256 hash.
+	domainSeparatedPreimageLen = 1 + sha256.Size
 )
 
+// TaggedSigningInput computes the domain-separated prehash: `sha256(type_tag || sha256(data))`.
+func TaggedSigningInput(data []byte, attestationType AttestationType) [32]byte {
+	innerHash := sha256.Sum256(data)
+	var tagged [domainSeparatedPreimageLen]byte
+	tagged[0] = byte(attestationType)
+	copy(tagged[1:], innerHash[:])
+	return sha256.Sum256(tagged[:])
+}
+
 // verifySignatures verifies that the attestation proof has valid signatures from unique attestors
-// meeting the quorum threshold. Signatures cover sha256(attestationData).
-func (cs *ClientState) verifySignatures(proof *AttestationProof) error {
+// meeting the quorum threshold. Signatures cover `sha256(type_tag || sha256(attestationData))`.
+func (cs *ClientState) verifySignatures(proof *AttestationProof, attestationType AttestationType) error {
 	if len(proof.Signatures) == 0 {
 		return errorsmod.Wrap(ErrInvalidSignature, "signatures cannot be empty")
 	}
@@ -28,7 +50,7 @@ func (cs *ClientState) verifySignatures(proof *AttestationProof) error {
 		attestorSet[common.HexToAddress(addr)] = true
 	}
 
-	hash := sha256.Sum256(proof.AttestationData)
+	hash := TaggedSigningInput(proof.AttestationData, attestationType)
 	seenSigners := make(map[common.Address]bool)
 
 	for i, sig := range proof.Signatures {
