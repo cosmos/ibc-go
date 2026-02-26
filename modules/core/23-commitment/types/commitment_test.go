@@ -6,7 +6,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	"cosmossdk.io/store/iavl"
 	"cosmossdk.io/store/metrics"
 	"cosmossdk.io/store/rootmulti"

@@ -9,7 +9,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	"cosmossdk.io/store/iavl"
 	"cosmossdk.io/store/metrics"
 	"cosmossdk.io/store/rootmulti"
