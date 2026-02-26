@@ -150,7 +150,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 }
 ```
 
-If no custom athentication module is needed and a generic Cosmos SDK authentication module can be used, then from the sample integration code above all references to `ICAAuthKeeper` and `icaAuthModule` can be removed. That's it, the following code would not be needed:
+If no custom authentication module is needed and a generic Cosmos SDK authentication module can be used, then from the sample integration code above all references to `ICAAuthKeeper` and `icaAuthModule` can be removed. That's it, the following code would not be needed:
 
 ```go
 // Create your Interchain Accounts authentication module

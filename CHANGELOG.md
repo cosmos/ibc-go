@@ -37,12 +37,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased]
 
 ### Features
+
 * [\#8573](https://github.com/cosmos/ibc-go/pull/8573) Support custom address codecs in transfer, PFM, and rate limiting.
 * [\#8285](https://github.com/cosmos/ibc-go/pull/8285) Packet forward middleware.
 * [\#8545](https://github.com/cosmos/ibc-go/pull/8545) Support sending multiple payloads in the same packet for atomic payload execution.
 * [\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.
 
 ### Improvements
+
 * [\#8734](https://github.com/cosmos/ibc-go/pull/8734) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA.
 
 ### Dependencies
@@ -51,6 +53,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (light-clients/08-wasm)[\#8500](https://github.com/cosmos/ibc-go/pull/8500) Bump **github.com/prysmaticlabs/prysm/v5** to **github.com/OffchainLabs/prysm/v6@v6.0.4**
 
 ### API Breaking
+
 * (apps) [\#8476](https://github.com/cosmos/ibc-go/pull/8476) Remove `ParamSubspace` from all `Keeper` constructors
 * (light-clients/08-wasm) [\#8511](https://github.com/cosmos/ibc-go/pull/8511) Remove deprecated `Checksums` type
 * (core/02-client) [\#8516](https://github.com/cosmos/ibc-go/pull/8516) Remove deprecated `SubmitMisbehaviour` message handler
@@ -62,6 +65,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (core/02-client/v2) [\#8776](https://github.com/cosmos/ibc-go/issues/8776) Bound persisted counterparty merkle prefix size in `MsgRegisterCounterparty` to avoid durable state bloat.
+(apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
 
 ### Testing API
 
@@ -89,7 +93,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (core/api) [\#8303](https://github.com/cosmos/ibc-go/pull/8303) Prefix-based routing in IBCv2 Router
-- (apps/callbacks) [\#8353](https://github.com/cosmos/ibc-go/pull/8353) Add field in callbacks data for custom calldata
+* (apps/callbacks) [\#8353](https://github.com/cosmos/ibc-go/pull/8353) Add field in callbacks data for custom calldata
 
 ### Bug Fixes
 
