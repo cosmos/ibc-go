@@ -17,7 +17,7 @@ require (
 	cosmossdk.io/math v1.5.3
 	cosmossdk.io/store v1.10.0-rc.2.0.20260217205615-0d33c2463b76
 	cosmossdk.io/tools/confix v0.1.2
-	github.com/CosmWasm/wasmvm/v2 v2.2.5
+	github.com/CosmWasm/wasmvm/v2 v2.3.2
 	github.com/OffchainLabs/prysm/v6 v6.1.4
 	github.com/cometbft/cometbft v0.39.0-beta.2
 	github.com/cosmos/cosmos-db v1.1.3
