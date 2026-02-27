@@ -44,6 +44,10 @@ func (p GMPPacketData) ValidateBasic() error {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing sender address")
 	}
 	// receiver is allowed to be empty
+
+	if len(p.Sender) > MaximumSenderLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "sender address must not exceed %d bytes", MaximumSenderLength)
+	}
 	if len(p.Receiver) > MaximumReceiverLength {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "recipient address must not exceed %d bytes", MaximumReceiverLength)
 	}
