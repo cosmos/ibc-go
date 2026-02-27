@@ -102,7 +102,7 @@ func DeserializeCosmosTx(cdc codec.Codec, data []byte, encoding string) ([]sdk.M
 		if isEqual, err := equalJSON(data, reconstructedData); err != nil {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "cannot compare original and reconstructed JSON: %v", err)
 		} else if !isEqual {
-			return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "original and reconstructed JSON objects do not match, original: %s, reconstructed: %s", string(data), string(reconstructedData))
+			return nil, errorsmod.Wrap(ibcerrors.ErrInvalidType, "original and reconstructed JSON objects do not match")
 		}
 	default:
 		return nil, errorsmod.Wrapf(ErrInvalidCodec, "unsupported encoding format %s", encoding)

@@ -46,6 +46,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * [\#8734](https://github.com/cosmos/ibc-go/pull/8734) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA.
+* [\#8805](https://github.com/cosmos/ibc-go/pull/8805) Avoid event bloat by error message.
 
 ### Dependencies
 
