@@ -36,6 +36,9 @@ func (msg *MsgRegisterCounterparty) ValidateBasic() error {
 	if len(msg.CounterpartyMerklePrefix) == 0 {
 		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty messaging key cannot be empty")
 	}
+	if err := ValidateCounterpartyMerklePrefix(msg.CounterpartyMerklePrefix); err != nil {
+		return err
+	}
 	if err := host.ClientIdentifierValidator(msg.ClientId); err != nil {
 		return err
 	}

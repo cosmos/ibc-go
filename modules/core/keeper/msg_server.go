@@ -55,6 +55,10 @@ func (k *Keeper) CreateClient(goCtx context.Context, msg *clienttypes.MsgCreateC
 func (k *Keeper) RegisterCounterparty(goCtx context.Context, msg *clientv2types.MsgRegisterCounterparty) (*clientv2types.MsgRegisterCounterpartyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if err := clientv2types.ValidateCounterpartyMerklePrefix(msg.CounterpartyMerklePrefix); err != nil {
+		return nil, err
+	}
+
 	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
 	if !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
 		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected same signer as createClient submittor %s, got %s", creator, msg.Signer)

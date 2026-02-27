@@ -64,6 +64,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (core/02-client/v2) [\#8776](https://github.com/cosmos/ibc-go/issues/8776) Bound persisted counterparty merkle prefix size in `MsgRegisterCounterparty` to avoid durable state bloat.
 (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
 
 ### Testing API
