@@ -68,7 +68,7 @@ jobs:
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: digests-${{ matrix.os }} # If we end up running more builds on the same OS, we need to differentiate more here
           path: ${{ runner.temp }}/digests/*
