@@ -75,7 +75,7 @@ jobs:
           cd e2e
           make e2e-test test=${{ matrix.test-config.test }}
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: ${{ failure() }}
         continue-on-error: true
         with:
