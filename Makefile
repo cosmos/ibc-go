@@ -358,9 +358,9 @@ format:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=0.17.1
+protoVer=0.18.0
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
-protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
+protoImage=$(DOCKER) run --rm -e GOTOOLCHAIN=auto -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 
 #? proto-all: Format, lint and generate Protobuf files
 proto-all: proto-format proto-lint proto-gen

@@ -21,7 +21,7 @@ jobs:
       test-matrix: ${{ steps.set-test-matrix.outputs.test-matrix }}
     runs-on: depot-ubuntu-24.04-4
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: '3.10'
@@ -44,12 +44,12 @@ jobs:
       matrix: ${{ fromJSON(needs.load-test-matrix.outputs.test-matrix) }}
     steps:
       - name: Checkout the ibc-go repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.25'
+          go-version: '1.25.7'
           cache-dependency-path: 'e2e/go.sum'
       - name: Run e2e Test
         run: |
@@ -64,7 +64,7 @@ jobs:
           CHAIN_B_TAG: '${{ matrix.chain-b }}'
           RELAYER_ID: '${{ matrix.relayer-type }}'
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         # we only want to upload logs on test failures.
         if: ${{ failure() }}
         continue-on-error: true

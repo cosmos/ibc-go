@@ -39,9 +39,9 @@ slug: /apps/transfer/ics20-v1/events
 |-----------------------|-----------------|------------------|
 | fungible_token_packet | sender          | \{sender\}       |
 | fungible_token_packet | receiver        | \{receiver\}     |
-| fungible_token_packet | denom           | \{denom\}       |
-| fungible_token_packet | denom_hash      | \{denom_hash\}  |
-| fungible_token_packet | amount          | \{amount\}      |
+| fungible_token_packet | denom           | \{denom\}        |
+| fungible_token_packet | denom_hash      | \{denom_hash\}   |
+| fungible_token_packet | amount          | \{amount\}       |
 | fungible_token_packet | memo            | \{memo\}         |
 | fungible_token_packet | acknowledgement | \{ack.String()\} |
 | fungible_token_packet | success / error | \{ack.Response\} |

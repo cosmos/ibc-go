@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 
 	"cosmossdk.io/client/v2/autocli"
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 
 	"github.com/cosmos/cosmos-sdk/client"

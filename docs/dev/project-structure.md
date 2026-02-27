@@ -28,7 +28,7 @@ This folder contains implementations for the IBC TAO (`core`), IBC applications 
 - `06-solomachine`: This package implements the types for the Solo Machine light client specified in [ICS 06](https://github.com/cosmos/ibc/tree/main/spec/client/ics-006-solo-machine-client).
 - `07-tendermint`: This package implements the types for the Tendermint consensus light client as specified in [ICS 07](https://github.com/cosmos/ibc/tree/main/spec/client/ics-007-tendermint-client).
 - `08-wasm`: This package implements a proxy light client module that routes requests to the actual light clients uploaded as Wasm byte code, as specified in [ICS 08](https://github.com/cosmos/ibc/tree/main/spec/client/ics-008-wasm-client).
-- `09-localhost`: This package implements a localhost loopback client with the ability to send and receive IBC packets to and from the same state machine, as specified in [ICS 09](https://github.com/cosmos/ibc/tree/main/spec/client/ics-009-loopback-cilent).
+- `09-localhost`: This package implements a localhost loopback client with the ability to send and receive IBC packets to and from the same state machine, as specified in [ICS 09](https://github.com/cosmos/ibc/tree/main/spec/client/ics-009-loopback-client).
 
 ## `proto`
 

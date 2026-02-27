@@ -104,7 +104,7 @@ Modules may return to the IBC handler an acknowledgement which implements the `A
 The IBC handler will then commit this acknowledgement of the packet so that a relayer may relay the
 acknowledgement back to the sender module.
 
-The state changes that occurr during this callback could be:
+The state changes that occur during this callback could be:
 
 - the packet processing was successful as indicated by the `PacketStatus_Success` and an `Acknowledgement()` will be written
 - if the packet processing was unsuccessful as indicated by the `PacketStatus_Failure` and an `ackErr` will be written
@@ -307,7 +307,7 @@ payload := channeltypesv2.NewPayload(
 )
 ```
 
-It is also possible to define your own custom success acknowledgement which will be returned to the sender if the packet is successfully recieved and is returned in the `RecvPacketResult`. Note that if the packet processing fails, it is not possible to define a custom error acknowledgment, a constant ackErr is returned. 
+It is also possible to define your own custom success acknowledgement which will be returned to the sender if the packet is successfully received and is returned in the `RecvPacketResult`. Note that if the packet processing fails, it is not possible to define a custom error acknowledgement, a constant ackErr is returned. 
 
 ## Routing
 

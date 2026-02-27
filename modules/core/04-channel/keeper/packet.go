@@ -431,7 +431,7 @@ func (k *Keeper) AcknowledgePacket(
 		k.SetNextSequenceAck(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), nextSequenceAck)
 	}
 
-	// Delete packet commitment, since the packet has been acknowledged, the commitement is no longer necessary
+	// Delete packet commitment, since the packet has been acknowledged, the commitment is no longer necessary
 	k.deletePacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 
 	// log that a packet has been acknowledged

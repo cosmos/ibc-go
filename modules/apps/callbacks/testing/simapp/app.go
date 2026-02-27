@@ -12,12 +12,8 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cast"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	storetypes "cosmossdk.io/store/types"
-	"cosmossdk.io/x/tx/signing"
-	"cosmossdk.io/x/upgrade"
-	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -72,9 +68,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/cosmos/cosmos-sdk/x/tx/signing"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
+	gmp "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp"
+	gmpkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/keeper"
+	gmptypes "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
 	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
 	icacontroller "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller"
 	icacontrollerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"
@@ -96,6 +99,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
 	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
 )
 
@@ -150,6 +154,7 @@ type SimApp struct {
 	ICAControllerKeeper   *icacontrollerkeeper.Keeper
 	ICAHostKeeper         *icahostkeeper.Keeper
 	TransferKeeper        *ibctransferkeeper.Keeper
+	GMPKeeper             *gmpkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
 	// mock contract keeper used for testing
@@ -243,7 +248,7 @@ func NewSimApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey,
 		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
-		consensusparamtypes.StoreKey,
+		consensusparamtypes.StoreKey, gmptypes.StoreKey,
 	)
 
 	// register streaming services
@@ -320,8 +325,15 @@ func NewSimApp(
 		govConfig.MaxMetadataLen = 10000
 	*/
 	govKeeper := govkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(keys[govtypes.StoreKey]), app.AccountKeeper, app.BankKeeper,
-		app.StakingKeeper, app.DistrKeeper, app.MsgServiceRouter(), govConfig, authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		appCodec,
+		runtime.NewKVStoreService(keys[govtypes.StoreKey]),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.DistrKeeper,
+		app.MsgServiceRouter(),
+		govConfig,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		govkeeper.NewDefaultCalculateVoteResultsAndVotingPower(app.StakingKeeper),
 	)
 
 	app.GovKeeper = *govKeeper.SetHooks(
@@ -344,6 +356,15 @@ func NewSimApp(
 		app.IBCKeeper.ChannelKeeper,
 		app.AccountKeeper, app.MsgServiceRouter(),
 		app.GRPCQueryRouter(), authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	// GMP Keeper
+	app.GMPKeeper = gmpkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[gmptypes.StoreKey]),
+		app.AccountKeeper,
+		app.MsgServiceRouter(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// Create IBC Router
@@ -431,6 +452,10 @@ func NewSimApp(
 	cbTransferModulev2 := ibccallbacksv2.NewIBCMiddleware(transferv2.NewIBCModule(app.TransferKeeper), app.IBCKeeper.ChannelKeeperV2, app.MockContractKeeper, app.IBCKeeper.ChannelKeeperV2, maxCallbackGas)
 	ibcRouterV2.AddRoute(ibctransfertypes.PortID, cbTransferModulev2)
 
+	// add GMP module wrapped by callbacks v2 middleware
+	cbGMPModule := ibccallbacksv2.NewIBCMiddleware(gmp.NewIBCModule(app.GMPKeeper), app.IBCKeeper.ChannelKeeperV2, app.MockContractKeeper, app.IBCKeeper.ChannelKeeperV2, maxCallbackGas)
+	ibcRouterV2.AddRoute(gmptypes.PortID, cbGMPModule)
+
 	// Seal the IBC Router
 	app.IBCKeeper.SetRouter(ibcRouter)
 	app.IBCKeeper.SetRouterV2(ibcRouterV2)
@@ -443,6 +468,9 @@ func NewSimApp(
 
 	smLightClientModule := solomachine.NewLightClientModule(appCodec, storeProvider)
 	clientKeeper.AddRoute(solomachine.ModuleName, &smLightClientModule)
+
+	attestationsLightClientModule := attestations.NewLightClientModule(appCodec, storeProvider)
+	clientKeeper.AddRoute(attestations.ModuleName, &attestationsLightClientModule)
 
 	// ****  Module Options ****
 
@@ -468,11 +496,13 @@ func NewSimApp(
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(app.ICAControllerKeeper, app.ICAHostKeeper),
+		gmp.NewAppModule(app.GMPKeeper),
 		mockModule,
 
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
 		solomachine.NewAppModule(smLightClientModule),
+		attestations.NewAppModule(attestationsLightClientModule),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -507,6 +537,7 @@ func NewSimApp(
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		icatypes.ModuleName,
+		gmptypes.ModuleName,
 		ibcmock.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
@@ -516,6 +547,7 @@ func NewSimApp(
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		icatypes.ModuleName,
+		gmptypes.ModuleName,
 		ibcmock.ModuleName,
 		banktypes.ModuleName,
 	)
@@ -528,7 +560,7 @@ func NewSimApp(
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, ibctransfertypes.ModuleName,
-		icatypes.ModuleName, ibcmock.ModuleName, upgradetypes.ModuleName,
+		icatypes.ModuleName, gmptypes.ModuleName, ibcmock.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, consensusparamtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
@@ -776,7 +808,9 @@ func (app *SimApp) RegisterTendermintService(clientCtx client.Context) {
 }
 
 func (app *SimApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
-	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
+	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg, func() int64 {
+		return app.CommitMultiStore().EarliestVersion()
+	})
 }
 
 // GetMaccPerms returns a copy of the module account permissions

@@ -9,7 +9,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 
@@ -79,6 +79,12 @@ func (s *CallbacksTestSuite) SetupTransferTest() {
 	s.path.EndpointB.ChannelConfig.Version = transfertypes.V1
 
 	s.path.Setup()
+}
+
+// SetupGMPTest sets up a GMP test using IBC v2
+func (s *CallbacksTestSuite) SetupGMPTest() {
+	s.setupChains()
+	s.path.SetupV2()
 }
 
 // SetupICATest sets up an interchain accounts channel between chainA (controller) and chainB (host).

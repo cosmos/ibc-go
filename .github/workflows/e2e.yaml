@@ -19,7 +19,7 @@ jobs:
     outputs:
       simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -50,7 +50,7 @@ jobs:
       # To avoid having to push to the registry, making it possible for external contributors to run this
       - name: Save Docker image as artifact
         run: docker save $(echo ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.get-tag.outputs.simd-tag }} | cut -d',' -f1) | gzip > simd-image.tar.gz
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: simd-image
           path: simd-image.tar.gz
@@ -60,12 +60,12 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.25'
+          go-version: '1.25.7'
           cache-dependency-path: 'go.sum'
       - id: set-matrix
         run: |
@@ -83,16 +83,16 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.25'
+          go-version: '1.25.7'
           cache-dependency-path: 'e2e/go.sum'
 
       - name: Download image from docker build
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: simd-image
       - run: docker load -i simd-image.tar.gz
@@ -111,7 +111,7 @@ jobs:
           make e2e-test test=${{ matrix.test }}
 
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: ${{ failure() }}
         continue-on-error: true
         with:
