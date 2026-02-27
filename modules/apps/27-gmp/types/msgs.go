@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	MaximumSenderLength   = 2048  // maximum length of the receiver address in bytes (value chosen arbitrarily)
 	MaximumReceiverLength = 2048  // maximum length of the receiver address in bytes (value chosen arbitrarily)
 	MaximumMemoLength     = 32768 // maximum length of the memo in bytes (value chosen arbitrarily)
 	MaximumSaltLength     = 32    // maximum length of the salt in bytes (value chosen arbitrarily)
