@@ -8,8 +8,8 @@ import (
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 )
 
-// MaxMerklePrefixLength defines the maximum length of the counterparty prefix in bytes.
-const MaxMerklePrefixLength = 32
+// MaxMerklePrefixLength defines the maximum length of the counterparty prefix in bytes. (This is an arbitrarily chosen value)
+const MaxMerklePrefixLength = 256
 
 // NewConnectionEnd creates a new ConnectionEnd instance.
 func NewConnectionEnd(state State, clientID string, counterparty Counterparty, versions []*Version, delayPeriod uint64) ConnectionEnd {
