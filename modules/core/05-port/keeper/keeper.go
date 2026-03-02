@@ -3,7 +3,7 @@ package keeper
 import (
 	"strings"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

@@ -54,6 +54,11 @@ func TestGMPPacketData_ValidateBasic(t *testing.T) {
 			ibcerrors.ErrInvalidAddress,
 		},
 		{
+			"failure: sender too long",
+			types.NewGMPPacketData("cosmos1sender", ibctesting.GenerateString(types.MaximumSenderLength+1), []byte("salt"), []byte("payload"), "memo"),
+			ibcerrors.ErrInvalidAddress,
+		},
+		{
 			"failure: receiver too long",
 			types.NewGMPPacketData("cosmos1sender", ibctesting.GenerateString(types.MaximumReceiverLength+1), []byte("salt"), []byte("payload"), "memo"),
 			ibcerrors.ErrInvalidAddress,
