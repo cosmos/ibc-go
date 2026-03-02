@@ -35,7 +35,12 @@ var (
 	_ codectypes.UnpackInterfacesMessage = (*MsgIBCSoftwareUpgrade)(nil)
 )
 
-const MaxClientStateSize = 1024 // 1KB
+const (
+	// MaxClientStateSize is the maximum allowed size of the client state in bytes. (This is an arbitrarily chosen value)
+	MaxClientStateSize = 32768
+	// MaxConsensusStateSize is the maximum allowed size of the consensus state in bytes. (This is an arbitrarily chosen value)
+	MaxConsensusStateSize = 32768
+)
 
 // NewMsgCreateClient creates a new MsgCreateClient instance
 func NewMsgCreateClient(
@@ -74,6 +79,10 @@ func (msg MsgCreateClient) ValidateBasic() error {
 	}
 	if err := clientState.Validate(); err != nil {
 		return err
+	}
+	// validate the total size of consensus state
+	if len(msg.ConsensusState.Value) > MaxConsensusStateSize {
+		return errorsmod.Wrapf(ibcerrors.ErrTooLarge, "consensus state size %d exceeds max size %d", len(msg.ConsensusState.Value), MaxConsensusStateSize)
 	}
 	consensusState, err := UnpackConsensusState(msg.ConsensusState)
 	if err != nil {
