@@ -52,7 +52,9 @@ func (cs ConsensusState) ValidateBasic() error {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "root cannot be empty")
 	}
 	if err := cmttypes.ValidateHash(cs.Root.GetHash()); err != nil {
-		return errorsmod.Wrap(err, "root hash is invalid")
+		if string(cs.Root.GetHash()) != SentinelRoot {
+			return errorsmod.Wrap(err, "root hash is invalid")
+		}
 	}
 	if err := cmttypes.ValidateHash(cs.NextValidatorsHash); err != nil {
 		return errorsmod.Wrap(err, "next validators hash is invalid")
