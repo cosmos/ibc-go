@@ -35,6 +35,13 @@ var (
 	_ codectypes.UnpackInterfacesMessage = (*MsgIBCSoftwareUpgrade)(nil)
 )
 
+const (
+	// MaxClientStateSize is the maximum allowed size of the client state in bytes. (This is an arbitrarily chosen value)
+	MaxClientStateSize = 32768
+	// MaxConsensusStateSize is the maximum allowed size of the consensus state in bytes. (This is an arbitrarily chosen value)
+	MaxConsensusStateSize = 32768
+)
+
 // NewMsgCreateClient creates a new MsgCreateClient instance
 func NewMsgCreateClient(
 	clientState exported.ClientState, consensusState exported.ConsensusState, signer string,
@@ -62,12 +69,20 @@ func (msg MsgCreateClient) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
+	// validate the total size of client state
+	if len(msg.ClientState.Value) > MaxClientStateSize {
+		return errorsmod.Wrapf(ibcerrors.ErrTooLarge, "client state size %d exceeds max size %d", len(msg.ClientState.Value), MaxClientStateSize)
+	}
 	clientState, err := UnpackClientState(msg.ClientState)
 	if err != nil {
 		return err
 	}
 	if err := clientState.Validate(); err != nil {
 		return err
+	}
+	// validate the total size of consensus state
+	if len(msg.ConsensusState.Value) > MaxConsensusStateSize {
+		return errorsmod.Wrapf(ibcerrors.ErrTooLarge, "consensus state size %d exceeds max size %d", len(msg.ConsensusState.Value), MaxConsensusStateSize)
 	}
 	consensusState, err := UnpackConsensusState(msg.ConsensusState)
 	if err != nil {

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -97,7 +98,8 @@ func (s *KeeperTestSuite) SetupTest() {
 	s.signers = make(map[string]cmttypes.PrivValidator, 1)
 	s.signers[validator.Address.String()] = s.privVal
 
-	s.consensusState = ibctm.NewConsensusState(s.now, commitmenttypes.NewMerkleRoot([]byte("hash")), s.valSetHash)
+	appHash := sha256.Sum256([]byte("app_hash"))
+	s.consensusState = ibctm.NewConsensusState(s.now, commitmenttypes.NewMerkleRoot(appHash[:]), s.valSetHash)
 
 	var validators stakingtypes.Validators
 	for i := 1; i < 11; i++ {

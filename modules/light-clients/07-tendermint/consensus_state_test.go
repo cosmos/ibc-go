@@ -1,12 +1,15 @@
 package tendermint_test
 
 import (
+	"crypto/sha256"
 	"time"
 
 	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v10/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 )
+
+var validRoot = sha256.Sum256([]byte("app_hash"))
 
 func (s *TendermintTestSuite) TestConsensusStateValidateBasic() {
 	testCases := []struct {
@@ -18,7 +21,7 @@ func (s *TendermintTestSuite) TestConsensusStateValidateBasic() {
 			"success",
 			&ibctm.ConsensusState{
 				Timestamp:          s.now,
-				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
+				Root:               commitmenttypes.NewMerkleRoot(validRoot[:]),
 				NextValidatorsHash: s.valsHash,
 			},
 			true,
@@ -54,7 +57,7 @@ func (s *TendermintTestSuite) TestConsensusStateValidateBasic() {
 			"nextvalshash is invalid",
 			&ibctm.ConsensusState{
 				Timestamp:          s.now,
-				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
+				Root:               commitmenttypes.NewMerkleRoot(validRoot[:]),
 				NextValidatorsHash: []byte("hi"),
 			},
 			false,
@@ -64,7 +67,7 @@ func (s *TendermintTestSuite) TestConsensusStateValidateBasic() {
 			"timestamp is zero",
 			&ibctm.ConsensusState{
 				Timestamp:          time.Time{},
-				Root:               commitmenttypes.NewMerkleRoot([]byte("app_hash")),
+				Root:               commitmenttypes.NewMerkleRoot(validRoot[:]),
 				NextValidatorsHash: s.valsHash,
 			},
 			false,
