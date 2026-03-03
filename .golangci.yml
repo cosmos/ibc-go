@@ -92,6 +92,8 @@ linters:
           disabled: true
         - name: unused-parameter
           disabled: true
+        - name: package-directory-mismatch
+          disabled: true
   exclusions:
     generated: lax
     presets:
