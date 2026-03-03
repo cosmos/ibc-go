@@ -1,6 +1,10 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/collections"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -77,6 +81,21 @@ func (s *KeeperTestSuite) TestInitGenesis() {
 					)
 					s.Require().NoError(err)
 					s.Require().Equal(account.AccountAddress, storedAddr)
+					storedAccount, err := s.chainA.GetSimApp().GMPKeeper.Accounts.Get(
+						s.chainA.GetContext(),
+						collections.Join3(account.AccountId.ClientId, account.AccountId.Sender, account.AccountId.Salt),
+					)
+					s.Require().NoError(err)
+					s.Require().Equal(account.AccountAddress, storedAccount.Address)
+					addressFromMap, err := s.chainA.GetSimApp().GMPKeeper.AccountsByAddress.Get(
+						s.chainA.GetContext(),
+						sdk.MustAccAddressFromBech32(account.AccountAddress),
+					)
+					s.Require().NoError(err)
+					s.Require().Equal(account.AccountAddress, addressFromMap.Address)
+					s.Require().Equal(account.AccountId.ClientId, storedAccount.AccountId.ClientId)
+					s.Require().Equal(account.AccountId.Sender, storedAccount.AccountId.Sender)
+					s.Require().Equal(account.AccountId.Salt, storedAccount.AccountId.Salt)
 				}
 			} else {
 				s.Require().ErrorIs(err, tc.expErr)
