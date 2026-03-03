@@ -23,7 +23,7 @@ func (s *AttestationsTestSuite) TestVerifySignatures() {
 			setupProof: func(attestationData []byte) *attestations.AttestationProof {
 				return &attestations.AttestationProof{
 					AttestationData: attestationData,
-					Signatures:      [][]byte{bytes.Repeat([]byte{0x01}, 32)},
+					Signatures:      [][]byte{bytes.Repeat([]byte{0x01}, 32), bytes.Repeat([]byte{0x01}, 32), bytes.Repeat([]byte{0x01}, 32)},
 				}
 			},
 			errContains: "invalid length",
@@ -36,7 +36,7 @@ func (s *AttestationsTestSuite) TestVerifySignatures() {
 				unknownSig, _ := crypto.Sign(hash[:], unknownKey)
 				return &attestations.AttestationProof{
 					AttestationData: attestationData,
-					Signatures:      [][]byte{unknownSig},
+					Signatures:      [][]byte{unknownSig, bytes.Repeat([]byte{0x01}, 65), bytes.Repeat([]byte{0x01}, 65)},
 				}
 			},
 			errContains: "not in attestor set",
@@ -49,7 +49,7 @@ func (s *AttestationsTestSuite) TestVerifySignatures() {
 				sig2, _ := crypto.Sign(hash[:], s.attestors[0])
 				return &attestations.AttestationProof{
 					AttestationData: attestationData,
-					Signatures:      [][]byte{sig1, sig2},
+					Signatures:      [][]byte{sig1, sig2, bytes.Repeat([]byte{0x01}, 65)},
 				}
 			},
 			errContains: "duplicate signer",
@@ -63,6 +63,16 @@ func (s *AttestationsTestSuite) TestVerifySignatures() {
 				}
 			},
 			errContains: "signatures cannot be empty",
+		},
+		{
+			name: "failure: threshold not met",
+			setupProof: func(attestationData []byte) *attestations.AttestationProof {
+				return &attestations.AttestationProof{
+					AttestationData: attestationData,
+					Signatures:      [][]byte{bytes.Repeat([]byte{0x01}, 65)},
+				}
+			},
+			errContains: "quorum not met",
 		},
 	}
 

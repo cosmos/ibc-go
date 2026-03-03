@@ -44,6 +44,9 @@ func (cs *ClientState) verifySignatures(proof *AttestationProof, attestationType
 	if len(proof.Signatures) == 0 {
 		return errorsmod.Wrap(ErrInvalidSignature, "signatures cannot be empty")
 	}
+	if len(proof.Signatures) < int(cs.MinRequiredSigs) {
+		return errorsmod.Wrapf(ErrInvalidQuorum, "quorum not met: required %d, got %d", cs.MinRequiredSigs, len(proof.Signatures))
+	}
 
 	attestorSet := make(map[common.Address]bool)
 	for _, addr := range cs.AttestorAddresses {
