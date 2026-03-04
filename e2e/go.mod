@@ -3,12 +3,13 @@ module github.com/cosmos/ibc-go/e2e
 go 1.25.7
 
 replace (
-	// use local evm (feat/ibc-go-v11-local branch) for development
-	github.com/cosmos/evm => ../../evm
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 => ../modules/light-clients/08-wasm
-	// uncomment to use the local version of ibc-go, you will need to run `go mod tidy` in e2e directory.
-	github.com/cosmos/ibc-go/v11 => ../
-	github.com/cosmos/interchaintest/v11 v11.0.0-20260304174444-4c52d8962290 => ../../interchaintest
+	// use evm feat/ibc-go-v11-local branch (commit 621f68737f38)
+	github.com/cosmos/evm => github.com/cosmos/evm v0.0.0-20260304195338-621f68737f38
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 => github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304192043-6e7405454db7
+	// use ibc-go v11 branch (commit 6e7405454db7)
+	github.com/cosmos/ibc-go/v11 => github.com/cosmos/ibc-go/v11 v11.0.0-20260304192043-6e7405454db7
+	// use interchaintest (commit 4c52d8962290)
+	github.com/cosmos/interchaintest/v11 => github.com/cosmos/interchaintest/v11 v11.0.0-20260304174444-4c52d8962290
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
