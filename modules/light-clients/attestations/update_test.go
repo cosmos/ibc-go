@@ -3,6 +3,9 @@ package attestations_test
 import (
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 	"github.com/cosmos/ibc-go/v11/modules/light-clients/attestations"
 )
@@ -122,36 +125,84 @@ func (s *AttestationsTestSuite) TestVerifyClientMessageFrozenClient() {
 	s.Require().ErrorIs(err, attestations.ErrClientFrozen)
 }
 
-func (s *AttestationsTestSuite) TestUpdateStateOnMisbehaviourPanics() {
+func (s *AttestationsTestSuite) TestUpdateStateOnMisbehaviour() {
 	initialHeight := uint64(100)
 	initialTimestamp := uint64(time.Second.Nanoseconds())
 	clientID := testClientID
-	ctx := s.chainA.GetContext()
 
-	s.initializeClient(ctx, clientID, initialHeight, initialTimestamp)
+	testCases := []struct {
+		name       string
+		initialize bool
+		setup      func(ctx sdk.Context, clientID string) exported.ClientMessage
+		expPanic   string
+		assert     func(ctx sdk.Context, clientID string)
+	}{
+		{
+			name:       "freezes active client",
+			initialize: true,
+			setup: func(ctx sdk.Context, clientID string) exported.ClientMessage {
+				height := uint64(200)
+				timestamp := uint64(2 * time.Second.Nanoseconds())
+				attestationData := s.createStateAttestation(height, timestamp)
+				signers := []int{0, 1, 2}
+				proof := s.createAttestationProof(attestationData, signers, attestations.AttestationTypeState)
 
-	status := s.lightClientModule.Status(ctx, clientID)
-	s.Require().Equal(exported.Active, status)
+				err := s.lightClientModule.VerifyClientMessage(ctx, clientID, proof)
+				s.Require().NoError(err)
+				_ = s.lightClientModule.UpdateState(ctx, clientID, proof)
 
-	newHeight := uint64(200)
-	newTimestamp := uint64(2 * time.Second.Nanoseconds())
-	attestationData := s.createStateAttestation(newHeight, newTimestamp)
-	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(attestationData, signers, attestations.AttestationTypeState)
-
-	err := s.lightClientModule.VerifyClientMessage(ctx, clientID, proof)
-	s.Require().NoError(err)
-	_ = s.lightClientModule.UpdateState(ctx, clientID, proof)
-
-	conflictingTimestamp := uint64(3 * time.Second.Nanoseconds())
-	conflictingAttestationData := s.createStateAttestation(newHeight, conflictingTimestamp)
-	conflictingProof := s.createAttestationProof(conflictingAttestationData, signers, attestations.AttestationTypeState)
-
-	updateStateOnMisbehaviourFunc := func() {
-		s.lightClientModule.UpdateStateOnMisbehaviour(ctx, clientID, conflictingProof)
+				conflictingData := s.createStateAttestation(height, uint64(3*time.Second.Nanoseconds()))
+				return s.createAttestationProof(conflictingData, signers, attestations.AttestationTypeState)
+			},
+			assert: func(ctx sdk.Context, clientID string) {
+				status := s.lightClientModule.Status(ctx, clientID)
+				s.Require().Equal(exported.Frozen, status)
+			},
+		},
+		{
+			name:       "panic when client not found",
+			initialize: false,
+			setup: func(_ sdk.Context, _ string) exported.ClientMessage {
+				return nil
+			},
+			expPanic: clienttypes.ErrClientNotFound.Wrap(clientID).Error(),
+		},
 	}
-	s.Require().PanicsWithError("updateStateOnMisbehaviour is not supported: invalid request", updateStateOnMisbehaviourFunc)
 
-	status = s.lightClientModule.Status(ctx, clientID)
-	s.Require().Equal(exported.Active, status)
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			ctx := s.chainA.GetContext()
+			if tc.initialize {
+				s.initializeClient(ctx, clientID, initialHeight, initialTimestamp)
+			}
+
+			clientMsg := tc.setup(ctx, clientID)
+
+			if tc.expPanic != "" {
+				var panicVal any
+				panicFunc := func() {
+					defer func() {
+						if r := recover(); r != nil {
+							panicVal = r
+							panic(r)
+						}
+					}()
+					s.lightClientModule.UpdateStateOnMisbehaviour(ctx, clientID, clientMsg)
+				}
+
+				s.Require().Panics(panicFunc)
+				err, ok := panicVal.(error)
+				s.Require().True(ok)
+				s.Require().ErrorContains(err, tc.expPanic)
+				return
+			}
+
+			s.lightClientModule.UpdateStateOnMisbehaviour(ctx, clientID, clientMsg)
+			if tc.assert != nil {
+				tc.assert(ctx, clientID)
+			}
+		})
+	}
 }
