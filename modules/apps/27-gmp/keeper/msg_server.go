@@ -64,6 +64,9 @@ func (k *Keeper) sendPacket(ctx sdk.Context, encoding, sourceClient string, time
 	if err != nil {
 		return 0, err
 	}
+	if len(res.MsgResponses) != 1 {
+		return 0, errorsmod.Wrapf(ibcerrors.ErrLogic, "expected exactly one Msg response, got %d", len(res.MsgResponses))
+	}
 
 	// NOTE: The sdk msg handler creates a new EventManager, so events must be correctly propagated back to the current context
 	ctx.EventManager().EmitEvents(res.GetEvents())
