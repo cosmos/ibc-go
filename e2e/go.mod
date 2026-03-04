@@ -3,13 +3,6 @@ module github.com/cosmos/ibc-go/e2e
 go 1.25.7
 
 replace (
-	// use evm feat/ibc-go-v11-local branch (commit 621f68737f38)
-	github.com/cosmos/evm => github.com/cosmos/evm v0.0.0-20260304195338-621f68737f38
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 => github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304192043-6e7405454db7
-	// use ibc-go v11 branch (commit 6e7405454db7)
-	github.com/cosmos/ibc-go/v11 => github.com/cosmos/ibc-go/v11 v11.0.0-20260304192043-6e7405454db7
-	// use interchaintest (commit 4c52d8962290)
-	github.com/cosmos/interchaintest/v11 => github.com/cosmos/interchaintest/v11 v11.0.0-20260304174444-4c52d8962290
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
@@ -21,8 +14,8 @@ require (
 	github.com/cometbft/cometbft v0.39.0-beta.2.0.20260224200643-e10492fb96af
 	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260304151650-0da9e85a3129
 	github.com/cosmos/gogoproto v1.7.2
-	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0
-	github.com/cosmos/ibc-go/v11 v11.0.0
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304192043-6e7405454db7
+	github.com/cosmos/ibc-go/v11 v11.0.0-20260304192043-6e7405454db7
 	github.com/cosmos/interchaintest/v11 v11.0.0-20260304174444-4c52d8962290
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/ethereum/go-ethereum v1.16.8
@@ -116,7 +109,7 @@ require (
 	github.com/cosmos/btree v1.0.0 // indirect
 	github.com/cosmos/cosmos-db v1.1.3 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
-	github.com/cosmos/evm v0.5.1 // indirect
+	github.com/cosmos/evm v0.0.0-20260304204501-3451d4436d05 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.2.6 // indirect
