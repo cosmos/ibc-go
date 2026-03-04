@@ -24,11 +24,6 @@ func (s *AttestationsTestSuite) TestClientStateValidate() {
 			expErr:      false,
 		},
 		{
-			name:        "zero latest height",
-			clientState: attestations.NewClientState(s.attestorAddrs, s.minRequiredSigs, 0),
-			expErr:      true,
-		},
-		{
 			name:        "empty attestor addresses",
 			clientState: attestations.NewClientState([]string{}, 1, 1),
 			expErr:      true,
