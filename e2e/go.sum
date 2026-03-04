@@ -293,12 +293,8 @@ github.com/cosmos/gogoproto v1.7.2 h1:5G25McIraOC0mRFv9TVO139Uh3OklV2hczr13KKVHC
 github.com/cosmos/gogoproto v1.7.2/go.mod h1:8S7w53P1Y1cHwND64o0BnArT6RmdgIvsBuco6uTllsk=
 github.com/cosmos/iavl v1.2.6 h1:Hs3LndJbkIB+rEvToKJFXZvKo6Vy0Ex1SJ54hhtioIs=
 github.com/cosmos/iavl v1.2.6/go.mod h1:GiM43q0pB+uG53mLxLDzimxM9l/5N9UuSY3/D0huuVw=
-github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381 h1:M+gNn72xPk42PPPI5qNVhXMLLB7HbJPlDyYL8BUOMNM=
-github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381/go.mod h1:Oik0lCoXn0zxEFtRXTl+CpKrJMp8dYek/IuXLoSJIXU=
 github.com/cosmos/ibc-go/v10 v10.0.0-beta.0.0.20260304133652-f0732e3fc19f h1:MlgQDzuvjiOet/XNWHc13nOsN7UVRwlHvsa8kMEiBO0=
 github.com/cosmos/ibc-go/v10 v10.0.0-beta.0.0.20260304133652-f0732e3fc19f/go.mod h1:LZWehBdi/HWAEzCsWjnnDey7KVG+yx74OzO63tmxXxk=
-github.com/cosmos/ibc-go/v11 v11.0.0-20260304204640-9f835275a381 h1:lox+9nUCFiu5izAOey51yNSZgSiTZ6lG35iWEnaRdfs=
-github.com/cosmos/ibc-go/v11 v11.0.0-20260304204640-9f835275a381/go.mod h1:DDJMTMLsBBLEblgk0gbW5IlDmqrB8BBAy99/sbNG6fk=
 github.com/cosmos/ics23/go v0.11.0 h1:jk5skjT0TqX5e5QJbEnwXIS2yI2vnmLOgpQPeM5RtnU=
 github.com/cosmos/ics23/go v0.11.0/go.mod h1:A8OjxPE67hHST4Icw94hOxxFEJMBG031xIGF/JHNIY0=
 github.com/cosmos/interchaintest/v11 v11.0.0-20260304174444-4c52d8962290 h1:YmUb1jcqscXgNG9/XwPVeKB+hyID9rCDiWaZd/Pxq+0=

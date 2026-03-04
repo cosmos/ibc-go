@@ -3,6 +3,9 @@ module github.com/cosmos/ibc-go/e2e
 go 1.25.7
 
 replace (
+	// use local ibc-go for development
+	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 => ../modules/light-clients/08-wasm
+	github.com/cosmos/ibc-go/v11 => ../
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
