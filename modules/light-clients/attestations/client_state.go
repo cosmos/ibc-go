@@ -64,10 +64,6 @@ func (cs ClientState) Validate() error {
 		seen[normalizedAddr] = true
 	}
 
-	if cs.LatestHeight == 0 {
-		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "latest height must be greater than 0")
-	}
-
 	return nil
 }
 
