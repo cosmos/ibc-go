@@ -1,6 +1,6 @@
 package keeper_test
 
-import "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
+import "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 
 func (s *KeeperTestSuite) TestGenesis() {
 	sampleInflight := types.InFlightPacket{

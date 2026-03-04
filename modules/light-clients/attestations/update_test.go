@@ -3,8 +3,8 @@ package attestations_test
 import (
 	"time"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
-	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/cosmos/ibc-go/v11/modules/light-clients/attestations"
 )
 
 func (s *AttestationsTestSuite) TestUpdateState() {

@@ -1,9 +1,9 @@
-module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10
+module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11
 
 go 1.25.7
 
 replace (
-	github.com/cosmos/ibc-go/v10 => ../../../
+	github.com/cosmos/ibc-go/v11 => ../../../
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
 
@@ -23,7 +23,7 @@ require (
 	github.com/cosmos/cosmos-db v1.1.3
 	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260217205615-0d33c2463b76
 	github.com/cosmos/gogoproto v1.7.2
-	github.com/cosmos/ibc-go/v10 v10.3.0
+	github.com/cosmos/ibc-go/v11 v11.0.0
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cast v1.10.0

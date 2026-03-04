@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec/unknownproto"
 
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 )
 
 // NewAcknowledgement creates a new Acknowledgement

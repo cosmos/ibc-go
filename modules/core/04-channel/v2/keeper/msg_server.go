@@ -9,10 +9,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	internalerrors "github.com/cosmos/ibc-go/v10/modules/core/internal/errors"
-	"github.com/cosmos/ibc-go/v10/modules/core/internal/v2/telemetry"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	internalerrors "github.com/cosmos/ibc-go/v11/modules/core/internal/errors"
+	"github.com/cosmos/ibc-go/v11/modules/core/internal/v2/telemetry"
 )
 
 var _ types.MsgServer = &Keeper{}
