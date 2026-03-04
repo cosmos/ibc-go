@@ -2,6 +2,7 @@ package attestations_test
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"testing"
 	"time"
 
@@ -231,17 +232,111 @@ func (s *AttestationsTestSuite) TestVerifyUpgradeAndUpdateStateNotSupported() {
 	s.Require().ErrorContains(err, "cannot upgrade attestations client")
 }
 
-func (s *AttestationsTestSuite) TestCheckForMisbehaviourReturnsFalse() {
-	initialHeight := uint64(100)
-	initialTimestamp := uint64(time.Second.Nanoseconds())
+func (s *AttestationsTestSuite) TestCheckForMisbehaviour() {
+	invalidAttestationData := []byte("invalid-attestation")
+	_, decodeErr := attestations.ABIDecodeStateAttestation(invalidAttestationData)
+	s.Require().Error(decodeErr)
+	expectedDecodePanic := fmt.Sprintf("failed to ABI decode attestation data: %v", decodeErr)
 
-	ctx := s.chainA.GetContext()
-	s.initializeClient(ctx, testClientID, initialHeight, initialTimestamp)
+	testCases := []struct {
+		name            string
+		setup           func(ctx sdk.Context, clientID string) exported.ClientMessage
+		expPanic        string
+		expMisbehaviour bool
+	}{
+		{
+			name: "conflicting timestamp at existing height returns true",
+			setup: func(ctx sdk.Context, clientID string) exported.ClientMessage {
+				height := uint64(200)
+				timestamp := uint64(2 * time.Second.Nanoseconds())
+				attestationData := s.createStateAttestation(height, timestamp)
+				proof := s.createAttestationProof(attestationData, []int{0, 1, 2}, attestations.AttestationTypeState)
 
-	stateAttestation := s.createStateAttestation(initialHeight+1, initialTimestamp+uint64(time.Second.Nanoseconds()))
-	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(stateAttestation, signers, attestations.AttestationTypeState)
+				err := s.lightClientModule.VerifyClientMessage(ctx, clientID, proof)
+				s.Require().NoError(err)
+				_ = s.lightClientModule.UpdateState(ctx, clientID, proof)
 
-	foundMisbehaviour := s.lightClientModule.CheckForMisbehaviour(ctx, testClientID, proof)
-	s.Require().False(foundMisbehaviour, "CheckForMisbehaviour should return false")
+				conflictingTimestamp := uint64(3 * time.Second.Nanoseconds())
+				conflictingData := s.createStateAttestation(height, conflictingTimestamp)
+				return s.createAttestationProof(conflictingData, []int{0, 1, 2}, attestations.AttestationTypeState)
+			},
+			expMisbehaviour: true,
+		},
+		{
+			name: "matching timestamp returns false",
+			setup: func(ctx sdk.Context, clientID string) exported.ClientMessage {
+				height := uint64(200)
+				timestamp := uint64(2 * time.Second.Nanoseconds())
+				attestationData := s.createStateAttestation(height, timestamp)
+				proof := s.createAttestationProof(attestationData, []int{0, 1, 2}, attestations.AttestationTypeState)
+
+				err := s.lightClientModule.VerifyClientMessage(ctx, clientID, proof)
+				s.Require().NoError(err)
+				_ = s.lightClientModule.UpdateState(ctx, clientID, proof)
+
+				matchingData := s.createStateAttestation(height, timestamp)
+				return s.createAttestationProof(matchingData, []int{0, 1, 2}, attestations.AttestationTypeState)
+			},
+			expMisbehaviour: false,
+		},
+		{
+			name: "consensus state not found returns false",
+			setup: func(_ sdk.Context, _ string) exported.ClientMessage {
+				attestationData := s.createStateAttestation(uint64(250), uint64(2*time.Second.Nanoseconds()))
+				return s.createAttestationProof(attestationData, []int{0, 1, 2}, attestations.AttestationTypeState)
+			},
+			expMisbehaviour: false,
+		},
+		{
+			name: "panic on non attestation proof message",
+			setup: func(_ sdk.Context, _ string) exported.ClientMessage {
+				return mockClientMessage{}
+			},
+			expPanic: fmt.Sprintf("expected type %T, got type %T", (*attestations.AttestationProof)(nil), mockClientMessage{}),
+		},
+		{
+			name: "panic on invalid attestation data",
+			setup: func(_ sdk.Context, _ string) exported.ClientMessage {
+				return &attestations.AttestationProof{AttestationData: invalidAttestationData}
+			},
+			expPanic: expectedDecodePanic,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			ctx := s.chainA.GetContext()
+			clientID := testClientID
+			initialHeight := uint64(100)
+			initialTimestamp := uint64(time.Second.Nanoseconds())
+
+			s.initializeClient(ctx, clientID, initialHeight, initialTimestamp)
+
+			clientMsg := tc.setup(ctx, clientID)
+
+			if tc.expPanic != "" {
+				s.Require().PanicsWithValue(tc.expPanic, func() {
+					s.lightClientModule.CheckForMisbehaviour(ctx, clientID, clientMsg)
+				})
+				return
+			}
+
+			misbehaviourDetected := s.lightClientModule.CheckForMisbehaviour(ctx, clientID, clientMsg)
+			s.Require().Equal(tc.expMisbehaviour, misbehaviourDetected)
+		})
+	}
 }
+
+type mockClientMessage struct{}
+
+func (mockClientMessage) Reset() {}
+
+func (mockClientMessage) String() string { return "mock" }
+
+func (mockClientMessage) ProtoMessage() {}
+
+func (mockClientMessage) ClientType() string { return "mock" }
+
+func (mockClientMessage) ValidateBasic() error { return nil }

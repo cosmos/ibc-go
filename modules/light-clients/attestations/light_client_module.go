@@ -1,6 +1,8 @@
 package attestations
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -72,8 +74,23 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 }
 
 // CheckForMisbehaviour returns false since the attestations client does not support misbehaviour detection.
-func (LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
-	return false
+func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+	attestationProof, ok := clientMsg.(*AttestationProof)
+	if !ok {
+		panic(fmt.Sprintf("expected type %T, got type %T", (*AttestationProof)(nil), clientMsg))
+	}
+
+	stateAttestation, err := ABIDecodeStateAttestation(attestationProof.AttestationData)
+	if err != nil {
+		panic(fmt.Sprintf("failed to ABI decode attestation data: %v", err))
+	}
+
+	consensusState, found := getConsensusState(l.storeProvider.ClientStore(ctx, clientID), l.cdc, clienttypes.NewHeight(0, stateAttestation.Height))
+	if !found {
+		return false
+	}
+
+	return consensusState.Timestamp != stateAttestation.Timestamp
 }
 
 // UpdateStateOnMisbehaviour is not supported in this version.
