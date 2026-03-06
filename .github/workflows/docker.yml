@@ -41,7 +41,7 @@ jobs:
         echo "full_tag=${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}:branch-${SANITIZED}" >> "$GITHUB_OUTPUT"
 
     - name: Build Docker image
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       with:
         context: .
         tags: ${{ steps.meta.outputs.tags }}
@@ -59,7 +59,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Push Docker image
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       with:
         context: .
         push: true
