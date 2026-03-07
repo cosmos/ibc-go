@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
 type action struct {

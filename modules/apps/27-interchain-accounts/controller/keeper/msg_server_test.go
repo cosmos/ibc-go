@@ -8,13 +8,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 func (s *KeeperTestSuite) TestRegisterInterchainAccount_MsgServer() {

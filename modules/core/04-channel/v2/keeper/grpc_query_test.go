@@ -8,9 +8,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 func (s *KeeperTestSuite) TestQueryPacketCommitment() {

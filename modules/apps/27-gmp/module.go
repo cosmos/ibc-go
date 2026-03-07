@@ -16,8 +16,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
 )
 
 var (

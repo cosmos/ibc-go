@@ -1,11 +1,11 @@
 package keeper_test
 
 import (
-	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 func (s *KeeperTestSuite) TestOnChanOpenInit() {

@@ -10,11 +10,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
-	conntypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	"github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
+	conntypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 var (

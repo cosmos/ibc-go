@@ -7,9 +7,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
-	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types/v2"
+	"github.com/cosmos/ibc-go/v11/modules/light-clients/attestations"
 )
 
 func (s *AttestationsTestSuite) TestClientStateValidate() {

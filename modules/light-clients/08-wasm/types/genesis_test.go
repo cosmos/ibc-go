@@ -3,7 +3,7 @@ package types_test
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
 )
 
 func (s *TypesTestSuite) TestValidateGenesis() {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
 )
 
 func TestEncodeDecodeABIGMPPacketData(t *testing.T) {

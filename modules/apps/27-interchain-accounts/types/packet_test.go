@@ -3,8 +3,8 @@ package types_test
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 func (s *TypesTestSuite) TestValidateBasic() {

@@ -16,13 +16,13 @@ import (
 
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
-	pfmtypes "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
+	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
+	pfmtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
+	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
 )
 
 type KeeperTestSuite struct {

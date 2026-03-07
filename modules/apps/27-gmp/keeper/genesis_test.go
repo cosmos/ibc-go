@@ -5,9 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 const invalid = "invalid"

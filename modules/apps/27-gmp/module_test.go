@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	gmp "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp"
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	gmp "github.com/cosmos/ibc-go/v11/modules/apps/27-gmp"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 type AppModuleTestSuite struct {

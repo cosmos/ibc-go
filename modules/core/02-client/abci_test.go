@@ -11,10 +11,10 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	client "github.com/cosmos/ibc-go/v10/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	client "github.com/cosmos/ibc-go/v11/modules/core/02-client"
+	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 type ClientTestSuite struct {

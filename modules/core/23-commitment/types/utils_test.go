@@ -7,7 +7,7 @@ import (
 
 	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
 )
 
 func (s *MerkleTestSuite) TestConvertProofs() {

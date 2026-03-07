@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
 // Adds a denom to a blacklist to prevent all IBC transfers with that denom

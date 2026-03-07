@@ -9,9 +9,9 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
 )
 
 func (s *KeeperTestSuite) TestSnapshotter() {

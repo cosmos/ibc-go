@@ -10,7 +10,7 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
 )
 
 const DefaultGasUsed = uint64(1)

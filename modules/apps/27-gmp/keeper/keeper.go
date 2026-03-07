@@ -12,8 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 // Keeper defines the IBC fungible transfer keeper
