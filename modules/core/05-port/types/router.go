@@ -74,6 +74,7 @@ func (rtr *Router) Keys() []string {
 		keys = append(keys, k)
 	}
 
+	//nolint:revive // TODO: replace sort.Strings with slices.Sort
 	sort.Strings(keys)
 	return keys
 }

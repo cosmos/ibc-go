@@ -137,6 +137,7 @@ func (d Denoms) Swap(i, j int) { d[i], d[j] = d[j], d[i] }
 
 // Sort is a helper function to sort the set of denomination in-place
 func (d Denoms) Sort() Denoms {
+	//nolint:revive // TODO: replace sort.Sort with slices.SortFunc
 	sort.Sort(d)
 	return d
 }

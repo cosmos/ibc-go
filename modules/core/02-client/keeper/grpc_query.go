@@ -105,6 +105,7 @@ func (q *queryServer) ClientStates(goCtx context.Context, req *types.QueryClient
 		return nil, err
 	}
 
+	//nolint:revive // TODO: replace sort.Sort with slices.SortFunc
 	sort.Sort(clientStates)
 
 	return &types.QueryClientStatesResponse{

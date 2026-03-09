@@ -94,6 +94,8 @@ linters:
           disabled: true
         - name: package-directory-mismatch
           disabled: true
+        - name: package-naming
+          disabled: true
   exclusions:
     generated: lax
     presets:

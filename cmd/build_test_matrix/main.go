@@ -144,6 +144,7 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite stri
 	}
 
 	// Sort the test cases by name so that the order is consistent.
+	//nolint:revive // TODO: replace sort.SliceStable with slices.SortStableFunc
 	sort.SliceStable(gh.Include, func(i, j int) bool {
 		return gh.Include[i].Test < gh.Include[j].Test
 	})

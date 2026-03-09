@@ -462,6 +462,7 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc
 
 	// We sort by address as GetValidatorSetByHeight also sorts by address. When iterating over them, the index
 	// will correspond to the correct ibcmock.PV.
+	//nolint:revive // TODO: replace sort.SliceStable with slices.SortStableFunc
 	sort.SliceStable(filePvs, func(i, j int) bool {
 		return filePvs[i].Address.String() < filePvs[j].Address.String()
 	})

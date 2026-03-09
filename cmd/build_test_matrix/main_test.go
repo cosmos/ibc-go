@@ -142,6 +142,7 @@ func assertGithubActionTestMatricesEqual(t *testing.T, expected, actual GithubAc
 	t.Helper()
 	// sort by both suite and test as the order of the end result does not matter as
 	// all tests will be run.
+	//nolint:revive // TODO: replace sort.SliceStable with slices.SortStableFunc
 	sort.SliceStable(expected.Include, func(i, j int) bool {
 		memberI := expected.Include[i]
 		memberJ := expected.Include[j]
@@ -151,6 +152,7 @@ func assertGithubActionTestMatricesEqual(t *testing.T, expected, actual GithubAc
 		return memberI.EntryPoint < memberJ.EntryPoint
 	})
 
+	//nolint:revive // TODO: replace sort.SliceStable with slices.SortStableFunc
 	sort.SliceStable(actual.Include, func(i, j int) bool {
 		memberI := actual.Include[i]
 		memberJ := actual.Include[j]

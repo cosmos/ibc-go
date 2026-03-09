@@ -60,6 +60,7 @@ func (ics IdentifiedClientStates) Swap(i, j int) { ics[i], ics[j] = ics[j], ics[
 
 // Sort is a helper function to sort the set of IdentifiedClientStates in place
 func (ics IdentifiedClientStates) Sort() IdentifiedClientStates {
+	//nolint:revive // TODO: replace sort.Sort with slices.SortFunc
 	sort.Sort(ics)
 	return ics
 }

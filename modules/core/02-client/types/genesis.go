@@ -35,6 +35,7 @@ func (ccs ClientsConsensusStates) Swap(i, j int) { ccs[i], ccs[j] = ccs[j], ccs[
 
 // Sort is a helper function to sort the set of ClientsConsensusStates in place
 func (ccs ClientsConsensusStates) Sort() ClientsConsensusStates {
+	//nolint:revive // TODO: replace sort.Sort with slices.SortFunc
 	sort.Sort(ccs)
 	return ccs
 }

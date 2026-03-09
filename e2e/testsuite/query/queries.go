@@ -93,6 +93,7 @@ func GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64
 		return nil, err
 	}
 
+	//nolint:revive // TODO: replace sort.SliceStable with slices.SortStableFunc
 	sort.SliceStable(res.Validators, func(i, j int) bool {
 		return res.Validators[i].Address < res.Validators[j].Address
 	})
