@@ -54,7 +54,7 @@ jobs:
       
       - name: Build and push
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           platforms: ${{ matrix.platform }}
           file: modules/light-clients/08-wasm/Dockerfile
