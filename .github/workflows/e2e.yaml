@@ -39,7 +39,7 @@ jobs:
           fi
 
       - name: Build Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.get-tag.outputs.simd-tag }}
